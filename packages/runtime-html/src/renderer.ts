@@ -1,4 +1,3 @@
-import { Metadata } from '@aurelia/metadata';
 import { Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
@@ -18,7 +17,7 @@ import { InterpolationBinding, InterpolationPartBinding, ContentBinding } from '
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { Listener } from './binding/listener';
+import { Listener, ListenerOptions } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
@@ -28,9 +27,8 @@ import { Controller, ICustomElementController, ICustomElementViewModel, IControl
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
-import { defineMetadata, getOwnMetadata } from './shared';
 import { AttrSyntax } from './resources/attribute-pattern';
-import { isString } from './utilities';
+import { defineProp, isString } from './utilities';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -354,11 +352,11 @@ export interface ICompliationInstruction {
 }
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
-  instructionType: TType;
+  target: TType;
 }
 export interface IRenderer<
   TType extends InstructionTypeName = InstructionTypeName
-> extends Partial<IInstructionTypeClassifier<TType>> {
+> extends IInstructionTypeClassifier<TType> {
   render(
     /**
      * The controller that is current invoking this renderer
@@ -378,28 +376,14 @@ type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(targe
 
 export function renderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
-    // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
-    const decoratedTarget = function (...args: unknown[]): TProto {
-      const instance = new target(...args);
-      instance.instructionType = instructionType;
-      return instance;
-    } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;
-    // make sure we register the decorated constructor with DI
-    decoratedTarget.register = function register(container: IContainer): void {
-      Registration.singleton(IRenderer, decoratedTarget).register(container);
+    target.register = function register(container: IContainer): void {
+      Registration.singleton(IRenderer, this).register(container);
     };
-    // copy over any metadata such as annotations (set by preceding decorators) as well as static properties set by the user
-    // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
-    // the length (number of ctor arguments) is copied for the same reason
-    const metadataKeys = Metadata.getOwnKeys(target);
-    for (const key of metadataKeys) {
-      defineMetadata(key, getOwnMetadata(key, target), decoratedTarget);
-    }
-    const ownProperties = Object.getOwnPropertyDescriptors(target);
-    Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
-      Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
+    defineProp(target.prototype, 'target', {
+      configurable: true,
+      get: function () { return instructionType; }
     });
-    return decoratedTarget;
+    return target as DecoratedInstructionRenderer<TType, TProto, TClass>;
   };
 }
 
@@ -454,6 +438,8 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 @renderer(InstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IRenderer {
+  public target!: InstructionType.setProperty;
+
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -474,6 +460,8 @@ export class CustomElementRenderer implements IRenderer {
   /** @internal */ protected static get inject(): unknown[] { return [IRendering, IPlatform]; }
   /** @internal */ private readonly _rendering: IRendering;
   /** @internal */ private readonly _platform: IPlatform;
+
+  public target!: InstructionType.hydrateElement;
 
   public constructor(rendering: IRendering, platform: IPlatform) {
     this._rendering = rendering;
@@ -557,6 +545,8 @@ export class CustomAttributeRenderer implements IRenderer {
   /** @internal */ private readonly _rendering: IRendering;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.hydrateAttribute;
+
   public constructor(rendering: IRendering, platform: IPlatform) {
     this._rendering = rendering;
     this._platform = platform;
@@ -634,6 +624,7 @@ export class TemplateControllerRenderer implements IRenderer {
   /** @internal */ private readonly _rendering: IRendering;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.hydrateTemplateController;
   public constructor(rendering: IRendering, platform: IPlatform) {
     this._rendering = rendering;
     this._platform = platform;
@@ -712,6 +703,7 @@ export class LetElementRenderer implements IRenderer {
   /** @internal */ private readonly _exprParser: IExpressionParser;
   /** @internal */ private readonly _observerLocator: IObserverLocator;
 
+  public target!: InstructionType.hydrateLetElement;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -755,6 +747,7 @@ export class CallBindingRenderer implements IRenderer {
   /** @internal */ private readonly _exprParser: IExpressionParser;
   /** @internal */ private readonly _observerLocator: IObserverLocator;
 
+  public target!: InstructionType.callBinding;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -783,6 +776,7 @@ export class RefBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser];
   /** @internal */ private readonly _exprParser: IExpressionParser;
 
+  public target!: InstructionType.refBinding;
   public constructor(exprParser: IExpressionParser) {
     this._exprParser = exprParser;
   }
@@ -809,6 +803,7 @@ export class InterpolationBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.interpolation;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -861,6 +856,7 @@ export class PropertyBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.propertyBinding;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -893,6 +889,7 @@ export class IteratorBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.iteratorBinding;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -947,6 +944,7 @@ export class TextBindingRenderer implements IRenderer {
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
+  public target!: InstructionType.textBinding;
   public constructor(
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -1010,22 +1008,38 @@ export class TextBindingRenderer implements IRenderer {
   }
 }
 
+export interface IListenerBehaviorOptions {
+  /**
+   * `true` if the expression specified in the template is meant to be treated as a handler
+   */
+  expAsHandler: boolean;
+}
+export const IListenerBehaviorOptions = DI.createInterface<IListenerBehaviorOptions>('IListenerBehaviorOptions', x => x.singleton(ListenerBehaviorOptions));
+
+class ListenerBehaviorOptions implements IListenerBehaviorOptions {
+  public expAsHandler = false;
+}
+
 @renderer(InstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IEventDelegator, IPlatform];
+  /** @internal */ protected static inject = [IExpressionParser, IEventDelegator, IPlatform, IListenerBehaviorOptions];
   /** @internal */ private readonly _exprParser: IExpressionParser;
   /** @internal */ private readonly _eventDelegator: IEventDelegator;
   /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _listenerBehaviorOptions: IListenerBehaviorOptions;
 
+  public target!: InstructionType.listenerBinding;
   public constructor(
     parser: IExpressionParser,
     eventDelegator: IEventDelegator,
     p: IPlatform,
+    listenerBehaviorOptions: IListenerBehaviorOptions,
   ) {
     this._exprParser = parser;
     this._eventDelegator = eventDelegator;
     this._platform = p;
+    this._listenerBehaviorOptions = listenerBehaviorOptions;
   }
 
   public render(
@@ -1034,7 +1048,15 @@ export class ListenerBindingRenderer implements IRenderer {
     instruction: ListenerBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction);
-    const binding = new Listener(this._platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this._eventDelegator, renderingCtrl.container);
+    const binding = new Listener(
+      this._platform,
+      instruction.to,
+      expr,
+      target,
+      this._eventDelegator,
+      renderingCtrl.container,
+      new ListenerOptions(instruction.preventDefault, instruction.strategy, this._listenerBehaviorOptions.expAsHandler),
+    );
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)
       : binding
@@ -1045,6 +1067,8 @@ export class ListenerBindingRenderer implements IRenderer {
 @renderer(InstructionType.setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IRenderer {
+
+  public target!: InstructionType.setAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -1056,6 +1080,7 @@ export class SetAttributeRenderer implements IRenderer {
 
 @renderer(InstructionType.setClassAttribute)
 export class SetClassAttributeRenderer implements IRenderer {
+  public target!: InstructionType.setClassAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -1067,6 +1092,7 @@ export class SetClassAttributeRenderer implements IRenderer {
 
 @renderer(InstructionType.setStyleAttribute)
 export class SetStyleAttributeRenderer implements IRenderer {
+  public target!: InstructionType.setStyleAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -1081,6 +1107,7 @@ export class SetStyleAttributeRenderer implements IRenderer {
 export class StylePropertyBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
 
+  public target!: InstructionType.stylePropertyBinding;
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _observerLocator: IObserverLocator,
@@ -1106,6 +1133,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
 export class AttributeBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator];
 
+  public target!: InstructionType.attributeBinding;
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _observerLocator: IObserverLocator,
@@ -1136,6 +1164,8 @@ export class AttributeBindingRenderer implements IRenderer {
 @renderer(InstructionType.spreadBinding)
 export class SpreadRenderer implements IRenderer {
   /** @internal */ protected static get inject() { return [ITemplateCompiler, IRendering]; }
+
+  public target!: InstructionType.spreadBinding;
   public constructor(
     /** @internal */ private readonly _compiler: ITemplateCompiler,
     /** @internal */ private readonly _rendering: IRendering,

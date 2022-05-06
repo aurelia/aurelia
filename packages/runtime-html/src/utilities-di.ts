@@ -1,4 +1,4 @@
-import { DI, Resolved } from '@aurelia/kernel';
+import { DI, type Resolved } from '@aurelia/kernel';
 
 import type {
   Constructable,
@@ -23,6 +23,7 @@ import type {
 //       ? requestor.get(key)
 //       : requestor.root.get(key);
 //   };
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 //   return Resolver as IResolver<T> & ((...args: unknown[]) => any);
 // };
 
@@ -44,5 +45,6 @@ export const allResources = function <T extends Key>(key: T) {
       ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
       : requestor.root.getAll(key, false);
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Resolver as IResolver<Resolved<T>[]> & ((...args: unknown[]) => any);
 };

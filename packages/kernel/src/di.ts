@@ -269,7 +269,7 @@ export const DI = {
 
     if (configure != null) {
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
-          return configure(new ResolverBuilder(container, key ?? Interface));
+        return configure(new ResolverBuilder(container, key ?? Interface));
       };
     }
 

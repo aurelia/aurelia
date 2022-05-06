@@ -76,7 +76,7 @@ describe('TranslationParametersBindingRenderer', function () {
   it('instantiated with instruction type', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
-    assert.equal(sut.instructionType, TranslationParametersInstructionType);
+    assert.equal(sut.target, TranslationParametersInstructionType);
   });
 
   it('#render instantiates TranslationBinding if there are none existing', function () {

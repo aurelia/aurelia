@@ -393,13 +393,13 @@ TPrec extends Precedence.Unary ? IsUnary :
                               never : never {
 
   if (expressionType === ExpressionType.IsCustom) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new CustomExpression(state.ip) as any;
   }
 
   if (state.index === 0) {
     if (expressionType & ExpressionType.Interpolation) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseInterpolation(state) as any;
     }
     nextToken(state);
@@ -568,11 +568,11 @@ TPrec extends Precedence.Unary ? IsUnary :
     }
 
     if (expressionType & ExpressionType.IsIterator) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
 
@@ -714,7 +714,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -737,7 +737,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -807,7 +807,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   }
   if (state._currentToken !== Token.EOF) {
     if (expressionType & ExpressionType.Interpolation) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
     if (state._tokenRaw === 'of') {

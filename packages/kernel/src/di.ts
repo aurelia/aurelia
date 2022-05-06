@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);

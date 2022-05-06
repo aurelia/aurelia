@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { Constructable, EventAggregator, IContainer } from '@aurelia/kernel';
-import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel } from '@aurelia/runtime-html';
 import { assert } from './assert';

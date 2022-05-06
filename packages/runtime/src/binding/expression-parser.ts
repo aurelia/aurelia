@@ -671,7 +671,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   }
 
   if (Precedence.Binary < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -764,7 +764,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, expressionType));
   }
   if (Precedence.Variadic < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -821,7 +821,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     else
       throw new Error(`AUR0162:${state.ip}`);
   }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
 }
 

@@ -66,21 +66,25 @@ export function $setup(platform: BrowserPlatform): void {
   });
 
   // eslint-disable-next-line
-  afterEach(function() {
+  afterEach(async function() {
     fixtureHookHandler?.dispose();
     fixtureHookHandler = void 0;
 
-    fixtures.forEach(fixture => {
+    for (const fixture of fixtures) {
       if (!fixture.torn) {
-        fixture.tearDown();
+        const ret = fixture.tearDown();
+        if (ret instanceof Promise) {
+          // eslint-disable-next-line no-await-in-loop
+          await ret;
+        }
       }
-    });
+    }
     fixtures = [];
 
     const elapsed = platform.performanceNow() - start;
     let suite = currentSuite;
     do {
-      suite.$duration = (suite.$duration || 0) + elapsed;
+      suite.$duration = (suite.$duration ?? 0) + elapsed;
       suite = suite.parent;
     } while (suite);
     try {

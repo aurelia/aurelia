@@ -31,7 +31,6 @@ function toString(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
   }
-  // eslint-disable-next-line
   return value.toString();
 }
 

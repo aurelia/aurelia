@@ -263,7 +263,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
         component.value = (component.value as number || 0) + 1;
       }
       platform.domWriteQueue.flush();
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange?.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
       await tearDown();
     });

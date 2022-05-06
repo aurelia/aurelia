@@ -85,6 +85,22 @@ export function createFixture<
     }
     assert.strictEqual(el.textContent, text);
   };
+  const trigger = ((selector: string, event: string, init?: CustomEventInit): void => {
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+    }
+    el.dispatchEvent(new ctx.CustomEvent(event, init));
+  }) as ITrigger;
+  ['click', 'change', 'input'].forEach(event => {
+    Object.defineProperty(trigger, event, { configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
+      const el = queryBy(selector);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+      }
+      el.dispatchEvent(new ctx.CustomEvent(event, init));
+    } });
+  });
 
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
@@ -127,6 +143,7 @@ export function createFixture<
     public getAllBy = getAllBy;
     public queryBy = queryBy;
     public assertText = assertText;
+    public trigger = trigger;
   }();
 
   fixtureHooks.publish('fixture:created', fixture);
@@ -153,4 +170,11 @@ export interface IFixture<T> {
   getAllBy(selector: string): HTMLElement[];
   queryBy(selector: string): HTMLElement | null;
   assertText(selector: string, text: string): void;
+  trigger: ITrigger;
 }
+
+export type ITrigger = ((selector: string, event: string, init: CustomEventInit) => void) & {
+  click(selector: string, init?: CustomEventInit): void;
+  change(selector: string, init?: CustomEventInit): void;
+  input(selector: string, init?: CustomEventInit): void;
+};

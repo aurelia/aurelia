@@ -20,7 +20,7 @@ export {
 } from './h';
 export {
   createFixture,
-  IFixture,
+  type IFixture,
   onFixtureCreated,
 } from './startup';
 export {

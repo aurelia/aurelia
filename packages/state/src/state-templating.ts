@@ -66,7 +66,7 @@ export class StateBindingInstruction {
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStateContainer];
-  public readonly target = 'sb';
+  public readonly target!: 'sb';
 
   public constructor(
     private readonly _exprParser: IExpressionParser,

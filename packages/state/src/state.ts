@@ -1,4 +1,4 @@
-import { DI, IContainer, ILogger, Registration } from '@aurelia/kernel';
+import { DI, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
 
 export interface IStateContainer<T extends object> {
   subscribe(subscriber: IStateSubscriber<T>): void;
@@ -8,17 +8,21 @@ export interface IStateContainer<T extends object> {
 }
 export const IStateContainer = DI.createInterface<object>('IStateContainer');
 
+export const IState = DI.createInterface<object>('IState');
+
 export class StateContainer<T extends object> {
   public static register(c: IContainer) {
     Registration.singleton(IStateContainer, this).register(c);
   }
 
+  /** @internal */ protected static inject = [optional(IState)];
+
   /** @internal */ private _state: T;
   /** @internal */ private readonly _subs = new Set<IStateSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
 
-  public constructor(initialState: T, logger: ILogger) {
-    this._state = initialState;
+  public constructor(initialState: T | null, logger: ILogger) {
+    this._state = initialState ?? new State() as T;
     this._logger = logger;
   }
 
@@ -57,3 +61,5 @@ export class StateContainer<T extends object> {
 export interface IStateSubscriber<T extends object> {
   handleStateChange(state: T, prevState: T): void;
 }
+
+class State {}

@@ -58,7 +58,7 @@ export function createFixture<
 
   let tornCount = 0;
 
-  const getBy = (selector: string): HTMLElement => {
+  const getBy: Document['querySelector'] = (selector: string): HTMLElement => {
     const elements = host.querySelectorAll<HTMLElement>(selector);
     if (elements.length > 1) {
       throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found`);
@@ -166,9 +166,25 @@ export interface IFixture<T> {
   start(): Promise<void>;
   tearDown(): Promise<void>;
   readonly promise: Promise<IFixture<T>>;
-  getBy(selector: string): HTMLElement;
-  getAllBy(selector: string): HTMLElement[];
-  queryBy(selector: string): HTMLElement | null;
+
+  /**
+   * Returns the first element that is a descendant of node that matches selectors, and throw if there is more than one, or none found
+   */
+  getBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K];
+  getBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K];
+  getBy<E extends Element = Element>(selectors: string): E | null;
+  /**
+   * Returns all element descendants of node that match selectors.
+   */
+  getAllBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K][];
+  getAllBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K][];
+  getAllBy<E extends Element = Element>(selectors: string): E[];
+  /**
+   * Returns the first element that is a descendant of node that matches selectors, and null if none found
+   */
+  queryBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
+  queryBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
+  queryBy<E extends Element = Element>(selectors: string): E | null;
   assertText(selector: string, text: string): void;
   trigger: ITrigger;
 }

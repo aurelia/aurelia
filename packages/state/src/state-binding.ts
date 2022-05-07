@@ -60,7 +60,7 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     this._targetAccessor = this._observerLocator.getAccessor(this.target, this.prop);
     this.$scope = Scope.fromParent(scope, this._stateContainer.getState());
     this._stateContainer.subscribe(this);
-    throw new Error('Method not implemented.');
+    this.updateTarget(this._value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope, this.locator, null));
   }
 
   public $unbind(): void {

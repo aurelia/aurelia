@@ -4,7 +4,7 @@
 // <input value.state="..." input.trigger="state.onInput">
 // <input value.state:store1="..." input.dispatch="onUpdate">
 
-export { StateContainer, IStateContainer, IStateSubscriber } from './state';
+export { StateContainer, IState, IStateContainer, type IStateSubscriber } from './state';
 export { StateBinding } from './state-binding';
 export {
   StateAttributePattern,

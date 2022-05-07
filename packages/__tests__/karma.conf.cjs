@@ -60,7 +60,7 @@ module.exports =
     // todo: probably will need something else to run the tests in the browser in the future
     hasSingleRun
       ? null
-      : { type: 'script', watched: true,  included: true,       nocache: false, pattern: `packages/__tests__/importmap.js` },
+      : { type: 'script', watched: true,  included: true,        nocache: true, pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: !hasSingleRun,   included: true,  nocache: false,  pattern: `${baseUrl}/setup-browser.js` }, // 1.1
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-shared.js` }, // 1.2
@@ -242,6 +242,7 @@ const packageNames = [
   'router-lite',
   'runtime',
   'runtime-html',
+  'state',
   'store-v1',
   'testing',
   'validation',

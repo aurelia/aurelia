@@ -7,6 +7,7 @@
     "packages/__e2e__/router-configured-basic",
     "packages/au",
     "packages/aurelia",
+    "packages/state",
     "packages/fetch-client",
     "packages/i18n",
     "packages/kernel",

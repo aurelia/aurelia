@@ -100,6 +100,7 @@ export {
 } from './resources/binding-command';
 export {
   IAttrMapper,
+  type IsTwoWayPredicate,
 } from './attribute-mapper';
 export {
   Listener,

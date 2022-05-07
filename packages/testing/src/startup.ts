@@ -189,7 +189,7 @@ export interface IFixture<T> {
   trigger: ITrigger;
 }
 
-export type ITrigger = ((selector: string, event: string, init: CustomEventInit) => void) & {
+export type ITrigger = ((selector: string, event: string, init?: CustomEventInit) => void) & {
   click(selector: string, init?: CustomEventInit): void;
   change(selector: string, init?: CustomEventInit): void;
   input(selector: string, init?: CustomEventInit): void;

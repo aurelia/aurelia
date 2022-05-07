@@ -5,7 +5,7 @@
     "declaration": false,
     "declarationMap": false,
     "rootDir": "src",
-    "lib": ["esnext", "dom"]
+    "lib": ["esnext", "DOM"]
   },
   "include": [
     "src"

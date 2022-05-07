@@ -67,5 +67,7 @@
   },
   "workbench.tree.indent": 16,
   "git.pullTags": false,
-  "javascript.preferences.importModuleSpecifierEnding": "js"
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "eslint.run": "onSave",
+  "eslint.useESLintClass": true
 }

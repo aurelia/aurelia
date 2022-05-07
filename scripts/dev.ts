@@ -1,6 +1,8 @@
 import concurrently, { ConcurrentlyCommandInput } from 'concurrently';
 import yargs from 'yargs';
 import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
 
 const args = yargs
   .usage('$0 <cmd> [args]')
@@ -31,8 +33,15 @@ If it is intended to run all test, then specified --test *
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
 
+['metadata', 'platform', 'platform-browser', 'kernel', 'runtime', 'runtime-html', 'testing'].forEach((pkg) => {
+  if (isBuilt(pkg) !== null) {
+    // eslint-disable-next-line no-console
+    console.log(`${pkg} has not been built, building...`);
+    execSync(`cd packages/${pkg} && npm run build`);
+  }
+});
+
 concurrently([
-  ...['metadata', 'platform', 'platform-browser', 'kernel', 'testing'].map(ensurePackageBuiltCmd),
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
   { command: devCmd, cwd: 'packages/__tests__', name: '__tests__(build)', env: envVars },
@@ -57,8 +66,8 @@ concurrently([
   ]
 });
 
-function ensurePackageBuiltCmd(name: string): ConcurrentlyCommandInput | null {
-  return fs.existsSync(`packages/${name}/dist/esm/index.mjs`)
+function isBuilt(name: string): ConcurrentlyCommandInput | null {
+  return fs.existsSync(path.resolve(__dirname, `../packages/${name}/dist/esm/index.mjs`))
     ? null
     : { command: buildCmd, name, env: envVars, cwd: `packages/${name}` };
 }

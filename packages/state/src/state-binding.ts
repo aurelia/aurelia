@@ -1,16 +1,15 @@
 
-import { type IServiceLocator } from '@aurelia/kernel';
+import { type IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable, LifecycleFlags,
   Scope,
   type IAccessor,
   type IConnectableBinding,
-  type IObserverLocator,
-  type IsBindingBehavior
+  type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
 import {
   IStateContainer,
-  type IStateSubscriber,
+  type IStateSubscriber
 } from './state';
 
 /**
@@ -58,7 +57,9 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     }
     this.isBound = true;
     this._targetAccessor = this._observerLocator.getAccessor(this.target, this.prop);
-    this.$scope = Scope.fromParent(scope, this._stateContainer.getState());
+    const state = this._stateContainer.getState();
+    const overrideContext = { bindingContext: state, $state: state, $store: this._stateContainer };
+    (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
     this._stateContainer.subscribe(this);
     this.updateTarget(this._value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope, this.locator, null));
   }
@@ -68,12 +69,15 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
       return;
     }
     this.isBound = false;
+    this.$scope = void 0;
     this._stateContainer.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
-    this.$scope!.bindingContext = state;
-    const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope!, this.locator, null);
+    const $scope = this.$scope!;
+    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
+    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
     if (value !== this._value) {
       this._value = value;
       this.updateTarget(value);

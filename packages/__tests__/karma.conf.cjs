@@ -81,8 +81,8 @@ module.exports =
       { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
-      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
+      { type: 'module', watched: !hasSingleRun, included: false, nocache: !hasSingleRun,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
+      { type: 'module', watched: false,         included: false, nocache: !hasSingleRun,  pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
       { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
     // for i18n tests 
@@ -224,6 +224,7 @@ const testDirs = [
   'integration',
   'router',
   'router-lite',
+  'state',
   'store-v1',
   'validation',
   'validation-html',

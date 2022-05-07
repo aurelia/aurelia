@@ -1,0 +1,72 @@
+
+import { type IServiceLocator } from '@aurelia/kernel';
+import {
+  connectable, LifecycleFlags,
+  Scope, type IConnectableBinding,
+  type IObserverLocator, type IsBindingBehavior
+} from '@aurelia/runtime';
+import {
+  type IStateContainer
+} from './state';
+
+/**
+ * A binding that handles the connection of the global state to a property of a target object
+ */
+export interface StateDispatchActionBinding extends IConnectableBinding { }
+@connectable()
+export class StateDispatchActionBinding implements IConnectableBinding {
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
+  public interceptor: this = this;
+  public locator: IServiceLocator;
+  public $scope?: Scope | undefined;
+  public isBound: boolean = false;
+  public expr: IsBindingBehavior;
+  private readonly target: HTMLElement;
+  private readonly prop: string;
+
+  /** @internal */ private readonly _stateContainer: IStateContainer<object>;
+
+  public constructor(
+    locator: IServiceLocator,
+    stateContainer: IStateContainer<object>,
+    observerLocator: IObserverLocator,
+    expr: IsBindingBehavior,
+    target: HTMLElement,
+    prop: string,
+  ) {
+    this.locator = locator;
+    this._stateContainer = stateContainer;
+    this._observerLocator = observerLocator;
+    this.expr = expr;
+    this.target = target;
+    this.prop = prop;
+  }
+
+  public handleEvent(e: Event) {
+    const $scope = this.$scope!;
+    $scope.overrideContext.$event = e;
+    const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
+    delete $scope.overrideContext.$event;
+    this._stateContainer.dispatch({ type: 'event', payload: { target: this.target, event: this.prop, value } });
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    const state = this._stateContainer.getState();
+    const overrideContext = { bindingContext: state, $state: state, $store: this._stateContainer };
+    (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
+    this.target.addEventListener(this.prop, this);
+  }
+
+  public $unbind(): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+    this.$scope = void 0;
+    this.target.removeEventListener(this.prop, this);
+  }
+}

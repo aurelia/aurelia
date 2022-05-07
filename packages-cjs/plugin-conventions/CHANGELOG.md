@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.30"></a>
+# 2.0.0-alpha.30 (2022-05-07)
+
+### Features:
+
+* **hmr:** add in hmr capabilities (#1400) ([6d932a7](https://github.com/aurelia/aurelia/commit/6d932a7))
+
 <a name="2.0.0-alpha.29"></a>
 # 2.0.0-alpha.29 (2022-04-27)
 

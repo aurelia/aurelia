@@ -275,6 +275,7 @@ jobs:
             - packages/router-lite/dist
             - packages/runtime/dist
             - packages/runtime-html/dist
+            - packages/state/dist
             - packages/store-v1/dist
             - packages/testing/dist
             - packages/validation/dist

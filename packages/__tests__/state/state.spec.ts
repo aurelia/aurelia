@@ -78,7 +78,6 @@ describe('state/state.spec.ts', function () {
 
     assert.strictEqual(getBy('input').value, '1');
 
-    debugger;
     trigger('input', 'input');
     assert.strictEqual(getBy('input').value, '11');
   });

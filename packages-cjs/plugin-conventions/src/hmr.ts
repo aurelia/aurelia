@@ -1,3 +1,5 @@
+import * as ts from 'typescript';
+
 /**
  * This is the minimum required runtime modules for HMR
  */
@@ -16,7 +18,7 @@ export const hmrMetadataModules = ['Metadata'];
  * @param type - CustomElement | CustomAttribute
  * @returns Generated HMR code
  */
-export const getHmrCode = (className: string, moduleText: string = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement'): string => {
+export const getHmrCode = (className: string, moduleText: string = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement', kind?: ts.ScriptKind): string => {
 
   const code = `
     const controllers = [];
@@ -47,8 +49,12 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
       Metadata.define(newDefinition.name, newDefinition, newDefinition);
       (hot.data.aurelia.container as any).res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;
 
+      const previousControllers = (hot.data.controllers as any);
+      if(previousControllers == null || previousControllers.length === 0) {
+        hot.invalidate();
+      }
 
-      (hot.data.controllers as any).forEach(controller => {
+      previousControllers.forEach(controller => {
         const values = { ...controller.viewModel };
         const hydrationContext = controller.container.get(IHydrationContext)
         const hydrationInst = hydrationContext.instruction;
@@ -73,5 +79,5 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
     }
   }`;
 
-  return type === 'CustomElementHtml' ? code.replace(/ as any/g, '') : code;
+  return type === 'CustomElementHtml' || kind === ts.ScriptKind.JS || kind === ts.ScriptKind.JSX ? code.replace(/ as any/g, '') : code;
 };

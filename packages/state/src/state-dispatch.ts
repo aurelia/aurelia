@@ -15,7 +15,6 @@ import {
 export interface StateDispatchActionBinding extends IConnectableBinding { }
 @connectable()
 export class StateDispatchActionBinding implements IConnectableBinding {
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
   public interceptor: this = this;
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
@@ -29,25 +28,27 @@ export class StateDispatchActionBinding implements IConnectableBinding {
   public constructor(
     locator: IServiceLocator,
     stateContainer: IStateContainer<object>,
-    observerLocator: IObserverLocator,
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
   ) {
     this.locator = locator;
     this._stateContainer = stateContainer;
-    this._observerLocator = observerLocator;
     this.expr = expr;
     this.target = target;
     this.prop = prop;
   }
 
-  public handleEvent(e: Event) {
+  public callSource(e: Event) {
     const $scope = this.$scope!;
     $scope.overrideContext.$event = e;
     const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
     delete $scope.overrideContext.$event;
     this._stateContainer.dispatch({ type: 'event', payload: { target: this.target, event: this.prop, value } });
+  }
+
+  public handleEvent(e: Event) {
+    this.interceptor.callSource(e);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {

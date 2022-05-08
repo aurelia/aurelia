@@ -126,6 +126,7 @@ export {
 } from './binding/ref-binding';
 
 export {
+  applyBindingBehavior,
   IRenderer,
   type IInstructionTypeClassifier,
   ITemplateCompiler,

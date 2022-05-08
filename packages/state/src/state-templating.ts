@@ -1,6 +1,13 @@
 import { camelCase } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, IObserverLocator, IsBindingBehavior } from '@aurelia/runtime';
 import {
+  ExpressionKind,
+  ExpressionType,
+  IExpressionParser,
+  IObserverLocator,
+  type IsBindingBehavior,
+} from '@aurelia/runtime';
+import {
+  applyBindingBehavior,
   attributePattern,
   AttrSyntax,
   bindingCommand,
@@ -139,15 +146,18 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     target: HTMLElement,
     instruction: DispatchBindingInstruction,
   ): void {
+    const expr = ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsProperty);
     const binding = new StateDispatchActionBinding(
       renderingCtrl.container,
       this._stateContainer,
-      this._observerLocator,
-      ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsFunction),
+      expr,
       target,
       instruction.from
     );
-    renderingCtrl.addBinding(binding);
+    renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
+      ? applyBindingBehavior(binding, expr, renderingCtrl.container)
+      : binding
+    );
   }
 }
 

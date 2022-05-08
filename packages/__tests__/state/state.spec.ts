@@ -81,4 +81,54 @@ describe('state/state.spec.ts', function () {
     trigger('input', 'input');
     assert.strictEqual(getBy('input').value, '11');
   });
+
+  describe('.dispatch', function () {
+    it('works with debounce', async function () {
+      const state = { text: '1' };
+      const { getBy, trigger } = await createFixture(
+        '<input value.state="text" input.dispatch="$event.target.value & debounce:1">',
+        void 0,
+        [StandardStateConfiguration.init(
+          state,
+          (s: typeof state, action: IStateAction<string, { value: string }>) => {
+            return { text: s.text + action.payload.value };
+          })
+        ]
+      ).promise;
+
+      trigger('input', 'input');
+      assert.strictEqual(getBy('input').value, '1');
+
+      await waitFor(10);
+      assert.strictEqual(getBy('input').value, '11');
+    });
+
+    it('works with throttle', async function () {
+      let actionCallCount = 0;
+      const state = { text: '1' };
+      const { getBy, trigger } = await createFixture(
+        '<input value.state="text" input.dispatch="$event.target.value & throttle:1">',
+        void 0,
+        [StandardStateConfiguration.init(
+          state,
+          (s: typeof state, action: IStateAction<string, { value: string }>) => {
+            actionCallCount++;
+            return { text: s.text + action.payload.value };
+          })
+        ]
+      ).promise;
+
+      trigger('input', 'input');
+      assert.strictEqual(getBy('input').value, '11');
+
+      trigger('input', 'input');
+      assert.strictEqual(getBy('input').value, '11');
+
+      await waitFor(10);
+      assert.strictEqual(actionCallCount, 2);
+      assert.strictEqual(getBy('input').value, '1111');
+    });
+  });
 });
+
+const waitFor = (time: number) => new Promise(r => setTimeout(r, time));

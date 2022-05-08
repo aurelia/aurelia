@@ -123,7 +123,8 @@ export function createFixture<
         console.log('(!) Fixture has already been torn down');
         return;
       }
-      await au.stop();
+      const ret = au.stop();
+      if (ret instanceof Promise) await ret;
       root.remove();
       au.dispose();
     }

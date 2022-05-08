@@ -72,11 +72,7 @@ export function $setup(platform: BrowserPlatform): void {
 
     for (const fixture of fixtures) {
       if (!fixture.torn) {
-        const ret = fixture.tearDown();
-        if (ret instanceof Promise) {
-          // eslint-disable-next-line no-await-in-loop
-          await ret;
-        }
+        void fixture.tearDown();
       }
     }
     fixtures = [];

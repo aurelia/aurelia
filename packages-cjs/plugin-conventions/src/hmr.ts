@@ -22,16 +22,30 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
 
   const code = `
     const controllers = [];
-    if ((${moduleText} as any).hot) {
-    (${moduleText} as any).hot.accept();
-    const hot = (${moduleText} as any).hot;
+
+    // @ts-ignore
+    if (${moduleText}.hot) {
+
+    // @ts-ignore
+    ${moduleText}.hot.accept();
+
+    // @ts-ignore
+    const hot = ${moduleText}.hot;
+
     let aurelia = hot.data?.aurelia;
-    document.addEventListener('au-started', (event) => {aurelia= (event as any).detail; });
+
+    // @ts-ignore
+    document.addEventListener('au-started', (event) => {aurelia= event.detail; });
     const currentClassType = ${className};
-    const proto = (${className} as any).prototype
+
+    // @ts-ignore
+    const proto = ${className}.prototype
+
+    // @ts-ignore
     const ogCreated = proto ? proto.created : undefined;
 
     if(proto){
+      // @ts-ignore
       proto.created = (controller) => {
         ogCreated && ogCreated(controller);
         controllers.push(controller);
@@ -47,9 +61,9 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
       const newDefinition = CustomElement.getDefinition(currentClassType);
       Metadata.define(newDefinition.name, newDefinition, currentClassType);
       Metadata.define(newDefinition.name, newDefinition, newDefinition);
-      (hot.data.aurelia.container as any).res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;
+      hot.data.aurelia.container.res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;
 
-      const previousControllers = (hot.data.controllers as any);
+      const previousControllers = hot.data.controllers;
       if(previousControllers == null || previousControllers.length === 0) {
         hot.invalidate();
       }
@@ -60,24 +74,24 @@ export const getHmrCode = (className: string, moduleText: string = 'module', typ
         const hydrationInst = hydrationContext.instruction;
 
         Object.keys(values).forEach(key => {
-          if (!controller.bindings?.some(y => (y as any).sourceExpression?.name === key && (y as any).targetProperty)) {
+          if (!controller.bindings?.some(y => y.sourceExpression?.name === key && y.targetProperty)) {
             delete values[key];
           }
         });
-        const h = (controller as any).host;
-        delete (controller as any)._compiledDef;
-        (controller.viewModel as any) = new currentClassType();
-        (controller.definition as any) = newDefinition;
+        const h = controller.host;
+        delete controller._compiledDef;
+        controller.viewModel = new currentClassType();
+        controller.definition = newDefinition;
         Object.assign(controller.viewModel, values);
-        (controller.hooks as any) = new (controller.hooks as any).constructor(controller.viewModel);
-        (controller as any)._hydrateCustomElement(hydrationInst, hydrationContext);
-        h.parentNode.replaceChild((controller as any).host, h);
-        (controller as any).hostController = null;
-        (controller as any).deactivate(controller, controller.parent ?? null, LifecycleFlags.none);
-        (controller as any).activate(controller, controller.parent ?? null, LifecycleFlags.none);
+        controller.hooks = new controller.hooks.constructor(controller.viewModel);
+        controller._hydrateCustomElement(hydrationInst, hydrationContext);
+        h.parentNode.replaceChild(controller.host, h);
+        controller.hostController = null;
+        controller.deactivate(controller, controller.parent ?? null, LifecycleFlags.none);
+        controller.activate(controller, controller.parent ?? null, LifecycleFlags.none);
       });
     }
   }`;
 
-  return type === 'CustomElementHtml' || kind === ts.ScriptKind.JS || kind === ts.ScriptKind.JSX ? code.replace(/ as any/g, '') : code;
+  return code;
 };

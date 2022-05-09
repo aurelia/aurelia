@@ -118,14 +118,20 @@ export function createFixture<
       await au.app({ host: host, component }).start();
     }
 
-    public async tearDown() {
+    public tearDown() {
       if (++tornCount === 2) {
         console.log('(!) Fixture has already been torn down');
         return;
       }
-      await au.stop();
-      root.remove();
-      au.dispose();
+      const dispose = () => {
+        root.remove();
+        au.dispose();
+      };
+      const ret = au.stop();
+      if (ret instanceof Promise)
+        return ret.then(dispose);
+      else
+        return dispose();
     }
 
     public get torn() {
@@ -164,7 +170,7 @@ export interface IFixture<T> {
   readonly observerLocator: IObserverLocator;
   readonly torn: boolean;
   start(): Promise<void>;
-  tearDown(): Promise<void>;
+  tearDown(): void | Promise<void>;
   readonly promise: Promise<IFixture<T>>;
   getBy(selector: string): HTMLElement;
   getAllBy(selector: string): HTMLElement[];

@@ -14,6 +14,6 @@ module.exports = {
   },
   rules: {
     'import/no-nodejs-modules': 'off',
-    '@typescriot-eslint/strict-boolean-expression': 'off'
+    '@typescript-eslint/strict-boolean-expressions': 'off'
   }
 };

@@ -1,5 +1,3 @@
-import * as ts from 'typescript';
-
 /**
  * This is the minimum required runtime modules for HMR
  */

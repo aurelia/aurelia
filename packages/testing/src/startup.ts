@@ -183,31 +183,34 @@ export type ITrigger = ((selector: string, event: string, init: CustomEventInit)
   input(selector: string, init?: CustomEventInit): void;
 };
 
-export interface IFixtureBuilderBase<T> {
-  html(html: string): this;
-  html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this;
-  component(comp: T): this;
-  deps(...args: unknown[]): this;
-  // build(): IFixture<T>;
+export interface IFixtureBuilderBase<T, E = {}> {
+  html(html: string): this & E;
+  html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
+  component(comp: T): this & E;
+  deps(...args: unknown[]): this & E;
 }
 
 type BuilderMethodNames = 'html' | 'component' | 'deps';
-type CreateBuilder<T, K extends BuilderMethodNames = BuilderMethodNames> = {
-  [key in K]: (...args: Parameters<IFixtureBuilderBase<T>[key]>) =>
-    'html' extends key
-      ? CreateBuilder<T, Exclude<K, key>> & { build(): IFixture<T> }
-      : CreateBuilder<T, Exclude<K, key>>
-};
+type CreateBuilder<T, Availables extends BuilderMethodNames = BuilderMethodNames> = {
+  [key in Availables]:
+    key extends 'html'
+      ? {
+        (html: string): CreateBuilder<T, Exclude<Availables, 'html'>> & { build(): IFixture<T> };
+        (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>> & { build(): IFixture<T> };
+      }
+        : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+} & (never extends Availables ? { build(): IFixture<T> } : {});
+
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
 type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
 
-class FixtureBuilder<T> implements CreateBuilder<T> {
+class FixtureBuilder<T> {
   private _html?: string | TemplateStringsArray;
   private _htmlArgs?: TemplateValues<T>[];
   private _comp?: T;
   private _args?: unknown[];
 
-  public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> & { build(): IFixture<T> } {
+  public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> {
     this._html = html;
     this._htmlArgs = htmlArgs;
     return this;

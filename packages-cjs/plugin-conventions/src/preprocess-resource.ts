@@ -149,7 +149,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   }
 
   if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
-    const hmr = getHmrCode(exportedClassName, options.hmrModule, 'CustomElement', (sf as unknown as { scriptKind: ts.ScriptKind }).scriptKind);
+    const hmr = getHmrCode(exportedClassName, options.hmrModule);
     m.append(hmr);
   }
 

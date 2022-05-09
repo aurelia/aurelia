@@ -18,7 +18,7 @@ export const hmrMetadataModules = ['Metadata'];
  * @param type - CustomElement | CustomAttribute
  * @returns Generated HMR code
  */
-export const getHmrCode = (className: string, moduleText: string = 'module', type: 'CustomElementHtml' | 'CustomElement' | 'CustomAttribute' = 'CustomElement', kind?: ts.ScriptKind): string => {
+export const getHmrCode = (className: string, moduleText: string = 'module'): string => {
 
   const code = `
     const controllers = [];

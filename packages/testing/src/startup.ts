@@ -17,10 +17,8 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   });
 };
 
-export function createFixture<
-  T,
-  K = (T extends Constructable<infer U> ? U : T)
->(template: string | Node,
+export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>(
+  template: string | Node,
   $class?: T,
   registrations: unknown[] = [],
   autoStart: boolean = true,
@@ -184,3 +182,64 @@ export type ITrigger = ((selector: string, event: string, init: CustomEventInit)
   change(selector: string, init?: CustomEventInit): void;
   input(selector: string, init?: CustomEventInit): void;
 };
+
+export interface IFixtureBuilderBase<T> {
+  html(html: string): this;
+  html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this;
+  component(comp: T): this;
+  deps(...args: unknown[]): this;
+  // build(): IFixture<T>;
+}
+
+type BuilderMethodNames = 'html' | 'component' | 'deps';
+type CreateBuilder<T, K extends BuilderMethodNames = BuilderMethodNames> = {
+  [key in K]: (...args: Parameters<IFixtureBuilderBase<T>[key]>) =>
+    'html' extends key
+      ? CreateBuilder<T, Exclude<K, key>> & { build(): IFixture<T> }
+      : CreateBuilder<T, Exclude<K, key>>
+};
+type TaggedTemplateLambda<M> = (vm: M) => unknown;
+type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
+
+class FixtureBuilder<T> implements CreateBuilder<T> {
+  private _html?: string | TemplateStringsArray;
+  private _htmlArgs?: TemplateValues<T>[];
+  private _comp?: T;
+  private _args?: unknown[];
+
+  public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> & { build(): IFixture<T> } {
+    this._html = html;
+    this._htmlArgs = htmlArgs;
+    return this;
+  }
+
+  public component(comp: T): CreateBuilder<T, Exclude<BuilderMethodNames, 'component'>> {
+    this._comp = comp;
+    return this;
+  }
+
+  public deps(...args: unknown[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>> {
+    this._args = args;
+    return this;
+  }
+
+  public build() {
+    if (this._html === void 0) {
+      throw new Error('Builder is not ready, missing template, call .html()/.html`` first');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return createFixture<any>(
+      typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []),
+      this._comp,
+      this._args
+    );
+  }
+}
+
+function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown[]): string {
+  return html.join('');
+}
+
+createFixture.html = <T>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+createFixture.component = <T>(component: T) => new FixtureBuilder<T>().component(component);
+createFixture.deps = <T>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);

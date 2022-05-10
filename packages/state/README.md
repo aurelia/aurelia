@@ -2,18 +2,18 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
 [![npm](https://img.shields.io/npm/v/@aurelia/metadata.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/metadata)
-# @aurelia/metadata
+# @aurelia/state
 
 ## Installing
 
 For the latest stable version:
 
 ```bash
-npm i @aurelia/metadata
+npm i @aurelia/state
 ```
 
 For our nightly builds:
 
 ```bash
-npm i @aurelia/metadata@dev
+npm i @aurelia/state@dev
 ```

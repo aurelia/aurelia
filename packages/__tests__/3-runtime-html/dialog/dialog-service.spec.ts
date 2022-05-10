@@ -90,9 +90,11 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       });
 
       let err: Error;
-      await tearDown().catch(ex => {
+      try {
+        await tearDown();
+      } catch(ex) {
         err = ex;
-      });
+      }
       assert.notStrictEqual(err, undefined);
       assert.includes(err.message, 'AUR0901:1');
       // assert.includes(err.message, 'There are still 1 open dialog(s).');

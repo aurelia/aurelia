@@ -232,6 +232,7 @@ const testDirs = [
 ];
 
 const packageNames = [
+  'addons',
   'fetch-client',
   'i18n',
   'kernel',

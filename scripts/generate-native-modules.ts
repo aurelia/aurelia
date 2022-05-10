@@ -21,7 +21,7 @@ const log = createLogger('generate-native-modules');
     !pkg.name.kebab.includes('_')
     && pkg.folder.includes('packages')
     && !pkg.folder.includes('__e2e__')
-    && !pkg.folder.includes('packages-cjs')
+    && !pkg.folder.includes('packages-tooling')
   );
 
   for (const pkg of packages) {

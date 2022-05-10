@@ -1,6 +1,7 @@
 {
   "name": "@aurelia/addons",
   "version": "2.0.0-alpha.30",
+  "private": true,
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {

@@ -46,7 +46,7 @@ Please inspect the package.json to see the other commands.
 
 This documentation will be expanded upon in the future.
 
-### packages-cjs
+### packages-tooling
 
 To develop/test any of the commonjs packages, we need to work around a limitation in NodeJS with regards to how it handles imports across esm/cjs packages.
 
@@ -66,7 +66,7 @@ npm run build
 Go to the tests folder:
 
 ```bash
-cd packages-cjs/__tests__
+cd packages-tooling/__tests__
 ```
 
 Run any of the test suites \(please inspect the package.json to see the other commands\):

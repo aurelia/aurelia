@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/webpack-loader",
+  "name": "@aurelia/plugin-conventions",
   "version": "2.0.0-alpha.30",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -19,7 +19,7 @@
   },
   "keywords": [
     "aurelia",
-    "webpack-loader"
+    "plugin-conventions"
   ],
   "files": [
     "dist",
@@ -37,7 +37,7 @@
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
     "postrollup": "tsc --emitDeclarationOnly",
-    "build:packages-cjs": "npm run rollup"
+    "build:packages-tooling": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"
@@ -46,15 +46,15 @@
     "@aurelia/kernel": "2.0.0-alpha.30",
     "@aurelia/metadata": "2.0.0-alpha.30",
     "@aurelia/platform": "2.0.0-alpha.30",
-    "@aurelia/plugin-conventions": "2.0.0-alpha.30",
     "@aurelia/runtime": "2.0.0-alpha.30",
-    "loader-utils": "^2.0.0"
+    "@aurelia/runtime-html": "2.0.0-alpha.30",
+    "modify-code": "^1.2.0",
+    "parse5": "^5.1.1",
+    "typescript": "^4.6.3"
   },
   "devDependencies": {
-    "@types/loader-utils": "^2.0.3",
     "@types/node": "^14.18.14",
-    "@types/webpack": "^4.41.30",
-    "typescript": "^4.6.3"
+    "@types/parse5": "^5.0.2"
   },
   "engines": {
     "node": ">=14.17.0"

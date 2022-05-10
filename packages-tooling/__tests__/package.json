@@ -22,7 +22,7 @@
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput",
     "rollup": "npm run build",
-    "build:packages-cjs": "npm run build"
+    "build:packages-tooling": "npm run build"
   },
   "dependencies": {
     "@aurelia/aot": "2.0.0-alpha.30",

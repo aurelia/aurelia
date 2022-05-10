@@ -38,9 +38,9 @@ const fields = ['main', 'module'];
       )
   ) {
     log(`changing package.json fields to ${ref} for: ${c.magentaBright(name.npm)}`);
-    const isCjsPackage = folder.includes('packages-cjs');
+    const isToolingPackage = folder.includes('packages-tooling');
     const pkg = await loadPackageJson(folder, name.kebab);
-    const refs = isCjsPackage ? cjsRefs : webRefs;
+    const refs = isToolingPackage ? cjsRefs : webRefs;
     for (const field of fields) {
       pkg[field] = refs[ref][field];
     }

@@ -263,6 +263,7 @@ jobs:
             - packages/__tests__/dist
             - packages/au/dist
             - packages/aurelia/dist
+            - packages/addons/dist
             - packages/fetch-client/dist
             - packages/http-server/dist
             - packages/i18n/dist

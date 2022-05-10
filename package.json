@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router-configured-basic",
+    "packages/addons",
     "packages/au",
     "packages/aurelia",
     "packages/fetch-client",

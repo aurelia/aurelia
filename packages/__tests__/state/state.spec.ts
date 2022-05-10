@@ -78,14 +78,14 @@ describe('state/state.spec.ts', function () {
   });
 
   it('works with promise', async function () {
-    const state = { dashboardData: () => resolveAfter(1, [{ id: 1 }, { id: 2 }]) };
+    const state = { data: () => resolveAfter(1, 'value-1-2') };
     const { getBy } = await createFixture
-      .html`<input value.state="dashboardData()">`
+      .html`<input value.state="data()">`
       .deps(StandardStateConfiguration.init(state))
       .build().promise;
 
     await resolveAfter(2);
-    assert.strictEqual(getBy('input').value, [{ id: 1 }, { id: 2 }].toString());
+    assert.strictEqual(getBy('input').value, 'value-1-2');
   });
 
   it('works with rx-style observable', async function () {
@@ -121,6 +121,9 @@ describe('state/state.spec.ts', function () {
   });
 
   describe('.dispatch', function () {
+    // firefox not pleasant with throttling & debouncing
+    this.retries(3);
+
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger } = await createFixture

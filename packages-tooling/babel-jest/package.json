@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/parcel-transformer",
+  "name": "@aurelia/babel-jest",
   "version": "2.0.0-alpha.30",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -19,7 +19,7 @@
   },
   "keywords": [
     "aurelia",
-    "parcel"
+    "jest"
   ],
   "files": [
     "dist",
@@ -37,7 +37,7 @@
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
     "postrollup": "tsc --emitDeclarationOnly",
-    "build:packages-cjs": "npm run rollup"
+    "build:packages-tooling": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"
@@ -48,15 +48,16 @@
     "@aurelia/platform": "2.0.0-alpha.30",
     "@aurelia/plugin-conventions": "2.0.0-alpha.30",
     "@aurelia/runtime": "2.0.0-alpha.30",
-    "@parcel/plugin": "^2.5.0",
-    "@parcel/source-map": "^2.0.2"
+    "@babel/core": "^7.17.9",
+    "babel-jest": "^27.5.1"
   },
   "devDependencies": {
+    "@jest/transform": "^27.5.1",
+    "@jest/types": "^27.5.1",
     "@types/node": "^14.18.14",
     "typescript": "^4.6.3"
   },
   "engines": {
-    "node": ">=14.17.0",
-    "parcel": "2.x"
+    "node": ">=14.17.0"
   }
 }

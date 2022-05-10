@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/aot",
+  "name": "@aurelia/parcel-transformer",
   "version": "2.0.0-alpha.30",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -19,7 +19,7 @@
   },
   "keywords": [
     "aurelia",
-    "aot"
+    "parcel"
   ],
   "files": [
     "dist",
@@ -33,12 +33,11 @@
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "test": "node dist/cjs/test.js",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
     "postrollup": "tsc --emitDeclarationOnly",
-    "build:packages-cjs": "npm run rollup"
+    "build:packages-tooling": "npm run rollup"
   },
   "publishConfig": {
     "access": "public"
@@ -47,14 +46,17 @@
     "@aurelia/kernel": "2.0.0-alpha.30",
     "@aurelia/metadata": "2.0.0-alpha.30",
     "@aurelia/platform": "2.0.0-alpha.30",
+    "@aurelia/plugin-conventions": "2.0.0-alpha.30",
     "@aurelia/runtime": "2.0.0-alpha.30",
-    "jsdom": "^19.0.0",
-    "typescript": "^4.6.3"
+    "@parcel/plugin": "^2.5.0",
+    "@parcel/source-map": "^2.0.2"
   },
   "devDependencies": {
-    "@types/node": "^14.18.14"
+    "@types/node": "^14.18.14",
+    "typescript": "^4.6.3"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=14.17.0",
+    "parcel": "2.x"
   }
 }

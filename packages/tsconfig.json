@@ -4,6 +4,7 @@
     { "path": "__tests__" },
     { "path": "au" },
     { "path": "aurelia" },
+    { "path": "addons" },
     { "path": "fetch-client" },
     { "path": "kernel" },
     { "path": "metadata" },

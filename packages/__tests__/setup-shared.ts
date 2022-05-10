@@ -66,40 +66,44 @@ export function $setup(platform: BrowserPlatform): void {
   });
 
   // eslint-disable-next-line
-  afterEach(async function() {
+  afterEach(function() {
     fixtureHookHandler?.dispose();
     fixtureHookHandler = void 0;
 
+    const promises: (void | Promise<void>)[] = [];
     for (const fixture of fixtures) {
       if (!fixture.torn) {
-        const ret = fixture.tearDown();
-        if (ret instanceof Promise) {
-          // eslint-disable-next-line no-await-in-loop
-          await ret;
-        }
+        promises.push(fixture.tearDown());
       }
     }
     fixtures = [];
-
-    const elapsed = platform.performanceNow() - start;
-    let suite = currentSuite;
-    do {
-      suite.$duration = (suite.$duration ?? 0) + elapsed;
-      suite = suite.parent;
-    } while (suite);
-    try {
-      assert.areTaskQueuesEmpty();
-    } catch (ex) {
-      ensureTaskQueuesEmpty();
-      assertNoWatcher(false);
-      throw ex;
+    if (promises.some(p => p instanceof Promise)) {
+      return Promise.all(promises).then(cleanup);
     }
-    assertNoWatcher(true);
-    try {
-      assertEmptyFlushQueue();
-    } catch (ex) {
-      FlushQueue.instance.clear();
-      throw ex;
+
+    cleanup();
+
+    function cleanup() {
+      const elapsed = platform.performanceNow() - start;
+      let suite = currentSuite;
+      do {
+        suite.$duration = (suite.$duration ?? 0) + elapsed;
+        suite = suite.parent;
+      } while (suite);
+      try {
+        assert.areTaskQueuesEmpty();
+      } catch (ex) {
+        ensureTaskQueuesEmpty();
+        assertNoWatcher(false);
+        throw ex;
+      }
+      assertNoWatcher(true);
+      try {
+        assertEmptyFlushQueue();
+      } catch (ex) {
+        FlushQueue.instance.clear();
+        throw ex;
+      }
     }
   });
 

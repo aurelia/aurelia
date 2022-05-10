@@ -17,10 +17,8 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   });
 };
 
-export function createFixture<
-  T,
-  K = (T extends Constructable<infer U> ? U : T)
->(template: string | Node,
+export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>(
+  template: string | Node,
   $class?: T,
   registrations: unknown[] = [],
   autoStart: boolean = true,
@@ -118,14 +116,20 @@ export function createFixture<
       await au.app({ host: host, component }).start();
     }
 
-    public async tearDown() {
+    public tearDown() {
       if (++tornCount === 2) {
         console.log('(!) Fixture has already been torn down');
         return;
       }
-      await au.stop();
-      root.remove();
-      au.dispose();
+      const dispose = () => {
+        root.remove();
+        au.dispose();
+      };
+      const ret = au.stop();
+      if (ret instanceof Promise)
+        return ret.then(dispose);
+      else
+        return dispose();
     }
 
     public get torn() {
@@ -164,7 +168,7 @@ export interface IFixture<T> {
   readonly observerLocator: IObserverLocator;
   readonly torn: boolean;
   start(): Promise<void>;
-  tearDown(): Promise<void>;
+  tearDown(): void | Promise<void>;
   readonly promise: Promise<IFixture<T>>;
   getBy(selector: string): HTMLElement;
   getAllBy(selector: string): HTMLElement[];
@@ -178,3 +182,67 @@ export type ITrigger = ((selector: string, event: string, init: CustomEventInit)
   change(selector: string, init?: CustomEventInit): void;
   input(selector: string, init?: CustomEventInit): void;
 };
+
+export interface IFixtureBuilderBase<T, E = {}> {
+  html(html: string): this & E;
+  html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
+  component(comp: T): this & E;
+  deps(...args: unknown[]): this & E;
+}
+
+type BuilderMethodNames = 'html' | 'component' | 'deps';
+type CreateBuilder<T, Availables extends BuilderMethodNames = BuilderMethodNames> = {
+  [key in Availables]:
+    key extends 'html'
+      ? {
+        (html: string): CreateBuilder<T, Exclude<Availables, 'html'>> & { build(): IFixture<T> };
+        (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>> & { build(): IFixture<T> };
+      }
+        : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+} & (never extends Availables ? { build(): IFixture<T> } : {});
+
+type TaggedTemplateLambda<M> = (vm: M) => unknown;
+type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
+
+class FixtureBuilder<T> {
+  private _html?: string | TemplateStringsArray;
+  private _htmlArgs?: TemplateValues<T>[];
+  private _comp?: T;
+  private _args?: unknown[];
+
+  public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> {
+    this._html = html;
+    this._htmlArgs = htmlArgs;
+    return this;
+  }
+
+  public component(comp: T): CreateBuilder<T, Exclude<BuilderMethodNames, 'component'>> {
+    this._comp = comp;
+    return this;
+  }
+
+  public deps(...args: unknown[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>> {
+    this._args = args;
+    return this;
+  }
+
+  public build() {
+    if (this._html === void 0) {
+      throw new Error('Builder is not ready, missing template, call .html()/.html`` first');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return createFixture<any>(
+      typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []),
+      this._comp,
+      this._args
+    );
+  }
+}
+
+function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown[]): string {
+  return html.join('');
+}
+
+createFixture.html = <T>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+createFixture.component = <T>(component: T) => new FixtureBuilder<T>().component(component);
+createFixture.deps = <T>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);

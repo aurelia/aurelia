@@ -1,5 +1,5 @@
 
-import { type IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable, LifecycleFlags,
   Scope,
@@ -11,6 +11,10 @@ import {
   IStateContainer,
   type IStateSubscriber
 } from './state';
+
+type SubscribableValue = {
+  subscribe(cb: (res: unknown) => void): IDisposable | (() => void);
+};
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -30,6 +34,8 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
   /** @internal */ private readonly _stateContainer: IStateContainer<object>;
   /** @internal */ private _targetAccessor!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
+  /** @internal */ private _sub?: IDisposable | (() => void) = void 0;
+  /** @internal */ private _updateCount = 0;
 
   public constructor(
     locator: IServiceLocator,
@@ -48,7 +54,31 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
   }
 
   public updateTarget(value: unknown) {
-    this._targetAccessor.setValue(value, LifecycleFlags.none, this.target, this.prop);
+    const targetAccessor = this._targetAccessor;
+    const target = this.target;
+    const prop = this.prop;
+    const updateCount = this._updateCount++;
+    this._unsub();
+
+    if (isSubscribable(value)) {
+      this._sub = value.subscribe($value => {
+        if (updateCount === this._updateCount - 1) {
+          targetAccessor.setValue($value, LifecycleFlags.none, target, prop);
+        }
+      });
+      return;
+    }
+
+    if (value instanceof Promise) {
+      void value.then($value => {
+        if (updateCount === this._updateCount - 1) {
+          targetAccessor.setValue($value, LifecycleFlags.none, target, prop);
+        }
+      }, () => {/* todo: don't ignore */});
+      return;
+    }
+
+    targetAccessor.setValue(value, LifecycleFlags.none, target, prop);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
@@ -68,6 +98,9 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     if (!this.isBound) {
       return;
     }
+    this._unsub();
+    // also disregard incoming future value of promise resolution if any
+    this._updateCount++;
     this.isBound = false;
     this.$scope = void 0;
     this._stateContainer.unsubscribe(this);
@@ -83,4 +116,18 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
       this.updateTarget(value);
     }
   }
+
+  /** @internal */
+  private _unsub() {
+    if (typeof this._sub === 'function') {
+      this._sub();
+    } else if (this._sub !== void 0) {
+      this._sub.dispose();
+    }
+    this._sub = void 0;
+  }
+}
+
+function isSubscribable(v: unknown): v is SubscribableValue {
+  return v instanceof Object && 'subscribe' in (v as SubscribableValue);
 }

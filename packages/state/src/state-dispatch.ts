@@ -3,7 +3,7 @@ import { type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable, LifecycleFlags,
   Scope, type IConnectableBinding,
-  type IObserverLocator, type IsBindingBehavior
+  type IsBindingBehavior
 } from '@aurelia/runtime';
 import {
   type IStateContainer

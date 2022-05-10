@@ -3,6 +3,8 @@ import yargs from 'yargs';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import pkgJson from '../package.json';
+import { c } from './logger';
 
 const args = yargs
   .usage('$0 <cmd> [args]')
@@ -33,11 +35,12 @@ If it is intended to run all test, then specified --test *
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
 
-['metadata', 'platform', 'platform-browser', 'kernel', 'runtime', 'runtime-html', 'testing'].forEach((pkg) => {
-  if (isBuilt(pkg) !== null) {
+pkgJson.workspaces.filter(ws => ws.startsWith('packages/') && !ws.includes('_')).forEach((ws) => {
+  const pkgName = ws.replace(/^packages\//, '');
+  if (isBuilt(pkgName) !== null) {
     // eslint-disable-next-line no-console
-    console.log(`${pkg} has not been built, building...`);
-    execSync(`cd packages/${pkg} && npm run build`);
+    console.log(`${c.green(pkgName)} has not been built before, building...`);
+    execSync(`cd packages/${pkgName} && npm run build`);
   }
 });
 

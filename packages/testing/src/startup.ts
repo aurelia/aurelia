@@ -259,6 +259,8 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
   return html.join('');
 }
 
-createFixture.html = <T>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+createFixture.html = <T = Record<string, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
 createFixture.component = <T>(component: T) => new FixtureBuilder<T>().component(component);
-createFixture.deps = <T>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+createFixture.deps = <T = Record<string, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);

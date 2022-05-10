@@ -227,12 +227,12 @@ jobs:
           paths:
             - node_modules
             - packages/__tests__/node_modules
-            - packages/http-server/node_modules
-            - packages/au/node_modules
 
             - packages-tooling/__tests__/node_modules
             - packages-tooling/aot/node_modules
+            - packages-tooling/au/node_modules
             - packages-tooling/babel-jest/node_modules
+            - packages-tooling/http-server/node_modules
             - packages-tooling/parcel-transformer/node_modules
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
@@ -261,11 +261,9 @@ jobs:
           key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
           paths:
             - packages/__tests__/dist
-            - packages/au/dist
             - packages/aurelia/dist
             - packages/addons/dist
             - packages/fetch-client/dist
-            - packages/http-server/dist
             - packages/i18n/dist
             - packages/kernel/dist
             - packages/metadata/dist
@@ -284,7 +282,9 @@ jobs:
 
             - packages-tooling/__tests__/dist
             - packages-tooling/aot/dist
+            - packages-tooling/au/dist
             - packages-tooling/babel-jest/dist
+            - packages-tooling/http-server/dist
             - packages-tooling/parcel-transformer/dist
             - packages-tooling/plugin-conventions/dist
             - packages-tooling/plugin-gulp/dist

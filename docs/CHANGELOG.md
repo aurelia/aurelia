@@ -25,6 +25,52 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 * **all:** remove re-barrelled imports/exports ([973ae46](https://github.com/aurelia/aurelia/commit/973ae46))
 
+
+In this version, the extensions of all package dist are changed to `.cjs` and `.mjs` for `commonjs` and `esm` module formats respectively.
+This may cause a breakage for applications that were created with the old skeleton, as their webpack config may have the wrong module alias resolution, that looks like this:
+
+```ts
+alias: production ? {
+  // add your production aliasing here
+} : {
+  ...[
+    'fetch-client',
+    ...
+  ].reduce((map, pkg) => {
+    const name = `@aurelia/${pkg}`;
+    map[name] = path.resolve(__dirname, 'node_modules', name, 'dist/esm/index.dev.js');
+    return map;
+  }, {
+    'aurelia': path.resolve(__dirname, 'node_modules/aurelia/dist/esm/index.dev.js'),
+    // add your development aliasing here
+  })
+}
+```
+The error will look like this:
+```
+Module not found: Error: Can't resolve 'aurelia' in  ...
+```
+
+Changing the above webpack configuration to the following
+```ts
+alias: production ? {
+  // add your production aliasing here
+} : {
+  ...[
+    'fetch-client',
+    ...
+  ].reduce((map, pkg) => {
+    const name = `@aurelia/${pkg}`;
+    map[name] = path.resolve(__dirname, 'node_modules', name, 'dist/esm/index.dev.mjs');
+    return map;
+  }, {
+    'aurelia': path.resolve(__dirname, 'node_modules/aurelia/dist/esm/index.dev.mjs'),
+    // add your development aliasing here
+  })
+}
+```
+will fix the issue.
+
 <a name="2.0.0-alpha.29"></a>
 # 2.0.0-alpha.29 (2022-04-27)
 

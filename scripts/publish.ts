@@ -1,7 +1,9 @@
+/* eslint-disable no-console */
 import { loadPackageJson } from './package.json';
 import project from './project';
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { c } from './logger';
 
 (async function (): Promise<void> {
   const [, , channel/* dev or latest */] = process.argv;
@@ -15,11 +17,13 @@ import { join } from 'path';
         && p.folder.includes('packages')
       )
   ) {
-    console.log(`publishing [${channel}] ${join(folder, name.kebab)}`);
+    // eslint-disable-next-line no-await-in-loop
     const pkg = await loadPackageJson(folder, name.kebab);
     if (pkg.private) {
-        continue;
+      console.log(`Ignoring ${c.bold('private')} package at ${join(folder, name.kebab)}...`);
+      continue;
     }
+    console.log(`publishing [${channel}] ${c.green(join(folder, name.kebab))}...`);
 
     execSync(`cd ${join(folder, name.kebab)} && npm run publish:${channel}`);
   }

@@ -51,6 +51,7 @@
     "@aurelia/router-lite": "2.0.0-alpha.30",
     "@aurelia/runtime": "2.0.0-alpha.30",
     "@aurelia/runtime-html": "2.0.0-alpha.30",
+    "@aurelia/state": "2.0.0-alpha.30",
     "@aurelia/store-v1": "2.0.0-alpha.30",
     "@aurelia/testing": "2.0.0-alpha.30",
     "@aurelia/validation": "2.0.0-alpha.30",

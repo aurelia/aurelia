@@ -18,6 +18,7 @@
     "packages/route-recognizer",
     "packages/runtime",
     "packages/runtime-html",
+    "packages/state",
     "packages/store-v1",
     "packages/testing",
     "packages/validation",

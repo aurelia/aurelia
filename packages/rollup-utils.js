@@ -162,12 +162,13 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(isDevMode
+      ...(/* isDevMode */false // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,
             target: 'es2018',
             define: { ...envVars, __DEV__: 'true' },
+            sourceMap: true,
           }),
         ]
         : [
@@ -206,7 +207,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(isDevMode
+      ...(/* isDevMode */false // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,
@@ -215,6 +216,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
             mangleProps: /^_/,
             reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
             mangleCache: esbuildNameCache,
+            sourceMap: true,
           })
         ]
         : [

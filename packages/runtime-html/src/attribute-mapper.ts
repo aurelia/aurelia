@@ -6,7 +6,7 @@ export interface IAttrMapper extends AttrMapper {}
 export const IAttrMapper = DI
   .createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
 
-type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
+export type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrMapper {
   /** @internal */ public static get inject(): unknown[] { return [ISVGAnalyzer]; }

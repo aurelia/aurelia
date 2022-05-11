@@ -44,7 +44,7 @@ export class StateDispatchActionBinding implements IConnectableBinding {
     $scope.overrideContext.$event = e;
     const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
     delete $scope.overrideContext.$event;
-    this._stateContainer.dispatch({ type: 'event', payload: { target: this.target, event: this.prop, value } });
+    void this._stateContainer.dispatch('event', { target: this.target, event: this.prop, value });
   }
 
   public handleEvent(e: Event) {

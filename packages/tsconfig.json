@@ -2,7 +2,6 @@
   "files": [],
   "references": [
     { "path": "__tests__" },
-    { "path": "au" },
     { "path": "aurelia" },
     { "path": "addons" },
     { "path": "fetch-client" },
@@ -20,7 +19,6 @@
     { "path": "testing" },
     { "path": "validation" },
     { "path": "validation-html" },
-    { "path": "validation-i18n" },
-    { "path": "http-server" }
+    { "path": "validation-i18n" }
   ]
 }

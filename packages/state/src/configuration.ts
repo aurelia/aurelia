@@ -1,5 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Reducer, type IReducer } from './reducer';
+import { Action, type IReducerAction } from './reducer';
 import { IState, StateContainer } from './state';
 import {
   DispatchAttributePattern,
@@ -22,14 +22,16 @@ const standardRegistrations = [
   StateContainer,
 ];
 
-const createConfiguration = (initialState: object, reducers: IReducer[]) => {
+export type INamedReducerActionRegistration<T> = { target: string; action: IReducerAction<T> };
+
+const createConfiguration = <T extends object>(initialState: T, reducers: INamedReducerActionRegistration<T>[]) => {
   return {
     register: (c: IContainer) => c.register(
       ...standardRegistrations,
       Registration.instance(IState, initialState),
-      ...reducers.map(r => Reducer.isType(r) ? r : Reducer.define(r))
+      ...reducers.map(r => Action.isType(r) ? r : Action.define(r.target, r.action as unknown as IReducerAction<object>))
     ),
-    init: (state: object, ...reducers: IReducer[]) => createConfiguration(state, reducers),
+    init: <T1 extends object>(state: T1, ...reducers: INamedReducerActionRegistration<T1>[]) => createConfiguration(state, reducers),
   };
 };
 

@@ -6,11 +6,11 @@
 
 export { StandardStateConfiguration } from './configuration';
 export {
-  IReducer,
-  Reducer,
+  IReducerAction,
+  Action,
   type IRegistrableReducer,
-  type IStateAction,
 } from './reducer';
+
 export {
   IState,
   IStateContainer,

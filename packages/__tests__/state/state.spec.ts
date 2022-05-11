@@ -1,4 +1,4 @@
-import { IStateAction, StandardStateConfiguration } from '@aurelia/state';
+import { StandardStateConfiguration } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -65,9 +65,9 @@ describe('state/state.spec.ts', function () {
       .html`<input value.state="text" input.dispatch="$event.target.value">`
       .deps(StandardStateConfiguration.init(
         state,
-        (s: typeof state, action: IStateAction<string, { value: string }>) => {
-          return { text: s.text + action.payload.value };
-        })
+        { target: 'event', action: (s: typeof state, { value }: { value }) => {
+          return { text: s.text + value };
+        }})
       )
       .build().promise;
 
@@ -130,9 +130,9 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="$event.target.value & debounce:1">')
         .deps(StandardStateConfiguration.init(
           state,
-          (s: typeof state, action: IStateAction<string, { value: string }>) => {
-            return { text: s.text + action.payload.value };
-          })
+          { target: 'event', action: (s: typeof state, { value }) => {
+            return { text: s.text + value };
+          }})
         )
         .build().promise;
 
@@ -150,10 +150,10 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="$event.target.value & throttle:1">')
         .deps(StandardStateConfiguration.init(
           state,
-          (s: typeof state, action: IStateAction<string, { value: string }>) => {
+          { target: 'event', action: (s: typeof state, { value }) => {
             actionCallCount++;
-            return { text: s.text + action.payload.value };
-          })
+            return { text: s.text + value };
+          }})
         )
         .build().promise;
 

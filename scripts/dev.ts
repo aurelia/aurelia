@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
-import concurrently, { ConcurrentlyCommandInput } from 'concurrently';
+import concurrently from 'concurrently';
 import yargs from 'yargs';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import pkgJson from '../package.json';
 import { c } from './logger';
 
 const args = yargs

@@ -8,7 +8,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
     const { getBy } = await createFixture(
       '<button click.trigger="onClick()">',
       { onClick() { log++; } },
-    ).promise;
+    ).started;
 
     getBy('button').click();
     assert.strictEqual(log, 1);
@@ -26,7 +26,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
           return a;
         }
       })]
-    ).promise;
+    ).started;
 
     trigger.click('button');
     assert.strictEqual(log, 1);
@@ -39,7 +39,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
       '<button click.trigger="onClick">',
       { onClick() { log++; } },
       [AppTask.beforeCreate(IListenerBehaviorOptions, o => { o.expAsHandler = true; })]
-    ).promise;
+    ).started;
 
     trigger.click('button');
     assert.strictEqual(log, 1);
@@ -60,7 +60,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
           }
         })
       ]
-    ).promise;
+    ).started;
 
     trigger.click('button');
     assert.strictEqual(log, 1);

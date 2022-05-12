@@ -7,7 +7,7 @@ describe('state/state.spec.ts', function () {
     const { getBy } = await createFixture
       .html`<input value.state="text">`
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     assert.strictEqual(getBy('input').value, '123');
   });
@@ -17,7 +17,7 @@ describe('state/state.spec.ts', function () {
     const { getBy, ctx } = await createFixture
       .html('<input value.state="text">')
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     assert.strictEqual(getBy('input').value, '123');
 
@@ -32,7 +32,7 @@ describe('state/state.spec.ts', function () {
     const { getBy } = await createFixture
       .html('<input value.state="$state.text">')
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     assert.strictEqual(getBy('input').value, '123');
   });
@@ -43,7 +43,7 @@ describe('state/state.spec.ts', function () {
       .component({ text: '456' })
       .html('<input value.state="$parent.text">')
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     assert.strictEqual(getBy('input').value, '456');
   });
@@ -53,7 +53,7 @@ describe('state/state.spec.ts', function () {
     const { trigger } = await createFixture
       .html('<input value.state="text" input.trigger="$state.text = `456`">')
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     trigger('input', 'input');
     assert.strictEqual(state.text, '123');
@@ -69,7 +69,7 @@ describe('state/state.spec.ts', function () {
           return { text: s.text + value };
         }})
       )
-      .build().promise;
+      .build().started;
 
     assert.strictEqual(getBy('input').value, '1');
 
@@ -82,7 +82,7 @@ describe('state/state.spec.ts', function () {
     const { getBy } = await createFixture
       .html`<input value.state="data()">`
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
     await resolveAfter(2);
     assert.strictEqual(getBy('input').value, 'value-1-2');
@@ -106,7 +106,7 @@ describe('state/state.spec.ts', function () {
     const { getBy, tearDown } = await createFixture
       .html`<input value.state="data()">`
       .deps(StandardStateConfiguration.init(state))
-      .build().promise;
+      .build().started;
 
       assert.strictEqual(getBy('input').value, 'value-1');
 
@@ -134,7 +134,7 @@ describe('state/state.spec.ts', function () {
             return { text: s.text + value };
           }})
         )
-        .build().promise;
+        .build().started;
 
       trigger('input', 'input');
       assert.strictEqual(getBy('input').value, '1');
@@ -155,7 +155,7 @@ describe('state/state.spec.ts', function () {
             return { text: s.text + value };
           }})
         )
-        .build().promise;
+        .build().started;
 
       trigger('input', 'input');
       assert.strictEqual(getBy('input').value, '11');

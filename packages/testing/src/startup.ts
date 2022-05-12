@@ -76,12 +76,16 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     }
     return elements.length === 0 ? null : elements[0];
   };
-  const assertText = (selector: string, text: string): void => {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
+  const assertText = (selector: string, text?: string): void => {
+    if (arguments.length === 2) {
+      const el = queryBy(selector);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
+      }
+      assert.strictEqual(el.textContent, text);
+    } else {
+      assert.strictEqual(host.textContent, selector);
     }
-    assert.strictEqual(el.textContent, text);
   };
   const trigger = ((selector: string, event: string, init?: CustomEventInit): void => {
     const el = queryBy(selector);
@@ -139,7 +143,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     /**
      * @returns a promise that resolves after the associated app has started
      */
-    public get promise(): Promise<IFixture<K>> {
+    public get started(): Promise<IFixture<K>> {
       return Promise.resolve(startPromise).then(() => this as IFixture<K>);
     }
 
@@ -169,7 +173,7 @@ export interface IFixture<T> {
   readonly torn: boolean;
   start(): Promise<void>;
   tearDown(): void | Promise<void>;
-  readonly promise: Promise<IFixture<T>>;
+  readonly started: Promise<IFixture<T>>;
 
   /**
    * Returns the first element that is a descendant of node that matches selectors, and throw if there is more than one, or none found
@@ -189,6 +193,7 @@ export interface IFixture<T> {
   queryBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
   queryBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
   queryBy<E extends Element = Element>(selectors: string): E | null;
+  assertText(text: string): void;
   assertText(selector: string, text: string): void;
   trigger: ITrigger;
 }

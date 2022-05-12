@@ -53,7 +53,7 @@ const buildCmd = 'npm run build';
   'addons',
   'testing',
 ].forEach((pkgName) => {
-  if (isBuilt(pkgName) !== null) {
+  if (!isBuilt(pkgName)) {
     const start = Date.now();
     const pkgDisplay = c.green(pkgName);
     console.log(`${pkgDisplay} has not been built before, building...`);
@@ -89,8 +89,6 @@ concurrently([
 
 function isBuilt(name: string): boolean {
   return fs.existsSync(path.resolve(__dirname, `../packages/${name}/dist/esm/index.mjs`));
-    // ? null
-    // : { command: buildCmd, name, env: envVars, cwd: `packages/${name}` };
 }
 
  function getElapsed(now: number, then: number) {

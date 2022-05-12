@@ -1286,7 +1286,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // todo: shouldn't have to eagerly replace with a marker like this
       //       this should be the job of the renderer
-      if (elDef !== null && elDef.containerless) {
+      if (hasContainerless || elDef !== null && elDef.containerless) {
         this._replaceByMarker(el, context);
       }
 

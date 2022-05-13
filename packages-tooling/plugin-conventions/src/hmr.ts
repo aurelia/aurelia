@@ -44,9 +44,9 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
 
     if (proto) {
       // @ts-ignore
-      proto.created = (controller) => {
+      proto.created = function(controller) {
         // @ts-ignore
-        ogCreated && ogCreated(controller);
+        ogCreated && ogCreated.call(this, controller);
         controllers.push(controller);
       }
     }

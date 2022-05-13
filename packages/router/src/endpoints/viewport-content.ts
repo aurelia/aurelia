@@ -329,7 +329,7 @@ export class ViewportContent extends EndpointContent {
     }
 
     const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step) => {
-      const result = hook(instance, this.instruction, this.navigation);
+      const result = hook(instance, this.instruction, navigation);
       if (typeof result === 'boolean') {
         if (result === false) {
           innerStep.exit();
@@ -433,7 +433,7 @@ export class ViewportContent extends EndpointContent {
     }
 
     const hooks = this.getLifecycleHooks(instance, 'unload').map(hook =>
-      () => hook(instance, this.instruction, this.navigation));
+      () => hook(instance, this.instruction, navigation));
 
     if (hooks.length !== 0) {
       // Add hook in component

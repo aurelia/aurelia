@@ -189,12 +189,12 @@ export class AuCompose {
     //       current: proceed
     const { view, viewModel, model } = context.change;
     const { _container: container, host, $controller, _location: loc } = this;
-    const srcDef = this.getDef(viewModel);
+    const vmDef = this.getDef(viewModel);
     const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
 
-    if (srcDef !== null) {
-      if (srcDef.containerless) {
+    if (vmDef !== null) {
+      if (vmDef.containerless) {
         if (__DEV__)
           throw new Error('Containerless custom element is not supported by <au-compose/>');
         else
@@ -208,7 +208,7 @@ export class AuCompose {
         };
       } else {
         // todo: should the host be appended later, during the activation phase instead?
-        compositionHost = parentNode!.insertBefore(this._platform.document.createElement(srcDef.name), loc);
+        compositionHost = parentNode!.insertBefore(this._platform.document.createElement(vmDef.name), loc);
         removeCompositionHost = () => {
           compositionHost.remove();
         };
@@ -222,13 +222,13 @@ export class AuCompose {
     }
     const compose: () => ICompositionController = () => {
       // custom element based composition
-      if (srcDef !== null) {
+      if (vmDef !== null) {
         const controller = Controller.$el(
           childCtn,
           comp,
           compositionHost as HTMLElement,
           { projections: this._instruction.projections },
-          srcDef,
+          vmDef,
         );
 
         return new CompositionController(

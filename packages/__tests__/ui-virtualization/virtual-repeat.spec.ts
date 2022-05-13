@@ -2,6 +2,9 @@ import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualRepeatConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 
 describe('virtual-repeat', function () {
+  if (typeof process !== 'undefined') {
+    return;
+  }
   const virtualRepeatDeps = [DefaultVirtualRepeatConfiguration];
   const virtualRepeats: VirtualRepeat[] = [];
 

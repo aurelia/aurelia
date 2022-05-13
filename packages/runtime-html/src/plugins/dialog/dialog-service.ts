@@ -57,7 +57,7 @@ export class DialogService implements IDialogService {
           if (openDialogController.length > 0) {
             // todo: what to do?
             if (__DEV__)
-              throw new Error(`There are still ${openDialogController.length} open dialog(s).`);
+              throw new Error(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
             else
               throw new Error(`AUR0901:${openDialogController.length}`);
           }
@@ -95,9 +95,9 @@ export class DialogService implements IDialogService {
           container.register(Registration.instance(IDialogController, dialogController));
           container.register(Registration.callback(DialogController, () => {
             if (__DEV__)
-              throw new Error('Invalid injection of DialogController. Use IDialogController instead.');
+              throw new Error(`AUR0902: Invalid injection of DialogController. Use IDialogController instead.`);
             else
-              throw new Error('AUR0902');
+              throw new Error(`AUR0902`);
           }));
 
           return onResolve(
@@ -207,9 +207,9 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   private _validate(): this {
     if (this.component == null && this.template == null) {
       if (__DEV__)
-        throw new Error('Invalid Dialog Settings. You must provide "component", "template" or both.');
+        throw new Error(`AUR0903: Invalid Dialog Settings. You must provide "component", "template" or both.`);
       else
-        throw new Error('AUR0903');
+        throw new Error(`AUR0903`);
     }
     return this;
   }

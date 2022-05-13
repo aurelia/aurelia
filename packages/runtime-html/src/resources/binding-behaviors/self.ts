@@ -22,9 +22,9 @@ export class SelfBindingBehavior {
   public bind(flags: LifecycleFlags, _scope: Scope, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
       if (__DEV__)
-        throw new Error('Self binding behavior only supports events.');
+        throw new Error(`AUR0801: Self binding behavior only supports events.`);
       else
-        throw new Error('AUR0801');
+        throw new Error(`AUR0801`);
     }
 
     binding.selfEventCallSource = binding.callSource;

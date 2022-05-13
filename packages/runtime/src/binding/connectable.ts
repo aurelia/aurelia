@@ -56,9 +56,9 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
     obs = getMapObserver(collection);
   } else {
     if (__DEV__)
-      throw new Error('Unrecognised collection type.');
+      throw new Error(`AUR0210: Unrecognised collection type.`);
     else
-      throw new Error('AUR0210');
+      throw new Error(`AUR0210`);
   }
   this.obs.add(obs);
 }
@@ -69,16 +69,16 @@ function subscribeTo(this: IConnectableBinding, subscribable: ISubscribable | IC
 
 function noopHandleChange() {
   if (__DEV__)
-    throw new Error('method "handleChange" not implemented');
+    throw new Error(`AUR2011: method "handleChange" not implemented`);
   else
     throw new Error(`AUR2011:handleChange`);
 }
 
 function noopHandleCollectionChange() {
   if (__DEV__)
-    throw new Error('method "handleCollectionChange" not implemented');
+    throw new Error(`AUR2012: method "handleCollectionChange" not implemented`);
   else
-    throw new Error('AUR2012:handleCollectionChange');
+    throw new Error(`AUR2012:handleCollectionChange`);
 }
 
 type ObservationRecordImplType = {
@@ -190,16 +190,16 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
 
   public $bind(): void {
     if (__DEV__)
-      throw new Error('Method not implemented.');
+      throw new Error(`AUR0213: Method not implemented.`);
     else
-      throw new Error('AUR0213:$bind');
+      throw new Error(`AUR0213:$bind`);
   }
 
   public $unbind(): void {
     if (__DEV__)
-      throw new Error('Method not implemented.');
+      throw new Error(`AUR0214: Method not implemented.`);
     else
-      throw new Error('AUR0214:$unbind');
+      throw new Error(`AUR0214:$unbind`);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {

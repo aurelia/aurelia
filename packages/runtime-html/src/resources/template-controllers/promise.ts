@@ -314,9 +314,9 @@ function getPromiseController(controller: IHydratableController) {
     return $promise;
   }
   if (__DEV__)
-    throw new Error('The parent promise.resolve not found; only `*[promise.resolve] > *[pending|then|catch]` relation is supported.');
+    throw new Error(`AUR0813: The parent promise.resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`);
   else
-    throw new Error('AUR0813');
+    throw new Error(`AUR0813`);
 }
 
 @attributePattern({ pattern: 'promise.resolve', symbols: '' })

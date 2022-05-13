@@ -300,7 +300,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo
       if (__DEV__)
-        throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
+        throw new Error(`AUR0652: Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
       else
         throw new Error(`AUR0652:${String(key)}`);
     } else {
@@ -325,7 +325,7 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
   if (__DEV__)
-    throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+    throw new Error(`AUR0653: Mapping for property ${String(key)} of <${nodeName} /> already exists`);
   else
     throw new Error(`AUR0653:${String(key)}@${nodeName}`);
 }

@@ -84,9 +84,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (template.hasAttribute(localTemplateIdentifier)) {
       if (__DEV__)
-        throw new Error('The root cannot be a local template itself.');
+        throw new Error(`AUR0701: The root cannot be a local template itself.`);
       else
-        throw new Error('AUR0701');
+        throw new Error(`AUR0701`);
     }
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
@@ -159,7 +159,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (attrDef !== null) {
         if (attrDef.isTemplateController) {
           if (__DEV__)
-            throw new Error(`Spreading template controller ${attrTarget} is not supported.`);
+            throw new Error(`AUR0703: Spreading template controller ${attrTarget} is not supported.`);
           else
             throw new Error(`AUR0703:${attrTarget}`);
         }
@@ -328,7 +328,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       if (invalidSurrogateAttribute[realAttrTarget]) {
         if (__DEV__)
-          throw new Error(`Attribute ${attrName} is invalid on surrogate.`);
+          throw new Error(`AUR0702: Attribute ${attrName} is invalid on surrogate.`);
         else
           throw new Error(`AUR0702:${attrName}`);
       }
@@ -355,7 +355,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (attrDef !== null) {
         if (attrDef.isTemplateController) {
           if (__DEV__)
-            throw new Error(`Template controller ${realAttrTarget} is invalid on surrogate.`);
+            throw new Error(`AUR0703: Template controller ${realAttrTarget} is invalid on surrogate.`);
           else
             throw new Error(`AUR0703:${realAttrTarget}`);
         }
@@ -546,7 +546,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             continue;
           default:
             if (__DEV__)
-              throw new Error(`Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
+              throw new Error(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
             else
               throw new Error(`AUR0704:${attrSyntax.command}`);
         }
@@ -678,8 +678,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (context.root.def.enhance && el.classList.contains('au')) {
       if (__DEV__)
-        throw new Error(
-          'Trying to enhance with a template that was probably compiled before. '
+        throw new Error(`AUR0705: `
+          + 'Trying to enhance with a template that was probably compiled before. '
           + 'This is likely going to cause issues. '
           + 'Consider enhancing only untouched elements or first remove all "au" classes.'
         );
@@ -1033,7 +1033,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             if (targetSlot !== null) {
               if (elDef === null) {
                 if (__DEV__)
-                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                  throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
                 else
                   throw new Error(`AUR0706:${elName}[${targetSlot}]`);
               }
@@ -1220,7 +1220,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             if (targetSlot !== null) {
               if (elDef === null) {
                 if (__DEV__)
-                  throw new Error(`Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+                  throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
                 else
                   throw new Error(`AUR0706:${el.nodeName}[${targetSlot}]`);
               }
@@ -1399,7 +1399,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
           if (__DEV__)
-            throw new Error(`Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
+            throw new Error(`AUR0707: Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
           else
             throw new Error(`AUR0707:${attrDef.name}.${attrSyntax.target}`);
         }
@@ -1440,9 +1440,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (numLocalTemplates === 0) { return; }
     if (numLocalTemplates === root.childElementCount) {
       if (__DEV__)
-        throw new Error('The custom element does not have any content other than local template(s).');
+        throw new Error(`AUR0708: The custom element does not have any content other than local template(s).`);
       else
-        throw new Error('AUR0708');
+        throw new Error(`AUR0708`);
     }
     const localTemplateNames: Set<string> = new Set();
     const localElTypes: CustomElementType[] = [];
@@ -1450,9 +1450,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
         if (__DEV__)
-          throw new Error('Local templates needs to be defined directly under root.');
+          throw new Error(`AUR0709: Local templates needs to be defined directly under root.`);
         else
-          throw new Error('AUR0709');
+          throw new Error(`AUR0709`);
       }
       const name = processTemplateName(localTemplate, localTemplateNames);
 
@@ -1465,16 +1465,16 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (const bindableEl of bindableEls) {
         if (bindableEl.parentNode !== content) {
           if (__DEV__)
-            throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+            throw new Error(`AUR0710: Bindable properties of local templates needs to be defined directly under root.`);
           else
-            throw new Error('AUR0710');
+            throw new Error(`AUR0710`);
         }
         const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
         if (property === null) {
           if (__DEV__)
-            throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`);
+            throw new Error(`AUR0711: The attribute 'property' is missing in ${bindableEl.outerHTML}`);
           else
-            throw new Error('AUR0711');
+            throw new Error(`AUR0711`);
         }
         const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute);
         if (attribute !== null
@@ -1708,7 +1708,7 @@ class CompilationContext {
       result = this.c.create(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
         if (__DEV__)
-          throw new Error(`Unknown binding command: ${name}`);
+          throw new Error(`AUR0713: Unknown binding command: ${name}`);
         else
           throw new Error(`AUR0713:${name}`);
       }
@@ -1796,7 +1796,7 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
         if (bindable.primary === true) {
           if (hasPrimary) {
             if (__DEV__)
-              throw new Error(`Primary already exists on ${def.name}`);
+              throw new Error(`AUR0714: Primary already exists on ${def.name}`);
             else
               throw new Error(`AUR0714:${def.name}`);
           }
@@ -1841,13 +1841,13 @@ function processTemplateName(localTemplate: HTMLTemplateElement, localTemplateNa
   const name = localTemplate.getAttribute(localTemplateIdentifier);
   if (name === null || name === '') {
     if (__DEV__)
-      throw new Error('The value of "as-custom-element" attribute cannot be empty for local template');
+      throw new Error(`AUR0715: The value of "as-custom-element" attribute cannot be empty for local template`);
     else
-      throw new Error('AUR0715');
+      throw new Error(`AUR0715`);
   }
   if (localTemplateNames.has(name)) {
     if (__DEV__)
-      throw new Error(`Duplicate definition of the local template named ${name}`);
+      throw new Error(`AUR0716: Duplicate definition of the local template named ${name}`);
     else
       throw new Error(`AUR0716:${name}`);
   } else {

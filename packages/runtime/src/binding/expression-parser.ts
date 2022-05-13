@@ -82,9 +82,9 @@ export class ExpressionParser {
             return PrimitiveLiteralExpression.$empty;
           }
           if (__DEV__)
-            throw new Error('Invalid expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)');
+            throw new Error(`AUR0169: Invalid expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)`);
           else
-            throw new Error('AUR0169');
+            throw new Error(`AUR0169`);
         }
         found = this._expressionLookup[expression];
         if (found === void 0) {
@@ -405,7 +405,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     nextToken(state);
     if (state._currentToken & Token.ExpressionTerminal) {
       if (__DEV__)
-        throw new Error(`Invalid start of expression: '${state.ip}'`);
+        throw new Error(`AUR0151: Invalid start of expression: '${state.ip}'`);
       else
         throw new Error(`AUR0151:${state.ip}`);
     }
@@ -475,12 +475,12 @@ TPrec extends Precedence.Unary ? IsUnary :
           if (consumeOpt(state, Token.Dot)) {
             if ((state._currentToken as Token) === Token.Dot) {
               if (__DEV__)
-                throw new Error(`Double dot and spread operators are not supported: '${state.ip}'`);
+                throw new Error(`AUR0152: Double dot and spread operators are not supported: '${state.ip}'`);
               else
                 throw new Error(`AUR0152:${state.ip}`);
             } else if ((state._currentToken as Token) === Token.EOF) {
               if (__DEV__)
-                throw new Error(`Expected identifier: '${state.ip}'`);
+                throw new Error(`AUR0153: Expected identifier: '${state.ip}'`);
               else
                 throw new Error(`AUR0153:${state.ip}`);
             }
@@ -491,7 +491,7 @@ TPrec extends Precedence.Unary ? IsUnary :
             break primary;
           } else {
             if (__DEV__)
-              throw new Error(`Invalid member expression: '${state.ip}'`);
+              throw new Error(`AUR0154: Invalid member expression: '${state.ip}'`);
             else
               throw new Error(`AUR0154:${state.ip}`);
           }
@@ -556,12 +556,12 @@ TPrec extends Precedence.Unary ? IsUnary :
       default:
         if (state.index >= state.length) {
           if (__DEV__)
-            throw new Error(`Unexpected end of expression: '${state.ip}'`);
+            throw new Error(`AUR0155: Unexpected end of expression: '${state.ip}'`);
           else
             throw new Error(`AUR0155:${state.ip}`);
         } else {
           if (__DEV__)
-            throw new Error(`Unconsumed token: '${state.ip}'`);
+            throw new Error(`AUR0156: Unconsumed token: '${state.ip}'`);
           else
             throw new Error(`AUR0156:${state.ip}`);
         }
@@ -612,7 +612,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           nextToken(state);
           if ((state._currentToken & Token.IdentifierName) === 0) {
             if (__DEV__)
-              throw new Error(`Expected identifier: '${state.ip}'`);
+              throw new Error(`AUR0153: Expected identifier: '${state.ip}'`);
             else
               throw new Error(`AUR0153:${state.ip}`);
           }
@@ -757,7 +757,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   if (consumeOpt(state, Token.Equals)) {
     if (!state._assignable) {
       if (__DEV__)
-        throw new Error(`Left hand side of expression is not assignable: '${state.ip}'`);
+        throw new Error(`AUR0158: Left hand side of expression is not assignable: '${state.ip}'`);
       else
         throw new Error(`AUR0158:${state.ip}`);
     }
@@ -774,7 +774,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   while (consumeOpt(state, Token.Bar)) {
     if (state._currentToken === Token.EOF) {
       if (__DEV__)
-        throw new Error(`Expected identifier to come after ValueConverter operator: '${state.ip}'`);
+        throw new Error(`AUR0159: Expected identifier to come after ValueConverter operator: '${state.ip}'`);
       else
         throw new Error(`AUR0159:${state.ip}`);
     }
@@ -793,7 +793,7 @@ TPrec extends Precedence.Unary ? IsUnary :
   while (consumeOpt(state, Token.Ampersand)) {
     if (state._currentToken === Token.EOF) {
       if (__DEV__)
-        throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.ip}'`);
+        throw new Error(`AUR0160: Expected identifier to come after BindingBehavior operator: '${state.ip}'`);
       else
         throw new Error(`AUR0160:${state.ip}`);
     }
@@ -812,12 +812,12 @@ TPrec extends Precedence.Unary ? IsUnary :
     }
     if (state._tokenRaw === 'of') {
       if (__DEV__)
-        throw new Error(`Unexpected keyword "of": '${state.ip}'`);
+        throw new Error(`AUR0161: Unexpected keyword "of": '${state.ip}'`);
       else
         throw new Error(`AUR0161:${state.ip}`);
     }
     if (__DEV__)
-      throw new Error(`Unconsumed token: '${state.ip}'`);
+      throw new Error(`AUR0162: Unconsumed token: '${state.ip}'`);
     else
       throw new Error(`AUR0162:${state.ip}`);
   }
@@ -852,7 +852,7 @@ function parseArrayDestructuring(state: ParserState): DAE {
         break;
       default:
         if (__DEV__) {
-          throw new Error(`Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`);
+          throw new Error(`AUR0170: Unexpected '${state._tokenRaw}' at position ${state.index - 1} for destructuring assignment in ${state.ip}`);
         } else {
           throw new Error(`AUR0170:${state.ip}`);
         }
@@ -920,13 +920,13 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, express
 function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
     if (__DEV__)
-      throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
+      throw new Error(`AUR0163: Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
     else
       throw new Error(`AUR0163:${state.ip}`);
   }
   if (state._currentToken !== Token.OfKeyword) {
     if (__DEV__)
-      throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
+      throw new Error(`AUR0163: Invalid BindingIdentifier at left hand side of "of": '${state.ip}'`);
     else
       throw new Error(`AUR0163:${state.ip}`);
   }
@@ -983,7 +983,7 @@ function parseObjectLiteralExpression(state: ParserState, expressionType: Expres
       }
     } else {
       if (__DEV__)
-        throw new Error(`Invalid or unsupported property definition in object literal: '${state.ip}'`);
+        throw new Error(`AUR0164: Invalid or unsupported property definition in object literal: '${state.ip}'`);
       else
         throw new Error(`AUR0164:${state.ip}`);
     }
@@ -1163,7 +1163,7 @@ function scanString(state: ParserState): Token {
       marker = state.index;
     } else if (state.index >= state.length) {
       if (__DEV__)
-        throw new Error(`Unterminated quote in string literal: '${state.ip}'`);
+        throw new Error(`AUR0165: Unterminated quote in string literal: '${state.ip}'`);
       else
         throw new Error(`AUR0165:${state.ip}`);
     } else {
@@ -1200,7 +1200,7 @@ function scanTemplate(state: ParserState): Token {
     } else {
       if (state.index >= state.length) {
         if (__DEV__)
-          throw new Error(`Unterminated template string: '${state.ip}'`);
+          throw new Error(`AUR0166: Unterminated template string: '${state.ip}'`);
         else
           throw new Error(`AUR0166:${state.ip}`);
       }
@@ -1219,7 +1219,7 @@ function scanTemplate(state: ParserState): Token {
 function scanTemplateTail(state: ParserState): Token {
   if (state.index >= state.length) {
     if (__DEV__)
-      throw new Error(`Unterminated template string: '${state.ip}'`);
+      throw new Error(`AUR0166: Unterminated template string: '${state.ip}'`);
     else
       throw new Error(`AUR0166:${state.ip}`);
   }
@@ -1241,7 +1241,7 @@ function consume(state: ParserState, token: Token): void {
     nextToken(state);
   } else {
     if (__DEV__)
-      throw new Error(`Missing expected token: '${state.ip}'`);
+      throw new Error(`AUR0167: Missing expected token: '${state.ip}'`);
     else
       throw new Error(`AUR0167:${state.ip}<${token}`);
   }
@@ -1324,7 +1324,7 @@ function returnToken(token: Token): (s: ParserState) => Token {
 }
 const unexpectedCharacter: CharScanner = s => {
   if (__DEV__)
-    throw new Error(`Unexpected character: '${s.ip}'`);
+    throw new Error(`AUR0168: Unexpected character: '${s.ip}'`);
   else
     throw new Error(`AUR0168:${s.ip}`);
 };

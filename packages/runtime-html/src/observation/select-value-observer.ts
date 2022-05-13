@@ -257,9 +257,9 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     if (array != null) {
       if (!this._obj.multiple) {
         if (__DEV__)
-          throw new Error('Only null or Array instances can be bound to a multi-select.');
+          throw new Error(`AUR0654: Only null or Array instances can be bound to a multi-select.`);
         else
-          throw new Error('AUR0654');
+          throw new Error(`AUR0654`);
       }
       (this._arrayObserver = this._observerLocator.getArrayObserver(array)).subscribe(this);
     }

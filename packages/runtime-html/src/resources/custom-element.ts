@@ -257,7 +257,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       const def = nameOrDef;
       if (isString(def)) {
         if (__DEV__)
-          throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
+          throw new Error(`AUR0761: Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
           throw new Error(`AUR0761:${nameOrDef}`);
       }
@@ -456,9 +456,9 @@ export const CustomElement = Object.freeze<CustomElementKind>({
           return null!;
         }
         if (__DEV__)
-          throw new Error(`The provided node is not a custom element or containerless host.`);
+          throw new Error(`AUR0762: The provided node is not a custom element or containerless host.`);
         else
-          throw new Error('AUR0762');
+          throw new Error(`AUR0762`);
       }
       return controller as unknown as ICustomElementController<C>;
     }
@@ -467,9 +467,9 @@ export const CustomElement = Object.freeze<CustomElementKind>({
         const controller = getRef(node, ceBaseName) as Controller<C> | null;
         if (controller === null) {
           if (__DEV__)
-            throw new Error(`The provided node is not a custom element or containerless host.`);
+            throw new Error(`AUR0763: The provided node is not a custom element or containerless host.`);
           else
-            throw new Error('AUR0763');
+            throw new Error(`AUR0763`);
         }
 
         if (controller.is(opts.name)) {
@@ -498,9 +498,9 @@ export const CustomElement = Object.freeze<CustomElementKind>({
       }
 
       if (__DEV__)
-        throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+        throw new Error(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
       else
-        throw new Error('AUR0764');
+        throw new Error(`AUR0764`);
     }
 
     let cur = node as INode | null;
@@ -514,9 +514,9 @@ export const CustomElement = Object.freeze<CustomElementKind>({
     }
 
     if (__DEV__)
-      throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+      throw new Error(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     else
-      throw new Error('AUR0765');
+      throw new Error(`AUR0765`);
   },
   define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
@@ -530,7 +530,7 @@ export const CustomElement = Object.freeze<CustomElementKind>({
     const def = getOwnMetadata(ceBaseName, Type) as CustomElementDefinition<C>;
     if (def === void 0) {
       if (__DEV__)
-        throw new Error(`No definition found for type ${Type.name}`);
+        throw new Error(`AUR0760: No definition found for type ${Type.name}`);
       else
         throw new Error(`AUR0760:${Type.name}`);
     }
@@ -628,7 +628,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
 
   if (!isFunction(hook)) {
     if (__DEV__)
-      throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
+      throw new Error(`AUR0766: Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
       throw new Error(`AUR0766:${typeof hook}`);
   }

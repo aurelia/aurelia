@@ -52,9 +52,9 @@ export class AuCompose {
         return v;
       }
       if (__DEV__)
-        throw new Error('Invalid scope behavior config. Only "scoped" or "auto" allowed.');
+        throw new Error(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
       else
-        throw new Error('AUR0805');
+        throw new Error(`AUR0805`);
     }
   })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
@@ -196,9 +196,9 @@ export class AuCompose {
     if (vmDef !== null) {
       if (vmDef.containerless) {
         if (__DEV__)
-          throw new Error('Containerless custom element is not supported by <au-compose/>');
+          throw new Error(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
         else
-          throw new Error('AUR0806');
+          throw new Error(`AUR0806`);
       }
       if (loc == null) {
         compositionHost = host;
@@ -414,7 +414,7 @@ class CompositionController implements ICompositionController {
   public activate(initiator?: IHydratedController) {
     if (this.state !== 0) {
       if (__DEV__)
-        throw new Error(`Composition has already been activated/deactivated. Id: ${this.controller.name}`);
+        throw new Error(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
       else
         throw new Error(`AUR0807:${this.controller.name}`);
     }
@@ -429,9 +429,9 @@ class CompositionController implements ICompositionController {
         return this.stop(detachInitator);
       case -1:
         if (__DEV__)
-          throw new Error('Composition has already been deactivated.');
+          throw new Error(`AUR0808: Composition has already been deactivated.`);
         else
-          throw new Error('AUR0808');
+          throw new Error(`AUR0808`);
       default:
         this.state = -1;
     }

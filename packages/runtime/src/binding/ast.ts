@@ -455,7 +455,7 @@ export class BindingBehaviorExpression {
     const behavior = b.locator.get<BindingBehaviorInstance>(this.behaviorKey);
     if (behavior == null) {
       if (__DEV__)
-        throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0101: BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
       else
         throw new Error(`AUR0101:${this.name}`);
     }
@@ -465,7 +465,7 @@ export class BindingBehaviorExpression {
         (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, b, ...this.args.map(a => a.evaluate(f, s, b.locator, null)));
       } else {
         if (__DEV__)
-          throw new Error(`BindingBehavior named '${this.name}' already applied.`);
+          throw new Error(`AUR0102: BindingBehavior named '${this.name}' already applied.`);
         else
           throw new Error(`AUR0102:${this.name}`);
       }
@@ -513,7 +513,7 @@ export class ValueConverterExpression {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance & { signals?: string[] }>(this.converterKey);
     if (vc == null) {
       if (__DEV__)
-        throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0103: ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
       else
         throw new Error(`AUR0103:${this.name}`);
     }
@@ -540,7 +540,7 @@ export class ValueConverterExpression {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (vc == null) {
       if (__DEV__)
-        throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0104: ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
       else
         throw new Error(`AUR0104:${this.name}`);
     }
@@ -682,9 +682,9 @@ export class AccessScopeExpression {
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (evaluatedValue == null && this.name === '$host') {
       if (__DEV__)
-        throw new Error('Unable to find $host context. Did you forget [au-slot] attribute?');
+        throw new Error(`AUR0105: Unable to find $host context. Did you forget [au-slot] attribute?`);
       else
-        throw new Error('AUR0105');
+        throw new Error(`AUR0105`);
     }
     if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
@@ -695,9 +695,9 @@ export class AccessScopeExpression {
   public assign(f: LF, s: Scope, _l: IServiceLocator, val: unknown): unknown {
     if (this.name === '$host') {
       if (__DEV__)
-        throw new Error('Invalid assignment. $host is a reserved keyword.');
+        throw new Error(`AUR0106: Invalid assignment. $host is a reserved keyword.`);
       else
-        throw new Error('AUR0106');
+        throw new Error(`AUR0106`);
     }
     const obj = BindingContext.get(s, this.name, this.ancestor, f) as IObservable;
     if (obj instanceof Object) {
@@ -899,9 +899,9 @@ export class CallFunctionExpression {
       return void 0;
     }
     if (__DEV__)
-      throw new Error(`Expression is not a function.`);
+      throw new Error(`AUR0107: Expression is not a function.`);
     else
-      throw new Error('AUR0107');
+      throw new Error(`AUR0107`);
   }
 
   public assign(_f: LF, _s: Scope, _l: IServiceLocator, _obj: unknown): unknown {
@@ -1001,7 +1001,7 @@ export class BinaryExpression {
         return (this.left.evaluate(f, s, l, c) as number) >= (this.right.evaluate(f, s, l, c) as number);
       default:
         if (__DEV__)
-          throw new Error(`Unknown binary operator: '${this.operation}'`);
+          throw new Error(`AUR0108: Unknown binary operator: '${this.operation}'`);
         else
           throw new Error(`AUR0108:${this.operation}`);
     }
@@ -1044,7 +1044,7 @@ export class UnaryExpression {
         return +(this.expression.evaluate(f, s, l, c) as number);
       default:
         if (__DEV__)
-          throw new Error(`Unknown unary operator: '${this.operation}'`);
+          throw new Error(`AUR0109: Unknown unary operator: '${this.operation}'`);
         else
           throw new Error(`AUR0109:${this.operation}`);
     }
@@ -1238,7 +1238,7 @@ export class TaggedTemplateExpression {
     const func = this.func.evaluate(f, s, l, c);
     if (!isFunction(func)) {
       if (__DEV__)
-        throw new Error(`Left-hand side of tagged template expression is not a function.`);
+        throw new Error(`AUR0110: Left-hand side of tagged template expression is not a function.`);
       else
         throw new Error(`AUR0110`);
     }
@@ -1502,9 +1502,9 @@ export class DestructuringAssignmentExpression {
         case ExpressionKind.ObjectDestructuring: {
           if (typeof value !== 'object' || value === null) {
             if (__DEV__) {
-              throw new Error('Cannot use non-object value for destructuring assignment.');
+              throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
             } else {
-              throw new Error('AUR0112');
+              throw new Error(`AUR0112`);
             }
           }
           let source = item.source!.evaluate(f, Scope.create(value), l, null);
@@ -1544,9 +1544,9 @@ export class DestructuringAssignmentSingleExpression {
     if(value == null) { return; }
     if (typeof value !== 'object') {
       if (__DEV__) {
-        throw new Error('Cannot use non-object value for destructuring assignment.');
+        throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
       } else {
-        throw new Error('AUR0112');
+        throw new Error(`AUR0112`);
       }
     }
     let source = this.source.evaluate(f, Scope.create(value), l, null);
@@ -1581,9 +1581,9 @@ export class DestructuringAssignmentRestExpression {
     if(value == null) { return; }
     if (typeof value !== 'object') {
       if (__DEV__) {
-        throw new Error('Cannot use non-object value for destructuring assignment.');
+        throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
       } else {
-        throw new Error('AUR0112');
+        throw new Error(`AUR0112`);
       }
     }
 
@@ -1593,9 +1593,9 @@ export class DestructuringAssignmentRestExpression {
     if (isArrayIndex(indexOrProperties)) {
       if (!Array.isArray(value)) {
         if (__DEV__) {
-          throw new Error('Cannot use non-array value for array-destructuring assignment.');
+          throw new Error(`AUR0112: Cannot use non-array value for array-destructuring assignment.`);
         } else {
-          throw new Error('AUR0112');
+          throw new Error(`AUR0112`);
         }
       }
       restValue = value.slice(indexOrProperties);
@@ -1629,7 +1629,7 @@ function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) =>
     return null;
   }
   if (__DEV__)
-    throw new Error(`Expected '${name}' to be a function`);
+    throw new Error(`AUR0111: Expected '${name}' to be a function`);
   else
     throw new Error(`AUR0111:${name}`);
 }

@@ -90,6 +90,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           this._obj.classList.toggle(this._prop, !!this._value);
           break;
         }
@@ -135,7 +136,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           break;
         default:
           if (__DEV__)
-            throw new Error(`Unsupported observation of attribute: ${this._attr}`);
+            throw new Error(`AUR0651: Unsupported observation of attribute: ${this._attr}`);
           else
             throw new Error(`AUR0651:${this._attr}`);
       }
@@ -194,6 +195,7 @@ const startObservation = ($MutationObserver: typeof MutationObserver, element: I
 
 const stopObservation = (element: IHtmlElement, subscriber: ElementMutationSubscriber): boolean => {
   const $eMObservers = element.$eMObs;
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain, @typescript-eslint/strict-boolean-expressions
   if ($eMObservers && $eMObservers.delete(subscriber)) {
     if ($eMObservers.size === 0) {
       element.$mObs.disconnect();

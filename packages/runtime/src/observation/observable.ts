@@ -96,9 +96,9 @@ export function observable(
 
     if (key == null || key === '') {
       if (__DEV__)
-        throw new Error('Invalid usage, cannot determine property name for @observable');
+        throw new Error(`AUR0224: Invalid usage, cannot determine property name for @observable`);
       else
-        throw new Error('AUR0224');
+        throw new Error(`AUR0224`);
     }
 
     // determine callback name based on config or convention.

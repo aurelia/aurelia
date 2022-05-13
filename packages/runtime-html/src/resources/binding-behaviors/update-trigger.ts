@@ -33,25 +33,26 @@ export class UpdateTriggerBindingBehavior {
   public bind(flags: LifecycleFlags, _scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
       if (__DEV__)
-        throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
+        throw new Error(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);
       else
         throw new Error(`AUR0802`);
     }
 
     if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
       if (__DEV__)
-        throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.');
+        throw new Error(`AUR0803: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.`);
       else
-        throw new Error('AUR0803');
+        throw new Error(`AUR0803`);
     }
 
     // ensure the binding's target observer has been set.
     const targetObserver = this.oL.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!targetObserver.handler) {
       if (__DEV__)
-        throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
+        throw new Error(`AUR0804: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.`);
       else
-        throw new Error('AUR0804');
+        throw new Error(`AUR0804`);
     }
 
     binding.targetObserver = targetObserver;

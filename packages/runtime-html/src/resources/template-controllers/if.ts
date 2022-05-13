@@ -199,9 +199,9 @@ export class Else implements ICustomAttributeViewModel {
       ifBehavior.viewModel.elseFactory = this.factory;
     } else {
       if (__DEV__)
-        throw new Error(`Unsupported If behavior`); // TODO: create error code
+        throw new Error(`AUR0810: Unsupported If behavior`); // TODO: create error code
       else
-        throw new Error('AUR0810');
+        throw new Error(`AUR0810`);
     }
   }
 }

@@ -186,7 +186,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const $el = Controller.getCached(viewModel);
     if ($el === void 0) {
       if (__DEV__)
-        throw new Error(`There is no cached controller for the provided ViewModel: ${viewModel}`);
+        throw new Error(`AUR0500: There is no cached controller for the provided ViewModel: ${viewModel}`);
       else
         throw new Error(`AUR0500:${viewModel}`);
     }
@@ -414,9 +414,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (shadowOptions !== null || hasSlots) {
       if (location != null) {
         if (__DEV__)
-          throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
+          throw new Error(`AUR0501: You cannot combine the containerless custom element option with Shadow DOM.`);
         else
-          throw new Error('AUR0501');
+          throw new Error(`AUR0501`);
       }
       setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this as IHydratedController);
       setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
@@ -511,12 +511,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       case State.disposed:
         if (__DEV__)
-          throw new Error(`${this.name} trying to activate a controller that is disposed.`);
+          throw new Error(`AUR0502: ${this.name} trying to activate a controller that is disposed.`);
         else
           throw new Error(`AUR0502:${this.name}`);
       default:
         if (__DEV__)
-          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+          throw new Error(`AUR0503: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
         else
           throw new Error(`AUR0503:${this.name} ${stringifyState(this.state)}`);
     }
@@ -540,9 +540,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // maybe only check when there's not already a scope
         if (scope === void 0 || scope === null) {
           if (__DEV__)
-            throw new Error(`Scope is null or undefined`);
+            throw new Error(`AUR0504: Scope is null or undefined`);
           else
-            throw new Error('AUR0504');
+            throw new Error(`AUR0504`);
         }
 
         if (!this.hasLockedScope) {
@@ -726,7 +726,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       default:
         if (__DEV__)
-          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
+          throw new Error(`AUR0505: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
         else
           throw new Error(`AUR0505:${this.name} ${stringifyState(this.state)}`);
     }
@@ -1269,7 +1269,7 @@ function createWatchers(
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
     if (!isFunction(callback)) {
       if (__DEV__)
-        throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+        throw new Error(`AUR0506: Invalid callback for @watch decorator: ${String(callback)}`);
       else
         throw new Error(`AUR0506:${String(callback)}`);
     }

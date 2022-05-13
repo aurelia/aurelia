@@ -107,7 +107,7 @@ export const ValueConverter = Object.freeze<ValueConverterKind>({
     const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
       if (__DEV__)
-        throw new Error(`No definition found for type ${Type.name}`);
+        throw new Error(`AUR0152: No definition found for type ${Type.name}`);
       else
         throw new Error(`AUR0152:${Type.name}`);
     }

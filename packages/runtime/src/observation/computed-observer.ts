@@ -125,9 +125,9 @@ export class ComputedObserver implements
       }
     } else {
       if (__DEV__)
-        throw new Error('Property is readonly');
+        throw new Error(`AUR0221: Property is readonly`);
       else
-        throw new Error('AUR0221');
+        throw new Error(`AUR0221`);
     }
   }
 

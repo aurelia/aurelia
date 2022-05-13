@@ -250,6 +250,7 @@ export class Case implements ICustomAttributeViewModel {
       switch (v) {
         case 'true': return true;
         case 'false': return false;
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
       }
     },
@@ -286,9 +287,9 @@ export class Case implements ICustomAttributeViewModel {
       this.linkToSwitch($switch);
     } else {
       if (__DEV__)
-        throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
+        throw new Error(`AUR0815: The parent switch not found; only "*[switch] > *[case|default-case]" relation is supported.`);
       else
-        throw new Error('AUR0815');
+        throw new Error(`AUR0815`);
     }
   }
 
@@ -367,9 +368,9 @@ export class DefaultCase extends Case {
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {
       if (__DEV__)
-        throw new Error('Multiple \'default-case\'s are not allowed.');
+        throw new Error(`AUR0816: Multiple 'default-case's are not allowed.`);
       else
-        throw new Error('AUR0816');
+        throw new Error(`AUR0816`);
     }
     $switch.defaultCase = this;
   }

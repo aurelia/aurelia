@@ -368,7 +368,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     if (views.length !== mapLen) {
       if (__DEV__)
-        throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+        throw new Error(`AUR0814: viewsLen=${views.length}, mapLen=${mapLen}`);
       else
         throw new Error(`AUR0814:${views.length}!=${mapLen}`);
     }

@@ -65,7 +65,7 @@ export class DirtyChecker implements IWithFlushQueue {
   public createProperty(obj: object, key: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
       if (__DEV__)
-        throw new Error(`Property '${key}' is being dirty-checked.`);
+        throw new Error(`AUR0222: Property '${key}' is being dirty-checked.`);
       else
         throw new Error(`AUR0222:${key}`);
     }

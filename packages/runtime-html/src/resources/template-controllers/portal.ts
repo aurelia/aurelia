@@ -216,9 +216,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (target === '') {
       if (this.strict) {
         if (__DEV__)
-          throw new Error('Empty querySelector');
+          throw new Error(`AUR0811: Empty querySelector`);
         else
-          throw new Error('AUR0811');
+          throw new Error(`AUR0811`);
       }
       return $document.body as unknown as T;
     }
@@ -241,9 +241,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (target == null) {
       if (this.strict) {
         if (__DEV__)
-          throw new Error('Portal target not found');
+          throw new Error(`AUR0812: Portal target not found`);
         else
-          throw new Error('AUR0812');
+          throw new Error(`AUR0812`);
       }
       return $document.body as unknown as T;
     }

@@ -52,6 +52,7 @@ const buildCmd = 'npm run build';
   'validation-i18n',
   'state',
   'store-v1',
+  'ui-virtualization',
   'addons',
   'testing',
 ].filter(pkg => !isBuilt(pkg)).forEach((pkgName) => {

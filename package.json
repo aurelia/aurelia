@@ -21,6 +21,7 @@
     "packages/state",
     "packages/store-v1",
     "packages/testing",
+    "packages/ui-virtualization",
     "packages/validation",
     "packages/validation-html",
     "packages/validation-i18n",

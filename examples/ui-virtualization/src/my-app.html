@@ -1,0 +1,18 @@
+<import from="./welcome-page"></import>
+<import from="./about-page.html"></import>
+<import from="./missing-page"></import>
+<import from="./shared/virtual-repeat-monitor"></import>
+
+<import from="./apps/container-animation-transition"></import>
+<import from="./apps/basic-app"></import>
+<import from="./apps/table-app"></import>
+
+<nav>
+  <a load="basic-app">Basic usage</a>
+  <a load="container-animation-transition">With scroller transition animation</a>
+  <a load="table-app">Basic table usage</a>
+</nav>
+
+<au-viewport default="welcome-page" fallback="missing-page" no-history></au-viewport>
+
+<virtual-repeat-monitor></virtual-repeat-monitor>

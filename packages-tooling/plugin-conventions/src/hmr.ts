@@ -42,10 +42,11 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
     // @ts-ignore
     const ogCreated = proto ? proto.created : undefined;
 
-    if(proto){
+    if (proto) {
       // @ts-ignore
-      proto.created = (controller) => {
-        ogCreated && ogCreated(controller);
+      proto.created = function(controller) {
+        // @ts-ignore
+        ogCreated && ogCreated.call(this, controller);
         controllers.push(controller);
       }
     }

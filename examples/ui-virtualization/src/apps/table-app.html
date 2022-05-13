@@ -1,0 +1,62 @@
+<style>
+  .no-appearance::-webkit-inner-spin-button, 
+  .no-appearance::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+</style>
+<div class="mb-1">
+  <div class="p-1" scrollbar="x" style="height: 45px;">
+    <button class="btn btn-success btn-sm" click.trigger="addItems(1000)">Add 1000</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItems(10000)">Add 10 000</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItems(100000)">Add 100 000</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItemFirst(1)">Add 1 at top</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItemFirst(10)">Add 10 at top</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItemLast(1)">Add 1 at bottom</button>
+    <button class="btn btn-success btn-sm" click.trigger="addItemLast(10)">Add 1 at bottom</button>
+    <button class="btn btn-success btn-sm" click.trigger="removeItems(1)">Remove 1 at top</button>
+    <button class="btn btn-success btn-sm" click.trigger="removeLast()">Remove 1 at bottom</button>
+    <button class="btn btn-success btn-sm" click.trigger="toggle()">Toggle visibility</button>
+    <button class="btn btn-success btn-sm" click.trigger="swap()">Swap</button>
+  </div>
+  <div class="p-1" scrollbar="x" style="height: 45px;">
+    <button class="btn btn-success btn-sm" click.trigger="newRandomArray($newArrayLength) & self">
+      Assign random array to object array to trigger getter with length:
+      <input type="number | number" value.bind="$newArrayLength"
+        focus.trigger="$event.target.select()"
+        class="border-0 no-appearance"
+        style="width: 30px" />
+    </button>
+  </div>
+
+  <label class="d-block" style="width: 300px;">
+    Example:
+    <select value.bind="selectedMarkup" class="form-control form-control-sm">
+      <option value="div">div</option>
+      <option value="table">table</option>
+    </select>
+  </label>
+</div>
+
+<div style="height: 600px; overflow: auto;">
+  <table class="table table-fixed">
+    <thead>
+      <tr>
+        <th style="width: 70px;">#</th>
+        <th style="width: 250px">Name</th>
+        <th style="width: 300px;">Phone</th>
+        <th>Country</th>
+      </tr>
+    </thead>
+    <tr virtual-repeat.for="item of contacts"
+      class="contact-list-item"
+      data-odd="${$odd}"
+      data-name="${item.name}"
+      data-index="${$index}"
+    >
+      <td class="avatar" click.trigger="click()" css="background-color: ${item.color}">${item.firstLetter}</td>
+      <td class="name">${$index} ${item.name}</td>
+      <td><strong>Phone:</strong> ${item.phone} </td>
+      <td>Country:</strong> ${item.country} </td>
+    </tr>
+  </table>
+</div>

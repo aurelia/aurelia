@@ -1,0 +1,58 @@
+<button
+  class="btn btn-sm btn-info"
+  show.bind="minimizedMonitor"
+  click.trigger="minimizedMonitor = false"
+  style="position: fixed; bottom: 20px; right: 20px;">
+  Maximize monitor ${window.virtualRepeat ? `(${window.virtualRepeat.items.length})` : ''}</button>
+<div
+  if.bind="window.virtualRepeat && !minimizedMonitor"
+  class="bg-white border shadow-lg d-flex flex-column"
+  style="position: fixed; bottom: 0; right: 20px; max-height: 80vh;">
+  <let
+    virtual-repeat.bind='window.virtualRepeat'></let>
+  <button
+    class="btn btn-sm btn-block btn-info flex-shrink-0"
+    click.trigger="minimizedMonitor = true">Minimize monitor</button>
+  <div class="flex-fill" style="overflow-y: auto;">
+    <table class="table table-sm table-striped table-bordered mb-0">
+      <caption class="px-2" style="caption-side: top;">Virtual repeat monitor</caption>
+      <tr>
+        <th>Name</th>
+        <th>--- Value ---</th>
+      </tr>
+      <tr>
+        <td>Size</td><td>${virtualRepeat.collectionStrategy.count()}</td>
+      </tr>
+      <tr>
+        <td>Item height</td>
+        <td>${virtualRepeat.itemHeight}</td>
+      </tr>
+      <tr>
+        <td>Total size</td>
+        <td>${virtualRepeat.collectionStrategy.count() * virtualRepeat.itemHeight}</td>
+      </tr>
+      <tr>
+        <td>Active views count</td>
+        <td class="table-${virtualRepeat.views.length === virtualRepeat.minViewsRequired * 2 ? 'success' : 'warning'}">${virtualRepeat.views.length}</td>
+      </tr>
+      <tr>
+        <td>Max views required</td>
+        <td class="table-${virtualRepeat.views.length === virtualRepeat.minViewsRequired * 2 ? 'success' : 'warning'}">${virtualRepeat.minViewsRequired * 2}</td>
+      </tr>
+      <tr>
+        <td>Min Views Required</td>
+        <td>${virtualRepeat.minViewsRequired}</td>
+      </tr>
+      <tr>
+        <td>First</td><td>${virtualRepeat.views[0].scope.overrideContext.$index}</td>
+      <tr>
+        <td>Top Buffer height</td>
+        <td>${virtualRepeat.dom.tH}px</td>
+      </tr>
+      <tr>
+        <td>Bottom Buffer height</td>
+        <td>${virtualRepeat.dom.bH}px</td>
+      </tr>
+    </table>
+  </div>
+</div>

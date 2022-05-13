@@ -305,6 +305,15 @@ export class RoutingInstruction {
   }
 
   /**
+   * The previous instruction for the specific endpoint. This can only evaluate
+   * to a value when the instruction has an assigned endpoint. This is a
+   * convenience property in the API.
+   */
+   public get previous(): RoutingInstruction | null | undefined {
+    return this.endpoint.instance?.getContent()?.instruction;
+  }
+
+  /**
    * Whether the routing instruction is an "add" instruction.
    */
   public isAdd(context: IRouterConfiguration | IRouter): boolean {

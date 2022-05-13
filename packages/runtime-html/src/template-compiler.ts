@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
@@ -1098,7 +1101,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction!.projections = projections;
       }
 
-      if (elDef !== null && elDef.containerless) {
+      if (hasContainerless || elDef !== null && elDef.containerless) {
         this._replaceByMarker(el, context);
       }
 
@@ -1283,7 +1286,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // todo: shouldn't have to eagerly replace with a marker like this
       //       this should be the job of the renderer
-      if (elDef !== null && elDef.containerless) {
+      if (hasContainerless || elDef !== null && elDef.containerless) {
         this._replaceByMarker(el, context);
       }
 

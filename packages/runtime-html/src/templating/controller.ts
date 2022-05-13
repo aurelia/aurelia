@@ -18,7 +18,7 @@ import {
   ICoercionConfiguration,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer';
-import { convertToRenderLocation, setRef } from '../dom';
+import { setRef } from '../dom';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
 import { ChildrenDefinition, ChildrenObserver } from './children';
@@ -155,11 +155,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
     public host: HTMLElement | null,
+    /**
+     * The render location replacement for the host on containerless elements
+     */
+    location: IRenderLocation | null,
   ) {
     if (__DEV__) {
       this.logger = null!;
       this.debug = false;
     }
+    this.location = location;
     this._rendering = container.root.get(IRendering);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
@@ -204,6 +209,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // Use this when `instance.constructor` is not a custom element type
     // to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
+    // the associated render location of the host
+    // if the element is containerless
+    location: IRenderLocation | null = null,
   ): ICustomElementController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
@@ -218,6 +226,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewFactory    */null,
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
+      /* location       */location,
     );
     // the hydration context this controller is provided with
     const hydrationContext = ctn.get(optional(IHydrationContext)) as IHydrationContext;
@@ -276,7 +285,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* definition     */definition,
       /* viewFactory    */null,
       /* viewModel      */viewModel as BindingContext<C>,
-      /* host           */host
+      /* host           */host,
+      /* location       */null
     );
 
     controllerLookup.set(viewModel, controller as Controller);
@@ -306,6 +316,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewFactory    */viewFactory,
       /* viewModel      */null,
       /* host           */null,
+      /* location       */null
     );
     controller.parent = parentController ?? null;
 
@@ -389,7 +400,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
-    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
+    const { shadowOptions, isStrictBinding, hasSlots } = compiledDef;
+    const location = this.location;
 
     this.isStrictBinding = isStrictBinding;
 
@@ -400,7 +412,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     setRef(this.host!, CustomElement.name, this as IHydratedController);
     setRef(this.host!, this.definition!.key, this as IHydratedController);
     if (shadowOptions !== null || hasSlots) {
-      if (containerless) {
+      if (location != null) {
         if (__DEV__)
           throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
         else
@@ -409,9 +421,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this as IHydratedController);
       setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.shadowRoot;
-    } else if (containerless) {
-      setRef(this.location = convertToRenderLocation(this.host!), CustomElement.name, this as IHydratedController);
-      setRef(this.location!, this.definition!.key, this as IHydratedController);
+    } else if (location != null) {
+      setRef(location, CustomElement.name, this as IHydratedController);
+      setRef(location, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.location;
     } else {
       this.mountTarget = MountTarget.host;
@@ -1793,6 +1805,10 @@ export interface IControllerElementHydrationInstruction {
    * A list of captured attributes/binding in raw format
    */
   readonly captures?: AttrSyntax[];
+  /**
+   * Indicates whether the custom element was used with "containerless" attribute
+   */
+  readonly containerless?: boolean;
 }
 
 function callDispose(disposable: IDisposable): void {

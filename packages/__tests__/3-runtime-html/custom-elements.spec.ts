@@ -31,7 +31,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
           }
         }),
       ],
-    ).promise;
+    ).started;
 
     const [, nestedInputEl] = Array.from(appHost.querySelectorAll('input'));
     nestedInputEl.value = 'aa bb';
@@ -42,35 +42,57 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   it('renders containerless per element via "containerless" attribute', async function () {
-    const { appHost } = await createFixture(`<my-el containerless message="hello world">`, class App {}, [CustomElement.define({
-      name: 'my-el',
-      template: '${message}',
-      bindables: ['message']
-    })]).promise;
+    const { appHost } = await createFixture(
+      `<my-el containerless message="hello world">`,
+      class App {},
+      [CustomElement.define({
+        name: 'my-el',
+        template: '${message}',
+        bindables: ['message']
+      })]
+    ).started;
 
     assert.visibleTextEqual(appHost, 'hello world');
   });
 
   it('renders element with @customElement({ containerness: true })', async function () {
-    const { appHost } = await createFixture(`<my-el message="hello world">`, class App {}, [CustomElement.define({
+    const { assertText } = await createFixture(`<my-el message="hello world">`, class App {}, [CustomElement.define({
       name: 'my-el',
       template: '${message}',
       bindables: ['message'],
       containerless: true
-    })]).promise;
+    })]).started;
 
-    assert.visibleTextEqual(appHost, 'hello world');
+    assertText('hello world');
   });
 
   it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', async function () {
-    const { appHost } = await createFixture(`<my-el containerless message="hello world">`, class App {}, [CustomElement.define({
-      name: 'my-el',
-      template: '${message}',
-      bindables: ['message'],
-      containerless: true,
-    })]).promise;
+    const { assertText } = await createFixture(
+      `<my-el containerless message="hello world">`,
+      class App {},
+      [CustomElement.define({
+        name: 'my-el',
+        template: '${message}',
+        bindables: ['message'],
+        containerless: true,
+      })]
+    ).started;
 
-    assert.visibleTextEqual(appHost, 'hello world');
+    assertText('hello world');
+  });
+
+  it('renders elements with template controller and containerless attribute on it', async function () {
+    const { assertText } = await createFixture(
+      `<my-el if.bind="true" containerless message="hello world">`,
+      class App {},
+      [CustomElement.define({
+        name: 'my-el',
+        template: '${message}',
+        bindables: ['message']
+      })]
+    ).started;
+
+    assertText('hello world');
   });
 });
 // import {

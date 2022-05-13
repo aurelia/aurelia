@@ -755,7 +755,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><child><div>Hello world from Child</div></child><!--au-end-->');
 
       await tearDown();
-      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-end-->');
+      assert.strictEqual(appHost.innerHTML, '');
     });
 
     it('discards stale composition', async function () {

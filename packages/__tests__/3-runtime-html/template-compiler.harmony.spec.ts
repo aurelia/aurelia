@@ -11,6 +11,7 @@ import {
 } from '@aurelia/testing';
 
 describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
+
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;
@@ -400,6 +401,8 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
     }
     const $it = only ? it.only : it;
     $it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
+      this.retries(1).timeout(100);
+
       let host: HTMLElement;
       let body: HTMLElement;
       const ctx = TestContext.create();

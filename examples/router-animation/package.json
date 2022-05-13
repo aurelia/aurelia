@@ -4,6 +4,7 @@
   "description": "An Aurelia 2 router & animation test.",
   "version": "1.0.0",
   "scripts": {
+    "lint:html": "htmlhint -c .htmlhintrc src",
     "start": "webpack serve",
     "build": "rimraf dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",

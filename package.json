@@ -55,8 +55,7 @@
     "test/benchmarking-apps/viewer/server",
     "test/benchmarking-apps/viewer/client",
     "test/js-framework-benchmark/frameworks/keyed/aurelia2-local",
-    "test/doc-example/app",
-    "test/animation-test/app"
+    "test/doc-example/app"
   ],
   "license": "MIT",
   "engines": {

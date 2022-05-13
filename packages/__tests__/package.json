@@ -54,6 +54,7 @@
     "@aurelia/state": "2.0.0-alpha.30",
     "@aurelia/store-v1": "2.0.0-alpha.30",
     "@aurelia/testing": "2.0.0-alpha.30",
+    "@aurelia/ui-virtualization": "2.0.0-alpha.30",
     "@aurelia/validation": "2.0.0-alpha.30",
     "@aurelia/validation-html": "2.0.0-alpha.30",
     "@aurelia/validation-i18n": "2.0.0-alpha.30",

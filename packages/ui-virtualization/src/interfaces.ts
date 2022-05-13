@@ -5,11 +5,14 @@ import type {
   IndexMap,
 } from '@aurelia/runtime';
 import type {
-  IRenderLocation,
+  IRenderLocation, ISyntheticView,
 } from '@aurelia/runtime-html';
 
 export interface IVirtualRepeater<T extends Collection = Collection> extends IScrollerSubscriber {
   readonly items: T | undefined | null;
+
+  getViews(): readonly ISyntheticView[];
+  getDistances(): [top: number, bottom: number];
 }
 
 export const IDomRenderer = DI.createInterface<IDomRenderer>('IDomRenderer');
@@ -23,6 +26,8 @@ export interface IVirtualRepeatDom extends IDisposable {
   readonly bottom: HTMLElement;
 
   readonly scroller: HTMLElement;
+
+  get distances(): [number, number];
 
   update(top: number, bot: number): void;
 }

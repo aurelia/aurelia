@@ -45,10 +45,18 @@ import { calcOuterHeight, getDistanceToScroller } from "./utilities-dom";
 
 import type { IServiceLocator } from "@aurelia/kernel";
 
+const noScrollInfo: IScrollerInfo = {
+  height: 0,
+  scrollTop: 0,
+  scroller: null!,
+  width: 0
+};
+
 export interface VirtualRepeat extends ICustomAttributeViewModel {}
 
 export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
-  public static get inject() {
+  /** @internal */
+  protected static get inject() {
     return [IRenderLocation, IInstruction, IController, IViewFactory, IContainer, IPlatform];
   }
 
@@ -66,19 +74,20 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private readonly views: ISyntheticView[] = [];
   /** @internal */ private readonly taskQueue: IPlatform['domWriteQueue'];
   /** @internal */ private task: ITask | null = null;
+  // /** @internal */ private _lastScrollerInfo: IScrollerInfo = noScrollInfo;
 
   private itemHeight = 0;
   private minViewsRequired = 0;
   private collectionStrategy?: ICollectionStrategy;
-  private dom: IVirtualRepeatDom | null = null;
+  private dom: IVirtualRepeatDom = null!;
   private scrollerObserver: IScrollerObserver | null = null;
 
   public constructor(
     public readonly location: IRenderLocation,
     public readonly instruction: HydrateTemplateController,
     public readonly parent: IHydratedComponentController,
-    public readonly factory: IViewFactory,
-    public readonly container: IServiceLocator,
+    /** @internal */ private readonly _factory: IViewFactory,
+    /** @internal */ private readonly _container: IServiceLocator,
     platform: IPlatform,
   ) {
     const iteratorInstruction = instruction.props[0] as IteratorBindingInstruction;
@@ -94,7 +103,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public attaching(): void {
-    const container = this.container;
+    const container = this._container;
     const collectionStrategyLocator = container.get(ICollectionStrategyLocator);
     const collectionStrategy = this.collectionStrategy = collectionStrategyLocator.getStrategy(this.items);
     const itemCount = collectionStrategy.count();
@@ -119,13 +128,13 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   public detaching() {
     this.task?.cancel();
     this._resetCalculation();
-    this.dom!.dispose();
+    this.dom.dispose();
     this.scrollerObserver!.unsubscribe(this);
 
     this.dom
       = this.scrollerObserver
       = this.task
-      = null;
+      = null!;
   }
 
   /**
@@ -173,7 +182,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */
   public itemsChanged(items?: Collection | null): void {
     const controller = this.$controller!;
-    const collectionStrategy = this.collectionStrategy = this.container.get(ICollectionStrategyLocator).getStrategy(items);
+    const collectionStrategy = this.collectionStrategy = this._container.get(ICollectionStrategyLocator).getStrategy(items);
     const itemCount = collectionStrategy.count();
     const views = this.views;
     const maxViewsRequired = this.minViewsRequired * 2;
@@ -219,7 +228,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     // don't activate yet
     const realViewCount = Math.min(maxViewsRequired, itemCount);
     for (i = currViewCount; i < realViewCount; i++) {
-      views.push(this.factory.create());
+      views.push(this._factory.create());
     }
 
     const itemHeight = this.itemHeight;
@@ -259,7 +268,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     }
 
     this._obsMediator.start(items);
-    this.dom!.update(
+    this.dom.update(
       topCount * itemHeight,
       botCount * itemHeight
     );
@@ -275,7 +284,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    */
   private calcRealScrollTop(scrollerInfo: IScrollerInfo) {
     const scroller_scroll_top = scrollerInfo.scrollTop;
-    const top_buffer_distance = getDistanceToScroller(this.dom!.top, scrollerInfo.scroller);
+    const top_buffer_distance = getDistanceToScroller(this.dom.top, scrollerInfo.scroller);
     const real_scroll_top = Math.max(0, scroller_scroll_top === 0
       ? 0
       : (scroller_scroll_top - top_buffer_distance));
@@ -381,7 +390,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.bindingContext[local] = collectionStrategy.item(idx);
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = collectionSize;
-        view.nodes.insertBefore(repeatDom!.bottom);
+        view.nodes.insertBefore(repeatDom.bottom);
         ++idxIncrement;
         --viewsToMoveCount;
       }
@@ -411,10 +420,18 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       }
     }
 
-    repeatDom!.update(
+    repeatDom.update(
       topCount1 * itemHeight,
       botCount1 * itemHeight,
     );
+  }
+
+  public getDistances(): [top: number, bottom: number] {
+    return this.dom?.distances ?? [0, 0];
+  }
+
+  public getViews(): readonly ISyntheticView[] {
+    return this.views.slice(0);
   }
 
   /**
@@ -457,7 +474,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public handleInnerCollectionChange(): void {
-    const newItems = this.iterable.evaluate(LifecycleFlags.none, this.parent.scope, this.container, null) as Collection;
+    const newItems = this.iterable.evaluate(LifecycleFlags.none, this.parent.scope, this._container, null) as Collection;
     const oldItems = this.items;
     this.items = newItems;
     if (newItems === oldItems) {
@@ -480,7 +497,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     itemScope.overrideContext.$index = 0;
     itemScope.overrideContext.$length = collectionStrategy.count();
     enhanceOverrideContext(itemScope.overrideContext);
-    firstView.nodes.insertBefore(this.dom!.bottom);
+    firstView.nodes.insertBefore(this.dom.bottom);
     // todo: maybe state upfront that async lifecycle aren't supported with virtual-repeat
     void firstView.activate(repeatController, repeatController, LifecycleFlags.none, itemScope);
 
@@ -495,7 +512,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     if (views.length > 0) {
       return views[0];
     }
-    const view = this.factory.create();
+    const view = this._factory.create();
     views.push(view);
     return view;
   }

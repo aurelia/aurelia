@@ -43,7 +43,6 @@ export class DefaultDomRenderer implements IDomRenderer {
 }
 
 class DefaultDom implements IVirtualRepeatDom {
-  // for debugging purposes
   public tH: number = 0;
   public bH: number = 0;
   public constructor(
@@ -54,6 +53,10 @@ class DefaultDom implements IVirtualRepeatDom {
 
   public get scroller(): HTMLElement {
     return getScrollerElement(this.anchor);
+  }
+
+  public get distances(): [number, number] {
+    return [this.tH, this.bH];
   }
 
   public update(top: number, bot: number): void {

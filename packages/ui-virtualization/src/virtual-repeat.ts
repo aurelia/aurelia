@@ -74,7 +74,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private readonly views: ISyntheticView[] = [];
   /** @internal */ private readonly taskQueue: IPlatform['domWriteQueue'];
   /** @internal */ private task: ITask | null = null;
-  // /** @internal */ private _lastScrollerInfo: IScrollerInfo = noScrollInfo;
+  /** @internal */ private _currScrollerInfo: IScrollerInfo = noScrollInfo;
 
   private itemHeight = 0;
   private minViewsRequired = 0;
@@ -331,6 +331,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     if (this.itemHeight === 0) {
       return;
     }
+    const prevScrollerInfo = this._currScrollerInfo;
     const local = this.local;
     const itemHeight = this.itemHeight;
     const repeatDom = this.dom;
@@ -344,10 +345,12 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       topCount: topCount1,
       botCount: botCount1
     } = this.measureBuffer(scrollerInfo, viewCount, collectionSize, itemHeight);
-    const isScrollingDown = currFirstIndex > prevFirstIndex;
+    // const isScrolling = $isScrolling(prevScrollerInfo, scrollerInfo);
+    const isScrollingDown = scrollerInfo.scrollTop > prevScrollerInfo.scrollTop;
     const isJumping = isScrollingDown
       ? currFirstIndex >= prevFirstIndex + viewCount
       : currFirstIndex + viewCount <= prevFirstIndex;
+    this._currScrollerInfo = scrollerInfo;
 
     if (currFirstIndex === prevFirstIndex) {
       // console.log('scrolling, but not scrolling');
@@ -638,3 +641,7 @@ function $last(this: IRepeatOverrideContext) {
 function $middle(this: IRepeatOverrideContext) {
   return this.$index > 0 && this.$index < (this.$length - 1);
 }
+
+// function $isScrolling(prevScrollerInfo: IScrollerInfo, nextScrollerInfo: IScrollerInfo): boolean {
+//   return prevScrollerInfo.scrollTop !== nextScrollerInfo.scrollTop;
+// }

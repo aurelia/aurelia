@@ -87,6 +87,17 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
       assert.strictEqual(host.textContent, selector);
     }
   };
+  const assertHtml = (selector: string, html?: string) => {
+    if (arguments.length === 2) {
+      const el = queryBy(selector);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selector}" to compare innerHTML with "${html}"`);
+      }
+      assert.strictEqual(el.innerHTML, html);
+    } else {
+      assert.strictEqual(host.innerHTML, selector);
+    }
+  };
   const trigger = ((selector: string, event: string, init?: CustomEventInit): void => {
     const el = queryBy(selector);
     if (el === null) {
@@ -144,13 +155,17 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
      * @returns a promise that resolves after the associated app has started
      */
     public get started(): Promise<IFixture<K>> {
-      return Promise.resolve(startPromise).then(() => this as IFixture<K>);
+      if (startPromise instanceof Promise) {
+        return Promise.resolve(startPromise).then(() => this as IFixture<K>);
+      }
+      return Promise.resolve(this);
     }
 
     public getBy = getBy;
     public getAllBy = getAllBy;
     public queryBy = queryBy;
     public assertText = assertText;
+    public assertHtml = assertHtml;
     public trigger = trigger;
   }();
 
@@ -193,8 +208,29 @@ export interface IFixture<T> {
   queryBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
   queryBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
   queryBy<E extends Element = Element>(selectors: string): E | null;
+
+  /**
+   * Assert the text content of the current application host equals to a given string
+   */
   assertText(text: string): void;
+  /**
+   * Assert the text content of an element matching the given selector inside the application host equals to a given string.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
   assertText(selector: string, text: string): void;
+
+  /**
+   * Assert the inner html of the current application host equals to the given html string
+   */
+  assertHtml(html: string): void;
+  /**
+   * Assert the inner html of an element matching the selector inside the current application host equals to the given html string.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertHtml(selector: string, html: string): void;
+
   trigger: ITrigger;
 }
 

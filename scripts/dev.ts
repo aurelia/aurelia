@@ -50,16 +50,16 @@ const buildCmd = 'npm run build';
   'validation',
   'validation-html',
   'validation-i18n',
+  'state',
+  'store-v1',
   'addons',
   'testing',
-].forEach((pkgName) => {
-  if (!isBuilt(pkgName)) {
-    const start = Date.now();
-    const pkgDisplay = c.green(pkgName);
-    console.log(`${pkgDisplay} has not been built before, building...`);
-    execSync(buildCmd, { cwd: `packages/${pkgName}` });
-    console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
-  }
+].filter(isBuilt).forEach((pkgName) => {
+  const start = Date.now();
+  const pkgDisplay = c.green(pkgName);
+  console.log(`${pkgDisplay} has not been built before, building...`);
+  execSync(buildCmd, { cwd: `packages/${pkgName}` });
+  console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
 });
 
 concurrently([
@@ -73,7 +73,7 @@ concurrently([
     env: envVars
   })),
   { command: `npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`, cwd: 'packages/__tests__', name: '__tests__(run)', env: envVars },
-].filter(Boolean), {
+], {
   prefix: '[{name}]',
   prefixColors: [
     'green',
@@ -91,6 +91,6 @@ function isBuilt(name: string): boolean {
   return fs.existsSync(path.resolve(__dirname, `../packages/${name}/dist/esm/index.mjs`));
 }
 
- function getElapsed(now: number, then: number) {
+function getElapsed(now: number, then: number) {
   return ((now - then) / 1000).toFixed(2);
 }

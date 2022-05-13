@@ -54,7 +54,7 @@ const buildCmd = 'npm run build';
   'store-v1',
   'addons',
   'testing',
-].filter(isBuilt).forEach((pkgName) => {
+].filter(pkg => !isBuilt(pkg)).forEach((pkgName) => {
   const start = Date.now();
   const pkgDisplay = c.green(pkgName);
   console.log(`${pkgDisplay} has not been built before, building...`);

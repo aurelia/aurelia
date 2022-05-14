@@ -42,7 +42,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
 
   if (container.has(App, true)) {
     throw new Error(
-      'Container of the context cotains instance of the application root component. ' +
+      'Container of the context contains instance of the application root component. ' +
       'Consider using a different class, or context as it will likely cause surprises in tests.'
     );
   }

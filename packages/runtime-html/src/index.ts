@@ -222,7 +222,6 @@ export {
   templateController,
 } from './resources/custom-attribute';
 export {
-  FrequentMutations,
   ObserveShallow,
 } from './resources/template-controllers/flags';
 export {

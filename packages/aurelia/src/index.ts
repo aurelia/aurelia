@@ -395,8 +395,6 @@ export {
   // SignalableBinding,
   // SignalBindingBehavior,
 
-  // FrequentMutations,
-  // InfrequentMutations,
   // ObserveShallow,
   // ISanitizer,
   // SanitizeValueConverter,
@@ -496,8 +494,6 @@ export {
   // PartialCustomAttributeDefinition,
   templateController,
 
-  // FrequentMutations,
-  // InfrequentMutations,
   // ObserveShallow,
 
   // If,

@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.31"></a>
+# 2.0.0-alpha.31 (2022-05-15)
+
+### Features:
+
+* ***:** add an addons package (#1415) ([d32b847](https://github.com/aurelia/aurelia/commit/d32b847))
+
 <a name="2.0.0-alpha.30"></a>
 # 2.0.0-alpha.30 (2022-05-07)
 

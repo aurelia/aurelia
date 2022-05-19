@@ -73,13 +73,8 @@ export class StateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  /** @internal */ protected static inject = [IAttrMapper];
   public readonly type: CommandType = CommandType.IgnoreAttr;
   public get name(): string { return 'dispatch'; }
-
-  public constructor(
-    /** @internal */ private readonly _attrMapper: IAttrMapper,
-  ) {}
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;
@@ -135,12 +130,11 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore];
+  /** @internal */ protected static inject = [IExpressionParser, IStore];
   public readonly target!: 'sd';
 
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
-    /** @internal */ private readonly _observerLocator: IObserverLocator,
     /** @internal */ private readonly _stateContainer: IStore<object>,
   ) {}
 

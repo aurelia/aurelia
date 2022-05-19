@@ -1,9 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../global.d.ts" />
 
-// <input value.state="..." input.trigger="state.onInput">
-// <input value.state:store1="..." input.dispatch="onUpdate">
-
 export { StandardStateConfiguration } from './configuration';
 export {
   Action,

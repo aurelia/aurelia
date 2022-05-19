@@ -168,8 +168,6 @@ export class BindingInterceptor implements IInterceptableBinding {
   public readonly $scope: Scope | undefined;
   public readonly isBound!: boolean;
   public readonly obs!: BindingObserverRecord;
-  public readonly target!: unknown;
-  public readonly targetProperty!: PropertyKey;
   public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
 
   public constructor(

@@ -33,3 +33,5 @@ export {
   DispatchBindingInstruction,
   DispatchBindingInstructionRenderer,
 } from './state-templating';
+
+export { StateBindingBehavior } from './state-binding-behavior';

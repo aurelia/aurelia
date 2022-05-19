@@ -11,6 +11,7 @@ import {
   IStateContainer,
   type IStateSubscriber
 } from './interfaces';
+import { createStateBindingScope } from './state-utilities';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -23,9 +24,9 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
   public isBound: boolean = false;
-  public expr: IsBindingBehavior;
+  public sourceExpression: IsBindingBehavior;
   private readonly target: object;
-  private readonly prop: PropertyKey;
+  private readonly targetProperty: PropertyKey;
 
   /** @internal */ private readonly _stateContainer: IStateContainer<object>;
   /** @internal */ private _targetAccessor!: IAccessor;
@@ -44,15 +45,15 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     this.locator = locator;
     this._stateContainer = stateContainer;
     this._observerLocator = observerLocator;
-    this.expr = expr;
+    this.sourceExpression = expr;
     this.target = target;
-    this.prop = prop;
+    this.targetProperty = prop;
   }
 
   public updateTarget(value: unknown) {
     const targetAccessor = this._targetAccessor;
     const target = this.target;
-    const prop = this.prop;
+    const prop = this.targetProperty;
     const updateCount = this._updateCount++;
     const isCurrentValue = () => updateCount === this._updateCount - 1;
     this._unsub();
@@ -83,13 +84,10 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
       return;
     }
     this.isBound = true;
-    this._targetAccessor = this._observerLocator.getAccessor(this.target, this.prop);
-    const state = this._stateContainer.getState();
-    const overrideContext = { bindingContext: state, $state: state, $store: this._stateContainer };
-    // (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
-    (this.$scope = Scope.create(state, overrideContext, /* is boundary to prevent automatic walk */true)).parentScope = scope;
+    this._targetAccessor = this._observerLocator.getAccessor(this.target, this.targetProperty);
+    this.$scope = createStateBindingScope(this._stateContainer.getState(), scope);
     this._stateContainer.subscribe(this);
-    this.updateTarget(this._value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope, this.locator, null));
+    this.updateTarget(this._value = this.sourceExpression.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope, this.locator, null));
   }
 
   public $unbind(): void {
@@ -108,7 +106,7 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
+    const value = this.sourceExpression.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
     if (value !== this._value) {
       this._value = value;
       this.updateTarget(value);

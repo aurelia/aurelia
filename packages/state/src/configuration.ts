@@ -2,6 +2,7 @@ import { IContainer, Registration } from '@aurelia/kernel';
 import { IReducerAction, IState } from './interfaces';
 import { Action } from './reducer';
 import { StateContainer } from './state';
+import { StateBindingBehavior } from './state-binding-behavior';
 import {
   DispatchAttributePattern,
   DispatchBindingCommand,
@@ -31,6 +32,7 @@ const createConfiguration = <T>(initialState: T, reducers: (IReducerAction<T> | 
       c.register(
         ...standardRegistrations,
         Registration.instance(IState, initialState),
+        StateBindingBehavior,
         ...reducers.map(r => typeof r === 'function' ? Action.define(r) : Action.define(r[0], r[1])),
       );
     },

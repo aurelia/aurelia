@@ -6,9 +6,20 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, IndexMap, LifecycleFlags } from './observation';
+import { LifecycleFlags } from './observation';
 import { registerAliases } from './alias';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects';
+import {
+  appendResourceKey,
+  def,
+  defineHiddenProp,
+  defineMetadata,
+  getAnnotationKeyFor,
+  getOwnMetadata,
+  getResourceKeyFor,
+  hasOwnMetadata,
+  isFunction,
+  isString,
+} from './utilities-objects';
 
 import type {
   Constructable,
@@ -153,24 +164,14 @@ export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
-  public get oL(): IObserverLocator {
-    return this.binding.oL;
-  }
-  public get locator(): IServiceLocator {
-    return this.binding.locator;
-  }
-  public get $scope(): Scope | undefined {
-    return this.binding.$scope;
-  }
-  public get isBound(): boolean {
-    return this.binding.isBound;
-  }
-  public get obs(): BindingObserverRecord {
-    return this.binding.obs;
-  }
-  public get sourceExpression(): IsBindingBehavior | ForOfStatement {
-    return (this.binding as unknown as { sourceExpression: IsBindingBehavior | ForOfStatement }).sourceExpression;
-  }
+  public readonly oL!: IObserverLocator;
+  public readonly locator!: IServiceLocator;
+  public readonly $scope: Scope | undefined;
+  public readonly isBound!: boolean;
+  public readonly obs!: BindingObserverRecord;
+  public readonly target!: unknown;
+  public readonly targetProperty!: PropertyKey;
+  public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
 
   public constructor(
     public readonly binding: IInterceptableBinding,
@@ -183,36 +184,26 @@ export class BindingInterceptor implements IInterceptableBinding {
       binding = interceptor as IInterceptableBinding;
     }
   }
-
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    this.binding.updateTarget!(value, flags);
-  }
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
-    this.binding.updateSource!(value, flags);
-  }
-  public callSource(args: object): unknown {
-    return this.binding.callSource!(args);
-  }
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.binding.handleChange(newValue, previousValue, flags);
-  }
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.binding.handleCollectionChange(indexMap, flags);
-  }
-  public observe(obj: object, key: string): void {
-    this.binding.observe(obj, key);
-  }
-  public observeCollection(observer: Collection): void {
-    this.binding.observeCollection(observer);
-  }
-
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
-    this.binding.$bind(flags, scope);
-  }
-  public $unbind(flags: LifecycleFlags): void {
-    this.binding.$unbind(flags);
-  }
 }
+
+/* eslint-disable */
+const interceptableProperties = ['isBound', '$scope', 'obs', 'target', 'targetProperty', 'sourceExpression', 'locator', 'oL'];
+interceptableProperties.forEach(prop => {
+  def(BindingInterceptor.prototype, prop, {
+    enumerable: false,
+    configurable: true,
+    get: function (this: BindingInterceptor) {
+      return (this.binding as any)[prop];
+    }
+  });
+});
+const interceptableMethod = ['updateTarget', 'updateSource', 'callSource', 'handleChange', 'handleCollectionChange', 'observe', 'observeCollection', '$bind', '$unbind'];
+interceptableMethod.forEach(prop => {
+  defineHiddenProp(BindingInterceptor.prototype, prop, function (this: BindingInterceptor, ...params: unknown[]) {
+    return (this.binding as any)[prop](...params);
+  });
+});
+/* eslint-enable */
 
 const bbBaseName = getResourceKeyFor('binding-behavior');
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(

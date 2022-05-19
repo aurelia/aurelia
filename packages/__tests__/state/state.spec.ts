@@ -27,16 +27,6 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
-  it('allows access to state via $state in .state command', async function () {
-    const state = { text: '123' };
-    const { getBy } = await createFixture
-      .html('<input value.state="$state.text">')
-      .deps(StandardStateConfiguration.init(state))
-      .build().started;
-
-    assert.strictEqual(getBy('input').value, '123');
-  });
-
   it('does not see property on view model without $parent', async function () {
     const state = { text: '123' };
     const { getBy } = await createFixture
@@ -129,6 +119,46 @@ describe('state/state.spec.ts', function () {
 
       await tearDown();
       assert.strictEqual(disposeCallCount, 1);
+  });
+
+  describe('& state binding behavior', function () {
+    it('connects normal binding to the global store', async function () {
+      const { getBy } = await createFixture
+        .html`<input value.bind="text & state">`
+        .deps(StandardStateConfiguration.init({ text: '123' }))
+        .build().started;
+
+      assert.strictEqual(getBy('input').value, '123');
+    });
+
+    it('prevents normal scope traversal', async function () {
+      const { getBy } = await createFixture
+        .html`<input value.bind="text & state">`
+        .component({ text: 'from view model' })
+        .deps(StandardStateConfiguration.init({  }))
+        .build().started;
+
+      assert.strictEqual(getBy('input').value, '');
+    });
+
+    it('allows access to host scope via $parent', async function () {
+      const { getBy } = await createFixture
+        .html`<input value.bind="$parent.text & state">`
+        .component({ text: 'from view model' })
+        .deps(StandardStateConfiguration.init({ text: 'from state' }))
+        .build().started;
+
+      assert.strictEqual(getBy('input').value, 'from view model');
+    });
+
+    it('works with repeat', async function () {
+      const { assertText } = await createFixture
+        .html`<button repeat.for="item of items & state">-\${item}</button>`
+        .deps(StandardStateConfiguration.init({ items: ['sleep', 'exercise', 'eat'] }))
+        .build().started;
+
+      assertText('-sleep-exercise-eat');
+    });
   });
 
   describe('.dispatch', function () {

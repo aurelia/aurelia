@@ -213,8 +213,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 }
 
 /* eslint-disable */
-const settableProperties = ['target', 'targetProperty'];
-const interceptableProperties = settableProperties.concat(['isBound', '$scope', 'obs', 'sourceExpression', 'locator', 'oL']);
+const interceptableProperties = ['isBound', '$scope', 'obs', 'sourceExpression', 'locator', 'oL'];
 interceptableProperties.forEach(prop => {
   def(BindingInterceptor.prototype, prop, {
     enumerable: false,
@@ -222,11 +221,6 @@ interceptableProperties.forEach(prop => {
     get: function (this: BindingInterceptor) {
       return (this.binding as any)[prop];
     },
-    set: settableProperties.includes(prop)
-      ? function (this: BindingInterceptor, value: unknown) {
-        (this.binding as any)[prop] = value;
-      }
-      : void 0,
   });
 });
 /* eslint-enable */

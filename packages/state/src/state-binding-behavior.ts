@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, IInterceptableBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
-import { createStateBindingScope } from './state-utilities';
+import { createStateBindingScope, defProto } from './state-utilities';
 
 @bindingBehavior('state')
 export class StateBindingBehavior extends BindingInterceptor {
@@ -24,3 +25,16 @@ export class StateBindingBehavior extends BindingInterceptor {
     }
   }
 }
+
+['target', 'targetProperty'].forEach(p => {
+  defProto(StateBindingBehavior, p, {
+    enumerable: false,
+    configurable: true,
+    get(this: BindingInterceptor) {
+      return (this.binding as any)[p];
+    },
+    set(this: BindingInterceptor, v: unknown) {
+      (this.binding as any)[p] = v;
+    }
+  });
+});

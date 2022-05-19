@@ -130,7 +130,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     __DEV__: process.env.__DEV__,
     NO_MINIFIED: process.env.NO_MINIFIED
   };
-  const isDevMode = /^true$/.test(process.env.DEV_MODE);
+  const isDevMode = false; // /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
   const esmDevDist = 'dist/esm/index.dev.mjs';
   const cjsDevDist = 'dist/cjs/index.dev.cjs';
@@ -162,7 +162,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(/* isDevMode */false // there's something wrong with sourcemap
+      ...(isDevMode // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,
@@ -207,7 +207,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(/* isDevMode */false // there's something wrong with sourcemap
+      ...(isDevMode // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,

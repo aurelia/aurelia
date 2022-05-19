@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../global.d.ts" />
 
-export { StandardStateConfiguration } from './configuration';
+export { StateDefaultConfiguration } from './configuration';
 export {
   Action,
 } from './reducer';

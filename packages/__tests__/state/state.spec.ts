@@ -1,4 +1,4 @@
-import { StandardStateConfiguration } from '@aurelia/state';
+import { StateDefaultConfiguration } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -6,7 +6,7 @@ describe('state/state.spec.ts', function () {
     const state = { text: '123' };
     const { getBy } = await createFixture
       .html`<input value.state="text">`
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     assert.strictEqual(getBy('input').value, '123');
@@ -32,7 +32,7 @@ describe('state/state.spec.ts', function () {
     const { getBy } = await createFixture
       .component({ vmText: '456' })
       .html('<input value.state="vmText">')
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     assert.strictEqual(getBy('input').value, '');
@@ -43,7 +43,7 @@ describe('state/state.spec.ts', function () {
     const { getBy } = await createFixture
       .component({ text: '456' })
       .html('<input value.state="$parent.text">')
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     assert.strictEqual(getBy('input').value, '456');
@@ -54,7 +54,7 @@ describe('state/state.spec.ts', function () {
     const { component, getBy, flush } = await createFixture
       .component({ value: '--' })
       .html('<input value.state="text + $parent.value">')
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     assert.strictEqual(getBy('input').value, '123--');
@@ -67,7 +67,7 @@ describe('state/state.spec.ts', function () {
     const state = { text: '123' };
     const { trigger } = await createFixture
       .html('<input value.state="text" input.trigger="$state.text = `456`">')
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     trigger('input', 'input');
@@ -78,7 +78,7 @@ describe('state/state.spec.ts', function () {
     const state = { text: '1' };
     const { getBy, trigger, flush } = await createFixture
       .html`<input value.state="text" input.dispatch="$event.target.value">`
-      .deps(StandardStateConfiguration.init(
+      .deps(StateDefaultConfiguration.init(
         state,
         ['event', (s: typeof state, { value }: { value: string }) => {
           return { text: s.text + value };
@@ -97,7 +97,7 @@ describe('state/state.spec.ts', function () {
     const state = { data: () => resolveAfter(1, 'value-1-2') };
     const { getBy } = await createFixture
       .html`<input value.state="data()">`
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
     await resolveAfter(2);
@@ -121,7 +121,7 @@ describe('state/state.spec.ts', function () {
     };
     const { getBy, tearDown } = await createFixture
       .html`<input value.state="data()">`
-      .deps(StandardStateConfiguration.init(state))
+      .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
       assert.strictEqual(getBy('input').value, 'value-1');
@@ -140,7 +140,7 @@ describe('state/state.spec.ts', function () {
     it('connects normal binding to the global store', async function () {
       const { getBy } = await createFixture
         .html`<input value.bind="text & state">`
-        .deps(StandardStateConfiguration.init({ text: '123' }))
+        .deps(StateDefaultConfiguration.init({ text: '123' }))
         .build().started;
 
       assert.strictEqual(getBy('input').value, '123');
@@ -150,7 +150,7 @@ describe('state/state.spec.ts', function () {
       const { getBy } = await createFixture
         .html`<input value.bind="text & state">`
         .component({ text: 'from view model' })
-        .deps(StandardStateConfiguration.init({  }))
+        .deps(StateDefaultConfiguration.init({  }))
         .build().started;
 
       assert.strictEqual(getBy('input').value, '');
@@ -160,7 +160,7 @@ describe('state/state.spec.ts', function () {
       const { getBy } = await createFixture
         .html`<input value.bind="$parent.text & state">`
         .component({ text: 'from view model' })
-        .deps(StandardStateConfiguration.init({ text: 'from state' }))
+        .deps(StateDefaultConfiguration.init({ text: 'from state' }))
         .build().started;
 
       assert.strictEqual(getBy('input').value, 'from view model');
@@ -169,7 +169,7 @@ describe('state/state.spec.ts', function () {
     it('works with repeat', async function () {
       const { assertText } = await createFixture
         .html`<button repeat.for="item of items & state">-\${item}</button>`
-        .deps(StandardStateConfiguration.init({ items: ['sleep', 'exercise', 'eat'] }))
+        .deps(StateDefaultConfiguration.init({ items: ['sleep', 'exercise', 'eat'] }))
         .build().started;
 
       assertText('-sleep-exercise-eat');
@@ -184,7 +184,7 @@ describe('state/state.spec.ts', function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
         .html('<input value.state="text" input.dispatch="$event.target.value & debounce:1">')
-        .deps(StandardStateConfiguration.init(
+        .deps(StateDefaultConfiguration.init(
           state,
           ['event', (s: typeof state, { value }: { value: string }) => {
             return { text: s.text + value };
@@ -206,7 +206,7 @@ describe('state/state.spec.ts', function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
         .html('<input value.state="text" input.dispatch="$event.target.value & throttle:1">')
-        .deps(StandardStateConfiguration.init(
+        .deps(StateDefaultConfiguration.init(
           state,
           ['event', (s: typeof state, { value }: { value: string }) => {
             actionCallCount++;

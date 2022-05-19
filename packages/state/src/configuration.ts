@@ -40,4 +40,4 @@ const createConfiguration = <T>(initialState: T, reducers: (IReducerAction<T> | 
   };
 };
 
-export const StandardStateConfiguration = createConfiguration({}, []);
+export const StateDefaultConfiguration = createConfiguration({}, []);

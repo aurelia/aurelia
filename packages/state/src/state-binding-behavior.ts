@@ -1,16 +1,16 @@
 import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, IInterceptableBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
-import { IStateContainer } from './interfaces';
+import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope } from './state-utilities';
 
 @bindingBehavior('state')
 export class StateBindingBehavior extends BindingInterceptor {
-  /** @internal */protected static inject = [IStateContainer];
+  /** @internal */protected static inject = [IStore];
 
-  /** @internal */private readonly _store: IStateContainer<object>;
+  /** @internal */private readonly _store: IStore<object>;
 
   public constructor(
-    store: IStateContainer<object>,
+    store: IStore<object>,
     binding: IInterceptableBinding,
     expr: BindingBehaviorExpression,
   ) {

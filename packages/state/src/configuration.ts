@@ -1,7 +1,7 @@
 import { IContainer, Registration } from '@aurelia/kernel';
 import { IReducerAction, IState } from './interfaces';
 import { Action } from './reducer';
-import { StateContainer } from './state';
+import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
 import {
   DispatchAttributePattern,
@@ -21,7 +21,7 @@ const standardRegistrations = [
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
 
-  StateContainer,
+  Store,
 ];
 
 export type INamedReducerActionRegistration<T> = [target: string, action: IReducerAction<T>];

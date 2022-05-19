@@ -124,6 +124,10 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     el.dispatchEvent(new Event('scroll'));
   };
 
+  const flush = (time?: number) => {
+    ctx.platform.domWriteQueue.flush(time);
+  };
+
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
@@ -177,6 +181,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public assertHtml = assertHtml;
     public trigger = trigger;
     public scrollBy = scrollBy;
+    public flush = flush;
   }();
 
   fixtureHooks.publish('fixture:created', fixture);
@@ -247,6 +252,8 @@ export interface IFixture<T> {
    * A helper to scroll and trigger a scroll even on an element matching the given selector
    */
   scrollBy(selector: string, options: number | ScrollToOptions): void;
+
+  flush(): void;
 }
 
 export type ITrigger = ((selector: string, event: string, init?: CustomEventInit) => void) & {

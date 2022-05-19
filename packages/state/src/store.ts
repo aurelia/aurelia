@@ -1,15 +1,15 @@
 import { all, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
-import { IReducerAction, IState, IStateContainer, IStateSubscriber } from './interfaces';
+import { IReducerAction, IState, IStore, IStoreSubscriber } from './interfaces';
 
-export class StateContainer<T extends object> implements IStateContainer<T> {
+export class Store<T extends object> implements IStore<T> {
   public static register(c: IContainer) {
-    Registration.singleton(IStateContainer, this).register(c);
+    Registration.singleton(IStore, this).register(c);
   }
 
   /** @internal */ protected static inject = [optional(IState), all(IReducerAction), ILogger];
 
   /** @internal */ private _state: any;
-  /** @internal */ private readonly _subs = new Set<IStateSubscriber<T>>();
+  /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _reducers: Map<string | IReducerAction<T>, IReducerAction<T>>;
   /** @internal */ private _publishing = 0;
@@ -21,7 +21,7 @@ export class StateContainer<T extends object> implements IStateContainer<T> {
     this._logger = logger;
   }
 
-  public subscribe(subscriber: IStateSubscriber<T>): void {
+  public subscribe(subscriber: IStoreSubscriber<T>): void {
     if (__DEV__) {
       if (this._subs.has(subscriber)) {
         this._logger.warn('A subscriber is trying to subscribe to state change again.');
@@ -31,7 +31,7 @@ export class StateContainer<T extends object> implements IStateContainer<T> {
     this._subs.add(subscriber);
   }
 
-  public unsubscribe(subscriber: IStateSubscriber<T>): void {
+  public unsubscribe(subscriber: IStoreSubscriber<T>): void {
     if (__DEV__) {
       if (!this._subs.has(subscriber)) {
         this._logger.warn('Unsubscribing a non-listening subscriber');
@@ -173,7 +173,7 @@ class State {}
 
 class StateProxyHandler<T extends object> implements ProxyHandler<T> {
   public constructor(
-    /** @internal */ private readonly _owner: StateContainer<T>,
+    /** @internal */ private readonly _owner: Store<T>,
     /** @internal */ private readonly _logger: ILogger,
   ) {}
 

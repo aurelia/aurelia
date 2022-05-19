@@ -11,8 +11,8 @@ export {
 
 export {
   IState,
-  IStateContainer,
-  type IStateSubscriber,
+  IStore as IStateContainer,
+  type IStoreSubscriber as IStateSubscriber,
   IReducerAction,
   type IRegistrableReducer,
 } from './interfaces';

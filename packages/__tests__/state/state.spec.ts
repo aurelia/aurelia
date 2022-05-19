@@ -12,20 +12,20 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
-  it('does not observe global state object', async function () {
-    const state = { text: '123' };
-    const { getBy, ctx } = await createFixture
-      .html('<input value.state="text">')
-      .deps(StandardStateConfiguration.init(state))
-      .build().started;
+  // it('does not observe global state object', async function () {
+  //   const state = { text: '123' };
+  //   const { getBy, ctx } = await createFixture
+  //     .html('<input value.state="text">')
+  //     .deps(StandardStateConfiguration.init(state))
+  //     .build().started;
 
-    assert.strictEqual(getBy('input').value, '123');
+  //   assert.strictEqual(getBy('input').value, '123');
 
-    // assert that it's not observed
-    state.text = 'abc';
-    ctx.platform.domWriteQueue.flush();
-    assert.strictEqual(getBy('input').value, '123');
-  });
+  //   // assert that it's not observed
+  //   state.text = 'abc';
+  //   ctx.platform.domWriteQueue.flush();
+  //   assert.strictEqual(getBy('input').value, '123');
+  // });
 
   it('does not see property on view model without $parent', async function () {
     const state = { text: '123' };
@@ -49,6 +49,20 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '456');
   });
 
+  it('reacts to view model changes', async function () {
+    const state = { text: '123' };
+    const { component, getBy, flush } = await createFixture
+      .component({ value: '--' })
+      .html('<input value.state="text + $parent.value">')
+      .deps(StandardStateConfiguration.init(state))
+      .build().started;
+
+    assert.strictEqual(getBy('input').value, '123--');
+    component.value = '';
+    flush();
+    assert.strictEqual(getBy('input').value, '123');
+  });
+
   it('makes state immutable', async function () {
     const state = { text: '123' };
     const { trigger } = await createFixture
@@ -60,9 +74,9 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(state.text, '123');
   });
 
-  it('dispatches action when register', async function () {
+  it('dispatches action', async function () {
     const state = { text: '1' };
-    const { getBy, trigger } = await createFixture
+    const { getBy, trigger, flush } = await createFixture
       .html`<input value.state="text" input.dispatch="$event.target.value">`
       .deps(StandardStateConfiguration.init(
         state,
@@ -75,6 +89,7 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '1');
 
     trigger('input', 'input');
+    flush();
     assert.strictEqual(getBy('input').value, '11');
   });
 
@@ -167,7 +182,7 @@ describe('state/state.spec.ts', function () {
 
     it('works with debounce', async function () {
       const state = { text: '1' };
-      const { getBy, trigger } = await createFixture
+      const { getBy, trigger, flush } = await createFixture
         .html('<input value.state="text" input.dispatch="$event.target.value & debounce:1">')
         .deps(StandardStateConfiguration.init(
           state,
@@ -178,16 +193,18 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
+      flush();
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
+      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
     it('works with throttle', async function () {
       let actionCallCount = 0;
       const state = { text: '1' };
-      const { getBy, trigger } = await createFixture
+      const { getBy, trigger, flush } = await createFixture
         .html('<input value.state="text" input.dispatch="$event.target.value & throttle:1">')
         .deps(StandardStateConfiguration.init(
           state,
@@ -199,13 +216,16 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
+      flush();
       assert.strictEqual(getBy('input').value, '11');
 
       trigger('input', 'input');
+      flush();
       assert.strictEqual(getBy('input').value, '11');
 
       await resolveAfter(10);
       assert.strictEqual(actionCallCount, 2);
+      flush();
       assert.strictEqual(getBy('input').value, '1111');
     });
   });

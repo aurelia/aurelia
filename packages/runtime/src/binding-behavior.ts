@@ -6,12 +6,11 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from './observation';
+import { Collection, IndexMap, LifecycleFlags } from './observation';
 import { registerAliases } from './alias';
 import {
   appendResourceKey,
   def,
-  defineHiddenProp,
   defineMetadata,
   getAnnotationKeyFor,
   getOwnMetadata,
@@ -184,6 +183,35 @@ export class BindingInterceptor implements IInterceptableBinding {
       binding = interceptor as IInterceptableBinding;
     }
   }
+
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    this.binding.updateTarget!(value, flags);
+  }
+  public updateSource(value: unknown, flags: LifecycleFlags): void {
+    this.binding.updateSource!(value, flags);
+  }
+  public callSource(args: object): unknown {
+    return this.binding.callSource!(args);
+  }
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    this.binding.handleChange(newValue, previousValue, flags);
+  }
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.handleCollectionChange(indexMap, flags);
+  }
+  public observe(obj: object, key: string): void {
+    this.binding.observe(obj, key);
+  }
+  public observeCollection(observer: Collection): void {
+    this.binding.observeCollection(observer);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
+    this.binding.$bind(flags, scope);
+  }
+  public $unbind(flags: LifecycleFlags): void {
+    this.binding.$unbind(flags);
+  }
 }
 
 /* eslint-disable */
@@ -195,12 +223,6 @@ interceptableProperties.forEach(prop => {
     get: function (this: BindingInterceptor) {
       return (this.binding as any)[prop];
     }
-  });
-});
-const interceptableMethod = ['updateTarget', 'updateSource', 'callSource', 'handleChange', 'handleCollectionChange', 'observe', 'observeCollection', '$bind', '$unbind'];
-interceptableMethod.forEach(prop => {
-  defineHiddenProp(BindingInterceptor.prototype, prop, function (this: BindingInterceptor, ...params: unknown[]) {
-    return (this.binding as any)[prop](...params);
   });
 });
 /* eslint-enable */

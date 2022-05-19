@@ -1,13 +1,17 @@
 
-import { type IServiceLocator } from '@aurelia/kernel';
+import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
-  connectable, LifecycleFlags,
-  Scope, type IConnectableBinding,
+  connectable,
+  type IOverrideContext,
+  LifecycleFlags,
+  Scope,
+  type IConnectableBinding,
   type IsBindingBehavior
 } from '@aurelia/runtime';
 import {
-  type IStateContainer
+  type IStore
 } from './interfaces';
+import { createStateBindingScope } from './state-utilities';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -23,11 +27,11 @@ export class StateDispatchActionBinding implements IConnectableBinding {
   private readonly target: HTMLElement;
   private readonly prop: string;
 
-  /** @internal */ private readonly _stateContainer: IStateContainer<object>;
+  /** @internal */ private readonly _stateContainer: IStore<object>;
 
   public constructor(
     locator: IServiceLocator,
-    stateContainer: IStateContainer<object>,
+    stateContainer: IStore<object>,
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
@@ -56,10 +60,9 @@ export class StateDispatchActionBinding implements IConnectableBinding {
       return;
     }
     this.isBound = true;
-    const state = this._stateContainer.getState();
-    const overrideContext = { bindingContext: state, $state: state, $store: this._stateContainer };
-    (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
+    this.$scope = createStateBindingScope(this._stateContainer.getState(), scope);
     this.target.addEventListener(this.prop, this);
+    this._stateContainer.subscribe(this);
   }
 
   public $unbind(): void {
@@ -69,5 +72,12 @@ export class StateDispatchActionBinding implements IConnectableBinding {
     this.isBound = false;
     this.$scope = void 0;
     this.target.removeEventListener(this.prop, this);
+    this._stateContainer.unsubscribe(this);
+  }
+
+  public handleStateChange(state: object): void {
+    const $scope = this.$scope!;
+    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
+    $scope.bindingContext = overrideContext.bindingContext = state;
   }
 }

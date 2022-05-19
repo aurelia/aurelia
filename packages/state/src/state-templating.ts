@@ -15,13 +15,14 @@ import {
   DefinitionType,
   IAttrMapper,
   IHydratableController,
+  IPlatform,
   renderer,
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
   type IRenderer
 } from '@aurelia/runtime-html';
-import { IStateContainer } from './interfaces';
+import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchActionBinding } from './state-dispatch';
 
@@ -104,13 +105,14 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStateContainer];
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore, IPlatform];
   public readonly target!: 'sb';
 
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _observerLocator: IObserverLocator,
-    /** @internal */ private readonly _stateContainer: IStateContainer<object>,
+    /** @internal */ private readonly _stateContainer: IStore<object>,
+    /** @internal */ private readonly p: IPlatform,
   ) {}
 
   public render(
@@ -120,11 +122,12 @@ export class StateBindingInstructionRenderer implements IRenderer {
   ): void {
     const binding = new StateBinding(
       renderingCtrl.container,
+      this.p.domWriteQueue,
       this._stateContainer,
       this._observerLocator,
       ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction),
       target,
-      instruction.to
+      instruction.to,
     );
     renderingCtrl.addBinding(binding);
   }
@@ -132,13 +135,13 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStateContainer];
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore];
   public readonly target!: 'sd';
 
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _observerLocator: IObserverLocator,
-    /** @internal */ private readonly _stateContainer: IStateContainer<object>,
+    /** @internal */ private readonly _stateContainer: IStore<object>,
   ) {}
 
   public render(

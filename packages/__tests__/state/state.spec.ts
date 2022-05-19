@@ -37,6 +37,17 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
+  it('does not see property on view model without $parent', async function () {
+    const state = { text: '123' };
+    const { getBy } = await createFixture
+      .component({ vmText: '456' })
+      .html('<input value.state="vmText">')
+      .deps(StandardStateConfiguration.init(state))
+      .build().started;
+
+    assert.strictEqual(getBy('input').value, '');
+  });
+
   it('allows access to component scope state via $parent in .state command', async function () {
     const state = { text: '123' };
     const { getBy } = await createFixture
@@ -65,9 +76,9 @@ describe('state/state.spec.ts', function () {
       .html`<input value.state="text" input.dispatch="$event.target.value">`
       .deps(StandardStateConfiguration.init(
         state,
-        { target: 'event', action: (s: typeof state, { value }: { value }) => {
+        ['event', (s: typeof state, { value }: { value: string }) => {
           return { text: s.text + value };
-        }})
+        }])
       )
       .build().started;
 
@@ -130,9 +141,9 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="$event.target.value & debounce:1">')
         .deps(StandardStateConfiguration.init(
           state,
-          { target: 'event', action: (s: typeof state, { value }) => {
+          ['event', (s: typeof state, { value }: { value: string }) => {
             return { text: s.text + value };
-          }})
+          }])
         )
         .build().started;
 
@@ -150,10 +161,10 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="$event.target.value & throttle:1">')
         .deps(StandardStateConfiguration.init(
           state,
-          { target: 'event', action: (s: typeof state, { value }) => {
+          ['event', (s: typeof state, { value }: { value: string }) => {
             actionCallCount++;
             return { text: s.text + value };
-          }})
+          }])
         )
         .build().started;
 

@@ -1,15 +1,5 @@
-import { all, DI, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
-import { IReducerAction } from './reducer';
-
-export interface IStateContainer<T extends object> {
-  subscribe(subscriber: IStateSubscriber<T>): void;
-  unsubscribe(subscriber: IStateSubscriber<T>): void;
-  getState(): T;
-  dispatch(action: string | IReducerAction<T>, ...params: any[]): void | Promise<void>;
-}
-export const IStateContainer = DI.createInterface<object>('IStateContainer');
-
-export const IState = DI.createInterface<object>('IState');
+import { all, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
+import { IReducerAction, IState, IStateContainer, IStateSubscriber } from './interfaces';
 
 export class StateContainer<T extends object> implements IStateContainer<T> {
   public static register(c: IContainer) {
@@ -35,6 +25,7 @@ export class StateContainer<T extends object> implements IStateContainer<T> {
     if (__DEV__) {
       if (this._subs.has(subscriber)) {
         this._logger.warn('A subscriber is trying to subscribe to state change again.');
+        return;
       }
     }
     this._subs.add(subscriber);
@@ -44,11 +35,13 @@ export class StateContainer<T extends object> implements IStateContainer<T> {
     if (__DEV__) {
       if (!this._subs.has(subscriber)) {
         this._logger.warn('Unsubscribing a non-listening subscriber');
+        return;
       }
     }
     this._subs.delete(subscriber);
   }
 
+  /** @internal */
   private _setState(state: T): void {
     const prevState = this._state;
     this._state = state;
@@ -176,11 +169,6 @@ export class StateContainer<T extends object> implements IStateContainer<T> {
     // }
   }
 }
-
-export interface IStateSubscriber<T extends object> {
-  handleStateChange(state: T, prevState: T): void;
-}
-
 class State {}
 
 class StateProxyHandler<T extends object> implements ProxyHandler<T> {

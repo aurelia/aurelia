@@ -21,7 +21,7 @@ import {
   type IInstruction,
   type IRenderer
 } from '@aurelia/runtime-html';
-import { IStateContainer } from './state';
+import { IStateContainer } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchActionBinding } from './state-dispatch';
 

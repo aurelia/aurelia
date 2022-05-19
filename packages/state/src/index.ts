@@ -6,17 +6,17 @@
 
 export { StandardStateConfiguration } from './configuration';
 export {
-  IReducerAction,
   Action,
-  type IRegistrableReducer,
 } from './reducer';
 
 export {
   IState,
   IStateContainer,
-  StateContainer,
   type IStateSubscriber,
-} from './state';
+  IReducerAction,
+  type IRegistrableReducer,
+} from './interfaces';
+
 export { StateBinding, } from './state-binding';
 export {
   StateDispatchActionBinding,
@@ -33,4 +33,3 @@ export {
   DispatchBindingInstruction,
   DispatchBindingInstructionRenderer,
 } from './state-templating';
-

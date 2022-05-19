@@ -10,11 +10,7 @@ import {
 import {
   IStateContainer,
   type IStateSubscriber
-} from './state';
-
-type SubscribableValue = {
-  subscribe(cb: (res: unknown) => void): IDisposable | (() => void);
-};
+} from './interfaces';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -34,7 +30,7 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
   /** @internal */ private readonly _stateContainer: IStateContainer<object>;
   /** @internal */ private _targetAccessor!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
-  /** @internal */ private _sub?: IDisposable | (() => void) = void 0;
+  /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
 
   public constructor(
@@ -58,11 +54,12 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     const target = this.target;
     const prop = this.prop;
     const updateCount = this._updateCount++;
+    const isCurrentValue = () => updateCount === this._updateCount - 1;
     this._unsub();
 
     if (isSubscribable(value)) {
       this._sub = value.subscribe($value => {
-        if (updateCount === this._updateCount - 1) {
+        if (isCurrentValue()) {
           targetAccessor.setValue($value, LifecycleFlags.none, target, prop);
         }
       });
@@ -71,7 +68,7 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
 
     if (value instanceof Promise) {
       void value.then($value => {
-        if (updateCount === this._updateCount - 1) {
+        if (isCurrentValue()) {
           targetAccessor.setValue($value, LifecycleFlags.none, target, prop);
         }
       }, () => {/* todo: don't ignore */});
@@ -89,7 +86,8 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     this._targetAccessor = this._observerLocator.getAccessor(this.target, this.prop);
     const state = this._stateContainer.getState();
     const overrideContext = { bindingContext: state, $state: state, $store: this._stateContainer };
-    (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
+    // (this.$scope = Scope.fromOverride(overrideContext)).parentScope = scope;
+    (this.$scope = Scope.create(state, overrideContext, /* is boundary to prevent automatic walk */true)).parentScope = scope;
     this._stateContainer.subscribe(this);
     this.updateTarget(this._value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, this.$scope, this.locator, null));
   }
@@ -122,7 +120,8 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
     if (typeof this._sub === 'function') {
       this._sub();
     } else if (this._sub !== void 0) {
-      this._sub.dispose();
+      (this._sub as IDisposable).dispose?.();
+      (this._sub as Unsubscribable).unsubscribe?.();
     }
     this._sub = void 0;
   }
@@ -131,3 +130,11 @@ export class StateBinding implements IConnectableBinding, IStateSubscriber<objec
 function isSubscribable(v: unknown): v is SubscribableValue {
   return v instanceof Object && 'subscribe' in (v as SubscribableValue);
 }
+
+type SubscribableValue = {
+  subscribe(cb: (res: unknown) => void): IDisposable | Unsubscribable | (() => void);
+};
+
+type Unsubscribable = {
+  unsubscribe(): void;
+};

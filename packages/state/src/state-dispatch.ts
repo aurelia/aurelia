@@ -7,7 +7,7 @@ import {
 } from '@aurelia/runtime';
 import {
   type IStateContainer
-} from './state';
+} from './interfaces';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object

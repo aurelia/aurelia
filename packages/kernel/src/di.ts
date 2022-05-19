@@ -334,7 +334,7 @@ export const DI = {
    * ```
    */
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
-    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
+    target.register = function (container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
@@ -360,7 +360,7 @@ export const DI = {
    */
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, options: SingletonOptions = defaultSingletonOptions):
     T & RegisterSelf<T> {
-    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
+    target.register = function (container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };

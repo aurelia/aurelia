@@ -277,6 +277,7 @@ jobs:
             - packages/state/dist
             - packages/store-v1/dist
             - packages/testing/dist
+            - packages/ui-virtualization/dist
             - packages/validation/dist
             - packages/validation-html/dist
             - packages/validation-i18n/dist

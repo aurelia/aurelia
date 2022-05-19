@@ -8,10 +8,7 @@ const rootPath = process.cwd();
 const testApps = [
   'jit-webpack-conventions-ts',
   'jit-webpack-vanilla-ts'
-] as [
-  'jit-webpack-conventions-ts',
-  'jit-webpack-vanilla-ts'
-];
+] as const;
 
 function camelCase(input: string): string {
   const parts = input.split('-');

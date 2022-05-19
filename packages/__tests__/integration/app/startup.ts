@@ -1,6 +1,5 @@
-import { IRegistration } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { Aurelia, CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, CustomElementType } from '@aurelia/runtime-html';
 import { CallCollection, TestContext } from '@aurelia/testing';
 import { App } from './app.js';
 import { appTemplate as template } from './app-template.js';
@@ -31,7 +30,6 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
   const au = new Aurelia(ctx.container);
   au
     .register(
-      FrequentMutations as unknown as IRegistration,
       atoms,
       molecules.customize((molecularConfig: MolecularConfiguration) => {
         molecularConfig.useCSSModule = config.useCSSModule;

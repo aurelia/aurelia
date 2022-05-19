@@ -374,14 +374,14 @@ type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class
 
 type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 
-export function renderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
+export function renderer<TType extends string>(targetType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
-    target.register = function register(container: IContainer): void {
+    target.register = function (container: IContainer): void {
       Registration.singleton(IRenderer, this).register(container);
     };
     defineProp(target.prototype, 'target', {
       configurable: true,
-      get: function () { return instructionType; }
+      get: function () { return targetType; }
     });
     return target as DecoratedInstructionRenderer<TType, TProto, TClass>;
   };

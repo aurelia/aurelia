@@ -1,0 +1,18 @@
+nav {
+  background: #eee;
+  display: flex;
+}
+
+nav a {
+  padding: 10px;
+  text-decoration: none;
+  color: black;
+}
+
+nav a:hover {
+  background-color: darkgray;
+}
+
+.load-active {
+  background-color: lightgray;
+}

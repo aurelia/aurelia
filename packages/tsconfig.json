@@ -17,6 +17,7 @@
     { "path": "runtime-html" },
     { "path": "store-v1" },
     { "path": "testing" },
+    { "path": "ui-virtualization" },
     { "path": "validation" },
     { "path": "validation-html" },
     { "path": "validation-i18n" }

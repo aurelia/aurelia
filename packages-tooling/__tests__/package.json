@@ -25,20 +25,20 @@
     "build:packages-tooling": "npm run build"
   },
   "dependencies": {
-    "@aurelia/aot": "2.0.0-alpha.30",
-    "@aurelia/babel-jest": "2.0.0-alpha.30",
-    "@aurelia/kernel": "2.0.0-alpha.30",
-    "@aurelia/metadata": "2.0.0-alpha.30",
-    "@aurelia/platform": "2.0.0-alpha.30",
-    "@aurelia/platform-browser": "2.0.0-alpha.30",
-    "@aurelia/plugin-conventions": "2.0.0-alpha.30",
-    "@aurelia/plugin-gulp": "2.0.0-alpha.30",
-    "@aurelia/runtime": "2.0.0-alpha.30",
-    "@aurelia/runtime-html": "2.0.0-alpha.30",
-    "@aurelia/testing": "2.0.0-alpha.30",
-    "@aurelia/ts-jest": "2.0.0-alpha.30",
-    "@aurelia/webpack-loader": "2.0.0-alpha.30",
-    "@aurelia/parcel-transformer": "2.0.0-alpha.30",
+    "@aurelia/aot": "2.0.0-alpha.31",
+    "@aurelia/babel-jest": "2.0.0-alpha.31",
+    "@aurelia/kernel": "2.0.0-alpha.31",
+    "@aurelia/metadata": "2.0.0-alpha.31",
+    "@aurelia/platform": "2.0.0-alpha.31",
+    "@aurelia/platform-browser": "2.0.0-alpha.31",
+    "@aurelia/plugin-conventions": "2.0.0-alpha.31",
+    "@aurelia/plugin-gulp": "2.0.0-alpha.31",
+    "@aurelia/runtime": "2.0.0-alpha.31",
+    "@aurelia/runtime-html": "2.0.0-alpha.31",
+    "@aurelia/testing": "2.0.0-alpha.31",
+    "@aurelia/ts-jest": "2.0.0-alpha.31",
+    "@aurelia/webpack-loader": "2.0.0-alpha.31",
+    "@aurelia/parcel-transformer": "2.0.0-alpha.31",
     "@babel/core": "^7.17.9",
     "@jest/transform": "^27.5.1",
     "@jest/types": "^27.5.1",
@@ -59,5 +59,5 @@
     "tsconfig-paths": "^3.9.0",
     "vinyl": "^2.2.0"
   },
-  "version": "0.8.0"
+  "version": "2.0.0-alpha.31"
 }

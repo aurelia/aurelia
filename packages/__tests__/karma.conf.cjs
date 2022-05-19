@@ -247,6 +247,7 @@ const packageNames = [
   'state',
   'store-v1',
   'testing',
+  'ui-virtualization',
   'validation',
   'validation-html',
   'validation-i18n',

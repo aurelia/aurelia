@@ -11,7 +11,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
   for (const { name, folder } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson(folder, name.kebab);
-    if (pkg.private !== true) {
+    if (/^\/?packages/.test(folder) || pkg.private !== true) {
       pkg.version = newVersion;
     }
     if ('dependencies' in pkg) {

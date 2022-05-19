@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.31"></a>
+# 2.0.0-alpha.31 (2022-05-15)
+
+### Features:
+
+* **ui-virtualization:** prepare to port ui virtualization plugin (#1420) ([3e61198](https://github.com/aurelia/aurelia/commit/3e61198))
+* **virtualization:** basic implementation ([3e61198](https://github.com/aurelia/aurelia/commit/3e61198))
+
+
+### Bug Fixes:
+
+* **hmr:** invoke created with correct this ([d78d301](https://github.com/aurelia/aurelia/commit/d78d301))
+* **hmr:** works with components that has created lifecycle ([3e61198](https://github.com/aurelia/aurelia/commit/3e61198))
+* **hmr:** create view model with injection ([bda3e1f](https://github.com/aurelia/aurelia/commit/bda3e1f))
+
 <a name="2.0.0-alpha.30"></a>
 # 2.0.0-alpha.30 (2022-05-07)
 

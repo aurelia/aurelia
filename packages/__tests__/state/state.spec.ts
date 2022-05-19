@@ -74,25 +74,6 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(state.text, '123');
   });
 
-  it('dispatches action', async function () {
-    const state = { text: '1' };
-    const { getBy, trigger, flush } = await createFixture
-      .html`<input value.state="text" input.dispatch="$event.target.value">`
-      .deps(StateDefaultConfiguration.init(
-        state,
-        ['event', (s: typeof state, { value }: { value: string }) => {
-          return { text: s.text + value };
-        }])
-      )
-      .build().started;
-
-    assert.strictEqual(getBy('input').value, '1');
-
-    trigger('input', 'input');
-    flush();
-    assert.strictEqual(getBy('input').value, '11');
-  });
-
   it('works with promise', async function () {
     const state = { data: () => resolveAfter(1, 'value-1-2') };
     const { getBy } = await createFixture
@@ -174,19 +155,48 @@ describe('state/state.spec.ts', function () {
 
       assertText('-sleep-exercise-eat');
     });
+
+    it('works with text interpolation', async function () {
+      const { assertText } = await createFixture
+        .html`<div>\${text & state}</div>`
+        .component({ text: 'from view model' })
+        .deps(StateDefaultConfiguration.init({ text: 'from state' }))
+        .build().started;
+
+      assertText('from state');
+    });
   });
 
   describe('.dispatch', function () {
     // firefox not pleasant with throttling & debouncing
     this.retries(3);
 
+    it('dispatches action', async function () {
+      const state = { text: '1' };
+      const { getBy, trigger, flush } = await createFixture
+        .html`<input value.state="text" input.dispatch="{ action: 'event', params: [$event.target.value] }">`
+        .deps(StateDefaultConfiguration.init(
+          state,
+          ['event', (s: typeof state, value: string) => {
+            return { text: s.text + value };
+          }])
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('input').value, '1');
+
+      trigger('input', 'input');
+      flush();
+      assert.strictEqual(getBy('input').value, '11');
+    });
+
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html('<input value.state="text" input.dispatch="$event.target.value & debounce:1">')
+        .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & debounce:1">')
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, { value }: { value: string }) => {
+          ['event', (s: typeof state, value: string) => {
             return { text: s.text + value };
           }])
         )
@@ -205,10 +215,10 @@ describe('state/state.spec.ts', function () {
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html('<input value.state="text" input.dispatch="$event.target.value & throttle:1">')
+        .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & throttle:1">')
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, { value }: { value: string }) => {
+          ['event', (s: typeof state, value: string) => {
             actionCallCount++;
             return { text: s.text + value };
           }])

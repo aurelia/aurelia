@@ -9,7 +9,6 @@ import {
   type IsBindingBehavior
 } from '@aurelia/runtime';
 import {
-  IReducerAction,
   type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
@@ -17,31 +16,31 @@ import { createStateBindingScope } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateDispatchActionBinding extends IConnectableBinding { }
+export interface StateDispatchBinding extends IConnectableBinding { }
 @connectable()
-export class StateDispatchActionBinding implements IConnectableBinding {
+export class StateDispatchBinding implements IConnectableBinding {
   public interceptor: this = this;
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
   public isBound: boolean = false;
   public expr: IsBindingBehavior;
   private readonly target: HTMLElement;
-  private readonly prop: string;
+  private readonly targetProperty: string;
 
-  /** @internal */ private readonly _stateContainer: IStore<object>;
+  /** @internal */ private readonly _store: IStore<object>;
 
   public constructor(
     locator: IServiceLocator,
-    stateContainer: IStore<object>,
+    store: IStore<object>,
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
   ) {
     this.locator = locator;
-    this._stateContainer = stateContainer;
+    this._store = store;
     this.expr = expr;
     this.target = target;
-    this.prop = prop;
+    this.targetProperty = prop;
   }
 
   public callSource(e: Event) {
@@ -52,7 +51,7 @@ export class StateDispatchActionBinding implements IConnectableBinding {
     if (!this.isDispatchable(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);
     }
-    void this._stateContainer.dispatch(value.action, value.params instanceof Array ? value.params : []);
+    void this._store.dispatch(value.action, ...(value.params instanceof Array ? value.params : []));
   }
 
   public handleEvent(e: Event) {
@@ -64,9 +63,9 @@ export class StateDispatchActionBinding implements IConnectableBinding {
       return;
     }
     this.isBound = true;
-    this.$scope = createStateBindingScope(this._stateContainer.getState(), scope);
-    this.target.addEventListener(this.prop, this);
-    this._stateContainer.subscribe(this);
+    this.$scope = createStateBindingScope(this._store.getState(), scope);
+    this.target.addEventListener(this.targetProperty, this);
+    this._store.subscribe(this);
   }
 
   public $unbind(): void {
@@ -75,8 +74,8 @@ export class StateDispatchActionBinding implements IConnectableBinding {
     }
     this.isBound = false;
     this.$scope = void 0;
-    this.target.removeEventListener(this.prop, this);
-    this._stateContainer.unsubscribe(this);
+    this.target.removeEventListener(this.targetProperty, this);
+    this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
@@ -85,11 +84,12 @@ export class StateDispatchActionBinding implements IConnectableBinding {
     $scope.bindingContext = overrideContext.bindingContext = state;
   }
 
-  public isDispatchable(value: unknown): value is Dispatchable {
+  /** @internal */
+  private isDispatchable(value: unknown): value is Dispatchable {
     return value != null
       && typeof value === 'object'
-      && typeof (value as Dispatchable).action === 'string';
+      && 'action' in value;
   }
 }
 
-export type Dispatchable = { action: string | IReducerAction; params?: unknown[] };
+type Dispatchable = { action: unknown; params?: unknown[] };

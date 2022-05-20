@@ -1,21 +1,21 @@
 import { all, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
-import { IReducerAction, IState, IStore, IStoreSubscriber } from './interfaces';
+import { IReducer, IState, IStore, IStoreSubscriber } from './interfaces';
 
 export class Store<T extends object> implements IStore<T> {
   public static register(c: IContainer) {
     Registration.singleton(IStore, this).register(c);
   }
 
-  /** @internal */ protected static inject = [optional(IState), all(IReducerAction), ILogger];
+  /** @internal */ protected static inject = [optional(IState), all(IReducer), ILogger];
 
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ private readonly _reducers: Map<string | IReducerAction<T>, IReducerAction<T>>;
+  /** @internal */ private readonly _reducers: Map<unknown, IReducer<T>>;
   /** @internal */ private _publishing = 0;
-  /** @internal */ private readonly _dispatchQueues: { action: string | IReducerAction<T>; params: any[] }[] = [];
+  /** @internal */ private readonly _dispatchQueues: { action: unknown; params: any[] }[] = [];
 
-  public constructor(initialState: T | null, actions: [string | IReducerAction<T>, IReducerAction<T>][], logger: ILogger) {
+  public constructor(initialState: T | null, actions: [unknown, IReducer<T>][], logger: ILogger) {
     this._state = initialState ?? new State() as T;
     this._reducers = new Map(actions);
     this._logger = logger;
@@ -56,11 +56,11 @@ export class Store<T extends object> implements IStore<T> {
   }
 
   /** @internal */
-  private _getAction(action: string | IReducerAction<T>): IReducerAction<T> | undefined {
+  private _getAction(action: unknown): IReducer<T> | undefined {
     return this._reducers.get(action);
   }
 
-  public dispatch(action: string | IReducerAction<T>, ...params: any[]): void | Promise<void> {
+  public dispatch(action: unknown, ...params: any[]): void | Promise<void> {
     // if (this._reducers.size === 0) {
     //   if (__DEV__) {
     //     this._logger.warn(`Theres no reducer registered, ignoring action "${$action.type ?? '(anonymous)'}"`);
@@ -74,27 +74,18 @@ export class Store<T extends object> implements IStore<T> {
     }
 
     this._publishing++;
-    const dispatch = ($action: string | IReducerAction<T> | undefined, $params: any[]): void | Promise<void> => {
-      if ($action == null) {
+    const dispatch = ($actionType: unknown, $params: any[]): void | Promise<void> => {
+      const $$reducer = this._getAction($actionType);
+      if ($$reducer == null) {
         if (__DEV__) {
-          this._logger.warn('Dispatching an invalid action: undefined');
-        }
-        return;
-      }
-      $action = this._getAction($action);
-      if ($action == null) {
-        if (__DEV__) {
-          this._logger.warn(typeof action === 'string'
-            ? `Unrecognized action type "${action}"`
-            : `Unregistered action fn "${action.toString()}"`
-          );
+          this._logger.warn(`Dispatching an unrecognized action type "${$actionType}"`);
         }
         return;
       }
 
       let newState: T | Promise<T> | undefined = void 0;
       try {
-        newState = $action(this._state, ...$params);
+        newState = $$reducer(this._state, $actionType, ...$params);
       } catch (ex) {
         this._publishing--;
         throw ex;

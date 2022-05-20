@@ -1,7 +1,7 @@
 import { DI, MaybePromise, IRegistry } from '@aurelia/kernel';
 
-export const IReducerAction = DI.createInterface<IReducerAction>('IReducerAction');
-export type IReducerAction<T = any> = (state: MaybePromise<T>, ...params: any) => MaybePromise<T>;
+export const IReducer = DI.createInterface<IReducer>('IReducer');
+export type IReducer<T = any> = (state: T, action: unknown, ...params: any) => MaybePromise<T>;
 
 export const IStore = DI.createInterface<object>('IStore');
 export interface IStore<T extends object> {
@@ -14,12 +14,12 @@ export interface IStore<T extends object> {
    * @param action - the name or the action to be dispatched
    * @param params - all the parameters to be called with the action
    */
-  dispatch(action: string | IReducerAction<T>, ...params: any[]): void | Promise<void>;
+  dispatch(action: unknown, ...params: any[]): void | Promise<void>;
 }
 
 export const IState = DI.createInterface<object>('IState');
 
-export type IRegistrableReducer = IReducerAction & IRegistry;
+export type IRegistrableReducer = IReducer & IRegistry;
 
 export interface IStoreSubscriber<T extends object> {
   handleStateChange(state: T, prevState: T): void;

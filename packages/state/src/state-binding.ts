@@ -35,7 +35,7 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
   private task: ITask | null = null;
   private readonly taskQueue: TaskQueue;
 
-  /** @internal */ private readonly _stateContainer: IStore<object>;
+  /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private targetObserver!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
@@ -47,7 +47,7 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
   public constructor(
     locator: IServiceLocator,
     taskQueue: TaskQueue,
-    stateContainer: IStore<object>,
+    store: IStore<object>,
     observerLocator: IObserverLocator,
     expr: IsBindingBehavior,
     target: object,
@@ -55,7 +55,7 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
   ) {
     this.locator = locator;
     this.taskQueue = taskQueue;
-    this._stateContainer = stateContainer;
+    this._store = store;
     this.oL = observerLocator;
     this.sourceExpression = expr;
     this.target = target;
@@ -97,8 +97,8 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     }
     this.isBound = true;
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this.$scope = createStateBindingScope(this._stateContainer.getState(), scope);
-    this._stateContainer.subscribe(this);
+    this.$scope = createStateBindingScope(this._store.getState(), scope);
+    this._store.subscribe(this);
     this.updateTarget(this._value = this.sourceExpression.evaluate(
       LifecycleFlags.isStrictBindingStrategy,
       this.$scope,
@@ -119,7 +119,7 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     this.$scope = void 0;
     this.task?.cancel();
     this.task = null;
-    this._stateContainer.unsubscribe(this);
+    this._store.unsubscribe(this);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {

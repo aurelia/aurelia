@@ -177,10 +177,9 @@ describe('state/state.spec.ts', function () {
         .html`<input value.state="text" input.dispatch="{ action: 'event', params: [$event.target.value] }">`
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, value: string) => {
-            return { text: s.text + value };
-          }])
-        )
+          (s, action: unknown, v: string) =>
+            action === 'event' ? { text: s.text + v } : s
+        ))
         .build().started;
 
       assert.strictEqual(getBy('input').value, '1');
@@ -196,10 +195,9 @@ describe('state/state.spec.ts', function () {
         .html`<input value.state="text" input.dispatch="{ action: 'no-reg', params: [$event.target.value] }">`
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, value: string) => {
-            return { text: s.text + value };
-          }])
-        )
+          (s, action: unknown, v: string) =>
+            action === 'event' ? { text: s.text + v } : s
+        ))
         .build().started;
 
       trigger('input', 'input');
@@ -213,10 +211,9 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & debounce:1">')
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, value: string) => {
-            return { text: s.text + value };
-          }])
-        )
+          (s, action: unknown, v: string) =>
+            action === 'event' ? { text: s.text + v } : s
+        ))
         .build().started;
 
       trigger('input', 'input');
@@ -235,11 +232,14 @@ describe('state/state.spec.ts', function () {
         .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & throttle:1">')
         .deps(StateDefaultConfiguration.init(
           state,
-          ['event', (s: typeof state, value: string) => {
-            actionCallCount++;
-            return { text: s.text + value };
-          }])
-        )
+          (s, action: unknown, v: string) => {
+            if (action === 'event') {
+              actionCallCount++;
+              return { text: s.text + v };
+            }
+            return s;
+          }
+        ))
         .build().started;
 
       trigger('input', 'input');

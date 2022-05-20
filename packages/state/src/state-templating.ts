@@ -24,7 +24,7 @@ import {
 } from '@aurelia/runtime-html';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
-import { StateDispatchActionBinding } from './state-dispatch';
+import { StateDispatchBinding } from './state-dispatch';
 
 @attributePattern({ pattern: 'PART.state', symbols: '.' })
 export class StateAttributePattern {
@@ -144,7 +144,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     instruction: DispatchBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsProperty);
-    const binding = new StateDispatchActionBinding(
+    const binding = new StateDispatchBinding(
       renderingCtrl.container,
       this._stateContainer,
       expr,

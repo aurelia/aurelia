@@ -20,9 +20,9 @@ export class StateBindingBehavior extends BindingInterceptor {
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
-    if (!(this.binding instanceof StateBinding)) {
-      this.binding.$bind(flags, createStateBindingScope(this._store.getState(), scope));
-    }
+    const binding = this.binding;
+    const $scope = binding instanceof StateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
+    binding.$bind(flags, $scope);
   }
 }
 

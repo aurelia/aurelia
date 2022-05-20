@@ -3,20 +3,20 @@
 
 export { StateDefaultConfiguration } from './configuration';
 export {
-  Action,
+  Reducer as Action,
 } from './reducer';
 
 export {
   IState,
   IStore as IStateContainer,
   type IStoreSubscriber as IStateSubscriber,
-  IReducerAction,
+  IReducer,
   type IRegistrableReducer,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';
 export {
-  StateDispatchActionBinding,
+  StateDispatchBinding as StateDispatchActionBinding,
 
 } from './state-dispatch';
 export {

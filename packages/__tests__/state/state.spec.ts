@@ -174,7 +174,7 @@ describe('state/state.spec.ts', function () {
     it('dispatches action', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ action: 'event', params: [$event.target.value] }">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] }">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, action: unknown, v: string) =>
@@ -189,10 +189,39 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '11');
     });
 
+    it('handles multiple action type in a single reducer', async function () {
+      const state = { text: '1' };
+      const { getBy, trigger, flush } = await createFixture
+        .html`
+          <input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] }">
+          <button click.dispatch="{ type: 'clear' }">Clear</button>
+        `
+        .deps(StateDefaultConfiguration.init(
+          state,
+          (s, action: unknown, v: string) =>
+            action === 'event'
+              ? { text: s.text + v }
+              : action === 'clear'
+                ? { text: '' }
+                : s
+        ))
+        .build().started;
+
+      assert.strictEqual(getBy('input').value, '1');
+
+      trigger('input', 'input');
+      flush();
+      assert.strictEqual(getBy('input').value, '11');
+
+      trigger.click('button');
+      flush();
+      assert.strictEqual(getBy('input').value, '');
+    });
+
     it('does not throw on unreged action type', async function () {
       const state = { text: '1' };
       const { trigger, flush, getBy } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ action: 'no-reg', params: [$event.target.value] }">`
+        .html`<input value.state="text" input.dispatch="{ type: 'no-reg', params: [$event.target.value] }">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, action: unknown, v: string) =>
@@ -208,7 +237,7 @@ describe('state/state.spec.ts', function () {
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & debounce:1">')
+        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] } & debounce:1">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, action: unknown, v: string) =>
@@ -229,7 +258,7 @@ describe('state/state.spec.ts', function () {
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html('<input value.state="text" input.dispatch="{ action: \'event\', params: [$event.target.value] } & throttle:1">')
+        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] } & throttle:1">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, action: unknown, v: string) => {

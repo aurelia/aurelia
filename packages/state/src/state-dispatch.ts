@@ -9,6 +9,7 @@ import {
   type IsBindingBehavior
 } from '@aurelia/runtime';
 import {
+  IAction,
   type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
@@ -48,10 +49,10 @@ export class StateDispatchBinding implements IConnectableBinding {
     $scope.overrideContext.$event = e;
     const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
     delete $scope.overrideContext.$event;
-    if (!this.isDispatchable(value)) {
+    if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);
     }
-    void this._store.dispatch(value.action, ...(value.params instanceof Array ? value.params : []));
+    void this._store.dispatch(value.type, ...(value.params instanceof Array ? value.params : []));
   }
 
   public handleEvent(e: Event) {
@@ -85,11 +86,9 @@ export class StateDispatchBinding implements IConnectableBinding {
   }
 
   /** @internal */
-  private isDispatchable(value: unknown): value is Dispatchable {
+  private isAction(value: unknown): value is IAction {
     return value != null
       && typeof value === 'object'
-      && 'action' in value;
+      && 'type' in value;
   }
 }
-
-type Dispatchable = { action: unknown; params?: unknown[] };

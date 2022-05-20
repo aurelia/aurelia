@@ -24,3 +24,8 @@ export type IRegistrableReducer = IReducer & IRegistry;
 export interface IStoreSubscriber<T extends object> {
   handleStateChange(state: T, prevState: T): void;
 }
+
+export interface IAction {
+  type: unknown;
+  params?: unknown[];
+}

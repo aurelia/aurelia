@@ -12,6 +12,7 @@ export {
   type IStoreSubscriber as IStateSubscriber,
   IReducer,
   type IRegistrableReducer,
+  type IAction,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';

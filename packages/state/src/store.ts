@@ -1,5 +1,5 @@
-import { all, IContainer, ILogger, optional, Registration } from '@aurelia/kernel';
-import { IReducer, IState, IStore, IStoreSubscriber } from './interfaces';
+import { all, IContainer, ILogger, MaybePromise, optional, Registration } from '@aurelia/kernel';
+import { IAction, IReducer, IState, IStore, IStoreSubscriber } from './interfaces';
 
 export class Store<T extends object> implements IStore<T> {
   public static register(c: IContainer) {
@@ -11,13 +11,13 @@ export class Store<T extends object> implements IStore<T> {
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ private readonly _reducers: Map<unknown, IReducer<T>>;
+  /** @internal */ private readonly _reducers: IReducer<T>[];
   /** @internal */ private _publishing = 0;
-  /** @internal */ private readonly _dispatchQueues: { action: unknown; params: any[] }[] = [];
+  /** @internal */ private readonly _dispatchQueues: IAction[] = [];
 
-  public constructor(initialState: T | null, actions: [unknown, IReducer<T>][], logger: ILogger) {
+  public constructor(initialState: T | null, reducers: IReducer<T>[], logger: ILogger) {
     this._state = initialState ?? new State() as T;
-    this._reducers = new Map(actions);
+    this._reducers = reducers;
     this._logger = logger;
   }
 
@@ -55,109 +55,105 @@ export class Store<T extends object> implements IStore<T> {
     return this._state;
   }
 
-  /** @internal */
-  private _getAction(action: unknown): IReducer<T> | undefined {
-    return this._reducers.get(action);
-  }
-
   public dispatch(action: unknown, ...params: any[]): void | Promise<void> {
-    // if (this._reducers.size === 0) {
-    //   if (__DEV__) {
-    //     this._logger.warn(`Theres no reducer registered, ignoring action "${$action.type ?? '(anonymous)'}"`);
-    //   }
-    //   return;
-    // }
-
     if (this._publishing > 0) {
-      this._dispatchQueues.push({ action: action, params });
+      this._dispatchQueues.push({ type: action, params });
       return;
     }
 
     this._publishing++;
-    const dispatch = ($actionType: unknown, $params: any[]): void | Promise<void> => {
-      const $$reducer = this._getAction($actionType);
-      if ($$reducer == null) {
-        if (__DEV__) {
-          this._logger.warn(`Dispatching an unrecognized action type "${$actionType}"`);
-        }
-        return;
-      }
-
-      let newState: T | Promise<T> | undefined = void 0;
-      try {
-        newState = $$reducer(this._state, $actionType, ...$params);
-      } catch (ex) {
-        this._publishing--;
-        throw ex;
-      }
-
-      if (newState instanceof Promise) {
-        return newState.then(s => {
-          this._setState(s);
-
-          return afterDispatch();
-        }).then(() => {
-          this._publishing--;
-        }, ex => {
-          this._publishing--;
-          throw ex;
-        });
-      } else {
-        this._setState(newState);
-
-        const res = afterDispatch();
-        if (res instanceof Promise) {
-          return res.then(() => {
-            this._publishing--;
-          }, ex => {
-            this._publishing--;
-            throw ex;
-          });
-        } else {
-          this._publishing--;
-        }
-      }
-    };
-
-    const afterDispatch = (): void | Promise<void> => {
-      if (this._dispatchQueues.length > 0) {
-        const queuedItem = this._dispatchQueues.shift()!;
-        return dispatch(queuedItem.action, queuedItem.params);
-      }
-    };
-
-    return dispatch(action, params);
-    // let promise: Promise<void> | undefined = void 0;
-    // const reduce = ($state: T | Promise<T>, $action: IReducerAction<T>, params: unknown[]) =>
-    //   this._reducers.reduce(($state, r) => {
-    //     if ($state instanceof Promise) {
-    //       return $state.then($ => r($, $action)) as Promise<T>;
+    // const dispatch = ($actionType: unknown, $params: any[]): void | Promise<void> => {
+    //   const $$reducer = this._reducers;
+    //   if ($$reducer.length === 0) {
+    //     if (__DEV__) {
+    //       this._logger.warn(`No reducers registered.`);
     //     }
-    //     return r($state, $action) as T | Promise<T>;
-    //   }, $state);
+    //     return;
+    //   }
 
-    // const afterDispatch = ($state: T | Promise<T>): void | Promise<void> => {
-    //   if (publishing !== this._publishing && this._dispatchQueues.length > 0) {
-    //     action = this._dispatchQueues.shift() as IReducerAction<T>;
-    //     const newState = reduce($state, action);
-    //     return afterDispatch(newState);
+    //   let newState: T | Promise<T> | undefined = void 0;
+    //   try {
+    //     newState = $$reducer(this._state, $actionType, ...$params);
+    //   } catch (ex) {
+    //     this._publishing--;
+    //     throw ex;
+    //   }
+
+    //   if (newState instanceof Promise) {
+    //     return newState.then(s => {
+    //       this._setState(s);
+
+    //       return afterDispatch();
+    //     }).then(() => {
+    //       this._publishing--;
+    //     }, ex => {
+    //       this._publishing--;
+    //       throw ex;
+    //     });
+    //   } else {
+    //     this._setState(newState);
+
+    //     const res = afterDispatch();
+    //     if (res instanceof Promise) {
+    //       return res.then(() => {
+    //         this._publishing--;
+    //       }, ex => {
+    //         this._publishing--;
+    //         throw ex;
+    //       });
+    //     } else {
+    //       this._publishing--;
+    //     }
     //   }
     // };
-    // const state = reduce(this._state, action, params);
 
-    // if (state instanceof Promise) {
-    //   return state.then($state => {
-    //     this.setState($state);
-    //     this._publishing--;
+    // const afterDispatch = (): void | Promise<void> => {
+    //   if (this._dispatchQueues.length > 0) {
+    //     const queuedItem = this._dispatchQueues.shift()!;
+    //     return dispatch(queuedItem.action, queuedItem.params);
+    //   }
+    // };
 
-    //     return afterDispatch(this._state);
-    //   });
-    // } else {
-    //   this.setState(state);
-    //   this._publishing--;
+    // return dispatch(action, params);
 
-    //   return afterDispatch(this._state);
-    // }
+    let $$action: IAction;
+    const reduce = ($state: T | Promise<T>, $action: unknown, params?: unknown[]) =>
+      this._reducers.reduce(($state, r) => {
+        if ($state instanceof Promise) {
+          return $state.then($ => r($, $action, ...params ?? [])) as Promise<T>;
+        }
+        return r($state, $action, ...params ?? []) as T | Promise<T>;
+      }, $state);
+
+    const afterDispatch = ($state: MaybePromise<T>): void | Promise<void> => {
+      if (this._dispatchQueues.length > 0) {
+        $$action = this._dispatchQueues.shift()!;
+        const newState = reduce($state, $$action.type, $$action.params);
+        if (newState instanceof Promise) {
+          return newState.then($ => afterDispatch($));
+        } else {
+          return afterDispatch(newState);
+        }
+      }
+    };
+    const newState = reduce(this._state, action, params);
+
+    if (newState instanceof Promise) {
+      return newState.then($state => {
+        this._setState($state);
+        this._publishing--;
+
+        return afterDispatch(this._state);
+      }, ex => {
+        this._publishing--;
+        throw ex;
+      });
+    } else {
+      this._setState(newState);
+      this._publishing--;
+
+      return afterDispatch(this._state);
+    }
   }
 }
 class State {}

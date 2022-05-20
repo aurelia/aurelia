@@ -33,7 +33,7 @@ const createConfiguration = <T>(initialState: T, reducers: IReducer<T>[]) => {
         ...standardRegistrations,
         Registration.instance(IState, initialState),
         StateBindingBehavior,
-        ...reducers.map(r => typeof r === 'function' ? Reducer.define(r) : Reducer.define(r[0], r[1])),
+        ...reducers.map(Reducer.define),
       );
     },
     init: <T1>(state: T1, ...reducers: IReducer<T1>[]) => createConfiguration(state, reducers),

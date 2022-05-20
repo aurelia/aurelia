@@ -1,5 +1,8 @@
 /* eslint-disable */
 
+/**
+ * @param {import('karma').ConfigOptions} karmaConfig
+ */
 function createAureliaPreprocessor(karmaConfig, logger) {
   const basePath = karmaConfig.basePath;
   const log = logger.create('preprocessor:aurelia');
@@ -10,6 +13,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
   const { JSDOM } = require('jsdom');
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
   const w = jsdom.window;
+  const isChrome = karmaConfig.browsers?.some(s => 'chrome');
 
   return function preprocess(content, file, next) {
     log.debug(`Preprocessing '${file.path.replace(basePath, '')}' (type: '${file.type}')`);
@@ -76,6 +80,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
               }
               case '.js': case '.mjs': break;
               default: {
+                if (isChrome) break;
                 const start = statement.moduleSpecifier.getStart(sourceFile);
                 const end = statement.moduleSpecifier.getEnd(sourceFile);
 

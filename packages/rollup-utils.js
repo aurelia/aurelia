@@ -46,14 +46,16 @@ export function rollupReplace(envVars) {
 
 /**
  * @param {import('@rollup/plugin-typescript').RollupTypescriptOptions} [overrides]
+ * @param {boolean} [isDevMode]
  */
-export function rollupTypeScript(overrides) {
+export function rollupTypeScript(overrides, isDevMode) {
   return typescript({
     tsconfig: 'tsconfig.build.json',
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
     removeComments: true,
+    inlineSourceMap: isDevMode,
     ...overrides,
   });
 }
@@ -130,7 +132,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     __DEV__: process.env.__DEV__,
     NO_MINIFIED: process.env.NO_MINIFIED
   };
-  const isDevMode = false; // /^true$/.test(process.env.DEV_MODE);
+  const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
   const esmDevDist = 'dist/esm/index.dev.mjs';
   const cjsDevDist = 'dist/cjs/index.dev.cjs';
@@ -162,7 +164,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(isDevMode // there's something wrong with sourcemap
+      ...(false/* isDevMode */ // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,
@@ -173,7 +175,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: true }),
-          rollupTypeScript(),
+          rollupTypeScript({}, isDevMode),
         ]
       ),
     ],
@@ -207,7 +209,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(isDevMode // there's something wrong with sourcemap
+      ...(false/* isDevMode */ // there's something wrong with sourcemap
         ? [
           esbuild({
             minify: false,
@@ -221,7 +223,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
-          rollupTypeScript(),
+          rollupTypeScript({}, isDevMode),
         ]
       ),
       runPostbuildScript(...postBuildScript),

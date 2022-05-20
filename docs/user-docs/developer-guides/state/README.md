@@ -13,7 +13,7 @@ Before we delve too deeply into Aurelia State and how it can help manage state i
 * When you need to reuse data in other parts of your application — State management shines when it comes to helping keep your data organized for cross-application reuse.
 * When dealing with complex data structures — Ephermal state is great for simple use cases, but when working with complex data structures \(think multi-step forms or deeply structured data\), state management can help keep it consistent.
 
-{% hint style="success" %}
+{% hint style="info" %}
 Think about the state plugin as an event aggregator, but customized for state management.
 {% endhint %}
 
@@ -27,7 +27,7 @@ To install the Aurelia State plugin, open up a Command Prompt/Terminal and insta
 npm i @aurelia/state
 ```
 
-## Setup the initial state
+### Setup the initial state
 
 When registering the Aurelia State plugin, you need to pass in the initial state of your application. This is an object which defines the data structure of your application.
 
@@ -35,10 +35,8 @@ Create a new file in the `src` directory called `initialstate.ts` with your stat
 
 ```typescript
 export const initialState = {
-  name: '',
-  age: '',
-  pets: [],
-  siteEnabled: true,
+  keywords: '',
+  items: []
 };
 ```
 
@@ -46,7 +44,7 @@ As you can see, it's just a plain old Javascript object. In your application, yo
 
 This state will be stored in the global state container for bindings to use in the templates.
 
-## Setup the reducers
+### Setup the reducers
 
 The initial state above aren't meant to be mutated directly. In order to produce a state change, an mutation request should be dispatched instead. A reducer is a function that is supposed to combine the current state of the state container and the action parameters of the function call to produce a new state:
 
@@ -57,16 +55,16 @@ const reducer = (state, action, ...parameters) => newState
 An example of a reducer that produce a new state with updated keyword on a `keyword` action:
 
 ```ts
-export function keywordReducer(currentState, action, newKeyword) {
-  return action === 'keyword'
-    ? { ...currentState, keyword: newKeyword }
+export function keywordsReducer(currentState, action, newKeyword) {
+  return action === 'newKeywords'
+    ? { ...currentState, keywords: newKeyword }
     : currentState
 }
 ```
 
 Create a new file in the `src` directory called `reducers.ts` with the above code.
 
-## Configuration
+### Configuration
 
 To use the Aurelia State plugin in Aurelia, it needs to be imported and registered. Inside of `main.ts` the plugin can be registered as follows:
 
@@ -75,12 +73,12 @@ import Aurelia from 'aurelia';
 import { StateDefaultConfiguration } from '@aurelia/state';
 
 import { initialState } from './initialstate';
-import { keywordAction } from './reducers';
+import { keywordsReducer } from './reducers';
 
 Aurelia
   .register(
     StateDefaultConfiguration.init(initialState),
-    keywordReducer
+    keywordsReducer
   )
   .app(MyApp)
   .start();
@@ -90,6 +88,49 @@ Aurelia
 The above imports the `StateDefaultConfiguration` object from the plugin and then called `init` which then passes the initial state object for your application.
 
 
-{% hint style="success" %}
+{% hint style="info" %}
 If you are familiar with Redux, then you'll find this plugin familiar. The most obvious difference will be around the reducer function signature.
 {% endhint %}
+
+## Template binding
+
+### With `.state` and `.dispatch` commands
+
+The Aurelia State plugin provides `state` and `dispatch` binding commands that simplify binding with the global state. Example usages:
+
+```html
+// bind value property of the input to `keywords` property on the global state
+<input value.state="keywords">
+
+// dispatch an action object `{ type: 'clearKeywords' }` to request state mutation
+<button click.dispatch="{ type: 'clearKeywords' }">Clear keywords</button>
+
+// bind value property of the input to `keywords` property on the global state
+// and dispatch an action with type `newKeywords` on input event
+<input value.state="keywords" input.dispatch="{ type: 'newKeywords', params: [$event.target.value] }">
+```
+
+### With `& state` binding behavior
+
+In places where it's not possible to use `.state` binding command, the global state can be connected via `& state` binding behavior, like the following example:
+```html
+<p>Found ${items.length & state} results for keyword: "${keyword & state}"</p>
+<div repeat.for="item of items & state">
+  ${item.name}
+</div>
+```
+
+### Accessing view model
+
+Note: by default, bindings created from `.state` and `.dispatch` commands will only allow you to access the properties on the global state. If it's desirable to access the property of the view model containing those bindings, use `$parent` like the following example:
+
+```html
+// access the property `prefix` on the view model, and `keywords` property on the global state
+<input value.state="$parent.prefix + keywords">
+```
+
+## Authoring reducers
+
+As mentioned at the start of this guide, reducers are the way to handle mutation of the global state. They are expected to be returning a new state instead of mutating existing state. Even though normal mutation works, it may break future integration with devtool.
+
+Reducers can be either synchronous or asyncchronous. An application may have one or more reducers, and if one reducer is asynchronous, a promise will be returned for the `dispatch` call.

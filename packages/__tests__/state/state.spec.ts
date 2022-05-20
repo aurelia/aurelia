@@ -1,3 +1,4 @@
+import { ValueConverter } from '@aurelia/runtime';
 import { StateDefaultConfiguration } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -10,6 +11,19 @@ describe('state/state.spec.ts', function () {
       .build().started;
 
     assert.strictEqual(getBy('input').value, '123');
+  });
+
+  it('works with value converter', async function () {
+    const state = { text: 'aaa' };
+    const { getBy } = await createFixture
+      .html`<input value.state="text | suffix1">`
+      .deps(
+        StateDefaultConfiguration.init(state),
+        ValueConverter.define('suffix1', class { toView(v: unknown) { return `${v}1`; } })
+      )
+      .build().started;
+
+    assert.strictEqual(getBy('input').value, 'aaa1');
   });
 
   // it('does not observe global state object', async function () {

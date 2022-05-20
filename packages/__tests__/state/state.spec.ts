@@ -190,6 +190,23 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '11');
     });
 
+    it('does not throw on unreged action type', async function () {
+      const state = { text: '1' };
+      const { trigger, flush, getBy } = await createFixture
+        .html`<input value.state="text" input.dispatch="{ action: 'no-reg', params: [$event.target.value] }">`
+        .deps(StateDefaultConfiguration.init(
+          state,
+          ['event', (s: typeof state, value: string) => {
+            return { text: s.text + value };
+          }])
+        )
+        .build().started;
+
+      trigger('input', 'input');
+      flush();
+      assert.strictEqual(getBy('input').value, '1');
+    });
+
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture

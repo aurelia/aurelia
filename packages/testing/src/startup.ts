@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Constructable, EventAggregator, IContainer } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel } from '@aurelia/runtime-html';
 import { assert } from './assert';
@@ -139,6 +139,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public au = au;
     public component = component;
     public observerLocator = observerLocator;
+    public logger = container.get(ILogger);
 
     public async start() {
       await au.app({ host: host, component }).start();
@@ -200,6 +201,7 @@ export interface IFixture<T> {
   readonly au: Aurelia;
   readonly component: ICustomElementViewModel & T;
   readonly observerLocator: IObserverLocator;
+  readonly logger: ILogger;
   readonly torn: boolean;
   start(): Promise<void>;
   tearDown(): void | Promise<void>;

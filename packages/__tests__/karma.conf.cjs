@@ -70,6 +70,7 @@ module.exports =
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/util.js.map` }, // 1.3
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js` }, // 1.4
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js.map` }, // 1.4
+    { type: 'none', watched: false, included: false, nocache: true, pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
         .map(file =>

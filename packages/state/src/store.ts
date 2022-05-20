@@ -83,13 +83,13 @@ export class Store<T extends object> implements IStore<T> {
       }
       $action = this._getAction($action);
       if ($action == null) {
-        if (typeof action === 'string') {
-          if (__DEV__) {
-            this._logger.warn(`Unrecognized action type "${action}"`);
-          }
-          return;
+        if (__DEV__) {
+          this._logger.warn(typeof action === 'string'
+            ? `Unrecognized action type "${action}"`
+            : `Unregistered action fn "${action.toString()}"`
+          );
         }
-        $action = action;
+        return;
       }
 
       let newState: T | Promise<T> | undefined = void 0;

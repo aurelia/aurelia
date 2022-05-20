@@ -58,9 +58,7 @@ module.exports =
     // and the preprocessor will no longer work, https://github.com/karma-runner/karma/issues/2264
     // this is a good enough work around
     // todo: probably will need something else to run the tests in the browser in the future
-    hasSingleRun
-      ? null
-      : { type: 'script', watched: true,        included: true,  nocache: true,   pattern: `packages/__tests__/importmap.js` },
+    { type: 'script', watched: true,        included: true,  nocache: true,   pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: !hasSingleRun,   included: true,  nocache: false,  pattern: `${baseUrl}/setup-browser.js` }, // 1.1
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1

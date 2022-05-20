@@ -1,6 +1,8 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Action, type IReducerAction } from './reducer';
-import { IState, StateContainer } from './state';
+import { IReducer, IState } from './interfaces';
+import { Reducer } from './reducer';
+import { Store } from './store';
+import { StateBindingBehavior } from './state-binding-behavior';
 import {
   DispatchAttributePattern,
   DispatchBindingCommand,
@@ -19,20 +21,23 @@ const standardRegistrations = [
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
 
-  StateContainer,
+  Store,
 ];
 
-export type INamedReducerActionRegistration<T> = { target: string; action: IReducerAction<T> };
+export type INamedReducerActionRegistration<T> = [target: string, action: IReducer<T>];
 
-const createConfiguration = <T extends object>(initialState: T, reducers: INamedReducerActionRegistration<T>[]) => {
+const createConfiguration = <T>(initialState: T, reducers: IReducer<T>[]) => {
   return {
-    register: (c: IContainer) => c.register(
-      ...standardRegistrations,
-      Registration.instance(IState, initialState),
-      ...reducers.map(r => Action.isType(r) ? r : Action.define(r.target, r.action as unknown as IReducerAction<object>))
-    ),
-    init: <T1 extends object>(state: T1, ...reducers: INamedReducerActionRegistration<T1>[]) => createConfiguration(state, reducers),
+    register: (c: IContainer) => {
+      c.register(
+        ...standardRegistrations,
+        Registration.instance(IState, initialState),
+        StateBindingBehavior,
+        ...reducers.map(Reducer.define),
+      );
+    },
+    init: <T1>(state: T1, ...reducers: IReducer<T1>[]) => createConfiguration(state, reducers),
   };
 };
 
-export const StandardStateConfiguration = createConfiguration({}, []);
+export const StateDefaultConfiguration = createConfiguration({}, []);

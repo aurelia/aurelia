@@ -124,4 +124,5 @@ export {
 export {
   type AnyFunction,
   type FunctionPropNames,
+  type MaybePromise,
 } from './utilities';

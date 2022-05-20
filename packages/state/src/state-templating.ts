@@ -15,15 +15,16 @@ import {
   DefinitionType,
   IAttrMapper,
   IHydratableController,
+  IPlatform,
   renderer,
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
   type IRenderer
 } from '@aurelia/runtime-html';
-import { IStateContainer } from './state';
+import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
-import { StateDispatchActionBinding } from './state-dispatch';
+import { StateDispatchBinding } from './state-dispatch-binding';
 
 @attributePattern({ pattern: 'PART.state', symbols: '.' })
 export class StateAttributePattern {
@@ -72,13 +73,8 @@ export class StateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  /** @internal */ protected static inject = [IAttrMapper];
   public readonly type: CommandType = CommandType.IgnoreAttr;
   public get name(): string { return 'dispatch'; }
-
-  public constructor(
-    /** @internal */ private readonly _attrMapper: IAttrMapper,
-  ) {}
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;
@@ -104,13 +100,14 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStateContainer];
+  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore, IPlatform];
   public readonly target!: 'sb';
 
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _observerLocator: IObserverLocator,
-    /** @internal */ private readonly _stateContainer: IStateContainer<object>,
+    /** @internal */ private readonly _stateContainer: IStore<object>,
+    /** @internal */ private readonly p: IPlatform,
   ) {}
 
   public render(
@@ -120,11 +117,12 @@ export class StateBindingInstructionRenderer implements IRenderer {
   ): void {
     const binding = new StateBinding(
       renderingCtrl.container,
+      this.p.domWriteQueue,
       this._stateContainer,
       this._observerLocator,
       ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction),
       target,
-      instruction.to
+      instruction.to,
     );
     renderingCtrl.addBinding(binding);
   }
@@ -132,13 +130,12 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStateContainer];
+  /** @internal */ protected static inject = [IExpressionParser, IStore];
   public readonly target!: 'sd';
 
   public constructor(
     /** @internal */ private readonly _exprParser: IExpressionParser,
-    /** @internal */ private readonly _observerLocator: IObserverLocator,
-    /** @internal */ private readonly _stateContainer: IStateContainer<object>,
+    /** @internal */ private readonly _stateContainer: IStore<object>,
   ) {}
 
   public render(
@@ -147,7 +144,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     instruction: DispatchBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsProperty);
-    const binding = new StateDispatchActionBinding(
+    const binding = new StateDispatchBinding(
       renderingCtrl.container,
       this._stateContainer,
       expr,

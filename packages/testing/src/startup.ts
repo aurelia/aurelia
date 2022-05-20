@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Constructable, EventAggregator, IContainer } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel } from '@aurelia/runtime-html';
 import { assert } from './assert';
@@ -124,6 +124,10 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     el.dispatchEvent(new Event('scroll'));
   };
 
+  const flush = (time?: number) => {
+    ctx.platform.domWriteQueue.flush(time);
+  };
+
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
@@ -135,6 +139,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public au = au;
     public component = component;
     public observerLocator = observerLocator;
+    public logger = container.get(ILogger);
 
     public async start() {
       await au.app({ host: host, component }).start();
@@ -177,6 +182,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public assertHtml = assertHtml;
     public trigger = trigger;
     public scrollBy = scrollBy;
+    public flush = flush;
   }();
 
   fixtureHooks.publish('fixture:created', fixture);
@@ -195,6 +201,7 @@ export interface IFixture<T> {
   readonly au: Aurelia;
   readonly component: ICustomElementViewModel & T;
   readonly observerLocator: IObserverLocator;
+  readonly logger: ILogger;
   readonly torn: boolean;
   start(): Promise<void>;
   tearDown(): void | Promise<void>;
@@ -247,6 +254,8 @@ export interface IFixture<T> {
    * A helper to scroll and trigger a scroll even on an element matching the given selector
    */
   scrollBy(selector: string, options: number | ScrollToOptions): void;
+
+  flush(): void;
 }
 
 export type ITrigger = ((selector: string, event: string, init?: CustomEventInit) => void) & {

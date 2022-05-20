@@ -58,14 +58,17 @@ module.exports =
     // and the preprocessor will no longer work, https://github.com/karma-runner/karma/issues/2264
     // this is a good enough work around
     // todo: probably will need something else to run the tests in the browser in the future
-    hasSingleRun
-      ? null
-      : { type: 'script', watched: true,  included: true,        nocache: true, pattern: `packages/__tests__/importmap.js` },
+    { type: 'script', watched: true,        included: true,  nocache: true,   pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: !hasSingleRun,   included: true,  nocache: false,  pattern: `${baseUrl}/setup-browser.js` }, // 1.1
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-shared.js` }, // 1.2
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-shared.js.map` }, // 1.2
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/util.js` }, // 1.3
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/util.js.map` }, // 1.3
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js` }, // 1.4
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js.map` }, // 1.4
+    { type: 'none', watched: false, included: false, nocache: true, pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
         .map(file =>
@@ -78,12 +81,12 @@ module.exports =
       // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
-      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+      { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
       { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
-      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+      { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
     // for i18n tests 
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1

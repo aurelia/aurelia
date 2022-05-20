@@ -167,7 +167,7 @@ Aurelia
 
         attaching() {
           this.intervalId = setInterval(() => {
-            this.message = `${Date.now() - this.time} ${this.format === 'short' ? 's' : 'seconds'} passed.`;
+            this.message = `${(Date.now() - this.time)/1000} ${this.format === 'short' ? 's' : 'seconds'} passed.`;
           }, 1000)
         }
 

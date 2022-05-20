@@ -1,27 +1,22 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../global.d.ts" />
 
-// <input value.state="..." input.trigger="state.onInput">
-// <input value.state:store1="..." input.dispatch="onUpdate">
-
-export { StandardStateConfiguration } from './configuration';
+export { StateDefaultConfiguration } from './configuration';
 export {
-  IReducerAction,
-  Action,
-  type IRegistrableReducer,
+  Reducer as Action,
 } from './reducer';
 
 export {
   IState,
-  IStateContainer,
-  StateContainer,
-  type IStateSubscriber,
-} from './state';
-export { StateBinding, } from './state-binding';
-export {
-  StateDispatchActionBinding,
+  IStore,
+  type IStoreSubscriber,
+  IReducer,
+  type IRegistrableReducer,
+  type IAction,
+} from './interfaces';
 
-} from './state-dispatch';
+export { StateBinding, } from './state-binding';
+export { StateDispatchBinding } from './state-dispatch-binding';
 export {
   StateAttributePattern,
   StateBindingCommand,
@@ -34,3 +29,4 @@ export {
   DispatchBindingInstructionRenderer,
 } from './state-templating';
 
+export { StateBindingBehavior } from './state-binding-behavior';

@@ -24,7 +24,7 @@ import {
 } from '@aurelia/runtime-html';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
-import { StateDispatchBinding } from './state-dispatch';
+import { StateDispatchBinding } from './state-dispatch-binding';
 
 @attributePattern({ pattern: 'PART.state', symbols: '.' })
 export class StateAttributePattern {

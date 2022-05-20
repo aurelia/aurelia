@@ -8,18 +8,15 @@ export {
 
 export {
   IState,
-  IStore as IStateContainer,
-  type IStoreSubscriber as IStateSubscriber,
+  IStore,
+  type IStoreSubscriber,
   IReducer,
   type IRegistrableReducer,
   type IAction,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';
-export {
-  StateDispatchBinding as StateDispatchActionBinding,
-
-} from './state-dispatch';
+export { StateDispatchBinding } from './state-dispatch-binding';
 export {
   StateAttributePattern,
   StateBindingCommand,

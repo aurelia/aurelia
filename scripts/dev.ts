@@ -87,7 +87,10 @@ const toolingPackages = [
 ];
 
 const apps = (args.a ?? []) as string[];
-const validApps = ['ui-virtualization'];
+const validApps = [
+  'ui-virtualization',
+  'router-animation',
+];
 
 if (apps.length > 0) {
   if (apps.some(a => !validApps.includes(a))) {

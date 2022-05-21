@@ -42,6 +42,7 @@
     "examples/rainbow-spiral",
     "examples/realworld",
     "examples/realworld-advanced",
+    "examples/router-animation",
     "examples/ui-virtualization",
     "examples/sierpinski-triangle",
     "test/karma-aurelia-preprocessor",

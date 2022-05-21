@@ -8,7 +8,17 @@ import {
 } from '@aurelia/kernel';
 import { Collection, IndexMap, LifecycleFlags } from './observation';
 import { registerAliases } from './alias';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata, isFunction, isString } from './utilities-objects';
+import {
+  appendResourceKey,
+  def,
+  defineMetadata,
+  getAnnotationKeyFor,
+  getOwnMetadata,
+  getResourceKeyFor,
+  hasOwnMetadata,
+  isFunction,
+  isString,
+} from './utilities-objects';
 
 import type {
   Constructable,
@@ -153,24 +163,12 @@ export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
-  public get oL(): IObserverLocator {
-    return this.binding.oL;
-  }
-  public get locator(): IServiceLocator {
-    return this.binding.locator;
-  }
-  public get $scope(): Scope | undefined {
-    return this.binding.$scope;
-  }
-  public get isBound(): boolean {
-    return this.binding.isBound;
-  }
-  public get obs(): BindingObserverRecord {
-    return this.binding.obs;
-  }
-  public get sourceExpression(): IsBindingBehavior | ForOfStatement {
-    return (this.binding as unknown as { sourceExpression: IsBindingBehavior | ForOfStatement }).sourceExpression;
-  }
+  public readonly oL!: IObserverLocator;
+  public readonly locator!: IServiceLocator;
+  public readonly $scope: Scope | undefined;
+  public readonly isBound!: boolean;
+  public readonly obs!: BindingObserverRecord;
+  public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
 
   public constructor(
     public readonly binding: IInterceptableBinding,
@@ -213,6 +211,19 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.$unbind(flags);
   }
 }
+
+/* eslint-disable */
+const interceptableProperties = ['isBound', '$scope', 'obs', 'sourceExpression', 'locator', 'oL'];
+interceptableProperties.forEach(prop => {
+  def(BindingInterceptor.prototype, prop, {
+    enumerable: false,
+    configurable: true,
+    get: function (this: BindingInterceptor) {
+      return (this.binding as any)[prop];
+    },
+  });
+});
+/* eslint-enable */
 
 const bbBaseName = getResourceKeyFor('binding-behavior');
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(

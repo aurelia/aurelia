@@ -58,7 +58,6 @@ describe("store-v1/test-helpers.spec.ts", function () {
 
     ["log", "group", "groupEnd"].forEach((fct) => {
       origConsole[fct] = (global.console as any)[fct];
-      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       global.console[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
     });
 

@@ -1,34 +1,24 @@
-import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { IContainer, Registration } from '@aurelia/kernel';
+import { IReducer, IRegistrableReducer } from './interfaces';
 
 // export interface IStateAction<Type = unknown, Payload = unknown> {
 //   type: Type;
 //   payload: Payload;
 // }
 
-export type IReducerAction<T> = (state: T | Promise<T>, ...params: any) => T | Promise<T>;
-export const IReducerAction = DI.createInterface<IReducerAction<object>>('IReducerAction');
-
-export type IRegistrableReducer = IReducerAction<any> & IRegistry;
-
-const reducerActionName = '__reducer__';
-export const Action = Object.freeze(new class {
-  public define<T extends IReducerAction<object>>(action: T): T & IRegistry;
-  public define<T extends IReducerAction<object>>(name: string, action: T): T & IRegistry;
-  public define<T extends IReducerAction<object>>(actionOrName: string | T, action?: T): T & IRegistry {
-    const reg: [string | T, T] = typeof actionOrName === 'string'
-      ? [actionOrName, action!]
-      : [actionOrName, actionOrName];
-    const $action = reg[1];
-    function registry(state: object, ...params: any[]): unknown {
-      return $action(state, ...params);
+const reducerSymbol = '__reducer__';
+export const Reducer = Object.freeze({
+  define<T extends IReducer>(reducer: T): IRegistrableReducer {
+    function registry(state: any, actionType: unknown, ...params: any[]): unknown {
+      return reducer(state, actionType, ...params);
     }
-    registry[reducerActionName] = true;
+    registry[reducerSymbol] = true;
     registry.register = function (c: IContainer) {
-      Registration.instance(IReducerAction, reg).register(c);
+      Registration.instance(IReducer, reducer).register(c);
     };
 
-    return registry as unknown as T & IRegistry;
-  }
+    return registry as unknown as IRegistrableReducer;
+  },
 
-  public isType = <T extends object>(r: unknown): r is IReducerAction<T> => typeof r === 'function' && reducerActionName in r;
-}());
+  isType: <T>(r: unknown): r is IReducer<T> => typeof r === 'function' && reducerSymbol in r,
+});

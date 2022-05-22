@@ -79,6 +79,9 @@ export class TestContext {
     return this.domParser.firstElementChild as HTMLElement;
   }
 
+  public createElement<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K];
+  public createElement<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K];
+  public createElement<E extends HTMLElement = HTMLElement>(selectors: string): E;
   public createElement(name: string): HTMLElement {
     return this.doc.createElement(name);
   }

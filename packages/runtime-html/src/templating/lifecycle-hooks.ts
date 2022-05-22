@@ -50,6 +50,16 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
     return new LifecycleHooksDefinition(Type, propertyNames);
   }
 
+  public static fromCallback(lifecycle: string, callback: AnyFunction): LifecycleHooksDefinition {
+    const Type = class {
+      [key: string]: AnyFunction;
+      public constructor() {
+        this[lifecycle] = callback;
+      }
+    };
+    return new LifecycleHooksDefinition(Type, new Set([lifecycle]));
+  }
+
   public register(container: IContainer): void {
     Registration.singleton(ILifecycleHooks, this.Type).register(container);
   }
@@ -59,6 +69,7 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
 const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
+const callbackHooksName = `${lhBaseName}:callback`;
 
 export const LifecycleHooks = Object.freeze({
   name: lhBaseName,
@@ -71,17 +82,31 @@ export const LifecycleHooks = Object.freeze({
     appendResourceKey(Type, lhBaseName);
     return definition.Type;
   },
+  fromCallback<T>(lifecycle: string, callback: (vm: T, ...params: unknown[]) => unknown): LifecycleHooksDefinition {
+    return LifecycleHooksDefinition.fromCallback(lifecycle, callback);
+  },
+  add<T extends Constructable>(Type: T, lifecycle: string, callback: AnyFunction): void {
+    let existing = getOwnMetadata(Type, callbackHooksName) as Record<string, AnyFunction[]>;
+    if (existing === void 0) {
+      defineMetadata(callbackHooksName, existing = {}, Type);
+    }
+    (existing[lifecycle] ??= []).push(callback);
+  },
+  /**
+   * @param ctx - The container where the resolution starts
+   * @param Type - The constructor of the Custom element/ Custom attribute with lifecycle metadata
+   */
   resolve(ctx: IContainer): LifecycleHooksLookup {
     let lookup = containerLookup.get(ctx);
     if (lookup === void 0) {
-      lookup = new LifecycleHooksLookupImpl();
+      containerLookup.set(ctx, lookup = new LifecycleHooksLookupImpl());
       const root = ctx.root;
       const instances = root.id === ctx.id
         ? ctx.getAll(ILifecycleHooks)
         // if it's not root, only resolve it from the current context when it has the resolver
         // to maintain resources semantic: current -> root
         : ctx.has(ILifecycleHooks, false)
-          ? [...root.getAll(ILifecycleHooks), ...ctx.getAll(ILifecycleHooks)]
+          ? root.getAll(ILifecycleHooks).concat(ctx.getAll(ILifecycleHooks))
           : root.getAll(ILifecycleHooks);
 
       let instance: ILifecycleHooks;

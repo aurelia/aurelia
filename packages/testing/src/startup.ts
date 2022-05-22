@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
-import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { TestContext } from './test-context';
 
@@ -26,7 +26,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
 ): IFixture<ICustomElementViewModel & K> {
   const { container, platform, observerLocator } = ctx;
   container.register(...registrations);
-  const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
+  const root = ctx.doc.body.appendChild(ctx.createElement('div'));
   const host = root.appendChild(ctx.createElement('app'));
   const au = new Aurelia(container);
   const $$class: Constructable<K> = typeof $class === 'function'
@@ -38,7 +38,12 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
         return $class;
       } as unknown as Constructable<K>;
 
-  const App = CustomElement.define<Constructable<K>>({ name: 'app', template }, $$class);
+  const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
+  const App = CustomElement.define<Constructable<K>>({
+    ...existingDefs,
+    name: 'app',
+    template,
+  }, $$class);
 
   if (container.has(App, true)) {
     throw new Error(
@@ -326,7 +331,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-createFixture.html = <T = Record<string, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
 createFixture.component = <T>(component: T) => new FixtureBuilder<T>().component(component);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-createFixture.deps = <T = Record<string, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
+createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);

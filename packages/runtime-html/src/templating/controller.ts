@@ -25,7 +25,7 @@ import { ChildrenDefinition, ChildrenObserver } from './children';
 import { IPlatform } from '../platform';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
-import { LifecycleHooks } from './lifecycle-hooks';
+import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
 import { isFunction, isString } from '../utilities';
 
@@ -91,7 +91,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
   public location: IRenderLocation | null = null;
-  public lifecycleHooks: LifecycleHooksLookup | null = null;
+  public lifecycleHooks: LifecycleHooksLookup<{
+    created: ICompileHooks['created'];
+  }> | null = null;
 
   public state: State = State.none;
   public get isActive(): boolean {
@@ -447,6 +449,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host       */this.host,
     );
 
+    if (this.lifecycleHooks!.created !== void 0) {
+      this.lifecycleHooks!.created.forEach(callCreatedHook, this);
+    }
     if (this.hooks.hasCreated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomElementController);
@@ -1813,6 +1818,10 @@ export interface IControllerElementHydrationInstruction {
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
+}
+
+function callCreatedHook(this: Controller, l: LifecycleHooksEntry<{ created: ICompileHooks['created'] }>) {
+  l.instance.created(this.viewModel!, this as ICustomAttributeController | ICustomElementController);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

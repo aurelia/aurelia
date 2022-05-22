@@ -8,7 +8,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/lifecycle-hooks.spec.ts', function () {
+describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
   it('retrieves global hooks at root', async function () {
     class Hooks {
       public attaching() {/* empty */ }

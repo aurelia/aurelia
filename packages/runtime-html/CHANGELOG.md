@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.32"></a>
+# 2.0.0-alpha.32 (2022-05-22)
+
+### Features:
+
+* ***:** lifecyclehooks created (#1428) ([3a0e93d](https://github.com/aurelia/aurelia/commit/3a0e93d))
+
 <a name="2.0.0-alpha.31"></a>
 # 2.0.0-alpha.31 (2022-05-15)
 

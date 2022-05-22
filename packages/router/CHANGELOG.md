@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.32"></a>
+# 2.0.0-alpha.32 (2022-05-22)
+
+### Features:
+
+* **router:** add previous to instruction (#1418) ([fc61481](https://github.com/aurelia/aurelia/commit/fc61481))
+
+
+### Bug Fixes:
+
+* **router:** right navigation to unload lifecycleHooks (#1419) ([af11523](https://github.com/aurelia/aurelia/commit/af11523))
+
 <a name="2.0.0-alpha.31"></a>
 # 2.0.0-alpha.31 (2022-05-15)
 

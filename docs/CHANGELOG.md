@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.32"></a>
+# 2.0.0-alpha.32 (2022-05-22)
+
+### Features:
+
+* **lifecycle-hooks:** support `created` (#1428) ([3a0e93d](https://github.com/aurelia/aurelia/commit/3a0e93d))
+* **router:** add previous to instruction ([b9a4e20](https://github.com/aurelia/aurelia/commit/b9a4e20))
+* **state:** add state binding behavior ([b05a0fb](https://github.com/aurelia/aurelia/commit/b05a0fb))
+* **state:** observe view model properties in state bindings ([b05a0fb](https://github.com/aurelia/aurelia/commit/b05a0fb))
+
+
+### Bug Fixes:
+
+* **router:** right navigation to unload lifecycleHooks ([b9a4e20](https://github.com/aurelia/aurelia/commit/b9a4e20))
+* **plugin-conventions:** upgrade source-map dep to fix nodejs v18 compat (#1424) ([572d101](https://github.com/aurelia/aurelia/commit/572d101))
+* **kernel:** alter copypasted comments (#1423) ([44df8c6](https://github.com/aurelia/aurelia/commit/44df8c6))
+
+
+### Refactorings:
+
+* **example:** tweak config for router animation test ([b9a4e20](https://github.com/aurelia/aurelia/commit/b9a4e20))
+
 <a name="2.0.0-alpha.31"></a>
 # 2.0.0-alpha.31 (2022-05-15)
 

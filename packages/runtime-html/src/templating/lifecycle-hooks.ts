@@ -96,7 +96,7 @@ export const LifecycleHooks = Object.freeze({
    * @param ctx - The container where the resolution starts
    * @param Type - The constructor of the Custom element/ Custom attribute with lifecycle metadata
    */
-  resolve(ctx: IContainer, Type: Constructable): LifecycleHooksLookup {
+  resolve(ctx: IContainer): LifecycleHooksLookup {
     let lookup = containerLookup.get(ctx);
     if (lookup === void 0) {
       containerLookup.set(ctx, lookup = new LifecycleHooksLookupImpl());
@@ -108,14 +108,12 @@ export const LifecycleHooks = Object.freeze({
         : ctx.has(ILifecycleHooks, false)
           ? root.getAll(ILifecycleHooks).concat(ctx.getAll(ILifecycleHooks))
           : root.getAll(ILifecycleHooks);
-      const callbackLifecycleHooks = getOwnMetadata(callbackHooksName, Type) as Record<string, AnyFunction[]>;
 
       let instance: ILifecycleHooks;
       let definition: LifecycleHooksDefinition;
       let entry: LifecycleHooksEntry;
       let name: string;
       let entries: LifecycleHooksEntry[];
-      let callbacks: AnyFunction[];
 
       for (instance of instances) {
         definition = getOwnMetadata(lhBaseName, instance.constructor) as LifecycleHooksDefinition;
@@ -127,20 +125,6 @@ export const LifecycleHooks = Object.freeze({
           } else {
             entries.push(entry);
           }
-        }
-      }
-
-      if (callbackLifecycleHooks != null) {
-        for (name in callbackLifecycleHooks) {
-          entries = lookup[name] as LifecycleHooksEntry[];
-          if (entries === void 0) {
-            entries = lookup[name] = [];
-          }
-          callbacks = callbackLifecycleHooks[name];
-          callbacks.forEach(callback => {
-            definition = LifecycleHooksDefinition.fromCallback(name, callback);
-            entries.push(new LifecycleHooksEntry(definition, new definition.Type()));
-          });
         }
       }
     }

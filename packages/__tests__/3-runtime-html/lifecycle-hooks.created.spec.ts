@@ -5,7 +5,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
+describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
   const hookSymbol = Symbol();
 
   @lifecycleHooks()
@@ -43,11 +43,12 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
   });
 
   it('invokes before the view model lifecycle', async function () {
-    const createdCall = 0;
+    let createdCall = 0;
     await createFixture
       .component(class App {
         created() {
           assert.strictEqual(this[hookSymbol], hookSymbol);
+          createdCall++;
         }
       })
       .html``

@@ -370,7 +370,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.lifecycleHooks = LifecycleHooks.resolve(container, definition.Type);
+    this.lifecycleHooks = LifecycleHooks.resolve(container);
     // Support Recursive Components by adding self to own context
     definition.register(container);
 
@@ -450,7 +450,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
 
     if (this.lifecycleHooks!.created !== void 0) {
-      this.lifecycleHooks!.created.forEach(callCreatedHook);
+      this.lifecycleHooks!.created.forEach(callCreatedHook, this);
     }
     if (this.hooks.hasCreated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
@@ -469,7 +469,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
-    this.lifecycleHooks = LifecycleHooks.resolve(this.container, definition.Type);
+    this.lifecycleHooks = LifecycleHooks.resolve(this.container);
 
     if (this.hooks.hasCreated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }

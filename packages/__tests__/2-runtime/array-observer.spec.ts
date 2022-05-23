@@ -30,7 +30,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   }
 
   public handleCollectionChange(indexMap: IndexMap, _flags: LF): void {
-    applyMutationsToIndices(indexMap);
+    indexMap = applyMutationsToIndices(indexMap);
 
     const newArr = this.newArr;
     const oldArr = this.oldArr;

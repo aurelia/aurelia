@@ -22,6 +22,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
+import { rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -137,7 +138,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         return this._activateAllViews(null, flags);
       },
     );
-    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+    if (ret instanceof Promise) { ret.catch(rethrow); }
   }
 
   // called by a CollectionObserver
@@ -170,25 +171,25 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           return this._activateAllViews(null, flags);
         },
       );
-      if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+      if (ret instanceof Promise) { ret.catch(rethrow); }
     } else {
       const oldLength = this.views.length;
-      applyMutationsToIndices(indexMap);
+      const $indexMap = applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
-      if (indexMap.deletedItems.length > 0) {
-        indexMap.deletedItems.sort(compareNumber);
+      if ($indexMap.deletedItems.length > 0) {
+        $indexMap.deletedItems.sort(compareNumber);
         const ret = onResolve(
-          this._deactivateAndRemoveViewsByKey(indexMap, flags),
+          this._deactivateAndRemoveViewsByKey($indexMap, flags),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+            return this._createAndActivateAndSortViewsByKey(oldLength, $indexMap, flags);
           },
         );
-        if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+        if (ret instanceof Promise) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+        this._createAndActivateAndSortViewsByKey(oldLength, $indexMap, flags);
       }
     }
   }

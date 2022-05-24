@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { assert } from '@aurelia/testing';
 
 export class Spy {

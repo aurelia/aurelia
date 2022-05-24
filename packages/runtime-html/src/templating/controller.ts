@@ -398,7 +398,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public _hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
-    if (this.lifecycleHooks!.hydrating) {
+    if (this.lifecycleHooks!.hydrating !== void 0) {
       this.lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
     if (this.hooks.hasHydrating) {
@@ -438,6 +438,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     (this.viewModel as Writable<C>).$controller = this;
     this.nodes = this._rendering.createNodes(compiledDef);
+
+    if (this.lifecycleHooks!.hydrated !== void 0) {
+      this.lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
+    }
 
     if (this.hooks.hasHydrated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }

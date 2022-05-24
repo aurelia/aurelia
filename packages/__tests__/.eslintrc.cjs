@@ -53,7 +53,8 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/explicit-member-accessibility': 'off',
     '@typescript-eslint/require-array-sort-compare': 'off',
-    '@typescript-eslint/restrict-plus-operands': 'off'
+    '@typescript-eslint/restrict-plus-operands': 'off',
+    '@typescript-eslint/no-this-alias': 'off',
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
     files: ['3-runtime-html/generated/**'],

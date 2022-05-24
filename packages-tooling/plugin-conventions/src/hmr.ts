@@ -67,19 +67,22 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         hot.invalidate();
       }
 
+      // @ts-ignore
       previousControllers.forEach(controller => {
         const values = { ...controller.viewModel };
         const hydrationContext = controller.container.get(IHydrationContext)
         const hydrationInst = hydrationContext.instruction;
 
+        // @ts-ignore
         Object.keys(values).forEach(key => {
+          // @ts-ignore
           if (!controller.bindings?.some(y => y.sourceExpression?.name === key && y.targetProperty)) {
             delete values[key];
           }
         });
         const h = controller.host;
         delete controller._compiledDef;
-        controller.viewModel = controller.invoke(currentClassType);
+        controller.viewModel = controller.container.invoke(currentClassType);
         controller.definition = newDefinition;
         Object.assign(controller.viewModel, values);
         controller.hooks = new controller.hooks.constructor(controller.viewModel);

@@ -2,13 +2,13 @@ import { DI, Registration } from '@aurelia/kernel';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared';
 import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 
-export type LifecycleHook<TViewModel, TKey extends keyof TViewModel, P extends TViewModel[TKey] = TViewModel[TKey]> =
-  P extends AnyFunction
-    ? (vm: TViewModel, ...args: Parameters<NonNullable<P>>) => ReturnType<NonNullable<P>>
+export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
+  TViewModel[TKey] extends (AnyFunction | undefined)
+    ? (vm: TViewModel, ...args: Parameters<NonNullable<TViewModel[TKey]>>) => ReturnType<NonNullable<TViewModel[TKey]>>
     : never;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel> = { [K in TKey]-?: LifecycleHook<TViewModel, K>; };
-export const ILifecycleHooks = DI.createInterface<ILifecycleHooks>('ILifecycleHooks');
+export const ILifecycleHooks = DI.createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
 
 export type LifecycleHooksLookup<TViewModel = {}> = {
   [K in FunctionPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];

@@ -67,10 +67,7 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
     const caHooksSymbol = Symbol();
     let current: Square | null = null;
 
-    @customAttribute({
-      name: 'square',
-      dependencies: [CreatedLoggingHook]
-    })
+    @customAttribute('square')
     class Square {
       $controller: ICustomAttributeController;
       created() {

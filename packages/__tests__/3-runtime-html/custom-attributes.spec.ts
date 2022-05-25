@@ -743,17 +743,4 @@ describe('custom-attributes', function () {
       });
     });
   });
-
-  describe('06.1 + with dependencies', function () {
-    it('registers dependencies', async function () {
-      let registerCallCount = 0;
-      @customAttribute({ name: 'foo5', dependencies: [
-        { register: () => { registerCallCount++; } }
-      ]})
-      class MyAttr {}
-
-      await createFixture.html`<div foo5>`.deps(MyAttr).build().started;
-      assert.strictEqual(registerCallCount, 1);
-    });
-  });
 });

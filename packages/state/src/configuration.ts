@@ -1,6 +1,6 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { IReducer, IState } from './interfaces';
-import { Reducer } from './reducer';
+import { IActionHandler, IState } from './interfaces';
+import { ActionHandler } from './action-handler';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
 import {
@@ -21,22 +21,21 @@ const standardRegistrations = [
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
 
+  StateBindingBehavior,
+
   Store,
 ];
 
-export type INamedReducerActionRegistration<T> = [target: string, action: IReducer<T>];
-
-const createConfiguration = <T>(initialState: T, reducers: IReducer<T>[]) => {
+const createConfiguration = <T>(initialState: T, reducers: IActionHandler<T>[]) => {
   return {
     register: (c: IContainer) => {
       c.register(
-        ...standardRegistrations,
         Registration.instance(IState, initialState),
-        StateBindingBehavior,
-        ...reducers.map(Reducer.define),
+        ...standardRegistrations,
+        ...reducers.map(ActionHandler.define),
       );
     },
-    init: <T1>(state: T1, ...reducers: IReducer<T1>[]) => createConfiguration(state, reducers),
+    init: <T1>(state: T1, ...reducers: IActionHandler<T1>[]) => createConfiguration(state, reducers),
   };
 };
 

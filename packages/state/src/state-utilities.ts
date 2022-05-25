@@ -1,5 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
+import { type SubscribableValue } from './interfaces';
 
 export function createStateBindingScope(state: object, scope: Scope) {
   const overrideContext = { bindingContext: state };
@@ -13,3 +14,8 @@ export const defProto = (klass: Constructable, prop: PropertyKey, desc: Property
 
 /** @internal */
 export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
+
+/** @internal */
+export function isSubscribable(v: unknown): v is SubscribableValue {
+  return v instanceof Object && 'subscribe' in (v as SubscribableValue);
+}

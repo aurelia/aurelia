@@ -62,10 +62,7 @@ describe('3-runtime-html/lifecycle-hooks.hydrating.spec.ts', function () {
 
   it('does not invoke hydrating hooks on Custom attribute', async function () {
     let current: Square | null = null;
-    @customAttribute({
-      name: 'square',
-      dependencies: [HydratingLoggingHook]
-    })
+    @customAttribute('square')
     class Square {
       hydrating() {
         throw new Error('No hydrating lifecycle on CA');

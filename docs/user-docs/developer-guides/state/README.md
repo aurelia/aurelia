@@ -44,25 +44,25 @@ As you can see, it's just a plain old Javascript object. In your application, yo
 
 This state will be stored in the global state container for bindings to use in the templates.
 
-### Setup the reducers
+### Setup the action handlers
 
-The initial state above aren't meant to be mutated directly. In order to produce a state change, an mutation request should be dispatched instead. A reducer is a function that is supposed to combine the current state of the state container and the action parameters of the function call to produce a new state:
+The initial state above aren't meant to be mutated directly. In order to produce a state change, an mutation request should be dispatched instead. An action handler is a function that is supposed to combine the current state of the state container and the action parameters of the function call to produce a new state:
 
 ```js
-const reducer = (state, action, ...parameters) => newState
+const actionHandler = (state, action, ...parameters) => newState
 ```
 
-An example of a reducer that produce a new state with updated keyword on a `keyword` action:
+An example of a action handler that produce a new state with updated keyword on a `keyword` action:
 
 ```ts
-export function keywordsReducer(currentState, action, newKeyword) {
+export function keywordsHandler(currentState, action, newKeyword) {
   return action === 'newKeywords'
     ? { ...currentState, keywords: newKeyword }
     : currentState
 }
 ```
 
-Create a new file in the `src` directory called `reducers.ts` with the above code.
+Create a new file in the `src` directory called `action-handlers.ts` with the above code.
 
 ### Configuration
 
@@ -73,12 +73,12 @@ import Aurelia from 'aurelia';
 import { StateDefaultConfiguration } from '@aurelia/state';
 
 import { initialState } from './initialstate';
-import { keywordsReducer } from './reducers';
+import { keywordsHandler } from './action-handlers';
 
 Aurelia
   .register(
     StateDefaultConfiguration.init(initialState),
-    keywordsReducer
+    keywordsHandler
   )
   .app(MyApp)
   .start();
@@ -89,14 +89,14 @@ The above imports the `StateDefaultConfiguration` object from the plugin and the
 
 
 {% hint style="info" %}
-If you are familiar with Redux, then you'll find this plugin familiar. The most obvious difference will be around the reducer function signature.
+If you are familiar with Redux, then you'll find this plugin familiar. The most obvious difference will be around the action handler (similar to reducer in Redux) function signature.
 {% endhint %}
 
 ## Template binding
 
 ### With `.state` and `.dispatch` commands
 
-The Aurelia State plugin provides `state` and `dispatch` binding commands that simplify binding with the global state. Example usages:
+The Aurelia State Plugin provides `state` and `dispatch` binding commands that simplify binding with the global state. Example usages:
 
 ```html
 // bind value property of the input to `keywords` property on the global state
@@ -129,8 +129,26 @@ Note: by default, bindings created from `.state` and `.dispatch` commands will o
 <input value.state="$parent.prefix + keywords">
 ```
 
-## Authoring reducers
+## View model binding
 
-As mentioned at the start of this guide, reducers are the way to handle mutation of the global state. They are expected to be returning a new state instead of mutating existing state. Even though normal mutation works, it may break future integration with devtool.
+### With `@fromState` decorator
 
-Reducers can be either synchronous or asyncchronous. An application may have one or more reducers, and if one reducer is asynchronous, a promise will be returned for the `dispatch` call.
+Sometimes it's also desirable to connect a view model property to the global state. The Aurelia State Plugin supports this via the `@fromState` decorator.
+An example usage is as follow:
+
+```ts
+export class AutoSuggest {
+  @fromState(state => state.keywords)
+  keywords: string;
+}
+```
+With the above, whenever the state change, it will ensure `keywords` property of the view model stay in sync with the `keywords` property on the global state.
+
+## Authoring action handlers
+
+As mentioned at the start of this guide, action handlers are the way to handle mutation of the global state. They are expected to be returning a new state instead of mutating existing state. Even though normal mutation works, it may break future integration with devtool.
+
+Action handlers can be either synchronous or asyncchronous. An application may have one or more action handlers, and if one action handler is asynchronous, a promise will be returned for the `dispatch` call.
+
+An action handler should return the existing state (first parameters) if the action type is not of its interest.
+

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
@@ -37,6 +38,14 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
         Object.setPrototypeOf($class, $Ctor.prototype);
         return $class;
       } as unknown as Constructable<K>;
+
+  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register'>)[] =
+    ['aliases', 'bindables', 'cache', 'capture', 'childrenObservers', 'containerless', 'dependencies', 'enhance'];
+  if ($class !== $class && $class != null) {
+    annotations.forEach(anno => {
+      Metadata.define(anno, CustomElement.getAnnotation($class as unknown as Constructable<K>, anno), $$class);
+    });
+  }
 
   const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
   const App = CustomElement.define<Constructable<K>>({

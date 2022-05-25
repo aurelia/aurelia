@@ -1,23 +1,23 @@
 import { all, IContainer, ILogger, MaybePromise, optional, Registration } from '@aurelia/kernel';
-import { IAction, IReducer, IState, IStore, IStoreSubscriber } from './interfaces';
+import { IAction, IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
 
 export class Store<T extends object> implements IStore<T> {
   public static register(c: IContainer) {
     Registration.singleton(IStore, this).register(c);
   }
 
-  /** @internal */ protected static inject = [optional(IState), all(IReducer), ILogger];
+  /** @internal */ protected static inject = [optional(IState), all(IActionHandler), ILogger];
 
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ private readonly _reducers: IReducer<T>[];
-  /** @internal */ private _publishing = 0;
+  /** @internal */ private readonly _handlers: IActionHandler<T>[];
+  /** @internal */ private _dispatching = 0;
   /** @internal */ private readonly _dispatchQueues: IAction[] = [];
 
-  public constructor(initialState: T | null, reducers: IReducer<T>[], logger: ILogger) {
+  public constructor(initialState: T | null, reducers: IActionHandler<T>[], logger: ILogger) {
     this._state = initialState ?? new State() as T;
-    this._reducers = reducers;
+    this._handlers = reducers;
     this._logger = logger;
   }
 
@@ -55,13 +55,13 @@ export class Store<T extends object> implements IStore<T> {
     return this._state;
   }
 
-  public dispatch(action: unknown, ...params: any[]): void | Promise<void> {
-    if (this._publishing > 0) {
-      this._dispatchQueues.push({ type: action, params });
+  public dispatch(type: unknown, ...params: any[]): void | Promise<void> {
+    if (this._dispatching > 0) {
+      this._dispatchQueues.push({ type, params });
       return;
     }
 
-    this._publishing++;
+    this._dispatching++;
     // const dispatch = ($actionType: unknown, $params: any[]): void | Promise<void> => {
     //   const $$reducer = this._reducers;
     //   if ($$reducer.length === 0) {
@@ -118,11 +118,11 @@ export class Store<T extends object> implements IStore<T> {
 
     let $$action: IAction;
     const reduce = ($state: T | Promise<T>, $action: unknown, params?: unknown[]) =>
-      this._reducers.reduce(($state, r) => {
+      this._handlers.reduce(($state, handler) => {
         if ($state instanceof Promise) {
-          return $state.then($ => r($, $action, ...params ?? [])) as Promise<T>;
+          return $state.then($ => handler($, $action, ...params ?? []));
         }
-        return r($state, $action, ...params ?? []) as T | Promise<T>;
+        return handler($state, $action, ...params ?? []) as T | Promise<T>;
       }, $state);
 
     const afterDispatch = ($state: MaybePromise<T>): void | Promise<void> => {
@@ -136,21 +136,21 @@ export class Store<T extends object> implements IStore<T> {
         }
       }
     };
-    const newState = reduce(this._state, action, params);
+    const newState = reduce(this._state, type, params);
 
     if (newState instanceof Promise) {
       return newState.then($state => {
         this._setState($state);
-        this._publishing--;
+        this._dispatching--;
 
         return afterDispatch(this._state);
       }, ex => {
-        this._publishing--;
+        this._dispatching--;
         throw ex;
       });
     } else {
       this._setState(newState);
-      this._publishing--;
+      this._dispatching--;
 
       return afterDispatch(this._state);
     }

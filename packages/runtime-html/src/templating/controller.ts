@@ -291,10 +291,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     controllerLookup.set(viewModel, controller as Controller);
 
-    if (definition.dependencies.length > 0) {
-      ctn.register(...definition.dependencies);
-    }
-
     controller._hydrateCustomAttribute();
 
     return controller as unknown as ICustomAttributeController<C>;
@@ -480,9 +476,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (instance as Writable<C>).$controller = this;
     this.lifecycleHooks = LifecycleHooks.resolve(this.container);
 
-    if (this.lifecycleHooks!.created !== void 0) {
-      this.lifecycleHooks!.created.forEach(callCreatedHook, this);
-    }
     if (this.hooks.hasCreated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomAttributeController);
@@ -1430,6 +1423,9 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly isActive: boolean;
   readonly parent: IHydratedController | null;
   readonly isBound: boolean;
+  readonly bindings: readonly IBinding[] | null;
+
+  addBinding(binding: IBinding): void;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;
@@ -1461,7 +1457,7 @@ export interface IComponentController<C extends IViewModel = IViewModel> extends
  * The base type for `ISyntheticView` and `ICustomElementController`.
  *
  * Both of those types can:
- * - Have `bindings` and `children` which are populated during hydration (hence, 'Hydratable').
+ * - Have `children` which are populated during hydration (hence, 'Hydratable').
  * - Have physical DOM nodes that can be mounted.
  */
 export interface IHydratableController<C extends IViewModel = IViewModel> extends IController<C> {
@@ -1469,10 +1465,8 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly mountTarget: MountTarget;
   readonly definition: CustomElementDefinition | null;
 
-  readonly bindings: readonly IBinding[] | null;
   readonly children: readonly IHydratedController[] | null;
 
-  addBinding(binding: IBinding): void;
   addChild(controller: IController): void;
 }
 
@@ -1839,7 +1833,7 @@ export type ControllerLifecyleHookLookup = LifecycleHooksLookup<{
 }>;
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {
-  l.instance.created(this.viewModel!, this as ICustomAttributeController | ICustomElementController);
+  l.instance.created(this.viewModel!, this as IHydratedComponentController);
 }
 
 function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrating'>) {

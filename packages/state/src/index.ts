@@ -3,14 +3,14 @@
 
 export { StateDefaultConfiguration } from './configuration';
 export {
-  Reducer as Action,
-} from './reducer';
+  ActionHandler,
+} from './action-handler';
 
 export {
   IState,
   IStore,
   type IStoreSubscriber,
-  IReducer,
+  IActionHandler,
   type IRegistrableReducer,
   type IAction,
 } from './interfaces';
@@ -30,3 +30,4 @@ export {
 } from './state-templating';
 
 export { StateBindingBehavior } from './state-binding-behavior';
+export { fromStore } from './state-decorator';

@@ -1,9 +1,9 @@
-import { DI, MaybePromise, IRegistry } from '@aurelia/kernel';
+import { DI, type MaybePromise, type IRegistry, type IDisposable } from '@aurelia/kernel';
 
-export const IReducer = DI.createInterface<IReducer>('IReducer');
-export type IReducer<T = any> = (state: T, action: unknown, ...params: any) => MaybePromise<T>;
+export const IActionHandler = DI.createInterface<IActionHandler>('IActionHandler');
+export type IActionHandler<T = any> = (state: T, action: unknown, ...params: any) => MaybePromise<T>;
 
-export const IStore = DI.createInterface<object>('IStore');
+export const IStore = DI.createInterface<IStore<object>>('IStore');
 export interface IStore<T extends object> {
   subscribe(subscriber: IStoreSubscriber<T>): void;
   unsubscribe(subscriber: IStoreSubscriber<T>): void;
@@ -19,7 +19,7 @@ export interface IStore<T extends object> {
 
 export const IState = DI.createInterface<object>('IState');
 
-export type IRegistrableReducer = IReducer & IRegistry;
+export type IRegistrableReducer = IActionHandler & IRegistry;
 
 export interface IStoreSubscriber<T extends object> {
   handleStateChange(state: T, prevState: T): void;
@@ -29,3 +29,13 @@ export interface IAction {
   type: unknown;
   params?: unknown[];
 }
+
+/** @internal */
+export type SubscribableValue = {
+  subscribe(cb: (res: unknown) => void): IDisposable | Unsubscribable | (() => void);
+};
+
+/** @internal */
+export type Unsubscribable = {
+  unsubscribe(): void;
+};

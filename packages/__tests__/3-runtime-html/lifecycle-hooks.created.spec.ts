@@ -63,18 +63,15 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
     });
   });
 
-  describe('custom attributes', function () {
+  it('does not invokes global created hooks', async function () {
     const caHooksSymbol = Symbol();
     let current: Square | null = null;
 
-    @customAttribute({
-      name: 'square',
-      dependencies: [CreatedLoggingHook]
-    })
+    @customAttribute('square')
     class Square {
       $controller: ICustomAttributeController;
       created() {
-        assert.strictEqual(this[hookSymbol], hookSymbol);
+        assert.notStrictEqual(this[hookSymbol], hookSymbol);
         this[caHooksSymbol] = true;
         current = this;
       }
@@ -82,26 +79,13 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
 
     const baseTemplate = `<div square>`;
 
-    it('invokes global created hooks', async function () {
-      await createFixture
-        .html`${baseTemplate}`
-        .deps(Square, CreatedLoggingHook)
-        .build().started;
+    await createFixture
+      .html`${baseTemplate}`
+      .deps(Square, CreatedLoggingHook)
+      .build().started;
 
-      assert.instanceOf(current, Square);
-      assert.strictEqual(current?.[caHooksSymbol], true);
-      assert.strictEqual(current?.[hookSymbol], hookSymbol);
-    });
-
-    it('invokes when registered both globally and locally', async function () {
-      const { component, container } = await createFixture
-        .html`${baseTemplate}`
-        .deps(Square, CreatedLoggingHook)
-        .build().started;
-
-      assert.strictEqual(container.get(LifeycyleTracker).created, 2);
-      assert.deepStrictEqual(container.get(LifeycyleTracker).controllers, [current.$controller, component.$controller]);
-    });
+    assert.instanceOf(current, Square);
+    assert.strictEqual(current?.[caHooksSymbol], true);
   });
 
   class LifeycyleTracker {

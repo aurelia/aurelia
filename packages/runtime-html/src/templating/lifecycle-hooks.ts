@@ -50,16 +50,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
     return new LifecycleHooksDefinition(Type, propertyNames);
   }
 
-  public static fromCallback(lifecycle: string, callback: AnyFunction): LifecycleHooksDefinition {
-    const Type = class {
-      [key: string]: AnyFunction;
-      public constructor() {
-        this[lifecycle] = callback;
-      }
-    };
-    return new LifecycleHooksDefinition(Type, new Set([lifecycle]));
-  }
-
   public register(container: IContainer): void {
     Registration.singleton(ILifecycleHooks, this.Type).register(container);
   }
@@ -69,7 +59,6 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
 const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
 const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
-const callbackHooksName = `${lhBaseName}:callback`;
 
 export const LifecycleHooks = Object.freeze({
   name: lhBaseName,
@@ -81,16 +70,6 @@ export const LifecycleHooks = Object.freeze({
     defineMetadata(lhBaseName, definition, Type);
     appendResourceKey(Type, lhBaseName);
     return definition.Type;
-  },
-  fromCallback<T>(lifecycle: string, callback: (vm: T, ...params: unknown[]) => unknown): LifecycleHooksDefinition {
-    return LifecycleHooksDefinition.fromCallback(lifecycle, callback);
-  },
-  add<T extends Constructable>(Type: T, lifecycle: string, callback: AnyFunction): void {
-    let existing = getOwnMetadata(Type, callbackHooksName) as Record<string, AnyFunction[]>;
-    if (existing === void 0) {
-      defineMetadata(callbackHooksName, existing = {}, Type);
-    }
-    (existing[lifecycle] ??= []).push(callback);
   },
   /**
    * @param ctx - The container where the resolution starts

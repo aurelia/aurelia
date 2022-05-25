@@ -337,6 +337,24 @@ describe('state/state.spec.ts', function () {
 
       assert.strictEqual(queryBy('div[hello=world]'), null);
     });
+
+    it('updates when state changed', async function () {
+      @customElement({ name: 'my-el', template: `<input value.bind="text" input.dispatch="{ type: 'input', params: [$event.target.value] }">` })
+      class MyEl {
+        @fromStore<typeof state>(s => s.text)
+        text: string;
+      }
+
+      const state = { text: '1' };
+      const { trigger, flush, getBy } = await createFixture
+        .html`<my-el>`
+        .deps(MyEl, StateDefaultConfiguration.init(state, (s, type, value) => ({ text: s.text + value })))
+        .build().started;
+
+      trigger('input', 'input');
+      flush();
+      assert.strictEqual(getBy('input').value, '11');
+    });
   });
 });
 

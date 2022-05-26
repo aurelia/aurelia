@@ -71,6 +71,7 @@
 * [Internationalization (i18n)](developer-guides/internationalization.md)
 * [Fetch Client](developer-guides/fetch-client.md)
 * [Event Aggregator](developer-guides/event-aggregator.md)
+* [State](developer-guides/state/README.md)
 * [Store](developer-guides/store/README.md)
   * [Configuration and setup](developer-guides/store/configuration-and-setup.md)
   * [Middleware](developer-guides/store/middleware.md)

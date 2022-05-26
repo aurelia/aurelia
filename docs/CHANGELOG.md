@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.33"></a>
+# 2.0.0-alpha.33 (2022-05-26)
+
+### Features:
+
+* **state:** add [state plugin (successor of v1 store)](https://docs.aurelia.io/developer-guides/state)
+* **lifecycle-hooks:** call hydrated ([75650c5](https://github.com/aurelia/aurelia/commit/75650c5))
+* **lifecycle-hooks:** call hydrating ([737d9ed](https://github.com/aurelia/aurelia/commit/737d9ed))
+
+
+### Bug Fixes:
+
+* **hmr:** call invoke on controller container ([fa92c3d](https://github.com/aurelia/aurelia/commit/fa92c3d))
+* **repeat:** don't mutate incoming indexmap (#1429) ([a77a104](https://github.com/aurelia/aurelia/commit/a77a104))
+
+
 <a name="2.0.0-alpha.32"></a>
 # 2.0.0-alpha.32 (2022-05-22)
 

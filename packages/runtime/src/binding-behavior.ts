@@ -6,7 +6,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, IndexMap, LifecycleFlags } from './observation';
+import { BindingMode, Collection, IndexMap, LifecycleFlags } from './observation';
 import { registerAliases } from './alias';
 import {
   appendResourceKey,
@@ -169,6 +169,7 @@ export class BindingInterceptor implements IInterceptableBinding {
   public readonly isBound!: boolean;
   public readonly obs!: BindingObserverRecord;
   public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
+  public readonly mode!: BindingMode;
 
   public constructor(
     public readonly binding: IInterceptableBinding,

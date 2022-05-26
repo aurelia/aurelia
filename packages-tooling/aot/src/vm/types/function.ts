@@ -72,16 +72,16 @@ export class $Function<
 
   public get isFunction(): true { return true; }
 
-  public ['[[Environment]]']: $EnvRec;
-  public ['[[FunctionKind]]']: FunctionKind;
-  public ['[[ECMAScriptCode]]']: $$Function;
-  public ['[[ConstructorKind]]']: ConstructorKind;
-  public ['[[Realm]]']: Realm;
-  public ['[[ScriptOrModule]]']: $$ESModuleOrScript | $Null;
-  public ['[[ThisMode]]']: ThisMode;
-  public ['[[Strict]]']: $Boolean;
-  public ['[[HomeObject]]']: $AnyObject;
-  public ['[[SourceText]]']: $String;
+  public '[[Environment]]': $EnvRec;
+  public '[[FunctionKind]]': FunctionKind;
+  public '[[ECMAScriptCode]]': $$Function;
+  public '[[ConstructorKind]]': ConstructorKind;
+  public '[[Realm]]': Realm;
+  public '[[ScriptOrModule]]': $$ESModuleOrScript | $Null;
+  public '[[ThisMode]]': ThisMode;
+  public '[[Strict]]': $Boolean;
+  public '[[HomeObject]]': $AnyObject;
+  public '[[SourceText]]': $String;
 
   public constructor(
     realm: Realm,

@@ -1185,9 +1185,9 @@ export class Container implements IContainer {
     }
 
     if (__DEV__) {
-      throw new Error(`AUR0008: Unable to resolve key: ${key}`);
+      throw new Error(`AUR0008: Unable to resolve key: ${String(key)}`);
     } else {
-      throw new Error(`AUR0008:${key}`);
+      throw new Error(`AUR0008:${String(key)}`);
     }
   }
 

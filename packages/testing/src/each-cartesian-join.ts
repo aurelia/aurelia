@@ -230,6 +230,7 @@ export async function eachCartesianJoinAsync<T, U extends Promise<any>>(
   while (!stop) {
     const hasUpdate = updateIndices(arrays, argsIndices);
     if (hasUpdate) {
+      // eslint-disable-next-line no-await-in-loop
       await callback(...updateElementByIndices(arrays, args, argsIndices), callCount);
       callCount++;
       if (totalCallCount < callCount) {

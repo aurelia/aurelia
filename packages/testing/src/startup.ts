@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
@@ -326,7 +325,6 @@ class FixtureBuilder<T> {
     if (this._html === void 0) {
       throw new Error('Builder is not ready, missing template, call .html()/.html`` first');
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return createFixture<any>(
       typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []),
       this._comp,
@@ -343,10 +341,8 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
   return result;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
 createFixture.component = <T>(component: T) => new FixtureBuilder<T>().component(component);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
 
 /* eslint-disable */

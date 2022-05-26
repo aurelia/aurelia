@@ -1130,6 +1130,7 @@ function EvaluateBody(
   fn.logger.debug(`${fn.path}.EvaluateBody(#${ctx.id})`);
 
   const realm = ctx.Realm;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const intrinsics = realm['[[Intrinsics]]'];
 
   // FunctionBody : FunctionStatementList

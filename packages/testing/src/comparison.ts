@@ -63,7 +63,7 @@ import {
   TypedArray,
 } from './util';
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/ban-types */
 
 export const enum IterationType {
   noIterator = 0,
@@ -206,6 +206,7 @@ export function innerDeepEqual(
   } else {
     if (!isObject(val1)) {
       if (!isObject(val2)) {
+        // eslint-disable-next-line eqeqeq
         return val1 == val2;
       }
       return false;

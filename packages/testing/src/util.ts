@@ -25,7 +25,7 @@
 
 import { isArrayIndex, noop, Primitive } from '@aurelia/kernel';
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
+/* eslint-disable @typescript-eslint/ban-types, no-control-regex */
 
 export type BoxedPrimitive = Number | Boolean | String | Symbol;
 
@@ -524,7 +524,7 @@ export function createSpy<
     $restore = noop;
   } else {
     if (!(key in instanceOrInnerFn)) {
-      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn)!.constructor.name}`);
+      throw new Error(`No method named '${String(key)}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn)!.constructor.name}`);
     }
     let descriptorOwner = instanceOrInnerFn;
     let descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;

@@ -180,6 +180,31 @@ describe('state/state.spec.ts', function () {
 
       assertText('from state');
     });
+
+    it('updates text when state changes', async function () {
+      const { trigger, flush, getBy } = await createFixture
+        .html`<input value.bind="text & state" input.dispatch="{ type: '', params: [$event.target.value] }">`
+        .component({ text: 'from view model' })
+        .deps(StateDefaultConfiguration.init({ text: '1' }, (s, a, v) => ({ text: s.text + v })))
+        .build().started;
+
+      trigger('input', 'input');
+      flush();
+      assert.strictEqual(getBy('input').value, '11');
+    });
+
+    it('updates repeat when state changes', async function () {
+      const { trigger, assertText } = await createFixture
+        .html`
+          <button click.dispatch="{ type: '' }">change</button>
+          <center><div repeat.for="item of items & state">\${item}`
+        .deps(StateDefaultConfiguration.init({ items: [1, 2, 3] }, () => ({ items: [4, 5, 6] })))
+        .build().started;
+
+      assertText('center', '123');
+      trigger('button', 'click');
+      assertText('center', '456');
+    });
   });
 
   describe('.dispatch', function () {

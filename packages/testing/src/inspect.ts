@@ -97,13 +97,13 @@ import {
   Set_values,
   String_valueOf,
   Symbol_valueOf,
-  truncate,
+  // truncate,
   TypedArray,
   TypedArrayConstructor,
 } from './util';
 import { PLATFORM } from './test-context';
 
-/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
+/* eslint-disable max-lines-per-function, @typescript-eslint/ban-types */
 
 let maxStack_ErrorName: string;
 let maxStack_ErrorMessage: string;
@@ -111,6 +111,7 @@ let maxStack_ErrorMessage: string;
 function isStackOverflowError(err: Error): boolean {
   if (maxStack_ErrorMessage === undefined) {
     try {
+      // eslint-disable-next-line no-inner-declarations
       function overflowStack(): void { overflowStack(); }
       overflowStack();
     } catch (err) {
@@ -174,6 +175,7 @@ const mandatoryInspectKeys = Object_keys(defaultInspectOptions) as (keyof IInspe
 function getUserOptions(ctx: Partial<IInspectOptions>): IInspectOptions {
   const obj: Partial<IInspectOptions> = {};
   for (const key of mandatoryInspectKeys) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
     obj[key] = ctx[key];
   }
@@ -197,6 +199,7 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
 
   for (const key of mandatoryInspectKeys) {
     if (hasOwnProperty(ctx, key)) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
       obj[key] = ctx[key];
     }
@@ -265,7 +268,7 @@ function stylizeWithColor(str: string, styleType: keyof typeof styles): string {
   }
 }
 
-function stylizeNoColor(str: string, styleType: keyof typeof styles): string {
+function stylizeNoColor(str: string, _styleType: keyof typeof styles): string {
   return str;
 }
 
@@ -966,11 +969,11 @@ function noPrototypeIterator(
   return (void 0)!;
 }
 
-type InspectFn = (obj: any, opts: IInspectContext) => any;
+// type InspectFn = (obj: any, opts: IInspectContext) => any;
 
-function getMessage(self: AssertionError): string {
-  return `${truncate(inspect(self.actual), 128)} ${self.operator} ${truncate(inspect(self.expected), 128)}`;
-}
+// function getMessage(self: AssertionError): string {
+//   return `${truncate(inspect(self.actual), 128)} ${self.operator} ${truncate(inspect(self.expected), 128)}`;
+// }
 
 export function formatNumber(
   fn: (value: string, styleType: keyof typeof styles) => string,
@@ -1192,6 +1195,7 @@ export function formatSetIterInner(
   }
   ctx.indentationLvl -= 2;
   if (state === kWeak) {
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     output.sort();
   }
   const remaining = entries.length - maxLength;
@@ -1229,6 +1233,7 @@ export function formatMapIterInner(
   }
   ctx.indentationLvl -= 2;
   if (state === kWeak) {
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     output.sort();
   }
   if (remaining > 0) {
@@ -1263,6 +1268,7 @@ export function formatIterator(
   return formatSetIterInner(ctx, recurseTimes, entries, kIterator);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function formatPromise(ctx: IInspectContext, value: Promise<any>, recurseTimes: number): string[] {
   return ['[object Promise]'];
 }

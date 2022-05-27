@@ -153,12 +153,12 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         file: esmDevDist,
         format: 'es',
-        sourcemap: true,
+        sourcemap: isDevMode ? 'inline' : true,
       },
       {
         file: cjsDevDist,
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: isDevMode ? 'inline' : true,
         esModule: true,
         externalLiveBindings: false,
       },
@@ -189,7 +189,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         file: esmDist,
         format: 'es',
-        sourcemap: true,
+        sourcemap: isDevMode ? 'inline' : true,
         plugins: isDevMode
           ? []
           : [
@@ -199,7 +199,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         file: cjsDist,
         format: 'cjs',
-        sourcemap: true,
+        sourcemap: isDevMode ? 'inline' : true,
         externalLiveBindings: false,
         plugins: isDevMode
           ? []

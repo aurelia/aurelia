@@ -114,6 +114,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
     const instructions: IInstruction[] = [];
     const elDef = context._findElement(el.nodeName.toLowerCase());
+    const isCustomElement = elDef !== null;
     const exprParser = context._exprParser;
     const ii = attrSyntaxs.length;
     let i = 0;
@@ -221,7 +222,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (elDef !== null) {
+        if (isCustomElement) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
@@ -262,7 +263,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        if (elDef !== null) {
+        if (isCustomElement) {
           // if the element is a custom element
           // - prioritize bindables on a custom element before plain attributes
           bindablesInfo = BindablesInfo.from(elDef, false);
@@ -626,6 +627,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
+    const isCustomElement = elDef !== null;
     const shouldCapture = !!elDef?.capture;
     const captures: AttrSyntax[] = shouldCapture ? [] : emptyArray;
     const exprParser = context._exprParser;
@@ -667,7 +669,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (elName === 'slot') {
       context.root.hasSlot = true;
     }
-    if (elDef !== null) {
+    if (isCustomElement) {
       // todo: this is a bit ... powerful
       // maybe do not allow it to process its own attributes
       processContentResult = elDef.processContent?.call(elDef.Type, el, context.p);
@@ -830,7 +832,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (elDef !== null) {
+        if (isCustomElement) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           bindable = bindablesInfo.attrs[realAttrTarget];
           if (bindable !== void 0) {
@@ -874,7 +876,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + not a custom attribute
       removeAttr();
 
-      if (elDef !== null) {
+      if (isCustomElement) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
         bindablesInfo = BindablesInfo.from(elDef, false);
@@ -907,7 +909,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // 2. ensure that element instruction is present if this element is a custom element
-    if (elDef !== null) {
+    if (isCustomElement) {
       elementInstruction = new HydrateElementInstruction(
         // todo: def/ def.Type or def.name should be configurable
         //       example: AOT/runtime can use def.Type, but there are situation
@@ -1101,7 +1103,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction!.projections = projections;
       }
 
-      if (hasContainerless || elDef !== null && elDef.containerless) {
+      if (hasContainerless || isCustomElement && elDef.containerless) {
         this._replaceByMarker(el, context);
       }
 
@@ -1286,7 +1288,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // todo: shouldn't have to eagerly replace with a marker like this
       //       this should be the job of the renderer
-      if (hasContainerless || elDef !== null && elDef.containerless) {
+      if (hasContainerless || isCustomElement && elDef.containerless) {
         this._replaceByMarker(el, context);
       }
 

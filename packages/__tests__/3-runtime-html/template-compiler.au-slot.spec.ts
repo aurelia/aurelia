@@ -2,10 +2,10 @@ import {
   BindingMode
 } from '@aurelia/runtime';
 import {
-  AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
+  AuSlot, customElement, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
 } from '@aurelia/runtime-html';
 import {
-  assert, TestContext
+  assert, createFixture, TestContext
 } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
@@ -156,4 +156,31 @@ describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () 
       }
     });
   }
+});
+
+describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
+  @customElement({
+    name: 'my-el',
+    template: '<p>my-el content: <au-slot></au-slot></p>'
+  })
+  class El {}
+
+  it('treats CE content as default slotting', async function () {
+    const { assertText } = await createFixture
+      .html`<my-el>hello</my-el>`
+      .deps(El)
+      .build().started;
+
+    assertText('my-el content: hello');
+  });
+
+  it('treats CE content inside TC as default slotting', async function () {
+    const { assertText, assertHtml } = await createFixture
+      .html`<my-el><a if.bind="true">hello</a></my-el>`
+      .deps(El)
+      .build().started;
+
+    assertText('p', 'my-el content: hello');
+    assertHtml('p > a', 'hello');
+  });
 });

@@ -164,7 +164,9 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(false/* isDevMode */ // there's something wrong with sourcemap
+      ...(
+        // isDevMode // there's something wrong with sourcemap
+        false
         ? [
           esbuild({
             minify: false,
@@ -209,7 +211,9 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       },
     ],
     plugins: [
-      ...(false/* isDevMode */ // there's something wrong with sourcemap
+      ...(
+        // isDevMode // there's something wrong with sourcemap
+        false
         ? [
           esbuild({
             minify: false,

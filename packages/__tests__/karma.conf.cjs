@@ -81,7 +81,7 @@ module.exports =
       // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
-      { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1

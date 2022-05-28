@@ -13,7 +13,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
   const { JSDOM } = require('jsdom');
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
   const w = jsdom.window;
-  const isChrome = karmaConfig.browsers?.some(s => s.includes('chrome'));
+  const isChrome = karmaConfig.browsers?.some(s => s.includes('chrome') || s.includes('Chrome'));
 
   return function preprocess(content, file, next) {
     log.debug(`Preprocessing '${file.path.replace(basePath, '')}' (type: '${file.type}')`);

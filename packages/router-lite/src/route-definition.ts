@@ -1,9 +1,11 @@
 import { Metadata } from '@aurelia/metadata';
 import {
+  emptyObject,
   IContainer,
   IModule,
   onResolve,
   Protocol,
+  Writable,
 } from '@aurelia/kernel';
 import {
   CustomElementDefinition,
@@ -34,6 +36,7 @@ import {
   ensureArrayOfStrings,
   ensureString,
 } from './util';
+import { IRouteViewModel } from './component-agent';
 
 export const defaultViewportName = 'default';
 export class RouteDefinition {
@@ -61,12 +64,13 @@ export class RouteDefinition {
     this.fallback = config.fallback ?? parentDefinition?.fallback ?? null;
   }
 
-  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition;
-  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null): never;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>,  parentDefinition: RouteDefinition | null): RouteDefinition;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
+  // Note on component instance: it is non-null for the root, and when the component agent is created via the route context (if the child routes are not yet configured).
+  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition;
+  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null): never;
+  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>,  parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null): RouteDefinition;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
     if (isPartialRedirectRouteConfig(routeable)) {
       return new RouteDefinition(RouteConfig.create(routeable, null), null, parentDefinition);
     }
@@ -76,16 +80,24 @@ export class RouteDefinition {
     // Note: RouteConfig is associated with Type, but RouteDefinition is associated with CustomElementDefinition.
     return onResolve(this.resolveCustomElementDefinition(routeable, context), def => {
       let routeDefinition = $RouteDefinition.get(def);
+      const hasRouteConfigHook = typeof componentInstance?.getRouteConfig === 'function';
       if (routeDefinition === null) {
         const type = def.Type;
-        const config = isPartialChildRouteConfig(routeable)
-          ? Route.isConfigured(type)
-            ? Route.getConfig(type).applyChildRouteConfig(routeable)
-            : RouteConfig.create(routeable, type)
-          : Route.getConfig(def.Type);
+        let config: RouteConfig | null = null;
+        if(hasRouteConfigHook) {
+          config = RouteConfig.create(componentInstance.getRouteConfig!(parentDefinition) ?? emptyObject, type);
+        } else {
+          config = isPartialChildRouteConfig(routeable)
+            ? Route.isConfigured(type)
+              ? Route.getConfig(type).applyChildRouteConfig(routeable)
+              : RouteConfig.create(routeable, type)
+            : Route.getConfig(def.Type);
+        }
 
         routeDefinition = new RouteDefinition(config, def, parentDefinition);
         $RouteDefinition.define(routeDefinition, def);
+      } else if(routeDefinition.config.routes.length === 0 && hasRouteConfigHook) {
+        routeDefinition.applyChildRouteConfig(componentInstance.getRouteConfig!(parentDefinition) as IChildRouteConfig ?? emptyObject);
       }
       return routeDefinition;
     });
@@ -122,6 +134,19 @@ export class RouteDefinition {
         }
         return context.resolveLazy(typedInstruction.value);
     }
+  }
+
+  /** @internal */
+  private applyChildRouteConfig(config: IChildRouteConfig) {
+    (this as Writable<RouteDefinition>).config = config = this.config.applyChildRouteConfig(config);
+    (this as Writable<RouteDefinition>).hasExplicitPath = config.path !== null;
+    (this as Writable<RouteDefinition>).caseSensitive = config.caseSensitive ?? this.caseSensitive;
+    (this as Writable<RouteDefinition>).path = ensureArrayOfStrings(config.path ?? this.path);
+    (this as Writable<RouteDefinition>).redirectTo = config.redirectTo ?? null;
+    (this as Writable<RouteDefinition>).viewport = config.viewport ?? defaultViewportName;
+    (this as Writable<RouteDefinition>).id = ensureString(config.id ?? this.path);
+    (this as Writable<RouteDefinition>).data = config.data ?? {};
+    (this as Writable<RouteDefinition>).fallback = config.fallback ?? this.fallback;
   }
 
   public register(container: IContainer): void {

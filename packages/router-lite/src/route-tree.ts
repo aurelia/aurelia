@@ -497,7 +497,7 @@ export function createAndAppendNodes(
       }
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
-      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition);
+      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition, null);
       const params = vi.params ?? emptyObject;
       const rr = new $RecognizedRoute(
         new RecognizedRoute(
@@ -557,15 +557,15 @@ function createNode(
     // look for a route first
     log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
     const rd = (ctx.childRoutes as RouteDefinition[]).find(x => x.id === fallback);
-    if(rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
+    if (rd !== void 0) return createFallbackNode(log, rd, node, vi, append);
 
     log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
     const rr = ctx.recognize(fallback, true);
-    if(rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+    if (rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
 
     // fallback is not recognized as a configured route; treat as CE and look for a route definition.
     log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, ctx), node, vi, append);
+    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, null, ctx), node, vi, append);
   }
 
   // readjust the children wrt. the residue
@@ -610,7 +610,7 @@ function createConfiguredNode(
       ));
 
       const router = ctx.container.get(IRouter);
-      const childCtx = router.getRouteContext(vpa, ced, vpa.hostController.container, ctx.definition);
+      const childCtx = router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition);
 
       log.trace('createConfiguredNode setting the context node');
       childCtx.node = RouteNode.create({

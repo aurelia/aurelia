@@ -569,7 +569,7 @@ export class Router {
   ): IRouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
-    const routeDefinition = RouteDefinition.resolve(component.Type, parentDefinition, componentInstance);
+    const routeDefinition = RouteDefinition.resolve(component.Type, parentDefinition, componentInstance, null);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
     if (routeDefinitionLookup === void 0) {
       this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());

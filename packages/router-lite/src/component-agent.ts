@@ -11,7 +11,7 @@ import { Batch } from './util';
 import { IRouteConfig } from './route';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
-  getRouteConfig?(parentDefinition: RouteDefinition | null): IRouteConfig;
+  getRouteConfig?(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig;
   canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   load?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
@@ -65,7 +65,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     let componentAgent = componentAgentLookup.get(componentInstance);
     if (componentAgent === void 0) {
       const container = ctx.container;
-      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, ctx.definition, null);
+      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, ctx.definition, null, null);
       const controller = Controller.$el(container, componentInstance, hostController.host, null);
 
       componentAgentLookup.set(

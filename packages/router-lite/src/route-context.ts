@@ -172,7 +172,7 @@ export class RouteContext {
         promises.push(p);
         allPromises.push(p);
       } else {
-        const routeDef = RouteDefinition.resolve(child, definition, null, this);
+        const routeDef = RouteDefinition.resolve(child, definition, null, null, this);
         if (routeDef instanceof Promise) {
           if (isPartialChildRouteConfig(child) && child.path != null) {
             for (const path of ensureArrayOfStrings(child.path)) {
@@ -321,7 +321,7 @@ export class RouteContext {
     const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     if(!this._childRoutesConfigured) {
-      const routeDef = RouteDefinition.resolve(routeNode.component, this.definition, componentInstance);
+      const routeDef = RouteDefinition.resolve(routeNode.component, this.definition, componentInstance, routeNode);
       this.processDefinition(routeDef);
     }
     const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
@@ -385,7 +385,7 @@ export class RouteContext {
   private addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   private addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
-    return onResolve(RouteDefinition.resolve(routeable, this.definition, null, this), routeDef => {
+    return onResolve(RouteDefinition.resolve(routeable, this.definition, null, null, this), routeDef => {
       for (const path of routeDef.path) {
         this.$addRoute(path, routeDef.caseSensitive, routeDef);
       }

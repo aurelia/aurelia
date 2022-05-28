@@ -37,6 +37,7 @@ import {
   ensureString,
 } from './util';
 import { IRouteViewModel } from './component-agent';
+import { RouteNode } from './route-tree';
 
 export const defaultViewportName = 'default';
 export class RouteDefinition {
@@ -65,12 +66,12 @@ export class RouteDefinition {
   }
 
   // Note on component instance: it is non-null for the root, and when the component agent is created via the route context (if the child routes are not yet configured).
-  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition;
-  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null): never;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>,  parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null): RouteDefinition;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
+  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinition;
+  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null): never;
+  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null): RouteDefinition;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, componentInstance: IRouteViewModel | null, routeNode: RouteNode | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
     if (isPartialRedirectRouteConfig(routeable)) {
       return new RouteDefinition(RouteConfig.create(routeable, null), null, parentDefinition);
     }
@@ -85,7 +86,7 @@ export class RouteDefinition {
         const type = def.Type;
         let config: RouteConfig | null = null;
         if(hasRouteConfigHook) {
-          config = RouteConfig.create(componentInstance.getRouteConfig!(parentDefinition) ?? emptyObject, type);
+          config = RouteConfig.create(componentInstance.getRouteConfig!(parentDefinition, routeNode) ?? emptyObject, type);
         } else {
           config = isPartialChildRouteConfig(routeable)
             ? Route.isConfigured(type)
@@ -97,7 +98,7 @@ export class RouteDefinition {
         routeDefinition = new RouteDefinition(config, def, parentDefinition);
         $RouteDefinition.define(routeDefinition, def);
       } else if(routeDefinition.config.routes.length === 0 && hasRouteConfigHook) {
-        routeDefinition.applyChildRouteConfig(componentInstance.getRouteConfig!(parentDefinition) as IChildRouteConfig ?? emptyObject);
+        routeDefinition.applyChildRouteConfig(componentInstance.getRouteConfig!(parentDefinition, routeNode) as IChildRouteConfig ?? emptyObject);
       }
       return routeDefinition;
     });

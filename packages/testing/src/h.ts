@@ -71,6 +71,7 @@ export const hJsx = function (name: string, attrs: Record<string, string> | null
         // for attributes with matching properties, simply assign
         // other if special attribute like data, or ones start with _
         // assign as well
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
         (el as Writable<typeof el>)[attr as keyof typeof el] = value;
       } else if (attr === 'asElement') {

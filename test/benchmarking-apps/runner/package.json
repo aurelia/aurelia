@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.32",
+    "@aurelia/http-server": "2.0.0-alpha.33",
     "@benchmarking-apps/storage": "1.0.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "^14.18.14",
@@ -11,7 +11,7 @@
     "mocha": "^9.2.2",
     "playwright": "^1.21.1",
     "tree-kill": "^1.2.2",
-    "typescript": "^4.6.3",
+    "typescript": "4.7.2",
     "uuid": "^8.3.1"
   },
   "scripts": {

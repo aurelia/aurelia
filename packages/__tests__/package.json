@@ -40,28 +40,28 @@
     "verify": "tsc --noEmit"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0-alpha.32",
-    "@aurelia/i18n": "2.0.0-alpha.32",
-    "@aurelia/kernel": "2.0.0-alpha.32",
-    "@aurelia/metadata": "2.0.0-alpha.32",
-    "@aurelia/platform": "2.0.0-alpha.32",
-    "@aurelia/platform-browser": "2.0.0-alpha.32",
-    "@aurelia/route-recognizer": "2.0.0-alpha.32",
-    "@aurelia/router": "2.0.0-alpha.32",
-    "@aurelia/router-lite": "2.0.0-alpha.32",
-    "@aurelia/runtime": "2.0.0-alpha.32",
-    "@aurelia/runtime-html": "2.0.0-alpha.32",
-    "@aurelia/state": "2.0.0-alpha.32",
-    "@aurelia/store-v1": "2.0.0-alpha.32",
-    "@aurelia/testing": "2.0.0-alpha.32",
-    "@aurelia/ui-virtualization": "2.0.0-alpha.32",
-    "@aurelia/validation": "2.0.0-alpha.32",
-    "@aurelia/validation-html": "2.0.0-alpha.32",
-    "@aurelia/validation-i18n": "2.0.0-alpha.32",
+    "@aurelia/fetch-client": "2.0.0-alpha.33",
+    "@aurelia/i18n": "2.0.0-alpha.33",
+    "@aurelia/kernel": "2.0.0-alpha.33",
+    "@aurelia/metadata": "2.0.0-alpha.33",
+    "@aurelia/platform": "2.0.0-alpha.33",
+    "@aurelia/platform-browser": "2.0.0-alpha.33",
+    "@aurelia/route-recognizer": "2.0.0-alpha.33",
+    "@aurelia/router": "2.0.0-alpha.33",
+    "@aurelia/router-lite": "2.0.0-alpha.33",
+    "@aurelia/runtime": "2.0.0-alpha.33",
+    "@aurelia/runtime-html": "2.0.0-alpha.33",
+    "@aurelia/state": "2.0.0-alpha.33",
+    "@aurelia/store-v1": "2.0.0-alpha.33",
+    "@aurelia/testing": "2.0.0-alpha.33",
+    "@aurelia/ui-virtualization": "2.0.0-alpha.33",
+    "@aurelia/validation": "2.0.0-alpha.33",
+    "@aurelia/validation-html": "2.0.0-alpha.33",
+    "@aurelia/validation-i18n": "2.0.0-alpha.33",
     "i18next": "^17.0.0",
     "jsdom": "^19.0.0",
     "rxjs": "^6.6.7",
-    "typescript": "^4.6.3"
+    "typescript": "4.7.2"
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.14",
@@ -88,5 +88,5 @@
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.9.0"
   },
-  "version": "2.0.0-alpha.32"
+  "version": "2.0.0-alpha.33"
 }

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.33"></a>
+# 2.0.0-alpha.33 (2022-05-26)
+
+### Bug Fixes:
+
+* **array-observer:** don't mutate incoming indexmap (#1429) ([a77a104](https://github.com/aurelia/aurelia/commit/a77a104))
+
+
+### Refactorings:
+
+* **lifecycle-hooks:** dont invoke lfc on CA ([395b26a](https://github.com/aurelia/aurelia/commit/395b26a))
+
 <a name="2.0.0-alpha.32"></a>
 # 2.0.0-alpha.32 (2022-05-22)
 

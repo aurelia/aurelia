@@ -10,7 +10,7 @@ export class SortValueConverter {
   public toView(arr: unknown[], prop?: string, dir: 'asc' | 'desc' = 'asc'): unknown[] {
     if (Array.isArray(arr)) {
       const factor = dir === 'asc' ? 1 : -1;
-      if (prop && prop.length) {
+      if (prop?.length) {
         arr.sort((a, b) => a[prop] - b[prop] * factor);
       } else {
         arr.sort((a, b) => a - b * factor);

@@ -56,7 +56,7 @@ import {
 import { ensureTaskQueuesEmpty } from './scheduler';
 import { PLATFORM } from './test-context';
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types */
 
 type ErrorMatcher = string | Error | RegExp | Function;
 
@@ -395,6 +395,7 @@ export function visibleTextEqual(host: Node, expectedText: string, message?: str
 }
 
 export function equal(actual: any, expected: any, message?: string): void {
+  // eslint-disable-next-line eqeqeq
   if (actual != expected) {
     innerFail({
       actual,
@@ -543,6 +544,7 @@ export function lessThanOrEqualTo(left: any, right: any, message?: string): void
 }
 
 export function notEqual(actual: any, expected: any, message?: string): void {
+  // eslint-disable-next-line eqeqeq
   if (actual == expected) {
     innerFail({
       actual,
@@ -765,6 +767,7 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
 }
 
 const areTaskQueuesEmpty = (function () {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function priorityToString(priority: TaskQueuePriority) {
     switch (priority) {
       case TaskQueuePriority.render:

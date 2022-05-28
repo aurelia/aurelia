@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, IInterceptableBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
-import { IStore } from './interfaces';
+import { Writable } from '@aurelia/kernel';
+import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, IInterceptableBinding, IOverrideContext, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope, defProto } from './state-utilities';
 
 @bindingBehavior('state')
-export class StateBindingBehavior extends BindingInterceptor {
+export class StateBindingBehavior extends BindingInterceptor implements IStoreSubscriber<object> {
   /** @internal */protected static inject = [IStore];
 
   /** @internal */private readonly _store: IStore<object>;
+  /** @internal */private readonly _isStateBinding: boolean;
 
   public constructor(
     store: IStore<object>,
@@ -17,12 +19,30 @@ export class StateBindingBehavior extends BindingInterceptor {
   ) {
     super(binding, expr);
     this._store = store;
+    this._isStateBinding = binding instanceof StateBinding;
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
     const binding = this.binding;
-    const $scope = binding instanceof StateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
+    const $scope = this._isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
+    if (!this._isStateBinding) {
+      this._store.subscribe(this);
+    }
     binding.$bind(flags, $scope);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    if (!this._isStateBinding) {
+      this._store.unsubscribe(this);
+    }
+    this.binding.$unbind(flags);
+  }
+
+  public handleStateChange(state: object): void {
+    const $scope = this.$scope!;
+    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
+    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    this.binding.handleChange(undefined, undefined, LifecycleFlags.none);
   }
 }
 

@@ -90,8 +90,8 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
     ]
   })
   @customElement({ name: 'a11', template: `a11${vp(1)}` })
@@ -99,9 +99,9 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
-      { path: 'a11', component: A11 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a11', component: A11, transitionPlan: 'invoke-lifecycles' },
     ]
   })
   @customElement({ name: 'a12', template: `a12${vp(1)}` })
@@ -139,10 +139,10 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
-      { path: 'b01', component: B01 },
-      { path: 'b02', component: B02 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b01', component: B01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b02', component: B02, transitionPlan: 'invoke-lifecycles' },
     ]
   })
   @customElement({ name: 'b11', template: `b11${vp(1)}` })
@@ -158,10 +158,10 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
-      { path: 'b01', component: B01 },
-      { path: 'b02', component: B02 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b01', component: B01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b02', component: B02, transitionPlan: 'invoke-lifecycles' },
     ]
   })
   @customElement({ name: 'b12', template: `b12${vp(1)}` })
@@ -182,12 +182,12 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
-      { path: 'a11', component: A11 },
-      { path: 'a12', component: A12 },
-      { path: 'b11', component: B11 },
-      { path: 'b12', component: B12 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a11', component: A11, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a12', component: A12, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b11', component: B11, transitionPlan: 'invoke-lifecycles' },
+      { path: 'b12', component: B12, },
     ]
   })
   @customElement({ name: 'root1', template: `root1${vp(1)}` })
@@ -195,10 +195,10 @@ describe('router (smoke tests)', function () {
 
   @route({
     routes: [
-      { path: 'a01', component: A01 },
-      { path: 'a02', component: A02 },
-      { path: 'a11', component: A11 },
-      { path: 'a12', component: A12 },
+      { path: 'a01', component: A01, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a02', component: A02, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a11', component: A11, transitionPlan: 'invoke-lifecycles' },
+      { path: 'a12', component: A12, transitionPlan: 'invoke-lifecycles' },
     ]
   })
   @customElement({ name: 'root2', template: `root2${vp(2)}` })
@@ -369,11 +369,11 @@ describe('router (smoke tests)', function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
 
     let result = await router.load(`b12/b01`);
-    assertComponentsVisible(host, [Root1, B12, [B01]]);
+    assertComponentsVisible(host, [Root1, B12, [B01]], '#1 text');
     assert.strictEqual(result, true, '#1 result===true');
 
     result = await router.load(`b12/a01`);
-    assertComponentsVisible(host, [Root1, B12, [A01]]);
+    assertComponentsVisible(host, [Root1, B12, [A01]], '#2 text');
     assert.strictEqual(result, true, '#2 result===true');
 
     await tearDown();
@@ -607,8 +607,8 @@ describe('router (smoke tests)', function () {
       class B { }
       @route({
         routes: [
-          { path: 'a', component: A },
-          { path: 'b', component: B },
+          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
         ]
       })
       @customElement({
@@ -655,8 +655,8 @@ describe('router (smoke tests)', function () {
       class B { }
       @route({
         routes: [
-          { path: 'a', component: A },
-          { path: 'b', component: B },
+          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
         ]
       })
       @customElement({
@@ -719,8 +719,8 @@ describe('router (smoke tests)', function () {
       class C { }
       @route({
         routes: [
-          { path: 'b', component: B },
-          { path: 'c', component: C },
+          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+          { path: 'c', component: C, transitionPlan: 'invoke-lifecycles' },
         ]
       })
       @customElement({
@@ -731,7 +731,7 @@ describe('router (smoke tests)', function () {
       class A { }
       @route({
         routes: [
-          { path: 'a', component: A },
+          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
         ]
       })
       @customElement({
@@ -793,7 +793,7 @@ describe('router (smoke tests)', function () {
         class A { }
         @route({
           routes: [
-            { id: 'r1', path: 'a', component: A },
+            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
           ]
         })
         @customElement({
@@ -834,7 +834,7 @@ describe('router (smoke tests)', function () {
         class A { }
         @route({
           routes: [
-            { id: 'r1', path: 'a', component: A },
+            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
           ],
           fallback,
         })
@@ -876,7 +876,7 @@ describe('router (smoke tests)', function () {
         class A { }
         @route({
           routes: [
-            { id: 'r1', path: 'a', component: A },
+            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
           ],
           fallback,
         })
@@ -922,8 +922,8 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'rc1', path: 'ac01', component: Ac01 },
-          { id: 'rc2', path: 'ac02', component: Ac02 },
+          { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
+          { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'rc1',
       })
@@ -932,7 +932,7 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'r1', path: 'a', component: A },
+          { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'r1',
       })
@@ -977,8 +977,8 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'rc1', path: 'ac01', component: Ac01 },
-          { id: 'rc2', path: 'ac02', component: Ac02 },
+          { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
+          { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'rc1',
       })
@@ -991,8 +991,8 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'rc1', path: 'bc01', component: Bc01 },
-          { id: 'rc2', path: 'bc02', component: Bc02 },
+          { id: 'rc1', path: 'bc01', component: Bc01, transitionPlan: 'invoke-lifecycles' },
+          { id: 'rc2', path: 'bc02', component: Bc02, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'rc2',
       })
@@ -1001,8 +1001,8 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'r1', path: 'a', component: A },
-          { id: 'r2', path: 'b', component: B },
+          { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+          { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'r1',
       })
@@ -1054,8 +1054,8 @@ describe('router (smoke tests)', function () {
       class B { }
       @route({
         routes: [
-          { id: 'r1', path: 'a', component: A },
-          { id: 'r2', path: 'b', component: B },
+          { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+          { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
         ],
         fallback: 'r1',
       })
@@ -1112,7 +1112,7 @@ describe('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: 'b1/:b', component: B1 },
+        { path: 'b1/:b', component: B1, transitionPlan: 'invoke-lifecycles' },
       ]
     })
     @customElement({
@@ -1127,7 +1127,7 @@ describe('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: 'b2/:d', component: B2 },
+        { path: 'b2/:d', component: B2, transitionPlan: 'invoke-lifecycles' },
       ]
     })
     @customElement({
@@ -1142,8 +1142,8 @@ describe('router (smoke tests)', function () {
     }
     @route({
       routes: [
-        { path: 'a1/:a', component: A1 },
-        { path: 'a2/:c', component: A2 },
+        { path: 'a1/:a', component: A1, transitionPlan: 'invoke-lifecycles' },
+        { path: 'a2/:c', component: A2, transitionPlan: 'invoke-lifecycles' },
       ]
     })
     @customElement({
@@ -1265,8 +1265,8 @@ describe('router (smoke tests)', function () {
     @route({
       title: 'base',
       routes: [
-        { path: ['a', 'a/:foo'], component: VmA, title: 'A', },
-        { path: ['', 'b'], component: VmB, title: 'B' },
+        { path: ['a', 'a/:foo'], component: VmA, title: 'A', transitionPlan: 'invoke-lifecycles', },
+        { path: ['', 'b'], component: VmB, title: 'B', transitionPlan: 'invoke-lifecycles' },
       ],
     })
     @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })

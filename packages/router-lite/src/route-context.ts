@@ -161,7 +161,7 @@ export class RouteContext {
     const children = definition.config.routes;
     const len = children.length;
     if(len === 0) {
-      this._childRoutesConfigured = typeof (definition.component?.Type.prototype as IRouteViewModel).getRouteConfig !== 'function' ?? true;
+      this._childRoutesConfigured = (typeof (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig !== 'function') ?? true;
       return;
     }
     let i = 0;

@@ -256,7 +256,16 @@ export function route(config: IRouteConfig): RouteDecorator;
  * ```
  *
  * @deprecated This decorator to statically configure routes has been deprecated in favor of the getRouteConfig hook.
- * Consider migrating your routes from `@route({ YOUR_ROUTE_CONFIGURATION })` to `getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig { return {YOUR_ROUTE_CONFIGURATION}; }`.
+ * Consider migrating your routes from
+ * ```typescript
+ * &#64;route({ YOUR_ROUTE_CONFIGURATION })
+ * ```
+ * to
+ * ```typescript
+ * getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig {
+ *    return { YOUR_ROUTE_CONFIGURATION };
+ * }
+ * ```
  * Justification: this gives an opportunity to reasonably dynamically define your routes.
  * This decorator will be removed in one of the future releases.
  */

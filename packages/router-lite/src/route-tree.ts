@@ -497,7 +497,7 @@ export function createAndAppendNodes(
       }
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
-      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition, null, null);
+      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition, null);
       const params = vi.params ?? emptyObject;
       const rr = new $RecognizedRoute(
         new RecognizedRoute(
@@ -565,7 +565,7 @@ function createNode(
 
     // fallback is not recognized as a configured route; treat as CE and look for a route definition.
     log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, null, null, ctx), node, vi, append);
+    return createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, null, ctx), node, vi, append);
   }
 
   // readjust the children wrt. the residue

@@ -254,6 +254,11 @@ export function route(config: IRouteConfig): RouteDecorator;
  * &#64;route(':id')
  * export class ProductDetail {}
  * ```
+ *
+ * @deprecated This decorator to statically configure routes has been deprecated in favor of the getRouteConfig hook.
+ * Consider migrating your routes from `@route({ YOUR_ROUTE_CONFIGURATION })` to `getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig { return {YOUR_ROUTE_CONFIGURATION}; }`.
+ * Justification: this gives an opportunity to reasonably dynamically define your routes.
+ * This decorator will be removed in one of the future releases.
  */
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {

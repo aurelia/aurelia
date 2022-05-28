@@ -569,7 +569,8 @@ export class Router {
   ): IRouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
-    const routeDefinition = RouteDefinition.resolve(component.Type, parentDefinition, componentInstance, null);
+    // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+    const routeDefinition = RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : component.Type, parentDefinition, null);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
     if (routeDefinitionLookup === void 0) {
       this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());

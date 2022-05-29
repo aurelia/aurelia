@@ -100,22 +100,66 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     return new ViewportInstruction(context ?? null, false, 0, 0, typedInstruction, null, null, []);
   }
 
+  /** @internal */
   public contains(other: ViewportInstruction): boolean {
+    const thisComponent = this.component;
+    const otherComponent = other.component;
+    const componentType = thisComponent.type;
+
+    // TODO(sayan): also check for viewport?
+    if (componentType !== otherComponent.type) return false;
+
+    // The string-splitting and residue is needed as the components can be collapsed.
+    let thisResidue: string[] = [];
+    let otherResidue: string[] = [];
+    if (componentType !== NavigationInstructionType.string) {
+      if (!thisComponent.equals(other.component)) return false;
+    } else {
+      const thisValueParts = thisComponent.value.split('/');
+      const otherValueParts = (otherComponent as ITypedNavigationInstruction_string).value.split('/');
+      const thisLen = thisValueParts.length;
+      const otherLen = otherValueParts.length;
+      const limit = Math.min(thisLen, otherLen);
+      for (let i = 0; i < limit; i++) {
+        if (thisValueParts[i] !== otherValueParts[i]) return false;
+      }
+      if (thisLen === limit) {
+        otherResidue = otherValueParts.splice(limit);
+      } else {
+        thisResidue = thisValueParts.splice(limit);
+      }
+    }
+
+    const thisResidueLen = thisResidue.length;
+    const otherResidueLen = otherResidue.length;
     const thisChildren = this.children;
     const otherChildren = other.children;
-    if (thisChildren.length < otherChildren.length) {
-      return false;
-    }
-
-    // TODO(fkleuver): incorporate viewports when null / '' descrepancies are fixed,
-    // as well as params when inheritance is fully fixed
-    if (!this.component.equals(other.component)) {
-      return false;
-    }
-
-    for (let i = 0, ii = otherChildren.length; i < ii; ++i) {
-      if (!thisChildren[i].contains(otherChildren[i])) {
-        return false;
+    const thisChildrenLen = thisChildren.length;
+    const otherChildrenLen = otherChildren.length;
+    if (thisResidueLen === 0 && otherResidueLen === 0) {
+      if (thisChildrenLen < otherChildrenLen) return false;
+      for (let i = 0; i < otherChildrenLen; i++) {
+        if (!thisChildren[i].contains(otherChildren[i])) return false;
+      }
+    } else if (thisResidueLen > 0) {
+      for (let i = 0; i < otherChildrenLen; i++) {
+        const otherChild = otherChildren[i];
+        if (i < thisResidueLen) {
+          const otherChildComp = otherChild.component;
+          if (otherChildComp.type !== NavigationInstructionType.string || otherChildComp.value !== thisResidue[i]) return false;
+        } else {
+          if (!thisChildren[i - thisResidueLen].contains(otherChild)) return false;
+        }
+      }
+    } else {
+      for (let i = 0; i < otherChildrenLen; i++) {
+        const thisChild = thisChildren[i];
+        if (i < otherResidueLen) {
+          const thisChildComp = thisChild.component;
+          if (thisChildComp.type !== NavigationInstructionType.string || thisChildComp.value !== otherResidue[i]) return false;
+        } else {
+          if (!thisChild.contains(otherChildren[i - otherResidueLen])) return false;
+        }
       }
     }
 

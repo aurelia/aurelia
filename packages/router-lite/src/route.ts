@@ -74,6 +74,12 @@ export interface IRouteConfig {
      * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
      */
     readonly fallback?: string | null;
+    /**
+     * When set to `false`, the routes won't be included in the navigation model.
+     *
+     * @default true
+     */
+    readonly nav?: boolean;
 }
 export interface IChildRouteConfig extends IRouteConfig {
   /**
@@ -107,6 +113,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly routes: readonly Routeable[],
     public readonly fallback: string | null,
     public readonly component: Routeable,
+    public readonly nav: boolean,
   ) { }
 
   public static create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null): RouteConfig {
@@ -134,6 +141,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         children,
         Type?.fallback ?? null,
         null!, // TODO(sayan): find a TS-wise clearer way to deal with this.
+        Type?.nav ?? true,
       );
     } else if (typeof configOrPath === 'object') {
       const config = configOrPath;
@@ -166,6 +174,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         children,
         config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? null,
+        config.nav ?? true,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -194,6 +203,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.routes ?? this.routes,
       config.fallback ?? this.fallback,
       config.component ?? this.component,
+      config.nav ?? this.nav,
     );
   }
 }

@@ -1,9 +1,10 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, IDisposable } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions } from '@aurelia/router-lite';
-import { Aurelia, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions, IRouterEvents, NavigationModel } from '@aurelia/router-lite';
+import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, LifecycleFlags } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { ISignaler } from '@aurelia/runtime';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);
@@ -1363,4 +1364,125 @@ describe('router (smoke tests)', function () {
   }
 
   // TODO(sayan): add tests here for the location URL building in relation for sibling, parent/children relationship and viewport name
+
+  describe.only('navigation plan', function () {
+
+    function getNavBarCe() {
+      @customElement({
+        name: 'nav-bar',
+        template: `<nav>
+        <ul>
+          <li repeat.for="item of navModel"><a href.bind="item.path" active.class="item.isActive & signal:signal">\${item.title}</a></li>
+        </ul>
+      </nav>`
+      })
+      class NavBar implements ICustomElementViewModel {
+        private static id: number = 0;
+        private readonly signal: string = `navbar:update-active:${++NavBar.id}`;
+        private navModel: NavigationModel[];
+        private readonly prom: Promise<void>;
+        private navigationEndListener: IDisposable;
+
+        public constructor(
+          @IRouter router: IRouter,
+          @IRouteContext routeCtx: IRouteContext,
+          @IRouterEvents private readonly events: IRouterEvents,
+          @ISignaler private readonly signaler: ISignaler,
+          @INode private readonly node: HTMLElement,
+        ) {
+          this.prom = router.getNavigationModel(routeCtx)
+            .then(data => { this.navModel = data.filter(item => item.path.every(x => x)); }); // for simplicity ignore all configs with empty path
+        }
+
+        public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
+          this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _ => (console.log('navigation ended'),this.signaler.dispatchSignal(this.signal)));
+          return this.prom;
+        }
+
+        public unbinding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
+          this.navigationEndListener.dispose();
+        }
+
+        public assert(expected: { href: string; text: string; active?: boolean }[], message: string = ''): void {
+          const anchors = Array.from(this.node.querySelector('nav').querySelectorAll<HTMLAnchorElement>('a'));
+          const len = anchors.length;
+          assert.strictEqual(len, expected.length, `${message} length`);
+          for (let i = 0; i < len; i++) {
+            const anchor = anchors[i];
+            const item = expected[i];
+            assert.strictEqual(anchor.href.endsWith(item.href), true, `${message} - #${i} href - actual: ${anchor.href} - expected: ${item.href}`);
+            assert.html.textContent(anchor, item.text, `${message} - #${i} text`);
+            assert.strictEqual(anchor.classList.contains('active'), !!item.active, `${message} - #${i} active`);
+          }
+        }
+      }
+      return NavBar;
+    }
+
+    it('root - route deco', async function () {
+      @customElement({ name: 'ce-c11', template: 'c11' })
+      class C11 { }
+      @customElement({ name: 'ce-c12', template: 'c12' })
+      class C12 { }
+      @customElement({ name: 'ce-c21', template: 'c21' })
+      class C21 { }
+      @customElement({ name: 'ce-c22', template: 'c22' })
+      class C22 { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'c11' },
+          { path: 'c11', component: C11, title: 'C11' },
+          { path: 'c12', component: C12, title: 'C12' },
+        ]
+      })
+      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      class P1 { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'c21' },
+          { path: 'c21', component: C21, title: 'C21' },
+          { path: 'c22', component: C22, title: 'C22' },
+        ]
+      })
+      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      class P2 { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'p1' },
+          { path: 'p1', component: P1, title: 'P1' },
+          { path: 'p2', component: P2, title: 'P2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      const navBarCe = getNavBarCe();
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        C11,
+        C12,
+        C21,
+        C22,
+        P1,
+        P2,
+        navBarCe
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      CustomElement.for<InstanceType<typeof navBarCe>>(host.querySelector('nav-bar')).viewModel.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }]);
+
+      await au.stop();
+    });
+  });
 });

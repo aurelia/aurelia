@@ -87,6 +87,7 @@ export {
   type ResolutionMode,
   type HistoryStrategy,
   type SameUrlStrategy,
+  NavigationModel,
 } from './router';
 
 export {

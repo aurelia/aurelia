@@ -377,32 +377,6 @@ export class Router {
   /** @internal */
   public readonly _hasTitleBuilder: boolean = false;
 
-  public async getNavigationModel(context: IRouteContext = this.routeTree.root.context): Promise<NavigationModel[]> {
-    const models: NavigationModel[] = [];
-    const routeDefs = context.childRoutes;
-    const len = routeDefs.length;
-
-    if (len === 0) return models;
-
-    const promises = new Array<Promise<void> | void>(len);
-    for (let i = 0; i < len; i++) {
-      promises[i] = onResolve(routeDefs[i], routeDef => {
-        const config = routeDef.config;
-        if(!config.nav) return;
-        models.push(new NavigationModel(
-          routeDef.id,
-          routeDef.path,
-          config.title,
-          routeDef.data,
-          context,
-          this,
-        ));
-      });
-    }
-    await Promise.all(promises);
-    return models;
-  }
-
   public constructor(
     @IContainer private readonly container: IContainer,
     @IPlatform private readonly p: IPlatform,
@@ -634,6 +608,32 @@ export class Router {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
+  }
+
+  public async getNavigationModel(context: IRouteContext = this.routeTree.root.context): Promise<NavigationModel[]> {
+    const models: NavigationModel[] = [];
+    const routeDefs = context.childRoutes;
+    const len = routeDefs.length;
+
+    if (len === 0) return models;
+
+    const promises = new Array<Promise<void> | void>(len);
+    for (let i = 0; i < len; i++) {
+      promises[i] = onResolve(routeDefs[i], routeDef => {
+        const config = routeDef.config;
+        if(!config.nav) return;
+        models.push(new NavigationModel(
+          routeDef.id,
+          routeDef.path,
+          config.title,
+          routeDef.data,
+          context,
+          this,
+        ));
+      });
+    }
+    await Promise.all(promises);
+    return models;
   }
 
   /**

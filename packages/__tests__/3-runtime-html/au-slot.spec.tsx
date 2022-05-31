@@ -1277,7 +1277,7 @@ describe('3-runtime-html/au-slot.spec.ts', function () {
         // + fallback of <au-slot name=foo>
         // + |
         // + fallback of <au-slot name=s1>
-        { 'my-element': ['mis-projected bar |s1fb', new AuSlotsInfo([])] },
+        { 'my-element': ['mis-projected bar |s1fb', new AuSlotsInfo(['default'])] },
       );
 
       // tag: nonsense-example

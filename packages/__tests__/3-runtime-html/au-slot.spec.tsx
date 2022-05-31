@@ -4,7 +4,7 @@ import { Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsI
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('au-slot', function () {
+describe('3-runtime-html/au-slot.spec.ts', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -2072,9 +2072,7 @@ describe('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="fn()">Click</button></my-element>`, registrations: [MyElement] });
     });
   }
-});
 
-describe('3-runtime-html/au-slot.spec.ts', function () {
   @customElement({
     name: 'my-el',
     template: '<p>my-el content: <au-slot></au-slot></p>'

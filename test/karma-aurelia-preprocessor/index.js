@@ -80,7 +80,9 @@ function createAureliaPreprocessor(karmaConfig, logger) {
               }
               case '.js': case '.mjs': break;
               default: {
-                if (isChrome) break;
+                if (isChrome && !karmaConfig.singleRun) {
+                  break;
+                }
                 const start = statement.moduleSpecifier.getStart(sourceFile);
                 const end = statement.moduleSpecifier.getEnd(sourceFile);
 

@@ -1,10 +1,9 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, IDisposable } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions, IRouterEvents, NavigationModel } from '@aurelia/router-lite';
-import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, LifecycleFlags } from '@aurelia/runtime-html';
+import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, LifecycleFlags, StandardConfiguration } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
-import { ISignaler } from '@aurelia/runtime';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);
@@ -1372,35 +1371,30 @@ describe('router (smoke tests)', function () {
         name: 'nav-bar',
         template: `<nav>
         <ul>
-          <li repeat.for="item of navModel"><a href.bind="item.path" active.class="item.isActive & signal:signal">\${item.title}</a></li>
+          <li repeat.for="item of navModel"><a href.bind="item.path" active.class="item.isActive">\${item.title}</a></li>
         </ul>
       </nav>`
       })
       class NavBar implements ICustomElementViewModel {
-        private static id: number = 0;
-        private readonly signal: string = `navbar:update-active:${++NavBar.id}`;
         private navModel: NavigationModel[];
         private readonly prom: Promise<void>;
-        private navigationEndListener: IDisposable;
 
         public constructor(
-          @IRouter router: IRouter,
-          @IRouteContext routeCtx: IRouteContext,
-          @IRouterEvents private readonly events: IRouterEvents,
-          @ISignaler private readonly signaler: ISignaler,
+          @IRouter private readonly router: IRouter,
+          @IRouteContext private readonly routeCtx: IRouteContext,
           @INode private readonly node: HTMLElement,
-        ) {
-          this.prom = router.getNavigationModel(routeCtx)
+        ) { }
+
+        public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
+          return this.router.getNavigationModel(this.routeCtx)
             .then(data => { this.navModel = data.filter(item => item.path.every(x => x)); }); // for simplicity ignore all configs with empty path
         }
 
-        public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
-          this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _ => (console.log('navigation ended'),this.signaler.dispatchSignal(this.signal)));
-          return this.prom;
-        }
-
         public unbinding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
-          this.navigationEndListener.dispose();
+          for (const item of this.navModel) {
+            item.dispose();
+          }
+          this.navModel.length = 0;
         }
 
         public assert(expected: { href: string; text: string; active?: boolean }[], message: string = ''): void {
@@ -1431,7 +1425,6 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { path: '', redirectTo: 'c11' },
           { path: 'c11', component: C11, title: 'C11' },
           { path: 'c12', component: C12, title: 'C12' },
         ]
@@ -1441,7 +1434,6 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { path: '', redirectTo: 'c21' },
           { path: 'c21', component: C21, title: 'C21' },
           { path: 'c22', component: C22, title: 'C22' },
         ]
@@ -1451,7 +1443,6 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { path: '', redirectTo: 'p1' },
           { path: 'p1', component: P1, title: 'P1' },
           { path: 'p2', component: P2, title: 'P2' },
         ]
@@ -1464,6 +1455,7 @@ describe('router (smoke tests)', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
+        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         C11,
@@ -1480,7 +1472,14 @@ describe('router (smoke tests)', function () {
 
       await au.app({ component: Root, host }).start();
 
-      CustomElement.for<InstanceType<typeof navBarCe>>(host.querySelector('nav-bar')).viewModel.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }]);
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get(IRouter);
+
+      await router.load('p1/c11');
+      await queue.yield();
+
+      const rootNavbar = CustomElement.for<InstanceType<typeof navBarCe>>(host.querySelector('nav-bar')).viewModel;
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'root #1');
 
       await au.stop();
     });

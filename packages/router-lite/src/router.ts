@@ -629,6 +629,7 @@ export class Router {
           routeDef.data,
           context,
           this,
+          this.events,
         ));
       });
     }
@@ -939,17 +940,31 @@ export class Router {
   }
 }
 
-export class NavigationModel {
+export class NavigationModel implements IDisposable {
+  private readonly navigationEndListener: IDisposable;
+  private _isActive!: boolean;
   public constructor(
     public readonly id: string,
     public readonly path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Params | null,
-    private readonly context: IRouteContext,
-    private readonly router: IRouter,
-  ) { }
+    private readonly _context: IRouteContext,
+    private readonly _router: IRouter,
+    events: IRouterEvents,
+  ) {
+    this.navigationEndListener = events.subscribe('au:router:navigation-end', _ => this.setIsActive());
+    this.setIsActive();
+  }
 
   public get isActive(): boolean {
-    return this.path.some(path => this.router.isActive(path, this.context));
+    return this._isActive;
+  }
+
+  private setIsActive(): void {
+    this._isActive = this.path.some(path => this._router.isActive(path, this._context));
+  }
+
+  public dispose(): void {
+    this.navigationEndListener.dispose();
   }
 }

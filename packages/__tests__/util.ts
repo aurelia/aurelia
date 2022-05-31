@@ -68,5 +68,3 @@ export class TickLogger {
     this.cb = cb;
   }
 }
-
-export const isFirefox = () => TestContext.create().wnd.navigator.userAgent.includes('Firefox');

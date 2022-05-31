@@ -9,15 +9,8 @@ import {
   PLATFORM,
   TestContext,
 } from '@aurelia/testing';
-import { isFirefox } from '../util';
 
-describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
-
-  // too flaky lately to care
-  // chrome can cover 50% of the correct usage and it'll already be fine
-  if (isFirefox()) {
-    return;
-  }
+describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
 
   interface IHarmoniousCompilationTestCase {
     title: string;
@@ -404,6 +397,9 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], only, browserOnly, assertFn } = testCase;
     if (PLATFORM.navigator.userAgent.includes('jsdom') && browserOnly) {
+      return;
+    }
+    if (PLATFORM.navigator.userAgent.includes('firefox')) {
       return;
     }
     const $it = only ? it.only : it;

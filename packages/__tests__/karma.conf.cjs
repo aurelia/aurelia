@@ -91,6 +91,7 @@ module.exports =
     // for i18n tests 
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
+    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/esm/helpers/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
@@ -177,7 +178,8 @@ module.exports =
           };
         }]
       }
-    ]
+    ],
+    isDevMode: /true/.test(process.env.DEV_MODE),
   };
 
   if (config.coverage) {

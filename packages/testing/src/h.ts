@@ -51,8 +51,8 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export const hJsx = function (name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
-  const doc = PLATFORM.document;
+export const hJsx = function (this: Document, name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
+  const doc = this || PLATFORM.document;
   const el = doc.createElement(name === 'let$' ? 'let' : name);
   if (attrs != null) {
     let value: string | string[];
@@ -128,3 +128,5 @@ export const hJsx = function (name: string, attrs: Record<string, string> | null
   }
   return el;
 };
+
+hJsx.Fragment = 'template';

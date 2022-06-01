@@ -149,7 +149,8 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
 
   @customElement({
     name: 'custom-validation-container',
-    template: `<slot></slot><small class='validation-placeholder'></small>`
+    template: `<au-slot></au-slot><small class='validation-placeholder'></small>`,
+    shadowOptions: { mode: 'open' }
   })
   class CustomValidationContainer { }
 

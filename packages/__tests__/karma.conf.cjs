@@ -81,7 +81,7 @@ module.exports =
       // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
-      { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
       { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
@@ -91,6 +91,7 @@ module.exports =
     // for i18n tests 
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
+    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/esm/helpers/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
@@ -177,7 +178,8 @@ module.exports =
           };
         }]
       }
-    ]
+    ],
+    isDevMode: /true/.test(process.env.DEV_MODE),
   };
 
   if (config.coverage) {

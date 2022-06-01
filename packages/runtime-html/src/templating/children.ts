@@ -248,6 +248,7 @@ function defaultChildQuery(controller: ICustomElementController): ArrayLike<INod
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function defaultChildFilter(node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   return !!viewModel;
 }
 

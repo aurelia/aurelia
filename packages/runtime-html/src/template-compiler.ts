@@ -114,6 +114,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const context = new CompilationContext(definition, container, emptyCompilationInstructions, null, null, void 0);
     const instructions: IInstruction[] = [];
     const elDef = context._findElement(el.nodeName.toLowerCase());
+    const isCustomElement = elDef !== null;
     const exprParser = context._exprParser;
     const ii = attrSyntaxs.length;
     let i = 0;
@@ -221,7 +222,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (elDef !== null) {
+        if (isCustomElement) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
@@ -262,7 +263,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        if (elDef !== null) {
+        if (isCustomElement) {
           // if the element is a custom element
           // - prioritize bindables on a custom element before plain attributes
           bindablesInfo = BindablesInfo.from(elDef, false);
@@ -626,6 +627,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
+    const isCustomElement = elDef !== null;
+    const isShadowDom = isCustomElement && elDef.shadowOptions != null;
     const shouldCapture = !!elDef?.capture;
     const captures: AttrSyntax[] = shouldCapture ? [] : emptyArray;
     const exprParser = context._exprParser;
@@ -665,9 +668,15 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hasContainerless = false;
 
     if (elName === 'slot') {
+      if (context.root.def.shadowOptions == null) {
+        if (__DEV__)
+          throw new Error(`AUR0717: detect a usage of "<slot>" element without specifying shadow DOM options in element: ${context.root.def.name}`);
+        else
+          throw new Error(`AUR0717:${context.root.def.name}`);
+      }
       context.root.hasSlot = true;
     }
-    if (elDef !== null) {
+    if (isCustomElement) {
       // todo: this is a bit ... powerful
       // maybe do not allow it to process its own attributes
       processContentResult = elDef.processContent?.call(elDef.Type, el, context.p);
@@ -830,7 +839,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (elDef !== null) {
+        if (isCustomElement) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           bindable = bindablesInfo.attrs[realAttrTarget];
           if (bindable !== void 0) {
@@ -874,7 +883,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + not a custom attribute
       removeAttr();
 
-      if (elDef !== null) {
+      if (isCustomElement) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
         bindablesInfo = BindablesInfo.from(elDef, false);
@@ -907,7 +916,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // 2. ensure that element instruction is present if this element is a custom element
-    if (elDef !== null) {
+    if (isCustomElement) {
       elementInstruction = new HydrateElementInstruction(
         // todo: def/ def.Type or def.name should be configurable
         //       example: AOT/runtime can use def.Type, but there are situation
@@ -921,8 +930,8 @@ export class TemplateCompiler implements ITemplateCompiler {
       );
 
       // 2.1 prepare fallback content for <au-slot/>
-      if (elName === 'au-slot') {
-        const slotName = el.getAttribute('name') || /* name="" is the same with no name */'default';
+      if (elName === AU_SLOT) {
+        const slotName = el.getAttribute('name') || /* name="" is the same with no name */DEFAULT_SLOT_NAME;
         const template = context.h('template');
         const fallbackContentContext = context._createChild();
         let node: Node | null = el.firstChild;
@@ -996,9 +1005,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       let childEl: Element;
       let targetSlot: string | null;
       let projections: IProjections | undefined;
-      let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Element | DocumentFragment)[];
-      let slotTemplate: Element | DocumentFragment;
+      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
+      let slotTemplates: (Node | Element | DocumentFragment)[];
+      let slotTemplate: Node | Element | DocumentFragment;
       let marker: HTMLElement;
       let projectionCompilationContext: CompilationContext;
       let j = 0, jj = 0;
@@ -1023,31 +1032,32 @@ export class TemplateCompiler implements ITemplateCompiler {
       //    <template au-slot><div if.bind="..."></div>
       //  </my-el>
       let child: Node | null = el.firstChild;
+      let isEmptyTextNode = false;
       if (processContentResult !== false) {
         while (child !== null) {
-          if (child.nodeType === 1) {
-            // if has [au-slot] then it's a projection
-            childEl = (child as Element);
-            child = child.nextSibling;
-            targetSlot = childEl.getAttribute('au-slot');
-            if (targetSlot !== null) {
-              if (elDef === null) {
-                if (__DEV__)
-                  throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-                else
-                  throw new Error(`AUR0706:${elName}[${targetSlot}]`);
+          targetSlot = child.nodeType === 1 ? (child as Element).getAttribute(AU_SLOT) : null;
+          if (targetSlot !== null) {
+            (child as Element).removeAttribute(AU_SLOT);
+          }
+          if (isCustomElement) {
+            childEl = child.nextSibling as Element;
+            if (!isShadowDom) {
+              // ignore all whitespace
+              isEmptyTextNode = child.nodeType === 3 && (child as Text).textContent!.trim() === '';
+              if (!isEmptyTextNode) {
+                ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
               }
-              if (targetSlot === '') {
-                targetSlot = 'default';
-              }
-              childEl.removeAttribute('au-slot');
-              el.removeChild(childEl);
-              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
+              el.removeChild(child);
             }
-            // if not a targeted slot then use the common node method
-            // todo: in the future, there maybe more special case for a content of a custom element
-            //       it can be all done here
+            child = childEl;
           } else {
+            if (targetSlot !== null) {
+              targetSlot = targetSlot || DEFAULT_SLOT_NAME;
+              if (__DEV__)
+                throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+              else
+                throw new Error(`AUR0706:${elName}[${targetSlot}]`);
+            }
             child = child.nextSibling;
           }
         }
@@ -1101,11 +1111,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction!.projections = projections;
       }
 
-      if (hasContainerless || elDef !== null && elDef.containerless) {
+      if (isCustomElement && (hasContainerless || elDef.containerless)) {
         this._replaceByMarker(el, context);
       }
 
-      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
       if (shouldCompileContent) {
         // 4.1.1.2:
         //  recursively compiles the child nodes into the inner context
@@ -1185,11 +1195,12 @@ export class TemplateCompiler implements ITemplateCompiler {
       let childEl: Element;
       let targetSlot: string | null;
       let projections: IProjections | null = null;
-      let slotTemplateRecord: Record<string, (Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Element | DocumentFragment)[];
-      let slotTemplate: Element | DocumentFragment;
+      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
+      let slotTemplates: (Node | Element | DocumentFragment)[];
+      let slotTemplate: Node | Element | DocumentFragment;
       let template: HTMLTemplateElement;
       let projectionCompilationContext: CompilationContext;
+      let isEmptyTextNode = false;
       let j = 0, jj = 0;
       // 4.2.1.
       //    walks through the child nodes and perform [au-slot] check
@@ -1212,29 +1223,29 @@ export class TemplateCompiler implements ITemplateCompiler {
       //  </my-el>
       if (processContentResult !== false) {
         while (child !== null) {
-          if (child.nodeType === 1) {
-            // if has [au-slot] then it's a projection
-            childEl = (child as Element);
-            child = child.nextSibling;
-            targetSlot = childEl.getAttribute('au-slot');
-            if (targetSlot !== null) {
-              if (elDef === null) {
-                if (__DEV__)
-                  throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-                else
-                  throw new Error(`AUR0706:${el.nodeName}[${targetSlot}]`);
+          targetSlot = child.nodeType === 1 ? (child as Element).getAttribute(AU_SLOT) : null;
+          if (targetSlot !== null) {
+            (child as Element).removeAttribute(AU_SLOT);
+          }
+          if (isCustomElement) {
+            childEl = child.nextSibling as Element;
+            if (!isShadowDom) {
+              // ignore all whitespace
+              isEmptyTextNode = child.nodeType === 3 && (child as Text).textContent!.trim() === '';
+              if (!isEmptyTextNode) {
+                ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
               }
-              if (targetSlot === '') {
-                targetSlot = 'default';
-              }
-              el.removeChild(childEl);
-              childEl.removeAttribute('au-slot');
-              ((slotTemplateRecord ??= {})[targetSlot] ??= []).push(childEl);
+              el.removeChild(child);
             }
-            // if not a targeted slot then use the common node method
-            // todo: in the future, there maybe more special case for a content of a custom element
-            //       it can be all done here
+            child = childEl;
           } else {
+            if (targetSlot !== null) {
+              targetSlot = targetSlot || DEFAULT_SLOT_NAME;
+              if (__DEV__)
+                throw new Error(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
+              else
+                throw new Error(`AUR0706:${elName}[${targetSlot}]`);
+            }
             child = child.nextSibling;
           }
         }
@@ -1286,11 +1297,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // todo: shouldn't have to eagerly replace with a marker like this
       //       this should be the job of the renderer
-      if (hasContainerless || elDef !== null && elDef.containerless) {
+      if (isCustomElement && (hasContainerless || elDef.containerless)) {
         this._replaceByMarker(el, context);
       }
 
-      shouldCompileContent = elDef === null || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
       if (shouldCompileContent && el.childNodes.length > 0) {
         // 4.2.2
         //    recursively compiles the child nodes into current context
@@ -1931,3 +1942,5 @@ export const templateCompilerHooks = (target?: Function) => {
 /* eslint-enable */
 
 const _generateElementName = CustomElement.generateName;
+const DEFAULT_SLOT_NAME = 'default';
+const AU_SLOT = 'au-slot';

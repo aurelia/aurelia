@@ -18,6 +18,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'router',
       'router-lite',
       'testing',
+      'ui-virtualization',
       'validation',
       'validation-html',
       'validation-i18n',

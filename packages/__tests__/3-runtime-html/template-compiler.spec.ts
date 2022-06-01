@@ -70,24 +70,24 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
   describe('compileElement()', function () {
     describe('with <slot/>', function () {
-      it('set hasSlots to true <slot/>', function () {
-        const definition = compileWith('<template><slot></slot></template>', []);
+      it('set hasSlots to true', function () {
+        const definition = compileWith('<template><slot></slot></template>', [], true);
         assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
       });
 
       it('recognizes slot in nested <template>', function () {
-        const definition = compileWith('<template><template if.bind="true"><slot></slot></template></template>', []);
+        const definition = compileWith('<template><template if.bind="true"><slot></slot></template></template>', [], true);
         assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
       });
 
       it('does not discriminate slot name', function () {
-        const definition = compileWith('<template><slot name="slot"></slot></template>', []);
+        const definition = compileWith('<template><slot name="slot"></slot></template>', [], true);
         assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
       });
 
       // <template> shouldn't be compiled
       it('does not recognize slot in <template> without template controller', function () {
-        const definition = compileWith('<template><template ><slot></slot></template></template>', []);
+        const definition = compileWith('<template><template ><slot></slot></template></template>', [], true);
         assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
       });
     });
@@ -430,9 +430,14 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       toVerify: string[];
     }
 
-    function compileWith(markup: string | Element, extraResources: any[] = []) {
+    function compileWith(markup: string | Element, extraResources: any[] = [], shadow = false) {
       extraResources.forEach(e => container.register(e));
-      const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
+      const templateDefinition: PartialCustomElementDefinition = {
+        template: markup,
+        instructions: [],
+        surrogates: [],
+        shadowOptions: shadow ? { mode: 'open' } : null
+      } as unknown as PartialCustomElementDefinition;
       return sut.compile(templateDefinition, container, null);
     }
 

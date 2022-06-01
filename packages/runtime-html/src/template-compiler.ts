@@ -668,6 +668,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hasContainerless = false;
 
     if (elName === 'slot') {
+      if (context.root.def.shadowOptions == null) {
+        if (__DEV__)
+          throw new Error(`AUR0717: detect a usage of "<slot>" element without specifying shadow DOM options in element: ${context.root.def.name}`);
+        else
+          throw new Error(`AUR0717:${context.root.def.name}`);
+      }
       context.root.hasSlot = true;
     }
     if (isCustomElement) {

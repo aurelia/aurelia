@@ -556,13 +556,13 @@ export class Router {
    * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
    *
    * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
-   * @param component - The custom element definition.
+   * @param componentDefinition - The custom element definition.
    * @param container - The `controller.container` of the component hosting the viewport that the route will be loaded into.
    *
    */
   public getRouteContext(
     viewportAgent: ViewportAgent | null,
-    component: CustomElementDefinition,
+    componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
     container: IContainer,
     parentDefinition: RouteDefinition | null,
@@ -570,7 +570,7 @@ export class Router {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-    const routeDefinition = RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : component.Type, parentDefinition, null);
+    const routeDefinition = RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null);
     let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
     if (routeDefinitionLookup === void 0) {
       this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
@@ -587,7 +587,7 @@ export class Router {
         routeContext = new RouteContext(
           viewportAgent,
           parent,
-          component,
+          componentDefinition,
           routeDefinition,
           container,
         ),

@@ -5,22 +5,18 @@ import { IContainer } from '@aurelia/kernel';
 describe('ChildrenObserver', function () {
   describe('populates', function () {
     it('[without shadow DOM] static plain elements', async function () {
-      @customElement({ name: 'my-el', template: '<slot>' })
+      @customElement({ name: 'my-el', template: '<slot>', shadowOptions: { mode: 'open' } })
       class MyEl {
         @children({ filter: n => !!n, map: n => n }) public children: unknown[];
       }
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { getBy } = await createFixture(
         '<my-el><div>one</div><span>two</span>',
         class {},
         [MyEl]
-      );
+      ).started;
 
-      await startPromise;
-
-      const myElVm = CustomElement.for(appHost.querySelector('my-el')).viewModel as MyEl;
+      const myElVm = CustomElement.for(getBy('my-el')).viewModel as MyEl;
       assert.strictEqual(myElVm.children.length, 2);
-
-      await tearDown();
     });
 
     it('children array with child view models', async function () {
@@ -202,7 +198,8 @@ describe('ChildrenObserver', function () {
 
     const element = CustomElement.define({
       name: 'element-with-children',
-      template: `<slot></slot>`
+      template: `<slot></slot>`,
+      shadowOptions: { mode: 'open' }
     }, ElementWithChildren);
 
     container.register(element);

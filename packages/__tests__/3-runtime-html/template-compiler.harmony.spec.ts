@@ -10,7 +10,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
+describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
 
   interface IHarmoniousCompilationTestCase {
     title: string;
@@ -397,6 +397,9 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts \n\tharmoninous combi
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], only, browserOnly, assertFn } = testCase;
     if (PLATFORM.navigator.userAgent.includes('jsdom') && browserOnly) {
+      return;
+    }
+    if (PLATFORM.navigator.userAgent.includes('firefox')) {
       return;
     }
     const $it = only ? it.only : it;

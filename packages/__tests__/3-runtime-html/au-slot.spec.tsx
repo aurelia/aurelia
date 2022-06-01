@@ -1,10 +1,10 @@
 import { IContainer } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
 import { Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('au-slot', function () {
+describe('3-runtime-html/au-slot.spec.ts', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -79,7 +79,7 @@ describe('au-slot', function () {
       public readonly spec: string,
       public readonly template: string,
       public readonly registrations: any[],
-      public readonly expected: Record<string, readonly [string, AuSlotsInfo]>,
+      public readonly expected: Record<string, readonly [string | HTMLElement, AuSlotsInfo]>,
       public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
       public readonly only: boolean = false,
     ) { }
@@ -126,7 +126,7 @@ describe('au-slot', function () {
 
     yield new TestData(
       'supports n-1 projections',
-      `<my-element> <div au-slot="s2">p20</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">p12</div> </my-element>`,
+      `<my-element> <div au-slot="s2">p20</div><div au-slot="s1">p11</div><div au-slot="s2">p21</div><div au-slot="s1">p12</div> </my-element>`,
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
@@ -155,14 +155,14 @@ describe('au-slot', function () {
     );
 
     // tag: mis-projection
-    yield new TestData(
-      'projection w/o [au-slot] causes mis-projection',
-      `<my-element><div>p</div></my-element>`,
-      [
-        createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
-      ],
-      { 'my-element': ['<div>p</div>s1fb|d', new AuSlotsInfo([])] },
-    );
+    // yield new TestData(
+    //   'projection w/o [au-slot] causes mis-projection',
+    //   `<my-element><div>p</div></my-element>`,
+    //   [
+    //     createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
+    //   ],
+    //   { 'my-element': ['<div>p</div>s1fb|d', new AuSlotsInfo([])] },
+    // );
 
     yield new TestData(
       'projections for multiple instances works correctly',
@@ -178,7 +178,7 @@ describe('au-slot', function () {
     // #region interpolation
     yield new TestData(
       'supports interpolations',
-      `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">\${message}</div> </my-element>`,
+      `<my-element><div au-slot="s2">\${message}</div><div au-slot="s1">p11</div><div au-slot="s2">p21</div><div au-slot="s1">\${message}</div></my-element>`,
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
@@ -205,7 +205,7 @@ describe('au-slot', function () {
       }
       yield new TestData(
         'supports accessing inner scope with $host',
-        `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">\${$host.message}</div> </my-element>`,
+        `<my-element> <div au-slot="s2">\${message}</div><div au-slot="s1">\${$host.message}</div> </my-element>`,
         [
           CustomElement.define(
             { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` },
@@ -496,8 +496,7 @@ describe('au-slot', function () {
             <h4>Meta</h4>
             <h4>Surname</h4>
             <h4>Given name</h4>
-          </template>
-          <template au-slot="content">
+          </template><template au-slot="content">
             <div>\${$host.$index}-\${$host.$even}-\${$host.$odd}</div>
             <div>\${$host.person.lastName}</div>
             <div>\${$host.person.firstName}</div>
@@ -653,8 +652,7 @@ describe('au-slot', function () {
               <h4>Meta</h4>
               <h4>Surname</h4>
               <h4>Given name</h4>
-            </template>
-            <template au-slot="content">
+            </template><template au-slot="content">
               <div>index: \${$host.i} \${$host.$index}</div>
               <div>\${$host.p.lastName}</div>
               <div>\${$host.p.firstName}</div>
@@ -663,7 +661,10 @@ describe('au-slot', function () {
           [
             MyElement,
           ],
-          { 'my-element': [`<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 undefined</div> <div>Doe</div> <div>John</div> <div>index: 1 undefined</div> <div>Mustermann</div> <div>Max</div>`, new AuSlotsInfo(['header', 'content'])] },
+          { 'my-element': [
+            `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 undefined</div> <div>Doe</div> <div>John</div> <div>index: 1 undefined</div> <div>Mustermann</div> <div>Max</div>`,
+            new AuSlotsInfo(['header', 'content'])
+          ]},
         );
       }
 
@@ -926,16 +927,14 @@ describe('au-slot', function () {
 
         yield new TestData(
           'coping works correctly in conjunction with repeat.for',
-          `<template>
-            <item-row repeat.for="_ of 3"></item-row>
-           </template>`,
+          `<item-row repeat.for="_ of 3"></item-row>`,
           [
             ListBox, Assignee, ItemRow
           ],
           {
-            'item-row': ['<div><assignee class="au"><list-box class="au"> <div> 0 </div></list-box></assignee></div>',null],
-            'item-row+item-row': ['<div><assignee class="au"><list-box class="au"> <div> 1 </div></list-box></assignee></div>',null],
-            'item-row+item-row+item-row': ['<div><assignee class="au"><list-box class="au"> <div> 2 </div></list-box></assignee></div>',null],
+            'item-row': ['<div><assignee class="au"><list-box class="au"><div> 0 </div></list-box></assignee></div>',null],
+            'item-row+item-row': ['<div><assignee class="au"><list-box class="au"><div> 1 </div></list-box></assignee></div>',null],
+            'item-row+item-row+item-row': ['<div><assignee class="au"><list-box class="au"><div> 2 </div></list-box></assignee></div>',null],
           },
         );
       }
@@ -1097,7 +1096,10 @@ describe('au-slot', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        { 'my-element': [
+          '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+          new AuSlotsInfo(['content'])
+        ]},
       );
 
       yield new TestData(
@@ -1116,7 +1118,7 @@ describe('au-slot', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
       );
 
       yield new TestData(
@@ -1135,7 +1137,12 @@ describe('au-slot', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        {
+          'my-element': [
+            '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+            new AuSlotsInfo(['content'])
+          ],
+        }
       );
 
       // tag: nonsense-example
@@ -1263,7 +1270,14 @@ describe('au-slot', function () {
         [
           createMyElement(`<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>`),
         ],
-        { 'my-element': ['mis-projected bar dfb|s1fb', new AuSlotsInfo([])] },
+        // 2 au slots should go into the default slot
+        // causing the default to disappear
+        // so the projection should be
+        // fallback of <au-slot name=s1>
+        // + fallback of <au-slot name=foo>
+        // + |
+        // + fallback of <au-slot name=s1>
+        { 'my-element': ['mis-projected bar |s1fb', new AuSlotsInfo(['default'])] },
       );
 
       // tag: nonsense-example
@@ -1365,19 +1379,32 @@ describe('au-slot', function () {
             name: 'parent-element', isStrictBinding: true,
             template: `<child-element>
               <div id="3" au-slot="x"><au-slot name="x">p1</au-slot></div>
-              <au-slot name="x"><div id="4" au-slot="x">p2</div></au-slot>
+              <au-slot au-slot="x" name="x"><div id="4" au-slot="x">p2</div></au-slot>
             </child-element>`
           }, class ParentElement { }),
         ],
         /**
          * Explanation:
-         * - The first `<div id="1"> p </div>` is caused by `mis-projection`.
          * - The `<div id="3"><div id="1"> p </div></div>` is caused by the `chained-projection`.
+         * - The 2nd `<div id="1"> p </div>` is caused by `mis-projection`.
          * See the respective tagged test cases to understand the simpler examples first.
          * The `ROOT>parent-element>au-slot` in this case is a no-op, as `<au-slot>` cannot be used provide projection.
          * However if the root instead is used a normal CE in another CE, the same au-slot then advertise projection slot.
          */
-        { '': ['<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>', null] },
+        {
+          // '': ['<parent-element class="au"><child-element class="au"> <div id="1">p</div><div id="3"><div id="1">p</div></div></child-element></parent-element>', null],
+          '': [
+            <parent-element class="au">
+              <child-element class="au">
+                <div id="3">
+                  <div id="1"> p </div>
+                </div>
+                <div id="1"> p </div>
+              </child-element>
+            </parent-element>,
+            null
+          ],
+        },
       );
 
       {
@@ -1513,8 +1540,8 @@ describe('au-slot', function () {
           `<elem text="1"></elem><elem text="2"></elem>`,
           [Elem, Notch, Child],
           {
-            'elem': ['Parent 1 <notch class="au"> Notch <child class="au">Id: 0. Child 1</child></notch> 0', null],
-            'elem+elem': ['Parent 2 <notch class="au"> Notch <child class="au">Id: 1. Child 2</child></notch> 1', null],
+            'elem': ['Parent 1 <notch class="au">Notch <child class="au">Id: 0. Child 1</child></notch> 0', null],
+            'elem+elem': ['Parent 2 <notch class="au">Notch <child class="au">Id: 1. Child 2</child></notch> 1', null],
           }
         );
       }
@@ -1831,21 +1858,20 @@ describe('au-slot', function () {
     {
       yield new TestData(
         'works with 2 layers of slot[default] pass through',
-        `<mdc-tab-bar
-          ><template au-slot
-            ><mdc-tab click.trigger="fn()">\${callCount}`,
+        `<mdc-tab-bar>
+          <template au-slot><mdc-tab click.trigger="fn()">\${callCount}`,
         [
           CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
           CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
-          CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+          CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
         ],
         {
-          'mdc-tab': ['0<button>Tab</button>', undefined]
+          'mdc-tab': ['<button>0Tab</button>', undefined]
         },
         function ({ host, platform }) {
           host.querySelector<HTMLElement>('mdc-tab').click();
           platform.domWriteQueue.flush();
-          assert.html.innerEqual(host.querySelector('mdc-tab'), '1<button>Tab</button>');
+          assert.html.innerEqual(host.querySelector('mdc-tab'), '<button>1Tab</button>');
         }
       );
     }
@@ -1869,22 +1895,22 @@ describe('au-slot', function () {
           }),
             CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
             CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
-            CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+            CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
         ],
         {
-          '#mdc-0': ['0<button>Tab</button>', undefined],
-          '#mdc-1': ['0<button>Tab</button>', undefined]
+          '#mdc-0': ['<button>0Tab</button>', undefined],
+          '#mdc-1': ['<button>0Tab</button>', undefined]
         },
         function ({ host, platform }) {
           host.querySelector<HTMLElement>('#mdc-0').click();
           platform.domWriteQueue.flush();
-          assert.html.innerEqual(host.querySelector('#mdc-0'), '1<button>Tab</button>');
-          assert.html.innerEqual(host.querySelector('#mdc-1'), '0<button>Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>0Tab</button>');
 
           host.querySelector<HTMLElement>('#mdc-1').click();
           platform.domWriteQueue.flush();
-          assert.html.innerEqual(host.querySelector('#mdc-0'), '1<button>Tab</button>');
-          assert.html.innerEqual(host.querySelector('#mdc-1'), '1<button>Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
+          assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>1Tab</button>');
         },
       );
     }
@@ -1907,36 +1933,36 @@ describe('au-slot', function () {
           }),
             CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
             CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><au-slot au-slot></au-slot></mdc-tab-scroller>' }),
-            CustomElement.define({ name: 'mdc-tab', template: '<button>Tab</button>' }),
+            CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
         ],
         {
-          '#mdc-0-0': ['0<button>Tab</button>', undefined],
-          '#mdc-0-1': ['1<button>Tab</button>', undefined],
-          '#mdc-0-2': ['2<button>Tab</button>', undefined],
-          '#mdc-1-0': ['0<button>Tab</button>', undefined],
-          '#mdc-1-1': ['1<button>Tab</button>', undefined],
-          '#mdc-1-2': ['2<button>Tab</button>', undefined],
+          '#mdc-0-0': ['<button>0Tab</button>', undefined],
+          '#mdc-0-1': ['<button>1Tab</button>', undefined],
+          '#mdc-0-2': ['<button>2Tab</button>', undefined],
+          '#mdc-1-0': ['<button>0Tab</button>', undefined],
+          '#mdc-1-1': ['<button>1Tab</button>', undefined],
+          '#mdc-1-2': ['<button>2Tab</button>', undefined],
         },
         function ({ host, platform }) {
           const [tab00, tab01, tab02, tab10, tab11, tab12] = Array.from(host.querySelectorAll<HTMLElement>('mdc-tab'));
 
           tab00.click();
           platform.domWriteQueue.flush();
-          assert.html.innerEqual(tab00, '1<button>Tab</button>');
-          assert.html.innerEqual(tab01, '2<button>Tab</button>');
-          assert.html.innerEqual(tab02, '3<button>Tab</button>');
-          assert.html.innerEqual(tab10, '0<button>Tab</button>');
-          assert.html.innerEqual(tab11, '1<button>Tab</button>');
-          assert.html.innerEqual(tab12, '2<button>Tab</button>');
+          assert.html.innerEqual(tab00, '<button>1Tab</button>');
+          assert.html.innerEqual(tab01, '<button>2Tab</button>');
+          assert.html.innerEqual(tab02, '<button>3Tab</button>');
+          assert.html.innerEqual(tab10, '<button>0Tab</button>');
+          assert.html.innerEqual(tab11, '<button>1Tab</button>');
+          assert.html.innerEqual(tab12, '<button>2Tab</button>');
 
           tab10.click();
           platform.domWriteQueue.flush();
-          assert.html.innerEqual(tab00, '1<button>Tab</button>');
-          assert.html.innerEqual(tab01, '2<button>Tab</button>');
-          assert.html.innerEqual(tab02, '3<button>Tab</button>');
-          assert.html.innerEqual(tab10, '1<button>Tab</button>');
-          assert.html.innerEqual(tab11, '2<button>Tab</button>');
-          assert.html.innerEqual(tab12, '3<button>Tab</button>');
+          assert.html.innerEqual(tab00, '<button>1Tab</button>');
+          assert.html.innerEqual(tab01, '<button>2Tab</button>');
+          assert.html.innerEqual(tab02, '<button>3Tab</button>');
+          assert.html.innerEqual(tab10, '<button>1Tab</button>');
+          assert.html.innerEqual(tab11, '<button>2Tab</button>');
+          assert.html.innerEqual(tab12, '<button>3Tab</button>');
         },
       );
     }
@@ -1974,21 +2000,31 @@ describe('au-slot', function () {
     (only ? $it.only : $it)(spec,
       async function (ctx) {
         const { host, error } = ctx;
-        assert.deepEqual(error, null);
-        for (const [selector, [expectedInnerHtml, expectedAuSlotsInfo]] of Object.entries(expected)) {
-          if (selector) {
-            assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
-          } else {
-            assert.html.innerEqual(host, expectedInnerHtml, `root.innerHTML`);
-          }
+        try {
+          assert.deepEqual(error, null);
+          for (const [selector, [expectedInnerHtml, expectedAuSlotsInfo]] of Object.entries(expected)) {
+            if (selector) {
+              assert.html.innerEqual(
+                selector,
+                typeof expectedInnerHtml === 'string' ? expectedInnerHtml : expectedInnerHtml.outerHTML,
+                `${selector}.innerHTML`,
+                host
+              );
+            } else {
+              assert.html.innerEqual(host, typeof expectedInnerHtml === 'string' ? expectedInnerHtml : expectedInnerHtml.outerHTML, `root.innerHTML`);
+            }
 
-          if (expectedAuSlotsInfo != null) {
-            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
-            assert.deepStrictEqual(slots, expectedAuSlotsInfo);
+            if (expectedAuSlotsInfo != null) {
+              const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
+              assert.deepStrictEqual(slots, expectedAuSlotsInfo);
+            }
           }
-        }
-        if (additionalAssertion != null) {
-          await additionalAssertion(ctx);
+          if (additionalAssertion != null) {
+            await additionalAssertion(ctx);
+          }
+        } catch (ex) {
+          host.remove();
+          throw ex;
         }
       },
       { template, registrations });
@@ -2036,4 +2072,39 @@ describe('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="fn()">Click</button></my-element>`, registrations: [MyElement] });
     });
   }
+
+  @customElement({
+    name: 'my-el',
+    template: '<p>my-el content: <au-slot></au-slot></p>'
+  })
+  class El {}
+
+  it('treats CE content without slot as default slotting', async function () {
+    const { assertText } = await createFixture
+      .html`<my-el>hello</my-el>`
+      .deps(El)
+      .build().started;
+
+    assertText('my-el content: hello');
+  });
+
+  it('treats interpolation without slot as default slotting', async function () {
+    const { assertText } = await createFixture
+      .component({ message: 'hello' })
+      .html('<my-el>${message}</my-el>')
+      .deps(El)
+      .build().started;
+
+    assertText('my-el content: hello');
+  });
+
+  it('treats CE content without slot inside TC as default slotting', async function () {
+    const { assertText, assertHtml } = await createFixture
+      .html`<my-el><a if.bind="true">hello</a></my-el>`
+      .deps(El)
+      .build().started;
+
+    assertText('p', 'my-el content: hello');
+    assertHtml('p > a', 'hello');
+  });
 });

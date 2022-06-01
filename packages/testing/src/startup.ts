@@ -3,6 +3,7 @@ import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
+import { hJsx } from './h';
 import { TestContext } from './test-context';
 
 const fixtureHooks = new EventAggregator();
@@ -153,6 +154,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public component = component;
     public observerLocator = observerLocator;
     public logger = container.get(ILogger);
+    public hJsx = hJsx.bind(ctx.doc);
 
     public async start() {
       await au.app({ host: host, component }).start();
@@ -260,6 +262,8 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertHtml(selector: string, html: string): void;
+
+  hJsx(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]): HTMLElement;
 
   trigger: ITrigger;
 

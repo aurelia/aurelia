@@ -437,13 +437,6 @@ export class RoutingScope {
         coordinator.appendedInstructions = coordinator.appendedInstructions.filter(instr => !instr.default);
       }
 
-      // If there are any unresolved components (promises) to be appended, resolve them
-      const unresolved = coordinator.appendedInstructions.filter(instr => instr.component.isPromise());
-      if (unresolved.length > 0) {
-        // TODO(alpha): Fix type here
-        await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
-      }
-
       // Dequeue any instructions appended to the coordinator and add to either matched or
       // remaining. Default instructions aren't added if there's already a non-default
       ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
@@ -465,6 +458,12 @@ export class RoutingScope {
           // ...or create the (remaining) implicit clear instructions (if any).
           matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(router, endpoint));
         }
+      }
+      // If there are any unresolved components (functions or promises) to be appended, resolve them
+      const unresolved = matchedInstructions.filter(instr => instr.component.isFunction() || instr.component.isPromise());
+      if (unresolved.length > 0) {
+        // TODO(alpha): Fix type here
+        await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
       }
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 
@@ -793,22 +792,29 @@ export class RoutingScope {
     if (path.startsWith('/') || path.startsWith('+')) {
       path = path.slice(1);
     }
-    const recognizer = new RouteRecognizer();
 
-    recognizer.add(cRoutes);
-    const result = recognizer.recognize(path);
-    if (result !== null) {
+    const idRoute = routes.find(route => route.id === path);
+    let result = { params: {}, endpoint: {} } as any;
+    if (idRoute != null) {
+      result.endpoint = { route: { handler: idRoute } };
+    } else {
+      const recognizer = new RouteRecognizer();
+
+      recognizer.add(cRoutes);
+      result = recognizer.recognize(path);
+    }
+    if (result != null) {
       found.match = result.endpoint.route.handler;
       found.matching = path;
       const $params = { ...result.params };
-      if ($params.remainingPath !== void 0) {
+      if ($params.remainingPath != null) {
         found.remaining = $params.remainingPath;
         Reflect.deleteProperty($params, 'remainingPath');
         found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
       }
       found.params = $params;
-      if (found.match.redirectTo !== null) {
-        let redirectedTo = found.match.redirectTo;
+      if (found.match?.redirectTo != null) {
+        let redirectedTo = found.match?.redirectTo;
         if ((found.remaining ?? '').length > 0) {
           redirectedTo += `/${found.remaining}`;
         }

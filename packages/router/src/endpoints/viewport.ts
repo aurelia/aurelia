@@ -353,8 +353,15 @@ export class Viewport extends Endpoint {
       }
     }
 
-    if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && this.options.default) {
-      const instructions = RoutingInstruction.parse(this.router, this.options.default);
+    const parentDefaultRoute = (this.scope.parent?.endpoint.getRoutes() ?? []).filter(route => route.path === '').length > 0;
+    if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && (this.options.default || parentDefaultRoute)) {
+      const instructions = RoutingInstruction.parse(this.router, this.options.default ?? '');
+      if (instructions.length === 0 && parentDefaultRoute) {
+        const foundRoute = this.scope.parent?.findInstructions([RoutingInstruction.create('') as RoutingInstruction], false, this.router.configuration.options.useConfiguredRoutes);
+        if (foundRoute?.foundConfiguration) {
+          instructions.push(...foundRoute.instructions);
+        }
+      }
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
         instruction.endpoint.set(this);

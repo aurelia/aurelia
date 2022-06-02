@@ -27,10 +27,6 @@ export const RESIDUE = 'au$residue' as const;
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
 export class RouteContext {
-  public get id(): number {
-    return this.container.id;
-  }
-
   private readonly childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
   public get isRoot(): boolean {
@@ -115,6 +111,7 @@ export class RouteContext {
   private readonly logger: ILogger;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
   private readonly recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
+  private _childRoutesConfigured: boolean = false;
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -155,16 +152,28 @@ export class RouteContext {
     container.register(...component.dependencies);
 
     this.recognizer = new RouteRecognizer();
+    this.processDefinition(definition);
+  }
 
+  private processDefinition(definition: RouteDefinition): void {
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
-    for (const child of definition.config.routes) {
+    const children = definition.config.routes;
+    const len = children.length;
+    if(len === 0) {
+      const getRouteConfig = (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
+      this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
+      return;
+    }
+    let i = 0;
+    for (; i < len; i++) {
+      const child = children[i];
       if (child instanceof Promise) {
         const p = this.addRoute(child);
         promises.push(p);
         allPromises.push(p);
       } else {
-        const routeDef = RouteDefinition.resolve(child, definition, this);
+        const routeDef = RouteDefinition.resolve(child, definition, null, this);
         if (routeDef instanceof Promise) {
           if (isPartialChildRouteConfig(child) && child.path != null) {
             for (const path of ensureArrayOfStrings(child.path)) {
@@ -187,6 +196,7 @@ export class RouteContext {
         }
       }
     }
+    this._childRoutesConfigured = true;
 
     if (promises.length > 0) {
       this._resolved = Promise.all(promises).then(() => {
@@ -224,7 +234,7 @@ export class RouteContext {
     }
 
     const router = container.get(IRouter);
-    const routeContext = router.getRouteContext(null, controller.definition, controller.container, null);
+    const routeContext = router.getRouteContext(null, controller.definition, controller.viewModel, controller.container, null);
     container.register(Registration.instance(IRouteContext, routeContext));
     routeContext.node = router.routeTree.root;
   }
@@ -309,8 +319,12 @@ export class RouteContext {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
-    const routeDefinition = RouteDefinition.resolve(routeNode.component, this.definition);
-    const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component!.key);
+    const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
+    // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
+    if(!this._childRoutesConfigured) {
+      const routeDef = RouteDefinition.resolve(componentInstance, this.definition, routeNode);
+      this.processDefinition(routeDef);
+    }
     const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
 
     this.hostControllerProvider.dispose();
@@ -368,11 +382,11 @@ export class RouteContext {
     return new $RecognizedRoute(result!, residue);
   }
 
-  public addRoute(routeable: Promise<IModule>): Promise<void>;
-  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
-  public addRoute(routeable: Routeable): void | Promise<void> {
+  private addRoute(routeable: Promise<IModule>): Promise<void>;
+  private addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
+  private addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
-    return onResolve(RouteDefinition.resolve(routeable, this.definition, this), routeDef => {
+    return onResolve(RouteDefinition.resolve(routeable, this.definition, null, this), routeDef => {
       for (const path of routeDef.path) {
         this.$addRoute(path, routeDef.caseSensitive, routeDef);
       }

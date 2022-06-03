@@ -88,6 +88,7 @@ export {
   type HistoryStrategy,
   type SameUrlStrategy,
   NavigationModel,
+  NavigationRoute,
 } from './router';
 
 export {

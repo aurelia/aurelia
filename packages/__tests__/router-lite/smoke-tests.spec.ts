@@ -1381,13 +1381,13 @@ describe('router (smoke tests)', function () {
         name: 'nav-bar',
         template: `<nav>
         <ul>
-          <li repeat.for="item of navModel"><a href.bind="item.path | firstNonEmpty" active.class="item.isActive">\${item.title}</a></li>
+          <li repeat.for="route of navModel.routes"><a href.bind="route.path | firstNonEmpty" active.class="route.isActive">\${route.title}</a></li>
         </ul>
       </nav>`,
         dependencies: [FirstNonEmpty]
       })
       class NavBar implements ICustomElementViewModel {
-        private navModel: NavigationModel[];
+        private navModel: NavigationModel;
         private readonly prom: Promise<void>;
 
         public constructor(
@@ -1396,16 +1396,12 @@ describe('router (smoke tests)', function () {
           @INode private readonly node: HTMLElement,
         ) { }
 
-        public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
-          return this.router.getNavigationModel(this.routeCtx)
-            .then(data => { this.navModel = data; });
+        public async binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): Promise<void> {
+          this.navModel = await this.router.getNavigationModel(this.routeCtx);
         }
 
         public unbinding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
-          for (const item of this.navModel) {
-            item.dispose();
-          }
-          this.navModel.length = 0;
+          this.navModel.dispose();
         }
 
         public assert(expected: { href: string; text: string; active?: boolean }[], message: string = ''): void {

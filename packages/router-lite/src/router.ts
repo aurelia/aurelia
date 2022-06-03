@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -610,31 +610,27 @@ export class Router {
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
   }
 
-  public async getNavigationModel(context: IRouteContext = this.routeTree.root.context): Promise<NavigationModel[]> {
-    const models: NavigationModel[] = [];
+  public getNavigationModel(context: IRouteContext = this.routeTree.root.context): Promise<NavigationModel> | NavigationModel {
     const routeDefs = context.childRoutes;
     const len = routeDefs.length;
 
-    if (len === 0) return models;
+    if (len === 0) return new NavigationModel(context, this, [], this.events);
 
-    const promises = new Array<Promise<void> | void>(len);
-    for (let i = 0; i < len; i++) {
-      promises[i] = onResolve(routeDefs[i], routeDef => {
-        const config = routeDef.config;
-        if(!config.nav) return;
-        models.push(new NavigationModel(
-          routeDef.id,
-          routeDef.path,
-          config.title,
-          routeDef.data,
-          context,
-          this,
-          this.events,
-        ));
-      });
-    }
-    await Promise.all(promises);
-    return models;
+    const routes: NavigationRoute[] = [];
+    return onResolve(resolveAll(
+      ...routeDefs
+        .map($routeDef => onResolve(
+          $routeDef,
+          routeDef => {
+            const config = routeDef.config;
+            if (!config.nav) return;
+            routes.push(new NavigationRoute(
+              routeDef.id,
+              routeDef.path,
+              config.title,
+              routeDef.data,
+            ));
+          }))), () => new NavigationModel(context, this, routes, this.events));
   }
 
   /**
@@ -942,29 +938,44 @@ export class Router {
 
 export class NavigationModel implements IDisposable {
   private readonly navigationEndListener: IDisposable;
-  private _isActive!: boolean;
   public constructor(
-    public readonly id: string,
-    public readonly path: string[],
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly data: Params | null,
     private readonly _context: IRouteContext,
     private readonly _router: IRouter,
+    public readonly routes: NavigationRoute[],
     events: IRouterEvents,
   ) {
     this.navigationEndListener = events.subscribe('au:router:navigation-end', _ => this.setIsActive());
     this.setIsActive();
   }
 
-  public get isActive(): boolean {
-    return this._isActive;
-  }
-
   private setIsActive(): void {
-    this._isActive = this.path.some(path => this._router.isActive(path, this._context));
+    const router = this._router;
+    const context = this._context;
+    for (const route of this.routes) {
+      route.setIsActive(router, context);
+    }
   }
 
   public dispose(): void {
     this.navigationEndListener.dispose();
+  }
+}
+
+export class NavigationRoute {
+  private _isActive!: boolean;
+  public constructor(
+    public readonly id: string,
+    public readonly path: string[],
+    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    public readonly data: Params | null,
+  ) { }
+
+  public get isActive(): boolean {
+    return this._isActive;
+  }
+
+  /** @internal */
+  public setIsActive(router: IRouter, context: IRouteContext): void {
+    this._isActive = this.path.some(path => router.isActive(path, context));
   }
 }

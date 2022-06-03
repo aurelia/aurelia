@@ -1365,7 +1365,7 @@ describe('router (smoke tests)', function () {
 
   // TODO(sayan): add tests here for the location URL building in relation for sibling, parent/children relationship and viewport name
 
-  describe.only('navigation plan', function () {
+  describe('navigation plan', function () {
 
     function getNavBarCe() {
       @valueConverter('firstNonEmpty')

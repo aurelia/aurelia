@@ -289,6 +289,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* location       */null
     );
 
+    if (definition.dependencies.length > 0) {
+      ctn.register(...definition.dependencies);
+    }
+
     controllerLookup.set(viewModel, controller as Controller);
 
     controller._hydrateCustomAttribute();
@@ -476,6 +480,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (instance as Writable<C>).$controller = this;
     this.lifecycleHooks = LifecycleHooks.resolve(this.container);
 
+    if (this.lifecycleHooks!.created !== void 0) {
+      this.lifecycleHooks!.created.forEach(callCreatedHook, this);
+    }
     if (this.hooks.hasCreated) {
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomAttributeController);

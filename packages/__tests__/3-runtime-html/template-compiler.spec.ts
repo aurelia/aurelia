@@ -895,6 +895,7 @@ function createCustomAttribute(
     capture: false,
     watches: [],
     processContent: null,
+    dependencies: [],
   };
   return [input, output];
 }

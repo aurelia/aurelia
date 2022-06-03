@@ -1,4 +1,4 @@
-import { Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { Registration, mergeArrays, firstDefined, Key } from '@aurelia/kernel';
 import { BindingMode, registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
@@ -44,6 +44,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
    */
   readonly noMultiBindings?: boolean;
   readonly watches?: IWatchDefinition[];
+  readonly dependencies?: readonly Key[];
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
@@ -107,6 +108,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
+    public readonly dependencies: Key[],
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -133,6 +135,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
     );
   }
 

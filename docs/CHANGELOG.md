@@ -3,24 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-<a name="2.0.0-alpha.34"></a>
-# 2.0.0-alpha.34 (2022-06-02)
-
-### Features:
-
-* **router-lite:** getRouteConfig hook (#1439) ([3481d7e](https://github.com/aurelia/aurelia/commit/3481d7e))
-
-
-### BREAKING CHANGES:
-
-* **compiler:** remove no-action mode for custom element content (#1438) ([f9c8170](https://github.com/aurelia/aurelia/commit/f9c8170))
-
-  Prior to this change, the default template compiler has a compilation mode where content of a custom element is left intact, and compiled as is. This can be understood as no slot mode, where it the behavior is neither shadow DOM or au-slot. Now it's always assumed that au-slot is the behavior, unless `shadowOptions` is present in the element definition.
-
-* **router-lite**: default transition strategy is now `replace`, changed from `invoke-lifecycle`.
-
-  This change is to make it clearer what happens when there's a routing action.
-
 <a name="2.0.0-alpha.33"></a>
 # 2.0.0-alpha.33 (2022-05-26)
 

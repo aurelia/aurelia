@@ -3,11 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-<a name="2.0.0-alpha.34"></a>
-# 2.0.0-alpha.34 (2022-06-02)
-
-**Note:** Version bump only for package @aurelia/platform-browser
-
 <a name="2.0.0-alpha.33"></a>
 # 2.0.0-alpha.33 (2022-05-26)
 

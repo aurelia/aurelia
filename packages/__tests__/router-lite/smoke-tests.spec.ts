@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions, IRouterEvents, NavigationModel, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, IRouterOptions, NavigationModel, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
 import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, LifecycleFlags, StandardConfiguration } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';

@@ -1,6 +1,6 @@
 import { ValueConverter } from '@aurelia/runtime';
 import { customAttribute, customElement, ICustomAttributeController } from '@aurelia/runtime-html';
-import { StateDefaultConfiguration, fromStore } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -330,7 +330,7 @@ describe('state/state.spec.ts', function () {
     it('works on custom element', async function () {
       @customElement({ name: 'my-el', template: `<input value.bind="text">` })
       class MyEl {
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         text: string;
       }
 
@@ -348,7 +348,7 @@ describe('state/state.spec.ts', function () {
       class MyAttr {
         $controller: ICustomAttributeController;
 
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         set text(v: string) {
           this.$controller.host.setAttribute('hello', 'world');
         }
@@ -360,13 +360,13 @@ describe('state/state.spec.ts', function () {
         .deps(MyAttr, StateDefaultConfiguration.init(state))
         .build().started;
 
-      assert.strictEqual(queryBy('div[hello=world]'), null);
+      assert.notStrictEqual(queryBy('div[hello=world]'), null);
     });
 
     it('updates when state changed', async function () {
       @customElement({ name: 'my-el', template: `<input value.bind="text" input.dispatch="{ type: 'input', params: [$event.target.value] }">` })
       class MyEl {
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         text: string;
       }
 

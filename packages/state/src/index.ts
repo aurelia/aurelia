@@ -30,4 +30,4 @@ export {
 } from './state-templating';
 
 export { StateBindingBehavior } from './state-binding-behavior';
-export { fromStore } from './state-decorator';
+export { fromState } from './state-decorator';

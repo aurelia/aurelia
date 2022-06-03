@@ -1388,12 +1388,10 @@ describe('router (smoke tests)', function () {
       })
       class NavBar implements ICustomElementViewModel {
         private navModel: NavigationModel;
-        private readonly prom: Promise<void>;
-
         public constructor(
           @IRouter private readonly router: IRouter,
           @IRouteContext private readonly routeCtx: IRouteContext,
-          @INode private readonly node: HTMLElement,
+          @INode private readonly node: INode,
         ) { }
 
         public async binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): Promise<void> {
@@ -1405,7 +1403,7 @@ describe('router (smoke tests)', function () {
         }
 
         public assert(expected: { href: string; text: string; active?: boolean }[], message: string = ''): void {
-          const anchors = Array.from(this.node.querySelector('nav').querySelectorAll<HTMLAnchorElement>('a'));
+          const anchors = Array.from((this.node as HTMLElement).querySelector('nav').querySelectorAll<HTMLAnchorElement>('a'));
           const len = anchors.length;
           assert.strictEqual(len, expected.length, `${message} length`);
           for (let i = 0; i < len; i++) {

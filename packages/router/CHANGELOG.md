@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.34"></a>
+# 2.0.0-alpha.34 (2022-06-03)
+
+### Features:
+
+* **router:** add default route to child viewports (#1444) ([b574851](https://github.com/aurelia/aurelia/commit/b574851))
+
 <a name="2.0.0-alpha.33"></a>
 # 2.0.0-alpha.33 (2022-05-26)
 

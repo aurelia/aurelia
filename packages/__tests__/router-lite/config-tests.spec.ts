@@ -1,11 +1,13 @@
-import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, ResolutionMode, route, Route } from '@aurelia/router-lite';
-import { assert } from '@aurelia/testing';
+import { Aurelia, CustomElement, customElement, ICustomElementController } from '@aurelia/runtime-html';
+import { IRouteConfig, IRouter, IRouterOptions, IRouteViewModel, ResolutionMode, route, Route, RouteDefinition, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { assert, TestContext } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
 import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models.js';
 import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec.js';
 import { createFixture, IActivityTracker } from './_shared/create-fixture.js';
+import { LogLevel } from '@aurelia/kernel';
+import { TestRouterConfiguration } from './_shared/configuration.js';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -511,6 +513,77 @@ describe('router config', function () {
         parentPath: 'root',
       }));
     });
+  });
+
+  it('routes can be configured using the getRouteConfig hook', async function () {
+
+    @customElement({name: 'ce-c1', template: 'c1'})
+    class C1 { }
+    @customElement({name: 'ce-c2', template: 'c2'})
+    class C2 { }
+    @customElement({ name: 'ce-p', template: 'p <au-viewport></au-viewport>' })
+    class P implements IRouteViewModel {
+      public getRouteConfigCalled: number = 0;
+
+      public getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig {
+        assert.notEqual(parentDefinition, null, 'P parentDefinition');
+        assert.notEqual(routeNode, null, 'P routeNode');
+        assert.strictEqual(this.getRouteConfigCalled, 0);
+        this.getRouteConfigCalled++;
+        return {
+          routes:[
+            { path:'c1', component: C1 },
+            { path:'c2', component: C2 },
+          ]
+        };
+      }
+
+    }
+    @customElement({ name: 'ro-ot', template: 'root <au-viewport></au-viewport>' })
+    class Root implements IRouteViewModel {
+      public getRouteConfigCalled: number = 0;
+
+      public getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig {
+        assert.strictEqual(parentDefinition, null, 'root parentDefinition');
+        assert.strictEqual(routeNode, null, 'root routeNode');
+        assert.strictEqual(this.getRouteConfigCalled, 0);
+        this.getRouteConfigCalled++;
+        return {
+          routes:[
+            { path:'p', component: P }
+          ]
+        };
+      }
+    }
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      C1,
+      C2,
+      P,
+      Root,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    await au.app({ component: Root, host }).start();
+
+    const router = container.get(IRouter);
+
+    await router.load('p/c1');
+    assert.html.textContent(host, 'root p c1');
+
+    await router.load('p/c2');
+    assert.html.textContent(host, 'root p c2');
+
+    assert.strictEqual((au.root.controller.viewModel as Root).getRouteConfigCalled, 1);
+    assert.strictEqual(CustomElement.for<P>(host.querySelector('ce-p')).viewModel.getRouteConfigCalled, 1);
+
+    await au.stop();
   });
 });
 

@@ -87,7 +87,7 @@ export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
 export type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);
 export function defaultReentryBehavior(current: RouteNode, next: RouteNode): TransitionPlan {
   if (!shallowEquals(current.params, next.params)) {
-    return 'invoke-lifecycles';
+    return 'replace';
   }
 
   return 'none';

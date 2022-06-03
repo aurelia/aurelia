@@ -63,29 +63,69 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
     });
   });
 
-  it('does not invokes global created hooks', async function () {
+  describe('custom attributes', function () {
     const caHooksSymbol = Symbol();
     let current: Square | null = null;
+
+    this.beforeEach(function () {
+      current = null;
+    });
 
     @customAttribute('square')
     class Square {
       $controller: ICustomAttributeController;
       created() {
-        assert.notStrictEqual(this[hookSymbol], hookSymbol);
         this[caHooksSymbol] = true;
         current = this;
       }
     }
 
-    const baseTemplate = `<div square>`;
+    it('invokes global created hooks', async function () {
+      await createFixture
+        .html`<div square>`
+        .deps(Square, CreatedLoggingHook)
+        .build().started;
 
-    await createFixture
-      .html`${baseTemplate}`
-      .deps(Square, CreatedLoggingHook)
-      .build().started;
+      assert.instanceOf(current, Square);
+      assert.strictEqual(current[hookSymbol], hookSymbol);
+      assert.strictEqual(current?.[caHooksSymbol], true);
+    });
 
-    assert.instanceOf(current, Square);
-    assert.strictEqual(current?.[caHooksSymbol], true);
+    it('does not invokes created hooks on owning CE', async function () {
+      await createFixture
+        .html`<square>`
+        .deps(CustomElement.define({
+          name: 'square',
+          template: '<div square>',
+          dependencies: [Square]
+        }))
+        .build().started;
+
+      assert.instanceOf(current, Square);
+      assert.notStrictEqual(current[hookSymbol], hookSymbol);
+      assert.strictEqual(current?.[caHooksSymbol], true);
+    });
+
+    it('invokes own created hooks deps', async function () {
+      let attr: Attr;
+      @customAttribute({
+        name: 'attr',
+        dependencies: [CreatedLoggingHook]
+      })
+      class Attr {
+        created() {
+          attr = this;
+        }
+      }
+
+      await createFixture
+        .html`<div attr>`
+        .deps(Attr)
+        .build().started;
+
+      assert.instanceOf(attr, Attr);
+      assert.strictEqual(attr[hookSymbol], hookSymbol);
+    });
   });
 
   class LifeycyleTracker {

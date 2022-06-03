@@ -109,7 +109,7 @@ static content
 
 <!-- Usage with projection -->
 <my-element>
-  <div au-slot>d</div>        <!-- using `au-slot="default"` explicitly also works. -->
+  <div>d</div>        <!-- using `au-slot="default"` explicitly also works. -->
   <div au-slot="s1">p1</div>
 </my-element>
 <!-- Rendered (simplified): -->
@@ -137,23 +137,20 @@ static content
 
 In the example above, the `my-element` custom element defines two slots: one default, and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is therefore also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
 
-An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory (a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](broken-reference) for an example transformation function.). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
+Similar to native shadow DOM and `<slot/>`/`[slot]` pair, `[au-slot]` attribute is not mandatory if you are targeting the default slot. All content without explicit `[au-slot]` is treated as targeting the default slot. Having no `[au-slot]` is also equal to having explicit `au-slot` on the content:
 
 {% code title="my-app.html" %}
 ```markup
 <template as-custom-element="my-element">
-  <au-slot name="s1">s1fb</au-slot>
   <au-slot>dfb</au-slot>
 </template>
 
-<!-- Is not projected to any slot. -->
-<my-element><div>projection</div></my-element>
+
+<my-element><div au-slot>projection</div></my-element>
 <!-- Rendered (simplified): -->
 <!--
   <my-element>
     <div>projection</div>
-    s1fb
-    dfb
   </my-element>
 -->
 ```

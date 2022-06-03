@@ -1,8 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../global.d.ts" />
 export {
-  // only exception for now for hmr, remove soon
+  // todo: only exception for now for hmr, remove
   LifecycleFlags,
+  // todo: only exception for convention, remove
+  valueConverter,
+  bindingBehavior,
 } from '@aurelia/runtime';
 export {
   bindable,

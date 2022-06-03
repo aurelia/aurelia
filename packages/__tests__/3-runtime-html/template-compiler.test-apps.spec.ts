@@ -10,7 +10,7 @@ import {
 } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
-describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
+describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
     if (PLATFORM.navigator.userAgent.includes('jsdom')) {
       return;

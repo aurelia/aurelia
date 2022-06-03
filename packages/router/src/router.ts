@@ -357,6 +357,9 @@ export class Router implements IRouter {
    * @internal
    */
   public processNavigation = async (navigation: Navigation): Promise<void> => {
+    // To avoid race condition double triggering at refresh
+    this.loadedFirst = true;
+
     const options = this.configuration.options;
 
     // Get and initialize a navigation coordinator that will keep track of all endpoint's progresses
@@ -368,7 +371,7 @@ export class Router implements IRouter {
     // If there are instructions appended between/before any navigation,
     // append them to this navigation. (This happens with viewport defaults
     // during startup.)
-    coordinator.appendedInstructions.push(...this.appendedInstructions);
+    coordinator.appendedInstructions.push(...this.appendedInstructions.splice(0));
 
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
@@ -826,6 +829,10 @@ export class Router implements IRouter {
       this.configuration.options.useUrlFragmentHash) {
       basePath = '';
     }
+    // if (basePath === null || (state !== '' && state[0] === '/') /* ||
+    //   this.configuration.options.useUrlFragmentHash */) {
+    //   basePath = '';
+    // }
 
     const query = ((navigation.query?.length ?? 0) > 0 ? "?" + (navigation.query as string) : '');
     const fragment = ((navigation.fragment?.length ?? 0) > 0 ? "#" + (navigation.fragment as string) : '');

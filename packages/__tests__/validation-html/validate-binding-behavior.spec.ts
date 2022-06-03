@@ -1321,26 +1321,26 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
     }
   );
 
-  $it('works with au-slot - mis-projected part',
-    async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
-      const controller = app.controller;
+  // $it('works with au-slot - mis-projected part',
+  //   async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+  //     const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector('editor #target');
-      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+  //     const target: HTMLInputElement = host.querySelector('editor #target');
+  //     assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-      await controller.validate();
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+  //     await controller.validate();
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
 
-      target.value = 'foo';
-      await assertEventHandler(target, 'change', 0, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      await assertEventHandler(target, 'focusout', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-    },
-    {
-      template: `<editor><input id="target" value.two-way="person.name & validate"></editor>`
-    }
-  );
+  //     target.value = 'foo';
+  //     await assertEventHandler(target, 'change', 0, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+  //     await assertEventHandler(target, 'focusout', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+  //     assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+  //   },
+  //   {
+  //     template: `<editor><input id="target" value.two-way="person.name & validate"></editor>`
+  //   }
+  // );
   // #endregion
 
   const negativeTestData1 = [

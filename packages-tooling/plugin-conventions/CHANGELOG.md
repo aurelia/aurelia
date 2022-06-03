@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.34"></a>
+# 2.0.0-alpha.34 (2022-06-03)
+
+### Bug Fixes:
+
+* **hmr:** prevent compilation hot.invalidate issue (#1441) ([4e5ca74](https://github.com/aurelia/aurelia/commit/4e5ca74))
+* **s the following error : "TS233:** Property 'invalidate' does not exist on type 'Hot'." ([4e5ca74](https://github.com/aurelia/aurelia/commit/4e5ca74))
+
 <a name="2.0.0-alpha.33"></a>
 # 2.0.0-alpha.33 (2022-05-26)
 

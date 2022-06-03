@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.34"></a>
+# 2.0.0-alpha.34 (2022-06-03)
+
+### Refactorings:
+
+* **compiler:** remove no-action mode for custom element content (#1438) ([f9c8170](https://github.com/aurelia/aurelia/commit/f9c8170))
+
 <a name="2.0.0-alpha.33"></a>
 # 2.0.0-alpha.33 (2022-05-26)
 

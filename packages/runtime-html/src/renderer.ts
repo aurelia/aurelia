@@ -586,7 +586,7 @@ export class CustomAttributeRenderer implements IRenderer {
       default:
         def = instruction.res;
     }
-    const component = invokeAttribute(
+    const results = invokeAttribute(
       /* platform         */this._platform,
       /* attr definition  */def,
       /* parentController */renderingCtrl,
@@ -596,8 +596,8 @@ export class CustomAttributeRenderer implements IRenderer {
       /* location         */void 0,
     );
     const childController = Controller.$attr(
-      /* context ct */renderingCtrl.container,
-      /* viewModel  */component,
+      /* context ct */results.ctn,
+      /* viewModel  */results.vm,
       /* host       */target,
       /* definition */def,
     );
@@ -663,7 +663,7 @@ export class TemplateControllerRenderer implements IRenderer {
     }
     const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
     const renderLocation = convertToRenderLocation(target);
-    const component = invokeAttribute(
+    const results = invokeAttribute(
       /* platform         */this._platform,
       /* attr definition  */def,
       /* parentController */renderingCtrl,
@@ -673,15 +673,15 @@ export class TemplateControllerRenderer implements IRenderer {
       /* location         */renderLocation,
     );
     const childController = Controller.$attr(
-      /* container ct */renderingCtrl.container,
-      /* viewModel    */component,
+      /* container ct */results.ctn,
+      /* viewModel    */results.vm,
       /* host         */target,
       /* definition   */def,
     );
 
     setRef(renderLocation, def.key, childController);
 
-    component.link?.(renderingCtrl, childController, target, instruction);
+    results.vm.link?.(renderingCtrl, childController, target, instruction);
 
     const renderers = this._rendering.renderers;
     const props = instruction.props;
@@ -1384,7 +1384,7 @@ function invokeAttribute(
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
-): ICustomAttributeViewModel {
+): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
   ctn.registerResolver(
     p.HTMLElement,
@@ -1408,7 +1408,7 @@ function invokeAttribute(
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
 
-  return ctn.invoke(definition.Type);
+  return { vm: ctn.invoke(definition.Type), ctn };
 }
 
 class RenderLocationProvider implements IResolver {

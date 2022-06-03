@@ -25,25 +25,6 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       },
     },
     {
-      title: 'sets property on custom element bindable',
-      template: `<el on-click.call="a = $event"><span>\${a}</span>`,
-      App: class { public a = 5; },
-      registrations: [
-        CustomElement.define({
-          name: 'el',
-          template: '<button click.trigger="onClick(i = i + 1)">Click me</button>',
-          bindables: ['onClick']
-        }, class El {
-          public i = 0;
-        })
-      ],
-      assertFn: ({ ctx, appHost }) => {
-        appHost.querySelector('button').click();
-        ctx.platform.domWriteQueue.flush();
-        assert.visibleTextEqual(appHost.querySelector('span'), '1');
-      },
-    },
-    {
       title: 'set a property on a custom attribute primary prop syntax',
       template: `<div listener.call="a = $event" listener.ref="attr">\${a}`,
       App: class { public a = 5; },
@@ -75,25 +56,6 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
-    {
-      title: 'sets property on custom element surrogate from bindable',
-      template: `<el on-bla.call="a = $event"><span>\${a}</span>`,
-      App: class { public a = 5; },
-      registrations: [
-        CustomElement.define({
-          name: 'el',
-          template: '<template click.trigger="onBla(i = i + 1)">',
-          bindables: ['onBla']
-        }, class El {
-          public i = 0;
-        })
-      ],
-      assertFn: ({ ctx, appHost }) => {
-        appHost.querySelector<HTMLElement>('el').click();
-        ctx.platform.domWriteQueue.flush();
-        assert.visibleTextEqual(appHost.querySelector('span'), '1');
-      },
-    },
   ];
 
   for (const testCase of testCases) {
@@ -116,4 +78,46 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
     registrations?: unknown[];
     assertFn: (params: { ctx: TestContext; component: T; appHost: HTMLElement }) => void | Promise<void>;
   }
+
+  it('sets property on custom element bindable', async function () {
+    const { trigger, flush, assertText } = await createFixture
+      .component(class { a = 5; })
+      .html`<el on-click.call="a = $event"><span>\${a}</span>`
+      .deps(
+        CustomElement.define({
+          name: 'el',
+          template: '<au-slot></au-slot> <button click.trigger="onClick(i = i + 1)">click me</button>',
+          bindables: ['onClick']
+        }, class El {
+          public i = 0;
+        })
+      )
+      .build().started;
+
+    assertText('5 click me');
+    trigger.click('button');
+    flush();
+    assertText('1 click me');
+  });
+
+  it('sets property on custom element surrogate from bindable', async function () {
+    const { trigger, flush, assertText } = await createFixture
+      .component(class { a = 5; })
+      .html`<el on-bla.call="a = $event"><span>\${a}</span>`
+      .deps(
+        CustomElement.define({
+          name: 'el',
+          template: '<template click.trigger="onBla(i = i + 1)"><au-slot>',
+          bindables: ['onBla']
+        }, class El {
+          public i = 0;
+        })
+      )
+      .build().started;
+
+    assertText('5');
+    trigger.click('el');
+    flush();
+    assertText('1');
+  });
 });

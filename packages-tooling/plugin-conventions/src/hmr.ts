@@ -64,6 +64,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
 
       const previousControllers = hot.data.controllers;
       if(previousControllers == null || previousControllers.length === 0) {
+        // @ts-ignore
         hot.invalidate();
       }
 

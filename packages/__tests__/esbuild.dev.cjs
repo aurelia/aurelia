@@ -6,7 +6,7 @@ const { exec, execSync } = require('child_process');
 
 /**
  * @param {string} startPath
- * @param {string} filter
+ * @param {RegExp | string} filter
  * @param {string[]} found
  * @returns {string[]}
  */
@@ -24,6 +24,11 @@ function findByExt(startPath, filter, found = []) {
       // recurse
       findByExt(filename, filter, found);
     }
+    else if (filter instanceof RegExp) {
+      if (filter.test(filename)) {
+        found.push(filename);
+      }
+    }
     else if (filename.endsWith(filter)) {
       found.push(filename);
     }
@@ -32,7 +37,7 @@ function findByExt(startPath, filter, found = []) {
 };
 
 build({
-  entryPoints: findByExt('./', '.ts'),
+  entryPoints: findByExt('./', /\.tsx?$/),
   outdir: resolve(__dirname, 'dist/esm/__tests__'),
   sourcemap: true,
   watch: /^true$/.test(process.env.DEV_MODE),

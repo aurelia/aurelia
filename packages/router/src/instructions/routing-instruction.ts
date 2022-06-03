@@ -425,8 +425,8 @@ export class RoutingInstruction {
       if (viewport?.options.fallback === this.component.name) {
         excludeCurrentComponent = true;
       }
-      // ...or a default instruction without next scope instructions/children
-      if (this.default && !this.hasNextScopeInstructions) {
+      // ...or the default component /* without next scope instructions/children */.
+      if (viewport?.options.default === this.component.name /* && !this.hasNextScopeInstructions */) {
         excludeCurrentComponent = true;
       }
     }

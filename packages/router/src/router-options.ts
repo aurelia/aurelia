@@ -398,6 +398,7 @@ export class RouterOptions implements INavigatorOptions {
     this.separators.apply(options.separators);
     this.indicators.apply(options.indicators);
     this.useUrlFragmentHash = options.useUrlFragmentHash ?? this.useUrlFragmentHash;
+    this.basePath = options.basePath ?? this.basePath;
     this.useHref = options.useHref ?? this.useHref;
     this.statefulHistoryLength = options.statefulHistoryLength ?? this.statefulHistoryLength;
     this.useDirectRouting = options.useDirectRouting ?? this.useDirectRouting;

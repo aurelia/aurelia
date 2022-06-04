@@ -2,7 +2,6 @@ import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plug
 import tsJest from '@aurelia/ts-jest';
 const { _createTransformer } = tsJest;
 import { assert } from '@aurelia/testing';
-import { Config } from '@jest/types';
 import { TransformOptions, TransformedSource } from '@jest/transform';
 import * as path from 'path';
 import { makeProjectConfig } from '../jest-test-utils/config';
@@ -15,10 +14,10 @@ function makePreprocess(_fileExists: (p: string) => boolean) {
 
 function tsProcess(
   sourceText: string,
-  _sourcePath: Config.Path,
+  _sourcePath: string,
   _transformOptions: TransformOptions
 ): TransformedSource {
-  return sourceText;
+  return { code: sourceText };
 }
 
 const options: TransformOptions = {
@@ -52,7 +51,7 @@ export function register(container) {
 `;
     const t = _createTransformer({ hmr: false}, makePreprocess(() => false), tsProcess);
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms html file with shadowOptions', function () {
@@ -80,7 +79,7 @@ export function register(container) {
       tsProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms html file with cssModules', function () {
@@ -107,7 +106,7 @@ export function register(container) {
       tsProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms js file with html pair', function () {
@@ -123,7 +122,7 @@ export class FooBar {}
       tsProcess
     );
     const result = t.process(js, 'src/foo-bar.js', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('ignores js file without html pair', function () {
@@ -132,6 +131,6 @@ export class FooBar {}
 `;
     const t = _createTransformer({ hmr: false }, makePreprocess(() => false), tsProcess);
     const result = t.process(js, 'src/foo-bar.js', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 });

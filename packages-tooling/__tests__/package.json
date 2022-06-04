@@ -1,5 +1,6 @@
 {
   "name": "@aurelia/__tests__cjs",
+  "version": "2.0.0-alpha.34",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -20,9 +21,9 @@
     "test-node:ts-jest": "npm run ::mocha -- dist/cjs/__tests__/ts-jest/**/*.spec.js",
     "test-node:parcel-transformer": "npm run ::mocha -- dist/cjs/__tests__/parcel-transformer/**/*.spec.js",
     "build": "tsc --build",
-    "dev": "tsc --build -w --preserveWatchOutput",
+    "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",
     "rollup": "npm run build",
-    "build:packages-tooling": "npm run build"
+    "verify": "tsc --noEmit"
   },
   "dependencies": {
     "@aurelia/aot": "2.0.0-alpha.34",
@@ -59,5 +60,8 @@
     "tsconfig-paths": "^3.9.0",
     "vinyl": "^2.2.0"
   },
-  "version": "2.0.0-alpha.34"
+  "volta": {
+    "node": "16.14.2",
+    "npm": "8.12.1"
+  }
 }

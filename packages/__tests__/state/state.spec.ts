@@ -1,6 +1,6 @@
 import { ValueConverter } from '@aurelia/runtime';
 import { customAttribute, customElement, ICustomAttributeController } from '@aurelia/runtime-html';
-import { StateDefaultConfiguration, fromStore } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -120,16 +120,16 @@ describe('state/state.spec.ts', function () {
       .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
-      assert.strictEqual(getBy('input').value, 'value-1');
+    assert.strictEqual(getBy('input').value, 'value-1');
 
-      await resolveAfter(2);
-      assert.strictEqual(getBy('input').value, 'value-2');
-      // observable doesn't invoke disposal of the subscription
-      // only updating the target
-      assert.strictEqual(disposeCallCount, 0);
+    await resolveAfter(2);
+    assert.strictEqual(getBy('input').value, 'value-2');
+    // observable doesn't invoke disposal of the subscription
+    // only updating the target
+    assert.strictEqual(disposeCallCount, 0);
 
-      await tearDown();
-      assert.strictEqual(disposeCallCount, 1);
+    await tearDown();
+    assert.strictEqual(disposeCallCount, 1);
   });
 
   describe('& state binding behavior', function () {
@@ -146,7 +146,7 @@ describe('state/state.spec.ts', function () {
       const { getBy } = await createFixture
         .html`<input value.bind="text & state">`
         .component({ text: 'from view model' })
-        .deps(StateDefaultConfiguration.init({  }))
+        .deps(StateDefaultConfiguration.init({}))
         .build().started;
 
       assert.strictEqual(getBy('input').value, '');
@@ -330,7 +330,7 @@ describe('state/state.spec.ts', function () {
     it('works on custom element', async function () {
       @customElement({ name: 'my-el', template: `<input value.bind="text">` })
       class MyEl {
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         text: string;
       }
 
@@ -343,12 +343,12 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
     });
 
-    it('does not works on custom attribute', async function () {
+    it('works on custom attribute', async function () {
       @customAttribute('myattr')
       class MyAttr {
         $controller: ICustomAttributeController;
 
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         set text(v: string) {
           this.$controller.host.setAttribute('hello', 'world');
         }
@@ -360,13 +360,13 @@ describe('state/state.spec.ts', function () {
         .deps(MyAttr, StateDefaultConfiguration.init(state))
         .build().started;
 
-      assert.strictEqual(queryBy('div[hello=world]'), null);
+      assert.notStrictEqual(queryBy('div[hello=world]'), null);
     });
 
     it('updates when state changed', async function () {
       @customElement({ name: 'my-el', template: `<input value.bind="text" input.dispatch="{ type: 'input', params: [$event.target.value] }">` })
       class MyEl {
-        @fromStore<typeof state>(s => s.text)
+        @fromState<typeof state>(s => s.text)
         text: string;
       }
 
@@ -380,7 +380,29 @@ describe('state/state.spec.ts', function () {
       flush();
       assert.strictEqual(getBy('input').value, '11');
     });
+
+    it('updates custom attribute prop when state changes', async function () {
+      @customAttribute('myattr')
+      class MyAttr {
+        $controller: ICustomAttributeController;
+
+        @fromState<typeof state>(s => s.text)
+        set text(v: string) {
+          this.$controller.host.setAttribute('hello', v);
+        }
+      }
+
+      const state = { text: '1' };
+      const { trigger, queryBy } = await createFixture
+        .html`<div myattr click.dispatch="{ type: '' }">`
+        .deps(MyAttr, StateDefaultConfiguration.init(state, () => ({ text: '2' })))
+        .build().started;
+
+      trigger('div', 'click');
+      assert.notStrictEqual(queryBy('div[hello="2"]'), null);
+    });
   });
+
 });
 
 const resolveAfter = <T>(time: number, value?: T) => new Promise<T>(r => setTimeout(() => r(value), time));

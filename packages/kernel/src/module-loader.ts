@@ -39,6 +39,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     }
   }
 
+  /** @internal */
   private _transformPromise(promise: Promise<TMod>): TRet | Promise<TRet> {
     if (this._promiseCache.has(promise)) {
       return this._promiseCache.get(promise) as TRet | Promise<TRet>;
@@ -55,6 +56,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     return ret;
   }
 
+  /** @internal */
   private _transformObject(obj: TMod): TRet | Promise<TRet> {
     if (this._objectCache.has(obj)) {
       return this._objectCache.get(obj) as TRet | Promise<TRet>;
@@ -71,6 +73,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     return ret;
   }
 
+  /** @internal */
   private _analyze(m: TMod): AnalyzedModule<TMod> {
     let value: unknown;
     let isRegistry: boolean;

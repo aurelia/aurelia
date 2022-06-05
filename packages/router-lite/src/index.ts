@@ -45,6 +45,8 @@ export {
 export {
   IRouteContext,
   RouteContext,
+  type INavigationModel,
+  type INavigationRoute,
 } from './route-context';
 
 export {
@@ -87,8 +89,6 @@ export {
   type ResolutionMode,
   type HistoryStrategy,
   type SameUrlStrategy,
-  NavigationModel,
-  NavigationRoute,
 } from './router';
 
 export {

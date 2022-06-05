@@ -590,6 +590,7 @@ export class Router {
           componentDefinition,
           routeDefinition,
           container,
+          this,
         ),
       );
     } else {
@@ -608,29 +609,6 @@ export class Router {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
-  }
-
-  public getNavigationModel(context: IRouteContext = this.routeTree.root.context): Promise<NavigationModel> | NavigationModel {
-    const routeDefs = context.childRoutes;
-    const len = routeDefs.length;
-
-    if (len === 0) return new NavigationModel(context, this, [], this.events);
-
-    const routes: NavigationRoute[] = [];
-    return onResolve(resolveAll(
-      ...routeDefs
-        .map($routeDef => onResolve(
-          $routeDef,
-          routeDef => {
-            const config = routeDef.config;
-            if (!config.nav) return;
-            routes.push(new NavigationRoute(
-              routeDef.id,
-              routeDef.path,
-              config.title,
-              routeDef.data,
-            ));
-          }))), () => new NavigationModel(context, this, routes, this.events));
   }
 
   /**
@@ -933,49 +911,5 @@ export class Router {
 
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
     return NavigationOptions.create({ ...this.options, ...options });
-  }
-}
-
-export class NavigationModel implements IDisposable {
-  private readonly navigationEndListener: IDisposable;
-  public constructor(
-    private readonly _context: IRouteContext,
-    private readonly _router: IRouter,
-    public readonly routes: NavigationRoute[],
-    events: IRouterEvents,
-  ) {
-    this.navigationEndListener = events.subscribe('au:router:navigation-end', _ => this.setIsActive());
-    this.setIsActive();
-  }
-
-  private setIsActive(): void {
-    const router = this._router;
-    const context = this._context;
-    for (const route of this.routes) {
-      route.setIsActive(router, context);
-    }
-  }
-
-  public dispose(): void {
-    this.navigationEndListener.dispose();
-  }
-}
-
-export class NavigationRoute {
-  private _isActive!: boolean;
-  public constructor(
-    public readonly id: string,
-    public readonly path: string[],
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly data: Params | null,
-  ) { }
-
-  public get isActive(): boolean {
-    return this._isActive;
-  }
-
-  /** @internal */
-  public setIsActive(router: IRouter, context: IRouteContext): void {
-    this._isActive = this.path.some(path => router.isActive(path, context));
   }
 }

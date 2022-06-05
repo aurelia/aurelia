@@ -11,6 +11,8 @@ import { IViewport } from './resources/viewport';
 import { Routeable } from './route';
 import { isPartialChildRouteConfig } from './validation';
 import { ensureArrayOfStrings } from './util';
+import { Params } from './instructions';
+import { IRouterEvents } from './router-events';
 
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
@@ -113,12 +115,18 @@ export class RouteContext {
   private readonly recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
   private _childRoutesConfigured: boolean = false;
 
+  private readonly _navigationModel: NavigationModel;
+  public get navigationModel(): INavigationModel {
+    return this._navigationModel;
+  }
+
   public constructor(
     viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
     public readonly definition: RouteDefinition,
     public readonly parentContainer: IContainer,
+    router: IRouter,
   ) {
     this._vpa = viewportAgent;
     if (parent === null) {
@@ -152,6 +160,14 @@ export class RouteContext {
     container.register(...component.dependencies);
 
     this.recognizer = new RouteRecognizer();
+
+    const navModel = this._navigationModel = new NavigationModel([]);
+    // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
+    // Also considering that in a realistic app the number of configured routes are limited in number, this subscription and keeping the routes' active property in sync should not create much issue.
+    // If need be we can optimize it later.
+    container
+      .get(IRouterEvents)
+      .subscribe('au:router:navigation-end', () => navModel.setIsActive(router, this));
     this.processDefinition(definition);
   }
 
@@ -165,6 +181,7 @@ export class RouteContext {
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
       return;
     }
+    const navModel = this._navigationModel;
     let i = 0;
     for (; i < len; i++) {
       const child = children[i];
@@ -184,6 +201,7 @@ export class RouteContext {
               return this.childRoutes[idx] = resolvedRouteDef;
             });
             this.childRoutes.push(p);
+            navModel.addRoute(p);
             allPromises.push(p.then(noop));
           } else {
             throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
@@ -193,6 +211,7 @@ export class RouteContext {
             this.$addRoute(path, routeDef.caseSensitive, routeDef);
           }
           this.childRoutes.push(routeDef);
+          navModel.addRoute(routeDef);
         }
       }
     }
@@ -473,5 +492,92 @@ export class $RecognizedRoute {
     const route = this.route;
     const cr = route.endpoint.route;
     return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;
+  }
+}
+
+export const INavigationModel = DI.createInterface<INavigationModel>('INavigationModel');
+export interface INavigationModel {
+  /**
+   * Collection of routes.
+   */
+  readonly routes: readonly INavigationRoute[];
+  /**
+   * Wait for async route configurations.
+   */
+  resolve(): Promise<void> | void;
+}
+// Usage of classical interface pattern is intentional.
+class NavigationModel implements INavigationModel {
+  private promise: Promise<void> | void = void 0;
+  public constructor(
+    public readonly routes: NavigationRoute[],
+  ) { }
+
+  public resolve(): Promise<void> | void {
+    return onResolve(this.promise, noop);
+  }
+
+  /** @internal */
+  public setIsActive(router: IRouter, context: IRouteContext): void {
+    for (const route of this.routes) {
+      route.setIsActive(router, context);
+    }
+  }
+
+  /** @internal */
+  public addRoute(routeDef: RouteDefinition | Promise<RouteDefinition>): void {
+    const routes = this.routes;
+    if(!(routeDef instanceof Promise)) {
+      routes.push(NavigationRoute.create(routeDef));
+      return;
+    }
+    const index = routes.length;
+    routes.push((void 0)!); // reserve the slot
+    const promise = this.promise;
+    this.promise = onResolve(promise, () => {
+      return onResolve(routeDef, $routeDef => {
+        routes[index] = NavigationRoute.create($routeDef);
+        if(this.promise === promise) {
+          this.promise = void 0;
+        }
+      });
+    });
+  }
+}
+
+export interface INavigationRoute {
+  readonly id: string;
+  readonly path: string[];
+  readonly title: string | ((node: RouteNode) => string | null) | null;
+  readonly data: Params | null;
+  readonly isActive: boolean;
+}
+// Usage of classical interface pattern is intentional.
+class NavigationRoute implements INavigationRoute {
+  private _isActive!: boolean;
+  private constructor(
+    public readonly id: string,
+    public readonly path: string[],
+    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    public readonly data: Params | null,
+  ) { }
+
+  /** @internal */
+  public static create(routeDef: RouteDefinition) {
+    return new NavigationRoute(
+      routeDef.id,
+      routeDef.path,
+      routeDef.config.title,
+      routeDef.data,
+    );
+  }
+
+  public get isActive(): boolean {
+    return this._isActive;
+  }
+
+  /** @internal */
+  public setIsActive(router: IRouter, context: IRouteContext): void {
+    this._isActive = this.path.some(path => router.isActive(path, context));
   }
 }

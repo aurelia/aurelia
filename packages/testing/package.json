@@ -54,7 +54,7 @@
     "@types/mocha": "^9.1.1",
     "jsdom": "^19.0.0",
     "mocha": "^9.2.2",
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   },
   "engines": {
     "node": ">=14.17.0"

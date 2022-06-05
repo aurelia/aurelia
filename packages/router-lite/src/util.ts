@@ -61,50 +61,6 @@ export class Batch {
   }
 }
 
-/**
- * Normalize an array of potential promises, to ensure things stay synchronous when they can.
- *
- * If exactly one value is a promise, then that promise is returned.
- *
- * If more than one value is a promise, a new `Promise.all` is returned.
- *
- * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
- */
-export function resolveAll(maybePromises: (void | Promise<void>)[]): void | Promise<void> {
-  const promises: Promise<void>[] = [];
-  for (const maybePromise of maybePromises) {
-    if (maybePromise instanceof Promise) {
-      promises.push(maybePromise);
-    }
-  }
-
-  switch (promises.length) {
-    case 0:
-      return;
-    case 1:
-      return promises[0];
-    default:
-      return Promise.all(promises) as unknown as Promise<void>;
-  }
-}
-
-export type ExposedPromise<T> = Promise<T> & {
-  resolve(value?: T): void;
-  reject(reason?: unknown): void;
-};
-
-export function createExposedPromise<T>(): ExposedPromise<T> {
-  let $resolve: (value?: T) => void = (void 0)!;
-  let $reject: (reason?: unknown) => void = (void 0)!;
-  const promise = new Promise<void | T>(function (resolve, reject) {
-    $resolve = resolve;
-    $reject = reject;
-  }) as ExposedPromise<T>;
-  promise.resolve = $resolve;
-  promise.reject = $reject;
-  return promise;
-}
-
 export function mergeDistinct(prev: RouteNode[], next: RouteNode[]): RouteNode[] {
   prev = prev.slice();
   next = next.slice();

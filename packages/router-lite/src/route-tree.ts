@@ -447,21 +447,22 @@ export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[
   return onResolve(ctx.resolved, () => {
     const existingChildren = node.children.slice();
     return onResolve(
-      resolveAll(
-        ...node.residue.splice(0).map(vi => {
-          return createAndAppendNodes(log, node, vi, node.append);
-        }),
-        ...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
-          const defaultInstruction = ViewportInstruction.create({
-            component: vpa.viewport.default,
-            viewport: vpa.viewport.name,
-          });
-          return createAndAppendNodes(log, node, defaultInstruction, node.append);
-        }),
+      resolveAll(...node
+        .residue
+        .splice(0)
+        .map(vi => createAndAppendNodes(log, node, vi, node.append))),
+      () => onResolve(
+        resolveAll(...ctx
+          .getAvailableViewportAgents('dynamic')
+          .map(vpa => {
+            const defaultInstruction = ViewportInstruction.create({
+              component: vpa.viewport.default,
+              viewport: vpa.viewport.name,
+            });
+            return createAndAppendNodes(log, node, defaultInstruction, node.append);
+          })),
+        () => node.children.filter(x => !existingChildren.includes(x))
       ),
-      () => {
-        return node.children.filter(x => !existingChildren.includes(x));
-      },
     );
   });
 }

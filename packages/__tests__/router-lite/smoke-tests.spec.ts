@@ -1627,8 +1627,8 @@ describe('router (smoke tests)', function () {
         public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
-              { path: ['', 'c11'], component: C11, title: 'C11' },
-              { path: 'c12', component: Promise.resolve({ C12 })/* .then(x => x.C12) */, title: 'C12' },
+              { path: ['', 'c11'], component: Promise.resolve({ C11 }), title: 'C11' },
+              { path: 'c12', component: C12, title: 'C12' },
             ]
           };
         }
@@ -1639,7 +1639,7 @@ describe('router (smoke tests)', function () {
         public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
-              { path: 'c21', component: Promise.resolve({ C21 })/* .then(x => x.C21) */, title: 'C21' },
+              { path: 'c21', component: Promise.resolve({ C21 }), title: 'C21' },
               { path: ['', 'c22'], component: C22, title: 'C22' },
             ]
           };
@@ -1651,8 +1651,8 @@ describe('router (smoke tests)', function () {
         public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
-              { path: ['', 'p1'], component: P1, title: 'P1' },
-              { path: 'p2', component: Promise.resolve({ P2 })/* .then(x => x.P2) */, title: 'P2' },
+              { path: ['', 'p1'], component: Promise.resolve({ P1 }), title: 'P1' },
+              { path: 'p2', component: P2, title: 'P2' },
             ]
           };
         }

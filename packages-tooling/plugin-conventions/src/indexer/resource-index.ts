@@ -1,17 +1,29 @@
 export class ResourceIndex {
-  public index(): ResourceInfo[] {
+  public index(): ResourceInfo<unknown>[] {
     return [];
   }
 }
 
-export class ResourceInfo {
+export abstract class ResourceInfo<T> {
   public constructor(
     public readonly path: string,
     public readonly type: ResourceType,
   ) {}
+
+  public abstract resolve(): T;
 }
 
-// expoo
+export class ResourceInfoElement extends ResourceInfo<object /* should be CE definition */> {
+  public resolve(): object {
+    return {};
+  }
+}
+
+export class ResourceInfoAttribute extends ResourceInfo<object /* should be CA definition */> {
+  public resolve(): object {
+    return {};
+  }
+}
 
 export const enum ResourceType {
   Element = 1,

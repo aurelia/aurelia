@@ -50,7 +50,7 @@
     "@aurelia/runtime-html": "2.0.0-alpha.34",
     "modify-code": "^2.0.0",
     "parse5": "^5.1.1",
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   },
   "devDependencies": {
     "@types/node": "^14.18.14",

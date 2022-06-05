@@ -3,7 +3,6 @@ import babelJest from '@aurelia/babel-jest';
 const { _createTransformer } = babelJest;
 import { TransformOptions } from '@babel/core';
 import { assert } from '@aurelia/testing';
-import { Config } from '@jest/types';
 import { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
 import * as path from 'path';
 import { makeProjectConfig } from '../jest-test-utils/config';
@@ -16,10 +15,10 @@ function makePreprocess(_fileExists: (p: string) => boolean) {
 
 function babelProcess(
   sourceText: string,
-  _sourcePath: Config.Path,
+  _sourcePath: string,
   _transformOptions: TransformOptionsJest<TransformOptions>
 ): TransformedSource {
-  return sourceText;
+  return { code: sourceText };
 }
 
 const options: TransformOptionsJest<TransformOptions> = {
@@ -52,7 +51,7 @@ export function register(container) {
 `;
     const t = _createTransformer({ hmr: false }, makePreprocess(() => false), babelProcess);
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms html file with shadowOptions', function () {
@@ -79,7 +78,7 @@ export function register(container) {
       babelProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms html file with cssModules', function () {
@@ -105,7 +104,7 @@ export function register(container) {
       babelProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('transforms js file with html pair', function () {
@@ -121,7 +120,7 @@ export class FooBar {}
       babelProcess
     );
     const result = t.process(js, 'src/foo-bar.js', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 
   it('ignores js file without html pair', function () {
@@ -130,6 +129,6 @@ export class FooBar {}
 `;
     const t = _createTransformer({}, makePreprocess(() => false), babelProcess);
     const result = t.process(js, 'src/foo-bar.js', options);
-    assert.equal(result, expected);
+    assert.deepEqual(result, { code: expected });
   });
 });

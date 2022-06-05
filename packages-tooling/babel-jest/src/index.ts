@@ -1,9 +1,9 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import babelTransformer from 'babel-jest';
+import babelJest from 'babel-jest';
 import { TransformOptions } from '@babel/core';
-import type { Config } from '@jest/types';
 import type { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
 
+const babelTransformer = babelJest.createTransformer();
 function _createTransformer(
   conventionsOptions = {},
   // for testing
@@ -14,7 +14,7 @@ function _createTransformer(
 
   function getCacheKey(
     fileData: string,
-    filePath: Config.Path,
+    filePath: string,
     options: TransformOptionsJest<TransformOptions>
   ): string {
     const babelKey = babelTransformer.getCacheKey!(fileData, filePath, options);
@@ -24,9 +24,9 @@ function _createTransformer(
   // Wrap babel-jest process
   function process(
     sourceText: string,
-    sourcePath: Config.Path,
+    sourcePath: string,
     transformOptions: TransformOptionsJest<TransformOptions>
-  ): TransformedSource | string {
+  ): TransformedSource {
     const result = _preprocess(
       { path: sourcePath, contents: sourceText },
       au2Options

@@ -89,7 +89,7 @@ concurrently([
       env: envVars
     })),
   {
-    command: `npm run ::mocha -- --watch-files ${Array.from(new Set(['plugin-conventions', ...devPackages])).map(pkg => getToolingPackageDist(pkg)).join(',')} -w ${testFilePatterns.join(' ')}`,
+    command: `npm run ::mocha -- --watch-files ${Array.from(new Set(['plugin-conventions', ...devPackages])).map(pkg => getToolingPackageDist(pkg)).join(',')},${testFilePatterns.join(',')} -w ${testFilePatterns.join(' ')}`,
     cwd: `${baseToolingPath}/__tests__`,
     name: '__tests__(run)',
     env: envVars

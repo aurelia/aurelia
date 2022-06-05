@@ -1,17 +1,18 @@
-export { nameConvention } from './name-convention.js';
-export { resourceName } from './resource-name.js';
-export { preprocessResource } from './preprocess-resource.js';
-export { preprocessHtmlTemplate } from './preprocess-html-template.js';
-export { stripMetaData } from './strip-meta-data.js';
-export { preprocess } from './preprocess.js';
+export { nameConvention } from './name-convention';
+export { resourceName } from './resource-name';
+export { preprocessResource } from './preprocess-resource';
+export { preprocessHtmlTemplate } from './preprocess-html-template';
+export { stripMetaData } from './strip-meta-data';
+export { preprocess } from './preprocess';
+export { precompileTemplate, generateCodeFromDefinition } from './pre-compile-template';
 export {
-  INameConvention,
-  IFileUnit,
-  IOptionalPreprocessOptions,
-  IPreprocessOptions,
+  type INameConvention,
+  type IFileUnit,
+  type IOptionalPreprocessOptions,
+  type IPreprocessOptions,
   defaultCssExtensions,
   defaultJsExtensions,
   defaultTemplateExtensions,
   preprocessOptions,
-  ResourceType
+  type ResourceType
 } from './options.js';

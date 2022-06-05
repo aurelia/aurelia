@@ -125,10 +125,10 @@ export class RouteNode implements IRouteNode {
      */
     public readonly residue: ViewportInstruction[],
   ) {
-    this.originalInstruction = instruction;
+    this.originalInstruction ??= instruction;
   }
 
-  public static create(input: IRouteNode): RouteNode {
+  public static create(input: IRouteNode & { originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null }): RouteNode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(
@@ -136,7 +136,7 @@ export class RouteNode implements IRouteNode {
       /*        path */input.path,
       /*   finalPath */input.finalPath,
       /*     context */input.context,
-      /* originalIns */input.instruction,
+      /* originalIns */input.originalInstruction ?? input.instruction,
       /* instruction */input.instruction,
       /*      params */params,
       /* queryParams */input.queryParams ?? emptyQuery,
@@ -157,7 +157,7 @@ export class RouteNode implements IRouteNode {
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
         for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
-          if (i + j < ii && (nodeChildren[i + j].instruction?.contains(instructionChildren[j]) ?? false)) {
+          if (i + j < ii && (nodeChildren[i + j].originalInstruction?.contains(instructionChildren[j]) ?? false)) {
             if (j + 1 === jj) {
               return true;
             }
@@ -510,7 +510,7 @@ export function createAndAppendNodes(
           params
         ),
         null);
-      const childNode = createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+      const childNode = createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr, null);
       return appendNode(log, node, childNode);
     }
   }
@@ -524,6 +524,7 @@ function createNode(
 ): RouteNode | Promise<RouteNode> | null {
   const ctx = node.context;
   let collapse: number = 0;
+  const originalInstruction = vi.clone();
   let path = vi.component.value;
   let cur = vi as ViewportInstruction;
   while (cur.children.length === 1) {
@@ -562,7 +563,7 @@ function createNode(
 
     log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
     const rr = ctx.recognize(fallback, true);
-    if (rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+    if (rr !== null) return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr, null);
 
     // fallback is not recognized as a configured route; treat as CE and look for a route definition.
     log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
@@ -581,7 +582,7 @@ function createNode(
     (vi as Writable<ViewportInstruction>).children = child.children;
   }
   log.trace('createNode after adjustment vi:%s', vi);
-  return createConfiguredNode(log, node, vi, append, rr);
+  return createConfiguredNode(log, node, vi, append, rr, originalInstruction);
 }
 
 function createConfiguredNode(
@@ -590,6 +591,7 @@ function createConfiguredNode(
   vi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
   append: boolean,
   rr: $RecognizedRoute,
+  originalVi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
   route: ConfigurableRoute<RouteDefinition | Promise<RouteDefinition>> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
@@ -619,6 +621,7 @@ function createConfiguredNode(
         finalPath: route.path,
         context: childCtx,
         instruction: vi,
+        originalInstruction: originalVi,
         params: {
           ...node.params,
           ...rr.route.params
@@ -722,7 +725,7 @@ function createConfiguredNode(
     const redirRR = ctx.recognize(newPath);
     if (redirRR === null) throw new Error(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-    return createConfiguredNode(log, node, vi, append, rr, redirRR.route.endpoint.route);
+    return createConfiguredNode(log, node, vi, append, rr, originalVi, redirRR.route.endpoint.route);
   });
 }
 
@@ -761,5 +764,5 @@ function createFallbackNode(
   // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
   // If need be later a special parameter can be created for this.
   vi.children.length = 0;
-  return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr);
+  return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr, null);
 }

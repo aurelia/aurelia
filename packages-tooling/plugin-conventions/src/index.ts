@@ -4,23 +4,6 @@ export { preprocessResource } from './preprocess-resource';
 export { preprocessHtmlTemplate } from './preprocess-html-template';
 export { stripMetaData } from './strip-meta-data';
 export { preprocess } from './preprocess';
-// export { precompileTemplate, generateCodeFromDefinition } from './pre-compile-template';
-// export {
-//   AttributeDefinition,
-//   BindableInfo,
-//   ElementDefinition,
-//   IAuFileSystem,
-//   ResourceDefinition,
-//   ResourceIndex,
-//   ResourceIndexer,
-//   ResourceInfo,
-//   ResourceInfoAttribute,
-//   ResourceInfoElement,
-//   AuFileSystem,
-//   IAuProject,
-//   IFile,
-//   IFileGroup,
-// } from './indexer';
 export {
   type INameConvention,
   type IFileUnit,

@@ -89,7 +89,7 @@ concurrently([
       env: envVars
     })),
   {
-    command: `npm run ::mocha -- ${[
+    command: `cross-env TS_NODE_CACHE=true npm run ::mocha -- ${[
       `-r ts-node/register`,
       `--exclude dist/*`,
       `--exclude node_modules/*`,

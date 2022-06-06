@@ -1442,11 +1442,14 @@ describe('router (smoke tests)', function () {
       })
       @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
       class P2 { }
+      @customElement({ name: 'ce-p3', template: 'p3' })
+      class P3 { }
 
       @route({
         routes: [
           { path: ['', 'p1'], component: P1, title: 'P1' },
           { path: 'p2', component: P2, title: 'P2' },
+          { path: 'p3', component: P3, title: 'P3', nav: false },
         ]
       })
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
@@ -1466,6 +1469,7 @@ describe('router (smoke tests)', function () {
         C22,
         P1,
         P2,
+        P3,
         navBarCe
       );
 
@@ -1505,6 +1509,12 @@ describe('router (smoke tests)', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
+
+      // Round#4 - nav:false, but routeable
+      await router.load('p3');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
+      assert.notEqual(host.querySelector('ce-p3'), null);
 
       await au.stop();
     });
@@ -1542,6 +1552,8 @@ describe('router (smoke tests)', function () {
           };
         }
       }
+      @customElement({ name: 'ce-p3', template: 'p3' })
+      class P3 { }
 
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root implements IRouteViewModel {
@@ -1550,6 +1562,7 @@ describe('router (smoke tests)', function () {
             routes: [
               { path: ['', 'p1'], component: P1, title: 'P1' },
               { path: 'p2', component: P2, title: 'P2' },
+              { path: 'p3', component: P3, title: 'P3', nav: false },
             ]
           };
         }
@@ -1569,6 +1582,7 @@ describe('router (smoke tests)', function () {
         C22,
         P1,
         P2,
+        P3,
         navBarCe
       );
 
@@ -1608,6 +1622,12 @@ describe('router (smoke tests)', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
+
+      // Round#4 - nav:false, but routeable
+      await router.load('p3');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
+      assert.notEqual(host.querySelector('ce-p3'), null);
 
       await au.stop();
     });
@@ -1645,6 +1665,9 @@ describe('router (smoke tests)', function () {
           };
         }
       }
+      @route({ path: 'p3', title: 'P3', nav: false })
+      @customElement({ name: 'ce-p3', template: 'p3' })
+      class P3 { }
 
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root implements IRouteViewModel {
@@ -1653,6 +1676,7 @@ describe('router (smoke tests)', function () {
             routes: [
               { path: ['', 'p1'], component: Promise.resolve({ P1 }), title: 'P1' },
               { path: 'p2', component: P2, title: 'P2' },
+              Promise.resolve({ P3 }),
             ]
           };
         }
@@ -1672,6 +1696,7 @@ describe('router (smoke tests)', function () {
         C22,
         P1,
         P2,
+        P3,
         navBarCe
       );
 
@@ -1711,6 +1736,12 @@ describe('router (smoke tests)', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
+
+      // Round#4 - nav:false, but routeable
+      await router.load('p3');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
+      assert.notEqual(host.querySelector('ce-p3'), null);
 
       await au.stop();
     });

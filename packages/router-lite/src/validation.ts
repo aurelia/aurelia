@@ -83,6 +83,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         break;
       case 'caseSensitive':
+      case 'nav':
         if (typeof value !== 'boolean') {
           expectType('boolean', path, value);
         }

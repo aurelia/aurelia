@@ -409,6 +409,7 @@ export class RouteContext {
       for (const path of routeDef.path) {
         this.$addRoute(path, routeDef.caseSensitive, routeDef);
       }
+      this._navigationModel.addRoute(routeDef);
       this.childRoutes.push(routeDef);
     });
   }
@@ -508,13 +509,13 @@ export interface INavigationModel {
 }
 // Usage of classical interface pattern is intentional.
 class NavigationModel implements INavigationModel {
-  private promise: Promise<void> | void = void 0;
+  private _promise: Promise<void> | void = void 0;
   public constructor(
     public readonly routes: NavigationRoute[],
   ) { }
 
   public resolve(): Promise<void> | void {
-    return onResolve(this.promise, noop);
+    return onResolve(this._promise, noop);
   }
 
   /** @internal */
@@ -527,17 +528,24 @@ class NavigationModel implements INavigationModel {
   /** @internal */
   public addRoute(routeDef: RouteDefinition | Promise<RouteDefinition>): void {
     const routes = this.routes;
-    if(!(routeDef instanceof Promise)) {
-      routes.push(NavigationRoute.create(routeDef));
+    if (!(routeDef instanceof Promise)) {
+      if (routeDef.config.nav) {
+        routes.push(NavigationRoute.create(routeDef));
+      }
       return;
     }
     const index = routes.length;
     routes.push((void 0)!); // reserve the slot
-    const promise = this.promise = onResolve(this.promise, () =>
+    let promise: void | Promise<void> = void 0;
+    promise = this._promise = onResolve(this._promise, () =>
       onResolve(routeDef, $routeDef => {
-        routes[index] = NavigationRoute.create($routeDef);
-        if(this.promise === promise) {
-          this.promise = void 0;
+        if ($routeDef.config.nav) {
+          routes[index] = NavigationRoute.create($routeDef);
+        } else {
+          routes.splice(index, 1);
+        }
+        if (this._promise === promise) {
+          this._promise = void 0;
         }
       })
     );

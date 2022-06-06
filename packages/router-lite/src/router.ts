@@ -590,6 +590,7 @@ export class Router {
           componentDefinition,
           routeDefinition,
           container,
+          this,
         ),
       );
     } else {

@@ -11,31 +11,31 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $DefinePropertyOrThrow,
-} from '../operations.js';
+} from '../operations';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   I$Node,
   Context,
@@ -48,36 +48,36 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared.js';
+} from './_shared';
 import {
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $Decorator,
   $ObjectLiteralExpression,
-} from './expressions.js';
+} from './expressions';
 import {
   $ClassDeclaration,
   $ClassExpression,
-} from './classes.js';
+} from './classes';
 import {
   MethodDefinitionRecord,
   $FormalParameterList,
   $FunctionDeclaration
-} from './functions.js';
+} from './functions';
 import {
   $Block,
-} from './statements.js';
+} from './statements';
 import {
   $FunctionEnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $Any,
   $AnyNonEmpty,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 export class $MethodDeclaration implements I$Node {
   public get $kind(): SyntaxKind.MethodDeclaration { return SyntaxKind.MethodDeclaration; }

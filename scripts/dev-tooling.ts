@@ -58,12 +58,12 @@ if (devPackages.some(d => !validToolingPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validToolingPackages}`);
 }
 
-const baseUrl = 'dist/cjs/__tests__';
+const baseUrl = '.';
 const testFilePatterns = testPatterns === '*'
-  ? [`${baseUrl}/**/*.spec.js`]
+  ? [`${baseUrl}/**/*.spec.ts`]
   : testPatterns.split(' ').flatMap(pattern => [
-    `${baseUrl}/**/*${pattern.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-    `${baseUrl}/**/${pattern}/**/*.spec.js`,
+    `${baseUrl}/**/*${pattern.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.ts')}`,
+    `${baseUrl}/**/${pattern}/**/*.spec.ts`,
   ]);
 
 console.log('test patterns preprocess:', testPatterns, 'post-process:', testFilePatterns);
@@ -79,7 +79,7 @@ concurrently([
   { command: devCmd, cwd: 'packages/kernel', name: 'kernel', env: envVars },
   // always watch plugin-convention by default, since this is the base line of all the things
   { command: devCmd, cwd: `${baseToolingPath}/plugin-conventions`, name: 'plugin-conventions', env: envVars },
-  { command: devCmd, cwd: `${baseToolingPath}/__tests__`, name: '__tests__(build)', env: envVars },
+  // { command: devCmd, cwd: `${baseToolingPath}/__tests__`, name: '__tests__(build)', env: envVars },
   ...devPackages
     .filter(pkg => pkg !== 'plugin-conventions').
     map((folder: string) => ({
@@ -89,7 +89,14 @@ concurrently([
       env: envVars
     })),
   {
-    command: `npm run ::mocha -- --watch-files ${Array.from(new Set(['plugin-conventions', ...devPackages])).map(pkg => getToolingPackageDist(pkg)).join(',')},${testFilePatterns.join(',')} -w ${testFilePatterns.join(' ')}`,
+    command: `npm run ::mocha -- ${[
+      `-r ts-node/register`,
+      `--exclude dist/*`,
+      `--exclude node_modules/*`,
+      `--watch-files ${Array.from(new Set(['plugin-conventions', ...devPackages])).map(pkg => getToolingPackageDist(pkg)).join(',')},${testFilePatterns.join(',')}`,
+      `-w`,
+      testFilePatterns.join(' '),
+    ].join(' ')}`,
     cwd: `${baseToolingPath}/__tests__`,
     name: '__tests__(run)',
     env: envVars

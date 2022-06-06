@@ -1,37 +1,37 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $DefinePropertyOrThrow,
   $ValidateAndApplyPropertyDescriptor,
-} from '../operations.js';
+} from '../operations';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $PropertyKey,
   $AnyObject,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $StringExoticObject extends $Object<'StringExoticObject'> {

@@ -1,28 +1,28 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Call,
   $Construct,
-} from '../operations.js';
+} from '../operations';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {

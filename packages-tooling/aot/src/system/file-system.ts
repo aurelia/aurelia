@@ -29,11 +29,11 @@ import {
   IFileSystem,
   IFile,
   Encoding,
-} from './interfaces.js';
+} from './interfaces';
 import {
   normalizePath,
   joinPath,
-} from './path-utils.js';
+} from './path-utils';
 import type {
   WriteFileOptions,
 } from 'fs';

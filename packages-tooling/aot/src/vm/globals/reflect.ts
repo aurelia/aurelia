@@ -1,45 +1,45 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 import {
   $ToPropertyDescriptor,
   $CreateListFromArrayLike,
   $Call,
   $Construct,
   $FromPropertyDescriptor,
-} from '../operations.js';
+} from '../operations';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $CreateArrayFromList,
-} from '../exotics/array.js';
+} from '../exotics/array';
 
 // http://www.ecma-international.org/ecma-262/#sec-reflection
 // 26 Reflection

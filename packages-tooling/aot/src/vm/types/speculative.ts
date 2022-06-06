@@ -2,21 +2,21 @@ import {
   nextValueId,
   getPath,
   $AnyNonError,
-} from './_shared.js';
+} from './_shared';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Empty,
-} from './empty.js';
+} from './empty';
 import {
   $TypeError,
   $Error,
-} from './error.js';
+} from './error';
 import {
   $$AssignmentExpressionOrHigher,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 export class $SpeculativeValue {
   public readonly '<$SpeculativeValue>': unknown;

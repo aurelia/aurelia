@@ -1,9 +1,9 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { HttpServerOptions } from './server-options.js';
+import { HttpServerOptions } from './server-options';
 import { DI } from '@aurelia/kernel';
-import { HttpServerConfiguration } from './configuration.js';
-import { IHttpServer } from './interfaces.js';
+import { HttpServerConfiguration } from './configuration';
+import { IHttpServer } from './interfaces';
 
 const cwd = process.cwd();
 async function parseArgs(args: string[]): Promise<null | HttpServerOptions> {

@@ -39,24 +39,24 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $DeclarativeEnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   I$Node,
   Context,
@@ -87,23 +87,23 @@ import {
   getLexicallyScopedDeclarations,
   $i,
   $$ESVarDeclaration,
-} from './_shared.js';
+} from './_shared';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $Identifier,
-} from './expressions.js';
+} from './expressions';
 import {
   $ObjectBindingPattern,
-} from './bindings.js';
+} from './bindings';
 import {
   $StringSet,
-} from '../globals/string.js';
+} from '../globals/string';
 import {
   $LoopContinues,
-} from '../operations.js';
+} from '../operations';
 
 export class $VariableStatement implements I$Node {
   public get $kind(): SyntaxKind.VariableStatement { return SyntaxKind.VariableStatement; }

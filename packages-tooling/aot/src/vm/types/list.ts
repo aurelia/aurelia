@@ -1,9 +1,9 @@
 import {
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   I$Node,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 export type $ListItem = {
   is(other: unknown): boolean;

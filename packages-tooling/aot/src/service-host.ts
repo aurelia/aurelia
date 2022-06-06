@@ -23,48 +23,48 @@ import {
   IFile,
   FileKind,
   $CompilerOptions,
-} from './system/interfaces.js';
+} from './system/interfaces';
 import {
   normalizePath,
   isRelativeModulePath,
   joinPath,
   resolvePath,
-} from './system/path-utils.js';
+} from './system/path-utils';
 import {
   NPMPackage,
   NPMPackageLoader,
-} from './system/npm-package-loader.js';
+} from './system/npm-package-loader';
 import {
   File,
-} from './system/file-system.js';
+} from './system/file-system';
 
 import {
   IModule,
   DeferredModule,
   ExecutionContext,
-} from './vm/realm.js';
+} from './vm/realm';
 import {
   $ESModule,
   $DocumentFragment,
   $ESScript,
   $$ESModuleOrScript,
-} from './vm/ast/modules.js';
+} from './vm/ast/modules';
 import {
   $String,
-} from './vm/types/string.js';
+} from './vm/types/string';
 import {
   PatternMatcher,
-} from './system/pattern-matcher.js';
+} from './system/pattern-matcher';
 import {
   ISourceFileProvider,
   Agent,
-} from './vm/agent.js';
+} from './vm/agent';
 import {
   $Any,
-} from './vm/types/_shared.js';
+} from './vm/types/_shared';
 import {
   $Error,
-} from './vm/types/error.js';
+} from './vm/types/error';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -192,7 +192,7 @@ export class ServiceHost implements IServiceHost {
       }
       // TODO: this is currently just for the 262 test suite but we need to resolve the other stuff properly too for end users that don't want to use the package eager load mechanism
       const dir = referencingModule.$file.dir;
-      const ext = '.js';
+      const ext = '';
       const name = basename(specifier);
       const shortName = name.slice(0, -3);
       const path = joinPath(dir, name);

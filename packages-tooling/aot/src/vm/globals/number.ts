@@ -2,34 +2,34 @@ import {
   $BuiltinFunction,
   $Function,
   $OrdinaryCreateFromConstructor,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   CompletionType,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-number-constructor
 export class $NumberConstructor extends $BuiltinFunction<'%Number%'> {

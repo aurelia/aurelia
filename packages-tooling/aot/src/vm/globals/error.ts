@@ -2,43 +2,43 @@ import {
   $BuiltinFunction,
   $Function,
   $OrdinaryCreateFromConstructor,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   CompletionType,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $DefinePropertyOrThrow,
-} from '../operations.js';
+} from '../operations';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-error-constructor
 export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {

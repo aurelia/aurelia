@@ -15,46 +15,46 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $EnvRec,
   $DeclarativeEnvRec,
   $FunctionEnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
   $PropertyKey,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $CreateUnmappedArgumentsObject,
   $ArgumentsExoticObject,
-} from '../exotics/arguments.js';
+} from '../exotics/arguments';
 import {
   $CreateListIteratorRecord,
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../globals/iteration.js';
+} from '../globals/iteration';
 import {
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 import {
   I$Node,
   Context,
@@ -75,40 +75,40 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared.js';
+} from './_shared';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $Identifier,
   $Decorator,
-} from './expressions.js';
+} from './expressions';
 import {
   $ClassDeclaration,
   $ClassExpression,
-} from './classes.js';
+} from './classes';
 import {
   $Block,
   DirectivePrologue,
-} from './statements.js';
+} from './statements';
 import {
   $MethodDeclaration,
   $SetAccessorDeclaration,
   $GetAccessorDeclaration,
-} from './methods.js';
+} from './methods';
 import {
   $DefinePropertyOrThrow,
-} from '../operations.js';
+} from '../operations';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 export type $$Function = (
   $FunctionDeclaration |

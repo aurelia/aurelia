@@ -41,10 +41,10 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $EnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $AbstractRelationalComparison,
   $InstanceOfOperator,
@@ -55,56 +55,56 @@ import {
   $CreateDataProperty,
   $Set,
   $CopyDataProperties,
-} from '../operations.js';
+} from '../operations';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $Any,
   $AnyNonEmpty,
   $AnyObject,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Reference,
-} from '../types/reference.js';
+} from '../types/reference';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $Null,
-} from '../types/null.js';
+} from '../types/null';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $Empty,
   empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../globals/iteration.js';
+} from '../globals/iteration';
 import {
   $TypeError,
   $Error,
   $ReferenceError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $ArrayExoticObject,
-} from '../exotics/array.js';
+} from '../exotics/array';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 import {
   I$Node,
   Context,
@@ -131,27 +131,27 @@ import {
   $$UpdateExpressionOrHigher,
   $UpdateExpressionNode,
   $i,
-} from './_shared.js';
+} from './_shared';
 import {
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $SpreadElement,
   $OmittedExpression,
-} from './bindings.js';
+} from './bindings';
 import {
   $MethodDeclaration,
   $GetAccessorDeclaration,
   $SetAccessorDeclaration,
-} from './methods.js';
+} from './methods';
 import {
   $NoSubstitutionTemplateLiteral,
   $TemplateSpan,
   $TemplateHead,
-} from './literals.js';
+} from './literals';
 import {
   $FunctionExpression,
-} from './functions.js';
+} from './functions';
 
 export class $Decorator implements I$Node {
   public get $kind(): SyntaxKind.Decorator { return SyntaxKind.Decorator; }

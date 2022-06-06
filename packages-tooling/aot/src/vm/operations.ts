@@ -1,16 +1,16 @@
 import {
   Realm,
   ExecutionContext,
-} from './realm.js';
+} from './realm';
 import {
   $PropertyDescriptor,
-} from './types/property-descriptor.js';
+} from './types/property-descriptor';
 import {
   $BoundFunctionExoticObject,
-} from './exotics/bound-function.js';
+} from './exotics/bound-function';
 import {
   $ProxyExoticObject,
-} from './exotics/proxy.js';
+} from './exotics/proxy';
 import {
   $PropertyKey,
   $Primitive,
@@ -20,38 +20,38 @@ import {
   $AnyObject,
   $Any,
   CompletionType,
-} from './types/_shared.js';
+} from './types/_shared';
 import {
   $Function,
-} from './types/function.js';
+} from './types/function';
 import {
   $Boolean,
-} from './types/boolean.js';
+} from './types/boolean';
 import {
   $Undefined,
-} from './types/undefined.js';
+} from './types/undefined';
 import {
   $Null,
-} from './types/null.js';
+} from './types/null';
 import {
   $String,
-} from './types/string.js';
+} from './types/string';
 import {
   $TypeError,
   $Error,
-} from './types/error.js';
+} from './types/error';
 import {
   $Object,
-} from './types/object.js';
+} from './types/object';
 import {
   $List,
-} from './types/list.js';
+} from './types/list';
 import {
   $StringSet,
-} from './globals/string.js';
+} from './globals/string';
 import {
   $Empty,
-} from './types/empty.js';
+} from './types/empty';
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(

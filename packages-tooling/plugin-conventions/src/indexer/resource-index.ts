@@ -1,6 +1,19 @@
+import { ResourceType } from '../options';
+import { AttributeDefinition, ElementDefinition, ResourceDefinition } from './resource';
+
 export class ResourceIndex {
-  public index(): ResourceInfo<unknown>[] {
-    return [];
+  public constructor(
+    private readonly resources: ResourceInfo<ResourceDefinition>[],
+  ) {
+
+  }
+
+  public findElement(name: string): object {
+    return { name };
+  }
+
+  public findAttribute(name: string): object {
+    return { name };
   }
 }
 
@@ -13,22 +26,14 @@ export abstract class ResourceInfo<T> {
   public abstract resolve(): T;
 }
 
-export class ResourceInfoElement extends ResourceInfo<object /* should be CE definition */> {
-  public resolve(): object {
-    return {};
+export class ResourceInfoElement extends ResourceInfo<ElementDefinition> {
+  public resolve(): ElementDefinition {
+    return null!;
   }
 }
 
-export class ResourceInfoAttribute extends ResourceInfo<object /* should be CA definition */> {
-  public resolve(): object {
-    return {};
+export class ResourceInfoAttribute extends ResourceInfo<AttributeDefinition> {
+  public resolve(): ElementDefinition {
+    return null!;
   }
-}
-
-export const enum ResourceType {
-  Element = 1,
-  Attr = 2,
-  ValueConverter = 3,
-  BindingBehavior = 4,
-  AttributePattern = 5,
 }

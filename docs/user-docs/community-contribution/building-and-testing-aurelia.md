@@ -51,21 +51,23 @@ This documentation will be expanded upon in the future.
 
 ### packages-tooling
 
-To develop/test any of the tooling packages, first build all the packages:
+Similar to core packages, to develop/test any of the tooling packages, run `npm run dev:tooling` to start the development. This will
 
-```bash
-npm run build
+* build & watch the `kernel` core package for rebuild
+* build & watch the `plugin-conventions` tooling package for rebuild
+* start a process to run all the tests with `mocha`
+
+Example scenarios:
+
+1. Fixing a convention bug, so run all the plugin convention tests, and rebuild `plugin-conventions` tooling package on code change:
+```
+npm run dev -- --test plugin-conventions
+# or
+npm run dev -- --test conventions
 ```
 
-Go to the tests folder:
-
-```bash
-cd packages-tooling/__tests__
+2. Fixing a webpack loader bug, sp run all the load tests and rebuild webpack loader code on change
 ```
-
-Run any of the test suites \(please inspect the package.json to see the other commands\):
-
-```bash
-npm run test-node # runs all tooling tests
+npm run dev -- --dev webpack-loader --test loader
 ```
 

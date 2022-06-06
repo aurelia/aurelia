@@ -533,15 +533,14 @@ class NavigationModel implements INavigationModel {
     }
     const index = routes.length;
     routes.push((void 0)!); // reserve the slot
-    const promise = this.promise;
-    this.promise = onResolve(promise, () => {
-      return onResolve(routeDef, $routeDef => {
+    const promise = this.promise = onResolve(this.promise, () =>
+      onResolve(routeDef, $routeDef => {
         routes[index] = NavigationRoute.create($routeDef);
         if(this.promise === promise) {
           this.promise = void 0;
         }
-      });
-    });
+      })
+    );
   }
 }
 

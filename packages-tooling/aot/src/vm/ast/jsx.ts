@@ -24,11 +24,11 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Any,
   $AnyNonEmpty,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   I$Node,
   Context,
@@ -38,18 +38,18 @@ import {
   $AssignmentExpressionNode,
   $$JsxOpeningLikeElement,
   $i,
-} from './_shared.js';
+} from './_shared';
 import {
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $Identifier,
   $PropertyAccessExpression,
   $ThisExpression,
-} from './expressions.js';
+} from './expressions';
 import {
   $StringLiteral,
-} from './literals.js';
+} from './literals';
 
 export type $$JsxParent = (
   $JsxElement |

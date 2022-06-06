@@ -1,37 +1,37 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   CompletionType,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Symbol,
-} from '../types/symbol.js';
+} from '../types/symbol';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-symbol-constructor
 export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {

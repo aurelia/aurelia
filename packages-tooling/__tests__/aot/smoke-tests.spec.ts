@@ -1,7 +1,7 @@
 /* eslint-disable mocha/no-skipped-tests */
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration, ConsoleSink } from '@aurelia/kernel';
 import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
-import { VirtualFileSystem } from './virtual-file-system.js';
+import { VirtualFileSystem } from './virtual-file-system';
 import { assert } from '@aurelia/testing';
 
 // NOTE: These tests are not meant to be even close to exhaustive. That's what the 262 test suite is for.

@@ -1,40 +1,40 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Null,
-} from '../types/null.js';
+} from '../types/null';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
 export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticObject'> {

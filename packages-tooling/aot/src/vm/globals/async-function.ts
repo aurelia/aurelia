@@ -1,48 +1,48 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   FunctionKind,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 import {
   $CreateDynamicFunction,
   $FunctionPrototype,
   $FunctionConstructor,
-} from './function.js';
+} from './function';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $Block,
-} from '../ast/statements.js';
+} from '../ast/statements';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 import {
   $PromiseCapability,
-} from './promise.js';
+} from './promise';
 import {
   $Call,
-} from '../operations.js';
+} from '../operations';
 
 // http://www.ecma-international.org/ecma-262/#sec-async-function-objects
 // 25.7 AsyncFunction Objects

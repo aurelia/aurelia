@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { IncomingMessage, ServerResponse } from 'http';
 import { Http2ServerRequest, Http2ServerResponse } from 'http2';
 import * as $url from 'url';
-import { QualifiedHeaderValues } from './http-utils.js';
+import { QualifiedHeaderValues } from './http-utils';
 
 export const enum HttpContextState {
   head = 1,

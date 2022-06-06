@@ -1,67 +1,67 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Function,
   $BuiltinFunction,
   $GetPrototypeFromConstructor,
-} from '../types/function.js';
+} from '../types/function';
 import {
   ExecutionContext,
   Realm,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
   $Any,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $IteratorRecord,
   $GetIterator,
   $IteratorStep,
   $IteratorValue,
   $IteratorClose,
-} from './iteration.js';
+} from './iteration';
 import {
   $Error,
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Call,
   $Construct,
   $Invoke,
   $SpeciesConstructor,
-} from '../operations.js';
+} from '../operations';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 import {
   Job,
-} from '../job.js';
+} from '../job';
 import {
   $$ESModuleOrScript,
-} from '../ast/modules.js';
+} from '../ast/modules';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $ValueRecord,
   $GetSpecies,
-} from './_shared.js';
+} from './_shared';
 import {
   $CreateArrayFromList,
-} from '../exotics/array.js';
+} from '../exotics/array';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation

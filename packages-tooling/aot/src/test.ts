@@ -11,13 +11,13 @@ import {
 } from '@aurelia/kernel';
 import {
   IFileSystem,
-} from './system/interfaces.js';
+} from './system/interfaces';
 import {
   NodeFileSystem,
-} from './system/file-system.js';
+} from './system/file-system';
 import {
   ServiceHost,
-} from './service-host.js';
+} from './service-host';
 
 (async function () {
   // Just for testing

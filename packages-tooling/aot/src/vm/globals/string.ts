@@ -2,37 +2,37 @@ import {
   $BuiltinFunction,
   $GetPrototypeFromConstructor,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   CompletionType,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $StringExoticObject,
-} from '../exotics/string.js';
+} from '../exotics/string';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-constructor
 export class $StringConstructor extends $BuiltinFunction<'%String%'> {

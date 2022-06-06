@@ -1,9 +1,9 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
-import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr.js';
-import { nameConvention } from './name-convention.js';
-import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
-import { resourceName } from './resource-name.js';
+import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr';
+import { nameConvention } from './name-convention';
+import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
+import { resourceName } from './resource-name';
 
 interface ICapturedImport {
   names: string[];

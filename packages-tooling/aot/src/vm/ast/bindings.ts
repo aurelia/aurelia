@@ -16,35 +16,35 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $EnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Any,
   $AnyNonEmpty,
   $AnyObject,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
   $GetIterator,
   $IteratorClose,
-} from '../globals/iteration.js';
+} from '../globals/iteration';
 import {
   $TypeError,
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 import {
   I$Node,
   Context,
@@ -63,10 +63,10 @@ import {
   getHasInitializer,
   getIsSimpleParameterList,
   $i,
-} from './_shared.js';
+} from './_shared';
 import {
   $$ESModuleOrScript,
-} from './modules.js';
+} from './modules';
 import {
   $Identifier,
   $PropertyAssignment,
@@ -76,33 +76,33 @@ import {
   $ArrayLiteralExpression,
   $NewExpression,
   $CallExpression,
-} from './expressions.js';
+} from './expressions';
 import {
   $PropertyDeclaration,
-} from './classes.js';
+} from './classes';
 import {
   $GetAccessorDeclaration,
   $SetAccessorDeclaration,
   $MethodDeclaration,
-} from './methods.js';
+} from './methods';
 import {
   $EnumMember,
-} from './types.js';
+} from './types';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $ArrayExoticObject,
-} from '../exotics/array.js';
+} from '../exotics/array';
 import {
   $CreateDataProperty,
-} from '../operations.js';
+} from '../operations';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 export type $$NamedDeclaration = (
   $GetAccessorDeclaration |

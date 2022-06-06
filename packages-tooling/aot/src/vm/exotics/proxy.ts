@@ -1,20 +1,20 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $Null,
-} from '../types/null.js';
+} from '../types/null';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Call,
   $ToPropertyDescriptor,
@@ -22,35 +22,35 @@ import {
   $FromPropertyDescriptor,
   $CreateListFromArrayLike,
   $Construct,
-} from '../operations.js';
+} from '../operations';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Symbol,
-} from '../types/symbol.js';
+} from '../types/symbol';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $CreateArrayFromList,
-} from './array.js';
+} from './array';
 import {
   $TypeError,
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots
 export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {

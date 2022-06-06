@@ -75,7 +75,7 @@ function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
     cb(ne);
     if (n.childNodes) traverse(n, cb);
     // For <template> tag
-    if (n.content && n.content.childNodes) traverse(n.content, cb);
+    if (n.content?.childNodes) traverse(n.content, cb);
   });
 }
 

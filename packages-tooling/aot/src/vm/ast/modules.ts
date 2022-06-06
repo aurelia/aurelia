@@ -38,35 +38,35 @@ import {
   ResolvedBindingRecord,
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $ModuleEnvRec,
   $EnvRec,
   $FunctionEnvRec,
   $GlobalEnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $NamespaceExoticObject,
-} from '../exotics/namespace.js';
+} from '../exotics/namespace';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Any,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $Null,
-} from '../types/null.js';
+} from '../types/null';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   IModuleResolver,
 } from '../../service-host';
@@ -74,10 +74,10 @@ import {
   $Error,
   $SyntaxError,
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 import {
   I$Node,
   Context,
@@ -102,13 +102,13 @@ import {
   $i,
   $ESStatementListItemNode,
   $$ESVarDeclaration,
-} from './_shared.js';
+} from './_shared';
 import {
   $Identifier,
-} from './expressions.js';
+} from './expressions';
 import {
   $ClassDeclaration,
-} from './classes.js';
+} from './classes';
 import {
   DirectivePrologue,
   $VariableStatement,
@@ -130,21 +130,21 @@ import {
   $ThrowStatement,
   $TryStatement,
   $DebuggerStatement,
-} from './statements.js';
+} from './statements';
 import {
   $FunctionDeclaration,
-} from './functions.js';
+} from './functions';
 import {
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
-} from './types.js';
+} from './types';
 import {
   $StringLiteral,
-} from './literals.js';
+} from './literals';
 import {
   $StringSet,
-} from '../globals/string.js';
+} from '../globals/string';
 
 export type $$ESModuleItem = (
   $$ESStatementListItem |

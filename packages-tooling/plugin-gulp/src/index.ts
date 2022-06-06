@@ -34,7 +34,7 @@ export function plugin(
         if (result) {
           if (allOptions.templateExtensions.includes(file.extname)) {
             // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
-            file.basename += '';
+            file.basename += '.js';
           }
 
           file.contents = Buffer.from(result.code);

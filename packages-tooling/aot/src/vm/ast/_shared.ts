@@ -93,17 +93,17 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $DeclarativeEnvRec,
-} from '../types/environment-record.js';
+} from '../types/environment-record';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $Any,
   $AnyNonEmpty,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $$TSModuleItem,
   $ExportSpecifier,
@@ -121,7 +121,7 @@ import {
   $ImportEqualsDeclaration,
   $ESScript,
   $ESModule,
-} from './modules.js';
+} from './modules';
 import {
   $ArrayBindingPattern,
   $BindingElement,
@@ -129,7 +129,7 @@ import {
   $ObjectBindingPattern,
   $SpreadElement,
   $$NamedDeclaration,
-} from './bindings.js';
+} from './bindings';
 import {
   $ArrayLiteralExpression,
   $AsExpression,
@@ -160,14 +160,14 @@ import {
   $Identifier,
   $ThisExpression,
   $SuperExpression,
-} from './expressions.js';
+} from './expressions';
 import {
   $ArrowFunction,
   $ConstructorDeclaration,
   $FunctionExpression,
   $ParameterDeclaration,
   $FunctionDeclaration,
-} from './functions.js';
+} from './functions';
 import {
   $Block,
   $BreakStatement,
@@ -196,7 +196,7 @@ import {
   $DebuggerStatement,
   DirectivePrologue,
   ExpressionStatement_T,
-} from './statements.js';
+} from './statements';
 import {
   $ClassExpression,
   $ExpressionWithTypeArguments,
@@ -205,18 +205,18 @@ import {
   $ClassDeclaration,
   $$NodeWithHeritageClauses,
   $SemicolonClassElement,
-} from './classes.js';
+} from './classes';
 import {
   $EnumMember,
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
-} from './types.js';
+} from './types';
 import {
   $GetAccessorDeclaration,
   $MethodDeclaration,
   $SetAccessorDeclaration,
-} from './methods.js';
+} from './methods';
 import {
   $JsxAttribute,
   $JsxAttributes,
@@ -228,7 +228,7 @@ import {
   $JsxSelfClosingElement,
   $JsxSpreadAttribute,
   $$JsxParent,
-} from './jsx.js';
+} from './jsx';
 import {
   $TemplateSpan,
   $BigIntLiteral,
@@ -238,16 +238,16 @@ import {
   $NumericLiteral,
   $RegularExpressionLiteral,
   $StringLiteral,
-} from './literals.js';
+} from './literals';
 import {
   $StringSet,
-} from '../globals/string.js';
+} from '../globals/string';
 import {
   $Empty,
-} from '../types/empty.js';
+} from '../types/empty';
 import {
   $Error,
-} from '../types/error.js';
+} from '../types/error';
 
 // #region TS AST unions
 

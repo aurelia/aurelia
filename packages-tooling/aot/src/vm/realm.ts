@@ -6,75 +6,75 @@ import {
 } from '@aurelia/kernel';
 import {
   IFile,
-} from '../system/interfaces.js';
+} from '../system/interfaces';
 import {
   Intrinsics,
-} from './intrinsics.js';
+} from './intrinsics';
 import {
   $EnvRec,
   $ModuleEnvRec,
   $GlobalEnvRec,
   $FunctionEnvRec,
   $DeclarativeEnvRec,
-} from './types/environment-record.js';
+} from './types/environment-record';
 import {
   $PropertyDescriptor,
-} from './types/property-descriptor.js';
+} from './types/property-descriptor';
 import {
   $DefinePropertyOrThrow,
-} from './operations.js';
+} from './operations';
 import {
   $String,
-} from './types/string.js';
+} from './types/string';
 import {
   $Undefined,
-} from './types/undefined.js';
+} from './types/undefined';
 import {
   $Object,
-} from './types/object.js';
+} from './types/object';
 import {
   $Reference,
-} from './types/reference.js';
+} from './types/reference';
 import {
   $AnyNonEmpty,
-} from './types/_shared.js';
+} from './types/_shared';
 import {
   $Function,
-} from './types/function.js';
+} from './types/function';
 import {
   $Null,
-} from './types/null.js';
+} from './types/null';
 import {
   $Boolean,
-} from './types/boolean.js';
+} from './types/boolean';
 import {
   $Error,
-} from './types/error.js';
+} from './types/error';
 import {
   $NamespaceExoticObject,
-} from './exotics/namespace.js';
+} from './exotics/namespace';
 import {
   $List,
-} from './types/list.js';
+} from './types/list';
 import {
   $Number,
-} from './types/number.js';
+} from './types/number';
 import {
   $TemplateExpression,
   $TaggedTemplateExpression,
-} from './ast/expressions.js';
+} from './ast/expressions';
 import {
   $$ESModuleOrScript,
-} from './ast/modules.js';
+} from './ast/modules';
 import {
   $GeneratorInstance,
-} from './globals/generator-function.js';
+} from './globals/generator-function';
 import {
   JobQueue,
-} from './job.js';
+} from './job';
 import {
   $AsyncGeneratorInstance,
-} from './globals/async-generator-function.js';
+} from './globals/async-generator-function';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];

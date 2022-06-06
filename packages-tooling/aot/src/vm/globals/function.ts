@@ -2,39 +2,39 @@ import {
   $BuiltinFunction,
   $Function,
   $GetPrototypeFromConstructor,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Error, $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $ObjectPrototype,
-} from './object.js';
+} from './object';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 import {
   $Call,
   $HostEnsureCanCompileStrings,
   $DefinePropertyOrThrow,
-} from '../operations.js';
+} from '../operations';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   createSourceFile,
   ScriptTarget,
@@ -42,23 +42,23 @@ import {
 } from 'typescript';
 import {
   $FunctionDeclaration,
-} from '../ast/functions.js';
+} from '../ast/functions';
 import {
   $ESModule,
-} from '../ast/modules.js';
+} from '../ast/modules';
 import {
   Context,
   FunctionKind,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 
 // http://www.ecma-international.org/ecma-262/#sec-function-objects
 // 19.2 Function Objects

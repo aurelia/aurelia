@@ -5,11 +5,11 @@ import {
 import {
   joinPath,
   resolvePath,
-} from './path-utils.js';
+} from './path-utils';
 import {
   IFile,
   $CompilerOptions,
-} from './interfaces.js';
+} from './interfaces';
 
 const lookup: WeakMap<$CompilerOptions, PatternMatcher | null> = new WeakMap();
 

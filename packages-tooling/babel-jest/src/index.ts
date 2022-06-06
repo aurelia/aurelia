@@ -1,5 +1,5 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import babelJest from 'babel-jest';
+import * as babelJest from 'babel-jest';
 import { TransformOptions } from '@babel/core';
 import type { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
 

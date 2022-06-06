@@ -2,38 +2,38 @@ import {
   IModule,
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $DefinePropertyOrThrow,
   $Set,
   $HasOwnProperty,
-} from '../operations.js';
+} from '../operations';
 import {
   $PropertyDescriptor,
-} from './property-descriptor.js';
+} from './property-descriptor';
 import {
   $AnyNonError,
   $AnyNonEmpty,
   $AnyObject,
-} from './_shared.js';
+} from './_shared';
 import {
   $String,
-} from './string.js';
+} from './string';
 import {
   $Null,
-} from './null.js';
+} from './null';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   $Empty,
-} from './empty.js';
+} from './empty';
 import {
   $Undefined,
-} from './undefined.js';
+} from './undefined';
 import {
   $Function,
-} from './function.js';
+} from './function';
 import {
   ILogger,
   IDisposable,
@@ -43,7 +43,7 @@ import {
   $Error,
   $TypeError,
   $ReferenceError,
-} from './error.js';
+} from './error';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |

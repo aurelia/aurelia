@@ -12,26 +12,26 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared.js';
+} from './_shared';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Object,
-} from './object.js';
+} from './object';
 import {
   $String,
-} from './string.js';
+} from './string';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   $NumericLiteral,
-} from '../ast/literals.js';
+} from '../ast/literals';
 import {
   I$Node,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
 export class $Number<T extends number = number> {

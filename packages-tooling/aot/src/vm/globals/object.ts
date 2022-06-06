@@ -2,34 +2,34 @@ import {
   $BuiltinFunction,
   $Function,
   $OrdinaryCreateFromConstructor,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $StringExoticObject,
-} from '../exotics/string.js';
+} from '../exotics/string';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-constructor
 // #region 19.1.1 The Object Constructor

@@ -1,24 +1,24 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-uri-handling-functions
 // 18.2.6 URI Handling Functions

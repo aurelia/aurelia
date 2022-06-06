@@ -11,54 +11,54 @@ import {
   $AnyNonEmptyNonError,
   $AnyObject,
   $Any,
-} from './_shared.js';
+} from './_shared';
 import {
   $PropertyDescriptor,
-} from './property-descriptor.js';
+} from './property-descriptor';
 import {
   $Null,
-} from './null.js';
+} from './null';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $String,
-} from './string.js';
+} from './string';
 import {
   $Number,
-} from './number.js';
+} from './number';
 import {
   $Call,
   $ValidateAndApplyPropertyDescriptor,
   $OrdinarySetWithOwnDescriptor,
-} from '../operations.js';
+} from '../operations';
 import {
   $Function,
-} from './function.js';
+} from './function';
 import {
   $Undefined,
-} from './undefined.js';
+} from './undefined';
 import {
   $Symbol,
-} from './symbol.js';
+} from './symbol';
 import {
   $TypeError,
   $Error,
-} from './error.js';
+} from './error';
 import {
   $List,
-} from './list.js';
+} from './list';
 import {
   Writable,
   IDisposable,
 } from '@aurelia/kernel';
 import {
   I$Node,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<

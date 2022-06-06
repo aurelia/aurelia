@@ -1,42 +1,42 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Error, $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $Undefined,
-} from '../types/undefined.js';
+} from '../types/undefined';
 import {
   $FunctionPrototype,
-} from './function.js';
+} from './function';
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   $List
-} from '../types/list.js';
+} from '../types/list';
 import {
   $ProxyExoticObject,
-} from '../exotics/proxy.js';
+} from '../exotics/proxy';
 import {
   $Null,
-} from '../types/null.js';
+} from '../types/null';
 import {
   $CreateDataProperty,
-} from '../operations.js';
+} from '../operations';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 
 // http://www.ecma-international.org/ecma-262/#sec-proxy-objects
 // 26.2 Proxy Objects

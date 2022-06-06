@@ -1,67 +1,67 @@
 import {
   $Object,
-} from './object.js';
+} from './object';
 import {
   $EnvRec,
   $FunctionEnvRec,
-} from './environment-record.js';
+} from './environment-record';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   $String,
-} from './string.js';
+} from './string';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
-} from './_shared.js';
+} from './_shared';
 import {
   $PropertyDescriptor,
-} from './property-descriptor.js';
+} from './property-descriptor';
 import {
   $Number,
-} from './number.js';
+} from './number';
 import {
   $DefinePropertyOrThrow,
-} from '../operations.js';
+} from '../operations';
 import {
   $Symbol,
-} from './symbol.js';
+} from './symbol';
 import {
   Intrinsics,
   IntrinsicObjectKey,
-} from '../intrinsics.js';
+} from '../intrinsics';
 import {
   $Undefined,
-} from './undefined.js';
+} from './undefined';
 import {
   ExecutionContext,
   Realm,
-} from '../realm.js';
+} from '../realm';
 import {
   $Null,
-} from './null.js';
+} from './null';
 import {
   $TypeError,
   $Error,
-} from './error.js';
+} from './error';
 import {
   $$Function,
-} from '../ast/functions.js';
+} from '../ast/functions';
 import {
   $$ESModuleOrScript,
-} from '../ast/modules.js';
+} from '../ast/modules';
 import {
   getLineAndCharacterOfPosition
 } from 'typescript';
 import {
   FunctionKind,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 import {
   $List,
-} from './list.js';
+} from './list';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects

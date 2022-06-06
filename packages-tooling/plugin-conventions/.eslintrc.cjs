@@ -14,6 +14,7 @@ module.exports = {
   },
   rules: {
     'import/no-nodejs-modules': 'off',
-    '@typescript-eslint/strict-boolean-expressions': 'off'
+    '@typescript-eslint/strict-boolean-expressions': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
   }
 };

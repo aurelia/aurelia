@@ -12,33 +12,33 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared.js';
+} from './_shared';
 import {
   $Number,
-} from './number.js';
+} from './number';
 import {
   $Undefined,
-} from './undefined.js';
+} from './undefined';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Object,
-} from './object.js';
+} from './object';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   $Identifier,
-} from '../ast/expressions.js';
+} from '../ast/expressions';
 import {
   $StringLiteral,
   $NumericLiteral,
-} from '../ast/literals.js';
+} from '../ast/literals';
 import {
   I$Node,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
 export class $String<T extends string = string> {

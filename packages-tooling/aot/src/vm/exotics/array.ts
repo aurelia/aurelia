@@ -1,44 +1,44 @@
 import {
   $Object,
-} from '../types/object.js';
+} from '../types/object';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $Number,
-} from '../types/number.js';
+} from '../types/number';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor.js';
+} from '../types/property-descriptor';
 import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
   CompletionType,
-} from '../types/_shared.js';
+} from '../types/_shared';
 import {
   $Boolean,
-} from '../types/boolean.js';
+} from '../types/boolean';
 import {
   $GetFunctionRealm,
   $Construct,
   $CreateDataProperty,
-} from '../operations.js';
+} from '../operations';
 import {
   $Function,
-} from '../types/function.js';
+} from '../types/function';
 import {
   $String,
-} from '../types/string.js';
+} from '../types/string';
 import {
   $Error,
   $RangeError,
   $TypeError,
-} from '../types/error.js';
+} from '../types/error';
 import {
   $List,
-} from '../types/list.js';
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {

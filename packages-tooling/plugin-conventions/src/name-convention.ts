@@ -1,5 +1,5 @@
 import { camelCase, kebabCase } from '@aurelia/kernel';
-import { INameConvention, ResourceType } from './options.js';
+import { INameConvention, ResourceType } from './options';
 
 export function nameConvention(className: string): INameConvention {
   const m = /^(.+?)(CustomElement|CustomAttribute|ValueConverter|BindingBehavior|BindingCommand|TemplateController)?$/.exec(className);

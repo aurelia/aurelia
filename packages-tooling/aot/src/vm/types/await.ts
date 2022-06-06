@@ -1,33 +1,33 @@
 import {
   $BuiltinFunction,
   $Function,
-} from './function.js';
+} from './function';
 import {
   $AnyNonEmptyNonError,
   $Any,
   $AnyNonEmpty,
   CompletionType,
-} from './_shared.js';
+} from './_shared';
 import {
   $List,
-} from './list.js';
+} from './list';
 import {
   ExecutionContext,
   Realm,
-} from '../realm.js';
+} from '../realm';
 import {
   $Undefined,
-} from './undefined.js';
+} from './undefined';
 import {
   $PromiseResolve,
   $PerformPromiseThen,
-} from '../globals/promise.js';
+} from '../globals/promise';
 import {
   $Error,
-} from './error.js';
+} from './error';
 import {
   $Number,
-} from './number.js';
+} from './number';
 
 // http://www.ecma-international.org/ecma-262/#await
 // 6.2.3.1 Await

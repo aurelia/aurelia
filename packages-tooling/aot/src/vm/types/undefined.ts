@@ -12,40 +12,40 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared.js';
+} from './_shared';
 import {
   Realm,
   ExecutionContext,
-} from '../realm.js';
+} from '../realm';
 import {
   $String,
-} from './string.js';
+} from './string';
 import {
   $Number,
-} from './number.js';
+} from './number';
 import {
   $Boolean,
-} from './boolean.js';
+} from './boolean';
 import {
   $TypeError,
   $Error,
-} from './error.js';
+} from './error';
 import {
   $ESModule,
   $ExportSpecifier,
   $ImportSpecifier,
   $ImportClause,
   $ImportDeclaration,
-} from '../ast/modules.js';
+} from '../ast/modules';
 import {
   $FunctionDeclaration,
-} from '../ast/functions.js';
+} from '../ast/functions';
 import {
   $ClassDeclaration,
-} from '../ast/classes.js';
+} from '../ast/classes';
 import {
   I$Node,
-} from '../ast/_shared.js';
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {

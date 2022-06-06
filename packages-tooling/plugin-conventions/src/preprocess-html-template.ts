@@ -1,9 +1,9 @@
 import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr';
 import * as path from 'path';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import { IFileUnit, IPreprocessOptions } from './options.js';
-import { stripMetaData } from './strip-meta-data.js';
-import { resourceName } from './resource-name.js';
+import { IFileUnit, IPreprocessOptions } from './options';
+import { stripMetaData } from './strip-meta-data';
+import { resourceName } from './resource-name';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:

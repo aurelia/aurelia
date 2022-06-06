@@ -5,17 +5,17 @@ import {
 } from '@aurelia/kernel';
 import {
   $Any,
-} from './types/_shared.js';
+} from './types/_shared';
 import {
   Realm,
   ExecutionContext,
-} from './realm.js';
+} from './realm';
 import {
   $Empty,
-} from './types/empty.js';
+} from './types/empty';
 import {
   $$ESModuleOrScript,
-} from './ast/modules.js';
+} from './ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-25
 export abstract class Job<MOS extends $$ESModuleOrScript = $$ESModuleOrScript> implements IDisposable {

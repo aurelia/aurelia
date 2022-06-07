@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
-import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { LifecycleFlags, valueConverter } from '@aurelia/runtime';
@@ -1745,5 +1745,57 @@ describe('router (smoke tests)', function () {
 
       await au.stop();
     });
+  });
+
+  it('isNavigating indicates router\'s navigation status', async function () {
+
+    @customElement({ name: 'ce-p1', template: 'p1' })
+    class P1 { }
+
+    @customElement({ name: 'ce-p2', template: 'p2' })
+    class P2 { }
+    @route({
+      routes: [
+        { path: ['', 'p1'], component: P1, title: 'P1' },
+        { path: 'p2', component: P2, title: 'P2' },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
+    class Root {
+      public isNavigatingLog: boolean[] = [];
+      public constructor(
+        @IRouter private readonly router: IRouter,
+      ) { }
+
+      @watch<Root>(root => root['router'].isNavigating)
+      public logIsNavigating(isNavigating: boolean) {
+        this.isNavigatingLog.push(isNavigating);
+      }
+    }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      P1,
+      P2,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    await au.app({ component: Root, host }).start();
+
+    const log = (au.root.controller.viewModel as Root).isNavigatingLog;
+    assert.deepStrictEqual(log, [true, false]);
+
+    log.length = 0;
+    await container.get(IRouter).load('p2');
+    assert.deepStrictEqual(log, [true, false]);
+
+    await au.stop();
   });
 });

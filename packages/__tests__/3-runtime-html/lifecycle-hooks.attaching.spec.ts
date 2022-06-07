@@ -1,4 +1,3 @@
-import { Registration } from '@aurelia/kernel';
 import {
   customAttribute,
   CustomElement,
@@ -10,30 +9,34 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [synchronous]', function () {
 
   const hookSymbol = Symbol();
+  let tracker: LifeycyleTracker | null = null;
+
+  this.beforeEach(function () {
+    tracker = new LifeycyleTracker();
+  });
 
   @lifecycleHooks()
   class AttachingLoggingHook<T> {
     attaching(vm: T, initiator: IController) {
       vm[hookSymbol] = initiator[hookSymbol] = hookSymbol;
-      const tracker = initiator.container.get(LifeycyleTracker);
       tracker.attaching++;
       tracker.controllers.push(initiator);
     }
   }
 
   it('invokes global attaching hooks', async function () {
-    const { component, container } = await createFixture
+    const { component } = await createFixture
       .html`\${message}`
       .deps(AttachingLoggingHook)
       .build().started;
 
     assert.strictEqual(component[hookSymbol], hookSymbol);
     assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 1);
+    assert.strictEqual(tracker.attaching, 1);
   });
 
   it('invokes when registered both globally and locally', async function () {
-    const { component, container } = await createFixture
+    const { component } = await createFixture
       .component(CustomElement.define({ name: 'app', dependencies: [AttachingLoggingHook] }))
       .html`\${message}`
       .deps(AttachingLoggingHook)
@@ -41,8 +44,8 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [synchronous]', funct
 
     assert.strictEqual(component[hookSymbol], hookSymbol);
     assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 2);
-    assert.deepStrictEqual(container.get(LifeycyleTracker).controllers, [component.$controller, component.$controller]);
+    assert.strictEqual(tracker.attaching, 2);
+    assert.deepStrictEqual(tracker.controllers, [component.$controller, component.$controller]);
   });
 
   it('invokes before the view model lifecycle', async function () {
@@ -68,13 +71,13 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [synchronous]', funct
       created() { current = this; }
     }
 
-    const { container } = await createFixture
-      .html `<div square>`
+    await createFixture
+      .html`<div square>`
       .deps(AttachingLoggingHook, Square)
       .build().started;
 
     assert.instanceOf(current, Square);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 2);
+    assert.strictEqual(tracker.attaching, 2);
   });
 
   it('invokes attaching hooks on Custom attribute', async function () {
@@ -84,21 +87,21 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [synchronous]', funct
       created() { current = this; }
     }
 
-    const { container } = await createFixture
-      .html `<div square>`
+    await createFixture
+      .html`<div square>`
       .deps(Square)
       .build().started;
 
     assert.instanceOf(current, Square);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 1);
+    assert.strictEqual(tracker.attaching, 1);
   });
 
   it('does not invokes attaching hooks on synthetic controller of repeat', async function () {
-    const { container } = await createFixture
+    await createFixture
       .html('<div repeat.for="i of 2">')
       .deps(AttachingLoggingHook)
       .build().started;
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, /* root CE + repeat CA */ 2);
+    assert.strictEqual(tracker.attaching, /* root CE + repeat CA */ 2);
   });
 
   class LifeycyleTracker {
@@ -113,7 +116,7 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
   let tracker: AsyncLifeycyleTracker | null = null;
 
   this.beforeEach(function () {
-    tracker = null;
+    tracker = new AsyncLifeycyleTracker();
   });
 
   @lifecycleHooks()
@@ -134,7 +137,7 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker, AttachingLoggingHook)
+      .deps(AttachingLoggingHook)
       .build().started;
 
     assert.deepStrictEqual(tracker.logs, [
@@ -155,7 +158,6 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker)
       .build().started;
 
     assert.deepStrictEqual(tracker.logs, [
@@ -184,7 +186,7 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
         }
       })
       .html`<div square>`
-      .deps(AsyncLifeycyleTracker, Square)
+      .deps(Square)
       .build().started;
 
     assert.deepStrictEqual(tracker.logs, [
@@ -204,15 +206,7 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
   };
 
   class AsyncLifeycyleTracker {
-    static register(c) {
-      return c.register(Registration.instance(AsyncLifeycyleTracker, new AsyncLifeycyleTracker()));
-    }
-
     logs: string[] = [];
-    private constructor() {
-      tracker = this;
-    }
-
     trace(msg: string): void {
       this.logs.push(msg);
     }

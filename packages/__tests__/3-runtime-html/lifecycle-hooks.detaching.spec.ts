@@ -1,4 +1,3 @@
-import { Registration } from '@aurelia/kernel';
 import {
   customAttribute,
   CustomElement,
@@ -132,7 +131,7 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
   let tracker: AsyncLifeycyleTracker | null = null;
 
   this.beforeEach(function () {
-    tracker = null;
+    tracker = new AsyncLifeycyleTracker();
   });
 
   @lifecycleHooks()
@@ -162,7 +161,7 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker, DetachingLoggingHook)
+      .deps(DetachingLoggingHook)
       .build().started;
 
     await tearDown();
@@ -185,7 +184,6 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker)
       .build().started;
 
     await tearDown();
@@ -216,7 +214,7 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
         }
       })
       .html`<div square>`
-      .deps(AsyncLifeycyleTracker, Square)
+      .deps(Square)
       .build().started;
 
     await tearDown();
@@ -241,7 +239,6 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker)
       .build().started;
 
     await tearDown();
@@ -263,15 +260,7 @@ describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', func
   };
 
   class AsyncLifeycyleTracker {
-    static register(c) {
-      return c.register(Registration.instance(AsyncLifeycyleTracker, new AsyncLifeycyleTracker()));
-    }
-
     logs: string[] = [];
-    private constructor() {
-      tracker = this;
-    }
-
     trace(msg: string): void {
       this.logs.push(msg);
     }

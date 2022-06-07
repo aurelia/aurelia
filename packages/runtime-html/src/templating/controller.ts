@@ -579,19 +579,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // opposing leave is called in attach() (which will trigger attached())
     this._enterActivating();
 
+    let ret: void | Promise<void>;
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.binding != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.binding!.map(callBindingHook, this));
+    }
+
     if (this.hooks.hasBinding) {
       if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
-      const ret = this.viewModel!.binding(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        ret.then(() => {
-          this.bind();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-        return this.$promise;
-      }
+      ret = resolveAll(ret, this.viewModel!.binding(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      ret.then(() => {
+        this.bind();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return this.$promise;
     }
 
     this.bind();
@@ -1872,6 +1880,10 @@ function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHook
 
 function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrated'>) {
   l.instance.hydrated(this.viewModel!, this as ICompiledCustomElementController<ICompileHooks>);
+}
+
+function callBindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>) {
+  return l.instance.binding(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {

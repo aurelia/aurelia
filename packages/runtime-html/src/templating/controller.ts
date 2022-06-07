@@ -7,6 +7,7 @@ import {
   emptyArray,
   InstanceProvider,
   optional,
+  resolveAll,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -91,7 +92,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
   public location: IRenderLocation | null = null;
-  public lifecycleHooks: LifecycleHooksLookup<ICompileHooks> | null = null;
+  public lifecycleHooks: LifecycleHooksLookup<ICompileHooks & IActivationHooks<IHydratedController>> | null = null;
 
   public state: State = State.none;
   public get isActive(): boolean {
@@ -697,24 +698,33 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
+    let i = 0;
+    let ret: Promise<void> | void = void 0;
+
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.attaching != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.attaching!.map(callAttachingHook, this));
+    }
+
     if (this.hooks.hasAttaching) {
       if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
-      const ret = this.viewModel!.attaching(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        this._enterActivating();
-        ret.then(() => {
-          this._leaveActivating();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-      }
+      ret = resolveAll(ret, this.viewModel!.attaching(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      this._enterActivating();
+      ret.then(() => {
+        this._leaveActivating();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
     }
 
     // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
-      let i = 0;
       for (; i < this.children.length; ++i) {
         // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
         void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope);
@@ -1849,6 +1859,10 @@ function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHook
 
 function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrated'>) {
   l.instance.hydrated(this.viewModel!, this as ICompiledCustomElementController<ICompileHooks>);
+}
+
+function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
+  return l.instance.attaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

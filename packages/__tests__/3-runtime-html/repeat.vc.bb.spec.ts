@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { IContainer } from '@aurelia/kernel';
 import { valueConverter, bindingBehavior } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementController, IPlatform } from '@aurelia/runtime-html';

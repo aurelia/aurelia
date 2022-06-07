@@ -768,6 +768,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     let i = 0;
+    let ret: void | Promise<void>;
     // timing: before deactiving
     // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
     // todo: is this appropriate timing?
@@ -784,19 +785,26 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.detaching != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.detaching.map(callDetachingHook, this));
+    }
+
     if (this.hooks.hasDetaching) {
       if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
-      const ret = this.viewModel!.detaching(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        (initiator as Controller)._enterDetaching();
-        ret.then(() => {
-          (initiator as Controller)._leaveDetaching();
-        }).catch((err: Error) => {
-          (initiator as Controller)._reject(err);
-        });
-      }
+      ret = resolveAll(ret, this.viewModel!.detaching(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      (initiator as Controller)._enterDetaching();
+      ret.then(() => {
+        (initiator as Controller)._leaveDetaching();
+      }).catch((err: Error) => {
+        (initiator as Controller)._reject(err);
+      });
     }
 
     // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
@@ -1863,6 +1871,10 @@ function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks
 
 function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
   return l.instance.attaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {
+  return l.instance.detaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

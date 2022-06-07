@@ -7,107 +7,126 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [synchronous]', function () {
+describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [synchronous]', function () {
+  let tracker: LifeycyleTracker | null = null;
+  this.beforeEach(function () {
+    tracker = new LifeycyleTracker();
+  });
 
   const hookSymbol = Symbol();
 
   @lifecycleHooks()
-  class AttachingLoggingHook<T> {
-    attaching(vm: T, initiator: IController) {
+  class DetachingLoggingHook<T> {
+    detaching(vm: T, initiator: IController) {
       vm[hookSymbol] = initiator[hookSymbol] = hookSymbol;
-      const tracker = initiator.container.get(LifeycyleTracker);
-      tracker.attaching++;
+      tracker.detaching++;
       tracker.controllers.push(initiator);
     }
   }
 
-  it('invokes global attaching hooks', async function () {
-    const { component, container } = await createFixture
+  it('invokes global detaching hooks', async function () {
+    const { component, tearDown } = await createFixture
       .html`\${message}`
-      .deps(AttachingLoggingHook)
+      .deps(DetachingLoggingHook)
       .build().started;
+
+    await tearDown();
 
     assert.strictEqual(component[hookSymbol], hookSymbol);
     assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 1);
+    assert.strictEqual(tracker.detaching, 1);
   });
 
   it('invokes when registered both globally and locally', async function () {
-    const { component, container } = await createFixture
-      .component(CustomElement.define({ name: 'app', dependencies: [AttachingLoggingHook] }))
+    const { component, tearDown } = await createFixture
+      .component(CustomElement.define({ name: 'app', dependencies: [DetachingLoggingHook] }))
       .html`\${message}`
-      .deps(AttachingLoggingHook)
+      .deps(DetachingLoggingHook)
       .build().started;
+
+    await tearDown();
 
     assert.strictEqual(component[hookSymbol], hookSymbol);
     assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 2);
-    assert.deepStrictEqual(container.get(LifeycyleTracker).controllers, [component.$controller, component.$controller]);
+    assert.strictEqual(tracker.detaching, 2);
+    assert.deepStrictEqual(tracker.controllers, [component.$controller, component.$controller]);
   });
 
   it('invokes before the view model lifecycle', async function () {
-    let attachingCallCount = 0;
-    await createFixture
+    let detachingCallCount = 0;
+    const { tearDown } = await createFixture
       .component(class App {
-        attaching() {
+        detaching() {
           assert.strictEqual(this[hookSymbol], hookSymbol);
-          attachingCallCount++;
+          detachingCallCount++;
         }
       })
       .html``
-      .deps(AttachingLoggingHook)
+      .deps(DetachingLoggingHook)
       .build().started;
 
-    assert.strictEqual(attachingCallCount, 1);
+    await tearDown();
+
+    assert.strictEqual(detachingCallCount, 1);
   });
 
-  it('invokes global attaching hooks for Custom attribute controller', async function () {
+  it('invokes global detaching hooks for Custom attribute controller', async function () {
     let current: Square | null = null;
     @customAttribute('square')
     class Square {
       created() { current = this; }
     }
 
-    const { container } = await createFixture
-      .html `<div square>`
-      .deps(AttachingLoggingHook, Square)
+    const { tearDown } = await createFixture
+      .html`<div square>`
+      .deps(DetachingLoggingHook, Square)
       .build().started;
 
+    await tearDown();
+
     assert.instanceOf(current, Square);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 2);
+    assert.strictEqual(tracker.detaching, 2);
   });
 
-  it('invokes attaching hooks on Custom attribute', async function () {
+  it('invokes detaching hooks on Custom attribute', async function () {
     let current: Square | null = null;
-    @customAttribute({ name: 'square', dependencies: [AttachingLoggingHook] })
+    @customAttribute({ name: 'square', dependencies: [DetachingLoggingHook] })
     class Square {
       created() { current = this; }
     }
 
-    const { container } = await createFixture
-      .html `<div square>`
+    const { tearDown } = await createFixture
+      .html`<div square>`
       .deps(Square)
       .build().started;
 
+    await tearDown();
+
     assert.instanceOf(current, Square);
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, 1);
+    assert.strictEqual(tracker.detaching, 1);
   });
 
-  it('does not invokes attaching hooks on synthetic controller of repeat', async function () {
-    const { container } = await createFixture
+  it('does not invokes detaching hooks on synthetic controller of repeat', async function () {
+    const { tearDown } = await createFixture
       .html('<div repeat.for="i of 2">')
-      .deps(AttachingLoggingHook)
+      .deps(DetachingLoggingHook)
       .build().started;
-    assert.strictEqual(container.get(LifeycyleTracker).attaching, /* root CE + repeat CA */ 2);
+
+    await tearDown();
+
+    assert.strictEqual(tracker.detaching, /* root CE + repeat CA */ 2);
   });
 
   class LifeycyleTracker {
-    attaching: number = 0;
+    constructor() {
+      console.log('instance created');
+    }
+    detaching: number = 0;
     controllers: IController[] = [];
   }
 });
 
-describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', function () {
+describe('3-runtime-html/lifecycle-hooks.detaching.spec.ts [asynchronous]', function () {
 
   const hookSymbol = Symbol();
   let tracker: AsyncLifeycyleTracker | null = null;
@@ -117,25 +136,36 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
   });
 
   @lifecycleHooks()
-  class AttachingLoggingHook<T> {
-    async attaching(vm: T, initiator: IController) {
+  class DetachingLoggingHook<T> {
+    async detaching(vm: T, initiator: IController) {
       vm[hookSymbol] = initiator[hookSymbol] = hookSymbol;
       tracker.trace('lch.start');
       return waitForTicks(5).then(() => tracker.trace('lch.end'));
     }
   }
 
+  @lifecycleHooks()
+  class DetachingLoggingHook2<T> {
+    async detaching(vm: T, initiator: IController) {
+      vm[hookSymbol] = initiator[hookSymbol] = hookSymbol;
+      tracker.trace('lch2.start');
+      return waitForTicks(5).then(() => tracker.trace('lch2.end'));
+    }
+  }
+
   it('invokes global hook in parallel', async function () {
-    await createFixture
+    const { tearDown } = await createFixture
       .component(class {
-        attaching() {
+        detaching() {
           tracker.trace('comp.start');
           return waitForTicks(1).then(() => tracker.trace('comp.end'));
         }
       })
       .html``
-      .deps(AsyncLifeycyleTracker, AttachingLoggingHook)
+      .deps(AsyncLifeycyleTracker, DetachingLoggingHook)
       .build().started;
+
+    await tearDown();
 
     assert.deepStrictEqual(tracker.logs, [
       'lch.start',
@@ -146,10 +176,10 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
   });
 
   it('invokes local hooks in parallel', async function () {
-    await createFixture
+    const { tearDown } = await createFixture
       .component(class {
-        static dependencies = [AttachingLoggingHook];
-        attaching() {
+        static dependencies = [DetachingLoggingHook];
+        detaching() {
           tracker.trace('comp.start');
           return waitForTicks(1).then(() => tracker.trace('comp.end'));
         }
@@ -157,6 +187,8 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
       .html``
       .deps(AsyncLifeycyleTracker)
       .build().started;
+
+    await tearDown();
 
     assert.deepStrictEqual(tracker.logs, [
       'lch.start',
@@ -169,16 +201,16 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
   it('invokes global hooks in parallel for CA', async function () {
     @customAttribute('square')
     class Square {
-      attaching() {
+      detaching() {
         tracker.trace('square.start');
         return waitForTicks(1).then(() => tracker.trace('square.end'));
       }
     }
 
-    await createFixture
+    const { tearDown } = await createFixture
       .component(class {
-        static dependencies = [AttachingLoggingHook];
-        attaching() {
+        static dependencies = [DetachingLoggingHook];
+        detaching() {
           tracker.trace('comp.start');
           return waitForTicks(1).then(() => tracker.trace('comp.end'));
         }
@@ -187,12 +219,39 @@ describe('3-runtime-html/lifecycle-hooks.attaching.spec.ts [asynchronous]', func
       .deps(AsyncLifeycyleTracker, Square)
       .build().started;
 
+    await tearDown();
+
     assert.deepStrictEqual(tracker.logs, [
+      'square.start',
       'lch.start',
       'comp.start',
-      'square.start',
-      'comp.end',
       'square.end',
+      'comp.end',
+      'lch.end',
+    ]);
+  });
+
+  it('invokes hooks in the same order with registration', async function () {
+    const { tearDown } = await createFixture
+      .component(class {
+        static dependencies = [DetachingLoggingHook2, DetachingLoggingHook];
+        detaching() {
+          tracker.trace('comp.start');
+          return waitForTicks(1).then(() => tracker.trace('comp.end'));
+        }
+      })
+      .html``
+      .deps(AsyncLifeycyleTracker)
+      .build().started;
+
+    await tearDown();
+
+    assert.deepStrictEqual(tracker.logs, [
+      'lch2.start',
+      'lch.start',
+      'comp.start',
+      'comp.end',
+      'lch2.end',
       'lch.end',
     ]);
   });

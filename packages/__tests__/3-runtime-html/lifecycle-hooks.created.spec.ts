@@ -10,12 +10,16 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
 
   const hookSymbol = Symbol();
+  let tracker: LifeycyleTracker | null = null;
+
+  this.beforeEach(function () {
+    tracker = new LifeycyleTracker();
+  });
 
   @lifecycleHooks()
   class CreatedLoggingHook<T> {
     created(vm: T, controller: IController) {
       vm[hookSymbol] = controller[hookSymbol] = hookSymbol;
-      const tracker = controller.container.get(LifeycyleTracker);
       tracker.created++;
       tracker.controllers.push(controller);
     }
@@ -23,18 +27,18 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
 
   describe('custom elements', function () {
     it('invokes global created hooks', async function () {
-      const { component, container } = await createFixture
+      const { component } = await createFixture
         .html`\${message}`
         .deps(CreatedLoggingHook)
         .build().started;
 
       assert.strictEqual(component[hookSymbol], hookSymbol);
       assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-      assert.strictEqual(container.get(LifeycyleTracker).created, 1);
+      assert.strictEqual(tracker.created, 1);
     });
 
     it('invokes when registered both globally and locally', async function () {
-      const { component, container } = await createFixture
+      const { component } = await createFixture
         .component(CustomElement.define({ name: 'app', dependencies: [CreatedLoggingHook] }))
         .html`\${message}`
         .deps(CreatedLoggingHook)
@@ -42,8 +46,8 @@ describe('3-runtime-html/lifecycle-hooks.created.spec.ts', function () {
 
       assert.strictEqual(component[hookSymbol], hookSymbol);
       assert.strictEqual(component.$controller[hookSymbol], hookSymbol);
-      assert.strictEqual(container.get(LifeycyleTracker).created, 2);
-      assert.deepStrictEqual(container.get(LifeycyleTracker).controllers, [component.$controller, component.$controller]);
+      assert.strictEqual(tracker.created, 2);
+      assert.deepStrictEqual(tracker.controllers, [component.$controller, component.$controller]);
     });
 
     it('invokes before the view model lifecycle', async function () {

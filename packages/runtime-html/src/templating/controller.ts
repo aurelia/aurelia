@@ -7,6 +7,7 @@ import {
   emptyArray,
   InstanceProvider,
   optional,
+  resolveAll,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -91,7 +92,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
   public location: IRenderLocation | null = null;
-  public lifecycleHooks: LifecycleHooksLookup<ICompileHooks> | null = null;
+  public lifecycleHooks: LifecycleHooksLookup<ICompileHooks & IActivationHooks<IHydratedController>> | null = null;
 
   public state: State = State.none;
   public get isActive(): boolean {
@@ -697,24 +698,33 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
+    let i = 0;
+    let ret: Promise<void> | void = void 0;
+
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.attaching != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.attaching!.map(callAttachingHook, this));
+    }
+
     if (this.hooks.hasAttaching) {
       if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
-      const ret = this.viewModel!.attaching(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        this._enterActivating();
-        ret.then(() => {
-          this._leaveActivating();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-      }
+      ret = resolveAll(ret, this.viewModel!.attaching(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      this._enterActivating();
+      ret.then(() => {
+        this._leaveActivating();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
     }
 
     // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
-      let i = 0;
       for (; i < this.children.length; ++i) {
         // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
         void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope);
@@ -758,6 +768,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     let i = 0;
+    let ret: void | Promise<void>;
     // timing: before deactiving
     // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
     // todo: is this appropriate timing?
@@ -774,19 +785,26 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.detaching != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.detaching.map(callDetachingHook, this));
+    }
+
     if (this.hooks.hasDetaching) {
       if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
-      const ret = this.viewModel!.detaching(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        (initiator as Controller)._enterDetaching();
-        ret.then(() => {
-          (initiator as Controller)._leaveDetaching();
-        }).catch((err: Error) => {
-          (initiator as Controller)._reject(err);
-        });
-      }
+      ret = resolveAll(ret, this.viewModel!.detaching(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      (initiator as Controller)._enterDetaching();
+      ret.then(() => {
+        (initiator as Controller)._leaveDetaching();
+      }).catch((err: Error) => {
+        (initiator as Controller)._reject(err);
+      });
     }
 
     // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
@@ -932,27 +950,32 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
+      if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.attached != null) {
+        _retPromise = resolveAll(...this.lifecycleHooks!.attached.map(callAttachedHook, this));
+      }
+
       if (this.hooks.hasAttached) {
         if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
-        _retPromise = this.viewModel!.attached!(this.$initiator, this.$flags);
-        if (_retPromise instanceof Promise) {
-          this._ensurePromise();
-          _retPromise.then(() => {
-            this.state = State.activated;
-            // Resolve this.$promise, signaling that activation is done (path 1 of 2)
-            this._resolve();
-            if (this.$initiator !== this) {
-              (this.parent as Controller)._leaveActivating();
-            }
-          }).catch((err: Error) => {
-            this._reject(err);
-          });
-          _retPromise = void 0;
-          return;
-        }
-        _retPromise = void 0;
+        _retPromise = resolveAll(_retPromise, this.viewModel!.attached!(this.$initiator, this.$flags));
       }
+
+      if (_retPromise instanceof Promise) {
+        this._ensurePromise();
+        _retPromise.then(() => {
+          this.state = State.activated;
+          // Resolve this.$promise, signaling that activation is done (path 1 of 2)
+          this._resolve();
+          if (this.$initiator !== this) {
+            (this.parent as Controller)._leaveActivating();
+          }
+        }).catch((err: Error) => {
+          this._reject(err);
+        });
+        _retPromise = void 0;
+        return;
+      }
+      _retPromise = void 0;
 
       this.state = State.activated;
       // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
@@ -1849,6 +1872,18 @@ function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHook
 
 function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrated'>) {
   l.instance.hydrated(this.viewModel!, this as ICompiledCustomElementController<ICompileHooks>);
+}
+
+function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
+  return l.instance.attaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callAttachedHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attached'>) {
+  return l.instance.attached(this.viewModel!, this['$initiator'], this['$flags']);
+}
+
+function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {
+  return l.instance.detaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

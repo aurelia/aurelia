@@ -377,6 +377,11 @@ export class Router {
   /** @internal */
   public readonly _hasTitleBuilder: boolean = false;
 
+  private _isNavigating: boolean = false;
+  public get isNavigating(): boolean {
+    return this._isNavigating;
+  }
+
   public constructor(
     @IContainer private readonly container: IContainer,
     @IPlatform private readonly p: IPlatform,
@@ -742,6 +747,7 @@ export class Router {
 
     this.logger.trace(`run(tr:%s) - processing route`, tr);
 
+    this._isNavigating = true;
     this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
@@ -815,6 +821,7 @@ export class Router {
         this.navigated = true;
 
         this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
+        this._isNavigating = false;
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
         this.lastSuccessfulNavigation = this.activeNavigation;
@@ -875,6 +882,7 @@ export class Router {
     this.activeNavigation = null;
     this.instructions = tr.prevInstructions;
     this._routeTree = tr.previousRouteTree;
+    this._isNavigating = false;
     this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${tr.guardsResult}`));
 
     if (tr.guardsResult === false) {

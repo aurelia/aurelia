@@ -81,29 +81,27 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
 
   describe('<App/> -> <Child/> -> <Grand Child/>', function () {
     it('does not retrieve hooks in the middle layer', async function () {
-      let hooksCall = 0;
-      let differentHooksCall = 0;
       class Hooks {
         public attaching() {
-          hooksCall++;
+          // empty
         }
       }
       class Hooks2 {
         public attaching() {
-          hooksCall++;
+          // empty
         }
       }
       class DifferentHooks {
         public attaching() {
-          differentHooksCall++;
+          // empty
         }
       }
       class DifferentHooks2 {
         public attaching() {
-          differentHooksCall++;
+          // empty
         }
       }
-      const { au, component, startPromise, tearDown } = createFixture(
+      const { au, component } = await createFixture(
         `<el view-model.ref="el">`,
         class App {
           public el: ICustomElementViewModel & { elChild: ICustomElementViewModel };
@@ -125,8 +123,7 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
             ]
           }),
         ],
-      );
-      await startPromise;
+      ).started;
 
       const hooks = (au.root.controller as IHydratedComponentController).lifecycleHooks as LifecycleHooksLookup<Hooks>;
       assert.notStrictEqual(hooks.attaching?.length, 0);
@@ -137,51 +134,40 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
       const grandChildHooks = component.el.elChild.$controller!.lifecycleHooks as LifecycleHooksLookup<DifferentHooks>;
       assert.strictEqual(grandChildHooks.attaching.length, 2);
 
-      assert.strictEqual(hooksCall, 0);
-      assert.strictEqual(differentHooksCall, 0);
-
-      childHooks.attaching.forEach(x => x.instance.attaching(null!));
-      grandChildHooks.attaching.forEach(x => x.instance.attaching(null!));
-
-      assert.strictEqual(hooksCall, 2);
-      assert.strictEqual(differentHooksCall, 2);
-
-      await tearDown();
+      assert.strictEqual(childHooks.attaching.every(x => x.instance instanceof Hooks || x.instance instanceof Hooks2), true);
+      assert.strictEqual(grandChildHooks.attaching.every(x => x.instance instanceof DifferentHooks || x.instance instanceof DifferentHooks2), true);
     });
 
     it('retrieves the same hooks Type twice as declaration', async function () {
-      let hooksCall = 0;
-      let differentHooksCall = 0;
-
       @lifecycleHooks()
       class Hooks {
         public attaching() {
-          hooksCall++;
+          // empty
         }
       }
 
       @lifecycleHooks()
       class Hooks2 {
         public attaching() {
-          hooksCall++;
+          // empty
         }
       }
 
       @lifecycleHooks()
       class DifferentHooks {
         public attaching() {
-          differentHooksCall++;
+          // empty
         }
       }
 
       @lifecycleHooks()
       class DifferentHooks2 {
         public attaching() {
-          differentHooksCall++;
+          // empty
         }
       }
 
-      const { au, component, startPromise, tearDown } = createFixture(
+      const { au, component } = await createFixture(
         `<el view-model.ref="el">`,
         class App {
           public el: ICustomElementViewModel & { elChild: ICustomElementViewModel };
@@ -207,8 +193,7 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
             ]
           }),
         ],
-      );
-      await startPromise;
+      ).started;
 
       const hooks = (au.root.controller as IHydratedComponentController).lifecycleHooks as LifecycleHooksLookup<Hooks>;
       assert.notStrictEqual(hooks.attaching?.length, 0);
@@ -219,16 +204,8 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
       const grandChildHooks = component.el.elChild.$controller!.lifecycleHooks as LifecycleHooksLookup<DifferentHooks>;
       assert.strictEqual(grandChildHooks.attaching.length, 4);
 
-      assert.strictEqual(hooksCall, 0);
-      assert.strictEqual(differentHooksCall, 0);
-
-      childHooks.attaching.forEach(x => x.instance.attaching(null!));
-      grandChildHooks.attaching.forEach(x => x.instance.attaching(null!));
-
-      assert.strictEqual(hooksCall, 4);
-      assert.strictEqual(differentHooksCall, 4);
-
-      await tearDown();
+      assert.strictEqual(childHooks.attaching.every(x => x.instance instanceof Hooks || x.instance instanceof Hooks2), true);
+      assert.strictEqual(grandChildHooks.attaching.every(x => x.instance instanceof DifferentHooks || x.instance instanceof DifferentHooks2), true);
     });
   });
 });

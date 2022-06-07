@@ -37,6 +37,7 @@ module.exports = {
     'no-extra-boolean-cast': 'off',
     'no-template-curly-in-string': 'off',
     'no-inner-declarations': 'off',
+    'no-await-in-loop': 'off',
     'require-atomic-updates': 'off',
 
     // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:

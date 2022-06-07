@@ -950,27 +950,32 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
+      if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.attached != null) {
+        _retPromise = resolveAll(...this.lifecycleHooks!.attached.map(callAttachedHook, this));
+      }
+
       if (this.hooks.hasAttached) {
         if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
-        _retPromise = this.viewModel!.attached!(this.$initiator, this.$flags);
-        if (_retPromise instanceof Promise) {
-          this._ensurePromise();
-          _retPromise.then(() => {
-            this.state = State.activated;
-            // Resolve this.$promise, signaling that activation is done (path 1 of 2)
-            this._resolve();
-            if (this.$initiator !== this) {
-              (this.parent as Controller)._leaveActivating();
-            }
-          }).catch((err: Error) => {
-            this._reject(err);
-          });
-          _retPromise = void 0;
-          return;
-        }
-        _retPromise = void 0;
+        _retPromise = resolveAll(_retPromise, this.viewModel!.attached!(this.$initiator, this.$flags));
       }
+
+      if (_retPromise instanceof Promise) {
+        this._ensurePromise();
+        _retPromise.then(() => {
+          this.state = State.activated;
+          // Resolve this.$promise, signaling that activation is done (path 1 of 2)
+          this._resolve();
+          if (this.$initiator !== this) {
+            (this.parent as Controller)._leaveActivating();
+          }
+        }).catch((err: Error) => {
+          this._reject(err);
+        });
+        _retPromise = void 0;
+        return;
+      }
+      _retPromise = void 0;
 
       this.state = State.activated;
       // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
@@ -1871,6 +1876,10 @@ function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks
 
 function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
   return l.instance.attaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callAttachedHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attached'>) {
+  return l.instance.attached(this.viewModel!, this['$initiator'], this['$flags']);
 }
 
 function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {

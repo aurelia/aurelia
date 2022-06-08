@@ -633,20 +633,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.bound != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.bound.map(callBoundHook, this));
+    }
+
     if (this.hooks.hasBound) {
       if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
-      ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        ret.then(() => {
-          this.isBound = true;
-          this._attach();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-        return;
-      }
+      ret = resolveAll(ret, this.viewModel!.bound(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      ret.then(() => {
+        this.isBound = true;
+        this._attach();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return;
     }
 
     this.isBound = true;
@@ -1892,6 +1899,10 @@ function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks
 
 function callBindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>) {
   return l.instance.binding(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callBoundHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'bound'>) {
+  return l.instance.bound(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {

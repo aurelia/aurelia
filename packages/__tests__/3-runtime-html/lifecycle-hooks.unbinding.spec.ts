@@ -92,9 +92,6 @@ describe('3-runtime-html/lifecycle-hooks.unbinding.spec.ts [synchronous]', funct
     @customAttribute({ name: 'square', dependencies: [UnbindingLoggingHook] })
     class Square {
       created() { current = this; }
-      unbinding() {
-        console.log('?????????');
-      }
     }
 
     const { tearDown } = await createFixture

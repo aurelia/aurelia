@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.35"></a>
+# 2.0.0-alpha.35 (2022-06-08)
+
+### Features:
+
+* **router-lite:** navigation model (#1446) ([d6a1590](https://github.com/aurelia/aurelia/commit/d6a1590))
+* **ts-jest,babel-jest:** upgrade to jest v28 (#1449) ([b1ec85c](https://github.com/aurelia/aurelia/commit/b1ec85c))
+
+
+### Bug Fixes:
+
+* **router-lite/nav-model): na:** false (#1452) ([c794bba](https://github.com/aurelia/aurelia/commit/c794bba))
+
+
+### Refactorings:
+
+* **router-lite:** isNavigating flag (#1457) ([b7077b7](https://github.com/aurelia/aurelia/commit/b7077b7))
+
 <a name="2.0.0-alpha.34"></a>
 # 2.0.0-alpha.34 (2022-06-03)
 

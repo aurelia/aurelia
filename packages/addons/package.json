@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/addons",
-  "version": "2.0.0-alpha.34",
+  "version": "2.0.0-alpha.35",
   "private": true,
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
@@ -44,12 +44,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.34",
-    "@aurelia/metadata": "2.0.0-alpha.34",
-    "@aurelia/platform": "2.0.0-alpha.34",
-    "@aurelia/platform-browser": "2.0.0-alpha.34",
-    "@aurelia/runtime": "2.0.0-alpha.34",
-    "@aurelia/runtime-html": "2.0.0-alpha.34"
+    "@aurelia/kernel": "2.0.0-alpha.35",
+    "@aurelia/metadata": "2.0.0-alpha.35",
+    "@aurelia/platform": "2.0.0-alpha.35",
+    "@aurelia/platform-browser": "2.0.0-alpha.35",
+    "@aurelia/runtime": "2.0.0-alpha.35",
+    "@aurelia/runtime-html": "2.0.0-alpha.35"
   },
   "devDependencies": {
     "typescript": "4.7.3"

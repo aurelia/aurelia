@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.35"></a>
+# 2.0.0-alpha.35 (2022-06-08)
+
+### Features:
+
+* **ts-jest,babel-jest:** upgrade to jest v28 (#1449) ([b1ec85c](https://github.com/aurelia/aurelia/commit/b1ec85c))
+
 <a name="2.0.0-alpha.34"></a>
 # 2.0.0-alpha.34 (2022-06-03)
 

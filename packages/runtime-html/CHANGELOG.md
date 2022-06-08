@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.35"></a>
+# 2.0.0-alpha.35 (2022-06-08)
+
+### Features:
+
+* **lifecycle-hooks:** bound ([668a0a8](https://github.com/aurelia/aurelia/commit/668a0a8))
+* **lifecycle-hooks:** unbinding ([2d94910](https://github.com/aurelia/aurelia/commit/2d94910))
+* **lifecycle-hooks:** binding ([ddb98ce](https://github.com/aurelia/aurelia/commit/ddb98ce))
+* **lifecycle-hooks:** attached (#1456) ([4a9b3bb](https://github.com/aurelia/aurelia/commit/4a9b3bb))
+* **lifecycle-hooks:** detaching (#1455) ([e4fc0de](https://github.com/aurelia/aurelia/commit/e4fc0de))
+* **lifecycle-hooks:** add attaching (#1454) ([0aa386d](https://github.com/aurelia/aurelia/commit/0aa386d))
+* **ts-jest,babel-jest:** upgrade to jest v28 (#1449) ([b1ec85c](https://github.com/aurelia/aurelia/commit/b1ec85c))
+* **lifecycle-hooks:** invoke on custom attributes ([5a15abd](https://github.com/aurelia/aurelia/commit/5a15abd))
+
+
+### Refactorings:
+
+* **attr:** expose attr own container ([286977a](https://github.com/aurelia/aurelia/commit/286977a))
+
 <a name="2.0.0-alpha.34"></a>
 # 2.0.0-alpha.34 (2022-06-03)
 

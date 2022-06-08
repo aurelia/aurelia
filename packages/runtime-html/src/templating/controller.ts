@@ -1010,6 +1010,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.removeNodes();
 
       let cur = this.$initiator.head as Controller | null;
+      let ret: void | Promise<void>;
+
       while (cur !== null) {
         if (cur !== this) {
           if (cur.debug) { cur.logger!.trace(`detach()`); }
@@ -1017,21 +1019,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           cur.removeNodes();
         }
 
+        if (cur.vmKind !== ViewModelKind.synthetic && cur.lifecycleHooks!.unbinding != null) {
+          ret = resolveAll(...cur.lifecycleHooks!.unbinding.map(callUnbindingHook, this));
+        }
+
         if (cur.hooks.hasUnbinding) {
           if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-          _retPromise = cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags);
-          if (_retPromise instanceof Promise) {
-            this._ensurePromise();
-            this._enterUnbinding();
-            _retPromise.then(() => {
-              this._leaveUnbinding();
-            }).catch((err: Error) => {
-              this._reject(err);
-            });
-          }
-          _retPromise = void 0;
+          ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags));
         }
+
+        if (ret instanceof Promise) {
+          this._ensurePromise();
+          this._enterUnbinding();
+          ret.then(() => {
+            this._leaveUnbinding();
+          }).catch((err: Error) => {
+            this._reject(err);
+          });
+        }
+
+        ret = void 0;
 
         cur = cur.next as Controller;
       }
@@ -1896,6 +1904,10 @@ function callAttachedHook(this: Controller, l: LifecycleHooksEntry<IActivationHo
 
 function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {
   return l.instance.detaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callUnbindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'unbinding'>) {
+  return l.instance.unbinding(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

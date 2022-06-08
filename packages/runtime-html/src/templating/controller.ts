@@ -579,19 +579,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // opposing leave is called in attach() (which will trigger attached())
     this._enterActivating();
 
+    let ret: void | Promise<void>;
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.binding != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.binding!.map(callBindingHook, this));
+    }
+
     if (this.hooks.hasBinding) {
       if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
-      const ret = this.viewModel!.binding(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        ret.then(() => {
-          this.bind();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-        return this.$promise;
-      }
+      ret = resolveAll(ret, this.viewModel!.binding(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      ret.then(() => {
+        this.bind();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return this.$promise;
     }
 
     this.bind();
@@ -625,20 +633,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    if (this.vmKind !== ViewModelKind.synthetic && this.lifecycleHooks!.bound != null) {
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
+
+      ret = resolveAll(...this.lifecycleHooks!.bound.map(callBoundHook, this));
+    }
+
     if (this.hooks.hasBound) {
       if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
-      ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
-      if (ret instanceof Promise) {
-        this._ensurePromise();
-        ret.then(() => {
-          this.isBound = true;
-          this._attach();
-        }).catch((err: Error) => {
-          this._reject(err);
-        });
-        return;
-      }
+      ret = resolveAll(ret, this.viewModel!.bound(this.$initiator, this.parent, this.$flags));
+    }
+
+    if (ret instanceof Promise) {
+      this._ensurePromise();
+      ret.then(() => {
+        this.isBound = true;
+        this._attach();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return;
     }
 
     this.isBound = true;
@@ -1002,6 +1017,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.removeNodes();
 
       let cur = this.$initiator.head as Controller | null;
+      let ret: void | Promise<void>;
+
       while (cur !== null) {
         if (cur !== this) {
           if (cur.debug) { cur.logger!.trace(`detach()`); }
@@ -1009,21 +1026,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           cur.removeNodes();
         }
 
+        if (cur.vmKind !== ViewModelKind.synthetic && cur.lifecycleHooks!.unbinding != null) {
+          ret = resolveAll(...cur.lifecycleHooks!.unbinding.map(callUnbindingHook, this));
+        }
+
         if (cur.hooks.hasUnbinding) {
           if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-          _retPromise = cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags);
-          if (_retPromise instanceof Promise) {
-            this._ensurePromise();
-            this._enterUnbinding();
-            _retPromise.then(() => {
-              this._leaveUnbinding();
-            }).catch((err: Error) => {
-              this._reject(err);
-            });
-          }
-          _retPromise = void 0;
+          ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags));
         }
+
+        if (ret instanceof Promise) {
+          this._ensurePromise();
+          this._enterUnbinding();
+          ret.then(() => {
+            this._leaveUnbinding();
+          }).catch((err: Error) => {
+            this._reject(err);
+          });
+        }
+
+        ret = void 0;
 
         cur = cur.next as Controller;
       }
@@ -1874,6 +1897,14 @@ function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks
   l.instance.hydrated(this.viewModel!, this as ICompiledCustomElementController<ICompileHooks>);
 }
 
+function callBindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>) {
+  return l.instance.binding(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callBoundHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'bound'>) {
+  return l.instance.bound(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
 function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
   return l.instance.attaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
@@ -1884,6 +1915,10 @@ function callAttachedHook(this: Controller, l: LifecycleHooksEntry<IActivationHo
 
 function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {
   return l.instance.detaching(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
+}
+
+function callUnbindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'unbinding'>) {
+  return l.instance.unbinding(this.viewModel!, this['$initiator'], this.parent!, this['$flags']);
 }
 
 // some reuseable variables to avoid creating nested blocks inside hot paths of controllers

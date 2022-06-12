@@ -1,4 +1,4 @@
-import { ILogger, DI, bound } from '@aurelia/kernel';
+import { bound, DI, ILogger } from '@aurelia/kernel';
 import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
 
 import { IRouterEvents, LocationChangeEvent } from './router-events';
@@ -6,14 +6,10 @@ import { IRouterEvents, LocationChangeEvent } from './router-events';
 export interface IPopStateEvent extends PopStateEvent {}
 export interface IHashChangeEvent extends HashChangeEvent {}
 
-export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider', x => x.singleton(BrowserBaseHrefProvider));
-export interface IBaseHrefProvider extends BrowserBaseHrefProvider {}
-
-export class BaseHref {
-  public constructor(
-    public readonly path: string,
-    public readonly rootedPath: string,
-  ) {}
+export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider');
+export interface IBaseHrefProvider {
+  readonly window?: IWindow;
+  getBaseHref(): URL;
 }
 
 /**
@@ -23,20 +19,15 @@ export class BaseHref {
  *
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
-export class BrowserBaseHrefProvider {
+export class BrowserBaseHrefProvider implements IBaseHrefProvider {
   public constructor(
-    @IWindow private readonly window: IWindow,
+    @IWindow public readonly window: IWindow,
   ) {}
 
-  public getBaseHref(): BaseHref | null {
-    const base = this.window.document.head.querySelector('base');
-    if (base === null) {
-      return null;
-    }
-
-    const rootedPath = normalizePath(base.href);
-    const path = normalizePath(base.getAttribute('href') ?? '');
-    return new BaseHref(path, rootedPath);
+  public getBaseHref(): URL {
+    const url = new URL(this.window.document.baseURI);
+    url.pathname = normalizePath(url.pathname);
+    return url;
   }
 }
 
@@ -51,7 +42,7 @@ export interface ILocationManager extends BrowserLocationManager {}
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserLocationManager {
-  private readonly baseHref: BaseHref;
+  private readonly baseHref: URL; // BaseHref;
   private eventId: number = 0;
 
   public constructor(
@@ -60,19 +51,12 @@ export class BrowserLocationManager {
     @IHistory private readonly history: IHistory,
     @ILocation private readonly location: ILocation,
     @IWindow private readonly window: IWindow,
-    @IBaseHrefProvider private readonly baseHrefProvider: IBaseHrefProvider,
+    @IBaseHrefProvider baseHrefProvider: IBaseHrefProvider,
   ) {
-    this.logger = logger.root.scopeTo('LocationManager');
+    logger = this.logger = logger.root.scopeTo('LocationManager');
 
-    const baseHref = baseHrefProvider.getBaseHref();
-    if (baseHref === null) {
-      const origin = location.origin ?? '';
-      const baseHref = this.baseHref = new BaseHref('', normalizePath(origin));
-      this.logger.warn(`no baseHref provided, defaulting to origin '${baseHref.rootedPath}' (normalized from '${origin}')`);
-    } else {
-      this.baseHref = baseHref;
-      this.logger.debug(`baseHref set to path: '${baseHref.path}', rootedPath: '${baseHref.rootedPath}'`);
-    }
+    const baseHref = this.baseHref = baseHrefProvider.getBaseHref();
+    logger.debug(`baseHref set to path: ${baseHref.href}`);
   }
 
   public startListening(): void {
@@ -158,7 +142,7 @@ export class BrowserLocationManager {
     const initialPath = path;
     let fullPath: string;
 
-    let base = this.baseHref.rootedPath;
+    let base = this.baseHref.href;
     if (base.endsWith('/')) {
       base = base.slice(0, -1);
     }
@@ -179,8 +163,9 @@ export class BrowserLocationManager {
 
   public removeBaseHref(path: string): string {
     const $path = path;
-    if (path.startsWith(this.baseHref.path)) {
-      path = path.slice(this.baseHref.path.length);
+    const basePath = this.baseHref.pathname;
+    if (path.startsWith(basePath)) {
+      path = path.slice(basePath.length);
     }
     path = normalizePath(path);
 

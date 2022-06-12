@@ -1,6 +1,6 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, DI } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition, IBaseHrefProvider } from '@aurelia/router-lite';
 import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -1797,5 +1797,167 @@ describe('router (smoke tests)', function () {
     assert.deepStrictEqual(log, [true, false]);
 
     await au.stop();
+  });
+
+  describe('custom base href provider', function () {
+    it('class', async function () {
+      const ICurrentTenant = DI.createInterface<string>('ICurrentTenant', x => x.instance('mega-dodo'));
+      class BaseHrefProvider implements IBaseHrefProvider {
+        public constructor(
+          @ICurrentTenant private readonly currentTenant: string
+        ) { }
+
+        public getBaseHref(): URL {
+          const url = new URL('https://portal.example.com');
+          url.pathname = `/${this.currentTenant}/guide1/`;
+          return url;
+        }
+      }
+
+      @customElement({ name: 'ce-p1', template: 'p1' })
+      class P1 { }
+
+      @customElement({ name: 'ce-p2', template: 'p2' })
+      class P2 { }
+      @route({
+        routes: [
+          { path: 'p1', component: P1, title: 'P1' },
+          { path: 'p2', component: P2, title: 'P2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="p1"></a><a load="p2"></a><au-viewport></au-viewport>' })
+      class Root {
+        public constructor(
+          @IRouter private readonly router: IRouter,
+        ) { }
+      }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration.customize({ baseHrefProvider: BaseHrefProvider }),
+        P1,
+        P2,
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const anchors = Array.from(host.querySelectorAll('a'));
+      assert.deepStrictEqual(anchors.map(a => a.href), ['https://portal.example.com/mega-dodo/guide1/p1', 'https://portal.example.com/mega-dodo/guide1/p2']);
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      anchors[0].click();
+      const queue = container.get(IPlatform).domWriteQueue;
+      await queue.yield();
+
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      anchors[1].click();
+      await queue.yield();
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
+
+      const router = container.get(IRouter);
+      await router.load('/mega-dodo/guide1/p1');
+
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      await router.load('/mega-dodo/guide1/p2');
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
+
+      await au.stop();
+    });
+    it('instance', async function () {
+      class BaseHrefProvider implements IBaseHrefProvider {
+        public constructor(
+          private readonly currentTenant: string
+        ) { }
+
+        public getBaseHref(): URL {
+          const url = new URL('https://portal.example.com');
+          url.pathname = `/${this.currentTenant}/guide1/`;
+          return url;
+        }
+      }
+
+      @customElement({ name: 'ce-p1', template: 'p1' })
+      class P1 { }
+
+      @customElement({ name: 'ce-p2', template: 'p2' })
+      class P2 { }
+      @route({
+        routes: [
+          { path: 'p1', component: P1, title: 'P1' },
+          { path: 'p2', component: P2, title: 'P2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="p1"></a><a load="p2"></a><au-viewport></au-viewport>' })
+      class Root {
+        public constructor(
+          @IRouter private readonly router: IRouter,
+        ) { }
+      }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration.customize({ baseHrefProvider: new BaseHrefProvider('mega-dodo') }),
+        P1,
+        P2,
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const anchors = Array.from(host.querySelectorAll('a'));
+      assert.deepStrictEqual(anchors.map(a => a.href), ['https://portal.example.com/mega-dodo/guide1/p1', 'https://portal.example.com/mega-dodo/guide1/p2']);
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      anchors[0].click();
+      const queue = container.get(IPlatform).domWriteQueue;
+      await queue.yield();
+
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      anchors[1].click();
+      await queue.yield();
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
+
+      const router = container.get(IRouter);
+      await router.load('/mega-dodo/guide1/p1');
+
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
+
+      await router.load('/mega-dodo/guide1/p2');
+
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
+
+      await au.stop();
+    });
   });
 });

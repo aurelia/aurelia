@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, IRegistry } from '@aurelia/kernel';
-import { AppTask } from '@aurelia/runtime-html';
+import { IContainer, InterfaceSymbol, IRegistry, Registration } from '@aurelia/kernel';
+import { AppTask, AppTaskCallback } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
 import { IRouterOptions, IRouter } from './router';
@@ -8,6 +8,7 @@ import { IRouterOptions, IRouter } from './router';
 import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
+import { BrowserBaseHrefProvider, IBaseHrefProvider } from './location-manager';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -42,18 +43,28 @@ export const DefaultResources: IRegistry[] = [
 
 export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
 function configure(container: IContainer, config?: RouterConfig): IContainer {
-  return container.register(
-    AppTask.hydrated(IContainer, RouteContext.setRoot),
-    AppTask.afterActivate(IRouter, router => {
-      if (isObject(config)) {
-        if (typeof config === 'function') {
-          return config(router) as void | Promise<void>;
-        } else {
-          return router.start(config, true) as void | Promise<void>;
-        }
+  // this is transient because the IBaseHrefProvider is needed only once in the router ctor, and ATM there is no need to keep a reference of this around.
+  let baseHrefProviderRegistration: IRegistry = Registration.transient(IBaseHrefProvider, BrowserBaseHrefProvider);
+  let activation: AppTaskCallback<InterfaceSymbol<IRouter>>;
+  if (isObject(config)) {
+    if (typeof config === 'function') {
+      activation = router => config(router) as void | Promise<void>;
+    } else {
+      const customBaseHrefProvider = (config as IRouterOptions).baseHrefProvider;
+      if (customBaseHrefProvider != null) {
+        baseHrefProviderRegistration = typeof customBaseHrefProvider === 'function'
+          ? Registration.transient(IBaseHrefProvider, customBaseHrefProvider)
+          : Registration.instance(IBaseHrefProvider, customBaseHrefProvider);
       }
-      return router.start({}, true) as void | Promise<void>;
-    }),
+      activation = router => router.start(config, true) as void | Promise<void>;
+    }
+  } else {
+    activation = router => router.start({}, true) as void | Promise<void>;
+  }
+  return container.register(
+    baseHrefProviderRegistration,
+    AppTask.hydrated(IContainer, RouteContext.setRoot),
+    AppTask.afterActivate(IRouter, activation),
     AppTask.afterDeactivate(IRouter, router => {
       router.stop();
     }),

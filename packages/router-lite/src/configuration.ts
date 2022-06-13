@@ -44,7 +44,7 @@ export const DefaultResources: IRegistry[] = [
 export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
 function configure(container: IContainer, config?: RouterConfig): IContainer {
   // this is transient because the IBaseHrefProvider is needed only once in the router ctor, and ATM there is no need to keep a reference of this around.
-  let baseHrefProviderRegistration: IRegistry = Registration.transient(IBaseHrefProvider, BrowserBaseHrefProvider);
+  let baseHrefProviderRegistration: IRegistry = null!;
   let activation: AppTaskCallback<InterfaceSymbol<IRouter>>;
   if (isObject(config)) {
     if (typeof config === 'function') {
@@ -62,7 +62,9 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
     activation = router => router.start({}, true) as void | Promise<void>;
   }
   return container.register(
-    baseHrefProviderRegistration,
+    baseHrefProviderRegistration !== null
+      ? baseHrefProviderRegistration
+      : Registration.transient(IBaseHrefProvider, BrowserBaseHrefProvider),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.afterActivate(IRouter, activation),
     AppTask.afterDeactivate(IRouter, router => {

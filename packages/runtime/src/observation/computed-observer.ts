@@ -2,6 +2,8 @@ import {
   LifecycleFlags,
   AccessorType,
   IObserver,
+  Collection,
+  CollectionObserver,
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
@@ -17,8 +19,12 @@ import type {
   IConnectable,
 } from '../observation';
 import type { IConnectableBinding } from '../binding/connectable';
-import type { IObserverLocator, ObservableGetter } from './observer-locator';
+import { createObserver, IObserverLocator, ObservableGetter } from './observer-locator';
 import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue';
+import { IDirtyChecker } from './dirty-checker';
+import { getArrayObserver } from './array-observer';
+import { getMapObserver } from './map-observer';
+import { getSetObserver } from './set-observer';
 
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
@@ -37,10 +43,11 @@ export class ComputedObserver implements
     descriptor: PropertyDescriptor,
     observerLocator: IObserverLocator,
     useProxy: boolean,
+    dirtyChecker: IDirtyChecker | null = null,
   ): ComputedObserver {
     const getter = descriptor.get!;
     const setter = descriptor.set;
-    const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
+    const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator, dirtyChecker);
     const $get = ((/* Computed Observer */) => observer.getValue()) as ObservableGetter;
     $get.getObserver = () => observer;
     def(obj, key, {
@@ -93,6 +100,7 @@ export class ComputedObserver implements
     set: undefined | ((v: unknown) => void),
     useProxy: boolean,
     observerLocator: IObserverLocator,
+    private readonly _dirtyChecker: IDirtyChecker | null,
   ) {
     this._obj = obj;
     this.get = get;
@@ -194,6 +202,28 @@ export class ComputedObserver implements
       this._isRunning = false;
       exitConnectable(this);
     }
+  }
+
+  public observe(obj: object, key: PropertyKey): void {
+    const observer = createObserver(obj, key, this._dirtyChecker);
+    this.obs.add(observer);
+  }
+
+  public observeCollection(obj: Collection): void {
+    let obs: CollectionObserver;
+    if (obj instanceof Array) {
+      obs = getArrayObserver(obj);
+    } else if (obj instanceof Set) {
+      obs = getSetObserver(obj);
+    } else if (obj instanceof Map) {
+      obs = getMapObserver(obj);
+    } else {
+      if (__DEV__)
+        throw new Error(`AUR0210: Unrecognised collection type.`);
+      else
+        throw new Error(`AUR0210`);
+    }
+    this.obs.add(obs);
   }
 }
 

@@ -36,11 +36,11 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   /** @internal */
   private f: LifecycleFlags = LifecycleFlags.none;
   private readonly _obj: IIndexable;
-  private readonly _key: string;
+  private readonly _key: PropertyKey;
 
   public constructor(
     obj: IIndexable,
-    key: string,
+    key: PropertyKey,
   ) {
     this._obj = obj;
     this._key = key;

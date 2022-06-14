@@ -17,7 +17,6 @@ const addListenerOptions = {
   [DelegationStrategy.bubbling]: { capture: false },
 } as const;
 
-/** @internal */
 export class ListenerOptions {
   public constructor(
     public readonly prevent: boolean,

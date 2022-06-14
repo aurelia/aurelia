@@ -37,7 +37,8 @@
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
-    "postrollup": "tsc --emitDeclarationOnly",
+    "postrollup": "dts-bundle-generator src/index.ts -o dist/types/index.d.ts --disable-symlinks-following",
+    "postrollup2": "tsc --emitDeclarationOnly",
     "build:packages": "npm run rollup"
   },
   "publishConfig": {

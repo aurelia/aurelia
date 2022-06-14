@@ -9,7 +9,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ISubscriberRecord,
-  LifecycleFlags as LF,
+  LifecycleFlags,
 } from '../observation';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
@@ -137,7 +137,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     return false;
   }
 
-  public notify(val: unknown, oldVal: unknown, flags: LF): void {
+  public notify(val: unknown, oldVal: unknown, flags: LifecycleFlags): void {
     /**
      * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
      * callSubscribers invocation, so we're caching them all before invoking any.
@@ -175,7 +175,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     }
   }
 
-  public notifyCollection(indexMap: IndexMap, flags: LF): void {
+  public notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void {
     const sub0 = this.s0 as ICollectionSubscriber;
     const sub1 = this.s1 as ICollectionSubscriber;
     const sub2 = this.s2 as ICollectionSubscriber;

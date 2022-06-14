@@ -1,10 +1,10 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, Class } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events';
-import { IBaseHrefProvider, ILocationManager } from './location-manager';
+import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, updateRouteTree } from './route-tree';

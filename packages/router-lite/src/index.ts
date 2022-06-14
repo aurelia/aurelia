@@ -29,7 +29,6 @@ export {
 
 export {
   ILocationManager,
-  IBaseHrefProvider,
 } from './location-manager';
 
 export {

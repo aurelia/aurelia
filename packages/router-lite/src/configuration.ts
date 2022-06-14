@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, InterfaceSymbol, IRegistry, Registration } from '@aurelia/kernel';
-import { AppTask, AppTaskCallback } from '@aurelia/runtime-html';
+import { AppTask, AppTaskCallback, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
 import { IRouterOptions, IRouter } from './router';
@@ -8,7 +8,7 @@ import { IRouterOptions, IRouter } from './router';
 import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
-import { IBasePath } from './location-manager';
+import { IBaseHref, normalizePath } from './location-manager';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -43,26 +43,25 @@ export const DefaultResources: IRegistry[] = [
 
 export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
 function configure(container: IContainer, config?: RouterConfig): IContainer {
-  // this is transient because the IBaseHrefProvider is needed only once in the router ctor, and ATM there is no need to keep a reference of this around.
-  let basePathRegistration: IRegistry = null!;
   let activation: AppTaskCallback<InterfaceSymbol<IRouter>>;
+  let basePath: string | null = null;
   if (isObject(config)) {
     if (typeof config === 'function') {
       activation = router => config(router) as void | Promise<void>;
     } else {
-      const basePath = (config as IRouterOptions).basePath;
-      if (typeof basePath === 'string') {
-        basePathRegistration = Registration.instance(IBasePath, basePath);
-      }
+      basePath = (config as IRouterOptions).basePath ?? null;
       activation = router => router.start(config, true) as void | Promise<void>;
     }
   } else {
     activation = router => router.start({}, true) as void | Promise<void>;
   }
   return container.register(
-    basePathRegistration !== null
-      ? basePathRegistration
-      : Registration.instance(IBasePath, null),
+    Registration.cachedCallback(IBaseHref, (handler, _, __) => {
+      const window = handler.get(IWindow);
+      const url = new URL(window.document.baseURI);
+      url.pathname = normalizePath(basePath ?? url.pathname);
+      return url;
+    }),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.afterActivate(IRouter, activation),
     AppTask.afterDeactivate(IRouter, router => {

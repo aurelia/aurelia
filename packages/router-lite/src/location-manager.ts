@@ -6,30 +6,7 @@ import { IRouterEvents, LocationChangeEvent } from './router-events';
 export interface IPopStateEvent extends PopStateEvent {}
 export interface IHashChangeEvent extends HashChangeEvent {}
 
-export const IBasePath = DI.createInterface<string>('IBasePath');
-
-export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider', x=> x.singleton(BrowserBaseHrefProvider));
-export interface IBaseHrefProvider extends BrowserBaseHrefProvider { }
-
-/**
- * Default browser base href provider.
- *
- * Retrieves the base href based on the `<base>` element from `window.document.head`
- *
- * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
- */
-export class BrowserBaseHrefProvider implements IBaseHrefProvider {
-  public readonly baseHref: URL;
-  public constructor(
-    @IWindow window: IWindow,
-    @IBasePath basePath: string | null,
-  ) {
-    const url = new URL(window.document.baseURI);
-    url.pathname = normalizePath(basePath ?? url.pathname);
-    this.baseHref = url;
-  }
-}
-
+export const IBaseHref = DI.createInterface<URL>('IBaseHref');
 export const ILocationManager = DI.createInterface<ILocationManager>('ILocationManager', x => x.singleton(BrowserLocationManager));
 export interface ILocationManager extends BrowserLocationManager {}
 
@@ -41,7 +18,6 @@ export interface ILocationManager extends BrowserLocationManager {}
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserLocationManager {
-  private readonly baseHref: URL;
   private eventId: number = 0;
 
   public constructor(
@@ -50,11 +26,9 @@ export class BrowserLocationManager {
     @IHistory private readonly history: IHistory,
     @ILocation private readonly location: ILocation,
     @IWindow private readonly window: IWindow,
-    @IBaseHrefProvider baseHrefProvider: IBaseHrefProvider,
+    @IBaseHref private readonly baseHref: URL,
   ) {
     logger = this.logger = logger.root.scopeTo('LocationManager');
-
-    const baseHref = this.baseHref = baseHrefProvider.baseHref;
     logger.debug(`baseHref set to path: ${baseHref.href}`);
   }
 
@@ -177,7 +151,7 @@ export class BrowserLocationManager {
 /**
  * Strip trailing `/index.html` and trailing `/` from the path, if present.
  */
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
   let start: string;
   let end: string;
   let index: number;

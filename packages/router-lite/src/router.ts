@@ -41,8 +41,12 @@ function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionT
   return valueOrFunc;
 }
 
-export interface IRouterOptions<TBaseHrefProvider extends IBaseHrefProvider = IBaseHrefProvider> extends Partial<RouterOptions> {
-  baseHrefProvider?: Class<TBaseHrefProvider> | TBaseHrefProvider;
+export interface IRouterOptions extends Partial<RouterOptions> {
+  /**
+   * Set a custom routing root by setting this path.
+   * When not set, path from the `document.baseURI` is used by default.
+   */
+  basePath?: string | null;
 }
 export class RouterOptions {
   public static get DEFAULT(): RouterOptions { return RouterOptions.create({}); }

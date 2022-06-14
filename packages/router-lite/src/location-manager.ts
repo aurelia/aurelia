@@ -6,11 +6,10 @@ import { IRouterEvents, LocationChangeEvent } from './router-events';
 export interface IPopStateEvent extends PopStateEvent {}
 export interface IHashChangeEvent extends HashChangeEvent {}
 
-export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider');
-export interface IBaseHrefProvider {
-  readonly window?: IWindow;
-  getBaseHref(): URL;
-}
+export const IBasePath = DI.createInterface<string>('IBasePath');
+
+export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider', x=> x.singleton(BrowserBaseHrefProvider));
+export interface IBaseHrefProvider extends BrowserBaseHrefProvider { }
 
 /**
  * Default browser base href provider.
@@ -20,14 +19,14 @@ export interface IBaseHrefProvider {
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserBaseHrefProvider implements IBaseHrefProvider {
+  public readonly baseHref: URL;
   public constructor(
-    @IWindow public readonly window: IWindow,
-  ) {}
-
-  public getBaseHref(): URL {
-    const url = new URL(this.window.document.baseURI);
-    url.pathname = normalizePath(url.pathname);
-    return url;
+    @IWindow window: IWindow,
+    @IBasePath basePath: string | null,
+  ) {
+    const url = new URL(window.document.baseURI);
+    url.pathname = normalizePath(basePath ?? url.pathname);
+    this.baseHref = url;
   }
 }
 
@@ -42,7 +41,7 @@ export interface ILocationManager extends BrowserLocationManager {}
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserLocationManager {
-  private readonly baseHref: URL; // BaseHref;
+  private readonly baseHref: URL;
   private eventId: number = 0;
 
   public constructor(
@@ -55,7 +54,7 @@ export class BrowserLocationManager {
   ) {
     logger = this.logger = logger.root.scopeTo('LocationManager');
 
-    const baseHref = this.baseHref = baseHrefProvider.getBaseHref();
+    const baseHref = this.baseHref = baseHrefProvider.baseHref;
     logger.debug(`baseHref set to path: ${baseHref.href}`);
   }
 

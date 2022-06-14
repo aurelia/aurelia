@@ -8,7 +8,7 @@ import { IRouterOptions, IRouter } from './router';
 import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
-import { BrowserBaseHrefProvider, IBaseHrefProvider } from './location-manager';
+import { IBasePath } from './location-manager';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -44,17 +44,15 @@ export const DefaultResources: IRegistry[] = [
 export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
 function configure(container: IContainer, config?: RouterConfig): IContainer {
   // this is transient because the IBaseHrefProvider is needed only once in the router ctor, and ATM there is no need to keep a reference of this around.
-  let baseHrefProviderRegistration: IRegistry = null!;
+  let basePathRegistration: IRegistry = null!;
   let activation: AppTaskCallback<InterfaceSymbol<IRouter>>;
   if (isObject(config)) {
     if (typeof config === 'function') {
       activation = router => config(router) as void | Promise<void>;
     } else {
-      const customBaseHrefProvider = (config as IRouterOptions).baseHrefProvider;
-      if (customBaseHrefProvider != null) {
-        baseHrefProviderRegistration = typeof customBaseHrefProvider === 'function'
-          ? Registration.transient(IBaseHrefProvider, customBaseHrefProvider)
-          : Registration.instance(IBaseHrefProvider, customBaseHrefProvider);
+      const basePath = (config as IRouterOptions).basePath;
+      if (typeof basePath === 'string') {
+        basePathRegistration = Registration.instance(IBasePath, basePath);
       }
       activation = router => router.start(config, true) as void | Promise<void>;
     }
@@ -62,9 +60,9 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
     activation = router => router.start({}, true) as void | Promise<void>;
   }
   return container.register(
-    baseHrefProviderRegistration !== null
-      ? baseHrefProviderRegistration
-      : Registration.transient(IBaseHrefProvider, BrowserBaseHrefProvider),
+    basePathRegistration !== null
+      ? basePathRegistration
+      : Registration.instance(IBasePath, null),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.afterActivate(IRouter, activation),
     AppTask.afterDeactivate(IRouter, router => {

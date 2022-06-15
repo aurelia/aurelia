@@ -38,14 +38,6 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   const statements: string[] = [];
   let registrationImported = false;
 
-  // Turn off ShadowDOM for invalid element
-  if (!name.includes('-') && shadowMode !== null) {
-    shadowMode = null;
-    const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
-    console.warn(error);
-    statements.push(`console.warn(${JSON.stringify(error)});\n`);
-  }
-
   if (shadowMode === null && hasSlot) {
     throw new Error(`<slot> cannot be used in ${unit.path}. <slot> is only available when using ShadowDOM. Please turn on ShadowDOM, or use <au-slot> in non-ShadowDOM mode. https://docs.aurelia.io/app-basics/components-revisited#au-slot`);
   }

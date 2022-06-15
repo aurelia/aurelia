@@ -92,6 +92,17 @@ export class NodeObserverConfig {
   }
 }
 
+export const NodeLocator = {
+  setAdapter() {
+    const symbol = Symbol.for('NodeLocator');
+    if (symbol in globalThis) {
+      return;
+    }
+    (globalThis as IIndexable)[symbol] = true;
+    // add adapter to runtime
+  }
+};
+
 export class NodeObserverLocator implements INodeObserverLocator {
   /** @internal */
   protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];

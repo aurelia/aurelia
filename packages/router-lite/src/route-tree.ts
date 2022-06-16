@@ -627,8 +627,7 @@ function createConfiguredNode(
         instruction: vi,
         originalInstruction: originalVi,
         params: {
-          ...node.params,
-          ...rr.route.params
+          ...rr.route.params,
         },
         queryParams: rt.queryParams,
         fragment: rt.fragment,

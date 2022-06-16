@@ -1098,7 +1098,7 @@ describe('router (smoke tests)', function () {
     const a1Params: Params[] = [];
     const a2Params: Params[] = [];
     const b1Params: Params[] = [];
-    const b2arams: Params[] = [];
+    const b2Params: Params[] = [];
     @customElement({ name: 'b1', template: null })
     class B1 {
       public load(params: Params) {
@@ -1108,7 +1108,7 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b2', template: null })
     class B2 {
       public load(params: Params) {
-        b2arams.push(params);
+        b2Params.push(params);
       }
     }
     @route({
@@ -1172,13 +1172,12 @@ describe('router (smoke tests)', function () {
     await router.load('a1/a/b1/b+a2/c/b2/d');
     await router.load('a1/1/b1/2+a2/3/b2/4');
 
-    // TODO(sayan): avoid adding parent parameters; or add those to a separate property.
     assert.deepStrictEqual(
       [
         a1Params,
         b1Params,
         a2Params,
-        b2arams,
+        b2Params,
       ],
       [
         [
@@ -1186,16 +1185,16 @@ describe('router (smoke tests)', function () {
           { a: '1' },
         ],
         [
-          { a: 'a', b: 'b' },
-          { a: '1', b: '2' },
+          { b: 'b' },
+          { b: '2' },
         ],
         [
           { c: 'c' },
           { c: '3' },
         ],
         [
-          { c: 'c', d: 'd' },
-          { c: '3', d: '4' },
+          { d: 'd' },
+          { d: '4' },
         ],
       ],
     );

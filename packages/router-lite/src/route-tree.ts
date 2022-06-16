@@ -523,8 +523,12 @@ function createNode(
   append: boolean,
 ): RouteNode | Promise<RouteNode> | null {
   const ctx = node.context;
-  let collapse: number = 0;
   const originalInstruction = vi.clone();
+  let rr = vi.recognizedRoute;
+  // early return; we already have a recognized route, don't bother with the rest.
+  if (rr !== null) return createConfiguredNode(log, node, vi, append, rr, originalInstruction);
+
+  let collapse: number = 0;
   let path = vi.component.value;
   let cur = vi as ViewportInstruction;
   while (cur.children.length === 1) {
@@ -537,7 +541,7 @@ function createNode(
     }
   }
 
-  const rr = ctx.recognize(path);
+  rr = ctx.recognize(path);
   log.trace('createNode recognized route: %s', rr);
   const residue = rr?.residue ?? null;
   log.trace('createNode residue:', residue);

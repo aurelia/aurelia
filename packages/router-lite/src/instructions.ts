@@ -4,7 +4,7 @@ import { ICustomElementViewModel, ICustomElementController, PartialCustomElement
 
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
-import { IRouteContext } from './route-context';
+import { $RecognizedRoute, IRouteContext } from './route-context';
 import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
@@ -61,6 +61,7 @@ export interface IViewportInstruction {
    * The child routes to load underneath the context of this instruction's component.
    */
   readonly children?: readonly NavigationInstruction[];
+  readonly recognizedRoute: $RecognizedRoute | null;
 }
 
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
@@ -69,6 +70,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public append: boolean,
     public open: number,
     public close: number,
+    public readonly recognizedRoute: $RecognizedRoute | null,
     public readonly component: TComponent,
     public readonly viewport: string | null,
     public readonly params: Params | null,
@@ -89,6 +91,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
         instruction.append ?? false,
         instruction.open ?? 0,
         instruction.close ?? 0,
+        instruction.recognizedRoute ?? null,
         component,
         instruction.viewport ?? null,
         instruction.params ?? null,
@@ -97,10 +100,11 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
-    return new ViewportInstruction(context ?? null, false, 0, 0, typedInstruction, null, null, []);
+    return new ViewportInstruction(context ?? null, false, 0, 0, null, typedInstruction, null, null, []);
   }
 
   public contains(other: ViewportInstruction): boolean {
+    // TODO: short-circuit for recognized-route
     const thisChildren = this.children;
     const otherChildren = other.children;
     if (thisChildren.length < otherChildren.length) {
@@ -123,6 +127,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 
   public equals(other: ViewportInstruction): boolean {
+    // TODO: short-circuit for recognized-route
     const thisChildren = this.children;
     const otherChildren = other.children;
     if (thisChildren.length !== otherChildren.length) {
@@ -153,6 +158,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       this.append,
       this.open,
       this.close,
+      this.recognizedRoute,
       this.component.clone(),
       this.viewport,
       this.params === null ? null : { ...this.params },
@@ -289,7 +295,9 @@ export class ViewportInstructionTree {
         $options,
         false,
         instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
-        emptyQuery,
+        $options.queryParams !== null
+          ? new URLSearchParams($options.queryParams as Record<string, string>)
+          : emptyQuery,
         null,
       );
     }

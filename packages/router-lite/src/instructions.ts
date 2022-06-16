@@ -104,7 +104,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 
   public contains(other: ViewportInstruction): boolean {
-    // TODO: short-circuit for recognized-route
     const thisChildren = this.children;
     const otherChildren = other.children;
     if (thisChildren.length < otherChildren.length) {
@@ -127,7 +126,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 
   public equals(other: ViewportInstruction): boolean {
-    // TODO: short-circuit for recognized-route
     const thisChildren = this.children;
     const otherChildren = other.children;
     if (thisChildren.length !== otherChildren.length) {

@@ -457,6 +457,7 @@ export class RouteContext {
   }
 
   // this is separate method might be helpful if we need to create a public path generation utility function in future.
+  /** @internal */
   private _generatePathInternal(id: string, params?: Params | null): PathGenerationResult | null {
     if (id == null) return null;
 

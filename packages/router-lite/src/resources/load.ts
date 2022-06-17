@@ -3,12 +3,10 @@ import { BindingMode } from '@aurelia/runtime';
 import { customAttribute, bindable, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
-import { $RecognizedRoute, IRouteContext } from '../route-context';
+import { IRouteContext } from '../route-context';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions';
 import { IRouterEvents } from '../router-events';
-import { RouteDefinition } from '../route-definition';
 import { ILocationManager } from '../location-manager';
-import { ConfigurableRoute, Endpoint, RecognizedRoute } from '@aurelia/route-recognizer';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {

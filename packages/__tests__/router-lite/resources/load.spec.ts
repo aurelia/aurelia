@@ -49,7 +49,6 @@ describe('load custom-attribute', function () {
       template: `
     <a load="route:foo; params.bind:{id: 1}; active.bind:active1" active.class="active1"></a>
     <a load="route:foo/2; active.bind:active2" active.class="active2"></a>
-    <a load="route:foo; params.bind:{id: 3, a: 2}; active.bind:active3" active.class="active3"></a>
     <au-viewport></au-viewport>`
     })
     class Root { }
@@ -61,26 +60,43 @@ describe('load custom-attribute', function () {
     const anchors = host.querySelectorAll('a');
     const a1 = { href: 'foo/1', active: false };
     const a2 = { href: 'foo/2', active: false };
-    const a3 = { href: 'foo/3?a=2', active: false };
-    assertAnchors(anchors, [a1, a2, a3], 'round#1');
+    assertAnchors(anchors, [a1, a2], 'round#1');
 
     anchors[1].click();
     await queue.yield();
     a2.active = true;
-    assertAnchors(anchors, [a1, a2, a3], 'round#2');
+    assertAnchors(anchors, [a1, a2], 'round#2');
 
     anchors[0].click();
     await queue.yield();
     a1.active = true;
     a2.active = false;
-    assertAnchors(anchors, [a1, a2, a3], 'round#3');
+    assertAnchors(anchors, [a1, a2], 'round#3');
 
-    anchors[2].click();
+    await au.stop();
+  });
+
+  it('un-configured parameters are added to the querystring', async function () {
+    @customElement({ name: 'fo-o', template: '' })
+    class Foo { }
+
+    @route({
+      routes: [
+        { id: 'foo', path: 'foo/:id', component: Foo }
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `<a load="route:foo; params.bind:{id: 3, a: 2};"></a><au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { au, host, container } = await start(Root, Foo);
+    const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
-    a1.active = false;
-    a3.active = true;
-    assertAnchors(anchors, [a1, a2, a3], 'round#4');
 
+    const anchor = host.querySelector('a');
+    assert.match(anchor.href, /foo\/3\?a=2/);
     await au.stop();
   });
 });

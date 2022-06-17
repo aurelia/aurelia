@@ -11,6 +11,7 @@ interface IStrippedHtml {
   hasSlot: boolean;
   bindables: Record<string, PartialBindableDefinition>;
   aliases: string[];
+  capture: boolean;
 }
 
 export function stripMetaData(rawHtml: string): IStrippedHtml {
@@ -18,6 +19,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
   let hasSlot: boolean = false;
+  let capture = false;
   const bindables: Record<string, PartialBindableDefinition> = {};
   const aliases: string[] = [];
   const toRemove: [number, number][] = [];
@@ -49,6 +51,11 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
       toRemove.push(...ranges);
     });
 
+    stripCapture(node, (ranges) => {
+      capture = true;
+      toRemove.push(...ranges);
+    });
+
     if (node.tagName === 'slot') {
       hasSlot = true;
     }
@@ -62,7 +69,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, shadowMode, containerless, hasSlot, bindables, aliases };
+  return { html, deps, shadowMode, containerless, hasSlot, bindables, aliases, capture };
 }
 
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
@@ -190,6 +197,14 @@ function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, 
     const names = value.split(',').map(s => s.trim()).filter(s => s);
     names.forEach(name => bindables[name] = {});
     cb(bindables, ranges);
+  });
+}
+
+function stripCapture(node: DefaultTreeElement, cb: (ranges: [number, number][]) => void) {
+  return stripTag(node, 'capture', (attrs, ranges) => {
+    cb(ranges);
+  }) || stripAttribute(node, 'template', 'capture', (value, ranges) => {
+    cb(ranges);
   });
 }
 

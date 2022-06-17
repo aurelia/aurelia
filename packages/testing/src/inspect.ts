@@ -1615,7 +1615,7 @@ export function formatRaw(
   try {
     output = formatter(ctx, value, recurseTimes, keys, braces);
     let $key: PropertyKey;
-    const isNotNode = !(value instanceof PLATFORM.Node);
+    const isNotNode = PLATFORM?.Node != null && !(value instanceof PLATFORM.Node);
     for (i = 0; i < keys.length; i++) {
       $key = keys[i];
       if (

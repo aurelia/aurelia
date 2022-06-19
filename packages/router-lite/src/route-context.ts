@@ -1,6 +1,6 @@
 import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
-import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
+import { RouteRecognizer, RecognizedRoute, ConfigurableRoute, Endpoint } from '@aurelia/route-recognizer';
 
 import { RouteDefinition } from './route-definition';
 import { ViewportAgent, ViewportRequest } from './viewport-agent';
@@ -11,13 +11,15 @@ import { IViewport } from './resources/viewport';
 import { Routeable } from './route';
 import { isPartialChildRouteConfig } from './validation';
 import { ensureArrayOfStrings } from './util';
-import { Params } from './instructions';
+import { IViewportInstruction, Params, ViewportInstructionTree } from './instructions';
 import { IRouterEvents } from './router-events';
 
-export interface IRouteContext extends RouteContext {}
+export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 export const RESIDUE = 'au$residue' as const;
+
+type PathGenerationResult = { path: string; def: RouteDefinition; consumed: Params; unconsumed: Params | null };
 
 /**
  * Holds the information of a component in the context of a specific container.
@@ -126,7 +128,7 @@ export class RouteContext {
     public readonly component: CustomElementDefinition,
     public readonly definition: RouteDefinition,
     public readonly parentContainer: IContainer,
-    router: IRouter,
+    private readonly _router: IRouter,
   ) {
     this._vpa = viewportAgent;
     if (parent === null) {
@@ -167,7 +169,7 @@ export class RouteContext {
     // If need be we can optimize it later.
     container
       .get(IRouterEvents)
-      .subscribe('au:router:navigation-end', () => navModel.setIsActive(router, this));
+      .subscribe('au:router:navigation-end', () => navModel.setIsActive(_router, this));
     this.processDefinition(definition);
   }
 
@@ -306,7 +308,6 @@ export class RouteContext {
   public dispose(): void {
     this.container.dispose();
   }
-  // #endregion
 
   public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
     this.logger.trace(`resolveViewportAgent(req:%s)`, req);
@@ -453,6 +454,70 @@ export class RouteContext {
       }
       return defaultExport;
     });
+  }
+
+  // this is separate method might be helpful if we need to create a public path generation utility function in future.
+  /** @internal */
+  private _generatePathInternal(id: string, params?: Params | null): PathGenerationResult | null {
+    if (id == null) return null;
+
+    const def = (this.childRoutes as RouteDefinition[]).find(x => x.id === id);
+    if (def === void 0) return null;
+
+    let path = def.path[0]; // [Sayan]: we probably should select the "most" matched path
+    const consumed: Params = Object.create(null);
+    const unconsumed: Params = Object.create(null);
+    let hasUnconsumedParams = false;
+    if (typeof params === 'object' && params !== null) {
+      const keys = Object.keys(params);
+      for (const key of keys) {
+        const value = params[key];
+        const re = new RegExp(`[*:]${key}[?]?`);
+        const matches = re.exec(path);
+        if (matches === null) {
+          unconsumed[key] = value;
+          hasUnconsumedParams = true;
+          continue;
+        }
+        if (value != null && String(value).length > 0) {
+          path = path.replace(matches[0], value);
+          consumed[key] = value;
+        }
+      }
+    }
+    // Remove leading and trailing optional param parts
+    return {
+      path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
+      def,
+      consumed,
+      unconsumed: hasUnconsumedParams ? unconsumed : null,
+    };
+  }
+
+  /** @internal */
+  public generateTree(id: string, params: Params | null | undefined): ViewportInstructionTree | null {
+    const val = this._generatePathInternal(id, params);
+    if(val === null) return null;
+
+    const { path, def, consumed, unconsumed } = val;
+
+    // TODO(Sayan): Investigate why we need params in so many places; probably it will be less hairy when the URL pattern is used.
+    // we don't necessarily need to add the # to the path here.
+    const route = new ConfigurableRoute(path, def.caseSensitive, def);
+    const endpoint = new Endpoint(route, Object.keys(consumed));
+    const rr = new RecognizedRoute(endpoint, consumed);
+    const instruction: Partial<IViewportInstruction> = {
+      recognizedRoute: new $RecognizedRoute(rr, null),
+      component: path,
+      context: this,
+    };
+    return this._router.createViewportInstructions(
+        [instruction],
+        {
+          context: this,
+          queryParams: unconsumed
+        }
+      );
   }
 
   public toString(): string {

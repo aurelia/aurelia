@@ -153,6 +153,31 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch mocha router-lite tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+        "--ui",
+        "bdd",
+        "--reporter",
+        "min",
+        "--colors",
+        "--recursive",
+        "--timeout",
+        "5000",
+        "--watch-extensions",
+        "js",
+        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/router-lite/**/*.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch mocha scheduler tests",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "env": {

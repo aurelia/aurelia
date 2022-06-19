@@ -6,7 +6,6 @@ import { IRouter } from '../router';
 import { IRouteContext } from '../route-context';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions';
 import { IRouterEvents } from '../router-events';
-import { RouteDefinition } from '../route-definition';
 import { ILocationManager } from '../location-manager';
 
 @customAttribute('load')
@@ -15,7 +14,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   public route: unknown;
 
   @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
-  public params: unknown;
+  public params?: Params;
 
   @bindable({ mode: BindingMode.toView })
   public attribute: string = 'href';
@@ -71,41 +70,16 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   public valueChanged(): void {
     const useHash = this.router.options.useUrlFragmentHash;
     if (this.route !== null && this.route !== void 0 && this.ctx.allResolved === null) {
-      const def = (this.ctx.childRoutes as RouteDefinition[]).find(x => x.id === this.route);
-      if (def !== void 0) {
-        // TODO(fkleuver): massive temporary hack. Will not work for siblings etc. Need to fix.
-        const parentPath = this.ctx.node.computeAbsolutePath();
-        // Note: This is very much preliminary just to fill the feature gap of v1's `generate`. It probably misses a few edge cases.
-        // TODO(fkleuver): move this logic to RouteExpression and expose via public api, add tests etc
-        let path = def.path[0];
-        if (typeof this.params === 'object' && this.params !== null) {
-          const keys = Object.keys(this.params);
-          for (const key of keys) {
-            const value = (this.params as Params)[key];
-            if (value != null && String(value).length > 0) {
-              path = path.replace(new RegExp(`[*:]${key}[?]?`), value);
-            }
-          }
-        }
-        // Remove leading and trailing optional param parts
-        path = path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, '');
-        if (parentPath) {
-          if (path) {
-            this.href = `${useHash ? '#' : ''}${[parentPath, path].join('/')}`;
-          } else {
-            this.href = `${useHash ? '#' : ''}${parentPath}`;
-          }
-        } else {
-          this.href = `${useHash ? '#' : ''}${path}`;
-        }
-        this.instructions = this.router.createViewportInstructions(`${useHash ? '#' : ''}${path}`, { context: this.ctx });
+      const instructions = this.ctx.generateTree(this.route as string, this.params as Params);
+      if (instructions !== null) {
+        this.href = (this.instructions = instructions).toUrl(useHash);
       } else {
         if (typeof this.params === 'object' && this.params !== null) {
           this.instructions = this.router.createViewportInstructions({ component: this.route as NavigationInstruction, params: this.params as Params }, { context: this.ctx });
         } else {
           this.instructions = this.router.createViewportInstructions(this.route as NavigationInstruction, { context: this.ctx });
         }
-        this.href = this.instructions.toUrl(this.router.options.useUrlFragmentHash);
+        this.href = this.instructions.toUrl(useHash);
       }
     } else {
       this.instructions = null;

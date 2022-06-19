@@ -1,7 +1,7 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
-import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHydratedController, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
+import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { LifecycleFlags, valueConverter } from '@aurelia/runtime';
@@ -1098,7 +1098,7 @@ describe('router (smoke tests)', function () {
     const a1Params: Params[] = [];
     const a2Params: Params[] = [];
     const b1Params: Params[] = [];
-    const b2arams: Params[] = [];
+    const b2Params: Params[] = [];
     @customElement({ name: 'b1', template: null })
     class B1 {
       public load(params: Params) {
@@ -1108,7 +1108,7 @@ describe('router (smoke tests)', function () {
     @customElement({ name: 'b2', template: null })
     class B2 {
       public load(params: Params) {
-        b2arams.push(params);
+        b2Params.push(params);
       }
     }
     @route({
@@ -1172,13 +1172,12 @@ describe('router (smoke tests)', function () {
     await router.load('a1/a/b1/b+a2/c/b2/d');
     await router.load('a1/1/b1/2+a2/3/b2/4');
 
-    // TODO(sayan): avoid adding parent parameters; or add those to a separate property.
     assert.deepStrictEqual(
       [
         a1Params,
         b1Params,
         a2Params,
-        b2arams,
+        b2Params,
       ],
       [
         [
@@ -1186,18 +1185,137 @@ describe('router (smoke tests)', function () {
           { a: '1' },
         ],
         [
-          { a: 'a', b: 'b' },
-          { a: '1', b: '2' },
+          { b: 'b' },
+          { b: '2' },
         ],
         [
           { c: 'c' },
           { c: '3' },
         ],
         [
-          { c: 'c', d: 'd' },
-          { c: '3', d: '4' },
+          { d: 'd' },
+          { d: '4' },
         ],
       ],
+    );
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('Router#load accepts route-id and params', async function () {
+    const a1Params: Params[] = [];
+    const a2Params: Params[] = [];
+    const a1Query: [string, string][][] = [];
+    const a2Query: [string, string][][] = [];
+
+    @customElement({
+      name: 'a1',
+      template: '',
+    })
+    class A1 implements IRouteViewModel {
+      public load(params: Params, next: RouteNode) {
+        a1Params.push(params);
+        a1Query.push(Array.from(next.queryParams.entries()));
+      }
+    }
+
+    @customElement({
+      name: 'a2',
+      template: '',
+    })
+    class A2 implements IRouteViewModel {
+      public load(params: Params, next: RouteNode) {
+        a2Params.push(params);
+        a2Query.push(Array.from(next.queryParams.entries()));
+      }
+    }
+    @route({
+      routes: [
+        { id: 'a1', path: 'a1/:a', component: A1 },
+        { id: 'a2', path: 'a2/:c', component: A2 },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: `<au-viewport></au-viewport>`,
+      dependencies: [A1, A2],
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    const pushedUrls: string[] = [];
+    container.register(Registration.instance(
+      IHistory,
+      {
+        pushState(_: {} | null, __: string, url: string) {
+          pushedUrls.push(url);
+        },
+        replaceState: noop,
+      }
+    ));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    await router.load('a1', { params: { a: '12' } });
+    let url = pushedUrls.pop();
+    assert.match(url, /a1\/12$/, 'url1');
+
+    await router.load('a2', { params: { c: '45' } });
+    url = pushedUrls.pop();
+    assert.match(url, /a2\/45$/, 'url1');
+
+    await router.load('a1', { params: { a: '21', b: '34' } });
+    url = pushedUrls.pop();
+    assert.match(url, /a1\/21\?b=34$/, 'url1');
+
+    await router.load('a2', { params: { a: '67', c: '54' } });
+    url = pushedUrls.pop();
+    assert.match(url, /a2\/54\?a=67$/, 'url1');
+
+    assert.deepStrictEqual(
+      [
+        a1Params,
+        a2Params,
+      ],
+      [
+        [
+          { a: '12' },
+          { a: '21' },
+        ],
+        [
+          { c: '45' },
+          { c: '54' },
+        ],
+      ],
+    );
+    assert.deepStrictEqual(
+      [
+        a1Query,
+        a2Query
+      ],
+      [
+        [
+          [],
+          [['b', '34']],
+        ],
+        [
+          [],
+          [['a', '67']],
+        ],
+      ]
     );
 
     await au.stop(true);

@@ -113,10 +113,10 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    */
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: { optional: true }): ICustomElementController<C> | null;
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never);
-  define<C extends Constructable >(name: string, Type: C): CustomElementType<C>;
-  define<C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
-  define<C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
-  define<C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(name: string, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
+  define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C>;
   // eslint-disable-next-line
   getDefinition<C extends Constructable>(Type: Function): CustomElementDefinition<C>;
@@ -235,7 +235,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly enhance: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
-  ) {}
+  ) { }
 
   public static create(
     def: PartialCustomElementDefinition,
@@ -574,13 +574,13 @@ export const CustomElement = Object.freeze<CustomElementKind>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}> (
+    return function <P extends {} = {}>(
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {
       // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
       // looking similarly from the outside (when inspected via debugger, etc).
-      const Type = class {} as CustomElementType<Constructable<P>>;
+      const Type = class { } as CustomElementType<Constructable<P>>;
 
       // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
       // even when minified.
@@ -633,4 +633,22 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
       throw new Error(`AUR0766:${typeof hook}`);
   }
   return hook;
+}
+
+/**
+ * Decorator: Indicates that the custom element should capture all attributes and bindings that are not template controllers or bindables
+ */
+export function capture(target: Constructable): void;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function capture(): (target: Constructable) => void;
+export function capture(target?: Constructable): void | ((target: Constructable) => void) {
+  if (target === void 0) {
+    return function ($target: Constructable) {
+      annotateElementMetadata($target, 'capture', true);
+    };
+  }
+
+  annotateElementMetadata(target, 'capture', true);
 }

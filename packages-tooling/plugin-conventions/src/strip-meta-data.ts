@@ -73,6 +73,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
 }
 
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
+  // eslint-disable-next-line
   tree.childNodes.forEach((n: any) => {
     const ne = n as DefaultTreeElement;
     // skip <template as-custom-element="..">

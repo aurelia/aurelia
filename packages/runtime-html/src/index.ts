@@ -272,6 +272,7 @@ export {
 } from './resources/resources-shared';
 
 export {
+  capture,
   containerless,
   customElement,
   CustomElement,
@@ -280,6 +281,7 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
+  strict,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';

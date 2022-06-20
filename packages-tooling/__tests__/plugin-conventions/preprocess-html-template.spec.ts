@@ -663,6 +663,48 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('emits capture with <capture> element', function () {
+    const html = '<capture><template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import "./foo-bar.css";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+export const capture = true;
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, capture });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions({ hmr: false }));
+    assert.equal(result.code, expected);
+  });
+
+  it('emits capture [capture] attribute on <template>', function () {
+    const html = '<template capture></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import "./foo-bar.css";
+export const name = "foo-bar";
+export const template = "<template ></template>";
+export default template;
+export const dependencies = [  ];
+export const capture = true;
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, capture });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions({ hmr: false }));
+    assert.equal(result.code, expected);
+  });
+
   it('processes template with multiple css dependencies in cssModule mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"><require from="./foo-bar2.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';

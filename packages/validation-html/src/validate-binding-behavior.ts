@@ -147,6 +147,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   public handleValidationEvent(event: ValidationEvent): void {
     const triggerEvent = this.triggerEvent;
     const propertyName = this.bindingInfo.propertyInfo?.propertyName;
+
+    if (this.validatedOnce) return;
+
     if (propertyName !== void 0 && triggerEvent !== null && this.isChangeTrigger) {
       this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
     }

@@ -1,6 +1,6 @@
 import { BindingMode } from '@aurelia/runtime';
 import { stripMetaData } from '@aurelia/plugin-conventions';
-import { assert } from '@aurelia/testing';
+import * as assert from 'assert';
 
 describe('stripMetaData', function () {
   it('returns empty html', function () {
@@ -11,6 +11,7 @@ describe('stripMetaData', function () {
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -34,6 +35,7 @@ describe('stripMetaData', function () {
       deps: ['./a'],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -61,6 +63,7 @@ ${'  ' /* leading space is untouched */}
       deps: ['./a', 'b', './c.css'],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -84,6 +87,7 @@ ${'  ' /* leading space is untouched */}
       deps: ['./a'],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -111,6 +115,7 @@ ${'  ' /* leading space is untouched */}
       deps: ['./a', 'foo', 'b', './c.css'],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -131,6 +136,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -154,6 +160,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: 'closed',
       deps: ['./a'],
       containerless: false,
+      capture: false,
       hasSlot: true,
       bindables: {}
     });
@@ -173,6 +180,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -193,6 +201,7 @@ ${'  ' /* leading space is untouched */}
       deps: ['./a'],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -212,6 +221,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      capture: false,
       hasSlot: false,
       bindables: {}
     });
@@ -232,6 +242,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      capture: false,
       hasSlot: false,
       bindables: {}
     });
@@ -250,9 +261,45 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      capture: false,
       hasSlot: false,
       bindables: {}
     });
+  });
+
+  it('strips capture with only open tag', function () {
+    const input = `<capture>`;
+    const expected = ``;
+    const { html, capture } = stripMetaData(input);
+    assert.deepStrictEqual({ html, capture }, { html: expected, capture: true });
+  });
+
+  it('strips capture with self closing tag', function () {
+    const input = `<capture/>`;
+    const expected = ``;
+    const { html, capture } = stripMetaData(input);
+    assert.deepStrictEqual({ html, capture }, { html: expected, capture: true });
+  });
+
+  it('strips capture with closing tag', function () {
+    const input = `<capture></capture>`;
+    const expected = ``;
+    const { html, capture } = stripMetaData(input);
+    assert.deepStrictEqual({ html, capture }, { html: expected, capture: true });
+  });
+
+  it('strips capture attribute on template', function () {
+    const input = `<template capture></template>`;
+    const expected = `<template ></template>`;
+    const { html, capture } = stripMetaData(input);
+    assert.deepStrictEqual({ html, capture }, { html: expected, capture: true });
+  });
+
+  it('strips capture attribute, ignores value on template', function () {
+    const input = `<template capture=false></template>`;
+    const expected = `<template ></template>`;
+    const { html, capture } = stripMetaData(input);
+    assert.deepStrictEqual({ html, capture }, { html: expected, capture: true });
   });
 
   it('strips bindable tag', function () {
@@ -271,6 +318,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: { firstName: {} }
     });
   });
@@ -299,6 +347,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {
         firstName: { mode: BindingMode.toView },
         lastName: { mode: BindingMode.twoWay, attribute: 'surname' },
@@ -323,6 +372,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: { firstName: {} }
     });
   });
@@ -341,6 +391,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: { firstName: {}, lastName: {} }
     });
   });
@@ -361,6 +412,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: { firstName: {}, lastName: {}, age: {} }
     });
   });
@@ -380,6 +432,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -398,6 +451,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -416,6 +470,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -434,6 +489,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -452,6 +508,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -470,6 +527,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -488,6 +546,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: {}
     });
   });
@@ -507,6 +566,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      capture: false,
       hasSlot: true,
       bindables: {}
     });
@@ -534,6 +594,7 @@ ${'  ' /* leading space is untouched */}
       deps: [],
       containerless: false,
       hasSlot: false,
+      capture: false,
       bindables: { firstName: {} }
     });
   });

@@ -16,7 +16,7 @@ import { resourceName } from './resource-name';
 export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions, hasViewModel?: boolean): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
-  const { html, deps, containerless, hasSlot, bindables, aliases } = stripped;
+  const { html, deps, containerless, hasSlot, bindables, aliases, capture } = stripped;
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
@@ -108,6 +108,10 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const containerless = true;\n`);
   }
 
+  if (capture) {
+    m.append(`export const capture = true;\n`);
+  }
+
   if (Object.keys(bindables).length > 0) {
     m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
   }
@@ -116,8 +120,20 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
   }
 
+  const definitionProperties = [
+    'name',
+    'template',
+    'dependencies',
+    shadowMode !== null ? 'shadowOptions' : '',
+    containerless ? 'containerless' : '',
+    capture ? 'capture' : '',
+    Object.keys(bindables).length > 0 ? 'bindables' : '',
+    aliases.length > 0 ? 'aliases' : '',
+  ].filter(Boolean);
+  const definition = `{ ${definitionProperties.join(', ')} }`;
+
   if (hmrEnabled) {
-    m.append(`const _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    m.append(`const _e = CustomElement.define(${definition});
       export function register(container) {
         container.register(_e);
       }`);
@@ -125,7 +141,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    _e = CustomElement.define(${definition});
   }
   container.register(_e);
 }

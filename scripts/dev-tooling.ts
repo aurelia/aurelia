@@ -58,12 +58,13 @@ if (devPackages.some(d => !validToolingPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validToolingPackages}`);
 }
 
-const baseUrl = '.';
+// const baseUrl = '.';
+const baseUrl = './dist/cjs/__tests__/';
 const testFilePatterns = testPatterns === '*'
-  ? [`${baseUrl}/**/*.spec.ts`]
+  ? [`${baseUrl}/**/*.spec.js`]
   : testPatterns.split(' ').flatMap(pattern => [
-    `${baseUrl}/**/*${pattern.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.ts')}`,
-    `${baseUrl}/**/${pattern}/**/*.spec.ts`,
+    `${baseUrl}/**/*${pattern.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
+    `${baseUrl}/**/${pattern}/**/*.spec.js`,
   ]);
 
 console.log('test patterns preprocess:', testPatterns, 'post-process:', testFilePatterns);
@@ -79,7 +80,7 @@ concurrently([
   { command: devCmd, cwd: 'packages/kernel', name: 'kernel', env: envVars },
   // always watch plugin-convention by default, since this is the base line of all the things
   { command: devCmd, cwd: `${baseToolingPath}/plugin-conventions`, name: 'plugin-conventions', env: envVars },
-  // { command: devCmd, cwd: `${baseToolingPath}/__tests__`, name: '__tests__(build)', env: envVars },
+  { command: devCmd, cwd: `${baseToolingPath}/__tests__`, name: '__tests__(build)', env: envVars },
   ...devPackages
     .filter(pkg => pkg !== 'plugin-conventions').
     map((folder: string) => ({

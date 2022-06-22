@@ -739,12 +739,12 @@ workflows:
           path: "examples/jit-webpack-conventions-ts"
           requires:
             - build_release
-      - e2e_playwright:
-          <<: *filter_ignore_develop_release
-          name: webpack_vanilla_ts
-          path: "examples/jit-webpack-vanilla-ts"
-          requires:
-            - build_release
+      # - e2e_playwright:
+      #     <<: *filter_ignore_develop_release
+      #     name: webpack_vanilla_ts
+      #     path: "examples/jit-webpack-vanilla-ts"
+      #     requires:
+      #       - build_release
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
@@ -757,7 +757,7 @@ workflows:
             #- test_test262
             # - lint_packages
             - webpack_conventions_ts
-            - webpack_vanilla_ts
+            # - webpack_vanilla_ts
           from: master
           to: develop
           channel: dev

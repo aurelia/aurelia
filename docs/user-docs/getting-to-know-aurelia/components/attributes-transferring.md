@@ -77,6 +77,22 @@ To transfer attributes & bindings from a custom element, there are two steps:
 })
 ```
 
+Or use the `capture` decorator from `aurelia` package:
+```typescript
+import { capture } from 'aurelia';
+
+@capture
+export class MyCustomElement {
+  ...
+}
+
+// either form is valid
+@capture()
+export class MyCustomElement {
+  ...
+}
+```
+
 As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions, should be captured for future usages.
 
 * Spread the captured attributes onto an element:
@@ -97,6 +113,15 @@ So as a safe practice, keep attribute spreading left-most in order to avoid pote
 {% hint style="warning" %}
 It's recommended that this feature should not be overused in multi level capturing & transferring. This is often known as prop-drilling in React, and could have bad effect on overall & long term maintainability of a project. It's probably healthy to limit the max level of transferring to 2.
 {% endhint %}
+
+## Usage with conventions
+
+Aurelia conventions enables the setting of `capture` metadata from the template via `<capture>` tag, like the following example:
+```markup
+<capture>
+
+<input ...$attrs>
+```
 
 ## How it works
 

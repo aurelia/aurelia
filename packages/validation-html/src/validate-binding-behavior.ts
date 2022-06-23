@@ -145,14 +145,15 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   public handleValidationEvent(event: ValidationEvent): void {
+    if (this.validatedOnce || !this.isChangeTrigger) return;
+
     const triggerEvent = this.triggerEvent;
+    if(triggerEvent === null) return;
+
     const propertyName = this.bindingInfo.propertyInfo?.propertyName;
+    if(propertyName === void 0) return;
 
-    if (this.validatedOnce) return;
-
-    if (propertyName !== void 0 && triggerEvent !== null && this.isChangeTrigger) {
-      this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
-    }
+    this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
   }
 
   private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {

@@ -444,6 +444,31 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
       },
       { template: `<input id="target" type="text" value.two-way="person.age | toNumber & validate:'${trigger}'">` }
     );
+
+    $it(`GH#1470 - multiple round of validations involving multiple fields - **${trigger}** validation trigger`,
+      async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
+        const controller = app.controller;
+
+        const t1: HTMLInputElement = host.querySelector('#t1');
+        const t2: HTMLInputElement = host.querySelector('#t2');
+
+        await controller.validate();
+        assert.deepStrictEqual(controller.results.filter((e) => !e.valid).map((e) => e.toString()), ['Name is required.', 'Age is required.'], 'error1');
+
+        t2.value = '24';
+        await assertEventHandler(t2, 'change', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+        assert.deepStrictEqual(controller.results.filter((e) => !e.valid).map((e) => e.toString()), ['Name is required.', 'Age must be at least 42.'], 'error2');
+
+        t1.value = 'foo';
+        await assertEventHandler(t1, 'change', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+        assert.deepStrictEqual(controller.results.filter((e) => !e.valid).map((e) => e.toString()), ['Age must be at least 42.'], 'error3');
+
+        t2.value = '42';
+        await assertEventHandler(t2, 'change', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+        assert.deepStrictEqual(controller.results.filter((e) => !e.valid).map((e) => e.toString()), [], 'error4');
+      },
+      { template: `<input id="t1" type="text" value.two-way="person.name & validate:'${trigger}'"><input id="t2" type="text" value.two-way="person.age | toNumber & validate:'${trigger}'">` }
+    );
   }
 
   $it('supports **manual** validation trigger',

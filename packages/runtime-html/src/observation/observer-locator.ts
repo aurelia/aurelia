@@ -272,8 +272,6 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
   public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
     switch (key) {
-      case 'role':
-        return attrAccessor;
       case 'class':
         return new ClassAttributeAccessor(el);
       case 'css':

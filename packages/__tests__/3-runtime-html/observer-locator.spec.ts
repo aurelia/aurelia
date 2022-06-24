@@ -171,7 +171,6 @@ describe('ObserverLocator', function () {
     { markup: `<input files=""></input>`, ctor: ValueAttributeObserver },
     { markup: `<textarea value=""></textarea>`, ctor: ValueAttributeObserver },
     { markup: `<div xlink:type=""></div>`, ctor: AttributeNSAccessor },
-    { markup: `<div role=""></div>`, ctor: DirtyCheckProperty },
     { markup: `<div data-=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div data-a=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div aria-=""></div>`, ctor: DataAttributeAccessor },

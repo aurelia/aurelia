@@ -171,7 +171,7 @@ describe('ObserverLocator', function () {
     { markup: `<input files=""></input>`, ctor: ValueAttributeObserver },
     { markup: `<textarea value=""></textarea>`, ctor: ValueAttributeObserver },
     { markup: `<div xlink:type=""></div>`, ctor: AttributeNSAccessor },
-    { markup: `<div role=""></div>`, ctor: DataAttributeAccessor },
+    { markup: `<div role=""></div>`, ctor: DirtyCheckProperty },
     { markup: `<div data-=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div data-a=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div aria-=""></div>`, ctor: DataAttributeAccessor },
@@ -260,41 +260,39 @@ describe('ObserverLocator', function () {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  for (const hasGetObserver of [true, false]) {
-    for (const hasAdapterObserver of [true, false]) {
-      for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
-        const descriptors = {
-          ...Object.getOwnPropertyDescriptors(PLATFORM.Node.prototype),
-          ...Object.getOwnPropertyDescriptors(PLATFORM.Element.prototype),
-          ...Object.getOwnPropertyDescriptors(PLATFORM.HTMLElement.prototype)
-        };
-        for (const property of Object.keys(descriptors)) {
-          it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
-            const { ctx, sut } = createFixture();
-            const obj = ctx.createElement('div');
-            const dummyObserver = {} as any;
-            if (hasAdapterObserver) {
-              if (adapterIsDefined) {
-                sut.addAdapter({getObserver() {
-                  return dummyObserver;
-                }});
-              } else {
-                sut.addAdapter({getObserver() {
-                  return null;
-                }});
-              }
-            }
-            const actual = sut.getObserver(obj, property);
-            if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
-              assert.strictEqual(actual.constructor.name, ValueAttributeObserver.name, `actual.constructor.name`);
-            } else if (property === 'style' || property === 'css') {
-              assert.strictEqual(actual.constructor.name, StyleAttributeAccessor.name, `actual.constructor.name`);
+  for (const hasAdapterObserver of [true, false]) {
+    for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
+      const descriptors = {
+        ...Object.getOwnPropertyDescriptors(PLATFORM.Node.prototype),
+        ...Object.getOwnPropertyDescriptors(PLATFORM.Element.prototype),
+        ...Object.getOwnPropertyDescriptors(PLATFORM.HTMLElement.prototype)
+      };
+      for (const property of Object.keys(descriptors)) {
+        it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
+          const { ctx, sut } = createFixture();
+          const obj = ctx.createElement('div');
+          const dummyObserver = {} as any;
+          if (hasAdapterObserver) {
+            if (adapterIsDefined) {
+              sut.addAdapter({getObserver() {
+                return dummyObserver;
+              }});
             } else {
-              assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+              sut.addAdapter({getObserver() {
+                return null;
+              }});
             }
-          });
-        }
+          }
+
+          const actual = sut.getObserver(obj, property);
+          if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
+            assert.strictEqual(actual.constructor.name, ValueAttributeObserver.name, `actual.constructor.name`);
+          } else if (property === 'style' || property === 'css') {
+            assert.strictEqual(actual.constructor.name, StyleAttributeAccessor.name, `actual.constructor.name`);
+          } else {
+            assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+          }
+        });
       }
     }
   }

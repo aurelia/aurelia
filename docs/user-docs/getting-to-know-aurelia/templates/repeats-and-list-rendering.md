@@ -2,7 +2,50 @@
 
 ## `repeat.for`
 
-We can use `repeat.for` to render lists of items based on an array, number range, sets, maps, and objects.
+You can use the `repeat.for` binding to iterate over collections of data in your templates. Think of `repeat.for` as a for loop, it can iterate arrays, maps and sets.
+
+```markup
+<ul>
+    <li repeat.for="item of items">${item.name}</li>
+</ul>
+```
+
+Breaking this intuitive syntax down, it works like this:
+
+* Loop over every item in the items array
+* Store each iterative value in the local variable `item` on the left hand side
+* For each iteration, make the current item available
+
+If you were to write the above in Javascript form, it would look like this:
+
+```
+for (let item of items) {
+    console.log(item.name);
+}
+```
+
+
+### Index and Contextual properties inside of `repeat.for`
+
+Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context. Below is a brief summary of the available contextual properties within repeats.
+
+* `$index` - In a repeat template, the index of the item in the collection.
+* `$first` - In a repeat template, is `true` if the item is the first item in the array.
+* `$last` - In a repeat template, is `true` if the item is the last item in the array.
+* `$even` - In a repeat template, is `true` if the item has an even numbered index.
+* `$odd` - In a repeat template, is `true` if the item has an odd numbered index.
+* `$length` - In a repeat template, this indicates the length of the collection.
+* `$parent` - Explicitly accesses the outer scope from within a `repeat` template.
+
+You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
+
+Inside of the `repeat.for` these can be accessed. In the following example we display the current index value.
+
+```markup
+<ul>
+    <li repeat.for="item of items">${$index}</li>
+</ul>
+```
 
 ### Array Syntax:
 
@@ -23,14 +66,16 @@ class MyComponent {
 Aurelia will not be able to observe changes to arrays using the `array[index] = value` syntax. To ensure that Aurelia can observe the changes on your array, make use of the Array methods: `Array.prototype.push` , `Array.prototype.pop` , and `Array.prototype.splice` .
 {% endhint }
 
-### Range Syntax:
+### Ranges Syntax:
 
-```html
-<li repeat.for="i of 10">${10 - i}</li>
-<li>Blast off!</li>
+The `repeat.for` functionality doesn't just allow you to work with collections, it can be used to generate ranges.
+
+In the following example, we generate a range of numbers to 10. We subtract the value from the index inside to create a reverse countdown.
+
+```markup
+<p repeat.for="i of 10">${10-i}</p>
+<p>Blast Off!<p>
 ```
-
-Note that the range will start at 0 with a length of 10, so our countdown really does start at 10 and end at 1 before blast off.
 
 ### Set Syntax:
 
@@ -44,6 +89,7 @@ Note that the range will start at 0 with a length of 10, so our countdown really
       this.friends.add('Dana');
     }
   }
+```
 
 ```html
  <template>
@@ -81,7 +127,7 @@ export class RepeaterTemplate {
 <p repeat.for="[greeting, friend] of friends">${greeting}, ${friend.name}!</p>
 ```
 
-One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting` , the key, and `friend` , the value. Note that because all of our values are objects with the name property set, we can get our friend's name with `${friend.name}` , just as if we were getting it from JavaScript!
+One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the name property set, we can get our friend's name with `${friend.name}`, just as if we were getting it from JavaScript!
 
 ### Object Syntax
 

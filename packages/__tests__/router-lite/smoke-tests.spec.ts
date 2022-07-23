@@ -1988,4 +1988,47 @@ describe('router (smoke tests)', function () {
 
     await au.stop();
   });
+
+  it('multiple paths can redirect to same path', async function () {
+    @customElement({ name: 'ce-p1', template: 'p1' })
+    class P1 { }
+
+    @customElement({ name: 'ce-p2', template: 'p2' })
+    class P2 { }
+    @route({
+      routes: [
+        { path: ['', 'foo'], redirectTo: 'p2'    },
+        { path: 'p1', component: P1, title: 'P1' },
+        { path: 'p2', component: P2, title: 'P2' },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      P1,
+      P2,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+    const router = container.get(IRouter);
+
+    await au.app({ component: Root, host }).start();
+
+    assert.html.textContent(host, 'p2');
+
+    await router.load('p1');
+    assert.html.textContent(host, 'p1');
+
+    await router.load('foo');
+    assert.html.textContent(host, 'p2');
+
+    await au.stop();
+  });
 });

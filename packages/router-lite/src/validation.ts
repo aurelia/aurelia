@@ -162,6 +162,16 @@ export function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig
     const path = [parentPath, key].join('.');
     switch (key) {
       case 'path':
+        if (value instanceof Array) {
+          for (let i = 0; i < value.length; ++i) {
+            if (typeof value[i] !== 'string') {
+              expectType('string', `${path}[${i}]`, value[i]);
+            }
+          }
+        } else if (typeof value !== 'string') {
+          expectType('string or Array of strings', path, value);
+        }
+        break;
       case 'redirectTo':
         if (typeof value !== 'string') {
           expectType('string', path, value);

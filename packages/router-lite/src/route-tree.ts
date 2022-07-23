@@ -3,7 +3,6 @@ import {
   ILogger,
   onResolve,
   resolveAll,
-  toArray,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -505,7 +504,7 @@ export function createAndAppendNodes(
           new Endpoint(
             // TODO(sayan): probably need to do parameter matching and select the "most-matched" path instead of picking the first
             new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
-            toArray(Object.values(params))
+            Object.keys(params)
           ),
           params
         ),

@@ -501,7 +501,6 @@ export class RouteContext {
 
     const { path, def, consumed, unconsumed } = val;
 
-    // TODO(Sayan): Investigate why we need params in so many places; probably it will be less hairy when the URL pattern is used.
     // we don't necessarily need to add the # to the path here.
     const route = new ConfigurableRoute(path, def.caseSensitive, def);
     const endpoint = new Endpoint(route, Object.keys(consumed));

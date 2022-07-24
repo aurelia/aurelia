@@ -437,7 +437,6 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
     if (isPartialCustomElementDefinition(instruction)) {
-      // TODO(sayan): create the instruction by looking up the route configuration/definition from the given type in the partial element definition
       // If we just got a partial definition, define a new anonymous class
       const Type = CustomElement.define(instruction);
       const definition = CustomElement.getDefinition(Type);

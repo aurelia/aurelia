@@ -19,7 +19,7 @@ export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 export const RESIDUE = 'au$residue' as const;
 
-type PathGenerationResult = { path: string; def: RouteDefinition; consumed: Params; unconsumed: Params | null };
+type PathGenerationResult = { path: string; endpoint: Endpoint<any>; consumed: Params; unconsumed: Params | null };
 
 /**
  * Holds the information of a component in the context of a specific container.
@@ -178,7 +178,7 @@ export class RouteContext {
     const allPromises: Promise<void>[] = [];
     const children = definition.config.routes;
     const len = children.length;
-    if(len === 0) {
+    if (len === 0) {
       const getRouteConfig = (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
       return;
@@ -341,7 +341,7 @@ export class RouteContext {
     this.hostControllerProvider.prepare(hostController);
     const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
-    if(!this._childRoutesConfigured) {
+    if (!this._childRoutesConfigured) {
       const routeDef = RouteDefinition.resolve(componentInstance, this.definition, routeNode);
       this.processDefinition(routeDef);
     }
@@ -380,10 +380,10 @@ export class RouteContext {
     let _current: IRouteContext = this;
     let _continue = true;
     let result: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>> | null = null;
-    while(_continue){
+    while (_continue) {
       result = _current.recognizer.recognize(path);
       if (result === null) {
-        if(!searchAncestor || _current.isRoot) return null;
+        if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
       } else {
         _continue = false;
@@ -464,46 +464,106 @@ export class RouteContext {
     const def = (this.childRoutes as RouteDefinition[]).find(x => x.id === id);
     if (def === void 0) return null;
 
-    let path = def.path[0]; // [Sayan]: we probably should select the "most" matched path
-    const consumed: Params = Object.create(null);
-    const unconsumed: Params = Object.create(null);
-    let hasUnconsumedParams = false;
-    if (typeof params === 'object' && params !== null) {
-      const keys = Object.keys(params);
-      for (const key of keys) {
-        const value = params[key];
-        const re = new RegExp(`[*:]${key}[?]?`);
-        const matches = re.exec(path);
-        if (matches === null) {
-          unconsumed[key] = value;
-          hasUnconsumedParams = true;
-          continue;
+    const recognizer = this.recognizer;
+    const paths = def.path;
+    const numPaths = paths.length;
+    let endpoint: Endpoint<any> | null = null;
+    if (typeof params !== 'object' || params === null) {
+      let path: string | null = null;
+      if (numPaths === 1) {
+        path = paths[0];
+        endpoint = recognizer.getEndpoint(path);
+        if (endpoint == null || endpoint.params.length !== 0) throw new Error(`No parameter-less path is found for '${id}'; configured: ${JSON.stringify(paths)}. Either configure a parameter-less path or provide appropriate parameters.`);
+      } else {
+        for (const p of paths) {
+          endpoint = recognizer.getEndpoint(p);
+          if (endpoint?.params.length === 0) {
+            path = p;
+          }
         }
+      }
+      if (path === null) throw new Error(`No parameter-less path is found for '${id}'; configured: ${JSON.stringify(paths)}. Either configure a parameter-less path or provide appropriate parameters.`);
+      return { path, endpoint: endpoint!, consumed: Object.create(null), unconsumed: null };
+    }
+
+    const errors: string[] = [];
+
+    let result: PathGenerationResult | null = null;
+    if(numPaths === 1) {
+      const result = core(paths[0]);
+      if(result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+      return result;
+    }
+
+    let maxScore = 0;
+    for(const p of paths) {
+      const res = core(p);
+      if(res === null) continue;
+      if(result === null) {
+        result = res;
+        maxScore = Object.keys(result.consumed).length;
+      } else if(Object.keys(result.consumed).length > maxScore) {
+        result = res;
+      }
+    }
+
+    if(result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+    return result;
+
+    function core(path: string): PathGenerationResult | null {
+      endpoint = recognizer.getEndpoint(path);
+      if (endpoint === null) {
+        errors.push(`No endpoint found for the path: '${path}'.`);
+        return null;
+      }
+      const consumed: Params = Object.create(null);
+      const unconsumed: Params = Object.create(null);
+      let hasUnconsumedParams = false;
+      for (const param of endpoint.params) {
+        const key = param.name;
+        const value = params![key];
+        let re: RegExp;
+        let matches: RegExpExecArray | null = null;
+        if (!param.isOptional) {
+          re = new RegExp(`:${key}`);
+          matches = re.exec(path);
+          if (matches === null) {
+            errors.push(`No value for the required parameter '${key}' is provided for the path: '${path}'.`);
+            return null;
+          }
+        } else {
+          re = new RegExp(param.isStar ? `*${key}` : `:${key}?`);
+          matches = re.exec(path);
+          if (matches === null) {
+            unconsumed[key] = value;
+            hasUnconsumedParams = true;
+            continue;
+          }
+        }
+
         if (value != null && String(value).length > 0) {
           path = path.replace(matches[0], value);
           consumed[key] = value;
         }
       }
+      // Remove leading and trailing optional param parts
+      return {
+        path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
+        endpoint,
+        consumed,
+        unconsumed: hasUnconsumedParams ? unconsumed : null,
+      };
     }
-    // Remove leading and trailing optional param parts
-    return {
-      path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
-      def,
-      consumed,
-      unconsumed: hasUnconsumedParams ? unconsumed : null,
-    };
   }
 
   /** @internal */
   public generateTree(id: string, params: Params | null | undefined): ViewportInstructionTree | null {
     const val = this._generatePathInternal(id, params);
-    if(val === null) return null;
+    if (val === null) return null;
 
-    const { path, def, consumed, unconsumed } = val;
+    const { path, endpoint, consumed, unconsumed } = val;
 
     // we don't necessarily need to add the # to the path here.
-    const route = new ConfigurableRoute(path, def.caseSensitive, def);
-    const endpoint = new Endpoint(route, Object.keys(consumed));
     const rr = new RecognizedRoute(endpoint, consumed);
     const instruction: Partial<IViewportInstruction> = {
       recognizedRoute: new $RecognizedRoute(rr, null),
@@ -511,12 +571,12 @@ export class RouteContext {
       context: this,
     };
     return this._router.createViewportInstructions(
-        [instruction],
-        {
-          context: this,
-          queryParams: unconsumed
-        }
-      );
+      [instruction],
+      {
+        context: this,
+        queryParams: unconsumed
+      }
+    );
   }
 
   public toString(): string {
@@ -551,7 +611,7 @@ export class $RecognizedRoute {
   public constructor(
     public readonly route: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>,
     public readonly residue: string | null,
-  ) {}
+  ) { }
 
   public toString(): string {
     const route = this.route;

@@ -334,7 +334,7 @@ export class RouteRecognizer<T> {
 
   private $add(route: IConfigurableRoute<T>): void {
     const path = route.path;
-    const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
+    const $route = new ConfigurableRoute(path, route.caseSensitive === true, route.handler);
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
     const parts = path === '' ? [''] : path.split('/').filter(isNotEmpty);

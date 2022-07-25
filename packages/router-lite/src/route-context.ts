@@ -517,8 +517,6 @@ export class RouteContext {
         return null;
       }
       const consumed: Params = Object.create(null);
-      const unconsumed: Params = Object.create(null);
-      let hasUnconsumedParams = false;
       for (const param of endpoint.params) {
         const key = param.name;
         const value = params![key];
@@ -534,11 +532,7 @@ export class RouteContext {
         } else {
           re = new RegExp(param.isStar ? `*${key}` : `:${key}?`);
           matches = re.exec(path);
-          if (matches === null) {
-            unconsumed[key] = value;
-            hasUnconsumedParams = true;
-            continue;
-          }
+          if (matches === null) continue;
         }
 
         if (value != null && String(value).length > 0) {
@@ -546,12 +540,14 @@ export class RouteContext {
           consumed[key] = value;
         }
       }
+      const consumedKeys = Object.keys(consumed);
+      const unconsumed = Object.entries(params!).filter(([key]) => !consumedKeys.includes(key));
       // Remove leading and trailing optional param parts
       return {
         path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
         endpoint,
         consumed,
-        unconsumed: hasUnconsumedParams ? unconsumed : null,
+        unconsumed: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
       };
     }
   }

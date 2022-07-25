@@ -181,11 +181,21 @@ export function containerless(): (target: Constructable) => void;
 export function containerless(target?: Constructable): void | ((target: Constructable) => void) {
   if (target === void 0) {
     return function ($target: Constructable) {
-      annotateElementMetadata($target, 'containerless', true);
+      markContainerless($target);
     };
   }
 
-  annotateElementMetadata(target, 'containerless', true);
+  markContainerless(target);
+}
+
+/** Manipulates the `containerless` property of the custom element definition for the type, when present else it annotates the type. */
+function markContainerless(target: Constructable) {
+  const def = getOwnMetadata(ceBaseName, target) as CustomElementDefinition;
+  if(def === void 0) {
+    annotateElementMetadata(target, 'containerless', true);
+    return;
+  }
+  (def as Writable<CustomElementDefinition>).containerless = true;
 }
 
 /**

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.36"></a>
+# 2.0.0-alpha.36 (2022-07-25)
+
+### Bug Fixes:
+
+* **validation-html:** validate BB trigger (#1472) ([10ee21c](https://github.com/aurelia/aurelia/commit/10ee21c))
+* **validation-html:** validate BB trigger ([10ee21c](https://github.com/aurelia/aurelia/commit/10ee21c))
+
 <a name="2.0.0-alpha.35"></a>
 # 2.0.0-alpha.35 (2022-06-08)
 

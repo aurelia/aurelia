@@ -19,6 +19,7 @@ export const hmrMetadataModules = ['Metadata'];
 export const getHmrCode = (className: string, moduleText: string = 'module'): string => {
 
   const code = `
+    // @ts-ignore
     const controllers = [];
 
     // @ts-ignore
@@ -52,6 +53,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
     }
 
     hot.dispose(function (data) {
+      // @ts-ignore
       data.controllers = controllers;
       data.aurelia = aurelia;
     });

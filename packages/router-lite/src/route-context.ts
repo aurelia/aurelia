@@ -458,60 +458,38 @@ export class RouteContext {
 
   // this is separate method might be helpful if we need to create a public path generation utility function in future.
   /** @internal */
-  private _generatePathInternal(id: string, params?: Params | null): PathGenerationResult | null {
-    if (id == null) return null;
-
+  private _generatePathInternal(id: string, params: Params): PathGenerationResult | null {
     const def = (this.childRoutes as RouteDefinition[]).find(x => x.id === id);
     if (def === void 0) return null;
 
     const recognizer = this.recognizer;
     const paths = def.path;
     const numPaths = paths.length;
-    let endpoint: Endpoint<any> | null = null;
-    if (typeof params !== 'object' || params === null) {
-      let path: string | null = null;
-      if (numPaths === 1) {
-        path = paths[0];
-        endpoint = recognizer.getEndpoint(path);
-        if (endpoint == null || endpoint.params.length !== 0) throw new Error(`No parameter-less path is found for '${id}'; configured: ${JSON.stringify(paths)}. Either configure a parameter-less path or provide appropriate parameters.`);
-      } else {
-        for (const p of paths) {
-          endpoint = recognizer.getEndpoint(p);
-          if (endpoint?.params.length === 0) {
-            path = p;
-          }
-        }
-      }
-      if (path === null) throw new Error(`No parameter-less path is found for '${id}'; configured: ${JSON.stringify(paths)}. Either configure a parameter-less path or provide appropriate parameters.`);
-      return { path, endpoint: endpoint!, consumed: Object.create(null), unconsumed: null };
-    }
-
     const errors: string[] = [];
-
     let result: PathGenerationResult | null = null;
-    if(numPaths === 1) {
+    if (numPaths === 1) {
       const result = core(paths[0]);
-      if(result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+      if (result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
       return result;
     }
 
     let maxScore = 0;
-    for(const p of paths) {
-      const res = core(p);
-      if(res === null) continue;
-      if(result === null) {
+    for (let i = 0; i < numPaths; i++) {
+      const res = core(paths[i]);
+      if (res === null) continue;
+      if (result === null) {
         result = res;
-        maxScore = Object.keys(result.consumed).length;
-      } else if(Object.keys(result.consumed).length > maxScore) {
+        maxScore = Object.keys(res.consumed).length;
+      } else if (Object.keys(res.consumed).length > maxScore) { // reject anything other than monotonically increasing consumption
         result = res;
       }
     }
 
-    if(result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+    if (result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
     return result;
 
     function core(path: string): PathGenerationResult | null {
-      endpoint = recognizer.getEndpoint(path);
+      const endpoint = recognizer.getEndpoint(path);
       if (endpoint === null) {
         errors.push(`No endpoint found for the path: '${path}'.`);
         return null;
@@ -519,29 +497,26 @@ export class RouteContext {
       const consumed: Params = Object.create(null);
       for (const param of endpoint.params) {
         const key = param.name;
-        const value = params![key];
-        let re: RegExp;
-        let matches: RegExpExecArray | null = null;
-        if (!param.isOptional) {
-          re = new RegExp(`:${key}`);
-          matches = re.exec(path);
-          if (matches === null) {
+        let value = params[key];
+        if (value == null || String(value).length === 0) {
+          if (!param.isOptional) {
             errors.push(`No value for the required parameter '${key}' is provided for the path: '${path}'.`);
             return null;
           }
-        } else {
-          re = new RegExp(param.isStar ? `*${key}` : `:${key}?`);
-          matches = re.exec(path);
-          if (matches === null) continue;
+          value = '';
         }
 
-        if (value != null && String(value).length > 0) {
-          path = path.replace(matches[0], value);
-          consumed[key] = value;
-        }
+        const pattern = param.isStar
+          ? `*${key}`
+          : param.isOptional
+            ? `:${key}?`
+            : `:${key}`;
+
+        path = path.replace(pattern, value);
+        consumed[key] = value;
       }
       const consumedKeys = Object.keys(consumed);
-      const unconsumed = Object.entries(params!).filter(([key]) => !consumedKeys.includes(key));
+      const unconsumed = Object.entries(params).filter(([key]) => !consumedKeys.includes(key));
       // Remove leading and trailing optional param parts
       return {
         path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
@@ -553,7 +528,8 @@ export class RouteContext {
   }
 
   /** @internal */
-  public generateTree(id: string, params: Params | null | undefined): ViewportInstructionTree | null {
+  public generateTree(id: string, params: Params): ViewportInstructionTree | null {
+    if (id == null) return null;
     const val = this._generatePathInternal(id, params);
     if (val === null) return null;
 
@@ -570,7 +546,7 @@ export class RouteContext {
       [instruction],
       {
         context: this,
-        queryParams: unconsumed
+        queryParams: unconsumed,
       }
     );
   }

@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop } from '@aurelia/kernel';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
-import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
+import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { LifecycleFlags, valueConverter } from '@aurelia/runtime';
@@ -2028,6 +2028,72 @@ describe('router (smoke tests)', function () {
 
     await router.load('foo');
     assert.html.textContent(host, 'p2');
+
+    await au.stop();
+  });
+
+  it('route generation', async function () {
+    @customElement({ name: 'fo-o', template: '' })
+    class Foo { }
+    @customElement({ name: 'ba-r', template: '' })
+    class Bar { }
+    @customElement({ name: 'fi-zz', template: '' })
+    class Fizz { }
+
+    @route({
+      routes: [
+        { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a'], component: Foo },
+        { id: 'bar', path: ['bar/:id'], component: Bar },
+        { id: 'fizz', path: ['fizz/:x', 'fizz/:y/:x'], component: Fizz },
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `<au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      Foo,
+      Bar,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    await au.app({ component: Root, host }).start();
+
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+    const router = container.get(IRouter);
+
+    await router.load('foo', { params: { id: '1', a: '3' } });
+    assert.match(location.path, /foo\/1\/bar\/3$/);
+
+    await router.load('foo', { params: { id: '1', b: '3' } });
+    assert.match(location.path, /foo\/1\?b=3$/);
+
+    try {
+      await router.load('bar', { params: { x: '1' } });
+      assert.fail('expected error1');
+    } catch (er) {
+      assert.match((er as Error).message, /No value for the required parameter 'id'/);
+    }
+
+    try {
+      await router.load('fizz', { params: { id: '1' } });
+      assert.fail('expected error2');
+    } catch (er) {
+      assert.match(
+        (er as Error).message,
+        /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+      );
+    }
 
     await au.stop();
   });

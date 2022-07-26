@@ -20,7 +20,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
 
   const code = `
     // @ts-ignore
-    const controllers:[] = [];
+    const controllers = [];
 
     // @ts-ignore
     if (${moduleText}.hot) {

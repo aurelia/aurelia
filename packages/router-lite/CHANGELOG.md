@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.36"></a>
+# 2.0.0-alpha.36 (2022-07-25)
+
+### Features:
+
+* **router-lite:** custom root provider (#1463) ([d189d3b](https://github.com/aurelia/aurelia/commit/d189d3b))
+* **router-lite:** custom root provider ([d189d3b](https://github.com/aurelia/aurelia/commit/d189d3b))
+
+
+### Bug Fixes:
+
+* **router-lite:** better handling of parameters and querystring (#1467) ([cd93312](https://github.com/aurelia/aurelia/commit/cd93312))
+
+
+### Refactorings:
+
+* **router-lite:** params in Router#load ([cd93312](https://github.com/aurelia/aurelia/commit/cd93312))
+* **router-lite:** base path resolution ([d189d3b](https://github.com/aurelia/aurelia/commit/d189d3b))
+
 <a name="2.0.0-alpha.35"></a>
 # 2.0.0-alpha.35 (2022-06-08)
 

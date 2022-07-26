@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.36"></a>
+# 2.0.0-alpha.36 (2022-07-25)
+
+### Features:
+
+* **custom-element:** capture convention & decorator shortcut (#1469) ([e89d3ad](https://github.com/aurelia/aurelia/commit/e89d3ad))
+* **router-lite:** custom root provider (#1463) ([d189d3b](https://github.com/aurelia/aurelia/commit/d189d3b))
+
+
+### Bug Fixes:
+
+* **runtime-html:** containerless #1474 (#1475) ([35e571f](https://github.com/aurelia/aurelia/commit/35e571f))
+* **validation-html:** validate BB trigger (#1472) ([10ee21c](https://github.com/aurelia/aurelia/commit/10ee21c))
+* **node-obs:** dont treat role differently (#1473) ([0cde114](https://github.com/aurelia/aurelia/commit/0cde114))
+* **router-lite:** better handling of parameters and querystring (#1467) ([cd93312](https://github.com/aurelia/aurelia/commit/cd93312))
+* **plugin-conventions:** skip ShadowDOM tag name check, leave it to runtime (#1464) ([20fccbf](https://github.com/aurelia/aurelia/commit/20fccbf))
+
+
+### Refactorings:
+
+* **router-lite:** params in Router#load ([cd93312](https://github.com/aurelia/aurelia/commit/cd93312))
+* **router-lite:** base path resolution ([d189d3b](https://github.com/aurelia/aurelia/commit/d189d3b))
+
 <a name="2.0.0-alpha.35"></a>
 # 2.0.0-alpha.35 (2022-06-08)
 

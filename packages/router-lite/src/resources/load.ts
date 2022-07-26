@@ -69,18 +69,19 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     const useHash = this.router.options.useUrlFragmentHash;
-    if (this.route !== null && this.route !== void 0 && this.ctx.allResolved === null) {
-      const instructions = this.ctx.generateTree(this.route as string, this.params as Params);
-      if (instructions !== null) {
-        this.href = (this.instructions = instructions).toUrl(useHash);
-      } else {
-        if (typeof this.params === 'object' && this.params !== null) {
-          this.instructions = this.router.createViewportInstructions({ component: this.route as NavigationInstruction, params: this.params as Params }, { context: this.ctx });
-        } else {
-          this.instructions = this.router.createViewportInstructions(this.route as NavigationInstruction, { context: this.ctx });
-        }
-        this.href = this.instructions.toUrl(useHash);
+    const route = this.route;
+    if (route !== null && route !== void 0 && this.ctx.allResolved === null) {
+      const params = this.params;
+      const hasParams = typeof params === 'object' && params !== null;
+      let instructions = hasParams ? this.ctx.generateTree(route as string, params) : null;
+      if (instructions === null) {
+        instructions = this.router.createViewportInstructions(
+          hasParams
+            ? { component: route as NavigationInstruction, params }
+            : this.route as NavigationInstruction,
+          { context: this.ctx });
       }
+      this.href = (this.instructions = instructions).toUrl(useHash);
     } else {
       this.instructions = null;
       this.href = null;

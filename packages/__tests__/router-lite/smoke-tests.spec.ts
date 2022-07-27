@@ -292,47 +292,47 @@ describe('router (smoke tests)', function () {
     await tearDown();
   });
 
-  it(`root1 correctly handles canUnload with load b01,a01 in order`, async function () {
+  it(`root1 correctly handles canUnload with load b11/b01,a01 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
 
-    let result = await router.load(B01);
-    assertComponentsVisible(host, [Root1, B01]);
+    let result = await router.load({ component: B11, children: [B01] });
+    assertComponentsVisible(host, [Root1, B11, B01]);
     assert.strictEqual(result, true, '#1 result===true');
 
-    result = await router.load(A01);
-    assertComponentsVisible(host, [Root1, A01]);
+    result = await router.load({ component: B11, children: [A01] });
+    assertComponentsVisible(host, [Root1, B11, A01]);
     assert.strictEqual(result, true, '#2 result===true');
 
     await tearDown();
   });
 
-  it(`root1 correctly handles canUnload with load b02,a01 in order`, async function () {
+  it(`root1 correctly handles canUnload with load b11/b02,a01 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
 
-    let result = await router.load(B02);
-    assertComponentsVisible(host, [Root1, B02]);
+    let result = await router.load({ component: B11, children: [B02] });
+    assertComponentsVisible(host, [Root1, B11, B02]);
     assert.strictEqual(result, true, '#1 result===true');
 
     result = await router.load(A01);
-    assertComponentsVisible(host, [Root1, B02]);
+    assertComponentsVisible(host, [Root1, B11, B02]);
     assert.strictEqual(result, false, '#2 result===false');
 
     await tearDown();
   });
 
-  it(`root1 correctly handles canUnload with load b02,a01,a02 in order`, async function () {
+  it(`root1 correctly handles canUnload with load b11/b02,a01,a02 in order`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
 
-    let result = await router.load(B02);
-    assertComponentsVisible(host, [Root1, B02], '#1');
+    let result = await router.load({ component: B11, children: [B02] });
+    assertComponentsVisible(host, [Root1, B11, B02], '#1');
     assert.strictEqual(result, true, '#1 result===true');
 
     result = await router.load(A01);
-    assertComponentsVisible(host, [Root1, B02], '#2');
+    assertComponentsVisible(host, [Root1, B11, B02], '#2');
     assert.strictEqual(result, false, '#2 result===false');
 
     result = await router.load(A02);
-    assertComponentsVisible(host, [Root1, B02], '#3');
+    assertComponentsVisible(host, [Root1, B11, B02], '#3');
     assert.strictEqual(result, false, '#3 result===false');
 
     await tearDown();
@@ -1997,7 +1997,7 @@ describe('router (smoke tests)', function () {
     class P2 { }
     @route({
       routes: [
-        { path: ['', 'foo'], redirectTo: 'p2'    },
+        { path: ['', 'foo'], redirectTo: 'p2' },
         { path: 'p1', component: P1, title: 'P1' },
         { path: 'p2', component: P2, title: 'P2' },
       ]

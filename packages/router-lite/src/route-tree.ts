@@ -16,6 +16,7 @@ import {
 import {
   ITypedNavigationInstruction_ResolvedComponent,
   ITypedNavigationInstruction_string,
+  NavigationInstruction,
   NavigationInstructionType,
   Params,
   ViewportInstruction,
@@ -497,19 +498,22 @@ export function createAndAppendNodes(
       }
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
-      const rd = RouteDefinition.resolve(vi.component.value, node.context.definition, null);
+      const rc = node.context;
+      const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
       const params = vi.params ?? emptyObject;
-      const rr = new $RecognizedRoute(
-        new RecognizedRoute(
-          new Endpoint(
-            // TODO(sayan): probably need to do parameter matching and select the "most-matched" path instead of picking the first
-            new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
-            Object.keys(params)
-          ),
-          params
-        ),
-        null);
-      const childNode = createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, append, rr, null);
+      const { vi: newVi, unconsumed: query } = rc.generateViewportInstruction(rd, params)!;
+      (node.tree as Writable<RouteTree>).queryParams = {
+        ...node.tree.queryParams,
+        ...query,
+      };
+      (newVi.children as NavigationInstruction[]).push(...vi.children);
+      const childNode = createConfiguredNode(
+        log,
+        node,
+        newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+        append,
+        newVi.recognizedRoute!,
+        vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>);
       return appendNode(log, node, childNode);
     }
   }

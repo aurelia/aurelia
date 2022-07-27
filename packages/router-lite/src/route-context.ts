@@ -1,25 +1,25 @@
-import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
-import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
-import { RouteRecognizer, RecognizedRoute, ConfigurableRoute, Endpoint } from '@aurelia/route-recognizer';
+import { DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Registration, ResourceDefinition } from '@aurelia/kernel';
+import { RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition';
-import { ViewportAgent, ViewportRequest } from './viewport-agent';
 import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { RouteNode } from './route-tree';
-import { IRouter, ResolutionMode } from './router';
+import { IViewportInstruction, Params, ViewportInstruction, ViewportInstructionTree } from './instructions';
 import { IViewport } from './resources/viewport';
 import { Routeable } from './route';
-import { isPartialChildRouteConfig } from './validation';
-import { ensureArrayOfStrings } from './util';
-import { IViewportInstruction, Params, ViewportInstructionTree } from './instructions';
+import { RouteDefinition } from './route-definition';
+import { RouteNode } from './route-tree';
+import { IRouter, ResolutionMode } from './router';
 import { IRouterEvents } from './router-events';
+import { ensureArrayOfStrings } from './util';
+import { isPartialChildRouteConfig } from './validation';
+import { ViewportAgent, ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 export const RESIDUE = 'au$residue' as const;
 
-type PathGenerationResult = { path: string; endpoint: Endpoint<any>; consumed: Params; unconsumed: Params | null };
+type PathGenerationResult = { path: string; rr: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>; unconsumed: Params | null };
 
 /**
  * Holds the information of a component in the context of a specific container.
@@ -458,8 +458,10 @@ export class RouteContext {
 
   // this is separate method might be helpful if we need to create a public path generation utility function in future.
   /** @internal */
-  private _generatePathInternal(id: string, params: Params): PathGenerationResult | null {
-    const def = (this.childRoutes as RouteDefinition[]).find(x => x.id === id);
+  private _generatePathInternal(idOrDef: string | RouteDefinition, params: Params): PathGenerationResult | null {
+    const def = typeof idOrDef === 'string'
+      ? (this.childRoutes as RouteDefinition[]).find(x => x.id === idOrDef)
+      : idOrDef;
     if (def === void 0) return null;
 
     const recognizer = this.recognizer;
@@ -469,7 +471,7 @@ export class RouteContext {
     let result: PathGenerationResult | null = null;
     if (numPaths === 1) {
       const result = core(paths[0]);
-      if (result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+      if (result === null) throw new Error(`Unable to generate path for ${idOrDef}. Reasons: ${errors}.`);
       return result;
     }
 
@@ -479,13 +481,13 @@ export class RouteContext {
       if (res === null) continue;
       if (result === null) {
         result = res;
-        maxScore = Object.keys(res.consumed).length;
-      } else if (Object.keys(res.consumed).length > maxScore) { // reject anything other than monotonically increasing consumption
+        maxScore = Object.keys(res.rr.params).length;
+      } else if (Object.keys(res.rr.params).length > maxScore) { // reject anything other than monotonically increasing consumption
         result = res;
       }
     }
 
-    if (result === null) throw new Error(`Unable to generate path for ${id}. Reasons: ${errors}.`);
+    if (result === null) throw new Error(`Unable to generate path for ${idOrDef}. Reasons: ${errors}.`);
     return result;
 
     function core(path: string): PathGenerationResult | null {
@@ -520,33 +522,37 @@ export class RouteContext {
       // Remove leading and trailing optional param parts
       return {
         path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
-        endpoint,
-        consumed,
+        rr: new RecognizedRoute(endpoint, consumed),
         unconsumed: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
       };
     }
   }
 
   /** @internal */
-  public generateTree(id: string, params: Params): ViewportInstructionTree | null {
-    if (id == null) return null;
-    const val = this._generatePathInternal(id, params);
+  public generateViewportInstruction(idOrDef: string | RouteDefinition, params: Params): { vi: IViewportInstruction; unconsumed: Params | null } | null {
+    if (idOrDef == null) return null;
+    const val = this._generatePathInternal(idOrDef as string, params);
     if (val === null) return null;
 
-    const { path, endpoint, consumed, unconsumed } = val;
-
-    // we don't necessarily need to add the # to the path here.
-    const rr = new RecognizedRoute(endpoint, consumed);
-    const instruction: Partial<IViewportInstruction> = {
-      recognizedRoute: new $RecognizedRoute(rr, null),
-      component: path,
-      context: this,
+    return {
+      vi: ViewportInstruction.create({
+        recognizedRoute: new $RecognizedRoute(val.rr, null),
+        component: val.path,
+        context: this,
+      }),
+      unconsumed: val.unconsumed,
     };
+  }
+
+  /** @internal */
+  public generateTree(idOrDef: string | RouteDefinition, params: Params): ViewportInstructionTree | null {
+    const val = this.generateViewportInstruction(idOrDef, params);
+    if (val === null) return null;
     return this._router.createViewportInstructions(
-      [instruction],
+      [val.vi],
       {
         context: this,
-        queryParams: unconsumed,
+        queryParams: val.unconsumed,
       }
     );
   }

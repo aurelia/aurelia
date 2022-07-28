@@ -43,10 +43,13 @@ export interface IViewportInstruction {
   /**
    * The component to load.
    *
-   * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
+   * - `string`: A string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally).
    * - `RouteType`: a custom element class with optional static properties that specify routing-specific attributes.
    * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
    * - `IRouteViewModel`: an existing component instance.
+   *
+   * For a string component route-recognizer of the 'resolved' `RoutingContext` will be employed.
+   * Whereas for non-sting components, a `RouteDefinition` will be resolved, and a (new) `ViewportInstruction` will be created out of that.
    */
   readonly component: string | RouteableComponent;
   /**
@@ -55,12 +58,20 @@ export interface IViewportInstruction {
   readonly viewport?: string | null;
   /**
    * The parameters to pass into the component.
+   *
+   * Note that this is only important till a {@link $RecognizedRoute | recognized route} is created from the `component`.
+   * After the recognized route is created, the 'recognized' parameters are included in that, and that's what is used when invoking the hook functions.
+   * Thus, when creating a viewport-instruction directly with a recognized route, the parameters can be ignored.
    */
   readonly params?: Params | null;
   /**
    * The child routes to load underneath the context of this instruction's component.
    */
   readonly children?: readonly NavigationInstruction[];
+  /**
+   * Normally, when the recognized route is null, in the process of creating a route node, it will be attempted to recognize a configured route for the given `component`.
+   * Therefore, when a recognized route is provided when creating the `ViewportInstruction`, the process of recognizing the `component` can be completely skipped.
+   */
   readonly recognizedRoute: $RecognizedRoute | null;
 }
 

@@ -39,6 +39,7 @@
     "examples/doc-example",
     "examples/fractals-tree",
     "examples/navigation-skeleton",
+    "examples/hmr-webpack-e2e",
     "examples/rainbow-spiral",
     "examples/realworld",
     "examples/realworld-advanced",

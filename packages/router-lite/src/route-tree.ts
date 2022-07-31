@@ -500,8 +500,7 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
-      const params = vi.params ?? emptyObject;
-      const { vi: newVi, unconsumed: query } = rc.generateViewportInstruction(rd, params)!;
+      const { vi: newVi, query } = rc.generateViewportInstruction({ component: rd, params: vi.params ?? emptyObject })!;
       (node.tree as Writable<RouteTree>).queryParams = {
         ...node.tree.queryParams,
         ...query,

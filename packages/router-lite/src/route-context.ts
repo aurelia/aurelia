@@ -3,7 +3,7 @@ import { RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { IViewportInstruction, Params, ViewportInstruction, ViewportInstructionTree } from './instructions';
+import { NavigationInstruction, Params, ViewportInstruction } from './instructions';
 import { IViewport } from './resources/viewport';
 import { Routeable } from './route';
 import { RouteDefinition } from './route-definition';
@@ -19,7 +19,21 @@ export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 export const RESIDUE = 'au$residue' as const;
 
-type PathGenerationResult = { path: string; rr: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>; unconsumed: Params | null };
+type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
+
+export type EagerInstruction = {
+  component: string | RouteDefinition;
+  params: Params;
+};
+
+export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
+  if(val == null) return false;
+  const params = (val as EagerInstruction).params;
+  const component = (val as EagerInstruction).component;
+  return typeof params === 'object'
+    && params !== null
+    && (typeof component === 'string' || component instanceof RouteDefinition);
+}
 
 /**
  * Holds the information of a component in the context of a specific container.
@@ -456,14 +470,19 @@ export class RouteContext {
     });
   }
 
-  // this is separate method might be helpful if we need to create a public path generation utility function in future.
   /** @internal */
-  private _generatePathInternal(idOrDef: string | RouteDefinition, params: Params): PathGenerationResult | null {
-    const def = typeof idOrDef === 'string'
-      ? (this.childRoutes as RouteDefinition[]).find(x => x.id === idOrDef)
-      : idOrDef;
+  public generateViewportInstruction(instruction: { component: RouteDefinition; params: Params }): PathGenerationResult;
+  public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
+    if(!isEagerInstruction(instruction)) return null;
+    const component = instruction.component;
+    const def = component instanceof RouteDefinition
+      ? component
+      : (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
     if (def === void 0) return null;
 
+    const params = instruction.params;
     const recognizer = this.recognizer;
     const paths = def.path;
     const numPaths = paths.length;
@@ -471,7 +490,7 @@ export class RouteContext {
     let result: PathGenerationResult | null = null;
     if (numPaths === 1) {
       const result = core(paths[0]);
-      if (result === null) throw new Error(`Unable to generate path for ${idOrDef}. Reasons: ${errors}.`);
+      if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
       return result;
     }
 
@@ -481,13 +500,13 @@ export class RouteContext {
       if (res === null) continue;
       if (result === null) {
         result = res;
-        maxScore = Object.keys(res.rr.params).length;
-      } else if (Object.keys(res.rr.params).length > maxScore) { // reject anything other than monotonically increasing consumption
+        maxScore = Object.keys(res.vi.recognizedRoute!.route.params).length;
+      } else if (Object.keys(res.vi.recognizedRoute!.route.params).length > maxScore) { // ignore anything other than monotonically increasing consumption
         result = res;
       }
     }
 
-    if (result === null) throw new Error(`Unable to generate path for ${idOrDef}. Reasons: ${errors}.`);
+    if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
     return result;
 
     function core(path: string): PathGenerationResult | null {
@@ -521,39 +540,13 @@ export class RouteContext {
       const unconsumed = Object.entries(params).filter(([key]) => !consumedKeys.includes(key));
       // Remove leading and trailing optional param parts
       return {
-        path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
-        rr: new RecognizedRoute(endpoint, consumed),
-        unconsumed: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
+        vi: ViewportInstruction.create({
+          recognizedRoute: new $RecognizedRoute(new RecognizedRoute(endpoint, consumed), null),
+          component: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''), // TODO(sayan): remove these two replaces
+        }),
+        query: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
       };
     }
-  }
-
-  /** @internal */
-  public generateViewportInstruction(idOrDef: string | RouteDefinition, params: Params): { vi: IViewportInstruction; unconsumed: Params | null } | null {
-    if (idOrDef == null) return null;
-    const val = this._generatePathInternal(idOrDef as string, params);
-    if (val === null) return null;
-
-    return {
-      vi: ViewportInstruction.create({
-        recognizedRoute: new $RecognizedRoute(val.rr, null),
-        component: val.path,
-      }),
-      unconsumed: val.unconsumed,
-    };
-  }
-
-  /** @internal */
-  public generateTree(idOrDef: string | RouteDefinition, params: Params): ViewportInstructionTree | null {
-    const val = this.generateViewportInstruction(idOrDef, params);
-    if (val === null) return null;
-    return this._router.createViewportInstructions(
-      [val.vi],
-      {
-        context: this,
-        queryParams: val.unconsumed,
-      }
-    );
   }
 
   public toString(): string {

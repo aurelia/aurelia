@@ -1,10 +1,10 @@
 import { isObject } from '@aurelia/metadata';
-import { DI, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
+import { Constructable, emptyObject, IModule, isArrayIndex } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
-import { $RecognizedRoute, IRouteContext } from './route-context';
+import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
@@ -87,9 +87,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   ) {}
 
   public static create(instruction: NavigationInstruction): ViewportInstruction {
-    if (instruction instanceof ViewportInstruction) {
-      return instruction as ViewportInstruction; // eslint is being really weird here
-    }
+    if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
 
     if (isPartialViewportInstruction(instruction)) {
       const component = TypedNavigationInstruction.create(instruction.component);
@@ -273,6 +271,7 @@ const getObjectId = (function () {
   };
 })();
 
+/** @internal */
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
@@ -282,29 +281,39 @@ export class ViewportInstructionTree {
     public readonly fragment: string | null,
   ) {}
 
-  public static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+  public static create(
+    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    options?: INavigationOptions,
+    rootCtx?: IRouteContext | null,
+  ): ViewportInstructionTree {
     const $options = NavigationOptions.create({ ...options });
 
-    if (instructionOrInstructions instanceof ViewportInstructionTree) {
-      return new ViewportInstructionTree(
-        $options,
-        instructionOrInstructions.isAbsolute,
-        instructionOrInstructions.children.map(x => ViewportInstruction.create(x)),
-        instructionOrInstructions.queryParams,
-        instructionOrInstructions.fragment,
-      );
+    let context = $options.context as RouteContext;
+    if (!(context instanceof RouteContext) && rootCtx != null) {
+      context = RouteContext.resolve(rootCtx, context);
     }
+    const hasContext = context != null;
 
     if (instructionOrInstructions instanceof Array) {
-      return new ViewportInstructionTree(
-        $options,
-        false,
-        instructionOrInstructions.map(x => ViewportInstruction.create(x)),
-        $options.queryParams !== null
-          ? new URLSearchParams($options.queryParams as Record<string, string>)
-          : emptyQuery,
-        null,
-      );
+      const len = instructionOrInstructions.length;
+      const children = new Array(len);
+      const query = new URLSearchParams($options.queryParams ?? emptyObject);
+      for(let i = 0; i<len; i++) {
+        const instruction = instructionOrInstructions[i];
+        const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
+        if(eagerVi !== null) {
+          children[i] = eagerVi.vi;
+          const $query = eagerVi.query;
+          if($query !== null) {
+            for(const [key, value] of Object.entries($query)) {
+              query.append(key, value!);
+            }
+          }
+        } else {
+          children[i] = ViewportInstruction.create(instruction);
+        }
+      }
+      return new ViewportInstructionTree($options, false, children, query, null);
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -312,13 +321,22 @@ export class ViewportInstructionTree {
       return expr.toInstructionTree($options);
     }
 
-    return new ViewportInstructionTree(
-      $options,
-      false,
-      [ViewportInstruction.create(instructionOrInstructions)],
-      emptyQuery,
-      null,
-    );
+    const eagerVi = hasContext ? context.generateViewportInstruction(instructionOrInstructions) : null;
+    return eagerVi !== null
+      ? new ViewportInstructionTree(
+        $options,
+        false,
+        [eagerVi.vi],
+        new URLSearchParams(eagerVi.query ?? emptyObject),
+        null,
+      )
+      : new ViewportInstructionTree(
+        $options,
+        false,
+        [ViewportInstruction.create(instructionOrInstructions)],
+        emptyQuery,
+        null,
+      );
   }
 
   public equals(other: ViewportInstructionTree): boolean {

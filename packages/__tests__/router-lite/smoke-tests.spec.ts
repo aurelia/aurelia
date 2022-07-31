@@ -1269,19 +1269,19 @@ describe('router (smoke tests)', function () {
 
     await au.start();
 
-    await router.load('a1', { params: { a: '12' } });
+    await router.load({ component: 'a1', params: { a: '12' } });
     let url = pushedUrls.pop();
     assert.match(url, /a1\/12$/, 'url1');
 
-    await router.load('a2', { params: { c: '45' } });
+    await router.load({ component: 'a2', params: { c: '45' } });
     url = pushedUrls.pop();
     assert.match(url, /a2\/45$/, 'url1');
 
-    await router.load('a1', { params: { a: '21', b: '34' } });
+    await router.load({ component: 'a1', params: { a: '21', b: '34' } });
     url = pushedUrls.pop();
     assert.match(url, /a1\/21\?b=34$/, 'url1');
 
-    await router.load('a2', { params: { a: '67', c: '54' } });
+    await router.load({ component: 'a2', params: { a: '67', c: '54' } });
     url = pushedUrls.pop();
     assert.match(url, /a2\/54\?a=67$/, 'url1');
 
@@ -2072,21 +2072,22 @@ describe('router (smoke tests)', function () {
     const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
     const router = container.get(IRouter);
 
-    await router.load('foo', { params: { id: '1', a: '3' } });
+    // using path
+    await router.load({ component: 'foo', params: { id: '1', a: '3' } });
     assert.match(location.path, /foo\/1\/bar\/3$/);
 
-    await router.load('foo', { params: { id: '1', b: '3' } });
+    await router.load({ component: 'foo', params: { id: '1', b: '3' } });
     assert.match(location.path, /foo\/1\?b=3$/);
 
     try {
-      await router.load('bar', { params: { x: '1' } });
+      await router.load({ component: 'bar', params: { x: '1' } });
       assert.fail('expected error1');
     } catch (er) {
       assert.match((er as Error).message, /No value for the required parameter 'id'/);
     }
 
     try {
-      await router.load('fizz', { params: { id: '1' } });
+      await router.load({ component: 'fizz', params: { id: '1' } });
       assert.fail('expected error2');
     } catch (er) {
       assert.match(

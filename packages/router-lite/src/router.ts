@@ -3,7 +3,7 @@ import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aure
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger } from './router-events';
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
@@ -15,13 +15,6 @@ import { ViewportAgent } from './viewport-agent';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
-export const AuNavId = 'au-nav-id' as const;
-export type AuNavId = typeof AuNavId;
-
-export type ManagedState = {
-  [k: string]: unknown;
-  [AuNavId]: number;
-};
 
 export function isManagedState(state: {} | null): state is ManagedState {
   return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
@@ -209,7 +202,7 @@ export class Navigation {
   private constructor(
     public readonly id: number,
     public readonly instructions: ViewportInstructionTree,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
+    public readonly trigger: RoutingTrigger,
     public readonly options: NavigationOptions,
     public readonly prevNavigation: Navigation | null,
     // Set on next navigation, this is the route after all redirects etc have been processed.
@@ -238,7 +231,7 @@ export class Transition {
     public readonly instructions: ViewportInstructionTree,
     public finalInstructions: ViewportInstructionTree,
     public readonly instructionsChanged: boolean,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
+    public readonly trigger: RoutingTrigger,
     public readonly options: NavigationOptions,
     public readonly managedState: ManagedState | null,
     public readonly previousRouteTree: RouteTree,
@@ -637,11 +630,11 @@ export class Router {
    * @param instructions - The instruction tree that determines the transition
    * @param trigger - `'popstate'` or `'hashchange'` if initiated by a browser event, or `'api'` for manually initiated transitions via the `load` api.
    * @param state - The state to restore, if any.
-   * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the orinal promise resolves with the latest result.
+   * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the original promise resolves with the latest result.
    */
   private enqueue(
     instructions: ViewportInstructionTree,
-    trigger: 'popstate' | 'hashchange' | 'api',
+    trigger: RoutingTrigger,
     state: ManagedState | null,
     failedTr: Transition | null,
   ): boolean | Promise<boolean> {

@@ -538,7 +538,6 @@ export class RouteContext {
       vi: ViewportInstruction.create({
         recognizedRoute: new $RecognizedRoute(val.rr, null),
         component: val.path,
-        context: this,
       }),
       unconsumed: val.unconsumed,
     };

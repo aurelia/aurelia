@@ -34,9 +34,7 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 
 export type Params = { [key: string]: string | undefined };
 
-export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction');
 export interface IViewportInstruction {
-  readonly context?: RouteContextLike | null;
   readonly append?: boolean;
   readonly open?: number;
   readonly close?: number;
@@ -75,9 +73,9 @@ export interface IViewportInstruction {
   readonly recognizedRoute: $RecognizedRoute | null;
 }
 
+/** @internal */
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
   private constructor(
-    public readonly context: RouteContextLike | null,
     public append: boolean,
     public open: number,
     public close: number,
@@ -88,7 +86,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly children: ViewportInstruction[],
   ) {}
 
-  public static create(instruction: NavigationInstruction, context?: RouteContextLike | null): ViewportInstruction {
+  public static create(instruction: NavigationInstruction): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) {
       return instruction as ViewportInstruction; // eslint is being really weird here
     }
@@ -98,7 +96,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
 
       return new ViewportInstruction(
-        instruction.context ?? context ?? null,
         instruction.append ?? false,
         instruction.open ?? 0,
         instruction.close ?? 0,
@@ -111,7 +108,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
-    return new ViewportInstruction(context ?? null, false, 0, 0, null, typedInstruction, null, null, []);
+    return new ViewportInstruction(false, 0, 0, null, typedInstruction, null, null, []);
   }
 
   public contains(other: ViewportInstruction): boolean {
@@ -163,7 +160,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public clone(): this {
     return new ViewportInstruction(
-      this.context,
       this.append,
       this.open,
       this.close,
@@ -293,7 +289,7 @@ export class ViewportInstructionTree {
       return new ViewportInstructionTree(
         $options,
         instructionOrInstructions.isAbsolute,
-        instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)),
+        instructionOrInstructions.children.map(x => ViewportInstruction.create(x)),
         instructionOrInstructions.queryParams,
         instructionOrInstructions.fragment,
       );
@@ -303,7 +299,7 @@ export class ViewportInstructionTree {
       return new ViewportInstructionTree(
         $options,
         false,
-        instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
+        instructionOrInstructions.map(x => ViewportInstruction.create(x)),
         $options.queryParams !== null
           ? new URLSearchParams($options.queryParams as Record<string, string>)
           : emptyQuery,
@@ -319,7 +315,7 @@ export class ViewportInstructionTree {
     return new ViewportInstructionTree(
       $options,
       false,
-      [ViewportInstruction.create(instructionOrInstructions, $options.context)],
+      [ViewportInstruction.create(instructionOrInstructions)],
       emptyQuery,
       null,
     );

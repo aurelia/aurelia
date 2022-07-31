@@ -8,7 +8,7 @@ import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
-import { tryStringify } from './util';
+import { mergeURLSearchParams, tryStringify } from './util';
 
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
 
@@ -303,12 +303,7 @@ export class ViewportInstructionTree {
         const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
         if(eagerVi !== null) {
           children[i] = eagerVi.vi;
-          const $query = eagerVi.query;
-          if($query !== null) {
-            for(const [key, value] of Object.entries($query)) {
-              query.append(key, value!);
-            }
-          }
+          mergeURLSearchParams(query, eagerVi.query, false);
         } else {
           children[i] = ViewportInstruction.create(instruction);
         }

@@ -1435,7 +1435,7 @@ describe('router (smoke tests)', function () {
 
       await vmb.redirect3();
 
-      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=fizz&foo=bar');
 
       await au.stop();
     });
@@ -2032,7 +2032,7 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
-  it('route generation', async function () {
+  it('path generation', async function () {
     @customElement({ name: 'fo-o', template: '' })
     class Foo { }
     @customElement({ name: 'ba-r', template: '' })
@@ -2096,6 +2096,32 @@ describe('router (smoke tests)', function () {
       );
     }
 
+    // using component
+    await router.load({ component: Foo, params: { id: '1', a: '3' } });
+    assert.match(location.path, /foo\/1\/bar\/3$/);
+
+    await router.load({ component: Foo, params: { id: '1', b: '3' } });
+    assert.match(location.path, /foo\/1\?b=3$/);
+
+    try {
+      await router.load({ component: Bar, params: { x: '1' } });
+      assert.fail('expected error1');
+    } catch (er) {
+      assert.match((er as Error).message, /No value for the required parameter 'id'/);
+    }
+
+    try {
+      await router.load({ component: Fizz, params: { id: '1' } });
+      assert.fail('expected error2');
+    } catch (er) {
+      assert.match(
+        (er as Error).message,
+        /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+      );
+    }
+
     await au.stop();
   });
+
+  // TODO: add tests for path generation involving siblings
 });

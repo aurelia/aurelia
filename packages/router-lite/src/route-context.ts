@@ -1,11 +1,11 @@
 import { DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Registration, ResourceDefinition } from '@aurelia/kernel';
 import { RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
-import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
 import { NavigationInstruction, Params, ViewportInstruction } from './instructions';
 import { IViewport } from './resources/viewport';
-import { Routeable } from './route';
+import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
 import { IRouter, ResolutionMode } from './router';
@@ -21,18 +21,23 @@ export const RESIDUE = 'au$residue' as const;
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
 
+/** @internal */
 export type EagerInstruction = {
-  component: string | RouteDefinition;
+  component: string | RouteDefinition | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
   params: Params;
 };
 
 export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
-  if(val == null) return false;
+  if (val == null) return false;
   const params = (val as EagerInstruction).params;
   const component = (val as EagerInstruction).component;
   return typeof params === 'object'
     && params !== null
-    && (typeof component === 'string' || component instanceof RouteDefinition);
+    && component != null
+    && (typeof component === 'string'
+      || typeof component === 'object'
+      && !(component instanceof Promise) // a promise component is inherently meant to be lazy loaded
+    );
 }
 
 /**
@@ -475,11 +480,17 @@ export class RouteContext {
   public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
   public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
   public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
-    if(!isEagerInstruction(instruction)) return null;
+    if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
-    const def = component instanceof RouteDefinition
-      ? component
-      : (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
+    let def: RouteDefinition | undefined;
+    if(component instanceof RouteDefinition) {
+      def = component;
+    } else if (typeof component === 'string') {
+      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
+    } else {
+      // as the component is ensured not to be a promise in here, the resolution should also be synchronous
+      def = RouteDefinition.resolve(component, null, null, this) as RouteDefinition;
+    }
     if (def === void 0) return null;
 
     const params = instruction.params;

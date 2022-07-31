@@ -1,3 +1,4 @@
+import { type Params } from './instructions';
 import { RouteNode } from './route-tree';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
@@ -94,4 +95,13 @@ export function ensureArrayOfStrings(value: string | string[]): string[] {
 
 export function ensureString(value: string | string[]): string {
   return typeof value === 'string' ? value : value[0];
+}
+
+export function mergeURLSearchParams(source: URLSearchParams, other: Params | null, clone: boolean) {
+  const query = clone ? new URLSearchParams(source) : source;
+  if(other == null) return query;
+  for(const [key, value] of Object.entries(other)) {
+    query.append(key, value!);
+  }
+  return query;
 }

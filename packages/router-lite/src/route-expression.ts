@@ -7,6 +7,7 @@
 
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { emptyQuery, NavigationOptions } from './router';
+import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
@@ -195,17 +196,11 @@ export class RouteExpression {
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
-    let query = this.queryParams;
-    const optQuery = options.queryParams;
-    if(optQuery != null) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      query = new URLSearchParams({...Object.fromEntries(query.entries()), ...optQuery} as Record<string, string>);
-    }
     return new ViewportInstructionTree(
       options,
       this.isAbsolute,
       this.root.toInstructions(options.append, 0, 0),
-      query,
+      mergeURLSearchParams(this.queryParams, options.queryParams, true),
       this.fragment,
     );
   }

@@ -42,6 +42,7 @@ import {
   IRouter,
   NavigationOptions,
 } from './router';
+import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
@@ -245,7 +246,7 @@ export class RouteNode implements IRouteNode {
       this.originalInstruction,
       this.instruction,
       { ...this.params },
-      { ...this.queryParams },
+      new URLSearchParams(this.queryParams),
       this.fragment,
       { ...this.data },
       this.viewport,
@@ -307,7 +308,7 @@ export class RouteTree {
   public clone(): RouteTree {
     const clone = new RouteTree(
       this.options.clone(),
-      { ...this.queryParams },
+      new URLSearchParams(this.queryParams),
       this.fragment,
       this.root.clone(),
     );
@@ -501,10 +502,7 @@ export function createAndAppendNodes(
       const rc = node.context;
       const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
       const { vi: newVi, query } = rc.generateViewportInstruction({ component: rd, params: vi.params ?? emptyObject })!;
-      (node.tree as Writable<RouteTree>).queryParams = {
-        ...node.tree.queryParams,
-        ...query,
-      };
+      (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
       (newVi.children as NavigationInstruction[]).push(...vi.children);
       const childNode = createConfiguredNode(
         log,

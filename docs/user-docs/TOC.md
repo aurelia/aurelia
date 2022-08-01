@@ -32,6 +32,7 @@
 * [Templates](getting-to-know-aurelia/templates/README.md)
   * [Interpolation](getting-to-know-aurelia/templates/interpolation.md)
   * [Attribute and property bindings](getting-to-know-aurelia/templates/attribute-and-property-bindings.md)
+  * [Repeats and list rendering](./getting-to-know-aurelia/templates/repeats-and-list-rendering.md)
   * [Value converters](getting-to-know-aurelia/templates/value-converters.md)
   * [Event binding](getting-to-know-aurelia/templates/event-binding.md)
   * [Built-in template features](getting-to-know-aurelia/templates/built-in-template-features.md)

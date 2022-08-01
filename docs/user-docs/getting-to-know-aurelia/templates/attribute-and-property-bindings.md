@@ -10,6 +10,26 @@ The basic syntax for most attributes being bound is:
 
 You can bind basically every attribute from this list [here](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes). Some examples of what you are able to bind to can be found below with code examples.
 
+### Binding Keywords:
+
+- `one-time`: flows data one direction, from the view-model to the view, once.
+- `to-view` / `one-way`: flows data one direction, from the view-model to the view.
+- `from-view`: flows data one direction, from the view to the view-model.
+- `two-way`: flows data both ways, from view-model to view and from view to view-model.
+- `bind`: automatically chooses the binding mode. Uses `two-way` binding for form controls and `to-view `binding for almost everything else.
+
+```html
+  <input type="text" value.bind="firstName">
+  <input type="text" value.two-way="lastName">
+  <input type="text" value.from-view="middleName">
+
+  <a class="external-link" href.bind="profile.blogUrl">Blog</a>
+  <a class="external-link" href.to-view="profile.twitterUrl">Twitter</a>
+  <a class="external-link" href.one-time="profile.linkedInUrl">LinkedIn</a>
+  ```
+
+The first input uses the `bind` command which will automatically create `two-way` bindings for input value attribute bindings. The second and third input uses the `two-way` / ``from-view`` commands which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and the those properties will also be updated whenever the inputs change. For the third input, changes in the bound view-model `middleName` property will not update the input value, however, changes in the input will update the view-model. The first anchor element uses the `bind` command which will automatically create a `to-view` binding for anchor href attributes. The other two anchor elements use the `to-view` and `one-time` commands to explicitly set the binding's mode.
+
 ### Binding to images
 
 You can bind to numerous image properties, but the most common one of those is the `src` attribute that allows you to bind the image source. The value in the below example is `imageSrc` which is a property inside of the view model.
@@ -66,7 +86,7 @@ When working with custom elements in Aurelia, if you leverage bindables to have 
 
 {% code title="my-custom-element.ts" %}
 ```typescript
-import { bindable, customElement } from 'aurelia'; 
+import { bindable, customElement } from 'aurelia';
 
 @customElement('my-custom-element')
 export class MyCustomElement {

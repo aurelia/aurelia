@@ -27,6 +27,7 @@ export type EagerInstruction = {
   params: Params;
 };
 
+const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
   if (val == null) return false;
   const params = (val as EagerInstruction).params;
@@ -34,10 +35,9 @@ export function isEagerInstruction(val: NavigationInstruction | EagerInstruction
   return typeof params === 'object'
     && params !== null
     && component != null
-    && (typeof component === 'string'
-      || typeof component === 'object'
-      && !(component instanceof Promise) // a promise component is inherently meant to be lazy loaded
-    );
+    && allowedEagerComponentTypes.includes(typeof component)
+    && !(component instanceof Promise) // a promise component is inherently meant to be lazy-loaded
+    ;
 }
 
 /**
@@ -483,7 +483,7 @@ export class RouteContext {
     if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
     let def: RouteDefinition | undefined;
-    if(component instanceof RouteDefinition) {
+    if (component instanceof RouteDefinition) {
       def = component;
     } else if (typeof component === 'string') {
       def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);

@@ -491,6 +491,29 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run: npm run publish:<< parameters.channel >>
 
+  # e2e hmr
+  e2e_test:
+    executor: docker_circleci
+    parameters:
+      path:
+        type: string
+    steps:
+      - checkout_install:
+          install_drivers: false
+          install: false
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          # build-true = build + generate native modules
+          key: cache-{{ .Revision }}-build-true
+      - run:
+          name: "Run e2e script"
+          command: |
+            cd << parameters.path >>
+            npm run e2e
+
   # Standalone playwright test jobs
   e2e_playwright:
     executor: docker_circleci
@@ -739,6 +762,17 @@ workflows:
           path: "examples/jit-webpack-conventions-ts"
           requires:
             - build_release
+
+      # todo:
+      # Somehow e2e tests are not passing in circleci env
+      ###################################################
+      # - e2e_test:
+      #     <<: *filter_ignore_develop_release
+      #     name: e2e_hmr_webpack
+      #     path: "examples/hmr-webpack-e2e"
+      #     requires:
+      #       - build_release
+
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release
       #     name: webpack_vanilla_ts

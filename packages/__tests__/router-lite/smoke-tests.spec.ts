@@ -2032,96 +2032,98 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
-  it('path generation', async function () {
-    @customElement({ name: 'fo-o', template: '' })
-    class Foo { }
-    @customElement({ name: 'ba-r', template: '' })
-    class Bar { }
-    @customElement({ name: 'fi-zz', template: '' })
-    class Fizz { }
+  describe('path generation', function () {
+    it('at root', async function () {
+      @customElement({ name: 'fo-o', template: '' })
+      class Foo { }
+      @customElement({ name: 'ba-r', template: '' })
+      class Bar { }
+      @customElement({ name: 'fi-zz', template: '' })
+      class Fizz { }
 
-    @route({
-      routes: [
-        { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a'], component: Foo },
-        { id: 'bar', path: ['bar/:id'], component: Bar },
-        { id: 'fizz', path: ['fizz/:x', 'fizz/:y/:x'], component: Fizz },
-      ]
-    })
-    @customElement({
-      name: 'ro-ot',
-      template: `<au-viewport></au-viewport>`
-    })
-    class Root { }
+      @route({
+        routes: [
+          { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a'], component: Foo },
+          { id: 'bar', path: ['bar/:id'], component: Bar },
+          { id: 'fizz', path: ['fizz/:x', 'fizz/:y/:x'], component: Fizz },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: `<au-viewport></au-viewport>`
+      })
+      class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
+      const ctx = TestContext.create();
+      const { container } = ctx;
 
-    container.register(
-      StandardConfiguration,
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      Foo,
-      Bar,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    await au.app({ component: Root, host }).start();
-
-    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
-    const router = container.get(IRouter);
-
-    // using path
-    await router.load({ component: 'foo', params: { id: '1', a: '3' } });
-    assert.match(location.path, /foo\/1\/bar\/3$/);
-
-    await router.load({ component: 'foo', params: { id: '1', b: '3' } });
-    assert.match(location.path, /foo\/1\?b=3$/);
-
-    try {
-      await router.load({ component: 'bar', params: { x: '1' } });
-      assert.fail('expected error1');
-    } catch (er) {
-      assert.match((er as Error).message, /No value for the required parameter 'id'/);
-    }
-
-    try {
-      await router.load({ component: 'fizz', params: { id: '1' } });
-      assert.fail('expected error2');
-    } catch (er) {
-      assert.match(
-        (er as Error).message,
-        /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        Foo,
+        Bar,
       );
-    }
 
-    // using component
-    await router.load({ component: Foo, params: { id: '1', a: '3' } });
-    assert.match(location.path, /foo\/1\/bar\/3$/);
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
 
-    await router.load({ component: Foo, params: { id: '1', b: '3' } });
-    assert.match(location.path, /foo\/1\?b=3$/);
+      await au.app({ component: Root, host }).start();
 
-    try {
-      await router.load({ component: Bar, params: { x: '1' } });
-      assert.fail('expected error1');
-    } catch (er) {
-      assert.match((er as Error).message, /No value for the required parameter 'id'/);
-    }
+      const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+      const router = container.get(IRouter);
 
-    try {
-      await router.load({ component: Fizz, params: { id: '1' } });
-      assert.fail('expected error2');
-    } catch (er) {
-      assert.match(
-        (er as Error).message,
-        /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
-      );
-    }
+      // using path
+      await router.load({ component: 'foo', params: { id: '1', a: '3' } });
+      assert.match(location.path, /foo\/1\/bar\/3$/);
 
-    await au.stop();
+      await router.load({ component: 'foo', params: { id: '1', b: '3' } });
+      assert.match(location.path, /foo\/1\?b=3$/);
+
+      try {
+        await router.load({ component: 'bar', params: { x: '1' } });
+        assert.fail('expected error1');
+      } catch (er) {
+        assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      }
+
+      try {
+        await router.load({ component: 'fizz', params: { id: '1' } });
+        assert.fail('expected error2');
+      } catch (er) {
+        assert.match(
+          (er as Error).message,
+          /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+        );
+      }
+
+      // using component
+      await router.load({ component: Foo, params: { id: '1', a: '3' } });
+      assert.match(location.path, /foo\/1\/bar\/3$/);
+
+      await router.load({ component: Foo, params: { id: '1', b: '3' } });
+      assert.match(location.path, /foo\/1\?b=3$/);
+
+      try {
+        await router.load({ component: Bar, params: { x: '1' } });
+        assert.fail('expected error1');
+      } catch (er) {
+        assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      }
+
+      try {
+        await router.load({ component: Fizz, params: { id: '1' } });
+        assert.fail('expected error2');
+      } catch (er) {
+        assert.match(
+          (er as Error).message,
+          /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+        );
+      }
+
+      await au.stop();
+    });
+
+    // TODO: add tests for path generation involving siblings
   });
-
-  // TODO: add tests for path generation involving siblings
 });

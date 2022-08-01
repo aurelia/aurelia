@@ -63,10 +63,13 @@ TODO
 The `Router#load` function supports many overloads.
 Let us continue this discussion considering the `load(/*arg1*/'stringPathOrRouteId', /*arg2*/optionalLoadOptions)` overload.
 
-- If the string `arg1` is a configured route id then we can resolve the handler/view-model/component directly and create a [viewport-instruction-tree](#viewportinstructiontree) directly. This saves us later doing the gymnastic of resolving a string path using the route recognizer.
+- If the string `arg1` is a configured route id then we can eagerly resolve the handler/view-model/component directly and create a [viewport-instruction-tree](#viewportinstructiontree) directly. This saves us later doing the gymnastic of recognizing a string path using the route recognizer.
 - If the `arg1` is not a configured route id then a [viewport-instruction-tree](#viewportinstructiontree) is created in standard fashion, without eagerly recognizing the route for the given input in `arg1`.
+- Once a viewport-instruction-tree is created, it is [enqueued](#enqueuing-viewport-instruction-tree).
 
----------- TODO: Continue form here
+## Enqueuing viewport-instruction-tree
+
+
 
 # `ViewportInstruction`
 

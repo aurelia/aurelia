@@ -77,8 +77,10 @@ import { keywordsHandler } from './action-handlers';
 
 Aurelia
   .register(
-    StateDefaultConfiguration.init(initialState),
-    keywordsHandler
+    StateDefaultConfiguration.init(
+      initialState,
+      keywordsHandler
+    )
   )
   .app(MyApp)
   .start();

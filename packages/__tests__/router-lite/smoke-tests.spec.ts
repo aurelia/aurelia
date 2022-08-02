@@ -2032,7 +2032,7 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
-  describe('path generation', function () {
+  describe.only('path generation', function () {
     it('at root', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {
         public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
@@ -2251,6 +2251,147 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    // TODO: add tests for path generation involving siblings
+    it('parent-child hierarchy', async function () {
+      abstract class BaseRouteViewModel implements IRouteViewModel {
+        public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
+        public static assertAndClear(message: string, ...expected: [key: string, value: [Params, URLSearchParams]][]) {
+          const paramsLog = this.paramsLog;
+          assert.deepStrictEqual(paramsLog, new Map(expected), message);
+          paramsLog.clear();
+        }
+        public load(params: Params, next: RouteNode, _: RouteNode): void | Promise<void> {
+          BaseRouteViewModel.paramsLog.set(this.constructor.name.toLowerCase(), [params, next.queryParams]);
+        }
+      }
+
+      @customElement({ name: 'ce-l21', template: '' })
+      class CeL21 extends BaseRouteViewModel { }
+
+      @customElement({ name: 'ce-l22', template: '' })
+      class CeL22 extends BaseRouteViewModel { }
+
+      @customElement({ name: 'ce-l23', template: '' })
+      class CeL23 extends BaseRouteViewModel { }
+
+      @customElement({ name: 'ce-l24', template: '' })
+      class CeL24 extends BaseRouteViewModel { }
+
+      @route({
+        routes: [
+          { id: '21', path: ['21/:id', '21/:id/to/:a'], component: CeL21 },
+          { id: '22', path: ['22/:id'], component: CeL22 },
+        ]
+      })
+      @customElement({ name: 'ce-l11', template: '<au-viewport></au-viewport>' })
+      class CeL11 extends BaseRouteViewModel { }
+
+      @route({
+        routes: [
+          { id: '23', path: ['23/:id', '23/:id/tt/:a'], component: CeL23 },
+          { id: '24', path: ['24/:id'], component: CeL24 },
+        ]
+      })
+      @customElement({ name: 'ce-l12', template: '<au-viewport></au-viewport>' })
+      class CeL12 extends BaseRouteViewModel { }
+
+      @route({
+        routes: [
+          { id: '11', path: ['11/:id', '11/:id/oo/:a'], component: CeL11 },
+          { id: '12', path: ['12/:id'], component: CeL12 },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: `<au-viewport></au-viewport>`
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        CeL11,
+        CeL21,
+        CeL22,
+        CeL12,
+        CeL23,
+        CeL24,
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+      const router = container.get(IRouter);
+
+      // using route-id at root with children
+      assert.strictEqual(
+        await router.load({
+          component: '11',
+          params: { id: '1', a: '3' },
+          children: [{ component: '21', params: { id: '2', a: '4' } }]
+        }),
+        true);
+      assert.match(location.path, /11\/1\/oo\/3\/21\/2\/to\/4$/);
+      BaseRouteViewModel.assertAndClear('params1', ['cel11', [{ id: '1', a: '3' }, new URLSearchParams()]], ['cel21', [{ id: '2', a: '4' }, new URLSearchParams()]]);
+
+      // assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: '3' } }), true);
+      // assert.match(location.path, /foo\/1\?b=3$/);
+      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params2');
+
+      // try {
+      //   await router.load({ component: 'bar', params: { x: '1' } });
+      //   assert.fail('expected error1');
+      // } catch (er) {
+      //   assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      // }
+
+      // try {
+      //   await router.load({ component: 'fizz', params: { id: '1' } });
+      //   assert.fail('expected error2');
+      // } catch (er) {
+      //   assert.match(
+      //     (er as Error).message,
+      //     /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+      //   );
+      // }
+
+      // // using component
+      // assert.strictEqual(await router.load({ component: Foo, params: { id: '1', a: '3' } }), true);
+      // assert.match(location.path, /foo\/1\/bar\/3$/);
+      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params3');
+
+      // assert.strictEqual(await router.load({ component: Foo, params: { id: '1', b: '3' } }), true);
+      // assert.match(location.path, /foo\/1\?b=3$/);
+      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params4');
+
+      // try {
+      //   await router.load({ component: Bar, params: { x: '1' } });
+      //   assert.fail('expected error1');
+      // } catch (er) {
+      //   assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      // }
+
+      // try {
+      //   await router.load({ component: Fizz, params: { id: '1' } });
+      //   assert.fail('expected error2');
+      // } catch (er) {
+      //   assert.match(
+      //     (er as Error).message,
+      //     /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+      //   );
+      // }
+
+      // // use path (non-eager resolution)
+      // assert.strictEqual(await router.load('bar/1?b=3'), true);
+      // BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params5');
+
+      await au.stop();
+    });
   });
 });

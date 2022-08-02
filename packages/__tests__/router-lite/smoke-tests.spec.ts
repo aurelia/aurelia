@@ -2034,12 +2034,22 @@ describe('router (smoke tests)', function () {
 
   describe('path generation', function () {
     it('at root', async function () {
+      abstract class BaseRouteViewModel implements IRouteViewModel {
+        public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
+        public static assertAndClear(key: string, expected: [Params, URLSearchParams], message: string) {
+          assert.deepStrictEqual(this.paramsLog.get(key), expected, message);
+          this.paramsLog.clear();
+        }
+        public load(params: Params, next: RouteNode, _: RouteNode): void | Promise<void> {
+          BaseRouteViewModel.paramsLog.set(this.constructor.name.toLowerCase(), [params, next.queryParams]);
+        }
+      }
       @customElement({ name: 'fo-o', template: '' })
-      class Foo { }
+      class Foo extends BaseRouteViewModel { }
       @customElement({ name: 'ba-r', template: '' })
-      class Bar { }
+      class Bar extends BaseRouteViewModel { }
       @customElement({ name: 'fi-zz', template: '' })
-      class Fizz { }
+      class Fizz extends BaseRouteViewModel { }
 
       @route({
         routes: [
@@ -2073,12 +2083,14 @@ describe('router (smoke tests)', function () {
       const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
       const router = container.get(IRouter);
 
-      // using path
-      await router.load({ component: 'foo', params: { id: '1', a: '3' } });
+      // using route-id
+      assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', a: '3' } }), true);
       assert.match(location.path, /foo\/1\/bar\/3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params1');
 
-      await router.load({ component: 'foo', params: { id: '1', b: '3' } });
+      assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: '3' } }), true);
       assert.match(location.path, /foo\/1\?b=3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params2');
 
       try {
         await router.load({ component: 'bar', params: { x: '1' } });
@@ -2098,11 +2110,13 @@ describe('router (smoke tests)', function () {
       }
 
       // using component
-      await router.load({ component: Foo, params: { id: '1', a: '3' } });
+      assert.strictEqual(await router.load({ component: Foo, params: { id: '1', a: '3' } }), true);
       assert.match(location.path, /foo\/1\/bar\/3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params3');
 
-      await router.load({ component: Foo, params: { id: '1', b: '3' } });
+      assert.strictEqual(await router.load({ component: Foo, params: { id: '1', b: '3' } }), true);
       assert.match(location.path, /foo\/1\?b=3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params4');
 
       try {
         await router.load({ component: Bar, params: { x: '1' } });
@@ -2120,6 +2134,119 @@ describe('router (smoke tests)', function () {
           /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
         );
       }
+
+      // use path (non-eager resolution)
+      assert.strictEqual(await router.load('bar/1?b=3'), true);
+      BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params5');
+
+      await au.stop();
+    });
+
+    it('at root - with siblings', async function () {
+      abstract class BaseRouteViewModel implements IRouteViewModel {
+        public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
+        public static assertAndClear(message: string, ...expected: [key: string, value: [Params, URLSearchParams]][]) {
+          const paramsLog = this.paramsLog;
+          assert.deepStrictEqual(paramsLog, new Map(expected), message);
+          paramsLog.clear();
+        }
+        public load(params: Params, next: RouteNode, _: RouteNode): void | Promise<void> {
+          BaseRouteViewModel.paramsLog.set(this.constructor.name.toLowerCase(), [params, next.queryParams]);
+        }
+      }
+      @customElement({ name: 'fo-o', template: '' })
+      class Foo extends BaseRouteViewModel { }
+      @customElement({ name: 'ba-r', template: '' })
+      class Bar extends BaseRouteViewModel { }
+      @customElement({ name: 'fi-zz', template: '' })
+      class Fizz extends BaseRouteViewModel { }
+      @route({
+        routes: [
+          { id: 'foo', path: ['foo/:id', 'foo/:id/faa/:a'], component: Foo },
+          { id: 'bar', path: ['bar/:id'], component: Bar },
+          { id: 'fizz', path: ['fizz/:x', 'fizz/:y/:x'], component: Fizz },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: `<au-viewport></au-viewport><au-viewport></au-viewport>`
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        Foo,
+        Bar,
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+      const router = container.get(IRouter);
+
+      // using route-id
+      assert.strictEqual(await router.load([{ component: 'foo', params: { id: '1', a: '3' } }, { component: 'bar', params: { id: '1', b: '3' } }]), true);
+      assert.match(location.path, /foo\/1\/faa\/3\+bar\/1\?b=3$/);
+      BaseRouteViewModel.assertAndClear('params1', ['foo', [{ id: '1', a: '3' }, new URLSearchParams({ b: '3' })]], ['bar', [{ id: '1' }, new URLSearchParams({ b: '3' })]]);
+
+      assert.strictEqual(await router.load([{ component: 'bar', params: { id: '2' } }, { component: 'foo', params: { id: '3' } }]), true);
+      assert.match(location.path, /bar\/2\+foo\/3$/);
+      BaseRouteViewModel.assertAndClear('params1', ['bar', [{ id: '2' }, new URLSearchParams()]], ['foo', [{ id: '3' }, new URLSearchParams()]]);
+
+      try {
+        await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'bar', params: { x: '1' } }]);
+        assert.fail('expected error1');
+      } catch (er) {
+        assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      }
+
+      try {
+        await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'fizz', params: { id: '1' } }]);
+        assert.fail('expected error2');
+      } catch (er) {
+        assert.match(
+          (er as Error).message,
+          /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+        );
+      }
+
+      // using component
+      assert.strictEqual(await router.load([{ component: Foo, params: { id: '1', a: '3' } }, { component: Bar, params: { id: '1', b: '3' } }]), true);
+      assert.match(location.path, /foo\/1\/faa\/3\+bar\/1\?b=3$/);
+      BaseRouteViewModel.assertAndClear('params3', ['foo', [{ id: '1', a: '3' }, new URLSearchParams({ b: '3' })]], ['bar', [{ id: '1' }, new URLSearchParams({ b: '3' })]]);
+
+      assert.strictEqual(await router.load([{ component: Bar, params: { id: '2' } }, { component: Foo, params: { id: '3' } }]), true);
+      assert.match(location.path, /bar\/2\+foo\/3$/);
+      BaseRouteViewModel.assertAndClear('params4', ['bar', [{ id: '2' }, new URLSearchParams()]], ['foo', [{ id: '3' }, new URLSearchParams()]]);
+
+      try {
+        await router.load([{ component: Foo, params: { id: '3' } }, { component: Bar, params: { x: '1' } }]);
+        assert.fail('expected error1');
+      } catch (er) {
+        assert.match((er as Error).message, /No value for the required parameter 'id'/);
+      }
+
+      try {
+        await router.load([{ component: Foo, params: { id: '3' } }, { component: Fizz, params: { id: '1' } }]);
+        assert.fail('expected error2');
+      } catch (er) {
+        assert.match(
+          (er as Error).message,
+          /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
+        );
+      }
+
+      // path that cannot be eagerly resolved
+      assert.strictEqual(await router.load('foo/11+bar/21?b=3'), true);
+      BaseRouteViewModel.assertAndClear('params5', ['foo', [{ id: '11' }, new URLSearchParams({ b: '3' })]], ['bar', [{ id: '21' }, new URLSearchParams({ b: '3' })]]);
 
       await au.stop();
     });

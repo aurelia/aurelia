@@ -667,7 +667,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let realAttrValue: string;
     let processContentResult: boolean | undefined | void = true;
     let hasContainerless = false;
-    let canCapture = capture != null;
+    let canCapture = false;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {

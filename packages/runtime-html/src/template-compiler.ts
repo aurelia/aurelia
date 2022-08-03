@@ -629,8 +629,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     const elDef = context._findElement(elName);
     const isCustomElement = elDef !== null;
     const isShadowDom = isCustomElement && elDef.shadowOptions != null;
-    const shouldCapture = !!elDef?.capture;
-    const captures: AttrSyntax[] = shouldCapture ? [] : emptyArray;
+    const capture = elDef?.capture;
+    const hasCaptureFilter = capture != null && typeof capture !== 'boolean';
+    const captures: AttrSyntax[] = capture ? [] : emptyArray;
     const exprParser = context._exprParser;
     const removeAttr = this.debug
       ? noop
@@ -666,6 +667,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let realAttrValue: string;
     let processContentResult: boolean | undefined | void = true;
     let hasContainerless = false;
+    let canCapture = false;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -722,14 +724,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
 
-      if (shouldCapture) {
+      if (capture && (!hasCaptureFilter || hasCaptureFilter && capture(realAttrTarget))) {
         if (bindingCommand != null && bindingCommand.type & CommandType.IgnoreAttr) {
           removeAttr();
           captures.push(attrSyntax);
           continue;
         }
 
-        if (realAttrTarget !== 'au-slot') {
+        canCapture = realAttrTarget !== 'au-slot' && realAttrTarget !== 'slot';
+        if (canCapture) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           // if capture is on, capture everything except:
           // - as-element

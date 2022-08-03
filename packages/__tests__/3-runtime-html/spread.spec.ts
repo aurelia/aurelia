@@ -7,6 +7,8 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/spread.spec.ts', function () {
   const $it = <T>(title: string, args: ISpreadTestCase<T>) => runTest(title, args, false);
   $it.only = <T>(title: string, args: ISpreadTestCase<T>) => runTest(title, args, true);
+  // eslint-disable-next-line mocha/no-skipped-tests
+  $it.todo = <T>(title: string, _args: ISpreadTestCase<T>) => it.skip(title);
 
   $it('works single layer of ...attrs', {
     template: '<my-input value.bind="message">',
@@ -68,6 +70,34 @@ describe('3-runtime-html/spread.spec.ts', function () {
     assertFn: ({ appHost }) => {
       assert.html.innerEqual(appHost, '');
     },
+  });
+
+  $it('does not apture slot', {
+    template: '<my-input slot="a" value.bind="message">',
+    component: { hasInput: false, message: 'Aurelia' },
+    assertFn: ({ appHost }) => {
+      assert.notEqual(appHost.querySelector('my-input[slot="a"]'), null);
+    },
+  });
+
+  $it('only captures attr based on filter function', {
+    template: '<filter-capture-input class="abc">',
+    component: { message: 'hello' },
+    assertFn: ({ appHost }) => {
+      assert.includes(appHost.querySelector('filter-capture-input').className, 'abc');
+    }
+  });
+
+  // away to support this is to change `.class` binding command to an attr pattern
+  // PART.class pattern -> class.bind="expression ? PART : ''"
+  // this would make it work maybe more consistently with the rest of the class binding
+  // same for style binding command
+  $it.todo('works with binding command that results in filtered out attr', {
+    template: '<filter-capture-input abc.class="hasClass">',
+    component: { hasClass: true },
+    assertFn: ({ appHost }) => {
+      assert.includes(appHost.querySelector('filter-capture-input').className, 'abc');
+    }
   });
 
   $it('spreads event bindings', {
@@ -260,7 +290,12 @@ describe('3-runtime-html/spread.spec.ts', function () {
             name: 'no-capture-input',
             template: '<input ...$attrs>',
             capture: false,
-          }, class NoCaptureInput { })
+          }, class NoCaptureInput { }),
+          CustomElement.define({
+            name: 'filter-capture-input',
+            template: '<input ...$attrs>',
+            capture: (attr) => attr !== 'class'
+          }, class FilterCaptureInput {}),
         ],
       );
       const { startPromise, tearDown } = fixture;

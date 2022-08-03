@@ -123,6 +123,16 @@ Aurelia conventions enables the setting of `capture` metadata from the template 
 <input ...$attrs>
 ```
 
+## Attribute filtering
+
+Sometimes it is desirable to capture only a certain attributes on a custom element. Aurelia supports this via 2nd form of the custom element `capture` value: a function that takes 1 parameter, which is the attribute name, and return a boolean to indicate whether it should be captured. An example is as follow:
+
+```typescript
+@customElement({
+  capture: attr => attr !== 'class'
+})
+```
+
 ## How it works
 
 ### What attributes are captured
@@ -140,7 +150,13 @@ export class FormInput {
 Usage:
 
 ```markup
-<form-input if.bind="needsComment" label.bind="label" value.bind="extraComment" class="form-control" style="background: var(--theme-purple)" tooltip="Hello, ${tooltip}">
+<form-input
+  if.bind="needsComment"
+  label.bind="label"
+  value.bind="extraComment"
+  class="form-control"
+  style="background: var(--theme-purple)"
+  tooltip="Hello, ${tooltip}">
 ```
 
 What are captured:

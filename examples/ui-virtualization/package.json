@@ -12,20 +12,20 @@
     "dev": "webpack serve"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.36",
-    "@aurelia/metadata": "2.0.0-alpha.36",
-    "@aurelia/platform": "2.0.0-alpha.36",
-    "@aurelia/platform-browser": "2.0.0-alpha.36",
-    "@aurelia/runtime-html": "2.0.0-alpha.36",
-    "@aurelia/runtime": "2.0.0-alpha.36",
-    "@aurelia/ui-virtualization": "2.0.0-alpha.36"
+    "@aurelia/kernel": "2.0.0-alpha.37",
+    "@aurelia/metadata": "2.0.0-alpha.37",
+    "@aurelia/platform": "2.0.0-alpha.37",
+    "@aurelia/platform-browser": "2.0.0-alpha.37",
+    "@aurelia/runtime-html": "2.0.0-alpha.37",
+    "@aurelia/runtime": "2.0.0-alpha.37",
+    "@aurelia/ui-virtualization": "2.0.0-alpha.37"
   },
   "devDependencies": {
     "webpack-cli": "^4.9.2",
     "webpack": "^5.72.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "html-webpack-plugin": "^5.5.0",
-    "@aurelia/webpack-loader": "2.0.0-alpha.36",
+    "@aurelia/webpack-loader": "2.0.0-alpha.37",
     "ts-loader": "^9.3.0",
     "@types/node": "^14.18.14",
     "typescript": "4.7.3"

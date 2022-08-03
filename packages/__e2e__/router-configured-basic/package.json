@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-alpha.36",
+  "version": "2.0.0-alpha.37",
   "scripts": {
     "dev": "npm run build -- -w",
     "build": "webpack --config webpack.config.js",
@@ -15,16 +15,16 @@
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.36",
-    "@aurelia/metadata": "2.0.0-alpha.36",
-    "@aurelia/platform": "2.0.0-alpha.36",
-    "@aurelia/platform-browser": "2.0.0-alpha.36",
-    "@aurelia/runtime": "2.0.0-alpha.36",
-    "@aurelia/runtime-html": "2.0.0-alpha.36",
+    "@aurelia/kernel": "2.0.0-alpha.37",
+    "@aurelia/metadata": "2.0.0-alpha.37",
+    "@aurelia/platform": "2.0.0-alpha.37",
+    "@aurelia/platform-browser": "2.0.0-alpha.37",
+    "@aurelia/runtime": "2.0.0-alpha.37",
+    "@aurelia/runtime-html": "2.0.0-alpha.37",
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.36",
+    "@aurelia/http-server": "2.0.0-alpha.37",
     "@playwright/test": "^1.24.1",
     "@types/express": "^4.17.13",
     "@types/node": "^14.18.14",

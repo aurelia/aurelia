@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.37"></a>
+# 2.0.0-alpha.37 (2022-08-03)
+
+### Features:
+
+* **capture:** ability to define attr filtering filter ([e9a22be](https://github.com/aurelia/aurelia/commit/e9a22be))
+
+
+### Bug Fixes:
+
+* **capture:** enable decorator to pass function filter (#1489) ([046b33c](https://github.com/aurelia/aurelia/commit/046b33c))
+* ***:** deepscan ([809df0a](https://github.com/aurelia/aurelia/commit/809df0a))
+* **capture:** dont capture slot attr ([5ef1a18](https://github.com/aurelia/aurelia/commit/5ef1a18))
+
 <a name="2.0.0-alpha.36"></a>
 # 2.0.0-alpha.36 (2022-07-25)
 

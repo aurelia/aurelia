@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.37"></a>
+# 2.0.0-alpha.37 (2022-08-03)
+
+### Features:
+
+* **capture:** ability to define attr filtering filter ([e9a22be](https://github.com/aurelia/aurelia/commit/e9a22be))
+
+
+### Bug Fixes:
+
+* **capture:** dont capture slot attr ([5ef1a18](https://github.com/aurelia/aurelia/commit/5ef1a18))
+* **hmr:** add some more ignores for strict mode TS (#1483) ([6f7ca00](https://github.com/aurelia/aurelia/commit/6f7ca00))
+* **router-lite:** #1370 (#1482) ([8a39b13](https://github.com/aurelia/aurelia/commit/8a39b13))
+
 <a name="2.0.0-alpha.36"></a>
 # 2.0.0-alpha.36 (2022-07-25)
 

@@ -666,6 +666,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let realAttrValue: string;
     let processContentResult: boolean | undefined | void = true;
     let hasContainerless = false;
+    let canCapture = false;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -729,7 +730,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        if (realAttrTarget !== 'au-slot') {
+        canCapture = realAttrTarget !== 'au-slot' && realAttrTarget !== 'slot';
+        if (canCapture) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           // if capture is on, capture everything except:
           // - as-element

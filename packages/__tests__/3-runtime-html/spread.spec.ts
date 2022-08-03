@@ -70,6 +70,14 @@ describe('3-runtime-html/spread.spec.ts', function () {
     },
   });
 
+  $it('does not apture slot', {
+    template: '<my-input slot="a" value.bind="message">',
+    component: { hasInput: false, message: 'Aurelia' },
+    assertFn: ({ appHost }) => {
+      assert.notEqual(appHost.querySelector('my-input[slot="a"]'), null);
+    },
+  });
+
   $it('spreads event bindings', {
     template: '<my-input value.to-view="message" change.trigger="message = $event.target.value" focus.trigger="focused = true">',
     component: { message: 'Aurelia', focused: false },

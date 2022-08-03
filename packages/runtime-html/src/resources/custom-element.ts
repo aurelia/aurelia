@@ -648,12 +648,12 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
 /**
  * Decorator: Indicates that the custom element should capture all attributes and bindings that are not template controllers or bindables
  */
-export function capture(filter: (attr: string) => boolean): void;
+export function capture(filter: (attr: string) => boolean): ((target: Constructable) => void);
 /**
  * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
  */
-export function capture(): (target: Constructable) => void;
-export function capture(targetOrFilter?: (attr: string) => boolean): void | ((target: Constructable) => void) {
+export function capture(): (target: Constructable) => ((target: Constructable) => void) ;
+export function capture(targetOrFilter?: (attr: string) => boolean): ((target: Constructable) => void) {
   return function ($target: Constructable) {
     const value = isFunction(targetOrFilter) ? targetOrFilter : true;
     annotateElementMetadata($target, 'capture', value);

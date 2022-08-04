@@ -553,7 +553,7 @@ export class RouteContext {
       return {
         vi: ViewportInstruction.create({
           recognizedRoute: new $RecognizedRoute(new RecognizedRoute(endpoint, consumed), null),
-          component: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''), // TODO(sayan): remove these two replaces
+          component: path,
         }),
         query: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
       };

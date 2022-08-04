@@ -356,8 +356,8 @@ export function updateRouteTree(
   const rootCtx = ctx.root;
 
   (rt as Writable<RouteTree>).options = vit.options;
-  (rt as Writable<RouteTree>).queryParams = vit.queryParams;
-  (rt as Writable<RouteTree>).fragment = vit.fragment;
+  (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
+  (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
 
   if (vit.isAbsolute) {
     ctx = rootCtx;

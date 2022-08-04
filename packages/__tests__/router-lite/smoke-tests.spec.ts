@@ -2251,7 +2251,66 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    it.skip('parent-child hierarchy', async function () {
+    it('path generation with route-id and parent-child hierarchy is not supported', async function () {
+      @customElement({ name: 'ce-l21', template: '' })
+      class CeL21 { }
+
+      @customElement({ name: 'ce-l22', template: '' })
+      class CeL22 { }
+
+      @route({
+        routes: [
+          { id: '21', path: ['21/:id', '21/:id/to/:a'], component: CeL21 },
+          { id: '22', path: ['22/:id'], component: CeL22 },
+        ]
+      })
+      @customElement({ name: 'ce-l11', template: '<au-viewport></au-viewport>' })
+      class CeL11 { }
+
+      @route({
+        routes: [
+          { id: '11', path: ['11/:id', '11/:id/oo/:a'], component: CeL11 },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: `<au-viewport></au-viewport>`
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        CeL11,
+        CeL21,
+        CeL22,
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+      const router = container.get(IRouter);
+
+      assert.strictEqual(
+        await router.load({
+          component: '11',
+          params: { id: '1', a: '3' },
+          children: [{ component: '21', params: { id: '2', a: '4' } }]
+        }),
+        true);
+      assert.notMatch(location.path, /11\/1\/oo\/3\/21\/2\/to\/4$/);
+
+      await au.stop();
+    });
+
+    it('path generation using CE class directly in parent-child hierarchy is supported', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {
         public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
         public static assertAndClear(message: string, ...expected: [key: string, value: [Params, URLSearchParams]][]) {
@@ -2329,67 +2388,25 @@ describe('router (smoke tests)', function () {
       const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
       const router = container.get(IRouter);
 
-      // using route-id at root with children
       assert.strictEqual(
         await router.load({
-          component: '11',
+          component: CeL11,
           params: { id: '1', a: '3' },
-          children: [{ component: '21', params: { id: '2', a: '4' } }]
+          children: [{ component: CeL21, params: { id: '2', a: '4' } }]
         }),
         true);
       assert.match(location.path, /11\/1\/oo\/3\/21\/2\/to\/4$/);
       BaseRouteViewModel.assertAndClear('params1', ['cel11', [{ id: '1', a: '3' }, new URLSearchParams()]], ['cel21', [{ id: '2', a: '4' }, new URLSearchParams()]]);
 
-      // assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: '3' } }), true);
-      // assert.match(location.path, /foo\/1\?b=3$/);
-      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params2');
-
-      // try {
-      //   await router.load({ component: 'bar', params: { x: '1' } });
-      //   assert.fail('expected error1');
-      // } catch (er) {
-      //   assert.match((er as Error).message, /No value for the required parameter 'id'/);
-      // }
-
-      // try {
-      //   await router.load({ component: 'fizz', params: { id: '1' } });
-      //   assert.fail('expected error2');
-      // } catch (er) {
-      //   assert.match(
-      //     (er as Error).message,
-      //     /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
-      //   );
-      // }
-
-      // // using component
-      // assert.strictEqual(await router.load({ component: Foo, params: { id: '1', a: '3' } }), true);
-      // assert.match(location.path, /foo\/1\/bar\/3$/);
-      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params3');
-
-      // assert.strictEqual(await router.load({ component: Foo, params: { id: '1', b: '3' } }), true);
-      // assert.match(location.path, /foo\/1\?b=3$/);
-      // BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params4');
-
-      // try {
-      //   await router.load({ component: Bar, params: { x: '1' } });
-      //   assert.fail('expected error1');
-      // } catch (er) {
-      //   assert.match((er as Error).message, /No value for the required parameter 'id'/);
-      // }
-
-      // try {
-      //   await router.load({ component: Fizz, params: { id: '1' } });
-      //   assert.fail('expected error2');
-      // } catch (er) {
-      //   assert.match(
-      //     (er as Error).message,
-      //     /required parameter 'x'.+path: 'fizz\/:x'.+required parameter 'y'.+path: 'fizz\/:y\/:x'/
-      //   );
-      // }
-
-      // // use path (non-eager resolution)
-      // assert.strictEqual(await router.load('bar/1?b=3'), true);
-      // BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params5');
+      assert.strictEqual(
+        await router.load({
+          component: CeL12,
+          params: { id: '1', a: '3' },
+          children: [{ component: CeL24, params: { id: '2', a: '4' } }]
+        }),
+        true);
+      assert.match(location.path, /12\/1\/24\/2\?a=3&a=4$/);
+      BaseRouteViewModel.assertAndClear('params2', ['cel12', [{ id: '1' }, new URLSearchParams([['a', '3']])]], ['cel24', [{ id: '2' }, new URLSearchParams([['a', '3'], ['a', '4']])]]);
 
       await au.stop();
     });

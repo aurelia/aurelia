@@ -1,9 +1,9 @@
 import { DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Registration, ResourceDefinition } from '@aurelia/kernel';
-import { RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { NavigationInstruction, Params, ViewportInstruction } from './instructions';
+import { IViewportInstruction, NavigationInstruction, Params, ViewportInstruction } from './instructions';
 import { IViewport } from './resources/viewport';
 import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
@@ -29,7 +29,8 @@ export type EagerInstruction = {
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
-  if (val == null) return false;
+  // don't try to resolve an instruction with children eagerly, as the children are essentially resolved lazily, for now.
+  if (val == null || (val as IViewportInstruction).children != null) return false;
   const params = (val as EagerInstruction).params;
   const component = (val as EagerInstruction).component;
   return typeof params === 'object'
@@ -498,11 +499,18 @@ export class RouteContext {
     const paths = def.path;
     const numPaths = paths.length;
     const errors: string[] = [];
-    let result: PathGenerationResult | null = null;
+    let result: ReturnType<typeof core> = null;
     if (numPaths === 1) {
       const result = core(paths[0]);
       if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
-      return result;
+      return {
+        vi: ViewportInstruction.create({
+          recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+          component: result.path,
+          children: (instruction as IViewportInstruction).children,
+        }),
+        query: result.query,
+      };
     }
 
     let maxScore = 0;
@@ -511,16 +519,30 @@ export class RouteContext {
       if (res === null) continue;
       if (result === null) {
         result = res;
-        maxScore = Object.keys(res.vi.recognizedRoute!.route.params).length;
-      } else if (Object.keys(res.vi.recognizedRoute!.route.params).length > maxScore) { // ignore anything other than monotonically increasing consumption
+        maxScore = Object.keys(res.consumed).length;
+      } else if (Object.keys(res.consumed).length > maxScore) { // ignore anything other than monotonically increasing consumption
         result = res;
       }
     }
 
     if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
-    return result;
+    return {
+      vi: ViewportInstruction.create({
+        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+        component: result.path,
+        children: (instruction as IViewportInstruction).children,
+      }),
+      query: result.query,
+    };
 
-    function core(path: string): PathGenerationResult | null {
+    type EagerResolutionResult = {
+      path: string;
+      endpoint: Endpoint<RouteDefinition | Promise<RouteDefinition>>;
+      consumed: Params;
+      query: Params;
+    };
+
+    function core(path: string): EagerResolutionResult | null {
       const endpoint = recognizer.getEndpoint(path);
       if (endpoint === null) {
         errors.push(`No endpoint found for the path: '${path}'.`);
@@ -548,15 +570,8 @@ export class RouteContext {
         consumed[key] = value;
       }
       const consumedKeys = Object.keys(consumed);
-      const unconsumed = Object.entries(params).filter(([key]) => !consumedKeys.includes(key));
-      // Remove leading and trailing optional param parts
-      return {
-        vi: ViewportInstruction.create({
-          recognizedRoute: new $RecognizedRoute(new RecognizedRoute(endpoint, consumed), null),
-          component: path,
-        }),
-        query: unconsumed.length === 0 ? null : Object.fromEntries(unconsumed),
-      };
+      const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
+      return { path, endpoint, consumed, query };
     }
   }
 

@@ -2032,7 +2032,7 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
-  describe.only('path generation', function () {
+  describe('path generation', function () {
     it('at root', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {
         public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
@@ -2251,7 +2251,7 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    it('parent-child hierarchy', async function () {
+    it.skip('parent-child hierarchy', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {
         public static paramsLog: Map<string, [Params, URLSearchParams]> = new Map<string, [Params, URLSearchParams]>();
         public static assertAndClear(message: string, ...expected: [key: string, value: [Params, URLSearchParams]][]) {

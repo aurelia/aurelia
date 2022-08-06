@@ -3,7 +3,7 @@ import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recog
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { IViewportInstruction, NavigationInstruction, Params, ViewportInstruction } from './instructions';
+import { ITypedNavigationInstruction_string, IViewportInstruction, NavigationInstruction, NavigationInstructionType, Params, ViewportInstruction } from './instructions';
 import { IViewport } from './resources/viewport';
 import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
@@ -30,7 +30,7 @@ export type EagerInstruction = {
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
   // don't try to resolve an instruction with children eagerly, as the children are essentially resolved lazily, for now.
-  if (val == null || (val as IViewportInstruction).children != null) return false;
+  if (val == null) return false;
   const params = (val as EagerInstruction).params;
   const component = (val as EagerInstruction).component;
   return typeof params === 'object'
@@ -484,10 +484,14 @@ export class RouteContext {
     if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
     let def: RouteDefinition | undefined;
+    let throwError: boolean = false;
     if (component instanceof RouteDefinition) {
       def = component;
+      throwError = true;
     } else if (typeof component === 'string') {
       def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
+    } else if((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
+      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
       def = RouteDefinition.resolve(component, null, null, this) as RouteDefinition;
@@ -502,12 +506,21 @@ export class RouteContext {
     let result: ReturnType<typeof core> = null;
     if (numPaths === 1) {
       const result = core(paths[0]);
-      if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
+      if (result === null) {
+        const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+        if(throwError) throw new Error(message);
+        this.logger.debug(message);
+        return null;
+      }
       return {
         vi: ViewportInstruction.create({
           recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
           component: result.path,
           children: (instruction as IViewportInstruction).children,
+          viewport: (instruction as IViewportInstruction).viewport,
+          append: (instruction as IViewportInstruction).append,
+          open: (instruction as IViewportInstruction).open,
+          close: (instruction as IViewportInstruction).close,
         }),
         query: result.query,
       };
@@ -525,12 +538,21 @@ export class RouteContext {
       }
     }
 
-    if (result === null) throw new Error(`Unable to generate path for ${instruction}. Reasons: ${errors}.`);
+    if (result === null) {
+      const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+      if(throwError) throw new Error(message);
+      this.logger.debug(message);
+      return null;
+    }
     return {
       vi: ViewportInstruction.create({
         recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
         component: result.path,
         children: (instruction as IViewportInstruction).children,
+        viewport: (instruction as IViewportInstruction).viewport,
+        append: (instruction as IViewportInstruction).append,
+        open: (instruction as IViewportInstruction).open,
+        close: (instruction as IViewportInstruction).close,
       }),
       query: result.query,
     };

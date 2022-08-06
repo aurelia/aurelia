@@ -528,6 +528,25 @@ function createNode(
   // early return; we already have a recognized route, don't bother with the rest.
   if (rr !== null) return createConfiguredNode(log, node, vi, append, rr, originalInstruction);
 
+  // if there are children, then then it might be the case that the parameters are put in the children, and that case it is best to go the default flow.
+  // However, when that's not the case, then we perhaps try to lookup the route-id.
+  // This is another early termination.
+  if(vi.children.length === 0) {
+    const result = ctx.generateViewportInstruction(vi);
+    if (result !== null) {
+      (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, result.query, true);
+      const newVi = result.vi;
+      (newVi.children as NavigationInstruction[]).push(...vi.children);
+      return createConfiguredNode(
+        log,
+        node,
+        newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+        append,
+        newVi.recognizedRoute!,
+        vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>);
+    }
+  }
+
   let collapse: number = 0;
   let path = vi.component.value;
   let cur = vi as ViewportInstruction;

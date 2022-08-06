@@ -149,10 +149,6 @@ export class RouteDefinition {
     this.component?.register(container);
   }
 
-  public toUrlComponent(): string {
-    return 'not-implemented'; // TODO
-  }
-
   public toString(): string {
     const path = this.config.path === null ? 'null' : `'${this.config.path}'`;
     if (this.component !== null) {

@@ -2053,7 +2053,7 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a'], component: Foo },
+          { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a', 'foo/:id/:bar?/*b'], component: Foo },
           { id: 'bar', path: ['bar/:id'], component: Bar },
           { id: 'fizz', path: ['fizz/:x', 'fizz/:y/:x'], component: Fizz },
         ]
@@ -2088,13 +2088,17 @@ describe('router (smoke tests)', function () {
       assert.match(location.path, /foo\/1\/bar\/3$/);
       BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params1');
 
-      assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: '3' } }), true);
-      assert.match(location.path, /foo\/1\?b=3$/);
-      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params2');
+      assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', c: '3' } }), true);
+      assert.match(location.path, /foo\/1\?c=3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ c: '3' })], 'params2');
 
       assert.strictEqual(await router.load({ component: 'bar', params: { id: '1', c: '4' } }), true);
       assert.match(location.path, /bar\/1\?c=4$/);
       BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ c: '4' })], 'params3');
+
+      assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: 'awesome/possum' } }), true);
+      assert.match(location.path, /foo\/1\/awesome\/possum$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1', b: 'awesome/possum' }, new URLSearchParams()], 'params4');
 
       try {
         await router.load({ component: 'bar', params: { x: '1' } });
@@ -2113,11 +2117,11 @@ describe('router (smoke tests)', function () {
       // using component
       assert.strictEqual(await router.load({ component: Foo, params: { id: '1', a: '3' } }), true);
       assert.match(location.path, /foo\/1\/bar\/3$/);
-      BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params4');
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1', a: '3' }, new URLSearchParams()], 'params5');
 
-      assert.strictEqual(await router.load({ component: Foo, params: { id: '1', b: '3' } }), true);
-      assert.match(location.path, /foo\/1\?b=3$/);
-      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params5');
+      assert.strictEqual(await router.load({ component: Foo, params: { id: '1', c: '3' } }), true);
+      assert.match(location.path, /foo\/1\?c=3$/);
+      BaseRouteViewModel.assertAndClear('foo', [{ id: '1' }, new URLSearchParams({ c: '3' })], 'params6');
 
       try {
         await router.load({ component: Bar, params: { x: '1' } });
@@ -2140,7 +2144,7 @@ describe('router (smoke tests)', function () {
 
       // use path (non-eager resolution)
       assert.strictEqual(await router.load('bar/1?b=3'), true);
-      BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params6');
+      BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params7');
 
       await au.stop();
     });

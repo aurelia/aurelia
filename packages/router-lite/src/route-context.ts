@@ -580,6 +580,8 @@ export class RouteContext {
             return null;
           }
           value = '';
+        } else {
+          consumed[key] = value;
         }
 
         const pattern = param.isStar
@@ -589,11 +591,10 @@ export class RouteContext {
             : `:${key}`;
 
         path = path.replace(pattern, value);
-        consumed[key] = value;
       }
       const consumedKeys = Object.keys(consumed);
       const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
-      return { path, endpoint, consumed, query };
+      return { path: path.replace(/\/\//g, '/'), endpoint, consumed, query };
     }
   }
 

@@ -82,7 +82,6 @@ export {
   RouterOptions,
   NavigationOptions,
   Transition,
-  Navigation,
   type ResolutionMode,
   type HistoryStrategy,
   type SameUrlStrategy,

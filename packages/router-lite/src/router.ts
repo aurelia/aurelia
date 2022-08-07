@@ -197,32 +197,6 @@ export class NavigationOptions extends RouterOptions {
   }
 }
 
-export class Navigation {
-  private constructor(
-    public readonly id: number,
-    public readonly instructions: ViewportInstructionTree,
-    public readonly trigger: RoutingTrigger,
-    public readonly options: NavigationOptions,
-    public readonly prevNavigation: Navigation | null,
-    // Set on next navigation, this is the route after all redirects etc have been processed.
-    public finalInstructions: ViewportInstructionTree | undefined,
-  ) { }
-
-  public static create(input: Navigation): Navigation {
-    return new Navigation(
-      input.id,
-      input.instructions,
-      input.trigger,
-      input.options,
-      input.prevNavigation,
-      input.finalInstructions,
-    );
-  }
-
-  public toString(): string {
-    return `N(id:${this.id},instructions:${this.instructions},trigger:'${this.trigger}')`;
-  }
-}
 export class Transition {
   private constructor(
     public readonly id: number,
@@ -242,7 +216,7 @@ export class Transition {
     public error: unknown,
   ) { }
 
-  public static create(input: Omit<Transition, 'abortIfNeeded' | 'run' | 'handleError'>): Transition {
+  public static create(input: Omit<Transition, 'run' | 'handleError'>): Transition {
     return new Transition(
       input.id,
       input.prevInstructions,
@@ -364,9 +338,6 @@ export class Router {
 
   private navigated: boolean = false;
   private navigationId: number = 0;
-
-  private lastSuccessfulNavigation: Navigation | null = null;
-  private activeNavigation: Navigation | null = null;
 
   private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
 
@@ -681,7 +652,7 @@ export class Router {
 
     logger.debug(`Scheduling transition: %s`, nextTr);
 
-    if (this.activeNavigation === null) {
+    if (!this._isNavigating) {
       // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
       try {
         this.run(nextTr);
@@ -695,7 +666,7 @@ export class Router {
       return ret;
     }).catch(err => {
       logger.error(`Navigation failed: %s`, nextTr, err);
-      this.activeNavigation = null;
+      this._isNavigating = false;
       const $nextTr = this.nextTr;
       // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
       if($nextTr !== null) {
@@ -711,22 +682,7 @@ export class Router {
     this.currentTr = tr;
     this.nextTr = null;
 
-    // Clone it because the prevNavigation could have observers and stuff on it, and it's meant to be a standalone snapshot from here on.
-    const prevNavigation = this.lastSuccessfulNavigation === null ? null : Navigation.create({
-      ...this.lastSuccessfulNavigation,
-      // There could be arbitrary state stored on a navigation, so to prevent memory leaks we only keep one `prevNavigation` around
-      prevNavigation: null,
-    });
-
-    this.activeNavigation = Navigation.create({
-      id: tr.id,
-      instructions: tr.instructions,
-      trigger: tr.trigger,
-      options: tr.options,
-      prevNavigation,
-      finalInstructions: tr.finalInstructions,
-    });
-
+    this._isNavigating = true;
     const navigationContext = this.resolveContext(tr.options.context);
     const routeChanged = (
       !this.navigated ||
@@ -739,7 +695,7 @@ export class Router {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;
-      this.activeNavigation = null;
+      this._isNavigating = false;
 
       tr.resolve!(false);
 
@@ -749,7 +705,6 @@ export class Router {
 
     this.logger.trace(`run(tr:%s) - processing route`, tr);
 
-    this._isNavigating = true;
     this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
@@ -758,13 +713,6 @@ export class Router {
       this.logger.debug(`run(tr:%s) - aborting because a new transition was queued in response to the NavigationStartEvent`, tr);
       return this.run(this.nextTr);
     }
-
-    this.activeNavigation = Navigation.create({
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      ...this.activeNavigation!,
-      // After redirects are applied, this could be a different route
-      finalInstructions: tr.finalInstructions,
-    });
 
     // TODO: run global guards
     //
@@ -826,8 +774,6 @@ export class Router {
         this._isNavigating = false;
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-        this.lastSuccessfulNavigation = this.activeNavigation;
-        this.activeNavigation = null;
         this.applyHistoryState(tr);
         tr.resolve!(true);
 
@@ -881,7 +827,6 @@ export class Router {
       node.context.vpa.cancelUpdate();
     });
 
-    this.activeNavigation = null;
     this.instructions = tr.prevInstructions;
     this._routeTree = tr.previousRouteTree;
     this._isNavigating = false;

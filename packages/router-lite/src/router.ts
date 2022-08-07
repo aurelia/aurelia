@@ -684,11 +684,11 @@ export class Router {
 
     this._isNavigating = true;
     const navigationContext = this.resolveContext(tr.options.context);
-    const routeChanged = (
-      !this.navigated ||
-      tr.instructions.children.length !== navigationContext.node.children.length ||
-      tr.instructions.children.some((x, i) => !(navigationContext.node.children[i]?.originalInstruction!.equals(x) ?? false))
-    );
+    const trChildren = tr.instructions.children;
+    const nodeChildren = navigationContext.node.children;
+    const routeChanged = !this.navigated
+      || trChildren.length !== nodeChildren.length
+      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
     const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
@@ -699,7 +699,7 @@ export class Router {
 
       tr.resolve!(false);
 
-      this.runNextTransition(tr);
+      this.runNextTransition();
       return;
     }
 
@@ -777,7 +777,7 @@ export class Router {
         this.applyHistoryState(tr);
         tr.resolve!(true);
 
-        this.runNextTransition(tr);
+        this.runNextTransition();
       }).start();
     });
   }
@@ -836,7 +836,7 @@ export class Router {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
-      this.runNextTransition(tr);
+      this.runNextTransition();
     } else {
       void onResolve(this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
@@ -844,24 +844,22 @@ export class Router {
     }
   }
 
-  private runNextTransition(tr: Transition): void {
-    if (this.nextTr !== null) {
-      this.logger.trace(`runNextTransition(tr:%s) -> scheduling nextTransition: %s`, tr, this.nextTr);
-      this.p.taskQueue.queueTask(
-        () => {
-          // nextTransition is allowed to change up until the point when it's actually time to process it,
-          // so we need to check it for null again when the scheduled task runs.
-          const nextTr = this.nextTr;
-          if (nextTr !== null) {
-            try {
-              this.run(nextTr);
-            } catch (err) {
-              nextTr.handleError(err);
-            }
-          }
-        },
-      );
-    }
+  private runNextTransition(): void {
+    if (this.nextTr === null) return;
+    this.logger.trace(`scheduling nextTransition: %s`, this.nextTr);
+    this.p.taskQueue.queueTask(
+      () => {
+        // nextTransition is allowed to change up until the point when it's actually time to process it,
+        // so we need to check it for null again when the scheduled task runs.
+        const nextTr = this.nextTr;
+        if (nextTr === null) return;
+        try {
+          this.run(nextTr);
+        } catch (err) {
+          nextTr.handleError(err);
+        }
+      },
+    );
   }
 
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {

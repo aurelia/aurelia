@@ -77,8 +77,46 @@ The instructions are then converted to a [viewport-instruction-tree](#viewportin
 
 ## Enqueuing viewport-instruction-tree
 
+This process involves creating a [transition](#transition) and executing/[running the transition](#running-a-transition).
+If there is any ongoing transition, then this transition will be executed after the currently ongoing transition.
+This also involves error handling, when the transition is failed.
+
+## Running a transition
+
+This process looks as follows.
+
+- First it is determined if the new instruction is different than the previous one.
+- If it is the same whether or not the same-url-strategy is reload or not. This determines whether the new instruction will be processed or not.
+- If the transition is determined not be processed, then the transition is resolved to `false` (indicating non successful transition), and the next transition (if any) is attempted.
+- Otherwise:
+  - The `NavigationStartEvent` is raised
+  - The route tree is updated. This process involves converting the viewport instruction tree to one or more (depending on sibling, parent-child etc.) RouteNodes, and appending those to the route tree. Note that the child instructions are marked as residual instructions, and are loaded/processed lazily (TODO(sayan): add more info). The viewport agent for the routing context is also set at this time. The details are outlined [here](#updating-route-tree).
+  - After that the following batch of actions are performed:
+    - The `canUnload` [hook](#hooks) in the components in the **previous** route tree are invoked.
+    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is cancelled.
+    - The `canLoad` [hook](#hooks) in the components in the **current** route tree are invoked.
+    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is cancelled.
+    - The `unload` [hook](#hooks) in the components in the **previous** route tree are invoked.
+    - The `load` [hook](#hooks) in the components in the **current** route tree are invoked.
+    - The components are then [swapped](#swapping-the-components). That is the old components are deactivated, and the new components are activated.
+    - Once the transitions for all nodes end, the `NavigationEndEvent` is raised, the history state as well as the title are updated. And the next transition (if any) is attempted.
+
+# Updating route tree
+
 TODO
 
+# ViewportAgent
+
+TODO
+
+## Hooks
+
+TODO
+
+## Swapping the components
+# Transition
+
+This encapsulates essentially the previous viewport instruction tree and route tree as well as the current ones.
 
 # `ViewportInstruction`
 

@@ -52,6 +52,17 @@ When the child routes are present in the given `RouteDefinition`, they are itera
 
 If there is no lazily loaded components then this process is synchronous.
 
+## Generating viewport instruction
+
+This is an internal API used to generate an instance of [`ViewportInstruction`](#viewportinstruction), given a partial `ViewportInstruction` or a route-id or route-definition coupled with parameters.
+
+The idea is to attempt eagerly resolving a path/partial viewport instruction/route definition to a concrete instance of `ViewportInstruction` by finding building a `RecognizedRoute`.
+This process roughly looks as follows:
+
+- A `RouteDefinition` is resolved for the given instruction.
+- Once a route definition is found, it is attempted to generate a "most-matched" path from the configured routes and the given parameters.
+- Once such a path is formed, it is used to create the viewport instruction.
+
 # Router
 
 ## Resolving `RouteContext`
@@ -60,15 +71,13 @@ TODO
 
 ## Loading a route
 
-The `Router#load` function supports many overloads.
-Let us continue this discussion considering the `load(/*arg1*/'stringPathOrRouteId', /*arg2*/optionalLoadOptions)` overload.
+The `Router#load` function supports many overloads in terms of the range of different types of supported loading instructions.
 
-- If the string `arg1` is a configured route id then we can eagerly resolve the handler/view-model/component directly and create a [viewport-instruction-tree](#viewportinstructiontree) directly. This saves us later doing the gymnastic of recognizing a string path using the route recognizer.
-- If the `arg1` is not a configured route id then a [viewport-instruction-tree](#viewportinstructiontree) is created in standard fashion, without eagerly recognizing the route for the given input in `arg1`.
-- Once a viewport-instruction-tree is created, it is [enqueued](#enqueuing-viewport-instruction-tree).
+The instructions are then converted to a [viewport-instruction-tree](#viewportinstructiontree) and then the tree is [enqueued](#enqueuing-viewport-instruction-tree).
 
 ## Enqueuing viewport-instruction-tree
 
+TODO
 
 
 # `ViewportInstruction`
@@ -84,7 +93,7 @@ and then a RecognizedRoute is created from that.
 In some cases, the process of route recognition can be avoided.
 For example, when you already know the route id, or you already have access to the route definition.
 In such cases, a `RecognizedRoute` can be easily obtained and such instance can be used to instantiate `ViewportInstruction`, saving us the duplicate/double work of recognizing the component in downstream.
-The `RouteContext#generateViewportInstruction` or `RouteContext#generateTree` employs this tactics.
+The [`RouteContext#generateViewportInstruction`](#generating-viewport-instruction) employs this tactics.
 
 # `ViewportInstructionTree`
 

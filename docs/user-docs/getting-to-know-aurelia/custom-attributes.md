@@ -102,16 +102,16 @@ In some instances, you want a custom attribute that only has one bindable proper
   }
 ```
 
-The `value` property is automatically populated if a value is supplied to a custom attribute, without the need to explicitly define the value property as a bindable.
+The `value` property is automatically populated if a value is supplied to a custom attribute, however requires you to explicitly define the value property as a bindable.
 
 When the value is changed, we can access it like this:
 
 ```
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia-framework';
   
   @customAttribute('red-square') 
   export class RedSquareCustomAttribute {
-    private value;
+    @bindable() private value;
     
     constructor(@INode private element: HTMLElement){
         this.element.style.width = this.element.style.height = '100px';

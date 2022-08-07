@@ -331,50 +331,7 @@ export class RouteTree {
   }
 }
 
-/**
- * Returns a stateful `RouteTree` based on the provided context and transition.
- *
- * This expression will always start from the root context and build a new complete tree, up until (and including)
- * the context that was passed-in.
- *
- * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
- * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
- *
- * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
- */
-export function updateRouteTree(
-  rt: RouteTree,
-  vit: ViewportInstructionTree,
-  ctx: IRouteContext,
-): Promise<void> | void {
-  const log = ctx.container.get(ILogger).scopeTo('RouteTree');
-
-  // The root of the routing tree is always the CompositionRoot of the Aurelia app.
-  // From a routing perspective it's simply a "marker": it does not need to be loaded,
-  // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
-  // other than by reading (deps, optional route config, owned viewports) from it.
-  const rootCtx = ctx.root;
-
-  (rt as Writable<RouteTree>).options = vit.options;
-  (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
-  (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
-
-  if (vit.isAbsolute) {
-    ctx = rootCtx;
-  }
-  if (ctx === rootCtx) {
-    rt.root.setTree(rt);
-    rootCtx.node = rt.root;
-  }
-
-  const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
-  log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
-  return onResolve(ctx.resolved, () => {
-    return updateNode(log, vit, ctx, rootCtx.node);
-  });
-}
-
-function updateNode(
+export function updateNode(
   log: ILogger,
   vit: ViewportInstructionTree,
   ctx: IRouteContext,

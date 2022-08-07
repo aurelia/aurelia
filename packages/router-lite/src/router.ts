@@ -7,7 +7,7 @@ import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCanc
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
-import { RouteTree, RouteNode, updateRouteTree } from './route-tree';
+import { RouteTree, RouteNode, updateNode } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
@@ -683,7 +683,7 @@ export class Router {
     this.nextTr = null;
 
     this._isNavigating = true;
-    const navigationContext = this.resolveContext(tr.options.context);
+    let navigationContext = this.resolveContext(tr.options.context);
     const trChildren = tr.instructions.children;
     const nodeChildren = navigationContext.node.children;
     const routeChanged = !this.navigated
@@ -720,8 +720,46 @@ export class Router {
     // ---
 
     tr.run(() => {
-      this.logger.trace(`run() - compiling route tree: %s`, tr.finalInstructions);
-      return updateRouteTree(tr.routeTree, tr.finalInstructions, navigationContext);
+      const vit = tr.finalInstructions;
+      this.logger.trace(`run() - compiling route tree: %s`, vit);
+
+      /**
+       * Updating route tree:
+       * Returns a stateful `RouteTree` based on the provided context and transition.
+       *
+       * This process will always start from the root context and build a new complete tree, up until (and including)
+       * the context that was passed-in.
+       *
+       * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
+       * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
+       *
+       * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
+       */
+      // The root of the routing tree is always the CompositionRoot of the Aurelia app.
+      // From a routing perspective it's simply a "marker": it does not need to be loaded,
+      // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
+      // other than by reading (deps, optional route config, owned viewports) from it.
+      const rootCtx = this.ctx;// navigationContext.root;
+      const rt = tr.routeTree;
+
+      (rt as Writable<RouteTree>).options = vit.options;
+      (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
+      (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
+
+      const log = navigationContext.container.get(ILogger).scopeTo('RouteTree');
+      if (vit.isAbsolute) {
+        navigationContext = rootCtx;
+      }
+      if (navigationContext === rootCtx) {
+        rt.root.setTree(rt);
+        rootCtx.node = rt.root;
+      }
+
+      const suffix = navigationContext.resolved instanceof Promise ? ' - awaiting promise' : '';
+      log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
+      // Wait till the promises to resolve the child routes are resolved.
+      // Note that a route configuration can be a promise.
+      return onResolve(navigationContext.resolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
     }, () => {
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;

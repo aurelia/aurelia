@@ -103,7 +103,17 @@ This process looks as follows.
 
 # Updating route tree
 
-TODO
+This process always starts from the router when [running a transition](#running-a-transition).
+This process starts with 3 things:
+- The routeTree of the current transition that the router is currently processing/running.
+- The current `ViewportInstructionTree` from the current transition.
+- The resolved routing context.
+
+In the beginning, the query parameters, and fragments of the given routeTree as well as the routeTree of the root `RouteContext` are overwritten with the ones from the given viewport instruction tree.
+After that the effective routing context is determined and all the route definitions are awaited, as a promise can be used to grab a route definition (read lazy-loading modules).
+Once that is done, the route-context's node is updated.
+This process roughly looks as follows:
+
 
 # ViewportAgent
 

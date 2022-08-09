@@ -586,7 +586,7 @@ function createConfiguredNode(
       const childCtx = router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition);
 
       log.trace('createConfiguredNode setting the context node');
-      childCtx.node = RouteNode.create({
+      const $node = childCtx.node = RouteNode.create({
         path: rr.route.endpoint.route.path,
         finalPath: route.path,
         context: childCtx,
@@ -607,11 +607,11 @@ function createConfiguredNode(
           ...vi.children,
         ],
       });
-      childCtx.node.setTree(node.tree);
+      $node.setTree(node.tree);
 
-      log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, childCtx.node);
+      log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
 
-      return childCtx.node;
+      return $node;
     }
 
     // Migrate parameters to the redirect

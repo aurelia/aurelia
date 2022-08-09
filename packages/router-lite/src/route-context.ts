@@ -107,7 +107,7 @@ export class RouteContext {
   }
 
   /** @internal */
-  private _vpa: ViewportAgent | null = null;
+  private readonly _vpa: ViewportAgent | null;
   /**
    * The viewport hosting the component associated with this RouteContext.
    * The root RouteContext has no ViewportAgent and will throw when attempting to access this property.
@@ -118,16 +118,6 @@ export class RouteContext {
       throw new Error(`RouteContext has no ViewportAgent: ${this}`);
     }
     return vpa;
-  }
-  public set vpa(value: ViewportAgent) {
-    if (value === null || value === void 0) {
-      throw new Error(`Cannot set ViewportAgent to ${value} for RouteContext: ${this}`);
-    }
-    const prev = this._vpa;
-    if (prev !== value) {
-      this._vpa = value;
-      this.logger.trace(`ViewportAgent changed from %s to %s`, prev, value);
-    }
   }
   public readonly container: IContainer;
 

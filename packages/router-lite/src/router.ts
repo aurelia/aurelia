@@ -550,30 +550,25 @@ export class Router {
     }
 
     let routeContext = routeDefinitionLookup.get(routeDefinition);
-    if (routeContext === void 0) {
-      logger.trace(`creating new RouteContext for %s`, routeDefinition);
-
-      const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
-
-      routeDefinitionLookup.set(
-        routeDefinition,
-        routeContext = new RouteContext(
-          viewportAgent,
-          parent,
-          componentDefinition,
-          routeDefinition,
-          container,
-          this,
-        ),
-      );
-    } else {
+    if (routeContext !== void 0) {
       logger.trace(`returning existing RouteContext for %s`, routeDefinition);
-
-      if (viewportAgent !== null) {
-        routeContext.vpa = viewportAgent;
-      }
+      return routeContext;
     }
+    logger.trace(`creating new RouteContext for %s`, routeDefinition);
 
+    const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+
+    routeDefinitionLookup.set(
+      routeDefinition,
+      routeContext = new RouteContext(
+        viewportAgent,
+        parent,
+        componentDefinition,
+        routeDefinition,
+        container,
+        this,
+      ),
+    );
     return routeContext;
   }
 

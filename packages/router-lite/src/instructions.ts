@@ -35,7 +35,6 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 export type Params = { [key: string]: string | undefined };
 
 export interface IViewportInstruction {
-  readonly append?: boolean;
   readonly open?: number;
   readonly close?: number;
   /**
@@ -76,7 +75,6 @@ export interface IViewportInstruction {
 /** @internal */
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
   private constructor(
-    public append: boolean,
     public open: number,
     public close: number,
     public readonly recognizedRoute: $RecognizedRoute | null,
@@ -94,7 +92,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
 
       return new ViewportInstruction(
-        instruction.append ?? false,
         instruction.open ?? 0,
         instruction.close ?? 0,
         instruction.recognizedRoute ?? null,
@@ -106,7 +103,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
-    return new ViewportInstruction(false, 0, 0, null, typedInstruction, null, null, []);
+    return new ViewportInstruction(0, 0, null, typedInstruction, null, null, []);
   }
 
   public contains(other: ViewportInstruction): boolean {
@@ -158,7 +155,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public clone(): this {
     return new ViewportInstruction(
-      this.append,
       this.open,
       this.close,
       this.recognizedRoute,

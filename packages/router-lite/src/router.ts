@@ -132,7 +132,6 @@ export class NavigationOptions extends RouterOptions {
     routerOptions: RouterOptions,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly titleSeparator: string,
-    public readonly append: boolean,
     /**
      * Specify a context to use for relative navigation.
      *
@@ -171,7 +170,6 @@ export class NavigationOptions extends RouterOptions {
       RouterOptions.create(input),
       input.title ?? null,
       input.titleSeparator ?? ' | ',
-      input.append ?? false,
       input.context ?? null,
       input.queryParams ?? null,
       input.fragment ?? '',
@@ -184,7 +182,6 @@ export class NavigationOptions extends RouterOptions {
       super.clone(),
       this.title,
       this.titleSeparator,
-      this.append,
       this.context,
       { ...this.queryParams },
       this.fragment,
@@ -298,7 +295,6 @@ export class Router {
           context: ctx,
           instruction: null,
           component: ctx.definition.component!,
-          append: false,
           title: ctx.definition.config.title,
         }),
       );

@@ -18,11 +18,10 @@ export class ViewportRequest {
     public readonly viewportName: string,
     public readonly componentName: string,
     public readonly resolution: ResolutionMode,
-    public readonly append: boolean,
   ) { }
 
   public toString(): string {
-    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}',append:${this.append})`;
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}')`;
   }
 }
 
@@ -140,11 +139,6 @@ export class ViewportAgent {
 
   public handles(req: ViewportRequest): boolean {
     if (!this.isAvailable(req.resolution)) {
-      return false;
-    }
-
-    if (req.append && this.currState === State.currIsActive) {
-      this.logger.trace(`handles(req:%s) -> false (append mode, viewport already has content %s)`, req, this.curCA);
       return false;
     }
 

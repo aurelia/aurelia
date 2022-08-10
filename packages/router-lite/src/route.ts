@@ -63,7 +63,7 @@ export interface IRouteConfig {
     /**
      * Any custom data that should be accessible to matched components or hooks.
      */
-    readonly data?: Params;
+    readonly data?: Record<string, unknown>;
     /**
      * The child routes that can be navigated to from this route. See `Routeable` for more information.
      */
@@ -109,7 +109,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly caseSensitive: boolean,
     public readonly transitionPlan: TransitionPlanOrFunc,
     public readonly viewport: string | null,
-    public readonly data: Params,
+    public readonly data: Record<string, unknown>,
     public readonly routes: readonly Routeable[],
     public readonly fallback: string | null,
     public readonly component: Routeable,

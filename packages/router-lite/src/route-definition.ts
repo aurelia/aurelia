@@ -48,7 +48,7 @@ export class RouteDefinition {
   public readonly redirectTo: string | null;
   public readonly viewport: string;
   public readonly id: string;
-  public readonly data: Params;
+  public readonly data: Record<string, unknown>;
   public readonly fallback: string | null;
 
   public constructor(

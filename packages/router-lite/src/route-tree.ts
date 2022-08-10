@@ -56,7 +56,7 @@ export interface IRouteNode {
   params?: Params;
   queryParams?: Readonly<URLSearchParams>;
   fragment?: string | null;
-  data?: Params;
+  data?: Record<string, unknown>;
   viewport?: string | null;
   title?: string | ((node: RouteNode) => string | null) | null;
   component: CustomElementDefinition;
@@ -102,7 +102,7 @@ export class RouteNode implements IRouteNode {
     public params: Params,
     public queryParams: Readonly<URLSearchParams>,
     public fragment: string | null,
-    public data: Params,
+    public data: Record<string, unknown>,
     /**
      * The viewport is always `null` for the root `RouteNode`.
      *

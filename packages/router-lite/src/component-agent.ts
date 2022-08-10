@@ -22,6 +22,11 @@ export interface IRouteViewModel extends ICustomElementViewModel {
 
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
+/**
+ * A component agent handles an instance of a routed view-model (a component).
+ * It deals with invoking the hooks (`canLoad`, `load`, `canUnload`, `unload`),
+ * and activating, deactivating, and disposing the component (via the associated controller).
+ */
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hasCanLoad: boolean;

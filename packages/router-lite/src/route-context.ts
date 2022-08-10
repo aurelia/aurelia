@@ -687,7 +687,7 @@ export interface INavigationRoute {
   readonly id: string;
   readonly path: string[];
   readonly title: string | ((node: RouteNode) => string | null) | null;
-  readonly data: Params | null;
+  readonly data: Record<string, unknown>;
   readonly isActive: boolean;
 }
 // Usage of classical interface pattern is intentional.
@@ -697,7 +697,7 @@ class NavigationRoute implements INavigationRoute {
     public readonly id: string,
     public readonly path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly data: Params | null,
+    public readonly data: Record<string, unknown>,
   ) { }
 
   /** @internal */

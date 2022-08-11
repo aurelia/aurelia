@@ -15,7 +15,7 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
  * Note that an extensive tests of the hooks are already done in the `hook-tests.spec.ts`.
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
-describe('lifecycle hooks', function () {
+describe.only('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];
@@ -28,6 +28,24 @@ describe('lifecycle hooks', function () {
       this.log.length = 0;
     }
 
+    public assertLog(messagePatterns: RegExp[], orderInvariant: boolean, message: string) {
+      const log = this.log;
+      const len = log.length;
+      assert.strictEqual(len, messagePatterns.length, `${message} - length; actual: ${log}`);
+      for (let i = 0; i < len; i++) {
+        const item = log[i];
+        if (orderInvariant) {
+          assert.notEqual(
+            messagePatterns.find(pattern => pattern.test(item)),
+            undefined,
+            `${message} - unexpected log at index${i}: ${item}`
+          );
+        } else {
+          assert.match(item, messagePatterns[i], `${message} - unexpected log at index${i}`);
+        }
+      }
+    }
+
     public static getInstance(container: IContainer): EventLog {
       const logger = container.get<DefaultLogger>(ILogger);
       const eventLog = (logger['traceSinks'] as ISink[]).find(x => x instanceof this);
@@ -36,7 +54,25 @@ describe('lifecycle hooks', function () {
     }
   }
 
-  // the simplified textbook (overused) example of auth hook
+  async function createFixture(rootComponent: unknown, ...registrations: any[]) {
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.trace, [EventLog]),
+      RouterConfiguration,
+      ...registrations
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    await au.app({ component: rootComponent, host }).start();
+    return { au, container, host };
+  }
+
+  // the simplified textbook example of authorization hook
   it('single global (auth) hook', async function () {
 
     interface IAuthenticationService extends AuthenticationService { }
@@ -90,13 +126,7 @@ describe('lifecycle hooks', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      StandardConfiguration,
-      TestRouterConfiguration.for(LogLevel.trace, [EventLog]),
-      RouterConfiguration,
+    const { au, container, host } = await createFixture(Root,
       Home,
       Forbidden,
       FooList,
@@ -105,33 +135,334 @@ describe('lifecycle hooks', function () {
       AuthorizationHook,
       Registration.instance(IKnownScopes, ['AuthHook'])
     );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    await au.app({ component: Root, host }).start();
-
     const router = container.get(IRouter);
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
-
-    assert.strictEqual(eventLog.log.length, 1);
-    assert.match(eventLog.log[0], /AuthHook\] canLoad ''/);
+    eventLog.assertLog([/AuthHook\] canLoad ''/], false, 'init');
 
     // round 2
     eventLog.clear();
     assert.strictEqual(await router.load('foo/404'), true);
     assert.html.textContent(host, 'You shall not pass!');
-    assert.strictEqual(eventLog.log.length, 2);
-    assert.match(eventLog.log[0], /AuthHook\] canLoad 'foo\/404'/);
-    assert.match(eventLog.log[1], /AuthHook\] canLoad 'forbidden'/);
+    eventLog.assertLog([/AuthHook\] canLoad 'foo\/404'/, /AuthHook\] canLoad 'forbidden'/], false, 'round#2');
 
     // round 3
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo list');
-    assert.strictEqual(eventLog.log.length, 1);
-    assert.match(eventLog.log[0], /AuthHook\] canLoad 'foo'/);
+    eventLog.assertLog([/AuthHook\] canLoad 'foo'/], false, 'round#3');
+
+    await au.stop();
+  });
+
+  it('multiple synchronous hooks - without preemption', async function () {
+    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'load' | 'canUnload' | 'unload'> {
+      public constructor(
+        @ILogger private readonly logger: ILogger,
+      ) {
+        this.logger = logger.scopeTo(this.constructor.name);
+      }
+      public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+        this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
+        return true;
+      }
+      public load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.logger.trace(`load ${(next.instruction as IViewportInstruction).component}`);
+      }
+      public canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): boolean | Promise<boolean> {
+        this.logger.trace(`canUnload ${((current ?? rn).instruction as IViewportInstruction).component}`);
+        return true;
+      }
+      public unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
+        this.logger.trace(`unload ${((current ?? rn).instruction as IViewportInstruction).component}`);
+      }
+    }
+    @lifecycleHooks()
+    class Hook1 extends BaseHook { }
+    @lifecycleHooks()
+    class Hook2 extends BaseHook { }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends BaseHook { }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends BaseHook { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad ''/,
+      /Hook2\] canLoad ''/,
+      /Home\] canLoad ''/,
+      /Hook1\] load ''/,
+      /Hook2\] load ''/,
+      /Home\] load ''/,
+    ], false, 'init');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    assert.html.textContent(host, 'foo');
+    eventLog.assertLog([
+      /Hook1\] canUnload ''/,
+      /Hook2\] canUnload ''/,
+      /Home\] canUnload ''/,
+      /Hook1\] canLoad 'foo'/,
+      /Hook2\] canLoad 'foo'/,
+      /Foo\] canLoad 'foo'/,
+      /Hook1\] unload ''/,
+      /Hook2\] unload ''/,
+      /Home\] unload ''/,
+      /Hook1\] load 'foo'/,
+      /Hook2\] load 'foo'/,
+      /Foo\] load 'foo'/,
+    ], false, 'round#2');
+
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - same timing - without preemption', async function () {
+    async function log(hookName: string, rn: RouteNode, logger: ILogger): Promise<void> {
+      const component = (rn.instruction as IViewportInstruction).component;
+      logger.trace(`${hookName} - start ${component}`);
+      await Promise.resolve();
+      logger.trace(`${hookName} - end ${component}`);
+    }
+    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'load' | 'canUnload' | 'unload'> {
+      public constructor(
+        @ILogger private readonly logger: ILogger,
+      ) {
+        this.logger = logger.scopeTo(this.constructor.name);
+      }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.logger);
+        return true;
+      }
+      public async load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+        await log('load', next, this.logger);
+      }
+      public async canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<boolean> {
+        await log('canUnload', current ?? rn, this.logger);
+        return true;
+      }
+      public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
+        await log('unload', current ?? rn, this.logger);
+      }
+    }
+    @lifecycleHooks()
+    class Hook1 extends BaseHook { }
+    @lifecycleHooks()
+    class Hook2 extends BaseHook { }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends BaseHook { }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends BaseHook { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook2\] canLoad - start ''/,
+      /Home\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - end ''/,
+
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Hook1\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Home\] load - end ''/,
+    ], false, 'init');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    assert.html.textContent(host, 'foo');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook2\] canUnload - start ''/,
+      /Home\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - end 'foo'/,
+
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Hook1\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Home\] unload - end ''/,
+
+      /Hook1\] load - start 'foo'/,
+      /Hook2\] load - start 'foo'/,
+      /Foo\] load - start 'foo'/,
+      /Hook1\] load - end 'foo'/,
+      /Hook2\] load - end 'foo'/,
+      /Foo\] load - end 'foo'/,
+    ], false, 'round#2');
+
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
+    async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
+      const component = (rn.instruction as IViewportInstruction).component;
+      logger.trace(`${hookName} - start ${component}`);
+      await new Promise(res => setTimeout(res, waitMs));
+      logger.trace(`${hookName} - end ${component}`);
+    }
+    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'load' | 'canUnload' | 'unload'> {
+      public abstract get waitMs(): number;
+      public constructor(
+        @ILogger private readonly logger: ILogger,
+      ) {
+        this.logger = logger.scopeTo(this.constructor.name);
+      }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.waitMs, this.logger);
+        return true;
+      }
+      public async load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+        await log('load', next, this.waitMs, this.logger);
+      }
+      public async canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<boolean> {
+        await log('canUnload', current ?? rn, this.waitMs, this.logger);
+        return true;
+      }
+      public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
+        await log('unload', current ?? rn, this.waitMs, this.logger);
+      }
+    }
+    @lifecycleHooks()
+    class Hook1 extends BaseHook { public get waitMs(): number { return 1;    } }
+    @lifecycleHooks()
+    class Hook2 extends BaseHook { public get waitMs(): number { return 2;    } }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends BaseHook { public get waitMs(): number { return 3;    } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends BaseHook { public get waitMs(): number { return 3;    } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook2\] canLoad - start ''/,
+      /Home\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - end ''/,
+
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Hook1\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Home\] load - end ''/,
+    ], false, 'init');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    assert.html.textContent(host, 'foo');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook2\] canUnload - start ''/,
+      /Home\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - end 'foo'/,
+
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Hook1\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Home\] unload - end ''/,
+
+      /Hook1\] load - start 'foo'/,
+      /Hook2\] load - start 'foo'/,
+      /Foo\] load - start 'foo'/,
+      /Hook1\] load - end 'foo'/,
+      /Hook2\] load - end 'foo'/,
+      /Foo\] load - end 'foo'/,
+    ], false, 'round#2');
 
     await au.stop();
   });

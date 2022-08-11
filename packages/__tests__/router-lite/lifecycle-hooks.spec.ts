@@ -466,4 +466,118 @@ describe.only('lifecycle hooks', function () {
 
     await au.stop();
   });
+
+  it('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
+    async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
+      const component = (rn.instruction as IViewportInstruction).component;
+      logger.trace(`${hookName} - start ${component}`);
+      await new Promise(res => setTimeout(res, waitMs));
+      logger.trace(`${hookName} - end ${component}`);
+    }
+    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'load' | 'canUnload' | 'unload'> {
+      public abstract get waitMs(): number;
+      public constructor(
+        @ILogger private readonly logger: ILogger,
+      ) {
+        this.logger = logger.scopeTo(this.constructor.name);
+      }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.waitMs, this.logger);
+        return true;
+      }
+      public async load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+        await log('load', next, this.waitMs, this.logger);
+      }
+      public async canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<boolean> {
+        await log('canUnload', current ?? rn, this.waitMs, this.logger);
+        return true;
+      }
+      public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
+        await log('unload', current ?? rn, this.waitMs, this.logger);
+      }
+    }
+    @lifecycleHooks()
+    class Hook1 extends BaseHook { public get waitMs(): number { return 3;    } }
+    @lifecycleHooks()
+    class Hook2 extends BaseHook { public get waitMs(): number { return 2;    } }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends BaseHook { public get waitMs(): number { return 1;    } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends BaseHook { public get waitMs(): number { return 1;    } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook2\] canLoad - start ''/,
+      /Home\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - end ''/,
+
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Hook1\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Home\] load - end ''/,
+    ], false, 'init');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    assert.html.textContent(host, 'foo');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook2\] canUnload - start ''/,
+      /Home\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - end 'foo'/,
+
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Hook1\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Home\] unload - end ''/,
+
+      /Hook1\] load - start 'foo'/,
+      /Hook2\] load - start 'foo'/,
+      /Foo\] load - start 'foo'/,
+      /Hook1\] load - end 'foo'/,
+      /Hook2\] load - end 'foo'/,
+      /Foo\] load - end 'foo'/,
+    ], false, 'round#2');
+
+    await au.stop();
+  });
 });

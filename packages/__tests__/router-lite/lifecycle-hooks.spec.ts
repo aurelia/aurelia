@@ -15,7 +15,7 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
  * Note that an extensive tests of the hooks are already done in the `hook-tests.spec.ts`.
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
-describe('lifecycle hooks', function () {
+describe.skip('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];

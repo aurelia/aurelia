@@ -1,4 +1,4 @@
-import { Constructable, ILogger } from '@aurelia/kernel';
+import { Constructable, ILogger, onResolve } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
@@ -142,26 +142,39 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
     const rootCtx = this.ctx.root;
     b.push();
+    let promise: Promise<void> | void = void 0;
     for (const hook of this.canLoadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.canLoad(this.instance, next.params, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
-        }
-        b.pop();
+      promise = onResolve(promise, () => {
+        if (tr.guardsResult !== true) return;
+        return new Promise((res) => {
+          tr.run(() => {
+            b.push();
+            return hook.canLoad(this.instance, next.params, next, this.routeNode);
+          }, ret => {
+            if (tr.guardsResult === true && ret !== true) {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            }
+            b.pop();
+            res();
+          });
+        });
       });
     }
     if (this._hasCanLoad) {
-      tr.run(() => {
-        b.push();
-        return this.instance.canLoad!(next.params, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
-        }
-        b.pop();
+      promise = onResolve(promise, () => {
+        if (tr.guardsResult !== true) return;
+        return new Promise((res) => {
+          tr.run(() => {
+            b.push();
+            return this.instance.canLoad!(next.params, next, this.routeNode);
+          }, ret => {
+            if (tr.guardsResult === true && ret !== true) {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            }
+            b.pop();
+            res();
+          });
+        });
       });
     }
     b.pop();

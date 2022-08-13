@@ -15,7 +15,6 @@ import {
 import {
   TypedNavigationInstruction,
   NavigationInstructionType,
-  Params,
   ITypedNavigationInstruction_Component,
 } from './instructions';
 import {

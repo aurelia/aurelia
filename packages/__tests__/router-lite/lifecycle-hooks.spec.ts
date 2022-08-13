@@ -15,7 +15,7 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
  * Note that an extensive tests of the hooks are already done in the `hook-tests.spec.ts`.
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
-describe.only('lifecycle hooks', function () {
+describe('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];
@@ -240,7 +240,7 @@ describe.only('lifecycle hooks', function () {
     await au.stop();
   });
 
-  it('multiple asynchronous hooks - same timing - without preemption', async function () {
+  it.skip('multiple asynchronous hooks - same timing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);
@@ -353,7 +353,7 @@ describe.only('lifecycle hooks', function () {
     await au.stop();
   });
 
-  it('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
+  it.skip('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);
@@ -467,7 +467,7 @@ describe.only('lifecycle hooks', function () {
     await au.stop();
   });
 
-  it('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
+  it.skip('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);

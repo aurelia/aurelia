@@ -622,7 +622,7 @@ describe('router (smoke tests)', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for());
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
       container.register(RouterConfiguration.customize({ resolutionMode: mode }));
 
       const component = container.get(Root);
@@ -1328,7 +1328,7 @@ describe('router (smoke tests)', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(LogLevel.debug));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
     container.register(RouterConfiguration);
 
     const component = container.get(CustomElement.define(

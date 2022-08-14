@@ -116,7 +116,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this.canUnloadHooks) {
       b.push();
-      promise = promise.then(() =>  new Promise((res) => {
+      promise = promise.then(() => new Promise((res) => {
+        if(tr.guardsResult !== true) {
+          b.pop();
+          return;
+        }
         tr.run(() => {
           return hook.canUnload(this.instance, next, this.routeNode);
         }, ret => {
@@ -131,6 +135,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasCanUnload) {
       b.push();
       promise = promise.then(() => {
+        if(tr.guardsResult !== true) {
+          b.pop();
+          return;
+        }
         tr.run(() => {
           return this.instance.canUnload!(next, this.routeNode);
         }, ret => {
@@ -152,6 +160,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.canLoadHooks) {
       b.push();
       promise = promise.then(() => new Promise((res) => {
+        if(tr.guardsResult !== true) {
+          b.pop();
+          return;
+        }
         tr.run(() => {
           return hook.canLoad(this.instance, next.params, next, this.routeNode);
         }, ret => {
@@ -166,6 +178,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasCanLoad) {
       b.push();
       promise = promise.then(() => {
+        if(tr.guardsResult !== true) {
+          b.pop();
+          return;
+        }
         tr.run(() => {
           return this.instance.canLoad!(next.params, next, this.routeNode);
         }, ret => {

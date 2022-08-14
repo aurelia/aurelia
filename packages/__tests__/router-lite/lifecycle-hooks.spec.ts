@@ -538,14 +538,15 @@ describe('lifecycle hooks', function () {
       /Hook2\] canLoad - end ''/,
       /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
-
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
       /Hook1\] load - start ''/,
       /Hook2\] load - start ''/,
       /Home\] load - start ''/,
       /Home\] load - end ''/,
       /Hook2\] load - end ''/,
       /Hook1\] load - end ''/,
-    ], 'init');
+    ], 6, 'init - unload');
 
     // round #2
     eventLog.clear();

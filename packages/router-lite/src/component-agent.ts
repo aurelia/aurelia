@@ -1,4 +1,4 @@
-import { Constructable, ILogger, onResolve } from '@aurelia/kernel';
+import { Constructable, ILogger } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
@@ -113,38 +113,31 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     this._logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
     b.push();
-    let promise: Promise<void> | void = void 0;
+    let promise: Promise<void> = Promise.resolve();
     for (const hook of this.canUnloadHooks) {
-      promise = onResolve(promise, () => {
-        if (tr.guardsResult !== true) return;
-        return new Promise((res) => {
-          tr.run(() => {
-            b.push();
-            return hook.canUnload(this.instance, next, this.routeNode);
-          }, ret => {
-            if (tr.guardsResult === true && ret !== true) {
-              tr.guardsResult = false;
-            }
-            b.pop();
-            res();
-          });
+      b.push();
+      promise = promise.then(() =>  new Promise((res) => {
+        tr.run(() => {
+          return hook.canUnload(this.instance, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = false;
+          }
+          b.pop();
+          res();
         });
-      });
+      }));
     }
     if (this._hasCanUnload) {
-      promise = onResolve(promise, () => {
-        if (tr.guardsResult !== true) return;
-        return new Promise((res) => {
-          tr.run(() => {
-            b.push();
-            return this.instance.canUnload!(next, this.routeNode);
-          }, ret => {
-            if (tr.guardsResult === true && ret !== true) {
-              tr.guardsResult = false;
-            }
-            b.pop();
-            res();
-          });
+      b.push();
+      promise = promise.then(() => {
+        tr.run(() => {
+          return this.instance.canUnload!(next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = false;
+          }
+          b.pop();
         });
       });
     }
@@ -155,38 +148,31 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
     const rootCtx = this.ctx.root;
     b.push();
-    let promise: Promise<void> | void = void 0;
+    let promise: Promise<void> = Promise.resolve();
     for (const hook of this.canLoadHooks) {
-      promise = onResolve(promise, () => {
-        if (tr.guardsResult !== true) return;
-        return new Promise((res) => {
-          tr.run(() => {
-            b.push();
-            return hook.canLoad(this.instance, next.params, next, this.routeNode);
-          }, ret => {
-            if (tr.guardsResult === true && ret !== true) {
-              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
-            }
-            b.pop();
-            res();
-          });
+      b.push();
+      promise = promise.then(() => new Promise((res) => {
+        tr.run(() => {
+          return hook.canLoad(this.instance, next.params, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+          }
+          b.pop();
+          res();
         });
-      });
+      }));
     }
     if (this._hasCanLoad) {
-      promise = onResolve(promise, () => {
-        if (tr.guardsResult !== true) return;
-        return new Promise((res) => {
-          tr.run(() => {
-            b.push();
-            return this.instance.canLoad!(next.params, next, this.routeNode);
-          }, ret => {
-            if (tr.guardsResult === true && ret !== true) {
-              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
-            }
-            b.pop();
-            res();
-          });
+      b.push();
+      promise = promise.then(() => {
+        tr.run(() => {
+          return this.instance.canLoad!(next.params, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+          }
+          b.pop();
         });
       });
     }

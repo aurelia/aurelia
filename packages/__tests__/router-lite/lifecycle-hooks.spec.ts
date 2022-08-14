@@ -15,7 +15,7 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
  * Note that an extensive tests of the hooks are already done in the `hook-tests.spec.ts`.
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
-describe.skip('lifecycle hooks', function () {
+describe('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];
@@ -28,21 +28,24 @@ describe.skip('lifecycle hooks', function () {
       this.log.length = 0;
     }
 
-    public assertLog(messagePatterns: RegExp[], orderInvariant: boolean, message: string) {
+    public assertLog(messagePatterns: RegExp[], message: string) {
       const log = this.log;
-      const len = log.length;
-      assert.strictEqual(len, messagePatterns.length, `${message} - length; actual: ${log}`);
+      const len = messagePatterns.length;
       for (let i = 0; i < len; i++) {
+        assert.match(log[i], messagePatterns[i], `${message} - unexpected log at index${i}; actual log: ${JSON.stringify(log, undefined, 2)}`);
+      }
+    }
+
+    public assertLogOrderInvariant(messagePatterns: RegExp[], offset: number, message: string) {
+      const log = this.log;
+      const len = messagePatterns.length;
+      for (let i = offset; i < len; i++) {
         const item = log[i];
-        if (orderInvariant) {
-          assert.notEqual(
-            messagePatterns.find(pattern => pattern.test(item)),
-            undefined,
-            `${message} - unexpected log at index${i}: ${item}`
-          );
-        } else {
-          assert.match(item, messagePatterns[i], `${message} - unexpected log at index${i}`);
-        }
+        assert.notEqual(
+          messagePatterns.find(pattern => pattern.test(item)),
+          undefined,
+          `${message} - unexpected log at index${i}: ${item}; actual log: ${JSON.stringify(log, undefined, 2)}`
+        );
       }
     }
 
@@ -138,19 +141,19 @@ describe.skip('lifecycle hooks', function () {
     const router = container.get(IRouter);
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
-    eventLog.assertLog([/AuthHook\] canLoad ''/], false, 'init');
+    eventLog.assertLog([/AuthHook\] canLoad ''/], 'init');
 
     // round 2
     eventLog.clear();
     assert.strictEqual(await router.load('foo/404'), true);
     assert.html.textContent(host, 'You shall not pass!');
-    eventLog.assertLog([/AuthHook\] canLoad 'foo\/404'/, /AuthHook\] canLoad 'forbidden'/], false, 'round#2');
+    eventLog.assertLog([/AuthHook\] canLoad 'foo\/404'/, /AuthHook\] canLoad 'forbidden'/], 'round#2');
 
     // round 3
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo list');
-    eventLog.assertLog([/AuthHook\] canLoad 'foo'/], false, 'round#3');
+    eventLog.assertLog([/AuthHook\] canLoad 'foo'/], 'round#3');
 
     await au.stop();
   });
@@ -216,7 +219,7 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load ''/,
       /Hook2\] load ''/,
       /Home\] load ''/,
-    ], false, 'init');
+    ], 'init');
 
     // round #2
     eventLog.clear();
@@ -235,12 +238,12 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load 'foo'/,
       /Hook2\] load 'foo'/,
       /Foo\] load 'foo'/,
-    ], false, 'round#2');
+    ], 'round#2');
 
     await au.stop();
   });
 
-  it.skip('multiple asynchronous hooks - same timing - without preemption', async function () {
+  it('multiple asynchronous hooks - same timing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);
@@ -302,10 +305,10 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
       /Hook1\] canLoad - start ''/,
-      /Hook2\] canLoad - start ''/,
-      /Home\] canLoad - start ''/,
       /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
       /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
 
       /Hook1\] load - start ''/,
@@ -314,7 +317,7 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load - end ''/,
       /Hook2\] load - end ''/,
       /Home\] load - end ''/,
-    ], false, 'init');
+    ], 'init');
 
     // round #2
     eventLog.clear();
@@ -322,17 +325,17 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
       /Hook1\] canUnload - start ''/,
-      /Hook2\] canUnload - start ''/,
-      /Home\] canUnload - start ''/,
       /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
       /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
       /Home\] canUnload - end ''/,
 
       /Hook1\] canLoad - start 'foo'/,
-      /Hook2\] canLoad - start 'foo'/,
-      /Foo\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
       /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
       /Hook1\] unload - start ''/,
@@ -348,12 +351,12 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load - end 'foo'/,
       /Hook2\] load - end 'foo'/,
       /Foo\] load - end 'foo'/,
-    ], false, 'round#2');
+    ], 'round#2');
 
     await au.stop();
   });
 
-  it.skip('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
+  it('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);
@@ -383,15 +386,15 @@ describe.skip('lifecycle hooks', function () {
       }
     }
     @lifecycleHooks()
-    class Hook1 extends BaseHook { public get waitMs(): number { return 1;    } }
+    class Hook1 extends BaseHook { public get waitMs(): number { return 1; } }
     @lifecycleHooks()
-    class Hook2 extends BaseHook { public get waitMs(): number { return 2;    } }
+    class Hook2 extends BaseHook { public get waitMs(): number { return 2; } }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends BaseHook { public get waitMs(): number { return 3;    } }
+    class Home extends BaseHook { public get waitMs(): number { return 3; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends BaseHook { public get waitMs(): number { return 3;    } }
+    class Foo extends BaseHook { public get waitMs(): number { return 3; } }
 
     @route({
       routes: [
@@ -416,10 +419,10 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
       /Hook1\] canLoad - start ''/,
-      /Hook2\] canLoad - start ''/,
-      /Home\] canLoad - start ''/,
       /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
       /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
 
       /Hook1\] load - start ''/,
@@ -428,7 +431,7 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load - end ''/,
       /Hook2\] load - end ''/,
       /Home\] load - end ''/,
-    ], false, 'init');
+    ], 'init');
 
     // round #2
     eventLog.clear();
@@ -436,17 +439,17 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
       /Hook1\] canUnload - start ''/,
-      /Hook2\] canUnload - start ''/,
-      /Home\] canUnload - start ''/,
       /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
       /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
       /Home\] canUnload - end ''/,
 
       /Hook1\] canLoad - start 'foo'/,
-      /Hook2\] canLoad - start 'foo'/,
-      /Foo\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
       /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
       /Hook1\] unload - start ''/,
@@ -462,12 +465,12 @@ describe.skip('lifecycle hooks', function () {
       /Hook1\] load - end 'foo'/,
       /Hook2\] load - end 'foo'/,
       /Foo\] load - end 'foo'/,
-    ], false, 'round#2');
+    ], 'round#2');
 
     await au.stop();
   });
 
-  it.skip('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
+  it('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
     async function log(hookName: string, rn: RouteNode, waitMs: number, logger: ILogger): Promise<void> {
       const component = (rn.instruction as IViewportInstruction).component;
       logger.trace(`${hookName} - start ${component}`);
@@ -497,15 +500,15 @@ describe.skip('lifecycle hooks', function () {
       }
     }
     @lifecycleHooks()
-    class Hook1 extends BaseHook { public get waitMs(): number { return 3;    } }
+    class Hook1 extends BaseHook { public get waitMs(): number { return 3; } }
     @lifecycleHooks()
-    class Hook2 extends BaseHook { public get waitMs(): number { return 2;    } }
+    class Hook2 extends BaseHook { public get waitMs(): number { return 2; } }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends BaseHook { public get waitMs(): number { return 1;    } }
+    class Home extends BaseHook { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends BaseHook { public get waitMs(): number { return 1;    } }
+    class Foo extends BaseHook { public get waitMs(): number { return 1; } }
 
     @route({
       routes: [
@@ -530,19 +533,19 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
       /Hook1\] canLoad - start ''/,
-      /Hook2\] canLoad - start ''/,
-      /Home\] canLoad - start ''/,
       /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
       /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
 
       /Hook1\] load - start ''/,
       /Hook2\] load - start ''/,
       /Home\] load - start ''/,
-      /Hook1\] load - end ''/,
-      /Hook2\] load - end ''/,
       /Home\] load - end ''/,
-    ], false, 'init');
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 'init');
 
     // round #2
     eventLog.clear();
@@ -550,33 +553,35 @@ describe.skip('lifecycle hooks', function () {
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
       /Hook1\] canUnload - start ''/,
-      /Hook2\] canUnload - start ''/,
-      /Home\] canUnload - start ''/,
       /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
       /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
       /Home\] canUnload - end ''/,
 
       /Hook1\] canLoad - start 'foo'/,
-      /Hook2\] canLoad - start 'foo'/,
-      /Foo\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
       /Hook2\] canLoad - end 'foo'/,
+      /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
-
+    ], 'round#2');
+    eventLog.assertLogOrderInvariant([
       /Hook1\] unload - start ''/,
       /Hook2\] unload - start ''/,
       /Home\] unload - start ''/,
-      /Hook1\] unload - end ''/,
-      /Hook2\] unload - end ''/,
       /Home\] unload - end ''/,
-
+      /Hook2\] unload - end ''/,
+      /Hook1\] unload - end ''/,
+    ], 12, 'round#2 - unload');
+    eventLog.assertLogOrderInvariant([
       /Hook1\] load - start 'foo'/,
       /Hook2\] load - start 'foo'/,
       /Foo\] load - start 'foo'/,
-      /Hook1\] load - end 'foo'/,
-      /Hook2\] load - end 'foo'/,
       /Foo\] load - end 'foo'/,
-    ], false, 'round#2');
+      /Hook2\] load - end 'foo'/,
+      /Hook1\] load - end 'foo'/,
+    ], 18, 'round#2 - load');
 
     await au.stop();
   });

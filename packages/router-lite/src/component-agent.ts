@@ -113,26 +113,39 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     this._logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
     b.push();
+    let promise: Promise<void> | void = void 0;
     for (const hook of this.canUnloadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.canUnload(this.instance, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = false;
-        }
-        b.pop();
+      promise = onResolve(promise, () => {
+        if (tr.guardsResult !== true) return;
+        return new Promise((res) => {
+          tr.run(() => {
+            b.push();
+            return hook.canUnload(this.instance, next, this.routeNode);
+          }, ret => {
+            if (tr.guardsResult === true && ret !== true) {
+              tr.guardsResult = false;
+            }
+            b.pop();
+            res();
+          });
+        });
       });
     }
     if (this._hasCanUnload) {
-      tr.run(() => {
-        b.push();
-        return this.instance.canUnload!(next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = false;
-        }
-        b.pop();
+      promise = onResolve(promise, () => {
+        if (tr.guardsResult !== true) return;
+        return new Promise((res) => {
+          tr.run(() => {
+            b.push();
+            return this.instance.canUnload!(next, this.routeNode);
+          }, ret => {
+            if (tr.guardsResult === true && ret !== true) {
+              tr.guardsResult = false;
+            }
+            b.pop();
+            res();
+          });
+        });
       });
     }
     b.pop();

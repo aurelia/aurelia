@@ -15,7 +15,6 @@ import {
 import {
   TypedNavigationInstruction,
   NavigationInstructionType,
-  Params,
   ITypedNavigationInstruction_Component,
 } from './instructions';
 import {
@@ -48,7 +47,7 @@ export class RouteDefinition {
   public readonly redirectTo: string | null;
   public readonly viewport: string;
   public readonly id: string;
-  public readonly data: Params;
+  public readonly data: Record<string, unknown>;
   public readonly fallback: string | null;
 
   public constructor(
@@ -147,10 +146,6 @@ export class RouteDefinition {
 
   public register(container: IContainer): void {
     this.component?.register(container);
-  }
-
-  public toUrlComponent(): string {
-    return 'not-implemented'; // TODO
   }
 
   public toString(): string {

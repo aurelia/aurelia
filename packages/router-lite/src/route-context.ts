@@ -1,25 +1,45 @@
-import { IContainer, ResourceDefinition, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
-import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
-import { RouteRecognizer, RecognizedRoute, ConfigurableRoute, Endpoint } from '@aurelia/route-recognizer';
+import { DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Registration, ResourceDefinition } from '@aurelia/kernel';
+import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition';
-import { ViewportAgent, ViewportRequest } from './viewport-agent';
 import { ComponentAgent, IRouteViewModel } from './component-agent';
+import { ITypedNavigationInstruction_string, IViewportInstruction, NavigationInstruction, NavigationInstructionType, Params, ViewportInstruction } from './instructions';
+import { IViewport } from './resources/viewport';
+import { IChildRouteConfig, Routeable, RouteType } from './route';
+import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
 import { IRouter, ResolutionMode } from './router';
-import { IViewport } from './resources/viewport';
-import { Routeable } from './route';
-import { isPartialChildRouteConfig } from './validation';
-import { ensureArrayOfStrings } from './util';
-import { IViewportInstruction, Params, ViewportInstructionTree } from './instructions';
 import { IRouterEvents } from './router-events';
+import { ensureArrayOfStrings } from './util';
+import { isPartialChildRouteConfig } from './validation';
+import { ViewportAgent, ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 export const RESIDUE = 'au$residue' as const;
 
-type PathGenerationResult = { path: string; def: RouteDefinition; consumed: Params; unconsumed: Params | null };
+type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
+
+/** @internal */
+export type EagerInstruction = {
+  component: string | RouteDefinition | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
+  params: Params;
+};
+
+const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
+export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
+  // don't try to resolve an instruction with children eagerly, as the children are essentially resolved lazily, for now.
+  if (val == null) return false;
+  const params = (val as EagerInstruction).params;
+  const component = (val as EagerInstruction).component;
+  return typeof params === 'object'
+    && params !== null
+    && component != null
+    && allowedEagerComponentTypes.includes(typeof component)
+    && !(component instanceof Promise) // a promise component is inherently meant to be lazy-loaded
+    ;
+}
 
 /**
  * Holds the information of a component in the context of a specific container.
@@ -87,7 +107,7 @@ export class RouteContext {
   }
 
   /** @internal */
-  private _vpa: ViewportAgent | null = null;
+  private readonly _vpa: ViewportAgent | null;
   /**
    * The viewport hosting the component associated with this RouteContext.
    * The root RouteContext has no ViewportAgent and will throw when attempting to access this property.
@@ -98,16 +118,6 @@ export class RouteContext {
       throw new Error(`RouteContext has no ViewportAgent: ${this}`);
     }
     return vpa;
-  }
-  public set vpa(value: ViewportAgent) {
-    if (value === null || value === void 0) {
-      throw new Error(`Cannot set ViewportAgent to ${value} for RouteContext: ${this}`);
-    }
-    const prev = this._vpa;
-    if (prev !== value) {
-      this._vpa = value;
-      this.logger.trace(`ViewportAgent changed from %s to %s`, prev, value);
-    }
   }
   public readonly container: IContainer;
 
@@ -178,7 +188,7 @@ export class RouteContext {
     const allPromises: Promise<void>[] = [];
     const children = definition.config.routes;
     const len = children.length;
-    if(len === 0) {
+    if (len === 0) {
       const getRouteConfig = (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
       return;
@@ -341,7 +351,7 @@ export class RouteContext {
     this.hostControllerProvider.prepare(hostController);
     const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
-    if(!this._childRoutesConfigured) {
+    if (!this._childRoutesConfigured) {
       const routeDef = RouteDefinition.resolve(componentInstance, this.definition, routeNode);
       this.processDefinition(routeDef);
     }
@@ -380,10 +390,10 @@ export class RouteContext {
     let _current: IRouteContext = this;
     let _continue = true;
     let result: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>> | null = null;
-    while(_continue){
+    while (_continue) {
       result = _current.recognizer.recognize(path);
       if (result === null) {
-        if(!searchAncestor || _current.isRoot) return null;
+        if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
       } else {
         _continue = false;
@@ -456,68 +466,124 @@ export class RouteContext {
     });
   }
 
-  // this is separate method might be helpful if we need to create a public path generation utility function in future.
   /** @internal */
-  private _generatePathInternal(id: string, params?: Params | null): PathGenerationResult | null {
-    if (id == null) return null;
-
-    const def = (this.childRoutes as RouteDefinition[]).find(x => x.id === id);
+  public generateViewportInstruction(instruction: { component: RouteDefinition; params: Params }): PathGenerationResult;
+  public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
+    if (!isEagerInstruction(instruction)) return null;
+    const component = instruction.component;
+    let def: RouteDefinition | undefined;
+    let throwError: boolean = false;
+    if (component instanceof RouteDefinition) {
+      def = component;
+      throwError = true;
+    } else if (typeof component === 'string') {
+      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
+    } else if((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
+      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
+    } else {
+      // as the component is ensured not to be a promise in here, the resolution should also be synchronous
+      def = RouteDefinition.resolve(component, null, null, this) as RouteDefinition;
+    }
     if (def === void 0) return null;
 
-    let path = def.path[0]; // [Sayan]: we probably should select the "most" matched path
-    const consumed: Params = Object.create(null);
-    const unconsumed: Params = Object.create(null);
-    let hasUnconsumedParams = false;
-    if (typeof params === 'object' && params !== null) {
-      const keys = Object.keys(params);
-      for (const key of keys) {
-        const value = params[key];
-        const re = new RegExp(`[*:]${key}[?]?`);
-        const matches = re.exec(path);
-        if (matches === null) {
-          unconsumed[key] = value;
-          hasUnconsumedParams = true;
-          continue;
-        }
-        if (value != null && String(value).length > 0) {
-          path = path.replace(matches[0], value);
-          consumed[key] = value;
-        }
+    const params = instruction.params;
+    const recognizer = this.recognizer;
+    const paths = def.path;
+    const numPaths = paths.length;
+    const errors: string[] = [];
+    let result: ReturnType<typeof core> = null;
+    if (numPaths === 1) {
+      const result = core(paths[0]);
+      if (result === null) {
+        const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+        if(throwError) throw new Error(message);
+        this.logger.debug(message);
+        return null;
+      }
+      return {
+        vi: ViewportInstruction.create({
+          recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+          component: result.path,
+          children: (instruction as IViewportInstruction).children,
+          viewport: (instruction as IViewportInstruction).viewport,
+          open: (instruction as IViewportInstruction).open,
+          close: (instruction as IViewportInstruction).close,
+        }),
+        query: result.query,
+      };
+    }
+
+    let maxScore = 0;
+    for (let i = 0; i < numPaths; i++) {
+      const res = core(paths[i]);
+      if (res === null) continue;
+      if (result === null) {
+        result = res;
+        maxScore = Object.keys(res.consumed).length;
+      } else if (Object.keys(res.consumed).length > maxScore) { // ignore anything other than monotonically increasing consumption
+        result = res;
       }
     }
-    // Remove leading and trailing optional param parts
+
+    if (result === null) {
+      const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+      if(throwError) throw new Error(message);
+      this.logger.debug(message);
+      return null;
+    }
     return {
-      path: path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, ''),
-      def,
-      consumed,
-      unconsumed: hasUnconsumedParams ? unconsumed : null,
+      vi: ViewportInstruction.create({
+        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+        component: result.path,
+        children: (instruction as IViewportInstruction).children,
+        viewport: (instruction as IViewportInstruction).viewport,
+        open: (instruction as IViewportInstruction).open,
+        close: (instruction as IViewportInstruction).close,
+      }),
+      query: result.query,
     };
-  }
 
-  /** @internal */
-  public generateTree(id: string, params: Params | null | undefined): ViewportInstructionTree | null {
-    const val = this._generatePathInternal(id, params);
-    if(val === null) return null;
-
-    const { path, def, consumed, unconsumed } = val;
-
-    // TODO(Sayan): Investigate why we need params in so many places; probably it will be less hairy when the URL pattern is used.
-    // we don't necessarily need to add the # to the path here.
-    const route = new ConfigurableRoute(path, def.caseSensitive, def);
-    const endpoint = new Endpoint(route, Object.keys(consumed));
-    const rr = new RecognizedRoute(endpoint, consumed);
-    const instruction: Partial<IViewportInstruction> = {
-      recognizedRoute: new $RecognizedRoute(rr, null),
-      component: path,
-      context: this,
+    type EagerResolutionResult = {
+      path: string;
+      endpoint: Endpoint<RouteDefinition | Promise<RouteDefinition>>;
+      consumed: Params;
+      query: Params;
     };
-    return this._router.createViewportInstructions(
-        [instruction],
-        {
-          context: this,
-          queryParams: unconsumed
+
+    function core(path: string): EagerResolutionResult | null {
+      const endpoint = recognizer.getEndpoint(path);
+      if (endpoint === null) {
+        errors.push(`No endpoint found for the path: '${path}'.`);
+        return null;
+      }
+      const consumed: Params = Object.create(null);
+      for (const param of endpoint.params) {
+        const key = param.name;
+        let value = params[key];
+        if (value == null || String(value).length === 0) {
+          if (!param.isOptional) {
+            errors.push(`No value for the required parameter '${key}' is provided for the path: '${path}'.`);
+            return null;
+          }
+          value = '';
+        } else {
+          consumed[key] = value;
         }
-      );
+
+        const pattern = param.isStar
+          ? `*${key}`
+          : param.isOptional
+            ? `:${key}?`
+            : `:${key}`;
+
+        path = path.replace(pattern, value);
+      }
+      const consumedKeys = Object.keys(consumed);
+      const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
+      return { path: path.replace(/\/\//g, '/'), endpoint, consumed, query };
+    }
   }
 
   public toString(): string {
@@ -552,7 +618,7 @@ export class $RecognizedRoute {
   public constructor(
     public readonly route: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>,
     public readonly residue: string | null,
-  ) {}
+  ) { }
 
   public toString(): string {
     const route = this.route;
@@ -621,7 +687,7 @@ export interface INavigationRoute {
   readonly id: string;
   readonly path: string[];
   readonly title: string | ((node: RouteNode) => string | null) | null;
-  readonly data: Params | null;
+  readonly data: Record<string, unknown>;
   readonly isActive: boolean;
 }
 // Usage of classical interface pattern is intentional.
@@ -631,7 +697,7 @@ class NavigationRoute implements INavigationRoute {
     public readonly id: string,
     public readonly path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly data: Params | null,
+    public readonly data: Record<string, unknown>,
   ) { }
 
   /** @internal */

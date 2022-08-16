@@ -4,6 +4,14 @@ export interface IConfigurableRoute<T> {
   readonly handler: T;
 }
 
+export class Parameter {
+  public constructor(
+    public readonly name: string,
+    public readonly isOptional: boolean,
+    public readonly isStar: boolean,
+  ){}
+}
+
 export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
   public constructor(
     public readonly path: string,
@@ -15,7 +23,7 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
 export class Endpoint<T> {
   public constructor(
     public readonly route: ConfigurableRoute<T>,
-    public readonly paramNames: readonly string[],
+    public readonly params: readonly Parameter[],
   ) {}
 }
 
@@ -137,8 +145,8 @@ class Candidate<T> {
 
     const params: Record<string, string | undefined> = {};
     // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
-    for (const name of endpoint.paramNames) {
-      params[name] = void 0;
+    for (const param of endpoint.params) {
+      params[param.name] = void 0;
     }
 
     for (let i = 0, ii = states.length; i < ii; ++i) {
@@ -318,6 +326,7 @@ class RecognizeResult<T> {
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
+  private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[]): void {
     if (routeOrRoutes instanceof Array) {
@@ -334,11 +343,13 @@ export class RouteRecognizer<T> {
 
   private $add(route: IConfigurableRoute<T>): void {
     const path = route.path;
-    const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
+    const lookup = this.endpointLookup;
+    if(lookup.has(path)) throw new Error(`Cannot add duplicate path '${path}'.`);
+    const $route = new ConfigurableRoute(path, route.caseSensitive === true, route.handler);
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
     const parts = path === '' ? [''] : path.split('/').filter(isNotEmpty);
-    const paramNames: string[] = [];
+    const params: Parameter[] = [];
 
     let state = this.rootState as AnyState<T>;
 
@@ -350,13 +361,13 @@ export class RouteRecognizer<T> {
         case ':': { // route parameter
           const isOptional = part.endsWith('?');
           const name = isOptional ? part.slice(1, -1) : part.slice(1);
-          paramNames.push(name);
+          params.push(new Parameter(name, isOptional, false));
           state = new DynamicSegment<T>(name, isOptional).appendTo(state);
           break;
         }
         case '*': { // dynamic route
           const name = part.slice(1);
-          paramNames.push(name);
+          params.push(new Parameter(name, true, true));
           state = new StarSegment<T>(name).appendTo(state);
           break;
         }
@@ -367,9 +378,10 @@ export class RouteRecognizer<T> {
       }
     }
 
-    const endpoint = new Endpoint<T>($route, paramNames);
+    const endpoint = new Endpoint<T>($route, params);
 
     state.setEndpoint(endpoint);
+    lookup.set(path, endpoint);
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {
@@ -410,6 +422,10 @@ export class RouteRecognizer<T> {
     const params = candidate.getParams();
 
     return new RecognizedRoute<T>(endpoint, params);
+  }
+
+  public getEndpoint(path: string): Endpoint<T> | null {
+    return this.endpointLookup.get(path) ??  null;
   }
 }
 

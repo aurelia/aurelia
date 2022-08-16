@@ -1,4 +1,4 @@
-import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';

@@ -1,11 +1,5 @@
-import { Writable } from '@aurelia/kernel';
-import { Constructable, IContainer } from '@aurelia/kernel';
-import { Controller } from '@aurelia/runtime-html';
-import { IHydratedController } from '@aurelia/runtime-html';
-import { IController } from '@aurelia/runtime-html';
-import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { CustomElement, CustomElementDefinition, isCustomElementViewModel } from '@aurelia/runtime-html';
-import { IConnectedCustomElement } from '../endpoints/endpoint';
+import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 
 export interface IInstructionComponent extends InstructionComponent { }

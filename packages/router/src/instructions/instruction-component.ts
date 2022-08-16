@@ -1,5 +1,11 @@
+import { Writable } from '@aurelia/kernel';
 import { Constructable, IContainer } from '@aurelia/kernel';
+import { Controller } from '@aurelia/runtime-html';
+import { IHydratedController } from '@aurelia/runtime-html';
+import { IController } from '@aurelia/runtime-html';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { CustomElement, CustomElementDefinition, isCustomElementViewModel } from '@aurelia/runtime-html';
+import { IConnectedCustomElement } from '../endpoints/endpoint';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 
 export interface IInstructionComponent extends InstructionComponent { }
@@ -199,22 +205,43 @@ export class InstructionComponent {
     }
     return null;
   }
-  public toInstance(container: IContainer): IRouteableComponent | null {
+  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement): IRouteableComponent | null {
     if (this.instance !== null) {
       return this.instance;
     }
-    if (container !== void 0 && container !== null) {
-      const instance = this.isType()
-        ? container.get<IRouteableComponent>(this.type!)
-        : container.get<IRouteableComponent>(CustomElement.keyFrom(this.name!));
-      if (this.isType() &&
-        !(instance instanceof this.type!)
-      ) {
-        console.warn('Failed to instantiate', this.type, instance);
-      }
-      return instance ?? null;
+    if (parentContainer == null) {
+      return null;
     }
-    return null;
+    const container = parentContainer.createChild();
+
+    const instance = this.isType()
+      ? container.get<IRouteableComponent>(this.type!)
+      : container.get<IRouteableComponent>(CustomElement.keyFrom(this.name!));
+    // TODO: Implement non-traversing lookup (below) based on router configuration
+    // let instance;
+    // if (this.isType()) {
+    //   instance = ownContainer.invoke(this.type!);
+    // } else {
+    //   const def = ownContainer.find(CustomElement, CustomElement.keyFrom(this.name!));
+    //   if (def != null) {
+    //     instance = ownContainer.invoke(def.Type);
+    //   }
+    // }
+    if (instance == null) {
+      console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
+      throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
+    }
+
+    const controller = Controller.$el(
+      container,
+      instance,
+      parentElement,
+      null,
+    );
+    // TODO: Investigate if this is really necessary
+    (controller as Writable<typeof controller>).parent = parentController;
+
+    return instance;
   }
 
   public same(other: InstructionComponent, compareType: boolean = false): boolean {

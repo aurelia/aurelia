@@ -7,6 +7,7 @@
 
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { emptyQuery, NavigationOptions } from './router';
+import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
@@ -195,17 +196,11 @@ export class RouteExpression {
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
-    let query = this.queryParams;
-    const optQuery = options.queryParams;
-    if(optQuery != null) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      query = new URLSearchParams({...Object.fromEntries(query.entries()), ...optQuery} as Record<string, string>);
-    }
     return new ViewportInstructionTree(
       options,
       this.isAbsolute,
-      this.root.toInstructions(options.append, 0, 0),
-      query,
+      this.root.toInstructions(0, 0),
+      mergeURLSearchParams(this.queryParams, options.queryParams, true),
       this.fragment,
     );
   }
@@ -244,7 +239,6 @@ export class CompositeSegmentExpression {
   public constructor(
     public readonly raw: string,
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
-    public readonly append: boolean,
   ) {}
 
   public static parse(state: ParserState): CompositeSegmentExpressionOrHigher {
@@ -264,27 +258,27 @@ export class CompositeSegmentExpression {
     }
 
     const raw = state.playback();
-    return new CompositeSegmentExpression(raw, siblings, append);
+    return new CompositeSegmentExpression(raw, siblings);
   }
 
-  public toInstructions(append: boolean, open: number, close: number): ViewportInstruction[] {
+  public toInstructions(open: number, close: number): ViewportInstruction[] {
     switch (this.siblings.length) {
       case 0:
         return [];
       case 1:
-        return this.siblings[0].toInstructions(append, open, close);
+        return this.siblings[0].toInstructions(open, close);
       case 2:
         return [
-          ...this.siblings[0].toInstructions(append, open, 0),
-          ...this.siblings[1].toInstructions(append, 0, close),
+          ...this.siblings[0].toInstructions(open, 0),
+          ...this.siblings[1].toInstructions(0, close),
         ];
       default:
         return [
-          ...this.siblings[0].toInstructions(append, open, 0),
+          ...this.siblings[0].toInstructions(open, 0),
           ...this.siblings.slice(1, -1).flatMap(function (x) {
-            return x.toInstructions(append, 0, 0);
+            return x.toInstructions(0, 0);
           }),
-          ...this.siblings[this.siblings.length - 1].toInstructions(append, 0, close),
+          ...this.siblings[this.siblings.length - 1].toInstructions(0, close),
         ];
     }
   }
@@ -334,9 +328,9 @@ export class ScopedSegmentExpression {
     return left;
   }
 
-  public toInstructions(append: boolean, open: number, close: number): ViewportInstruction[] {
-    const leftInstructions = this.left.toInstructions(append, open, 0);
-    const rightInstructions = this.right.toInstructions(false, 0, close);
+  public toInstructions(open: number, close: number): ViewportInstruction[] {
+    const leftInstructions = this.left.toInstructions(open, 0);
+    const rightInstructions = this.right.toInstructions(0, close);
     let cur = leftInstructions[leftInstructions.length - 1];
     while (cur.children.length > 0) {
       cur = cur.children[cur.children.length - 1];
@@ -404,8 +398,8 @@ export class SegmentGroupExpression {
     return SegmentExpression.parse(state);
   }
 
-  public toInstructions(append: boolean, open: number, close: number): ViewportInstruction[] {
-    return this.expression.toInstructions(append, open + 1, close + 1);
+  public toInstructions(open: number, close: number): ViewportInstruction[] {
+    return this.expression.toInstructions(open + 1, close + 1);
   }
 
   public toString(): string {
@@ -441,13 +435,12 @@ export class SegmentExpression {
     return new SegmentExpression(raw, component, action, viewport, scoped);
   }
 
-  public toInstructions(append: boolean, open: number, close: number): ViewportInstruction[] {
+  public toInstructions(open: number, close: number): ViewportInstruction[] {
     return [
       ViewportInstruction.create({
         component: this.component.name,
         params: this.component.parameterList.toObject(),
         viewport: this.viewport.name,
-        append,
         open,
         close,
       }),

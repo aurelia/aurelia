@@ -1,10 +1,10 @@
-import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
 
   interface RecognizeSpec {
-    routes: string[];
+    routes: [string, Parameter[]][];
     tests: [string, string | null, Record<string, string> | null][];
   }
 
@@ -12,7 +12,7 @@ describe(RouteRecognizer.name, function () {
     // #region 1-depth static routes
     {
       routes: [
-        '',
+        ['', []]
       ],
       tests: [
         ['',   '',   null],
@@ -21,7 +21,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
+        ['a', []]
       ],
       tests: [
         ['',   null, null],
@@ -32,8 +32,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '',
-        'a',
+        ['', []],
+        ['a', []],
       ],
       tests: [
         ['',   '',   null],
@@ -44,7 +44,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'aa',
+        ['aa', []],
       ],
       tests: [
         ['',    null, null],
@@ -57,7 +57,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'aaa',
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -72,8 +72,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
+        ['a',[]],
+        ['aa',[]],
       ],
       tests: [
         ['',    null, null],
@@ -84,8 +84,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aaa',
+        ['a', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -97,8 +97,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'aa',
-        'aaa',
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -110,9 +110,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -126,7 +126,7 @@ describe(RouteRecognizer.name, function () {
     // #region 2-depth static routes
     {
       routes: [
-        'a/a',
+        ['a/a', []],
       ],
       tests: [
         ['',    null,  null],
@@ -140,8 +140,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '',
-        'a/a',
+        ['', []],
+        ['a/a', []],
       ],
       tests: [
         ['',    '',    null],
@@ -155,7 +155,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'aa/a',
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -170,7 +170,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/aa',
+        ['a/aa', []],
       ],
       tests: [
         ['',     null,   null],
@@ -185,7 +185,7 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'aa/aa',
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -202,8 +202,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'aa/a',
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -218,8 +218,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'a/aa',
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,   null],
@@ -234,8 +234,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'aa/aa',
+        ['a/a', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -252,9 +252,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'aa/a',
-        'aa/aa',
+        ['a/a', []],
+        ['aa/a', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -271,9 +271,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'a/aa',
-        'aa/aa',
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -290,10 +290,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/a',
-        'aa/a',
-        'a/aa',
-        'aa/aa',
+        ['a/a', []],
+        ['aa/a', []],
+        ['a/aa', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -312,10 +312,10 @@ describe(RouteRecognizer.name, function () {
     // #region mixed 1,2-depth static routes
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
       ],
       tests: [
         ['',    null,  null],
@@ -327,11 +327,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '',
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
+        ['', []],
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
       ],
       tests: [
         ['',    '',    null],
@@ -343,10 +343,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'aa/a',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -361,10 +361,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',     null,   null],
@@ -379,10 +379,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'aa/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -399,11 +399,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'aa/a',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -418,11 +418,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'a/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,   null],
@@ -437,11 +437,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'aa/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -458,12 +458,12 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'aa/a',
-        'aa/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['aa/a', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -480,12 +480,12 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'a/aa',
-        'aa/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -502,13 +502,13 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a',
-        'aa',
-        'aaa',
-        'a/a',
-        'aa/a',
-        'a/aa',
-        'aa/aa',
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
+        ['a/a', []],
+        ['aa/a', []],
+        ['a/aa', []],
+        ['aa/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -527,7 +527,7 @@ describe(RouteRecognizer.name, function () {
     // #region 1-depth dynamic routes
     {
       routes: [
-        ':1',
+        [':1', [new Parameter('1', false, false)]],
       ],
       tests: [
         ['',    null, null],
@@ -539,8 +539,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '',
-        ':1',
+        ['', []],
+        [':1', [new Parameter('1', false, false)]],
       ],
       tests: [
         ['',    '',   null],
@@ -552,8 +552,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1',
-        'a',
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
       ],
       tests: [
         ['',    null, null],
@@ -565,9 +565,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1',
-        'a',
-        'aa',
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aa', []],
       ],
       tests: [
         ['',    null, null],
@@ -580,9 +580,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1',
-        'a',
-        'aaa',
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -595,9 +595,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1',
-        'aa',
-        'aaa',
+        [':1', [new Parameter('1', false, false)]],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -610,10 +610,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1',
-        'a',
-        'aa',
-        'aaa',
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',     null,  null],
@@ -629,8 +629,8 @@ describe(RouteRecognizer.name, function () {
     // d/s
     {
       routes: [
-        ':1/a',
-        'a/a',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -646,9 +646,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1/a',
-        'a/a',
-        'aa/a',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -666,8 +666,8 @@ describe(RouteRecognizer.name, function () {
     // s/d
     {
       routes: [
-        'a/:2',
-        'a/a',
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -683,9 +683,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/:2',
-        'a/a',
-        'a/aa',
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,   null],
@@ -703,9 +703,9 @@ describe(RouteRecognizer.name, function () {
     // d/s + s/d
     {
       routes: [
-        ':1/a',
-        'a/:2',
-        'a/a',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -720,10 +720,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'aa/a',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -739,10 +739,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'a/aa',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,   null],
@@ -758,11 +758,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,   null],
@@ -780,9 +780,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -799,10 +799,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -821,10 +821,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s*2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -842,11 +842,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s*2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -866,9 +866,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s
     {
       routes: [
-        ':1/:2',
-        'a/:2',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -885,10 +885,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s
     {
       routes: [
-        ':1/:2',
-        'a/:2',
-        'aa/:2',
-        'a/a',
+        [':1/:2',[new Parameter('1', false, false), new Parameter('2', false, false)]],
+        ['a/:2',[new Parameter('2', false, false)]],
+        ['aa/:2',[new Parameter('2', false, false)]],
+        ['a/a',[]],
       ],
       tests: [
         ['',       null,    null],
@@ -906,10 +906,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s*2
     {
       routes: [
-        ':1/:2',
-        'a/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -927,11 +927,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s*2
     {
       routes: [
-        ':1/:2',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',       null,    null],
@@ -950,10 +950,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -970,11 +970,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -992,11 +992,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'aa/:2',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1014,12 +1014,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'aa/:2',
-        'a/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -1039,11 +1039,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s*2 #1
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1061,12 +1061,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s*2 #1
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1085,12 +1085,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s*2 #1
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1109,13 +1109,13 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s*2 #1
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -1136,11 +1136,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s*2 #2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1158,12 +1158,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s*2 #2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1182,12 +1182,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s*2 #2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1207,13 +1207,13 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s*2 #2
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'a/aa',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',        null,    null],
@@ -1235,12 +1235,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s*3
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1259,13 +1259,13 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s*3
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1285,13 +1285,13 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s*3
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,    null],
@@ -1311,14 +1311,14 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s*3
     {
       routes: [
-        ':1/:2',
-        ':1/a',
-        ':1/aa',
-        'a/:2',
-        'aa/:2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -1340,7 +1340,7 @@ describe(RouteRecognizer.name, function () {
     // #endregion
     {
       routes: [
-        ':1?',
+        [':1?', [new Parameter('1', true, false)]],
       ],
       tests: [
         ['',    ':1?', { 1: void 0 }],
@@ -1354,8 +1354,8 @@ describe(RouteRecognizer.name, function () {
     // d/s
     {
       routes: [
-        ':1?/a',
-        'a/a',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1371,9 +1371,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1?/a',
-        'a/a',
-        'aa/a',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1391,8 +1391,8 @@ describe(RouteRecognizer.name, function () {
     // s/d
     {
       routes: [
-        'a/:2?',
-        'a/a',
+        ['a/:2?',[new Parameter('2', true, false)]],
+        ['a/a',[]],
       ],
       tests: [
         ['',      null,    null],
@@ -1408,9 +1408,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/:2?',
-        'a/a',
-        'a/aa',
+        ['a/:2?' ,[new Parameter('2', true, false)]],
+        ['a/a' ,[]],
+        ['a/aa' ,[]],
       ],
       tests: [
         ['',      null,    null],
@@ -1428,9 +1428,9 @@ describe(RouteRecognizer.name, function () {
     // d/s + s/d
     {
       routes: [
-        ':1?/a',
-        'a/:2?',
-        'a/a',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1445,10 +1445,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1?/a',
-        'a/:2?',
-        'a/a',
-        'aa/a',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1464,10 +1464,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1?/a',
-        'a/:2?',
-        'a/a',
-        'a/aa',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1483,11 +1483,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        ':1?/a',
-        'a/:2?',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      null,    null],
@@ -1505,9 +1505,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1524,10 +1524,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        ':1?/aa',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        [':1?/aa', [new Parameter('1', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1546,10 +1546,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s*2
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        'a/a',
-        'aa/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1567,11 +1567,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s*2
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        ':1?/aa',
-        'a/a',
-        'aa/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        [':1?/aa', [new Parameter('1', true, false)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1591,9 +1591,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s
     {
       routes: [
-        ':1?/:2?',
-        'a/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1610,10 +1610,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s
     {
       routes: [
-        ':1?/:2?',
-        'a/:2?',
-        'aa/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['aa/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1631,10 +1631,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s*2
     {
       routes: [
-        ':1?/:2?',
-        'a/:2?',
-        'a/a',
-        'a/aa',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1652,11 +1652,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s*2
     {
       routes: [
-        ':1?/:2?',
-        'a/:2?',
-        'aa/:2?',
-        'a/a',
-        'a/aa',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['aa/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1675,10 +1675,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        'a/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1695,11 +1695,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        ':1?/aa',
-        'a/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        [':1?/aa', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1717,11 +1717,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        'a/:2?',
-        'aa/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['aa/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1739,12 +1739,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s
     {
       routes: [
-        ':1?/:2?',
-        ':1?/a',
-        ':1?/aa',
-        'a/:2?',
-        'aa/:2?',
-        'a/a',
+        [':1?/:2?', [new Parameter('1', true, false), new Parameter('2', true, false)]],
+        [':1?/a', [new Parameter('1', true, false)]],
+        [':1?/aa', [new Parameter('1', true, false)]],
+        ['a/:2?', [new Parameter('2', true, false)]],
+        ['aa/:2?', [new Parameter('2', true, false)]],
+        ['a/a', []],
       ],
       tests: [
         ['',        ':1?/:2?', { 1: void 0, 2: void 0 }],
@@ -1765,7 +1765,7 @@ describe(RouteRecognizer.name, function () {
     // #region 1-depth star routes
     {
       routes: [
-        '*1',
+        ['*1', [new Parameter('1', true, true)]],
       ],
       tests: [
         ['',      null, null],
@@ -1780,8 +1780,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '',
-        '*1',
+        ['', []],
+        ['*1', [new Parameter('1', true, true)]],
       ],
       tests: [
         ['',      '',   null],
@@ -1796,8 +1796,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        'a',
+        ['*1', [new Parameter('1', true, true)]],
+        ['a', []],
       ],
       tests: [
         ['',      null, null],
@@ -1812,9 +1812,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        'a',
-        'aa',
+        ['*1', [new Parameter('1', true, true)]],
+        ['a', []],
+        ['aa', []],
       ],
       tests: [
         ['',      null, null],
@@ -1830,9 +1830,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        'a',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        ['a', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -1849,9 +1849,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        'aa',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -1868,10 +1868,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        'a',
-        'aa',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -1890,8 +1890,8 @@ describe(RouteRecognizer.name, function () {
     // #region 1-depth star + dynamic routes
     {
       routes: [
-        '*1',
-        ':1',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
       ],
       tests: [
         ['',      null, null],
@@ -1906,9 +1906,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        ':1',
-        'a',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
       ],
       tests: [
         ['',      null, null],
@@ -1923,10 +1923,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        ':1',
-        'a',
-        'aa',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aa', []],
       ],
       tests: [
         ['',      null, null],
@@ -1942,10 +1942,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        ':1',
-        'a',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -1962,10 +1962,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        ':1',
-        'aa',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -1982,11 +1982,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1',
-        ':1',
-        'a',
-        'aa',
-        'aaa',
+        ['*1', [new Parameter('1', true, true)]],
+        [':1', [new Parameter('1', false, false)]],
+        ['a', []],
+        ['aa', []],
+        ['aaa', []],
       ],
       tests: [
         ['',      null,  null],
@@ -2006,7 +2006,7 @@ describe(RouteRecognizer.name, function () {
     // d/s
     {
       routes: [
-        '*1/a',
+        ['*1/a', [new Parameter('1', true, true)]],
       ],
       tests: [
         ['',       null,   null],
@@ -2025,8 +2025,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/a',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       null,   null],
@@ -2045,9 +2045,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/a',
-        'aa/a',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',       null,   null],
@@ -2068,7 +2068,7 @@ describe(RouteRecognizer.name, function () {
     // s/d
     {
       routes: [
-        'a/*2',
+        ['a/*2', [new Parameter('2', true, true)]],
       ],
       tests: [
         ['',       null,   null],
@@ -2085,8 +2085,8 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/*2',
-        'a/a',
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',       null,   null],
@@ -2105,9 +2105,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        'a/*2',
-        'a/a',
-        'a/aa',
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',       null,   null],
@@ -2128,8 +2128,8 @@ describe(RouteRecognizer.name, function () {
     // d/s + s/d
     {
       routes: [
-        '*1/a',
-        'a/*2',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
       ],
       tests: [
         ['',        null,   null],
@@ -2149,9 +2149,9 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/*2',
-        'a/a',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',        null,   null],
@@ -2171,10 +2171,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/*2',
-        'a/a',
-        'aa/a',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',        null,   null],
@@ -2195,10 +2195,10 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/*2',
-        'a/a',
-        'a/aa',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',        null,   null],
@@ -2219,11 +2219,11 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
-        '*1/a',
-        'a/*2',
-        'a/a',
-        'a/aa',
-        'aa/a',
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['a/aa', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',        null,   null],
@@ -2246,7 +2246,7 @@ describe(RouteRecognizer.name, function () {
     // d/d
     {
       routes: [
-        '*1/*2',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
       ],
       tests: [
         ['',        null,    null],
@@ -2268,8 +2268,8 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
       ],
       tests: [
         ['',        null,    null],
@@ -2291,9 +2291,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -2315,10 +2315,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        '*1/aa',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['*1/aa', [new Parameter('1', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',         null,     null],
@@ -2344,10 +2344,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/s*2
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        'a/a',
-        'aa/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -2369,11 +2369,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/s*2
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        '*1/aa',
-        'a/a',
-        'aa/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['*1/aa', [new Parameter('1', true, true)]],
+        ['a/a', []],
+        ['aa/a', []],
       ],
       tests: [
         ['',         null,    null],
@@ -2399,9 +2399,9 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s
     {
       routes: [
-        '*1/*2',
-        'a/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',        null,    null],
@@ -2423,10 +2423,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s
     {
       routes: [
-        '*1/*2',
-        'a/*2',
-        'aa/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['aa/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',         null,    null],
@@ -2452,10 +2452,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d + s/s*2
     {
       routes: [
-        '*1/*2',
-        'a/*2',
-        'a/a',
-        'a/aa',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',        null,    null],
@@ -2477,11 +2477,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + s/d*2 + s/s*2
     {
       routes: [
-        '*1/*2',
-        'a/*2',
-        'aa/*2',
-        'a/a',
-        'a/aa',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['aa/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
+        ['a/aa', []],
       ],
       tests: [
         ['',         null,    null],
@@ -2507,10 +2507,10 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        'a/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',         null,    null],
@@ -2534,11 +2534,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        '*1/aa',
-        'a/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['*1/aa', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',          null,    null],
@@ -2565,11 +2565,11 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s + s/d*2 + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        'a/*2',
-        'aa/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['aa/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',          null,    null],
@@ -2599,12 +2599,12 @@ describe(RouteRecognizer.name, function () {
     // d/d + d/s*2 + s/d*2 + s/s
     {
       routes: [
-        '*1/*2',
-        '*1/a',
-        '*1/aa',
-        'a/*2',
-        'aa/*2',
-        'a/a',
+        ['*1/*2', [new Parameter('1', true, true), new Parameter('2', true, true)]],
+        ['*1/a', [new Parameter('1', true, true)]],
+        ['*1/aa', [new Parameter('1', true, true)]],
+        ['a/*2', [new Parameter('2', true, true)]],
+        ['aa/*2', [new Parameter('2', true, true)]],
+        ['a/a', []],
       ],
       tests: [
         ['',           null,    null],
@@ -2639,63 +2639,63 @@ describe(RouteRecognizer.name, function () {
     // TODO(fkleuver): this is not done yet. Plenty of edge cases still to be added (esp. with dynamic vs optional dynamic with star segments, etc)
     {
       routes: [
-        'a',
-        'a/a',
-        'a/a/a',
-        'a/a/aa',
-        'a/a/:3',
-        'a/a/:3?/a',
-        'a/a/:3?/aa',
-        'a/aa',
-        'a/aa/a',
-        'a/aa/aa',
-        'a/aa/:3',
-        'a/aa/:3?/a',
-        'a/aa/:3?/aa',
-        'a/:2',
-        'a/:2/a',
-        'a/:2/aa',
-        'a/:2/:3',
-        'a/:2/:3?/a',
-        'a/:2/:3?/aa',
-        'aa',
-        'aa/a',
-        'aa/a/a',
-        'aa/a/aa',
-        'aa/a/:3',
-        'aa/a/:3?/a',
-        'aa/a/:3?/aa',
-        'aa/aa',
-        'aa/aa/a',
-        'aa/aa/aa',
-        'aa/aa/:3',
-        'aa/aa/:3?/a',
-        'aa/aa/:3?/aa',
-        'aa/:2',
-        'aa/:2/a',
-        'aa/:2/aa',
-        'aa/:2/:3',
-        'aa/:2/:3?/a',
-        'aa/:2/:3?/aa',
-        ':1',
-        ':1/a',
-        ':1/a/a',
-        ':1/a/aa',
-        ':1/a/:3',
-        ':1/a/:3?/a',
-        ':1/a/:3?/aa',
-        ':1/aa',
-        ':1/aa/a',
-        ':1/aa/aa',
-        ':1/aa/:3',
-        ':1/aa/:3?/a',
-        ':1/aa/:3?/aa',
-        ':1/:2',
-        ':1/:2/a',
-        ':1/:2/aa',
-        ':1/:2/:3',
-        ':1/:2/:3?/a',
-        ':1/:2/:3?/aa',
+        ['a', []],
+        ['a/a', []],
+        ['a/a/a', []],
+        ['a/a/aa', []],
+        ['a/a/:3', [new Parameter('3', false, false)]],
+        ['a/a/:3?/a', [new Parameter('3', true, false)]],
+        ['a/a/:3?/aa', [new Parameter('3', true, false)]],
+        ['a/aa', []],
+        ['a/aa/a', []],
+        ['a/aa/aa', []],
+        ['a/aa/:3', [new Parameter('3', false, false)]],
+        ['a/aa/:3?/a', [new Parameter('3', true, false)]],
+        ['a/aa/:3?/aa', [new Parameter('3', true, false)]],
+        ['a/:2', [new Parameter('2', false, false)]],
+        ['a/:2/a', [new Parameter('2', false, false)]],
+        ['a/:2/aa', [new Parameter('2', false, false)]],
+        ['a/:2/:3', [new Parameter('2', false, false), new Parameter('3', false, false)]],
+        ['a/:2/:3?/a', [new Parameter('2', false, false), new Parameter('3', true, false)]],
+        ['a/:2/:3?/aa', [new Parameter('2', false, false), new Parameter('3', true, false)]],
+        ['aa', []],
+        ['aa/a', []],
+        ['aa/a/a', []],
+        ['aa/a/aa', []],
+        ['aa/a/:3', [new Parameter('3', false, false)]],
+        ['aa/a/:3?/a', [new Parameter('3', true, false)]],
+        ['aa/a/:3?/aa', [new Parameter('3', true, false)]],
+        ['aa/aa', []],
+        ['aa/aa/a', []],
+        ['aa/aa/aa', []],
+        ['aa/aa/:3', [new Parameter('3', false, false)]],
+        ['aa/aa/:3?/a', [new Parameter('3', true, false)]],
+        ['aa/aa/:3?/aa', [new Parameter('3', true, false)]],
+        ['aa/:2', [new Parameter('2', false, false)]],
+        ['aa/:2/a', [new Parameter('2', false, false)]],
+        ['aa/:2/aa', [new Parameter('2', false, false)]],
+        ['aa/:2/:3', [new Parameter('2', false, false), new Parameter('3', false, false)]],
+        ['aa/:2/:3?/a', [new Parameter('2', false, false), new Parameter('3', true, false)]],
+        ['aa/:2/:3?/aa', [new Parameter('2', false, false), new Parameter('3', true, false)]],
+        [':1', [new Parameter('1', false, false)]],
+        [':1/a', [new Parameter('1', false, false)]],
+        [':1/a/a', [new Parameter('1', false, false)]],
+        [':1/a/aa', [new Parameter('1', false, false)]],
+        [':1/a/:3', [new Parameter('1', false, false), new Parameter('3', false, false)]],
+        [':1/a/:3?/a', [new Parameter('1', false, false), new Parameter('3', true, false)]],
+        [':1/a/:3?/aa', [new Parameter('1', false, false), new Parameter('3', true, false)]],
+        [':1/aa', [new Parameter('1', false, false)]],
+        [':1/aa/a', [new Parameter('1', false, false)]],
+        [':1/aa/aa', [new Parameter('1', false, false)]],
+        [':1/aa/:3', [new Parameter('1', false, false), new Parameter('3', false, false)]],
+        [':1/aa/:3?/a', [new Parameter('1', false, false), new Parameter('3', true, false)]],
+        [':1/aa/:3?/aa', [new Parameter('1', false, false), new Parameter('3', true, false)]],
+        [':1/:2', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/:2/a', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/:2/aa', [new Parameter('1', false, false), new Parameter('2', false, false)]],
+        [':1/:2/:3', [new Parameter('1', false, false), new Parameter('2', false, false), new Parameter('3', false, false)]],
+        [':1/:2/:3?/a', [new Parameter('1', false, false), new Parameter('2', false, false), new Parameter('3', true, false)]],
+        [':1/:2/:3?/aa', [new Parameter('1', false, false), new Parameter('2', false, false), new Parameter('3', true, false)]],
       ],
       tests: [
         ['a',              'a',            null],
@@ -2771,12 +2771,12 @@ describe(RouteRecognizer.name, function () {
 
             let title = `should`;
             if (match === null) {
-              title = `${title} reject '${path}' out of routes: [${routes.map(x => `'${x}'`).join(',')}]`;
+              title = `${title} reject '${path}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
 
               it(title, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
-                for (const route of routes) {
+                for (const [route] of routes) {
                   sut.add({ path: route, handler: null });
                 }
 
@@ -2788,19 +2788,18 @@ describe(RouteRecognizer.name, function () {
               });
             } else {
               const input = `${leading}${path}${trailing}`;
-              title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x}'`).join(',')}]`;
+              title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
 
               it(title, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
-                for (const route of routes) {
+                for (const [route] of routes) {
                   sut.add({ path: route, handler: null });
                 }
 
                 const params = { ...$params };
-                const paramNames = Object.keys(params);
                 const configurableRoute = new ConfigurableRoute(match, false, null);
-                const endpoint = new Endpoint(configurableRoute, paramNames);
+                const endpoint = new Endpoint(configurableRoute, routes.find(([route]) => route === match)[1]);
                 const expected = new RecognizedRoute(endpoint, params);
 
                 // Act

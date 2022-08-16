@@ -99,4 +99,36 @@ describe('load custom-attribute', function () {
     assert.match(anchor.href, /foo\/3\?a=2/);
     await au.stop();
   });
+
+  it('the most matched path is generated', async function () {
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo { }
+
+    @route({
+      routes: [
+        { id: 'foo', path: ['foo/:id', 'foo/:id/bar/:a', 'bar/fizz'], component: Foo }
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `<a load="route:foo; params.bind:{id: 3, a: 2};"></a><a load="route:foo; params.bind:{id: 3, b: 2};"></a><a load="bar/fizz"></a><au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { au, host, container } = await start(Root, Foo);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /foo\/3\/bar\/2/);
+    assert.match(hrefs[1], /foo\/3\?b=2/); // this one ensures the rejection of non-monotonically increment in the parameter consumption
+    assert.match(hrefs[2], /bar\/fizz/);
+
+    anchors[2].click();
+    await queue.yield();
+    assert.html.textContent(host, 'foo');
+
+    await au.stop();
+  });
 });

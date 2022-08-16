@@ -3,11 +3,11 @@ import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aure
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger } from './router-events';
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
-import { RouteTree, RouteNode, updateRouteTree } from './route-tree';
+import { RouteTree, RouteNode, updateNode } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
@@ -15,13 +15,6 @@ import { ViewportAgent } from './viewport-agent';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
-export const AuNavId = 'au-nav-id' as const;
-export type AuNavId = typeof AuNavId;
-
-export type ManagedState = {
-  [k: string]: unknown;
-  [AuNavId]: number;
-};
 
 export function isManagedState(state: {} | null): state is ManagedState {
   return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
@@ -131,7 +124,6 @@ export class RouterOptions {
   }
 }
 
-export type LoadOptions = INavigationOptions & { params?: Params };
 export interface INavigationOptions extends Partial<NavigationOptions> { }
 export class NavigationOptions extends RouterOptions {
   public static get DEFAULT(): NavigationOptions { return NavigationOptions.create({}); }
@@ -140,7 +132,6 @@ export class NavigationOptions extends RouterOptions {
     routerOptions: RouterOptions,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly titleSeparator: string,
-    public readonly append: boolean,
     /**
      * Specify a context to use for relative navigation.
      *
@@ -179,7 +170,6 @@ export class NavigationOptions extends RouterOptions {
       RouterOptions.create(input),
       input.title ?? null,
       input.titleSeparator ?? ' | ',
-      input.append ?? false,
       input.context ?? null,
       input.queryParams ?? null,
       input.fragment ?? '',
@@ -192,7 +182,6 @@ export class NavigationOptions extends RouterOptions {
       super.clone(),
       this.title,
       this.titleSeparator,
-      this.append,
       this.context,
       { ...this.queryParams },
       this.fragment,
@@ -205,32 +194,6 @@ export class NavigationOptions extends RouterOptions {
   }
 }
 
-export class Navigation {
-  private constructor(
-    public readonly id: number,
-    public readonly instructions: ViewportInstructionTree,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
-    public readonly options: NavigationOptions,
-    public readonly prevNavigation: Navigation | null,
-    // Set on next navigation, this is the route after all redirects etc have been processed.
-    public finalInstructions: ViewportInstructionTree | undefined,
-  ) { }
-
-  public static create(input: Navigation): Navigation {
-    return new Navigation(
-      input.id,
-      input.instructions,
-      input.trigger,
-      input.options,
-      input.prevNavigation,
-      input.finalInstructions,
-    );
-  }
-
-  public toString(): string {
-    return `N(id:${this.id},instructions:${this.instructions},trigger:'${this.trigger}')`;
-  }
-}
 export class Transition {
   private constructor(
     public readonly id: number,
@@ -238,7 +201,7 @@ export class Transition {
     public readonly instructions: ViewportInstructionTree,
     public finalInstructions: ViewportInstructionTree,
     public readonly instructionsChanged: boolean,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
+    public readonly trigger: RoutingTrigger,
     public readonly options: NavigationOptions,
     public readonly managedState: ManagedState | null,
     public readonly previousRouteTree: RouteTree,
@@ -250,7 +213,7 @@ export class Transition {
     public error: unknown,
   ) { }
 
-  public static create(input: Omit<Transition, 'abortIfNeeded' | 'run' | 'handleError'>): Transition {
+  public static create(input: Omit<Transition, 'run' | 'handleError'>): Transition {
     return new Transition(
       input.id,
       input.prevInstructions,
@@ -332,7 +295,6 @@ export class Router {
           context: ctx,
           instruction: null,
           component: ctx.definition.component!,
-          append: false,
           title: ctx.definition.config.title,
         }),
       );
@@ -372,9 +334,6 @@ export class Router {
 
   private navigated: boolean = false;
   private navigationId: number = 0;
-
-  private lastSuccessfulNavigation: Navigation | null = null;
-  private activeNavigation: Navigation | null = null;
 
   private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
 
@@ -432,7 +391,7 @@ export class Router {
           ...this.options,
           historyStrategy: 'replace',
         });
-        const instructions = ViewportInstructionTree.create(e.url, options);
+        const instructions = ViewportInstructionTree.create(e.url, options, this.ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -462,7 +421,7 @@ export class Router {
    * router.load('product-detail/37', { context: this });
    * ```
    */
-  public load(path: string, options?: LoadOptions): Promise<boolean>;
+  public load(path: string, options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided paths as siblings.
    *
@@ -472,7 +431,7 @@ export class Router {
    * router.load(['category/50/product/20', 'widget/30']);
    * ```
    */
-  public load(paths: readonly string[], options?: LoadOptions): Promise<boolean>;
+  public load(paths: readonly string[], options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided component type. Must be a custom element.
    *
@@ -483,7 +442,7 @@ export class Router {
    * router.load(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
    * ```
    */
-  public load(componentType: RouteType, options?: LoadOptions): Promise<boolean>;
+  public load(componentType: RouteType, options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided component types. Must be custom elements.
    *
@@ -493,7 +452,7 @@ export class Router {
    * router.load([MemberList, OrganizationList]);
    * ```
    */
-  public load(componentTypes: readonly RouteType[], options?: LoadOptions): Promise<boolean>;
+  public load(componentTypes: readonly RouteType[], options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided component definition. May or may not be pre-compiled.
    *
@@ -503,7 +462,7 @@ export class Router {
    * router.load({ name: 'greeter', template: 'Hello!' });
    * ```
    */
-  public load(componentDefinition: PartialCustomElementDefinition, options?: LoadOptions): Promise<boolean>;
+  public load(componentDefinition: PartialCustomElementDefinition, options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided component instance.
    *
@@ -516,7 +475,7 @@ export class Router {
    * router.load(greeter);
    * ```
    */
-  public load(componentInstance: IRouteViewModel, options?: LoadOptions): Promise<boolean>;
+  public load(componentInstance: IRouteViewModel, options?: INavigationOptions): Promise<boolean>;
   /**
    * Loads the provided ViewportInstruction, with component specified in any of the ways as described
    * in the other method overloads, and optional additional properties.
@@ -541,16 +500,10 @@ export class Router {
    * })
    * ```
    */
-  public load(viewportInstruction: IViewportInstruction, options?: LoadOptions): boolean | Promise<boolean>;
-  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: LoadOptions): boolean | Promise<boolean>;
-  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: LoadOptions): boolean | Promise<boolean> {
-    let instructions: ViewportInstructionTree | null = null;
-    const params = options?.params;
-    if(typeof instructionOrInstructions === 'string' && typeof params === 'object' && params !== null) {
-      const ctx = this.resolveContext(options?.context ?? null);
-      instructions = ctx.generateTree(instructionOrInstructions, params);
-    }
-    instructions ??= this.createViewportInstructions(instructionOrInstructions, options);
+  public load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): boolean | Promise<boolean>;
+  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean>;
+  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean> {
+    const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
     this.logger.trace('load(instructions:%s)', instructions);
 
@@ -559,7 +512,9 @@ export class Router {
 
   public isActive(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context: RouteContextLike): boolean {
     const ctx = this.resolveContext(context);
-    const instructions = this.createViewportInstructions(instructionOrInstructions, { context: ctx });
+    const instructions = instructionOrInstructions instanceof ViewportInstructionTree
+      ? instructionOrInstructions
+      : this.createViewportInstructions(instructionOrInstructions, { context: ctx });
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
@@ -595,38 +550,34 @@ export class Router {
     }
 
     let routeContext = routeDefinitionLookup.get(routeDefinition);
-    if (routeContext === void 0) {
-      logger.trace(`creating new RouteContext for %s`, routeDefinition);
-
-      const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
-
-      routeDefinitionLookup.set(
-        routeDefinition,
-        routeContext = new RouteContext(
-          viewportAgent,
-          parent,
-          componentDefinition,
-          routeDefinition,
-          container,
-          this,
-        ),
-      );
-    } else {
+    if (routeContext !== void 0) {
       logger.trace(`returning existing RouteContext for %s`, routeDefinition);
-
-      if (viewportAgent !== null) {
-        routeContext.vpa = viewportAgent;
-      }
+      return routeContext;
     }
+    logger.trace(`creating new RouteContext for %s`, routeDefinition);
 
+    const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+
+    routeDefinitionLookup.set(
+      routeDefinition,
+      routeContext = new RouteContext(
+        viewportAgent,
+        parent,
+        componentDefinition,
+        routeDefinition,
+        container,
+        this,
+      ),
+    );
     return routeContext;
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+    if(instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
     if (typeof instructionOrInstructions === 'string') {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
-    return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
+    return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options), this.ctx);
   }
 
   /**
@@ -637,11 +588,11 @@ export class Router {
    * @param instructions - The instruction tree that determines the transition
    * @param trigger - `'popstate'` or `'hashchange'` if initiated by a browser event, or `'api'` for manually initiated transitions via the `load` api.
    * @param state - The state to restore, if any.
-   * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the orinal promise resolves with the latest result.
+   * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the original promise resolves with the latest result.
    */
   private enqueue(
     instructions: ViewportInstructionTree,
-    trigger: 'popstate' | 'hashchange' | 'api',
+    trigger: RoutingTrigger,
     state: ManagedState | null,
     failedTr: Transition | null,
   ): boolean | Promise<boolean> {
@@ -692,7 +643,7 @@ export class Router {
 
     logger.debug(`Scheduling transition: %s`, nextTr);
 
-    if (this.activeNavigation === null) {
+    if (!this._isNavigating) {
       // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
       try {
         this.run(nextTr);
@@ -706,7 +657,7 @@ export class Router {
       return ret;
     }).catch(err => {
       logger.error(`Navigation failed: %s`, nextTr, err);
-      this.activeNavigation = null;
+      this._isNavigating = false;
       const $nextTr = this.nextTr;
       // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
       if($nextTr !== null) {
@@ -722,45 +673,29 @@ export class Router {
     this.currentTr = tr;
     this.nextTr = null;
 
-    // Clone it because the prevNavigation could have observers and stuff on it, and it's meant to be a standalone snapshot from here on.
-    const prevNavigation = this.lastSuccessfulNavigation === null ? null : Navigation.create({
-      ...this.lastSuccessfulNavigation,
-      // There could be arbitrary state stored on a navigation, so to prevent memory leaks we only keep one `prevNavigation` around
-      prevNavigation: null,
-    });
-
-    this.activeNavigation = Navigation.create({
-      id: tr.id,
-      instructions: tr.instructions,
-      trigger: tr.trigger,
-      options: tr.options,
-      prevNavigation,
-      finalInstructions: tr.finalInstructions,
-    });
-
-    const navigationContext = this.resolveContext(tr.options.context);
-    const routeChanged = (
-      !this.navigated ||
-      tr.instructions.children.length !== navigationContext.node.children.length ||
-      tr.instructions.children.some((x, i) => !(navigationContext.node.children[i]?.originalInstruction!.equals(x) ?? false))
-    );
+    this._isNavigating = true;
+    let navigationContext = this.resolveContext(tr.options.context);
+    const trChildren = tr.instructions.children;
+    const nodeChildren = navigationContext.node.children;
+    const routeChanged = !this.navigated
+      || trChildren.length !== nodeChildren.length
+      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
     const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;
-      this.activeNavigation = null;
+      this._isNavigating = false;
 
       tr.resolve!(false);
 
-      this.runNextTransition(tr);
+      this.runNextTransition();
       return;
     }
 
     this.logger.trace(`run(tr:%s) - processing route`, tr);
 
-    this._isNavigating = true;
     this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
@@ -770,21 +705,52 @@ export class Router {
       return this.run(this.nextTr);
     }
 
-    this.activeNavigation = Navigation.create({
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      ...this.activeNavigation!,
-      // After redirects are applied, this could be a different route
-      finalInstructions: tr.finalInstructions,
-    });
-
     // TODO: run global guards
     //
     //
     // ---
 
     tr.run(() => {
-      this.logger.trace(`run() - compiling route tree: %s`, tr.finalInstructions);
-      return updateRouteTree(tr.routeTree, tr.finalInstructions, navigationContext);
+      const vit = tr.finalInstructions;
+      this.logger.trace(`run() - compiling route tree: %s`, vit);
+
+      /**
+       * Updating route tree:
+       * Returns a stateful `RouteTree` based on the provided context and transition.
+       *
+       * This process will always start from the root context and build a new complete tree, up until (and including)
+       * the context that was passed-in.
+       *
+       * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
+       * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
+       *
+       * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
+       */
+      // The root of the routing tree is always the CompositionRoot of the Aurelia app.
+      // From a routing perspective it's simply a "marker": it does not need to be loaded,
+      // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
+      // other than by reading (deps, optional route config, owned viewports) from it.
+      const rootCtx = this.ctx;// navigationContext.root;
+      const rt = tr.routeTree;
+
+      (rt as Writable<RouteTree>).options = vit.options;
+      (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
+      (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
+
+      const log = navigationContext.container.get(ILogger).scopeTo('RouteTree');
+      if (vit.isAbsolute) {
+        navigationContext = rootCtx;
+      }
+      if (navigationContext === rootCtx) {
+        rt.root.setTree(rt);
+        rootCtx.node = rt.root;
+      }
+
+      const suffix = navigationContext.resolved instanceof Promise ? ' - awaiting promise' : '';
+      log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
+      // Wait till the promises to resolve the child routes are resolved.
+      // Note that a route configuration can be a promise.
+      return onResolve(navigationContext.resolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
     }, () => {
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;
@@ -837,12 +803,10 @@ export class Router {
         this._isNavigating = false;
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-        this.lastSuccessfulNavigation = this.activeNavigation;
-        this.activeNavigation = null;
         this.applyHistoryState(tr);
         tr.resolve!(true);
 
-        this.runNextTransition(tr);
+        this.runNextTransition();
       }).start();
     });
   }
@@ -892,7 +856,6 @@ export class Router {
       node.context.vpa.cancelUpdate();
     });
 
-    this.activeNavigation = null;
     this.instructions = tr.prevInstructions;
     this._routeTree = tr.previousRouteTree;
     this._isNavigating = false;
@@ -902,7 +865,7 @@ export class Router {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
-      this.runNextTransition(tr);
+      this.runNextTransition();
     } else {
       void onResolve(this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
@@ -910,24 +873,22 @@ export class Router {
     }
   }
 
-  private runNextTransition(tr: Transition): void {
-    if (this.nextTr !== null) {
-      this.logger.trace(`runNextTransition(tr:%s) -> scheduling nextTransition: %s`, tr, this.nextTr);
-      this.p.taskQueue.queueTask(
-        () => {
-          // nextTransition is allowed to change up until the point when it's actually time to process it,
-          // so we need to check it for null again when the scheduled task runs.
-          const nextTr = this.nextTr;
-          if (nextTr !== null) {
-            try {
-              this.run(nextTr);
-            } catch (err) {
-              nextTr.handleError(err);
-            }
-          }
-        },
-      );
-    }
+  private runNextTransition(): void {
+    if (this.nextTr === null) return;
+    this.logger.trace(`scheduling nextTransition: %s`, this.nextTr);
+    this.p.taskQueue.queueTask(
+      () => {
+        // nextTransition is allowed to change up until the point when it's actually time to process it,
+        // so we need to check it for null again when the scheduled task runs.
+        const nextTr = this.nextTr;
+        if (nextTr === null) return;
+        try {
+          this.run(nextTr);
+        } catch (err) {
+          nextTr.handleError(err);
+        }
+      },
+    );
   }
 
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {

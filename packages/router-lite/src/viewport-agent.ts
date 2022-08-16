@@ -18,11 +18,10 @@ export class ViewportRequest {
     public readonly viewportName: string,
     public readonly componentName: string,
     public readonly resolution: ResolutionMode,
-    public readonly append: boolean,
   ) { }
 
   public toString(): string {
-    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}',append:${this.append})`;
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}')`;
   }
 }
 
@@ -143,19 +142,16 @@ export class ViewportAgent {
       return false;
     }
 
-    if (req.append && this.currState === State.currIsActive) {
-      this.logger.trace(`handles(req:%s) -> false (append mode, viewport already has content %s)`, req, this.curCA);
-      return false;
-    }
-
+    const $vp = this.viewport;
     const reqVp = req.viewportName;
-    const vp = this.viewport.name;
+    const vp = $vp.name;
     if (reqVp !== defaultViewportName && vp !== defaultViewportName && vp !== reqVp) {
       this.logger.trace(`handles(req:%s) -> false (viewport names don't match '%s')`, req, vp);
       return false;
     }
 
-    if (this.viewport.usedBy.length > 0 && !this.viewport.usedBy.split(',').includes(req.componentName)) {
+    const usedBy = $vp.usedBy;
+    if (usedBy.length > 0 && !usedBy.split(',').includes(req.componentName)) {
       this.logger.trace(`handles(req:%s) -> false (componentName not included in usedBy)`, req);
       return false;
     }

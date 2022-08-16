@@ -1,3 +1,4 @@
+import { type Params } from './instructions';
 import { RouteNode } from './route-tree';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
@@ -67,8 +68,9 @@ export function mergeDistinct(prev: RouteNode[], next: RouteNode[]): RouteNode[]
   const merged: RouteNode[] = [];
   while (prev.length > 0) {
     const p = prev.shift()!;
-    if (merged.every(m => m.context.vpa !== p.context.vpa)) {
-      const i = next.findIndex(n => n.context.vpa === p.context.vpa);
+    const prevVpa = p.context.vpa;
+    if (merged.every(m => m.context.vpa !== prevVpa)) {
+      const i = next.findIndex(n => n.context.vpa === prevVpa);
       if (i >= 0) {
         merged.push(...next.splice(0, i + 1));
       } else {
@@ -94,4 +96,13 @@ export function ensureArrayOfStrings(value: string | string[]): string[] {
 
 export function ensureString(value: string | string[]): string {
   return typeof value === 'string' ? value : value[0];
+}
+
+export function mergeURLSearchParams(source: URLSearchParams, other: Params | null, clone: boolean) {
+  const query = clone ? new URLSearchParams(source) : source;
+  if(other == null) return query;
+  for(const [key, value] of Object.entries(other)) {
+    query.append(key, value!);
+  }
+  return query;
 }

@@ -22,6 +22,11 @@ export interface IRouteViewModel extends ICustomElementViewModel {
 
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
+/**
+ * A component agent handles an instance of a routed view-model (a component).
+ * It deals with invoking the hooks (`canLoad`, `load`, `canUnload`, `unload`),
+ * and activating, deactivating, and disposing the component (via the associated controller).
+ */
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hasCanLoad: boolean;
@@ -135,6 +140,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   public canLoad(tr: Transition, next: RouteNode, b: Batch): void {
     this._logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
+    const rootCtx = this.ctx.root;
     b.push();
     for (const hook of this.canLoadHooks) {
       tr.run(() => {
@@ -142,7 +148,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         return hook.canLoad(this.instance, next.params, next, this.routeNode);
       }, ret => {
         if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret);
+          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
         }
         b.pop();
       });
@@ -153,7 +159,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         return this.instance.canLoad!(next.params, next, this.routeNode);
       }, ret => {
         if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret);
+          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
         }
         b.pop();
       });

@@ -73,8 +73,6 @@ export {
 } from './route-tree';
 
 export {
-  AuNavId,
-  type ManagedState,
   isManagedState,
   toManagedState,
   IRouter,
@@ -84,14 +82,14 @@ export {
   RouterOptions,
   NavigationOptions,
   Transition,
-  Navigation,
   type ResolutionMode,
   type HistoryStrategy,
   type SameUrlStrategy,
-  type LoadOptions,
 } from './router';
 
 export {
+  AuNavId,
+  type ManagedState,
   IRouterEvents,
   type RouterEvent,
   LocationChangeEvent,

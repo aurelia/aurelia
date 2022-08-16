@@ -1,14 +1,14 @@
 import { isObject } from '@aurelia/metadata';
-import { DI, Constructable, IModule, isArrayIndex } from '@aurelia/kernel';
+import { Constructable, emptyObject, IModule, isArrayIndex } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
-import { $RecognizedRoute, IRouteContext } from './route-context';
+import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
-import { tryStringify } from './util';
+import { mergeURLSearchParams, tryStringify } from './util';
 
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
 
@@ -34,19 +34,19 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 
 export type Params = { [key: string]: string | undefined };
 
-export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction');
 export interface IViewportInstruction {
-  readonly context?: RouteContextLike | null;
-  readonly append?: boolean;
   readonly open?: number;
   readonly close?: number;
   /**
    * The component to load.
    *
-   * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
+   * - `string`: A string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally).
    * - `RouteType`: a custom element class with optional static properties that specify routing-specific attributes.
    * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
    * - `IRouteViewModel`: an existing component instance.
+   *
+   * For a string component route-recognizer of the 'resolved' `RoutingContext` will be employed.
+   * Whereas for non-sting components, a `RouteDefinition` will be resolved, and a (new) `ViewportInstruction` will be created out of that.
    */
   readonly component: string | RouteableComponent;
   /**
@@ -55,19 +55,26 @@ export interface IViewportInstruction {
   readonly viewport?: string | null;
   /**
    * The parameters to pass into the component.
+   *
+   * Note that this is only important till a {@link $RecognizedRoute | recognized route} is created from the `component`.
+   * After the recognized route is created, the 'recognized' parameters are included in that, and that's what is used when invoking the hook functions.
+   * Thus, when creating a viewport-instruction directly with a recognized route, the parameters can be ignored.
    */
   readonly params?: Params | null;
   /**
    * The child routes to load underneath the context of this instruction's component.
    */
   readonly children?: readonly NavigationInstruction[];
+  /**
+   * Normally, when the recognized route is null, in the process of creating a route node, it will be attempted to recognize a configured route for the given `component`.
+   * Therefore, when a recognized route is provided when creating the `ViewportInstruction`, the process of recognizing the `component` can be completely skipped.
+   */
   readonly recognizedRoute: $RecognizedRoute | null;
 }
 
+/** @internal */
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
   private constructor(
-    public readonly context: RouteContextLike | null,
-    public append: boolean,
     public open: number,
     public close: number,
     public readonly recognizedRoute: $RecognizedRoute | null,
@@ -77,18 +84,14 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly children: ViewportInstruction[],
   ) {}
 
-  public static create(instruction: NavigationInstruction, context?: RouteContextLike | null): ViewportInstruction {
-    if (instruction instanceof ViewportInstruction) {
-      return instruction as ViewportInstruction; // eslint is being really weird here
-    }
+  public static create(instruction: NavigationInstruction): ViewportInstruction {
+    if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
 
     if (isPartialViewportInstruction(instruction)) {
       const component = TypedNavigationInstruction.create(instruction.component);
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
 
       return new ViewportInstruction(
-        instruction.context ?? context ?? null,
-        instruction.append ?? false,
         instruction.open ?? 0,
         instruction.close ?? 0,
         instruction.recognizedRoute ?? null,
@@ -100,7 +103,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
-    return new ViewportInstruction(context ?? null, false, 0, 0, null, typedInstruction, null, null, []);
+    return new ViewportInstruction(0, 0, null, typedInstruction, null, null, []);
   }
 
   public contains(other: ViewportInstruction): boolean {
@@ -152,8 +155,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public clone(): this {
     return new ViewportInstruction(
-      this.context,
-      this.append,
       this.open,
       this.close,
       this.recognizedRoute,
@@ -266,6 +267,7 @@ const getObjectId = (function () {
   };
 })();
 
+/** @internal */
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
@@ -275,29 +277,34 @@ export class ViewportInstructionTree {
     public readonly fragment: string | null,
   ) {}
 
-  public static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+  public static create(
+    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    options?: INavigationOptions,
+    rootCtx?: IRouteContext | null,
+  ): ViewportInstructionTree {
     const $options = NavigationOptions.create({ ...options });
 
-    if (instructionOrInstructions instanceof ViewportInstructionTree) {
-      return new ViewportInstructionTree(
-        $options,
-        instructionOrInstructions.isAbsolute,
-        instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)),
-        instructionOrInstructions.queryParams,
-        instructionOrInstructions.fragment,
-      );
+    let context = $options.context as RouteContext;
+    if (!(context instanceof RouteContext) && rootCtx != null) {
+      context = RouteContext.resolve(rootCtx, context);
     }
+    const hasContext = context != null;
 
     if (instructionOrInstructions instanceof Array) {
-      return new ViewportInstructionTree(
-        $options,
-        false,
-        instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
-        $options.queryParams !== null
-          ? new URLSearchParams($options.queryParams as Record<string, string>)
-          : emptyQuery,
-        null,
-      );
+      const len = instructionOrInstructions.length;
+      const children = new Array(len);
+      const query = new URLSearchParams($options.queryParams ?? emptyObject);
+      for(let i = 0; i<len; i++) {
+        const instruction = instructionOrInstructions[i];
+        const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
+        if(eagerVi !== null) {
+          children[i] = eagerVi.vi;
+          mergeURLSearchParams(query, eagerVi.query, false);
+        } else {
+          children[i] = ViewportInstruction.create(instruction);
+        }
+      }
+      return new ViewportInstructionTree($options, false, children, query, null);
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -305,13 +312,22 @@ export class ViewportInstructionTree {
       return expr.toInstructionTree($options);
     }
 
-    return new ViewportInstructionTree(
-      $options,
-      false,
-      [ViewportInstruction.create(instructionOrInstructions, $options.context)],
-      emptyQuery,
-      null,
-    );
+    const eagerVi = hasContext ? context.generateViewportInstruction(instructionOrInstructions) : null;
+    return eagerVi !== null
+      ? new ViewportInstructionTree(
+        $options,
+        false,
+        [eagerVi.vi],
+        new URLSearchParams(eagerVi.query ?? emptyObject),
+        null,
+      )
+      : new ViewportInstructionTree(
+        $options,
+        false,
+        [ViewportInstruction.create(instructionOrInstructions)],
+        emptyQuery,
+        null,
+      );
   }
 
   public equals(other: ViewportInstructionTree): boolean {
@@ -437,7 +453,6 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
     if (isPartialCustomElementDefinition(instruction)) {
-      // TODO(sayan): create the instruction by looking up the route configuration/definition from the given type in the partial element definition
       // If we just got a partial definition, define a new anonymous class
       const Type = CustomElement.define(instruction);
       const definition = CustomElement.getDefinition(Type);

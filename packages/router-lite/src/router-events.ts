@@ -1,7 +1,15 @@
 import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
-import { ManagedState } from './router';
 import { ViewportInstructionTree } from './instructions';
+
+export type RoutingTrigger = 'popstate' | 'hashchange' | 'api';
+
+export const AuNavId = 'au-nav-id' as const;
+export type AuNavId = typeof AuNavId;
+export type ManagedState = {
+  [k: string]: unknown;
+  [AuNavId]: number;
+};
 
 class Subscription implements IDisposable {
   private disposed: boolean = false;
@@ -83,7 +91,7 @@ export class NavigationStartEvent {
   public constructor(
     public readonly id: number,
     public readonly instructions: ViewportInstructionTree,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
+    public readonly trigger: RoutingTrigger,
     public readonly managedState: ManagedState | null,
   ) {}
 

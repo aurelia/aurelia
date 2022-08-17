@@ -1,6 +1,6 @@
 import { Class, LogLevel } from '@aurelia/kernel';
 import { route, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, customElement, IPlatform } from '@aurelia/runtime-html';
+import { Aurelia, bindable, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from '../_shared/configuration.js';
 
@@ -128,6 +128,35 @@ describe('load custom-attribute', function () {
     anchors[2].click();
     await queue.yield();
     assert.html.textContent(host, 'foo');
+
+    await au.stop();
+  });
+
+  it.only('allow navigating to route defined in parent context', async function () {
+    @customElement({ name: 'pro-duct', template: `product \${id}` })
+    class Product {
+      @bindable id: unknown;
+    }
+
+    @customElement({ name: 'pro-ducts', template: `<a id="a1" load="route:product; params.bind:{id: 1}">p1</a>` })
+    class Products { }
+
+    @route({
+      routes: [
+        { id: 'products', path: ['', 'products'], component: Products },
+        { id: 'product', path: 'product/:id', component: Product },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start(Root, Products, Product);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /product\/1/);
 
     await au.stop();
   });

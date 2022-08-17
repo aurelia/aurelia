@@ -111,7 +111,6 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
       binding.useParameter(expr);
     } else {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, ExpressionType.Interpolation) : undefined;
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       binding.expr = interpolation || expr;
     }
   }

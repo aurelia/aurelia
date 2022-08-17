@@ -370,6 +370,8 @@ class ParameterBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
+    // todo(test): add an integration/e2e for this
+    //             setup: put this inside an if and switch on/off that if
     if (!this.isBound) {
       return;
     }

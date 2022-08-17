@@ -252,6 +252,7 @@ export class I18nService implements I18N {
     return new Date().getTime();
   }
 
+  /** @internal */
   private async _initializeI18next(options: I18nInitOptions) {
     const defaultOptions: I18nInitOptions = {
       lng: 'en',

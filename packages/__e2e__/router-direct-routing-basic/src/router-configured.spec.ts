@@ -3,6 +3,7 @@ import type { Server } from 'http';
 
 import express from 'express';
 import path from 'path';
+
 const PORT = 9001;
 const appUrl = `http://127.0.0.1:${PORT}`;
 
@@ -12,10 +13,10 @@ interface IRouterTest {
 
 const test = base.extend<{}, IRouterTest>({
   // "express" fixture starts automatically for every worker - we pass "auto" for that.
-  prepareServer: [ async ({  }, use) => {
+  prepareServer: [ async (_, use) => {
     // Setup express app.
     const app = express();
-    app.use(express.static('dist', ));
+    app.use(express.static('dist'));
     // TODO
     app.use('/api/*', (req, res, next) => {
       next();
@@ -25,7 +26,7 @@ const test = base.extend<{}, IRouterTest>({
 
       res.sendFile('index.html', {root: fileDirectory}, (err) => {
         res.end();
-        if (err) throw(err);
+        if (err != null) throw(err);
       });
     });
 

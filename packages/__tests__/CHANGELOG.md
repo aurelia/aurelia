@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.38"></a>
+# 2.0.0-alpha.38 (2022-08-17)
+
+### Features:
+
+* **router-lite:** most-matching path generation ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+
+
+### Bug Fixes:
+
+* **router:** update component creation (#1499) ([efda82e](https://github.com/aurelia/aurelia/commit/efda82e))
+* **router:** update component creation ([efda82e](https://github.com/aurelia/aurelia/commit/efda82e))
+* **router:** fix linting errors ([efda82e](https://github.com/aurelia/aurelia/commit/efda82e))
+* **router-lite:** eager route recognition ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** broken test ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** replace query for non-root ctx ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** eager resolution for children ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** tests ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** deepscan issues ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+
+
+### Refactorings:
+
+* **router-lite:** better path generation and parameter handling (#1495) ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** path generation ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** route generation for non-string component ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** routing-trigger ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** viewportinstruction cleanup ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** path generation ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** support for CE,DEDef,VM,RtCfg in load ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** support for complex type in configured route data ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+
 <a name="2.0.0-alpha.37"></a>
 # 2.0.0-alpha.37 (2022-08-03)
 

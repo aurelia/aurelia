@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.38"></a>
+# 2.0.0-alpha.38 (2022-08-17)
+
+### Features:
+
+* **router-lite:** most-matching path generation ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** support for CE,DEDef,VM,RtCfg in load ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** support for complex type in configured route data ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+
+
+### Bug Fixes:
+
+* **router:** update component creation (#1499) ([efda82e](https://github.com/aurelia/aurelia/commit/efda82e))
+* **router-lite:** eager route recognition ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** replace query for non-root ctx ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** eager resolution for children ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **plugin-conventions:** fix wrong options reference (#1493) ([abd3a3f](https://github.com/aurelia/aurelia/commit/abd3a3f))
+
+
+### Refactorings:
+
+* **router-lite:** better path generation and parameter handling (#1495) ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+* **router-lite:** viewportinstruction cleanup ([affa866](https://github.com/aurelia/aurelia/commit/affa866))
+
+BREAKING CHANGES: the router-lite now mathces path with the highest number of matching parameters first
+
 <a name="2.0.0-alpha.37"></a>
 # 2.0.0-alpha.37 (2022-08-03)
 

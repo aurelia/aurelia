@@ -510,9 +510,8 @@ jobs:
           key: cache-{{ .Revision }}-build-true
       - run:
           name: "Run e2e script"
-          command: |
-            cd << parameters.path >>
-            npm run e2e
+          working_directory: << parameters.path >>
+          command: npm run test:e2e
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -772,6 +771,13 @@ workflows:
       #     path: "examples/hmr-webpack-e2e"
       #     requires:
       #       - build_release
+
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_lite_configured
+          path: "packages/__e2e__/router-lite-configured"
+          requires:
+            - build_release
 
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release

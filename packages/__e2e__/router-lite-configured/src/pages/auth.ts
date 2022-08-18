@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime-html'
+import { customElement } from '@aurelia/runtime-html';
 import template from './auth.html';
 
 @customElement({

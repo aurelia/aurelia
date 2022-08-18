@@ -7,7 +7,8 @@
     "target": "es2021",
     "module": "esnext",
     "outDir": "dist",
-    "lib": ["esnext", "dom"]
+    "lib": ["esnext", "dom"],
+    "types": ["node"]
   },
   "include": ["src"]
 }

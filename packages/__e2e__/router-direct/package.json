@@ -15,6 +15,7 @@
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
+    "aurelia": "2.0.0-alpha.38",
     "@aurelia/kernel": "latest",
     "@aurelia/metadata": "latest",
     "@aurelia/platform": "latest",

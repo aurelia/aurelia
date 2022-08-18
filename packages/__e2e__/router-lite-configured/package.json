@@ -1,5 +1,5 @@
 {
-  "name": "@__e2e__/__router-configured-basic__",
+  "name": "@__e2e__/router-lite-configured",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -8,13 +8,15 @@
   },
   "version": "2.0.0-alpha.38",
   "scripts": {
-    "dev": "npm run build -- -w",
-    "build": "webpack --config webpack.config.js",
-    "test:ci": "npm run build && npx playwright test",
-    "test": "npx playwright test",
+    "dev": "webpack serve",
+    "build": "vite build",
+    "test:e2e": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 npm run test\" --kill-others --success first",
+    "test:e2e:debugger": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 PWDEBUG=1 npm run test\" --kill-others --success first",
+    "test": "npx playwright test --workers 3",
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
+    "aurelia": "2.0.0-alpha.38",
     "@aurelia/kernel": "2.0.0-alpha.38",
     "@aurelia/metadata": "2.0.0-alpha.38",
     "@aurelia/platform": "2.0.0-alpha.38",
@@ -24,7 +26,6 @@
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.38",
     "@playwright/test": "^1.24.1",
     "@types/express": "^4.17.13",
     "@types/node": "^14.18.14",

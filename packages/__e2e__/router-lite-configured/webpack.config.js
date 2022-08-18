@@ -14,14 +14,35 @@ module.exports = function () {
       minimize: false,
       concatenateModules: false,
     },
+    experiments: {
+      lazyCompilation: true
+    },
     output: {
       path: resolve(__dirname, 'dist'),
       filename: '[name].js',
     },
+    performance: {
+      hints: false,
+    },
     devtool: false,
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['.', 'node_modules']
+      modules: ['.', 'node_modules'],
+      alias: {
+        ...[
+          'fetch-client',
+          'router-lite',
+          'kernel',
+          'runtime',
+          'runtime-html',
+        ].reduce((map, pkg) => {
+          const name = `@aurelia/${pkg}`;
+          map[name] = resolve(__dirname, '../../../node_modules', name, 'dist/esm/index.dev.mjs');
+          return map;
+        }, {
+          'aurelia': resolve(__dirname, '../../../node_modules/aurelia/dist/esm/index.dev.mjs'),
+        })
+      }
     },
     module: {
       rules: [
@@ -30,7 +51,7 @@ module.exports = function () {
       ]
     },
     plugins: [
-      new HtmlWebpackPlugin({ template: 'index.html' }),
+      new HtmlWebpackPlugin({ template: 'index.ejs' }),
       new BundleAnalyzerPlugin({
         analyzerMode: 'static',
         openAnalyzer: false

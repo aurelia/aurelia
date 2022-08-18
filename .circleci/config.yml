@@ -780,6 +780,18 @@ workflows:
           path: "packages/__e2e__/router-lite-configured"
           requires:
             - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct_hash
+          path: "packages/__e2e__/router-direct"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct_pushstate
+          path: "packages/__e2e__/router-direct-pushstate"
+          requires:
+            - build_release
 
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release
@@ -868,12 +880,26 @@ workflows:
           npm_command: "test-node"
           requires:
             - build_dev
+
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite_configured
           path: "packages/__e2e__/router-lite-configured"
           requires:
             - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct_hash
+          path: "packages/__e2e__/router-direct"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct_pushstate
+          path: "packages/__e2e__/router-direct-pushstate"
+          requires:
+            - build_release
+
       #- unit_test_aot:
       #   <<: *filter_only_tag
       #   name: test_test262
@@ -897,6 +923,8 @@ workflows:
             - test_node
             - test_toolings
             - e2e_router_lite_configured
+            - e2e_router_direct_hash
+            - e2e_router_direct_pushstate
             #- test_test262
             # - lint_packages
           from: $CIRCLE_TAG

@@ -5,7 +5,7 @@ import { App } from './app';
 Aurelia
   .register(
     RouterConfiguration.customize({
-      // useUrlFragmentHash: true
+      // useUrlFragmentHash: false
     }),
   )
   .app({

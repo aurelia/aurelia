@@ -7,9 +7,7 @@ module.exports = function () {
   return {
     target: 'web',
     mode: 'production',
-    entry: {
-      'configured-basic': ['./src/index.ts']
-    },
+    entry: './src/index.ts',
     optimization: {
       minimize: false,
       concatenateModules: false,
@@ -17,12 +15,12 @@ module.exports = function () {
     experiments: {
       lazyCompilation: true
     },
+    performance: {
+      hints: false,
+    },
     output: {
       path: resolve(__dirname, 'dist'),
       filename: '[name].js',
-    },
-    performance: {
-      hints: false,
     },
     devtool: false,
     resolve: {

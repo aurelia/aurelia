@@ -6,7 +6,7 @@ export class App {
   toggleIframe() {
     if (!this.iframeVisible) {
       this.iframeSrc = URL.createObjectURL(new Blob(
-        [`<html><head></head><body><a target="_top" href="${origin}/#auth">Goto auth</a></body>`],
+        [`<html><head></head><body><a target="_top" href="${origin}/auth">Goto auth</a></body>`],
         { type: 'text/html' }
       ));
     }

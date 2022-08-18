@@ -1,35 +1,33 @@
 {
-  "name": "@aurelia/router-tests-e2e",
+  "name": "@__e2e__/router-direct",
   "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "0.8.0",
+  "version": "2.0.0-alpha.38",
   "scripts": {
-    "dev": "npm run build -- -w",
-    "build": "webpack --config webpack.config.js",
-    "test:ci": "npm run build && npx playwright test",
-    "test": "npx playwright test",
+    "dev": "webpack serve",
+    "build": "vite build",
+    "test:e2e": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 npm run test\" --kill-others --success first",
+    "test:e2e:debugger": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 PWDEBUG=1 npm run test\" --kill-others --success first",
+    "test": "npx playwright test --workers 3",
     "test:debugger": "npx playwright test --headed"
   },
   "dependencies": {
     "aurelia": "2.0.0-alpha.38",
-    "@aurelia/kernel": "latest",
-    "@aurelia/metadata": "latest",
-    "@aurelia/platform": "latest",
-    "@aurelia/platform-browser": "latest",
-    "@aurelia/runtime": "latest",
-    "@aurelia/runtime-html": "latest",
-    "@aurelia/router": "2.0.0-alpha.21.0"
+    "@aurelia/kernel": "2.0.0-alpha.38",
+    "@aurelia/metadata": "2.0.0-alpha.38",
+    "@aurelia/platform": "2.0.0-alpha.38",
+    "@aurelia/platform-browser": "2.0.0-alpha.38",
+    "@aurelia/runtime": "2.0.0-alpha.38",
+    "@aurelia/runtime-html": "2.0.0-alpha.38",
+    "@aurelia/router": "2.0.0-alpha.38"
   },
   "devDependencies": {
     "@playwright/test": "^1.24.1",
-    "@types/express": "^4.17.13",
     "@types/node": "^14.18.14",
-    "express": "^4.17.1",
-    "html-loader": "^2.1.2",
     "webpack": "^5.72.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.9.2"

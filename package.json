@@ -4,7 +4,9 @@
   "version": "2.0.0-alpha.38",
   "workspaces": [
     "packages/__tests__",
-    "packages/__e2e__/router-configured",
+    "packages/__e2e__/router-direct",
+    "packages/__e2e__/router-direct-pushstate",
+    "packages/__e2e__/router-lite-configured",
     "packages/addons",
     "packages/aurelia",
     "packages/fetch-client",

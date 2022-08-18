@@ -235,7 +235,7 @@ export class NavigationCoordinator {
    * @param endpoint - The endpoint that gets the step set
    * @param step - The step that's controlling the transition
    */
-   public setEndpointStep(endpoint: IEndpoint, step: Step<void>): void {
+  public setEndpointStep(endpoint: IEndpoint, step: Step<void>): void {
     // Find the entity for the endpoint...
     let entity = this.entities.find(e => e.endpoint === endpoint);
     if (entity === void 0) {
@@ -413,7 +413,6 @@ export class NavigationCoordinator {
 
     // Don't modify incoming originals
     matchedInstructions = [...matchedInstructions];
-    earlierMatchedInstructions = [...earlierMatchedInstructions];
     remainingInstructions = [...remainingInstructions];
 
     // Process non-defaults first (by separating and adding back)
@@ -458,7 +457,7 @@ export class NavigationCoordinator {
         remainingInstructions.push(appendedInstruction);
       }
     }
-    return { matchedInstructions, earlierMatchedInstructions, remainingInstructions };
+    return { matchedInstructions, remainingInstructions };
   }
 
   /**

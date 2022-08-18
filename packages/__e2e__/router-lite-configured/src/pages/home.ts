@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime-html'
+import { customElement } from '@aurelia/runtime-html';
 import template from './home.html';
 
 @customElement({
@@ -6,5 +6,5 @@ import template from './home.html';
   template
 })
 export class Home {
-  
+
 }

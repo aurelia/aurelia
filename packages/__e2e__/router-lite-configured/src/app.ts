@@ -1,10 +1,12 @@
 import { customElement, IRouter, route } from 'aurelia';
 import template from './app.html';
+import { Auth } from './pages/auth';
+import { Home } from './pages/home';
 
 @route({
   routes: [
-    { id: 'home', path: '', component: import('./pages/home'), title: 'Home' },
-    { path: 'auth', component: () => import('./pages/auth'), title: 'Sign in' },
+    { id: 'home', path: '', component: Home, title: 'Home' },
+    { path: 'auth', component: Auth, title: 'Sign in' },
   ]
 })
 @customElement({
@@ -23,7 +25,10 @@ export class App {
 
   toggleIframe() {
     if (!this.iframeVisible) {
-      this.iframeSrc = URL.createObjectURL(new Blob([`<html><head></head><body><a target="_top" href="${origin}/auth">Goto auth</a></body>`], { type: 'text/html' }));
+      this.iframeSrc = URL.createObjectURL(new Blob([
+        `<html><head></head><body><a target="_top" href="${origin}/auth">Goto auth</a></body>`],
+        { type: 'text/html' }
+      ));
     }
     this.iframeVisible = !this.iframeVisible;
   }

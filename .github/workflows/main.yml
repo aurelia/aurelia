@@ -83,20 +83,6 @@ jobs:
   #     - run: npm run test-node:${{matrix.suite}}
   #       working-directory: packages-tooling/__tests__
 
-  router-e2e:
-    runs-on: ubuntu-latest
-    container:
-      image: "circleci/node:16.3.0-buster-browsers"
-      options: --user 1001
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build
-        name: build all packages
-      - run: npm run test:ci
-        name: build e2e projects
-        working-directory: packages/__e2e__/router-configured-basic
-
   packages:
     timeout-minutes: 15
     runs-on: ubuntu-latest

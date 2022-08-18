@@ -1,10 +1,11 @@
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router';
 import { App } from './app';
 
 Aurelia
   .register(
     RouterConfiguration.customize({
-      // useUrlFragmentHash: true
+      useUrlFragmentHash: false
     }),
   )
   .app({

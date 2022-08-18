@@ -4,7 +4,9 @@
   "version": "2.0.0-alpha.38",
   "workspaces": [
     "packages/__tests__",
-    "packages/__e2e__/router-configured-basic",
+    "packages/__e2e__/router-direct",
+    "packages/__e2e__/router-direct-pushstate",
+    "packages/__e2e__/router-lite-configured",
     "packages/addons",
     "packages/aurelia",
     "packages/fetch-client",
@@ -129,7 +131,8 @@
     "rollup-plugin-terser": "^7.0.2",
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.14.1",
-    "typescript": "4.7.3"
+    "typescript": "4.7.3",
+    "vite": "^3.0.8"
   },
   "commitlint": {
     "rules": {

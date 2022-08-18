@@ -7,12 +7,16 @@ module.exports = function () {
   return {
     target: 'web',
     mode: 'production',
-    entry: {
-      'configured-basic': ['./src/index.ts']
-    },
+    entry: './src/index.ts',
     optimization: {
       minimize: false,
       // concatenateModules: false,
+    },
+    experiments: {
+      lazyCompilation: true
+    },
+    performance: {
+      hints: false,
     },
     output: {
       path: resolve(__dirname, 'dist'),
@@ -21,7 +25,22 @@ module.exports = function () {
     devtool: false,
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['.', 'node_modules']
+      modules: ['.', 'node_modules'],
+      alias: {
+        ...[
+          'fetch-client',
+          'router-lite',
+          'kernel',
+          'runtime',
+          'runtime-html',
+        ].reduce((map, pkg) => {
+          const name = `@aurelia/${pkg}`;
+          map[name] = resolve(__dirname, '../../../node_modules', name, 'dist/esm/index.dev.mjs');
+          return map;
+        }, {
+          'aurelia': resolve(__dirname, '../../../node_modules/aurelia/dist/esm/index.dev.mjs'),
+        })
+      }
     },
     module: {
       rules: [

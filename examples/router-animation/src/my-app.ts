@@ -13,5 +13,10 @@ import { AnimationHooks } from './animation-hooks';
   dependencies: [One, Two, AnimationHooks],
 })
 export class MyApp {
+
+  public static routes = [
+    { path: '', component: 'one' },
+  ];
+
   public message: string = 'Hello Aurelia 2!';
 }

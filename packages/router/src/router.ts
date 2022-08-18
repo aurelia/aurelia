@@ -403,7 +403,7 @@ export class Router implements IRouter {
     navigation.scope ??= this.rootScope!.scope;
 
     // TODO(return): Only use navigation.scope for string and instructions without their own scope
-    const allChangedEndpoints = await navigation.scope.processInstructions(transformedInstruction, navigation, coordinator);
+    const allChangedEndpoints = await navigation.scope.processInstructions(transformedInstruction, [], navigation, coordinator);
 
     // Mark all as top instructions ("children"/next scope instructions are in a property on
     // routing instruction) that will get assured parallel lifecycle swaps
@@ -741,27 +741,6 @@ export class Router implements IRouter {
       }
     }
     coordinator?.enqueueAppendedInstructions(instructions);
-  }
-
-  /**
-   * Deal with/throw an unknown route error.
-   *
-   * @param route - The failing route
-   */
-  public unknownRoute(route: string): void {
-    if (typeof route !== 'string' || route.length === 0) {
-      return;
-    }
-    if (this.configuration.options.useConfiguredRoutes && this.configuration.options.useDirectRouting) {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching configured route or component found for '" + route + "'");
-    } else if (this.configuration.options.useConfiguredRoutes) {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching configured route found for '" + route + "'");
-    } else {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching route/component found for '" + route + "'");
-    }
   }
 
   /**

@@ -452,7 +452,7 @@ export class Navigator {
     // Make sure instruction is a string
     storeable.instruction = RoutingInstruction.stringify(this.container, storeable.instruction);
     // Make sure full state instruction is a string
-    storeable.fullStateInstruction = RoutingInstruction.stringify(this.container, storeable.fullStateInstruction);
+    storeable.fullStateInstruction = RoutingInstruction.stringify(this.container, storeable.fullStateInstruction, false, true);
     // Only string scopes can be stored
     if (typeof storeable.scope !== 'string') {
       storeable.scope = null;
@@ -494,7 +494,7 @@ export class Navigator {
     if (typeof navigation.fullStateInstruction !== 'string') {
       // Save the instruction
       instructions.push(...navigation.fullStateInstruction);
-      navigation.fullStateInstruction = RoutingInstruction.stringify(this.container, navigation.fullStateInstruction);
+      navigation.fullStateInstruction = RoutingInstruction.stringify(this.container, navigation.fullStateInstruction, false, true);
     }
     if (typeof navigation.instruction !== 'string') {
       // Save the instruction

@@ -207,7 +207,6 @@ export class InstructionComponent {
       return null;
     }
     const container = parentContainer.createChild();
-
     const instance = this.isType()
       ? container.get<IRouteableComponent>(this.type!)
       : container.get<IRouteableComponent>(CustomElement.keyFrom(this.name!));
@@ -225,7 +224,6 @@ export class InstructionComponent {
       console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
       throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
     }
-
     const controller = Controller.$el(
       container,
       instance,

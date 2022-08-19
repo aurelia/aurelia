@@ -1,5 +1,5 @@
 {
-  "files": [],
+  "files": ["./global.d.ts"],
   "references": [
     { "path": "__tests__" },
     { "path": "aurelia" },

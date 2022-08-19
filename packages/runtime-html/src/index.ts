@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../global.d.ts" />
 export {
   // todo: only exception for now for hmr, remove
   LifecycleFlags,

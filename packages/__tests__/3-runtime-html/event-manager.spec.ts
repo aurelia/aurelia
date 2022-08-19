@@ -433,7 +433,6 @@ describe('EventDelegator', function () {
         for (const opts of [{ capture: true }, { capture: false }] as AddEventListenerOptions[]) {
           for (const stopPropagation of [true, false]) {
             for (const returnValue of [true, false, undefined]) {
-              // TODO: for firefox this won't work because ShadowDOM is not implemented yet. The webcomponents polyfill won't make it work either. Need to investigate what we can or cannot support.
               for (const shadow of hasShadow ? [null, 'open', 'closed'] : [null]) { // TODO: 'open' should probably work in some way, so we need to try and fix this
                 for (const listenerObj of [null, { handleEvent: null }]) {
                   it(_`opts=${opts}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, shadow=${shadow}, listener=${listenerObj}`, function () {

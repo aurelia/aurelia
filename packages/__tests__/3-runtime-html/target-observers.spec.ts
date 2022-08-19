@@ -8,6 +8,7 @@ import {
   StyleAttributeAccessor
 } from '@aurelia/runtime-html';
 import { assert, createSpy, CSS_PROPERTIES, globalAttributeNames, TestContext } from '@aurelia/testing';
+import { isFirefox } from '../util.js';
 
 function createSvgUseElement(ctx: TestContext, name: string, value: string) {
   return ctx.createElementFromMarkup(`<svg>
@@ -168,8 +169,6 @@ describe('StyleAccessor', function () {
     });
   }
 
-  const isFirefox = TestContext.create().wnd.navigator.userAgent.includes('Firefox');
-
   const specs: Partial<IStyleSpec>[] = [
     {
       title: 'getValue - style="display: block;"',
@@ -250,7 +249,7 @@ describe('StyleAccessor', function () {
       expected: 'display: block; background-color: red; height: 32px;',
     },
     ...(
-      isFirefox
+      isFirefox()
       ? []
       // TODO: figure out why these fail in firefox and fix them?
       : [

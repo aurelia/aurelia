@@ -26,15 +26,6 @@ export default defineConfig({
   plugins: [
     au2({ include: 'src/**/*.ts', pre: true }),
     au2({ include: 'src/**/*.html' }),
-    {
-      name: 'route-fallback',
-      configureServer(server) {
-        server.middlewares.use('/*', (req, res, next) => {
-          req.url = '/'
-          next()
-        })
-      }
-    }
   ]
 });
 

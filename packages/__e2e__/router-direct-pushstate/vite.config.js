@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter } from '@rollup/pluginutils';
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
 export default defineConfig({
   server: {
@@ -26,15 +27,6 @@ export default defineConfig({
   plugins: [
     au2({ include: 'src/**/*.ts', pre: true }),
     au2({ include: 'src/**/*.html' }),
-    {
-      name: 'route-fallback',
-      configureServer(server) {
-        server.middlewares.use('/*', (req, res, next) => {
-          req.url = '/'
-          next()
-        })
-      }
-    }
   ]
 });
 

@@ -18,13 +18,13 @@ test('loads route when clicking on link', async ({ page }) => {
   await expect(page.locator('au-viewport')).toContainText('Auth page');
 });
 
-test.skip('loads right component refreshing the page with deep linking', async ({ page }) => {
+test('loads right component refreshing the page with deep linking', async ({ page }) => {
   await page.click(':text("Show iframe")');
   const frame = await (await page.$('iframe')).contentFrame();
   await Promise.all([
     page.waitForNavigation(),
     frame.click(':text("Goto auth")'),
   ]);
-  expect(page.url()).toBe(`${appUrl}/auth/`);
+  expect(page.url()).toBe(`${appUrl}/auth`);
   await expect(page.locator('au-viewport')).toContainText('Auth page');
 });

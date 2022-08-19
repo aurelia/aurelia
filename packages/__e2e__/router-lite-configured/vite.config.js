@@ -15,7 +15,7 @@ export default defineConfig({
         'kernel',
         'runtime',
         'runtime-html',
-        'router',
+        'router-lite',
       ].reduce((map, pkg) => {
         const name = `@aurelia/${pkg}`;
         map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);
@@ -26,15 +26,6 @@ export default defineConfig({
   plugins: [
     au2({ include: 'src/**/*.ts', pre: true }),
     au2({ include: 'src/**/*.html' }),
-    {
-      name: 'route-fallback',
-      configureServer(server) {
-        server.middlewares.use('/*', (req, res, next) => {
-          req.url = '/'
-          next()
-        })
-      }
-    }
   ]
 });
 

@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter } from '@rollup/pluginutils';
 import { resolve } from 'path';
-import { readFileSync } from 'fs';
 
 export default defineConfig({
   server: {

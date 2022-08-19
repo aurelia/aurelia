@@ -1,3 +1,4 @@
+import { FallbackAction } from '../router-options';
 import { IEndpointOptions } from './endpoint';
 
 export interface IViewportOptions extends Omit<Partial<ViewportOptions>, 'usedBy'> {
@@ -36,6 +37,14 @@ export class ViewportOptions implements IEndpointOptions {
      * component. The component is passed as a parameter to the fallback.
      */
     public fallback: string = '',
+
+    /**
+     * Whether the fallback action is to load the fallback component in
+     * place of the unloadable component and continue with any child
+     * instructions or if the fallback is to be called and the processing
+     * of the children to be aborted.
+     */
+    public fallbackAction: FallbackAction | '' = '',
 
     /**
      * The viewport doesn't add its content to the Location URL.
@@ -82,6 +91,7 @@ export class ViewportOptions implements IEndpointOptions {
       ?? this.usedBy;
     this.default = options.default ?? this.default;
     this.fallback = options.fallback ?? this.fallback;
+    this.fallbackAction = options.fallbackAction ?? this.fallbackAction;
     this.noLink = options.noLink ?? this.noLink;
     this.noTitle = options.noTitle ?? this.noTitle;
     this.stateful = options.stateful ?? this.stateful;

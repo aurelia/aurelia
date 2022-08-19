@@ -11,6 +11,7 @@ import { AwaitableMap } from '../utilities/awaitable-map';
 import { EndpointContent, RoutingScope } from '../index';
 import { IRouter } from '../router';
 import { FoundRoute } from '../found-route';
+import { FallbackAction } from '../router-options';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -196,8 +197,11 @@ export class ViewportContent extends EndpointContent {
    * @param fallback - A (possible) fallback component to create if the
    * instruction component can't be created. The name of the failing
    * component is passed as parameter `id` to the fallback component
+   * @param fallbackAction - Whether the children of an unloadable component
+   * will be processed under the fallback component or if the child
+   * instructions will be aborted.
    */
-  public createComponent(connectedCE: IConnectedCustomElement, fallback?: string): void {
+  public createComponent(connectedCE: IConnectedCustomElement, fallback?: string, fallbackAction?: FallbackAction): void {
     // Can be called at multiple times, only process the first
     if (this.contentStates.has('created')) {
       return;
@@ -209,10 +213,18 @@ export class ViewportContent extends EndpointContent {
       } catch (e) {
         // If there's a fallback component...
         if ((fallback ?? '') !== '') {
-          // ...set the failed component as the first parameter (0)...
-          this.instruction.parameters.set([this.instruction.component.name]);
-          // ...fallback is component...
+          if (fallbackAction === 'process-children') {
+            // ...set the failed component as the first parameter (0)...
+            this.instruction.parameters.set([this.instruction.component.name]);
+          } else { // 'abort'
+            // ...set the unparsed string of the failed component as the first parameter (0)...
+            this.instruction.parameters.set([this.instruction.unparsed ?? this.instruction.component.name]);
+            // ...prevent processing of child instructions...
+            this.instruction.nextScopeInstructions = null;
+          }
+          // ...fallback is the new component...
           this.instruction.component.set(fallback);
+
           try {
             // ...and try again.
             this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));

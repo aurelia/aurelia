@@ -27,6 +27,7 @@ import {
 import { assert, TestContext } from '@aurelia/testing';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { isFirefox } from '../util.js';
 
 function join(sep: string, ...parts: string[]): string {
   return parts.filter(function (x) {
@@ -1886,10 +1887,8 @@ describe('router hooks', function () {
     }
   });
 
-  const isFirefox = TestContext.create().wnd.navigator.userAgent.includes('Firefox');
-
   // TODO: make these pass in firefox (firefox for some reason uses different type of stack trace - see https://app.circleci.com/pipelines/github/aurelia/aurelia/7569/workflows/60a7fb9f-e8b0-47e4-b753-eaa9b5da42c2/jobs/64147)
-  if (!isFirefox) {
+  if (!isFirefox()) {
     forEachRouterOptions('error handling', function (opts) {
       interface IErrorSpec {
         createCes: () => CustomElementType[];

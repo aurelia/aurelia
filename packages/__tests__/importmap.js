@@ -1,9 +1,8 @@
-// eslint-disable-next-line
+/* eslint-disable */
 document.write(`<script type="importmap">${JSON.stringify({
   imports: {
     ...([
       'addons',
-      'aurelia',
       'platform',
       'platform-browser',
       'metadata',
@@ -25,7 +24,9 @@ document.write(`<script type="importmap">${JSON.stringify({
     ].reduce((map, pkg) => {
       map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
       return map;
-    }, {})),
+    }, {
+      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`
+    })),
     'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
     'tslib': '/base/node_modules/tslib/tslib.es6.js',
     ...([

@@ -10,8 +10,9 @@
   "scripts": {
     "dev": "webpack serve",
     "build": "vite build",
-    "test:e2e": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 npm run test\" --kill-others --success first",
-    "test:e2e:debugger": "concurrently \"cross-env APP_PORT=9001 vite\" \"cross-env APP_PORT=9001 PWDEBUG=1 npm run test\" --kill-others --success first",
+    "start-server": "http-server dist -p 9001",
+    "test:e2e": "concurrently \"npm run build\" \"npm run start-server\" \"cross-env APP_PORT=9001 npm run test\" --kill-others --success first",
+    "test:e2e:debugger": "concurrently \"npm run build\" \"npm run start-server\" \"cross-env APP_PORT=9001 PWDEBUG=1 npm run test\" --kill-others --success first",
     "test": "npx playwright test --workers 3",
     "test:debugger": "npx playwright test --headed"
   },

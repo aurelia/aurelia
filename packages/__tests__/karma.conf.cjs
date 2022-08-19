@@ -12,13 +12,19 @@ const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg)
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
 module.exports =
-/** @param {import('karma').Config & { browsers: string[]; coverage: any; }} config */ function (config) {
+/** @param {import('karma').Config & { browsers?: string[]; coverage?: any; }} config */ function (config) {
+  /**
+   * @type {string[]}
+   */
   let browsers;
   if (process.env.BROWSERS) {
-    browsers = [process.env.BROWSERS];
+    browsers = Array.isArray(process.env.BROWSERS) ? process.env.BROWSERS : [process.env.BROWSERS];
   } else if (config.browsers) {
     browsers = config.browsers;
   } else {
+    browsers = ['Chrome'];
+  }
+  if (browsers.length !== 1) {
     browsers = ['Chrome'];
   }
   const baseUrl = 'packages/__tests__/dist/esm/__tests__';
@@ -54,6 +60,9 @@ module.exports =
   //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
   //
   const files = [
+    // karma doesn't provide a way to pass environments variables from node to the browser
+    // so set it up here
+    // { type: 'script', watched: true,            included: true,  nocache: true,   pattern: `packages/__tests__/import-env-vars.js` },
     // in watch mode, there is a chance that packages are rebuilt
     // and the preprocessor will no longer work, https://github.com/karma-runner/karma/issues/2264
     // this is a good enough work around
@@ -156,6 +165,8 @@ module.exports =
         timeout: 5000,
       }
     },
+    // enable this and the plugins down below if we want to setup environments in karma tests
+    // beforeMiddleware: ['env-vars'],
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
     plugins: [
@@ -177,13 +188,23 @@ module.exports =
             console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
           };
         }]
-      }
-    ],
-    isDevMode: /true/.test(process.env.DEV_MODE),
+      },
+      // {'middleware:env-vars': ['factory', function CustomMiddlewareFactory (config) {
+      //   return function (request, response, next) {
+      //     if (request.url.includes('env-variables.js')) {
+      //       response.end(`var process={env:${JSON.stringify({
+      //         BROWSERS: browsers[0],
+      //       })}}`);
+      //       return;
+      //     }
+      //     next();
+      //   }
+      // }]}
+    ]
   };
 
   if (config.coverage) {
-    options.reporters = ['coverage-istanbul', ...options.reporters];
+    options.reporters = ['coverage-istanbul', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
       reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],

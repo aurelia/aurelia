@@ -6,12 +6,11 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
-  PLATFORM,
   TestContext,
 } from '@aurelia/testing';
+import { isFirefox, isNode } from '../util.js';
 
 describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
-
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;
@@ -396,10 +395,11 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
 
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], only, browserOnly, assertFn } = testCase;
-    if (PLATFORM.navigator.userAgent.includes('jsdom') && browserOnly) {
+    if (isNode() && browserOnly) {
       return;
     }
-    if (PLATFORM.navigator.userAgent.includes('firefox')) {
+    if (isFirefox()) {
+      console.log('Tests sensitive to timing issues are only run in Chrome');
       return;
     }
     const $it = only ? it.only : it;

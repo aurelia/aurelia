@@ -201,22 +201,18 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     let innerItems = this._innerItems;
     let observingInnerItems = this._observingInnerItems;
-    let newObserver: CollectionObserver | undefined;
+    // let newObserver: CollectionObserver | undefined;
 
     if (observingInnerItems) {
       innerItems = this._innerItems = this._innerItemsExpression!.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
       observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
-
     const oldObserver = this._observer;
+    oldObserver?.unsubscribe(this);
+
     if (this.$controller.isActive) {
-      newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
-      if (oldObserver !== newObserver) {
-        oldObserver?.unsubscribe(this);
-        newObserver?.subscribe(this);
-      }
-    } else {
-      oldObserver?.unsubscribe(this);
+      const newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
+      newObserver?.subscribe(this);
     }
   }
 

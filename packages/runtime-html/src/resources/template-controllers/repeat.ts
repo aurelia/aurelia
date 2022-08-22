@@ -22,7 +22,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { rethrow } from '../../utilities';
+import { isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -117,6 +117,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     flags: LF,
   ): void | Promise<void> {
     this._checkCollectionObserver(flags);
+    this._observer?.unsubscribe(this);
 
     return this._deactivateAllViews(initiator, flags);
   }
@@ -138,7 +139,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         return this._activateAllViews(null, flags);
       },
     );
-    if (ret instanceof Promise) { ret.catch(rethrow); }
+    if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
   // called by a CollectionObserver
@@ -171,7 +172,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           return this._activateAllViews(null, flags);
         },
       );
-      if (ret instanceof Promise) { ret.catch(rethrow); }
+      if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
       const oldLength = this.views.length;
       const $indexMap = applyMutationsToIndices(indexMap);
@@ -185,7 +186,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             return this._createAndActivateAndSortViewsByKey(oldLength, $indexMap, flags);
           },
         );
-        if (ret instanceof Promise) { ret.catch(rethrow); }
+        if (isPromise(ret)) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -267,7 +268,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
       ret = view.activate(initiator ?? view, $controller, flags, viewScope);
-      if (ret instanceof Promise) {
+      if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
     });
@@ -296,15 +297,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       view.release();
       ret = view.deactivate(initiator ?? view, $controller, flags);
-      if (ret instanceof Promise) {
+      if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
     }
 
     if (promises !== void 0) {
-      return promises.length === 1
+      return (promises.length === 1
         ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
+        : Promise.all(promises)) as unknown as Promise<void>;
     }
   }
 
@@ -326,7 +327,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[deleted[i]];
       view.release();
       ret = view.deactivate(view, $controller, flags);
-      if (ret instanceof Promise) {
+      if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
     }
@@ -402,7 +403,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         view.setLocation(location);
 
         ret = view.activate(view, $controller, flags, viewScope);
-        if (ret instanceof Promise) {
+        if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {

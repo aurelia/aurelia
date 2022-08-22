@@ -13,7 +13,7 @@ import {
 import { DialogController } from './dialog-controller';
 import { AppTask } from '../../app-task';
 import { IPlatform } from '../../platform';
-import { isFunction } from '../../utilities';
+import { isFunction, isPromise } from '../../utilities';
 
 import type {
   DialogOpenPromise,
@@ -198,7 +198,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0
     ]);
-    return maybePromise instanceof Promise
+    return isPromise(maybePromise)
       ? maybePromise.then(() => loaded)
       : loaded;
   }

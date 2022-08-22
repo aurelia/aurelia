@@ -338,36 +338,29 @@ export function updateNode(
   node.queryParams = vit.queryParams;
   node.fragment = vit.fragment;
 
-  let maybePromise: void | Promise<void>;
   if (!node.context.isRoot) {
-    // TODO(fkleuver): store `options` on every individual instruction instead of just on the tree, or split it up etc? this needs a bit of cleaning up
-    maybePromise = node.context.vpa.scheduleUpdate(node.tree.options, node);
-  } else {
-    maybePromise = void 0;
+    node.context.vpa.scheduleUpdate(node.tree.options, node);
+  }
+  if (node.context === ctx) {
+    // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
+    node.clearChildren();
+    return onResolve(resolveAll(...vit.children.map(vi => {
+      return createAndAppendNodes(log, node, vi);
+    })), () => {
+      return resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+        const defaultInstruction = ViewportInstruction.create({
+          component: vpa.viewport.default,
+          viewport: vpa.viewport.name,
+        });
+        return createAndAppendNodes(log, node, defaultInstruction);
+      }));
+    });
   }
 
-  return onResolve(maybePromise, () => {
-    if (node.context === ctx) {
-      // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
-      node.clearChildren();
-      return onResolve(resolveAll(...vit.children.map(vi => {
-        return createAndAppendNodes(log, node, vi);
-      })), () => {
-        return resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
-          const defaultInstruction = ViewportInstruction.create({
-            component: vpa.viewport.default,
-            viewport: vpa.viewport.name,
-          });
-          return createAndAppendNodes(log, node, defaultInstruction);
-        }));
-      });
-    }
-
-    // Drill down until we're at the node whose context matches the provided navigation context
-    return resolveAll(...node.children.map(child => {
-      return updateNode(log, vit, ctx, child);
-    }));
-  });
+  // Drill down until we're at the node whose context matches the provided navigation context
+  return resolveAll(...node.children.map(child => {
+    return updateNode(log, vit, ctx, child);
+  }));
 }
 
 export function processResidue(node: RouteNode): Promise<void> | void {
@@ -433,8 +426,8 @@ export function createAndAppendNodes(
       switch (vi.component.value) {
         case '..':
           // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
-          node.clearChildren();
           node = node.context.parent?.node ?? node;
+          node.clearChildren();
         // falls through
         case '.':
           return resolveAll(...vi.children.map(childVI => {

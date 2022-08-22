@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { emptyArray } from '@aurelia/kernel';
 import { CustomAttribute } from './resources/custom-attribute';
 import { CustomElement } from './resources/custom-element';
@@ -18,7 +19,7 @@ export interface IWatchDefinition<T extends object = object> {
 
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
 type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K) => void;
-type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target: T, key: string | symbol, descriptor: PropertyDescriptor) => PropertyDescriptor;
+type WatchMethodDecorator<T> = (target: T, key: string | symbol, descriptor: PropertyDescriptor) => PropertyDescriptor;
 type MethodsOf<Type> = {
   [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never
 }[keyof Type];
@@ -58,7 +59,7 @@ export function watch<T extends object = object>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<object>,
   changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
-  if (!expressionOrPropertyAccessFn) {
+  if (expressionOrPropertyAccessFn == null) {
     if (__DEV__)
       throw new Error(`AUR0772: Invalid watch config. Expected an expression or a fn`);
     else

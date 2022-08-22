@@ -94,7 +94,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    this._checkCollectionObserver(flags);
+    this._refreshCollectionObserver(flags);
     const dec = forOf.declaration;
     if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
       this.local = dec.evaluate(flags, this.$controller.scope, binding.locator, null) as string;
@@ -116,8 +116,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
-    this._checkCollectionObserver(flags);
-    this._observer?.unsubscribe(this);
+    this._refreshCollectionObserver(flags);
 
     return this._deactivateAllViews(initiator, flags);
   }
@@ -129,7 +128,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     flags |= $controller.flags;
-    this._checkCollectionObserver(flags);
+    this._refreshCollectionObserver(flags);
     this._normalizeToArray(flags);
 
     const ret = onResolve(
@@ -197,29 +196,28 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // todo: subscribe to collection from inner expression
   /** @internal */
-  private _checkCollectionObserver(flags: LF): void {
+  private _refreshCollectionObserver(flags: LF): void {
     const scope = this.$controller.scope;
 
     let innerItems = this._innerItems;
     let observingInnerItems = this._observingInnerItems;
+    let newObserver: CollectionObserver | undefined;
+
     if (observingInnerItems) {
       innerItems = this._innerItems = this._innerItemsExpression!.evaluate(flags, scope, this._forOfBinding.locator, null) as Items<C> ?? null;
       observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
 
     const oldObserver = this._observer;
-    if ((flags & LF.fromUnbind)) {
-      if (oldObserver !== void 0) {
-        oldObserver.unsubscribe(this);
+    if (this.$controller.isActive) {
+      newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
+      if (oldObserver !== newObserver) {
+        oldObserver?.unsubscribe(this);
+        newObserver?.subscribe(this);
       }
-    } else if (this.$controller.isActive) {
-      const newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
-      if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribe(this);
-      }
-      if (newObserver) {
-        newObserver.subscribe(this);
-      }
+    } else {
+      oldObserver?.unsubscribe(this);
+      this._observer = undefined;
     }
   }
 

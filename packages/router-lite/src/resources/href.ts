@@ -6,10 +6,16 @@ import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
 import { IRouteContext } from '../route-context';
 
-@customAttribute({ name: 'href', noMultiBindings: true })
+@customAttribute('href')
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
+
+  /**
+   * When not bound, it defaults to the injected instance of the router context.
+   */
+  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  public context?: IRouteContext;
 
   private eventListener!: IDisposable;
   private isInitialized: boolean = false;
@@ -67,6 +73,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(newValue: unknown): void {
+    this.context ??= this.ctx;
     if (newValue == null) {
       this.el.removeAttribute('href');
     } else {
@@ -94,7 +101,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     if (href !== null) {
       e.preventDefault();
       // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-      void this.router.load(href, { context: this.ctx });
+      void this.router.load(href, { context: this.context });
     }
   }
 }

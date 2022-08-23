@@ -1,28 +1,9 @@
-import { Class, LogLevel } from '@aurelia/kernel';
-import { route, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, bindable, customElement, IPlatform } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
-import { TestRouterConfiguration } from '../_shared/configuration.js';
+import { Params, route, RouteNode } from '@aurelia/router-lite';
+import { customElement, IPlatform } from '@aurelia/runtime-html';
+import { assert } from '@aurelia/testing';
+import { start } from '../_shared/create-fixture.js';
 
 describe('load custom-attribute', function () {
-
-  async function start<TAppRoot>(appRoot: Class<TAppRoot>, ...registrations: any[]) {
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      ...registrations,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    await au.app({ component: appRoot, host }).start();
-    const rootVm = au.root.controller.viewModel as TAppRoot;
-    return { host, au, container, rootVm };
-  }
 
   function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = ''): void {
     const len = anchors.length;
@@ -132,13 +113,17 @@ describe('load custom-attribute', function () {
     await au.stop();
   });
 
-  it.only('allow navigating to route defined in parent context', async function () {
-    @customElement({ name: 'pro-duct', template: `product \${id}` })
+  it('allow navigating to route defined in parent context using ../ prefix', async function () {
+    @customElement({ name: 'pro-duct', template: `product \${id} <a load="../products"></a>` })
     class Product {
-      @bindable id: unknown;
+      id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
     }
 
-    @customElement({ name: 'pro-ducts', template: `<a id="a1" load="route:product; params.bind:{id: 1}">p1</a>` })
+    @customElement({ name: 'pro-ducts', template: `<a load="../product/1"></a><a load="../product/2"></a> products` })
     class Products { }
 
     @route({
@@ -154,9 +139,30 @@ describe('load custom-attribute', function () {
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
+    assert.html.textContent(host, 'products');
     const anchors = Array.from(host.querySelectorAll('a'));
     const hrefs = anchors.map(a => a.href);
-    assert.match(hrefs[0], /product\/1/);
+    assert.match(hrefs[0], /product\/1$/);
+    assert.match(hrefs[1], /product\/2$/);
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 1');
+    // go back
+    const back = host.querySelector<HTMLAnchorElement>('a');
+    assert.match(back.href, /products$/);
+    back.click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
+
+    // 2nd round
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 2');
+    // go back
+    host.querySelector<HTMLAnchorElement>('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
 
     await au.stop();
   });

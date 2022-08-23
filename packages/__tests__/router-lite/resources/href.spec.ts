@@ -115,4 +115,110 @@ describe('href custom-attribute', function () {
 
     await au.stop();
   });
+
+  it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
+    @customElement({ name: 'l-21', template: `l21 \${id} <a href="../../l12"></a>` })
+    class L21 { }
+    @customElement({ name: 'l-22', template: `l22 \${id} <a href="../../l11"></a>` })
+    class L22 { }
+
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
+
+    @route({
+      routes: [
+        { id: 'l22', path: ['', 'l22'], component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
+
+    @route({
+      routes: [
+        { id: 'l11', path: ['', 'l11'], component: L11 },
+        { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start(Root, L11, L12, L21, L22);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l22');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    await au.stop();
+  });
+
+  it('allow navigating to route defined in grand-parent context using explicit routing context', async function () {
+    @customElement({ name: 'l-21', template: `l21 <a href="value:l12; context.bind:rtCtx.parent.parent"></a>` })
+    class L21 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-22', template: `l22 <a href="value:l11; context.bind:rtCtx.parent.parent"></a>` })
+    class L22 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
+
+    @route({
+      routes: [
+        { id: 'l22', path: ['', 'l22'], component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
+
+    @route({
+      routes: [
+        { id: 'l11', path: ['', 'l11'], component: L11 },
+        { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start(Root, L11, L12, L21, L22);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l22');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    await au.stop();
+  });
 });

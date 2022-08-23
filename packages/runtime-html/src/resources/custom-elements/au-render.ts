@@ -8,7 +8,7 @@ import { CustomElement, customElement, CustomElementDefinition } from '../custom
 import { bindable } from '../../bindable';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { isString } from '../../utilities';
+import { isPromise, isString } from '../../utilities';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
@@ -100,7 +100,7 @@ export class AuRender implements ICustomElementViewModel {
         return this.compose(void 0, newValue, null, flags);
       },
     );
-    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+    if (isPromise(ret)) { ret.catch(err => { throw err; }); }
   }
 
   private compose(
@@ -156,7 +156,7 @@ export class AuRender implements ICustomElementViewModel {
 
   /** @internal */
   private _provideViewFor(comp: Subject | undefined, _flags: LifecycleFlags): ISyntheticView | undefined {
-    if (!comp) {
+    if (comp == null) {
       return void 0;
     }
 

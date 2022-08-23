@@ -28,7 +28,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { isFunction, isString } from '../utilities';
+import { isFunction, isPromise, isString } from '../utilities';
 
 import type {
   IContainer,
@@ -592,7 +592,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.binding(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
         this.bind();
@@ -645,7 +645,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.bound(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
         this.isBound = true;
@@ -728,7 +728,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.attaching(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
@@ -812,7 +812,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.detaching(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       (initiator as Controller)._enterDetaching();
       ret.then(() => {
@@ -975,7 +975,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         _retPromise = resolveAll(_retPromise, this.viewModel!.attached!(this.$initiator, this.$flags));
       }
 
-      if (_retPromise instanceof Promise) {
+      if (isPromise(_retPromise)) {
         this._ensurePromise();
         _retPromise.then(() => {
           this.state = State.activated;
@@ -1036,7 +1036,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags));
         }
 
-        if (ret instanceof Promise) {
+        if (isPromise(ret)) {
           this._ensurePromise();
           this._enterUnbinding();
           ret.then(() => {

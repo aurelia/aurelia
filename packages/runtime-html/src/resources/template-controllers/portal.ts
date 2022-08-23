@@ -5,7 +5,7 @@ import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { isString } from '../../utilities';
+import { isPromise, isString } from '../../utilities';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
@@ -106,7 +106,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
         return this._activating(null, newTarget, $controller.flags);
       },
     );
-    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+    if (isPromise(ret)) { ret.catch(err => { throw err; }); }
   }
 
   /** @internal */

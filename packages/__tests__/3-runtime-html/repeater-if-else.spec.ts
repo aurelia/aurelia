@@ -9,6 +9,7 @@ import {
   TestConfiguration,
   trimFull,
   assert,
+  createFixture,
 } from '@aurelia/testing';
 
 const spec = 'repeater-if-else';
@@ -50,7 +51,7 @@ describe(spec, function () {
     {
       t: '101',
       createCETemplate(behaviors: string): string {
-        return  `<template>
+        return `<template>
           <div repeat.for="item of items ${behaviors}">
             <div if.bind="display">
               \${item.if}
@@ -346,7 +347,7 @@ describe(spec, function () {
     {
       t: '01',
       createItems() {
-        return [{if: 1,   else: 2},   {if: 3,   else: 4}];
+        return [{ if: 1, else: 2 }, { if: 3, else: 4 }];
       },
       ifText: '13',
       elseText: '24'
@@ -354,7 +355,7 @@ describe(spec, function () {
     {
       t: '02',
       createItems() {
-        return [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}, {if: 'g', else: 'h'}];
+        return [{ if: 'a', else: 'b' }, { if: 'c', else: 'd' }, { if: 'e', else: 'f' }, { if: 'g', else: 'h' }];
       },
       ifText: 'aceg',
       elseText: 'bdfh'
@@ -396,7 +397,7 @@ describe(spec, function () {
     {
       t: '03',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
-        component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
+        component.items = [{ if: 2, else: 1 }, { if: 4, else: 3 }];
         platform.domWriteQueue.flush();
 
         assert.strictEqual(trimFull(host.textContent), '13'.repeat(count), `trimFull(host.textContent)`);
@@ -436,7 +437,7 @@ describe(spec, function () {
     {
       t: '07',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
-        component.items = [{if: 'a', else: 'b'}];
+        component.items = [{ if: 'a', else: 'b' }];
         platform.domWriteQueue.flush();
 
         assert.strictEqual(trimFull(host.textContent), 'b'.repeat(count), `trimFull(host.textContent)`);
@@ -445,7 +446,7 @@ describe(spec, function () {
     {
       t: '08',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
-        component.items = [{if: 'a', else: 'b'}];
+        component.items = [{ if: 'a', else: 'b' }];
         component.display = true;
         platform.domWriteQueue.flush();
 
@@ -474,7 +475,7 @@ describe(spec, function () {
     {
       t: '11',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
-        component.items = component.items.slice().concat({if: 'x', else: 'y'});
+        component.items = component.items.slice().concat({ if: 'x', else: 'y' });
         platform.domWriteQueue.flush();
 
         assert.strictEqual(trimFull(host.textContent), `${elseText}y`.repeat(count), `trimFull(host.textContent)`);
@@ -483,7 +484,7 @@ describe(spec, function () {
     {
       t: '12',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
-        component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
+        component.items = [{ if: 'a', else: 'b' }, { if: 'c', else: 'd' }, { if: 'e', else: 'f' }];
         component.display = true;
         platform.domWriteQueue.flush();
 
@@ -493,7 +494,7 @@ describe(spec, function () {
     {
       t: '13',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
-        component.items.push({if: 5, else: 6});
+        component.items.push({ if: 5, else: 6 });
         platform.domWriteQueue.flush();
 
         assert.strictEqual(trimFull(host.textContent), `${elseText}6`.repeat(count), `trimFull(host.textContent)`);
@@ -502,7 +503,7 @@ describe(spec, function () {
     {
       t: '14',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
-        component.items.push({if: 5, else: 6});
+        component.items.push({ if: 5, else: 6 });
         component.display = true;
         platform.domWriteQueue.flush();
 
@@ -575,7 +576,36 @@ describe(spec, function () {
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
         au.dispose();
-          });
+      });
     });
 
+  it('GH #1119 - works when the repeter is wrapped in if.bind and using the same array with if.bind', async function () {
+    const { component, getAllBy } = await createFixture(
+      `<div if.bind="!!items.length">
+            <p repeat.for="i of items">
+              \${i} <button type="button" click.trigger="remove($index)">remove</button><br>
+            </p>
+          </div>
+          <button click.trigger="add()">add</button>`,
+      class App {
+        public items = [];
+        public add() {
+          this.items.push('item');
+        }
+        public remove(i: number) {
+          this.items.splice(i, 1);
+        }
+      }
+    ).started;
+
+    assert.strictEqual(getAllBy('p').length, 0);
+
+    component.add();
+    assert.strictEqual(getAllBy('p').length, 1);
+    component.remove(0);
+    assert.strictEqual(getAllBy('p').length, 0);
+
+    component.add();
+    assert.strictEqual(getAllBy('p').length, 1);
+  });
 });

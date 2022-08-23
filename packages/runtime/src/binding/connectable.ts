@@ -18,8 +18,6 @@ import type {
 } from '../observation';
 import type { IObserverLocator } from '../observation/observer-locator';
 
-// TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-
 export interface IObserverLocatorBasedConnectable extends IBinding, ISubscriber, ICollectionSubscriber {
   oL: IObserverLocator;
 }
@@ -76,9 +74,9 @@ function noopHandleChange() {
 
 function noopHandleCollectionChange() {
   if (__DEV__)
-    throw new Error(`AUR2012: method "handleCollectionChange" not implemented`);
+    throw new Error(`AUR2011: method "handleCollectionChange" not implemented`);
   else
-    throw new Error(`AUR2012:handleCollectionChange`);
+    throw new Error(`AUR2011:handleCollectionChange`);
 }
 
 type ObservationRecordImplType = {

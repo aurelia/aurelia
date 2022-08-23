@@ -462,7 +462,7 @@ export class BindingBehaviorExpression {
     if (!(behavior instanceof BindingBehaviorFactory)) {
       if ((b as BindingWithBehavior)[this.behaviorKey] === void 0) {
         (b as BindingWithBehavior)[this.behaviorKey] = behavior;
-        (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, b, ...this.args.map(a => a.evaluate(f, s, b.locator, null)));
+        behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(f, s, b.locator, null) as {}[]));
       } else {
         if (__DEV__)
           throw new Error(`AUR0102: BindingBehavior named '${this.name}' already applied.`);

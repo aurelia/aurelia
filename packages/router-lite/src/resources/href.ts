@@ -73,7 +73,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(newValue: unknown): void {
-    this.context ??= this.ctx;
+    // this allows binding context to null for navigation from root; unbound vs explicit null binding
+    if(this.context === void 0) {
+      this.context = this.ctx;
+    } else if(this.context === null) {
+      this.context = this.ctx.root;
+    }
     if (newValue == null) {
       this.el.removeAttribute('href');
     } else {

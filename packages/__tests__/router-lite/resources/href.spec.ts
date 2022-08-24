@@ -221,4 +221,93 @@ describe('href custom-attribute', function () {
 
     await au.stop();
   });
+
+  it('allow explicitly binding the routing context to null to perform navigation from root', async function () {
+    @customElement({ name: 'l-21', template: `l21 <a href="value:l22; context.bind:rtCtx.parent"></a>` })
+    class L21 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-22', template: `l22 <a href="value:l12; context.bind:null"></a>` })
+    class L22 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-23', template: `l23 <a href="value:l24; context.bind:rtCtx.parent"></a>` })
+    class L23 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-24', template: `l24 <a href="value:l11; context.bind:null"></a>` })
+    class L24 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+        { id: 'l22', path: 'l22', component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
+
+    @route({
+      routes: [
+        { id: 'l23', path: ['', 'l23'], component: L23 },
+        { id: 'l24', path: 'l24', component: L24 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
+
+    @route({
+      routes: [
+        { id: 'l11', path: ['', 'l11'], component: L11 },
+        { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start(Root, L11, L12, L21, L22, L23, L24);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21', 'init');
+
+    // l21 -> l22
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l22', '#2 l21 -> l22');
+
+    // l22 -> l12
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l23', '#3 l22 -> l12');
+
+    // l23 -> l24
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l24', '#4 l23 -> l24');
+
+    // l24 -> l11
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
+
+    await au.stop();
+  });
 });

@@ -7,7 +7,7 @@
 // })
 export class Auth {
 
-  canLoad() {
-    return 'route-home';
-  }
+  // canLoad() {
+  //   return 'route-home';
+  // }
 }

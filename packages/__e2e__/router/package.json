@@ -1,5 +1,5 @@
 {
-  "name": "@__e2e__/router-direct",
+  "name": "@__e2e__/router",
   "license": "MIT",
   "private": true,
   "engines": {

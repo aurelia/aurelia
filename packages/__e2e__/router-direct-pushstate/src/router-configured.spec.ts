@@ -28,3 +28,8 @@ test('loads right component refreshing the page with deep linking', async ({ pag
   expect(page.url()).toBe(`${appUrl}/auth`);
   await expect(page.locator('au-viewport')).toContainText('Auth page');
 });
+
+test('loads fallback component when clicking on link with missing component', async ({ page }) => {
+  await page.click('a:text("Missing child")');
+  await expect(page.locator('au-viewport')).toContainText('Fallback for: child/missing');
+});

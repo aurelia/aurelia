@@ -1,5 +1,7 @@
+import { useUrlFragmentHash } from "./config";
+
 export class App {
-  public message = 'Hello World!';
+  public message = 'Hello, World!';
   public iframeSrc: string;
   public iframeVisible: boolean;
 
@@ -9,6 +11,7 @@ export class App {
 
   toggleIframe() {
     if (!this.iframeVisible) {
+      console.log('useUrlFragmentHash', useUrlFragmentHash);
       this.iframeSrc = URL.createObjectURL(new Blob(
         [`<html><head></head><body><a target="_top" href="${origin}/#auth">Goto auth</a></body>`],
         { type: 'text/html' }

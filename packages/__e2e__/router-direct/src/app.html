@@ -1,12 +1,14 @@
 <import from="./pages/home"></import>
 <import from="./pages/auth"></import>
+<import from="./pages/fallback"></import>
 
 <div class="message">${message}</div>
 <nav>
   <a load="home">Home</a>
   <a load="auth">Register</a>
+  <a load="child/missing">Missing child</a>
 </nav>
-<au-viewport default="home"></au-viewport>
+<au-viewport default="home" fallback="fallback" fallback-action="abort"></au-viewport>
 <hr>
 <button click.trigger="toggleIframe()">Show iframe</button>
 <iframe if.bind="iframeVisible" src.bind='iframeSrc'></iframe>

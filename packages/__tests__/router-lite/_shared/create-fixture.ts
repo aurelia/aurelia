@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform, Class } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router-lite';
 import { TestContext } from '@aurelia/testing';
@@ -88,4 +88,25 @@ export async function createFixture<T extends Constructable>(
       await au.stop(true);
     },
   };
+}
+
+/**
+ * Simpler fixture creation.
+ */
+export async function start<TAppRoot>(appRoot: Class<TAppRoot>, ...registrations: any[]) {
+  const ctx = TestContext.create();
+  const { container } = ctx;
+
+  container.register(
+    TestRouterConfiguration.for(LogLevel.warn),
+    RouterConfiguration,
+    ...registrations,
+  );
+
+  const au = new Aurelia(container);
+  const host = ctx.createElement('div');
+
+  await au.app({ component: appRoot, host }).start();
+  const rootVm = au.root.controller.viewModel as TAppRoot;
+  return { host, au, container, rootVm };
 }

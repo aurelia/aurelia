@@ -605,7 +605,7 @@ export class ViewportAgent {
     });
   }
 
-  public scheduleUpdate(options: NavigationOptions, next: RouteNode): void | Promise<void> {
+  public scheduleUpdate(options: NavigationOptions, next: RouteNode): void {
     switch (this.nextState) {
       case State.nextIsEmpty:
         this.nextNode = next;

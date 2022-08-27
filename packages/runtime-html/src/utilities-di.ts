@@ -1,4 +1,4 @@
-import { DI, type Resolved } from '@aurelia/kernel';
+import { DI, Registration, type Resolved } from '@aurelia/kernel';
 
 import type {
   Constructable,
@@ -48,3 +48,12 @@ export const allResources = function <T extends Key>(key: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Resolver as IResolver<Resolved<T>[]> & ((...args: unknown[]) => any);
 };
+
+/** @internal */
+export const registerSingleton = Registration.singleton;
+
+/** @internal */
+export const registerAlias = Registration.aliasTo;
+
+/** @internal */
+export const registerInstance = Registration.instance;

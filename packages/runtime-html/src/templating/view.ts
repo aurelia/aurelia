@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
+import { CustomElementDefinition, defineElement, getElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
 import { isFunction, isString } from '../utilities';
@@ -44,6 +44,7 @@ export class ViewFactory implements IViewFactory {
   }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (size) {
       if (size === '*') {
         size = ViewFactory.maxCacheSize;
@@ -204,8 +205,8 @@ export class ViewLocator {
         resolvedViewName
       );
 
-      BoundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
-        CustomElement.getDefinition(UnboundComponent),
+      BoundComponent = defineElement<ComposableObjectComponentType<T>>(
+        getElementDefinition(UnboundComponent),
         class extends UnboundComponent {
           public constructor() {
             super(object);
@@ -236,7 +237,7 @@ export class ViewLocator {
     }
 
     if (UnboundComponent === void 0) {
-      UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+      UnboundComponent = defineElement<ComposableObjectComponentType<T>>(
         this._getView(availableViews, resolvedViewName),
         class {
           public constructor(public viewModel: T) {}
@@ -349,6 +350,7 @@ export class ViewLocator {
 
   /** @internal */
   private _getViewName(views: readonly CustomElementDefinition[], requestedName?: string) {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (requestedName) {
       return requestedName;
     }

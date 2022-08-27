@@ -2,7 +2,7 @@ import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/k
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
-import { CustomElement } from './resources/custom-element';
+import { isElementType } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
@@ -92,7 +92,7 @@ export class AppRoot implements IDisposable {
       const component = config.component as Constructable | ICustomElementViewModel;
       const childCtn = container.createChild();
       let instance: object;
-      if (CustomElement.isType(component)) {
+      if (isElementType(component)) {
         instance = this.container.get(component);
       } else {
         instance = config.component as ICustomElementViewModel;

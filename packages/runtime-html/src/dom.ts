@@ -1,7 +1,7 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { CustomElement } from './resources/custom-element';
+import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
 
@@ -142,7 +142,7 @@ export function getEffectiveParentNode(node: Node): Node | null {
 
   if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
     // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
-    const controller = CustomElement.for(node);
+    const controller = findElementControllerFor(node);
     if (controller === void 0) {
       // Not a shadow root (or at least, not one created by Aurelia)
       // Nothing more we can try, just return null

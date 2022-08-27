@@ -140,7 +140,7 @@ export function customElement(name: string): CustomElementDecorator;
 export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator;
 export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator {
   return function (target) {
-    return CustomElement.define(nameOrDef, target);
+    return defineElement(nameOrDef, target);
   };
 }
 
@@ -190,7 +190,7 @@ export function containerless(target?: Constructable): void | ((target: Construc
 
 /** Manipulates the `containerless` property of the custom element definition for the type, when present else it annotates the type. */
 function markContainerless(target: Constructable) {
-  const def = getOwnMetadata(ceBaseName, target) as CustomElementDefinition;
+  const def = getOwnMetadata(elementBaseName, target) as CustomElementDefinition;
   if(def === void 0) {
     annotateElementMetadata(target, 'containerless', true);
     return;
@@ -280,14 +280,14 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         // as the "Type" parameter) effectively skips type analysis, so it should only be used this way for cloning purposes.
         Type = (def as CustomElementDefinition).Type;
       } else {
-        Type = CustomElement.generateType(pascalCase(name));
+        Type = generateElementType(pascalCase(name));
       }
 
       return new CustomElementDefinition(
         Type,
         name,
         mergeArrays(def.aliases),
-        fromDefinitionOrDefault('key', def as CustomElementDefinition, () => CustomElement.keyFrom(name)),
+        fromDefinitionOrDefault('key', def as CustomElementDefinition, () => getElementKeyFrom(name)),
         fromDefinitionOrDefault('cache', def, returnZero),
         fromDefinitionOrDefault('capture', def, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
@@ -316,7 +316,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         Type,
         nameOrDef,
         mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
-        CustomElement.keyFrom(nameOrDef),
+        getElementKeyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
@@ -356,7 +356,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       Type,
       name,
       mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
-      CustomElement.keyFrom(name),
+      getElementKeyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
       fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
@@ -400,7 +400,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     const definition = CustomElementDefinition.create(partialDefinition);
     definitionLookup.set(partialDefinition, definition);
     // Make sure the full definition can be retrieved from dynamically created classes as well
-    defineMetadata(ceBaseName, definition, definition.Type);
+    defineMetadata(elementBaseName, definition, definition.Type);
     return definition;
   }
 
@@ -437,174 +437,200 @@ const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
-const ceBaseName = getResourceKeyFor('custom-element');
-const getElementKeyFrom = (name: string): string => `${ceBaseName}:${name}`;
-const generateElementName = (() => {
+/** @internal */
+export const elementBaseName = getResourceKeyFor('custom-element');
+
+/** @internal */
+export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
+
+/** @internal */
+export const generateElementName = (() => {
   let id = 0;
 
   return () => `unnamed-${++id}`;
 })();
+
 const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
   defineMetadata(getAnnotationKeyFor(prop), value, Type);
 };
-const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
-  Type: Constructable,
-  prop: K
-): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
-export const CustomElement = Object.freeze<CustomElementKind>({
-  name: ceBaseName,
-  keyFrom: getElementKeyFrom,
-  isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) {
-    return isFunction(value) && hasOwnMetadata(ceBaseName, value);
-  },
-  for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
-    if (opts.name === void 0 && opts.searchParents !== true) {
-      const controller = getRef(node, ceBaseName) as Controller<C> | null;
-      if (controller === null) {
-        if (opts.optional === true) {
-          return null!;
-        }
-        if (__DEV__)
-          throw new Error(`AUR0762: The provided node is not a custom element or containerless host.`);
-        else
-          throw new Error(`AUR0762`);
+/** @internal */
+export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
+  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
+  defineMetadata(elementBaseName, definition, definition.Type);
+  defineMetadata(elementBaseName, definition, definition);
+  appendResourceKey(definition.Type, elementBaseName);
+
+  return definition.Type as CustomElementType<C>;
+};
+
+/** @internal */
+export const isElementType = <C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) => {
+  return isFunction(value) && hasOwnMetadata(elementBaseName, value);
+};
+
+/** @internal */
+export const findElementControllerFor = <C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> => {
+  if (opts.name === void 0 && opts.searchParents !== true) {
+    const controller = getRef(node, elementBaseName) as Controller<C> | null;
+    if (controller === null) {
+      if (opts.optional === true) {
+        return null!;
       }
-      return controller as unknown as ICustomElementController<C>;
-    }
-    if (opts.name !== void 0) {
-      if (opts.searchParents !== true) {
-        const controller = getRef(node, ceBaseName) as Controller<C> | null;
-        if (controller === null) {
-          if (__DEV__)
-            throw new Error(`AUR0763: The provided node is not a custom element or containerless host.`);
-          else
-            throw new Error(`AUR0763`);
-        }
-
-        if (controller.is(opts.name)) {
-          return controller as unknown as ICustomElementController<C>;
-        }
-
-        return (void 0)!;
-      }
-
-      let cur = node as INode | null;
-      let foundAController = false;
-      while (cur !== null) {
-        const controller = getRef(cur, ceBaseName) as Controller<C> | null;
-        if (controller !== null) {
-          foundAController = true;
-          if (controller.is(opts.name)) {
-            return controller as unknown as ICustomElementController<C>;
-          }
-        }
-
-        cur = getEffectiveParentNode(cur);
-      }
-
-      if (foundAController) {
-        return (void 0)!;
-      }
-
       if (__DEV__)
-        throw new Error(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+        throw new Error(`AUR0762: The provided node is not a custom element or containerless host.`);
       else
-        throw new Error(`AUR0764`);
+        throw new Error(`AUR0762`);
+    }
+    return controller as unknown as ICustomElementController<C>;
+  }
+  if (opts.name !== void 0) {
+    if (opts.searchParents !== true) {
+      const controller = getRef(node, elementBaseName) as Controller<C> | null;
+      if (controller === null) {
+        if (__DEV__)
+          throw new Error(`AUR0763: The provided node is not a custom element or containerless host.`);
+        else
+          throw new Error(`AUR0763`);
+      }
+
+      if (controller.is(opts.name)) {
+        return controller as unknown as ICustomElementController<C>;
+      }
+
+      return (void 0)!;
     }
 
     let cur = node as INode | null;
+    let foundAController = false;
     while (cur !== null) {
-      const controller = getRef(cur, ceBaseName) as Controller<C> | null;
+      const controller = getRef(cur, elementBaseName) as Controller<C> | null;
       if (controller !== null) {
-        return controller as unknown as ICustomElementController<C>;
+        foundAController = true;
+        if (controller.is(opts.name)) {
+          return controller as unknown as ICustomElementController<C>;
+        }
       }
 
       cur = getEffectiveParentNode(cur);
     }
 
-    if (__DEV__)
-      throw new Error(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
-    else
-      throw new Error(`AUR0765`);
-  },
-  define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> {
-    const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-    defineMetadata(ceBaseName, definition, definition.Type);
-    defineMetadata(ceBaseName, definition, definition);
-    appendResourceKey(definition.Type, ceBaseName);
-
-    return definition.Type as CustomElementType<C>;
-  },
-  getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C> {
-    const def = getOwnMetadata(ceBaseName, Type) as CustomElementDefinition<C>;
-    if (def === void 0) {
-      if (__DEV__)
-        throw new Error(`AUR0760: No definition found for type ${Type.name}`);
-      else
-        throw new Error(`AUR0760:${Type.name}`);
+    if (foundAController) {
+      return (void 0)!;
     }
 
-    return def;
-  },
+    if (__DEV__)
+      throw new Error(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+    else
+      throw new Error(`AUR0764`);
+  }
+
+  let cur = node as INode | null;
+  while (cur !== null) {
+    const controller = getRef(cur, elementBaseName) as Controller<C> | null;
+    if (controller !== null) {
+      return controller as unknown as ICustomElementController<C>;
+    }
+
+    cur = getEffectiveParentNode(cur);
+  }
+
+  if (__DEV__)
+    throw new Error(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+  else
+    throw new Error(`AUR0765`);
+};
+
+const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
+  Type: Constructable,
+  prop: K
+): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+
+/** @internal */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
+  const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
+  if (def === void 0) {
+    if (__DEV__)
+      throw new Error(`AUR0760: No definition found for type ${Type.name}`);
+    else
+      throw new Error(`AUR0760:${Type.name}`);
+  }
+
+  return def;
+};
+
+/** @internal */
+export const createElementInjectable = <K extends Key = Key>(): InjectableToken<K> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
+    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+    annotationParamtypes[index] = $injectable;
+    return target;
+  };
+
+  $injectable.register = function (_container) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    return {
+      resolve(container, requestor) {
+        if (requestor.has($injectable, true)) {
+          return requestor.get($injectable);
+        } else {
+          return null;
+        }
+      },
+    } as IResolver;
+  };
+
+  return $injectable;
+};
+
+/** @internal */
+export const generateElementType = (function () {
+  const nameDescriptor: PropertyDescriptor = {
+    value: '',
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultProto = {} as any;
+
+  return function <P extends {} = {}>(
+    name: string,
+    proto: P = defaultProto,
+  ): CustomElementType<Constructable<P>> {
+    // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
+    // looking similarly from the outside (when inspected via debugger, etc).
+    const Type = class { } as CustomElementType<Constructable<P>>;
+
+    // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
+    // even when minified.
+    nameDescriptor.value = name;
+    Reflect.defineProperty(Type, 'name', nameDescriptor);
+
+    // Assign anything from the prototype that was passed in
+    if (proto !== defaultProto) {
+      Object.assign(Type.prototype, proto);
+    }
+
+    return Type;
+  };
+})();
+
+export const CustomElement = Object.freeze<CustomElementKind>({
+  name: elementBaseName,
+  keyFrom: getElementKeyFrom,
+  isType: isElementType,
+  for: findElementControllerFor,
+  define: defineElement,
+  getDefinition: getElementDefinition,
   annotate: annotateElementMetadata,
   getAnnotation: getElementAnnotation,
   generateName: generateElementName,
-  createInjectable<K extends Key = Key>(): InjectableToken<K> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
-      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
-      annotationParamtypes[index] = $injectable;
-      return target;
-    };
-
-    $injectable.register = function (_container) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return {
-        resolve(container, requestor) {
-          if (requestor.has($injectable, true)) {
-            return requestor.get($injectable);
-          } else {
-            return null;
-          }
-        },
-      } as IResolver;
-    };
-
-    return $injectable;
-  },
-  generateType: (function () {
-    const nameDescriptor: PropertyDescriptor = {
-      value: '',
-      writable: false,
-      enumerable: false,
-      configurable: true,
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const defaultProto = {} as any;
-
-    return function <P extends {} = {}>(
-      name: string,
-      proto: P = defaultProto,
-    ): CustomElementType<Constructable<P>> {
-      // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
-      // looking similarly from the outside (when inspected via debugger, etc).
-      const Type = class { } as CustomElementType<Constructable<P>>;
-
-      // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
-      // even when minified.
-      nameDescriptor.value = name;
-      Reflect.defineProperty(Type, 'name', nameDescriptor);
-
-      // Assign anything from the prototype that was passed in
-      if (proto !== defaultProto) {
-        Object.assign(Type.prototype, proto);
-      }
-
-      return Type;
-    };
-  })(),
+  createInjectable: createElementInjectable,
+  generateType: generateElementType,
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
@@ -620,7 +646,7 @@ export function processContent<TClass>(hook?: ProcessContentHook): CustomElement
     }
     : function (target: Constructable<TClass>) {
       hook = ensureHook(target, hook!);
-      const def = getOwnMetadata(ceBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
+      const def = getOwnMetadata(elementBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
       if (def !== void 0) {
         (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
       } else {
@@ -659,8 +685,8 @@ export function capture(targetOrFilter?: (attr: string) => boolean): ((target: C
     annotateElementMetadata($target, 'capture', value);
 
     // also do this to make order of the decorator irrelevant
-    if (CustomElement.isType($target)) {
-      (CustomElement.getDefinition($target) as Writable<CustomElementDefinition>).capture = value;
+    if (isElementType($target)) {
+      (getElementDefinition($target) as Writable<CustomElementDefinition>).capture = value;
     }
   };
 }

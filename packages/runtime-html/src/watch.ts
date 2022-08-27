@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { emptyArray } from '@aurelia/kernel';
 import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement } from './resources/custom-element';
+import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared';
 import { isFunction } from './utilities';
 
@@ -110,8 +110,8 @@ export function watch<T extends object = object>(
     if (CustomAttribute.isType(Type)) {
       CustomAttribute.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
-    if (CustomElement.isType(Type)) {
-      CustomElement.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
+    if (isElementType(Type)) {
+      getElementDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
   };
 }

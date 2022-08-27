@@ -4,7 +4,7 @@ import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
 import { IEventTarget, INode } from './dom';
 import { IPlatform } from './platform';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { isFunction, isPromise } from './utilities';
 
@@ -106,7 +106,7 @@ export class Aurelia implements IDisposable {
       bc,
       host,
       null,
-      CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
+      CustomElementDefinition.create({ name: generateElementName(), template: host, enhance: true }),
     );
     return onResolve(
       view.activate(view, parentController, LifecycleFlags.fromBind),

@@ -22,6 +22,12 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.fromView })
   public active: boolean = false;
 
+  /**
+   * When not bound, it defaults to the injected instance of the router context.
+   */
+  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  public context?: IRouteContext;
+
   private href: string | null = null;
   private instructions: ViewportInstructionTree | null = null;
   private eventListener: IDisposable | null = null;
@@ -48,13 +54,15 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.valueChanged();
     this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
       this.valueChanged();
-      this.active = this.instructions !== null && this.router.isActive(this.instructions, this.ctx);
+      this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
     });
   }
 
   public attaching(): void | Promise<void> {
-    if (this.ctx.allResolved !== null) {
-      return this.ctx.allResolved.then(() => {
+    const ctx = this.context;
+    const promise = ctx!.allResolved;
+    if (promise !== null) {
+      return promise.then(() => {
         this.valueChanged();
       });
     }
@@ -71,13 +79,20 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     const router = this.router;
     const useHash = router.options.useUrlFragmentHash;
     const component = this.route as NavigationInstruction;
-    if (component != null && this.ctx.allResolved === null) {
+    // this allows binding context to null for navigation from root; unbound vs explicit null binding
+    let ctx = this.context;
+    if (ctx === void 0) {
+      ctx = this.context = this.ctx;
+    } else if (ctx === null) {
+      ctx = this.context = this.ctx.root;
+    }
+    if (component != null && ctx.allResolved === null) {
       const params = this.params;
       const instructions = this.instructions = router.createViewportInstructions(
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
-        { context: this.ctx });
+        { context: ctx });
       this.href = instructions.toUrl(useHash);
     } else {
       this.instructions = null;
@@ -109,6 +124,6 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-    void this.router.load(this.instructions, { context: this.ctx });
+    void this.router.load(this.instructions, { context: this.context });
   };
 }

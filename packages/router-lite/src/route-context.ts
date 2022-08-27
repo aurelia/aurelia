@@ -21,7 +21,6 @@ export const RESIDUE = 'au$residue' as const;
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
 
-/** @internal */
 export type EagerInstruction = {
   component: string | RouteDefinition | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
   params: Params;

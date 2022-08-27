@@ -17,7 +17,6 @@ const addListenerOptions = {
   [DelegationStrategy.bubbling]: { capture: false },
 } as const;
 
-/** @internal */
 export class ListenerOptions {
   public constructor(
     public readonly prevent: boolean,
@@ -37,6 +36,8 @@ export class Listener implements IAstBasedBinding {
   public $scope!: Scope;
 
   private handler: IDisposable = null!;
+  /** @internal */
+  private readonly _options: ListenerOptions;
 
   public constructor(
     public platform: IPlatform,
@@ -45,8 +46,10 @@ export class Listener implements IAstBasedBinding {
     public target: Node,
     public eventDelegator: IEventDelegator,
     public locator: IServiceLocator,
-    private readonly _options: ListenerOptions,
-  ) {}
+    options: ListenerOptions,
+  ) {
+    this._options = options;
+  }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;

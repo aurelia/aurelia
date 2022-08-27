@@ -1,4 +1,4 @@
-import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
@@ -135,6 +135,13 @@ export class ViewportContent extends EndpointContent {
   }
 
   /**
+   * Get the controller of the component in the viewport content.
+   */
+  public get controller(): ICustomElementController | undefined {
+    return this.instruction.component.instance?.$controller;
+  }
+
+  /**
    * Whether the viewport content's component is equal to that of
    * another viewport content.
    *
@@ -198,7 +205,7 @@ export class ViewportContent extends EndpointContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.instruction.component.set(this.toComponentInstance(connectedCE.container));
+        this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
       } catch (e) {
         // If there's a fallback component...
         if ((fallback ?? '') !== '') {
@@ -208,7 +215,7 @@ export class ViewportContent extends EndpointContent {
           this.instruction.component.set(fallback);
           try {
             // ...and try again.
-            this.instruction.component.set(this.toComponentInstance(connectedCE.container));
+            this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
           } catch (ee) {
             throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }
@@ -218,17 +225,6 @@ export class ViewportContent extends EndpointContent {
       }
     }
     this.contentStates.set('created', void 0);
-
-    if (this.contentStates.has('loaded') || !this.instruction.component.instance) {
-      return;
-    }
-
-    // Don't load cached content or instantiated history content
-    if (!this.fromCache || !this.fromHistory) {
-      const controller = this.contentController(connectedCE);
-      // TODO: Don't think I need to do this. Ask Binh.
-      (controller as Writable<typeof controller>).parent = connectedCE.controller; // CustomElement.for(connectedCE.element)!;
-    }
   }
 
   /**
@@ -471,9 +467,8 @@ export class ViewportContent extends EndpointContent {
         }
         this.contentStates.set('activating', void 0);
 
-        const contentController = this.contentController(connectedCE);
-        return contentController.activate(
-          initiator ?? contentController,
+        return this.controller?.activate(
+          initiator ?? this.controller,
           parent,
           flags,
           void 0 /* , boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */) as Promise<void>;
@@ -524,7 +519,7 @@ export class ViewportContent extends EndpointContent {
       //     return this.contentStates.await('activated');
       //   }
       // },
-      // () => this.waitForActivated(this.contentController(connectedCE), connectedCE),
+      // () => this.waitForActivated(this.controller, connectedCE),
       () => {
         if (stateful && connectedCE.element !== null) {
           const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
@@ -537,8 +532,7 @@ export class ViewportContent extends EndpointContent {
 
         this.contentStates.delete('activated');
         this.contentStates.delete('activating');
-        const contentController = this.contentController(connectedCE);
-        return contentController.deactivate(initiator ?? contentController, parent, flags);
+        return this.controller?.deactivate(initiator ?? this.controller, parent, flags);
       }
     ) as Step<void>;
   }
@@ -559,8 +553,7 @@ export class ViewportContent extends EndpointContent {
     // TODO: We're missing stuff here
     if (!stateful) {
       this.contentStates.delete('created');
-      const contentController = this.contentController(connectedCE);
-      return contentController.dispose();
+      return this.controller?.dispose();
     } else {
       cache.push(this);
     }
@@ -603,11 +596,11 @@ export class ViewportContent extends EndpointContent {
   /**
    * Get the content's component instance (if any).
    */
-  public toComponentInstance(container: IContainer): IRouteableComponent | null {
+  public toComponentInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement): IRouteableComponent | null {
     if (this.instruction.component.none) {
       return null;
     }
-    return this.instruction.component.toInstance(container);
+    return this.instruction.component.toInstance(parentContainer, parentController, parentElement);
   }
 
   /**

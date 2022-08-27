@@ -1,0 +1,9 @@
+<div class="message">${message}</div>
+<nav>
+  <a href="">Home</a>
+  <a href="/auth">Register</a>
+</nav>
+<au-viewport default="home"></au-viewport>
+<hr>
+<button click.trigger="toggleIframe()">Show iframe</button>
+<iframe if.bind="iframeVisible" src.bind='iframeSrc'></iframe>

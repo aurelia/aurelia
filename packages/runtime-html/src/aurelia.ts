@@ -6,7 +6,7 @@ import { IEventTarget, INode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
-import { isFunction } from './utilities';
+import { isFunction, isPromise } from './utilities';
 
 import type {
   Constructable,
@@ -149,7 +149,7 @@ export class Aurelia implements IDisposable {
         throw new Error(`AUR0770`);
     }
 
-    if (this._startPromise instanceof Promise) {
+    if (isPromise(this._startPromise)) {
       return this._startPromise;
     }
 
@@ -170,7 +170,7 @@ export class Aurelia implements IDisposable {
   /** @internal */
   private _stopPromise: Promise<void> | void = void 0;
   public stop(dispose: boolean = false): void | Promise<void> {
-    if (this._stopPromise instanceof Promise) {
+    if (isPromise(this._stopPromise)) {
       return this._stopPromise;
     }
 

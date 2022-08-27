@@ -56,7 +56,7 @@ If there is no lazily loaded components then this process is synchronous.
 
 This is an internal API used to generate an instance of [`ViewportInstruction`](#viewportinstruction), given a partial `ViewportInstruction` or a route-id or route-definition coupled with parameters.
 
-The idea is to attempt eagerly resolving a path/partial viewport instruction/route definition to a concrete instance of `ViewportInstruction` by finding building a `RecognizedRoute`.
+The idea is to attempt eagerly resolving a path/partial viewport instruction/route definition to a concrete instance of `ViewportInstruction` by finding the associated endpoint and building a `RecognizedRoute`.
 This process roughly looks as follows:
 
 - A `RouteDefinition` is resolved for the given instruction.

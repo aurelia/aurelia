@@ -19,7 +19,7 @@ import {
   ICoercionConfiguration,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer';
-import { setRef } from '../dom';
+import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
 import { ChildrenDefinition, ChildrenObserver } from './children';
@@ -28,7 +28,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { isFunction, isString } from '../utilities';
+import { isFunction, isPromise, isString } from '../utilities';
 
 import type {
   IContainer,
@@ -408,13 +408,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
-    const { shadowOptions, isStrictBinding, hasSlots } = compiledDef;
-    const location = this.location;
+    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
+    let location: IRenderLocation | null = this.location;
 
     this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
       this.host = this.container.root.get(IPlatform).document.createElement(this.definition!.name);
+      if (containerless && location == null) {
+        location = this.location = convertToRenderLocation(this.host);
+      }
     }
 
     setRef(this.host!, CustomElement.name, this as IHydratedController);
@@ -422,7 +425,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (shadowOptions !== null || hasSlots) {
       if (location != null) {
         if (__DEV__)
-          throw new Error(`AUR0501: You cannot combine the containerless custom element option with Shadow DOM.`);
+          throw new Error(`AUR0501: Cannot combine the containerless custom element option with Shadow DOM.`);
         else
           throw new Error(`AUR0501`);
       }
@@ -592,7 +595,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.binding(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
         this.bind();
@@ -645,7 +648,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.bound(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
         this.isBound = true;
@@ -728,7 +731,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.attaching(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
@@ -812,7 +815,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(ret, this.viewModel!.detaching(this.$initiator, this.parent, this.$flags));
     }
 
-    if (ret instanceof Promise) {
+    if (isPromise(ret)) {
       this._ensurePromise();
       (initiator as Controller)._enterDetaching();
       ret.then(() => {
@@ -975,7 +978,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         _retPromise = resolveAll(_retPromise, this.viewModel!.attached!(this.$initiator, this.$flags));
       }
 
-      if (_retPromise instanceof Promise) {
+      if (isPromise(_retPromise)) {
         this._ensurePromise();
         _retPromise.then(() => {
           this.state = State.activated;
@@ -1036,7 +1039,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags));
         }
 
-        if (ret instanceof Promise) {
+        if (isPromise(ret)) {
           this._ensurePromise();
           this._enterUnbinding();
           ret.then(() => {

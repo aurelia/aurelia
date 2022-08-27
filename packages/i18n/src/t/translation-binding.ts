@@ -18,7 +18,6 @@ import type { ITask, QueueTaskOptions } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
-  IsBindingBehavior,
   IsExpression,
   IConnectableBinding,
   IExpressionParser,
@@ -107,7 +106,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
       ? parser.parse(instruction.from, ExpressionType.IsProperty)
-      : instruction.from as IsBindingBehavior;
+      : instruction.from;
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
@@ -131,6 +130,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!this.expr) { throw new Error('key expression is missing'); }
     this.scope = scope;
     this._isInterpolation = this.expr instanceof Interpolation;
@@ -149,7 +149,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
 
     if (this.expr.hasUnbind) {
-      this.expr.unbind(flags, this.scope, this as any);
+      this.expr.unbind(flags, this.scope, this);
     }
 
     this.parameter?.$unbind(flags);
@@ -187,6 +187,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this._updateTranslations(flags));
   }
 
+  /** @internal */
   private _updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
@@ -202,7 +203,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
           content[attribute] = value;
         } else {
           const controller = CustomElement.for(this.target, forOpts);
-          const accessor = controller && controller.viewModel
+          const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, attribute)
             : this.oL.getAccessor(this.target, attribute);
           const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
@@ -238,6 +239,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     task?.cancel();
   }
 
+  /** @internal */
   private _preprocessAttributes(attributes: string[]) {
     if (attributes.length === 0) {
       attributes = this.target.tagName === 'IMG' ? ['src'] : ['textContent'];
@@ -253,17 +255,20 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     return attributes;
   }
 
+  /** @internal */
   private _isContentAttribute(attribute: string): attribute is ContentAttribute {
     return this._contentAttributes.includes(attribute);
   }
 
-  private _updateContent(content: ContentValue, flags: LifecycleFlags) {
+  /** @internal */
+  private _updateContent(content: ContentValue, _flags: LifecycleFlags) {
     const children = toArray(this.target.childNodes);
     const fallBackContents = [];
     const marker = 'au-i18n';
 
     // extract the original content, not manipulated by au-i18n
     for (const child of children) {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!Reflect.get(child, marker)) {
         fallBackContents.push(child);
       }
@@ -281,6 +286,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
   }
 
+  /** @internal */
   private _prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
     const template = this.platform.document.createElement('template');
 
@@ -297,6 +303,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     return template;
   }
 
+  /** @internal */
   private _addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
       const parser = this.platform.document.createElement('div');
@@ -310,6 +317,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     return false;
   }
 
+  /** @internal */
   private _ensureKeyExpression() {
     const expr = this._keyExpression ??= '';
     const exprType = typeof expr;
@@ -361,6 +369,11 @@ class ParameterBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
+    // todo(test): add an integration/e2e for this
+    //             setup: put this inside an if and switch on/off that if
+    if (!this.isBound) {
+      return;
+    }
     this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
     this.obs.clear();

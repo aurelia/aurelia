@@ -215,12 +215,12 @@ export class RoutingScope {
     return scopes;
   }
 
-  public async processInstructions(instructions: RoutingInstruction[], navigation: Navigation, coordinator: NavigationCoordinator, configuredRoutePath = ''): Promise<Endpoint[]> {
+  public async processInstructions(instructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], navigation: Navigation, coordinator: NavigationCoordinator, configuredRoutePath = ''): Promise<Endpoint[]> {
     const router = this.router;
     const options = router.configuration.options;
 
     // If there are instructions that aren't part of an already found configured route...
-    const nonRouteInstructions = instructions.filter(instruction => instruction.route == null);
+    const nonRouteInstructions = instructions.filter(instruction => !(instruction.route instanceof Route));
     if (nonRouteInstructions.length > 0) {
       // ...find the routing instructions for them. The result will be either that there's a configured
       // route (which in turn contains routing instructions) or a list of routing instructions
@@ -228,13 +228,15 @@ export class RoutingScope {
       const foundRoute = this.findInstructions(nonRouteInstructions, options.useDirectRouting, options.useConfiguredRoutes);
 
       // Make sure we got routing instructions...
-      if (nonRouteInstructions.some(instr => !instr.component.none) && !foundRoute.foundConfiguration && !foundRoute.foundInstructions) {
+      if (nonRouteInstructions.some(instr => !instr.component.none || instr.route != null)
+        && !foundRoute.foundConfiguration
+        && !foundRoute.foundInstructions) {
         // ...call unknownRoute hook if we didn't...
         // TODO: Add unknownRoute hook here and put possible result in instructions
-        router.unknownRoute(RoutingInstruction.stringify(router, nonRouteInstructions));
+        this.unknownRoute(nonRouteInstructions);
       }
       // ...and use any already found and the newly found routing instructions.
-      instructions = [...instructions.filter(instruction => instruction.route != null), ...foundRoute.instructions];
+      instructions = [...instructions.filter(instruction => instruction.route instanceof Route), ...foundRoute.instructions];
 
       if (instructions.some(instr => instr.scope !== this)) {
         console.warn('Not the current scope for instruction(s)!', this, instructions);
@@ -278,7 +280,6 @@ export class RoutingScope {
     }
 
     const allChangedEndpoints: IEndpoint[] = [];
-    let earlierMatchedInstructions: RoutingInstruction[] = [];
 
     // Match the instructions to available endpoints within, and with the help of, their scope
     // TODO(return): This needs to be updated
@@ -354,7 +355,7 @@ export class RoutingScope {
           // If the endpoint has not been changed/swapped and there are no next scope
           // instructions the endpoint's scope (its children) needs to be cleared
           if (action === 'skip' && !matchedInstruction.hasNextScopeInstructions) {
-            allChangedEndpoints.push(...(await endpoint.scope.processInstructions([], navigation, coordinator, configuredRoutePath)));
+            allChangedEndpoints.push(...(await endpoint.scope.processInstructions([], earlierMatchedInstructions, navigation, coordinator, configuredRoutePath)));
           }
         }
       }
@@ -427,19 +428,19 @@ export class RoutingScope {
             continue;
           }
           const nextScope = instruction.endpoint.instance?.scope ?? instruction.endpoint.scope as RoutingScope;
-          nextProcesses.push(nextScope.processInstructions(instruction.nextScopeInstructions!, navigation, coordinator, configuredRoutePath));
+          nextProcesses.push(nextScope.processInstructions(instruction.nextScopeInstructions!, earlierMatchedInstructions, navigation, coordinator, configuredRoutePath));
         }
         allChangedEndpoints.push(...(await Promise.all(nextProcesses)).flat());
       }
 
-      // Don't add defaults when it's a full state navigation (since it's complete state)
-      if (navigation.useFullStateInstruction) {
-        coordinator.appendedInstructions = coordinator.appendedInstructions.filter(instr => !instr.default);
-      }
+      // // Don't add defaults when it's a full state navigation (since it's complete state)
+      // if (navigation.useFullStateInstruction) {
+      //   coordinator.appendedInstructions = coordinator.appendedInstructions.filter(instr => !instr.default);
+      // }
 
       // Dequeue any instructions appended to the coordinator and add to either matched or
       // remaining. Default instructions aren't added if there's already a non-default
-      ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
+      ({ matchedInstructions, remainingInstructions } =
         coordinator.dequeueAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions));
 
       // Once done with all explicit instructions...
@@ -452,7 +453,7 @@ export class RoutingScope {
         if (pendingEndpoints.length > 0) {
           await Promise.any(pendingEndpoints);
           // ...and dequeue them.
-          ({ matchedInstructions, earlierMatchedInstructions, remainingInstructions } =
+          ({ matchedInstructions, remainingInstructions } =
             coordinator.dequeueAppendedInstructions(matchedInstructions, earlierMatchedInstructions, remainingInstructions));
         } else {
           // ...or create the (remaining) implicit clear instructions (if any).
@@ -473,21 +474,24 @@ export class RoutingScope {
   /**
    * Deal with/throw an unknown route error.
    *
-   * @param route - The failing route
+   * @param instructions - The failing instructions
    */
-  private unknownRoute(route: string) {
-    if (typeof route !== 'string' || route.length === 0) {
-      return;
-    }
-    if (this.router.configuration.options.useConfiguredRoutes && this.router.configuration.options.useDirectRouting) {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching configured route or component found for '" + route + "'");
-    } else if (this.router.configuration.options.useConfiguredRoutes) {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching configured route found for '" + route + "'");
+  private unknownRoute(instructions: RoutingInstruction[]) {
+    const options = this.router.configuration.options;
+    const route = RoutingInstruction.stringify(this.router, instructions);
+    // TODO: Add missing/unknown route handling
+    if (instructions[0].route != null) {
+      if (!options.useConfiguredRoutes) {
+        throw new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");
+      } else {
+        throw new Error("No matching configured route found for '" + route + "'.");
+      }
+    } else if (options.useConfiguredRoutes && options.useDirectRouting) {
+      throw new Error("No matching configured route or component found for '" + route + "'.");
+    } else if (options.useConfiguredRoutes) {
+      throw new Error("No matching configured route found for '" + route + "'.");
     } else {
-      // TODO: Add missing/unknown route handling
-      throw new Error("No matching route/component found for '" + route + "'");
+      throw new Error("No matching route/component found for '" + route + "'.");
     }
   }
 

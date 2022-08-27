@@ -28,4 +28,8 @@ test.describe('router direct pushstate', () => {
     expect(page.url()).toBe(`${baseURL}/auth`);
     await expect(page.locator('au-viewport')).toContainText('Auth page');
   });
-});
+
+  test('loads fallback component when clicking on link with missing component', async ({ page }) => {
+      await page.click('a:text("Missing child")');
+      await expect(page.locator('au-viewport')).toContainText('Fallback for: child/missing');
+    });

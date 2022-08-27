@@ -2,6 +2,19 @@ import { IRouter, RouterConfiguration, RoutingInstruction, InstructionParameters
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
+function clearUnparsed(instructions: RoutingInstruction | RoutingInstruction[]) {
+  if (instructions == null) {
+    return;
+  }
+  if (!Array.isArray(instructions)) {
+    instructions = [instructions];
+  }
+  for (const instruction of instructions) {
+    instruction.unparsed = null;
+    clearUnparsed(instruction.nextScopeInstructions);
+  }
+}
+
 describe('RoutingInstruction', function () {
   async function createFixture() {
     const ctx = TestContext.create();
@@ -51,6 +64,7 @@ describe('RoutingInstruction', function () {
     let instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
     let newInstructions = RoutingInstruction.parse(router, instructionsString);
+    clearUnparsed(newInstructions);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
@@ -61,6 +75,7 @@ describe('RoutingInstruction', function () {
     instructionsString = RoutingInstruction.stringify(router, instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
     newInstructions = RoutingInstruction.parse(router, instructionsString);
+    clearUnparsed(newInstructions);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     await tearDown();
@@ -94,6 +109,7 @@ describe('RoutingInstruction', function () {
 
         routingInstruction.scopeModifier = '';
         const parsed = RoutingInstruction.parse(router, instruction)[0];
+        clearUnparsed(parsed);
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(newInstruction, instruction, `newInstruction`);
@@ -111,6 +127,7 @@ describe('RoutingInstruction', function () {
 
         routingInstruction.scopeModifier = '/';
         const parsed = RoutingInstruction.parse(router, prefixedInstruction)[0];
+        clearUnparsed(parsed);
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
@@ -128,6 +145,7 @@ describe('RoutingInstruction', function () {
 
         routingInstruction.scopeModifier = '../../';
         const parsed = RoutingInstruction.parse(router, prefixedInstruction)[0];
+        clearUnparsed(parsed);
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify(router);
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);

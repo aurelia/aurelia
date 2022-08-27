@@ -249,6 +249,8 @@ export class Indicators {
   }
 }
 
+export type FallbackAction = 'abort' | 'process-children';
+
 export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators' | 'indicators' | 'title'> {
   /**
    * The router's title configuration
@@ -357,6 +359,20 @@ export class RouterOptions implements INavigatorOptions {
      * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
      */
     public swapOrder: SwapOrder = 'attach-next-detach-current',
+
+    /**
+     * The component to be loaded if a specified can't be loaded.
+     * The unloadable component is passed as a parameter to the fallback.
+     */
+     public fallback: string = '',
+
+     /**
+      * Whether the fallback action is to load the fallback component in
+      * place of the unloadable component and continue with any child
+      * instructions or if the fallback is to be called and the processing
+      * of the children to be aborted.
+      */
+     public fallbackAction: FallbackAction = 'process-children',
   ) { }
 
   public static create(input: IRouterOptions = {}): RouterOptions {
@@ -373,6 +389,8 @@ export class RouterOptions implements INavigatorOptions {
       TitleOptions.create(input.title),
       input.navigationSyncStates,
       input.swapOrder,
+      input.fallback,
+      input.fallbackAction,
     );
   }
 
@@ -407,6 +425,8 @@ export class RouterOptions implements INavigatorOptions {
     this.title.apply(options.title);
     this.navigationSyncStates = options.navigationSyncStates ?? this.navigationSyncStates;
     this.swapOrder = options.swapOrder ?? this.swapOrder;
+    this.fallback = options.fallback ?? this.fallback;
+    this.fallbackAction = options.fallbackAction ?? this.fallbackAction;
 
     // TODO: Fix RoutingHooks!
     if (Array.isArray(options.hooks)) {

@@ -62,7 +62,6 @@ describe('ViewportContent', function () {
 
     it('resolves component instance from string', async function () {
       const Global = define({ name: 'global', template: 'global' }, null);
-
       const App = define({ name: 'app', template: '<au-viewport></au-viewport>' });
 
       const { container, router, tearDown } = await createFixture(App);

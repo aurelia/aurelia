@@ -1,6 +1,5 @@
 import {
   DI,
-  Registration,
   mergeArrays,
   fromDefinitionOrDefault,
   pascalCase,
@@ -16,6 +15,7 @@ import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
 import { isFunction, isString } from '../utilities';
+import { aliasRegistration, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -407,8 +407,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
     if (!container.has(key, false)) {
-      Registration.transient(key, Type).register(container);
-      Registration.aliasTo(key, Type).register(container);
+      transientRegistration(key, Type).register(container);
+      aliasRegistration(key, Type).register(container);
       registerAliases(aliases, CustomElement, key, container);
     }
   }

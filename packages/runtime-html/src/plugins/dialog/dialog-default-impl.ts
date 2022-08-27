@@ -5,12 +5,13 @@ import {
   IDialogGlobalSettings,
 } from './dialog-interfaces';
 
-import { IContainer, Registration } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
+import { singletonRegistration } from '../../utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 
   public static register(container: IContainer) {
-    Registration.singleton(IDialogGlobalSettings, this).register(container);
+    singletonRegistration(IDialogGlobalSettings, this).register(container);
   }
 
   public lock: boolean = true;
@@ -28,7 +29,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   public constructor(private readonly p: IPlatform) {}
 
   public static register(container: IContainer) {
-    Registration.singleton(IDialogDomRenderer, this).register(container);
+    singletonRegistration(IDialogDomRenderer, this).register(container);
   }
 
   private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;

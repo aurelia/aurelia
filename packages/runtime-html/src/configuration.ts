@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -82,6 +82,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { ICoercionConfiguration } from '@aurelia/runtime';
+import { instanceRegistration } from './utilities-di';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -330,7 +331,7 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
        * - `DefaultRenderers`
        */
       return container.register(
-        Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
+        instanceRegistration(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
         ...DefaultComponents,
         ...DefaultResources,
         ...DefaultBindingSyntax,

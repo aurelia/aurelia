@@ -1,5 +1,6 @@
-import { DI, emptyArray, Protocol, Registration, all } from '@aurelia/kernel';
+import { DI, emptyArray, Protocol, all } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../shared';
+import { singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 
 export interface AttributePatternDefinition {
@@ -513,7 +514,7 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
   ) { }
 
   public register(container: IContainer): void {
-    Registration.singleton(IAttributePattern, this.Type).register(container);
+    singletonRegistration(IAttributePattern, this.Type).register(container);
   }
 }
 

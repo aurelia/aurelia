@@ -1,4 +1,4 @@
-import { IContainer, onResolve, Registration, resolveAll } from '@aurelia/kernel';
+import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
 
 import {
   DialogActionKey,
@@ -14,6 +14,7 @@ import { DialogController } from './dialog-controller';
 import { AppTask } from '../../app-task';
 import { IPlatform } from '../../platform';
 import { isFunction, isPromise } from '../../utilities';
+import { callbackRegistration, instanceRegistration, singletonRegistration } from '../../utilities-di';
 
 import type {
   DialogOpenPromise,
@@ -50,7 +51,7 @@ export class DialogService implements IDialogService {
 
   public static register(container: IContainer) {
     container.register(
-      Registration.singleton(IDialogService, this),
+      singletonRegistration(IDialogService, this),
       AppTask.beforeDeactivate(IDialogService, dialogService => onResolve(
         dialogService.closeAll(),
         (openDialogController) => {
@@ -92,8 +93,8 @@ export class DialogService implements IDialogService {
         $settings.load(),
         loadedSettings => {
           const dialogController = container.invoke(DialogController);
-          container.register(Registration.instance(IDialogController, dialogController));
-          container.register(Registration.callback(DialogController, () => {
+          container.register(instanceRegistration(IDialogController, dialogController));
+          container.register(callbackRegistration(DialogController, () => {
             if (__DEV__)
               throw new Error(`AUR0902: Invalid injection of DialogController. Use IDialogController instead.`);
             else

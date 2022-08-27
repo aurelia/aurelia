@@ -1,9 +1,10 @@
-import { IContainer, Registration, DI, noop } from '@aurelia/kernel';
+import { IContainer, DI, noop } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { INode } from '../dom';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
 import { IPlatform } from '../platform';
 import { defineAttribute } from '../resources/custom-attribute';
+import { instanceRegistration } from '../utilities-di';
 
 import type { IRegistry } from '@aurelia/kernel';
 
@@ -71,7 +72,7 @@ export class ShadowDOMRegistry implements IRegistry {
   public register(container: IContainer): void {
     const sharedStyles = container.get(IShadowDOMGlobalStyles);
     const factory = container.get(IShadowDOMStyleFactory);
-    container.register(Registration.instance(IShadowDOMStyles, factory.createStyles(this.css, sharedStyles)));
+    container.register(instanceRegistration(IShadowDOMStyles, factory.createStyles(this.css, sharedStyles)));
   }
 }
 
@@ -185,7 +186,7 @@ export const StyleConfiguration = {
     return AppTask.beforeCreate(IContainer, container => {
       if (config.sharedStyles != null) {
         const factory = container.get(IShadowDOMStyleFactory);
-        container.register(Registration.instance(IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));
+        container.register(instanceRegistration(IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));
       }
     });
   }

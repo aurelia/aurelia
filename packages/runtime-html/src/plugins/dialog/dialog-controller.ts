@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, onResolve, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { Controller, ICustomElementController } from '../../templating/controller';
 import {
@@ -15,6 +15,7 @@ import { IEventTarget, INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { CustomElement, CustomElementDefinition } from '../../resources/custom-element';
 import { isFunction } from '../../utilities';
+import { instanceRegistration } from '../../utilities-di';
 
 import type {
   IDialogComponent,
@@ -95,12 +96,12 @@ export class DialogController implements IDialogController {
     //   <au-dialog-container>
     // when it's different, needs to ensure delegate bindings work
     if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
-      container.register(Registration.instance(IEventTarget, dialogTargetHost));
+      container.register(instanceRegistration(IEventTarget, dialogTargetHost));
     }
 
     container.register(
-      Registration.instance(INode, contentHost),
-      Registration.instance(IDialogDom, dom),
+      instanceRegistration(INode, contentHost),
+      instanceRegistration(IDialogDom, dom),
     );
 
     return new Promise(r => {

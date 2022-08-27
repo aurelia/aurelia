@@ -1,4 +1,4 @@
-import { emptyObject, IServiceLocator, Registration } from '@aurelia/kernel';
+import { emptyObject, IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorType,
   IDirtyChecker,
@@ -18,6 +18,7 @@ import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
 import { createLookup, isDataAttribute, isString } from '../utilities';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
@@ -154,8 +155,8 @@ export class NodeObserverLocator implements INodeObserverLocator {
   }
 
   public static register(container: IContainer) {
-    Registration.aliasTo(INodeObserverLocator, NodeObserverLocator).register(container);
-    Registration.singleton(INodeObserverLocator, NodeObserverLocator).register(container);
+    aliasRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
+    singletonRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
   }
 
   // deepscan-disable-next-line

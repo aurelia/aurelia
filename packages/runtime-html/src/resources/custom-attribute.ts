@@ -1,4 +1,4 @@
-import { Registration, mergeArrays, firstDefined, Key } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
 import { BindingMode, registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
@@ -6,6 +6,7 @@ import { getRef } from '../dom';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
 import { isFunction, isString } from '../utilities';
+import { aliasRegistration, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -141,8 +142,8 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.transient(key, Type).register(container);
-    Registration.aliasTo(key, Type).register(container);
+    transientRegistration(key, Type).register(container);
+    aliasRegistration(key, Type).register(container);
     registerAliases(aliases, CustomAttribute, key, container);
   }
 }

@@ -1,6 +1,7 @@
-import { DI, Registration } from '@aurelia/kernel';
-import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { isFunction } from './utilities';
+import { instanceRegistration } from './utilities-di';
+import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 
 export type TaskSlot = (
   'beforeCreate' |
@@ -40,7 +41,7 @@ class $AppTask<K extends Key = Key> {
   }
 
   public register(container: IContainer): IContainer {
-    return this.c = container.register(Registration.instance(IAppTask, this));
+    return this.c = container.register(instanceRegistration(IAppTask, this));
   }
 
   public run(): void | Promise<void> {

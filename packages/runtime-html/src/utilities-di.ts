@@ -50,10 +50,16 @@ export const allResources = function <T extends Key>(key: T) {
 };
 
 /** @internal */
-export const registerSingleton = Registration.singleton;
+export const singletonRegistration = Registration.singleton;
 
 /** @internal */
-export const registerAlias = Registration.aliasTo;
+export const aliasRegistration = Registration.aliasTo;
 
 /** @internal */
-export const registerInstance = Registration.instance;
+export const instanceRegistration = Registration.instance;
+
+/** @internal */
+export const callbackRegistration = Registration.callback;
+
+/** @internal */
+export const transientRegistration = Registration.transient;

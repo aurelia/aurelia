@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
+import { DI, emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -28,7 +28,7 @@ import { CustomAttribute } from './resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from './resources/custom-element';
 import { BindingCommand, CommandType } from './resources/binding-command';
 import { createLookup, isString } from './utilities';
-import { allResources } from './utilities-di';
+import { allResources, singletonRegistration } from './utilities-di';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared';
 
 import type {
@@ -46,7 +46,7 @@ import type { ICompliationInstruction, IInstruction, } from './renderer';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
-    return Registration.singleton(ITemplateCompiler, this).register(container);
+    return singletonRegistration(ITemplateCompiler, this).register(container);
   }
 
   public debug: boolean = false;
@@ -1924,7 +1924,7 @@ class TemplateCompilerHooksDefinition<T> implements ResourceDefinition<Construct
   ) {}
 
   public register(c: IContainer) {
-    c.register(Registration.singleton(ITemplateCompilerHooks, this.Type));
+    c.register(singletonRegistration(ITemplateCompilerHooks, this.Type));
   }
 }
 

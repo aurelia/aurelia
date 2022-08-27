@@ -1,4 +1,4 @@
-import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
@@ -7,6 +7,7 @@ import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { isFunction, isPromise } from './utilities';
+import { instanceRegistration } from './utilities-di';
 
 import type {
   Constructable,
@@ -132,7 +133,7 @@ export class Aurelia implements IDisposable {
           throw new Error(`AUR0769`);
       }
       p = new BrowserPlatform(host.ownerDocument.defaultView);
-      this.container.register(Registration.instance(IPlatform, p));
+      this.container.register(instanceRegistration(IPlatform, p));
     } else {
       p = this.container.get(IPlatform);
     }

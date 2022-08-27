@@ -1,4 +1,4 @@
-import { Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
   ExpressionType,
@@ -29,6 +29,7 @@ import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
 import { defineProp, isString } from './utilities';
+import { singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -377,7 +378,7 @@ type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(targe
 export function renderer<TType extends string>(targetType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     target.register = function (container: IContainer): void {
-      Registration.singleton(IRenderer, this).register(container);
+      singletonRegistration(IRenderer, this).register(container);
     };
     defineProp(target.prototype, 'target', {
       configurable: true,

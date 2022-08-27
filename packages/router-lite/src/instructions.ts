@@ -72,7 +72,6 @@ export interface IViewportInstruction {
   readonly recognizedRoute: $RecognizedRoute | null;
 }
 
-/** @internal */
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
   private constructor(
     public open: number,
@@ -267,7 +266,6 @@ const getObjectId = (function () {
   };
 })();
 
-/** @internal */
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,

@@ -513,7 +513,7 @@ jobs:
           working_directory: << parameters.path >>
           command: |
             npx playwright install chromium
-            npm run test:e2e
+            npm run test
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -783,7 +783,7 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_direct_hash
-          path: "packages/__e2e__/router-direct"
+          path: "packages/__e2e__/router-direct-hash"
           requires:
             - build_release
       - e2e_test:
@@ -890,7 +890,7 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_direct_hash
-          path: "packages/__e2e__/router-direct"
+          path: "packages/__e2e__/router-direct-hash"
           requires:
             - build_release
       - e2e_test:

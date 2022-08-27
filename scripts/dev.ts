@@ -23,16 +23,31 @@ const args = yargs
     describe: 'add extra example apps to development',
     array: true,
   })
+  .option('e2e', {
+    alias: 'e',
+    describe: 'add extra e2e test setup to development',
+    type: 'string',
+    array: true,
+  })
   .argv;
 
 const envVars = { DEV_MODE: true };
 const testPatterns = (args.t ?? []).join(' ');
+const hasValidTestPatterns = testPatterns !== '';
 
-if (testPatterns === '') {
+const e2e = args.e2e;
+const validE2e = [
+  'router-direct',
+  'router-direct-pushstate',
+  'router-lite-configured',
+];
+const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
+
+if (!hasValidTestPatterns && !hasValidE2e) {
   console.log(
-`There are no test pattern specified. This will run all tests if go ahead. Aborting...
+`There are no test pattern or e2e tests specified. Aborting...
 If it is intended to run all test, then specified --test *
-`);
+If it is intended to run e2e test, then specified --e2e + one of the following: ${validE2e}`);
   process.exit(0);
 }
 
@@ -124,14 +139,17 @@ concurrently([
     name: folder,
     env: envVars
   })),
-  { command: `npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`, cwd: 'packages/__tests__', name: '__tests__(run)', env: envVars },
+  hasValidTestPatterns
+    ? { command: `npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`, cwd: 'packages/__tests__', name: '__tests__(run)', env: envVars }
+    : null,
+  ...(e2e ?? []).map(e => ({ command: 'npm run test:watch', cwd: `packages/__e2e__/${e}`, env: envVars, name: `__e2e__(${e})` })),
   ...apps.map((appFolder, i) => ({
     command: devCmd,
     cwd: `examples/${appFolder}`,
     name: `${appFolder} (app)`,
     env: { ...envVars, WEBPACK_PORT: baseAppPort + i },
   })),
-], {
+].filter(Boolean), {
   prefix: '[{name}]',
   killOthers: 'failure',
   prefixColors: [

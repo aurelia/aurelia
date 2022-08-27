@@ -6,6 +6,19 @@ import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
 import { IRouteContext } from '../route-context';
 
+/*
+ * Note: Intentionally, there is no bindable `context` here.
+ * Otherwise this CA needs to be turned into a multi-binding CA.
+ * Which means that the following simplest case won't work any longer:
+ *
+ * ```html
+ * <a href="https://bla.bla.com/bla" data-external>bla</a>
+ * ```
+ * Because the template compiler will think that `https` is a bindable property in this CA,
+ * and will fail as it won't find a bindable property `https` here in this CA.
+ * Therefore, till the template compiler can handle that correctly, introduction of a bindable context is intentionally omitted.
+ */
+
 @customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })

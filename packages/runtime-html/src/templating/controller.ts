@@ -21,7 +21,7 @@ import {
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
 import { ChildrenDefinition, ChildrenObserver } from './children';
 import { IPlatform } from '../platform';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
@@ -278,7 +278,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomAttributeController<C>;
     }
 
-    definition = definition ?? CustomAttribute.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? getAttributeDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* own ct         */ctn,
@@ -1106,7 +1106,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public is(name: string): boolean {
     switch (this.vmKind) {
       case ViewModelKind.customAttribute: {
-        return CustomAttribute.getDefinition(this.viewModel!.constructor).name === name;
+        return getAttributeDefinition(this.viewModel!.constructor).name === name;
       }
       case ViewModelKind.customElement: {
         return getElementDefinition(this.viewModel!.constructor).name === name;

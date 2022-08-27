@@ -3,7 +3,7 @@ import { AppTask } from '../app-task';
 import { INode } from '../dom';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
 import { IPlatform } from '../platform';
-import { CustomAttribute } from '../resources/custom-attribute';
+import { defineAttribute } from '../resources/custom-attribute';
 
 import type { IRegistry } from '@aurelia/kernel';
 
@@ -18,7 +18,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
   public register(container: IContainer): void {
     const classLookup = Object.assign({}, ...this.modules) as Record<string, string>;
-    const ClassCustomAttribute = CustomAttribute.define({
+    const ClassCustomAttribute = defineAttribute({
       name: 'class',
       bindables: ['value'],
       noMultiBindings: true,

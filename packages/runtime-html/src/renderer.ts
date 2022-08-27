@@ -21,7 +21,7 @@ import { Listener, ListenerOptions } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
-import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
+import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
 import { IPlatform } from './platform';
@@ -419,7 +419,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
     default: {
-      const caController = CustomAttribute.for(refHost, refTargetName);
+      const caController = findAttributeControllerFor(refHost, refTargetName);
       if (caController !== void 0) {
         return caController.viewModel;
       }

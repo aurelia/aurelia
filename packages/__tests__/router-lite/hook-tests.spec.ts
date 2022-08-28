@@ -1622,27 +1622,13 @@ describe('router hooks', function () {
         2, 1, 1, 1,
         1, 1, 1, 1,
       ],
-      [
-        4, 1, 1, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        8, 1, 1, 1,
-        1, 1, 1, 1,
-      ],
+
+      // more involved tests are moved to lifecycle-hooks.spec.ts in more simplified form.
+
       // b1.canLoad
-      [
-        1, 1, 2, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        1, 1, 4, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        1, 1, 8, 1,
-        1, 1, 1, 1,
-      ],
+
+      // tests are moved to lifecycle-hooks.spec.ts in more simplified form.
+
       // a1.load
       [
         1, 1, 1, 1,

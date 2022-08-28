@@ -63,7 +63,13 @@ describe('lifecycle hooks', function () {
 
     container.register(
       StandardConfiguration,
-      TestRouterConfiguration.for(LogLevel.trace, [EventLog]),
+      TestRouterConfiguration.for(
+        LogLevel.trace,
+        [
+          EventLog
+          // uncomment the following line to see the logs in console - debug
+          /* , ConsoleSink */
+        ]),
       RouterConfiguration,
       ...registrations
     );
@@ -90,14 +96,14 @@ describe('lifecycle hooks', function () {
 
   abstract class AsyncBaseHook implements ILifecycleHooks<IRouteViewModel, Hooks> {
     public get waitMs(): Record<Hooks, number> | number | null { return null; }
-    private getWaitTime(hook: Hooks): number | null {
+    protected getWaitTime(hook: Hooks): number | null {
       const val = this.waitMs;
       if (val === null) return null;
       if (typeof val === 'number') return val;
       return val[hook] ?? null;
     }
     public constructor(
-      @ILogger private readonly logger: ILogger,
+      @ILogger protected readonly logger: ILogger,
     ) {
       this.logger = logger.scopeTo(this.constructor.name);
     }
@@ -115,6 +121,10 @@ describe('lifecycle hooks', function () {
     public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
       await log('unload', current ?? rn, this.getWaitTime('unload'), this.logger);
     }
+  }
+
+  function createHookTimingConfiguration(option: Partial<Record<Hooks, number>> = {}) {
+    return { canLoad: 1, load: 1, canUnload: 1, unload: 1, ...option };
   }
 
   // the simplified textbook example of authorization hook
@@ -546,8 +556,83 @@ describe('lifecycle hooks', function () {
     await au.stop();
   });
 
-  // #region some migrated tests from hook-tests.specs.ts, as the tests were sometimes overly complicated, and accounting for every ticks might be bit too much
+  it('multiple asynchronous hooks - first hook - canLoad preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        const component = (next.instruction as IViewportInstruction).component;
+        const ret = component.toString() !== '\'foo\'';
+        return ret;
+      }
+    }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
 
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - unload');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), false);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+    ], 'round#2');
+    eventLog.assertLogOrderInvariant([], 8, 'round#2 - no-residue');
+    await au.stop();
+  });
+
+  // #region some migrated tests from hook-tests.specs.ts, as the tests were sometimes overly complicated, and accounting for every ticks might be bit too much
   function* getHookTestData() {
     function assert1(eventLog: EventLog) {
       eventLog.assertLog([
@@ -570,10 +655,6 @@ describe('lifecycle hooks', function () {
         /A2\] load - end 'a2'/,
         /B2\] load - end 'b2'/,
       ], 8, 'load part2');
-    }
-
-    function createHookTimingConfiguration(option: Partial<Record<Hooks, number>> = {}) {
-      return { canLoad: 1, load: 1, canUnload: 1, unload: 1, ...option };
     }
     yield {
       name: 'a1(canLoad:4)/a2+b1/b2',

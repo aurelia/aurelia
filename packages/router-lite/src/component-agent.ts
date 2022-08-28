@@ -117,8 +117,9 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.canUnloadHooks) {
       b.push();
       promise = promise.then(() => new Promise((res) => {
-        if(tr.guardsResult !== true) {
+        if (tr.guardsResult !== true) {
           b.pop();
+          res();
           return;
         }
         tr.run(() => {
@@ -135,7 +136,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasCanUnload) {
       b.push();
       promise = promise.then(() => {
-        if(tr.guardsResult !== true) {
+        if (tr.guardsResult !== true) {
           b.pop();
           return;
         }
@@ -160,8 +161,9 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.canLoadHooks) {
       b.push();
       promise = promise.then(() => new Promise((res) => {
-        if(tr.guardsResult !== true) {
+        if (tr.guardsResult !== true) {
           b.pop();
+          res();
           return;
         }
         tr.run(() => {
@@ -178,7 +180,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasCanLoad) {
       b.push();
       promise = promise.then(() => {
-        if(tr.guardsResult !== true) {
+        if (tr.guardsResult !== true) {
           b.pop();
           return;
         }

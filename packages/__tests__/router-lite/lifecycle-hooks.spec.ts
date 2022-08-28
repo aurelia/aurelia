@@ -107,7 +107,7 @@ describe('lifecycle hooks', function () {
     ) {
       this.logger = logger.scopeTo(this.constructor.name);
     }
-    public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+    public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
       await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
       return true;
     }
@@ -556,15 +556,15 @@ describe('lifecycle hooks', function () {
     await au.stop();
   });
 
-  it('multiple asynchronous hooks - first hook - canLoad preempts with false', async function () {
+  // #region - preemption - first preemption always wins
+  it('multiple asynchronous hooks - first canLoad hook preempts with false', async function () {
     @lifecycleHooks()
     class Hook1 extends AsyncBaseHook {
       public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
       public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
         await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
-        const component = (next.instruction as IViewportInstruction).component;
-        const ret = component.toString() !== '\'foo\'';
-        return ret;
+        // eslint-disable-next-line eqeqeq
+        return (next.instruction as IViewportInstruction).component != '\'foo\'';
       }
     }
     @lifecycleHooks()
@@ -612,7 +612,7 @@ describe('lifecycle hooks', function () {
       /Home\] load - end ''/,
       /Hook2\] load - end ''/,
       /Hook1\] load - end ''/,
-    ], 6, 'init - unload');
+    ], 6, 'init - load');
 
     // round #2
     eventLog.clear();
@@ -628,9 +628,314 @@ describe('lifecycle hooks', function () {
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
     ], 'round#2');
-    eventLog.assertLogOrderInvariant([], 8, 'round#2 - no-residue');
+    assert.strictEqual(eventLog.log.length, 8);
     await au.stop();
   });
+
+  it('multiple asynchronous hooks - second canLoad hook preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook {
+      public get waitMs(): number { return 1; }
+    }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        // eslint-disable-next-line eqeqeq
+        return (next.instruction as IViewportInstruction).component != '\'foo\'';
+      }
+    }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), false);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
+      /Hook2\] canLoad - end 'foo'/,
+    ], 'round#2');
+    assert.strictEqual(eventLog.log.length, 10);
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - first canLoad hook preempts with navigation instruction', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        // eslint-disable-next-line eqeqeq
+        return (next.instruction as IViewportInstruction).component != '\'foo\''
+          ? true
+          : 'bar';
+      }
+    }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'ba-r', template: 'bar' })
+    class Bar extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+        { path: 'bar', component: Bar },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Bar,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'bar'/,
+      /Hook1\] canLoad - end 'bar'/,
+      /Hook2\] canLoad - start 'bar'/,
+      /Hook2\] canLoad - end 'bar'/,
+      /Bar\] canLoad - start 'bar'/,
+      /Bar\] canLoad - end 'bar'/,
+    ], 'round#2');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Home\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Hook1\] unload - end ''/,
+    ], 14, 'round#2 - unload');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start 'bar'/,
+      /Hook2\] load - start 'bar'/,
+      /Bar\] load - start 'bar'/,
+      /Bar\] load - end 'bar'/,
+      /Hook2\] load - end 'bar'/,
+      /Hook1\] load - end 'bar'/,
+    ], 20, 'round#2 - load');
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - second canLoad hook preempts with navigation instruction', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        // eslint-disable-next-line eqeqeq
+        return (next.instruction as IViewportInstruction).component != '\'foo\''
+          ? true
+          : 'bar';
+      }
+    }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'ba-r', template: 'bar' })
+    class Bar extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+        { path: 'bar', component: Bar },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Bar,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), true);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo'/,
+      /Hook1\] canLoad - end 'foo'/,
+      /Hook2\] canLoad - start 'foo'/,
+      /Hook2\] canLoad - end 'foo'/,
+
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'bar'/,
+      /Hook1\] canLoad - end 'bar'/,
+      /Hook2\] canLoad - start 'bar'/,
+      /Hook2\] canLoad - end 'bar'/,
+      /Bar\] canLoad - start 'bar'/,
+      /Bar\] canLoad - end 'bar'/,
+    ], 'round#2');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Home\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Hook1\] unload - end ''/,
+    ], 14, 'round#2 - unload');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start 'bar'/,
+      /Hook2\] load - start 'bar'/,
+      /Bar\] load - start 'bar'/,
+      /Bar\] load - end 'bar'/,
+      /Hook2\] load - end 'bar'/,
+      /Hook1\] load - end 'bar'/,
+    ], 20, 'round#2 - load');
+    await au.stop();
+  });
+  // #endregion
 
   // #region some migrated tests from hook-tests.specs.ts, as the tests were sometimes overly complicated, and accounting for every ticks might be bit too much
   function* getHookTestData() {

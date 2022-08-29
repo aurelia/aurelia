@@ -63,7 +63,6 @@ const validPackages = [
   'runtime-html',
   'i18n',
   'fetch-client',
-  'aurelia',
   'route-recognizer',
   'router-lite',
   'router',
@@ -73,6 +72,7 @@ const validPackages = [
   'state',
   'store-v1',
   'ui-virtualization',
+  'aurelia',
   'addons',
   'testing',
 ];

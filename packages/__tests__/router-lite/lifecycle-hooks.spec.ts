@@ -14,6 +14,7 @@ import { DefaultLogEvent, DefaultLogger, DI, IContainer, ILogger, ISink, LogLeve
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
+import { isFirefox } from '../util.js';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
 describe('lifecycle hooks', function () {
@@ -1437,27 +1438,43 @@ describe('lifecycle hooks', function () {
 
   // #region some migrated tests from hook-tests.specs.ts, as the tests were sometimes overly complicated, and accounting for every ticks might be bit too much
   function* getHookTestData() {
-    function assert1(eventLog: EventLog) {
-      eventLog.assertLog([
-        /A1\] canLoad - start 'a1'/,
-        /B1\] canLoad - start 'b1'/,
-        /B1\] canLoad - end 'b1'/,
-        /A1\] canLoad - end 'a1'/,
-        /A1\] load - start 'a1'/,
-        /B1\] load - start 'b1'/,
-        /A1\] load - end 'a1'/,
-        /B1\] load - end 'b1'/,
-      ], 'load');
-      eventLog.assertLogOrderInvariant([
-        /A2\] canLoad - start 'a2'/,
-        /B2\] canLoad - start 'b2'/,
-        /B2\] canLoad - end 'b2'/,
-        /A2\] canLoad - end 'a2'/,
-        /A2\] load - start 'a2'/,
-        /B2\] load - start 'b2'/,
-        /A2\] load - end 'a2'/,
-        /B2\] load - end 'b2'/,
-      ], 8, 'load part2');
+    function assert1(adjustForFF: boolean) {
+      return function (eventLog: EventLog) {
+        if (adjustForFF) {
+          // for some reason, FF decides to run A1 to completion before B1
+          eventLog.assertLog([
+            /A1\] canLoad - start 'a1'/,
+            /B1\] canLoad - start 'b1'/,
+            /A1\] canLoad - end 'a1'/,
+            /B1\] canLoad - end 'b1'/,
+            /A1\] load - start 'a1'/,
+            /B1\] load - start 'b1'/,
+            /A1\] load - end 'a1'/,
+            /B1\] load - end 'b1'/,
+          ], 'load');
+        } else {
+          eventLog.assertLog([
+            /A1\] canLoad - start 'a1'/,
+            /B1\] canLoad - start 'b1'/,
+            /B1\] canLoad - end 'b1'/,
+            /A1\] canLoad - end 'a1'/,
+            /A1\] load - start 'a1'/,
+            /B1\] load - start 'b1'/,
+            /A1\] load - end 'a1'/,
+            /B1\] load - end 'b1'/,
+          ], 'load');
+        }
+        eventLog.assertLogOrderInvariant([
+          /A2\] canLoad - start 'a2'/,
+          /B2\] canLoad - start 'b2'/,
+          /B2\] canLoad - end 'b2'/,
+          /A2\] canLoad - end 'a2'/,
+          /A2\] load - start 'a2'/,
+          /B2\] load - start 'b2'/,
+          /A2\] load - end 'a2'/,
+          /B2\] load - end 'b2'/,
+        ], 8, 'load part2');
+      };
     }
     yield {
       name: 'a1(canLoad:4)/a2+b1/b2',
@@ -1465,7 +1482,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration(),
       b2: createHookTimingConfiguration(),
-      assert: assert1,
+      assert: assert1(isFirefox()),
     };
 
     yield {
@@ -1474,7 +1491,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration(),
       b2: createHookTimingConfiguration(),
-      assert: assert1,
+      assert: assert1(false),
     };
 
     function assert2(eventLog: EventLog) {
@@ -1525,7 +1542,7 @@ describe('lifecycle hooks', function () {
     };
   }
   for (const { name, a1, a2, b1, b2, assert } of getHookTestData()) {
-    it(`hook of one of the component takes significantly more time than others - no preemption - ${name}`, async function () {
+    it(`parentsiblings-childsiblings - hook of one of the component takes significantly more time than others - no preemption - ${name}`, async function () {
       @customElement({ name: 'a2', template: null })
       class A2 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return a2; } }
 

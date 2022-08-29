@@ -1,9 +1,3 @@
-import { DefaultLogEvent, DefaultLogger, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
-import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
-import { TestRouterConfiguration } from './_shared/configuration.js';
-
 /**
  * Roughly the followings aspects are tested here:
  * - The invocation of the routing hooks, both instance and the global lifecycle hooks.
@@ -15,6 +9,13 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
  * Note that an extensive tests of the hooks are already done in the `hook-tests.spec.ts`.
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
+
+import { DefaultLogEvent, DefaultLogger, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
+import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
+import { assert, TestContext } from '@aurelia/testing';
+import { TestRouterConfiguration } from './_shared/configuration.js';
+
 describe('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
@@ -119,6 +120,35 @@ describe('lifecycle hooks', function () {
       return true;
     }
     public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
+      await log('unload', current ?? rn, this.getWaitTime('unload'), this.logger);
+    }
+  }
+
+  abstract class AsyncBaseViewModel implements IRouteViewModel {
+    public get waitMs(): Record<Hooks, number> | number | null { return null; }
+    protected getWaitTime(hook: Hooks): number | null {
+      const val = this.waitMs;
+      if (val === null) return null;
+      if (typeof val === 'number') return val;
+      return val[hook] ?? null;
+    }
+    public constructor(
+      @ILogger protected readonly logger: ILogger,
+    ) {
+      this.logger = logger.scopeTo(this.constructor.name);
+    }
+    public async canLoad(_params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+      await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+      return true;
+    }
+    public async load(_params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+      await log('load', next, this.getWaitTime('load'), this.logger);
+    }
+    public async canUnload(rn: RouteNode, current?: RouteNode): Promise<boolean> {
+      await log('canUnload', current ?? rn, this.getWaitTime('canUnload'), this.logger);
+      return true;
+    }
+    public async unload(rn: RouteNode, current?: RouteNode): Promise<void> {
       await log('unload', current ?? rn, this.getWaitTime('unload'), this.logger);
     }
   }
@@ -302,10 +332,10 @@ describe('lifecycle hooks', function () {
     class Hook2 extends AsyncBaseHook { }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { }
+    class Home extends AsyncBaseViewModel { }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { }
+    class Foo extends AsyncBaseViewModel { }
 
     @route({
       routes: [
@@ -388,10 +418,10 @@ describe('lifecycle hooks', function () {
     class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 2; } }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { public get waitMs(): number { return 3; } }
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 3; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { public get waitMs(): number { return 3; } }
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 3; } }
 
     @route({
       routes: [
@@ -561,20 +591,19 @@ describe('lifecycle hooks', function () {
     @lifecycleHooks()
     class Hook1 extends AsyncBaseHook {
       public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
-      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+      public async canLoad(vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
         await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
-        // eslint-disable-next-line eqeqeq
-        return (next.instruction as IViewportInstruction).component != '\'foo\'';
+        return !(vm instanceof Foo);
       }
     }
     @lifecycleHooks()
     class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @route({
       routes: [
@@ -640,18 +669,17 @@ describe('lifecycle hooks', function () {
     @lifecycleHooks()
     class Hook2 extends AsyncBaseHook {
       public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
-      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+      public async canLoad(vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
         await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
-        // eslint-disable-next-line eqeqeq
-        return (next.instruction as IViewportInstruction).component != '\'foo\'';
+        return !(vm instanceof Foo);
       }
     }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @route({
       routes: [
@@ -711,29 +739,145 @@ describe('lifecycle hooks', function () {
     await au.stop();
   });
 
+  it('multiple asynchronous hooks - view-model canLoad hook preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseViewModel {
+      public get waitMs(): number { return 1; }
+      public async canLoad(params: Params, next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        return !Number.isNaN(Number(params.id));
+      }
+    }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo/:id', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo/bar'), false, 'round#2-router#load');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo\/bar'/,
+      /Hook1\] canLoad - end 'foo\/bar'/,
+      /Hook2\] canLoad - start 'foo\/bar'/,
+      /Hook2\] canLoad - end 'foo\/bar'/,
+      /Foo\] canLoad - start 'foo\/bar'/,
+      /Foo\] canLoad - end 'foo\/bar'/,
+    ], 'round#2');
+    assert.strictEqual(eventLog.log.length, 12);
+
+    // round #3
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo/123'), true, 'round#3-router#load');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo\/123'/,
+      /Hook1\] canLoad - end 'foo\/123'/,
+      /Hook2\] canLoad - start 'foo\/123'/,
+      /Hook2\] canLoad - end 'foo\/123'/,
+      /Foo\] canLoad - start 'foo\/123'/,
+      /Foo\] canLoad - end 'foo\/123'/,
+    ], 'round#3');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Home\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Hook1\] unload - end ''/,
+    ], 12, 'round#3 - unload');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start 'foo\/123'/,
+      /Hook2\] load - start 'foo\/123'/,
+      /Foo\] load - start 'foo\/123'/,
+      /Foo\] load - end 'foo\/123'/,
+      /Hook2\] load - end 'foo\/123'/,
+      /Hook1\] load - end 'foo\/123'/,
+    ], 18, 'round#3 - load');
+    assert.strictEqual(eventLog.log.length, 24);
+
+    await au.stop();
+  });
+
   it('multiple asynchronous hooks - first canLoad hook preempts with navigation instruction', async function () {
     @lifecycleHooks()
     class Hook1 extends AsyncBaseHook {
       public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
-      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+      public async canLoad(vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
         await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
-        // eslint-disable-next-line eqeqeq
-        return (next.instruction as IViewportInstruction).component != '\'foo\''
-          ? true
-          : 'bar';
+        return vm instanceof Foo ? 'bar' : true;
       }
     }
     @lifecycleHooks()
-    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Hook2 extends AsyncBaseHook {
+      public get waitMs(): number { return 1; }
+      public async canLoad(vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        return vm instanceof Foo ? 'home' : true;
+      }
+    }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'ba-r', template: 'bar' })
-    class Bar extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Bar extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @route({
       routes: [
@@ -829,23 +973,20 @@ describe('lifecycle hooks', function () {
     @lifecycleHooks()
     class Hook2 extends AsyncBaseHook {
       public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
-      public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+      public async canLoad(vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
         await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
-        // eslint-disable-next-line eqeqeq
-        return (next.instruction as IViewportInstruction).component != '\'foo\''
-          ? true
-          : 'bar';
+        return vm instanceof Foo ? 'bar' : true;
       }
     }
 
     @customElement({ name: 'ho-me', template: 'home' })
-    class Home extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'fo-o', template: 'foo' })
-    class Foo extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @customElement({ name: 'ba-r', template: 'bar' })
-    class Bar extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    class Bar extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
 
     @route({
       routes: [
@@ -933,6 +1074,363 @@ describe('lifecycle hooks', function () {
       /Hook2\] load - end 'bar'/,
       /Hook1\] load - end 'bar'/,
     ], 20, 'round#2 - load');
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - view-model canLoad hook preempts with navigation instruction', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseViewModel {
+      public get waitMs(): number { return 1; }
+      public async canLoad(params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+        await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
+        return Number.isNaN(Number(params.id)) ? 'bar' : true;
+      }
+    }
+    @customElement({ name: 'ba-r', template: 'bar' })
+    class Bar extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo/:id', component: Foo },
+        { path: 'bar', component: Bar },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Bar,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo/bar'), true, 'round#2-router#load');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'foo\/bar'/,
+      /Hook1\] canLoad - end 'foo\/bar'/,
+      /Hook2\] canLoad - start 'foo\/bar'/,
+      /Hook2\] canLoad - end 'foo\/bar'/,
+      /Foo\] canLoad - start 'foo\/bar'/,
+      /Foo\] canLoad - end 'foo\/bar'/,
+
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+
+      /Hook1\] canLoad - start 'bar'/,
+      /Hook1\] canLoad - end 'bar'/,
+      /Hook2\] canLoad - start 'bar'/,
+      /Hook2\] canLoad - end 'bar'/,
+      /Bar\] canLoad - start 'bar'/,
+      /Bar\] canLoad - end 'bar'/,
+    ], 'round#2');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] unload - start ''/,
+      /Hook2\] unload - start ''/,
+      /Home\] unload - start ''/,
+      /Home\] unload - end ''/,
+      /Hook2\] unload - end ''/,
+      /Hook1\] unload - end ''/,
+    ], 24, 'round#2 - unload');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start 'bar'/,
+      /Hook2\] load - start 'bar'/,
+      /Bar\] load - start 'bar'/,
+      /Bar\] load - end 'bar'/,
+      /Hook2\] load - end 'bar'/,
+      /Hook1\] load - end 'bar'/,
+    ], 30, 'round#2 - load');
+    assert.strictEqual(eventLog.log.length, 36);
+
+    // round #3
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo/123'), true, 'round#3-router#load');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start 'bar'/,
+      /Hook1\] canUnload - end 'bar'/,
+      /Hook2\] canUnload - start 'bar'/,
+      /Hook2\] canUnload - end 'bar'/,
+      /Bar\] canUnload - start 'bar'/,
+      /Bar\] canUnload - end 'bar'/,
+
+      /Hook1\] canLoad - start 'foo\/123'/,
+      /Hook1\] canLoad - end 'foo\/123'/,
+      /Hook2\] canLoad - start 'foo\/123'/,
+      /Hook2\] canLoad - end 'foo\/123'/,
+      /Foo\] canLoad - start 'foo\/123'/,
+      /Foo\] canLoad - end 'foo\/123'/,
+    ], 'round#3');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] unload - start 'bar'/,
+      /Hook2\] unload - start 'bar'/,
+      /Bar\] unload - start 'bar'/,
+      /Bar\] unload - end 'bar'/,
+      /Hook2\] unload - end 'bar'/,
+      /Hook1\] unload - end 'bar'/,
+    ], 12, 'round#3 - unload');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start 'foo\/123'/,
+      /Hook2\] load - start 'foo\/123'/,
+      /Foo\] load - start 'foo\/123'/,
+      /Foo\] load - end 'foo\/123'/,
+      /Hook2\] load - end 'foo\/123'/,
+      /Hook1\] load - end 'foo\/123'/,
+    ], 18, 'round#3 - load');
+    assert.strictEqual(eventLog.log.length, 24);
+
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - first canUnload hook preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canUnload(vm: IRouteViewModel, _next: RouteNode, current: RouteNode): Promise<boolean> {
+        await log('canUnload', current, this.getWaitTime('canUnload'), this.logger);
+        return !(vm instanceof Home);
+      }
+    }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), false);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+    ], 'round#2');
+    assert.strictEqual(eventLog.log.length, 2);
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - second canUnload hook preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook {
+      public get waitMs(): number { return 1; }
+    }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook {
+      public get waitMs(): Record<Hooks, number> { return createHookTimingConfiguration({ canLoad: 2 }); }
+      public async canUnload(vm: IRouteViewModel, _next: RouteNode, current: RouteNode): Promise<boolean> {
+        await log('canUnload', current, this.getWaitTime('canUnload'), this.logger);
+        return !(vm instanceof Home);
+      }
+    }
+
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseViewModel { public get waitMs(): number { return 1; } }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo'), false);
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+    ], 'round#2');
+    assert.strictEqual(eventLog.log.length, 4);
+    await au.stop();
+  });
+
+  it('multiple asynchronous hooks - view-model canUnload hook preempts with false', async function () {
+    @lifecycleHooks()
+    class Hook1 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @lifecycleHooks()
+    class Hook2 extends AsyncBaseHook { public get waitMs(): number { return 1; } }
+    @customElement({ name: 'ho-me', template: 'home' })
+    class Home extends AsyncBaseViewModel {
+      public get waitMs(): number { return 1; }
+      public async canUnload(_next: RouteNode, current: RouteNode): Promise<boolean> {
+        await log('canUnload', current, this.getWaitTime('canUnload'), this.logger);
+        return false;
+      }
+    }
+    @customElement({ name: 'fo-o', template: 'foo' })
+    class Foo extends AsyncBaseViewModel {
+      public get waitMs(): number { return 1; }
+    }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: Home },
+        { path: 'foo', component: Foo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Home,
+      Hook1,
+      Hook2,
+      Home,
+      Foo,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+    assert.html.textContent(host, 'home');
+    eventLog.assertLog([
+      /Hook1\] canLoad - start ''/,
+      /Hook1\] canLoad - end ''/,
+      /Hook2\] canLoad - start ''/,
+      /Hook2\] canLoad - end ''/,
+      /Home\] canLoad - start ''/,
+      /Home\] canLoad - end ''/,
+    ], 'init');
+    eventLog.assertLogOrderInvariant([
+      /Hook1\] load - start ''/,
+      /Hook2\] load - start ''/,
+      /Home\] load - start ''/,
+      /Home\] load - end ''/,
+      /Hook2\] load - end ''/,
+      /Hook1\] load - end ''/,
+    ], 6, 'init - load');
+
+    // round #2
+    eventLog.clear();
+    assert.strictEqual(await router.load('foo/bar'), false, 'round#2-router#load');
+    eventLog.assertLog([
+      /Hook1\] canUnload - start ''/,
+      /Hook1\] canUnload - end ''/,
+      /Hook2\] canUnload - start ''/,
+      /Hook2\] canUnload - end ''/,
+      /Home\] canUnload - start ''/,
+      /Home\] canUnload - end ''/,
+    ], 'round#2');
+    assert.strictEqual(eventLog.log.length, 6);
+
     await au.stop();
   });
   // #endregion
@@ -1029,18 +1527,18 @@ describe('lifecycle hooks', function () {
   for (const { name, a1, a2, b1, b2, assert } of getHookTestData()) {
     it(`hook of one of the component takes significantly more time than others - no preemption - ${name}`, async function () {
       @customElement({ name: 'a2', template: null })
-      class A2 extends AsyncBaseHook { public get waitMs(): Record<Hooks, number> { return a2; } }
+      class A2 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return a2; } }
 
       @route({ routes: [{ path: 'a2', component: A2 }] })
       @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
-      class A1 extends AsyncBaseHook { public get waitMs(): Record<Hooks, number> { return a1; } }
+      class A1 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return a1; } }
 
       @customElement({ name: 'b2', template: null })
-      class B2 extends AsyncBaseHook { public get waitMs(): Record<Hooks, number> { return b2; } }
+      class B2 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return b2; } }
 
       @route({ routes: [{ path: 'b2', component: B2 }] })
       @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
-      class B1 extends AsyncBaseHook { public get waitMs(): Record<Hooks, number> { return b1; } }
+      class B1 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return b1; } }
 
       @route({
         routes: [

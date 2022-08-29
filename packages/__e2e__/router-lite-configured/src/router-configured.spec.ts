@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { addCoverage } from '../../playwright-coverage';
 
 test.describe('router-lite configured', () => {
+
+  addCoverage();
 
   test.describe.configure({ mode: 'parallel' });
 

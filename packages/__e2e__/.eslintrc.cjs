@@ -4,10 +4,12 @@
 module.exports = {
   extends:  ['../../.eslintrc.cjs'],
   overrides: [{
-    files: ['src/*.ts'],
+    files: ['./**/*.ts'],
     rules: {
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
+      'import/no-nodejs-modules': 'off',
+      'import/no-extraneous-dependencies': 'off',
     }
   },
     {

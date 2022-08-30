@@ -783,14 +783,8 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_direct_hash
-          path: "packages/__e2e__/router-direct-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_direct_pushstate
-          path: "packages/__e2e__/router-direct-pushstate"
+          name: e2e_router
+          path: "packages/__e2e__/router"
           requires:
             - build_release
 
@@ -890,14 +884,8 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_direct_hash
-          path: "packages/__e2e__/router-direct-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_direct_pushstate
-          path: "packages/__e2e__/router-direct-pushstate"
+          name: e2e_router
+          path: "packages/__e2e__/router"
           requires:
             - build_release
 
@@ -924,8 +912,7 @@ workflows:
             - test_node
             - test_toolings
             - e2e_router_lite_configured
-            - e2e_router_direct_hash
-            - e2e_router_direct_pushstate
+            - e2e_router
             #- test_test262
             # - lint_packages
           from: $CIRCLE_TAG

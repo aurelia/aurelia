@@ -37,8 +37,7 @@ const hasValidTestPatterns = testPatterns !== '';
 
 const e2e = args.e2e;
 const validE2e = [
-  'router-direct',
-  'router-direct-pushstate',
+  'router',
   'router-lite-configured',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));

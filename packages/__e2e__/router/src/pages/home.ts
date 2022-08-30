@@ -6,5 +6,5 @@
 //   template
 // })
 export class Home {
-  
+
 }

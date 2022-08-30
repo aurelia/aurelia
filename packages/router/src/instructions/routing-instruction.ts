@@ -88,6 +88,12 @@ export class RoutingInstruction {
    */
   public topInstruction: boolean = false;
 
+  /**
+   * The string, if any, that was used to parse the instruction. Includes anything
+   * in the string after the actual part for the instruction itself.
+   */
+  public unparsed: string | null = null;
+
   public constructor(
     component?: ComponentAppellation | Promise<ComponentAppellation>,
     endpoint?: EndpointHandle,
@@ -309,7 +315,7 @@ export class RoutingInstruction {
    * to a value when the instruction has an assigned endpoint. This is a
    * convenience property in the API.
    */
-   public get previous(): RoutingInstruction | null | undefined {
+  public get previous(): RoutingInstruction | null | undefined {
     return this.endpoint.instance?.getContent()?.instruction;
   }
 

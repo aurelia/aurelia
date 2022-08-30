@@ -211,6 +211,10 @@ export class ViewportContent extends EndpointContent {
       try {
         this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
       } catch (e) {
+        if (__DEV__) {
+          console.warn(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+        }
+
         // If there's a fallback component...
         if ((fallback ?? '') !== '') {
           if (fallbackAction === 'process-children') {

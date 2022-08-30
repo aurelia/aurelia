@@ -5,8 +5,6 @@
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router",
-    "packages/__e2e__/router-direct-hash",
-    "packages/__e2e__/router-direct-pushstate",
     "packages/__e2e__/router-lite-configured",
     "packages/addons",
     "packages/aurelia",

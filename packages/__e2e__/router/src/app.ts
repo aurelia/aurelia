@@ -1,21 +1,27 @@
-import { useUrlFragmentHash } from "./config";
+import { IRouter } from '@aurelia/router';
 
 export class App {
   public message = 'Hello, World!';
   public iframeSrc: string;
   public iframeVisible: boolean;
 
-  public static routes = [
-    { path: 'route-home', component: 'home'},
-  ];
+  public constructor(@IRouter public readonly router: IRouter) { }
+
+  public async toggleFragmentHash() {
+    const useUrlFragmentHash = !this.router.configuration.options.useUrlFragmentHash;
+    this.router.configuration.options.useUrlFragmentHash = useUrlFragmentHash;
+    this.router.viewer.options.useUrlFragmentHash = useUrlFragmentHash;
+  }
 
   toggleIframe() {
     if (!this.iframeVisible) {
-      console.log('useUrlFragmentHash', useUrlFragmentHash);
+      const fragmentHash = this.router.configuration.options.useUrlFragmentHash ? '#/' : '';
       this.iframeSrc = URL.createObjectURL(new Blob(
-        [`<html><head></head><body><a target="_top" href="${origin}/#auth">Goto auth</a></body>`],
+        [`<html><head></head><body><a target="_top" href="${origin}/${fragmentHash}auth">Goto auth</a></body>`],
         { type: 'text/html' }
       ));
+    } else {
+      this.iframeSrc = '';
     }
     this.iframeVisible = !this.iframeVisible;
   }

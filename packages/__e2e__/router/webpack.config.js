@@ -42,9 +42,6 @@ module.exports = function () {
         })
       }
     },
-    devServer: {
-      historyApiFallback: true,
-    },
     module: {
       rules: [
         // { test: /\.ts$/i, use: ['ts-loader'], exclude: /node_modules/ },

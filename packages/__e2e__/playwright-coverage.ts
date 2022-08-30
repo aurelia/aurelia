@@ -17,6 +17,7 @@ function getExitingCoverage(cwd) {
 }
 
 export function addCoverage() {
+  const cwd = process.cwd();
   const coverages = istanbul.createCoverageMap({});
 
   test.beforeEach(async ({ page }) => {
@@ -26,7 +27,9 @@ export function addCoverage() {
   test.afterEach(async ({ page }) => {
     const coverage = await page.coverage.stopJSCoverage();
     for (const entry of coverage) {
-      if (!entry.url.includes('/@fs/') || !entry.url.includes('/packages/')) {
+      // console.log(entry.url.includes(cwd));
+      console.log(entry.url);
+      if (!entry.url.includes(cwd) || /* !entry.url.includes('/@fs/') || */ !entry.url.includes('/packages/')) {
         continue;
       }
       const scriptPath = entry.url.replace(/^.*@fs\//, '');

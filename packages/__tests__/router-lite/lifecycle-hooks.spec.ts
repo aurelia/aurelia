@@ -1482,7 +1482,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration(),
       b2: createHookTimingConfiguration(),
-      assert: assert1(isFirefox()),
+      assertLog: assert1(isFirefox()),
     };
 
     yield {
@@ -1491,7 +1491,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration(),
       b2: createHookTimingConfiguration(),
-      assert: assert1(false),
+      assertLog: assert1(false),
     };
 
     function assert2(eventLog: EventLog) {
@@ -1522,7 +1522,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration({ canLoad: 2 }),
       b2: createHookTimingConfiguration(),
-      assert: assert2,
+      assertLog: assert2,
     };
     yield {
       name: 'a1/a2+b1(canLoad:4)/b2',
@@ -1530,7 +1530,7 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration({ canLoad: 4 }),
       b2: createHookTimingConfiguration(),
-      assert: assert2,
+      assertLog: assert2,
     };
     yield {
       name: 'a1/a2+b1(canLoad:8)/b2',
@@ -1538,10 +1538,10 @@ describe('lifecycle hooks', function () {
       a2: createHookTimingConfiguration(),
       b1: createHookTimingConfiguration({ canLoad: 8 }),
       b2: createHookTimingConfiguration(),
-      assert: assert2,
+      assertLog: assert2,
     };
   }
-  for (const { name, a1, a2, b1, b2, assert } of getHookTestData()) {
+  for (const { name, a1, a2, b1, b2, assertLog } of getHookTestData()) {
     it(`parentsiblings-childsiblings - hook of one of the component takes significantly more time than others - no preemption - ${name}`, async function () {
       @customElement({ name: 'a2', template: null })
       class A2 extends AsyncBaseViewModel { public get waitMs(): Record<Hooks, number> { return a2; } }
@@ -1579,7 +1579,7 @@ describe('lifecycle hooks', function () {
 
       await router.load('a1@$0/a2+b1@$1/b2');
 
-      assert(eventLog);
+      assertLog(eventLog);
 
       await au.stop();
     });

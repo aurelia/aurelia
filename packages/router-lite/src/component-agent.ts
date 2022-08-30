@@ -135,6 +135,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     }
     if (this._hasCanUnload) {
       b.push();
+      // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
           b.pop();
@@ -179,6 +180,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     }
     if (this._hasCanLoad) {
       b.push();
+      // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
           b.pop();

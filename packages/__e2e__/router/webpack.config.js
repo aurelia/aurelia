@@ -12,6 +12,9 @@ module.exports = function () {
       minimize: false,
       // concatenateModules: false,
     },
+    experiments: {
+      lazyCompilation: true
+    },
     performance: {
       hints: false,
     },

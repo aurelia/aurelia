@@ -88,5 +88,4 @@ describe('Viewport', function () {
 
     await tearDown();
   });
-
 });

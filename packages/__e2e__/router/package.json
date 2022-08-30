@@ -1,5 +1,5 @@
 {
-  "name": "@__e2e__/router-direct-pushstate",
+  "name": "@__e2e__/router",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "webpack",
-    "test:e2e": "cross-env APP_PORT=9002 concurrently \"npm run dev\" \"npm run test\" --kill-others --success first",
+    "test:e2e": "cross-env APP_PORT=9001 concurrently \"npm run dev\" \"npm run test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9002 concurrently \"npm run dev\" \"npx playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9002 PWDEBUG=1 concurrently \"npm run dev\" \"npx playwright-watch test\"",
     "test": "npx playwright test",

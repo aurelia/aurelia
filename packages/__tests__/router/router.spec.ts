@@ -1192,7 +1192,7 @@ describe('Router', function () {
   });
 
   describe('can define fallback component', function () {
-    this.timeout(30000);
+    this.timeout(5000);
 
     async function $setup(App, config?, stateSpy?) {
       const ctx = TestContext.create();
@@ -1224,92 +1224,109 @@ describe('Router', function () {
       return { ctx, container, platform, host, au, router, $teardown };
     }
 
-    const names = ['parent', 'child', 'grandchild'];
-    const dependencies = [];
-    for (let i = 0, ii = names.length; i < ii; i++) {
-      const name = names[i];
-      const fallback = i < ii - 1 ? names[i + 1] : null;
-      const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}"></au-viewport>` : '';
-      const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
-      dependencies.push(CustomElement.define({ name, template }, class {
-        public static parameters = ['id'];
-        public param: string;
-        public load(params) {
-          if (params.id !== void 0) {
-            this.param = params.id;
-          }
+    const configs = [{ fallbackAction: 'process-children' }, { fallbackAction: 'abort' }];
+    const fallbackActions = ['', 'process-children', 'abort'];
+    for (const config of configs) {
+      for (const fallbackAction of fallbackActions) {
+        const names = ['parent', 'child', 'grandchild'];
+        const dependencies = [];
+        for (let i = 0, ii = names.length; i < ii; i++) {
+          const name = names[i];
+          const fallback = i < ii - 1 ? names[i + 1] : null;
+          const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}" ${fallbackAction.length ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>` : '';
+          const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
+          dependencies.push(CustomElement.define({ name, template }, class {
+            public static parameters = ['id'];
+            public param: string;
+            public load(params) {
+              if (params.id !== void 0) {
+                this.param = params.id;
+              }
+            }
+          }));
         }
-      }));
-    }
 
-    const App = CustomElement.define({
-      name: 'app',
-      template: '<au-viewport fallback="parent"></au-viewport>',
-      dependencies
-    });
-
-    const tests = [
-      { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
-      { path: 'b@default', result: '!parent:b!', url: 'b' },
-      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'c/d' },
-      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'e/f' },
-      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'g/h/i' },
-      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'j/k/l' },
-    ];
-
-    for (const test of tests) {
-      it(`to load route ${test.path} => ${test.url}`, async function () {
-        let locationPath: string;
-        const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
-          locationPath = path;
+        const App = CustomElement.define({
+          name: 'app',
+          template: `<au-viewport fallback="parent"  ${fallbackAction.length ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>`,
+          dependencies
         });
-        await $load(test.path, router, platform);
-        assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
-        await $teardown();
-      });
-    }
-    it(`to load above routes in sequence`, async function () {
-      let locationPath: string;
-      const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
-        locationPath = path;
-      });
-      for (const test of tests) {
-        await $load(test.path, router, platform);
-        assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
-      }
-      await $teardown();
-    });
 
-    for (const test of tests) {
-      const path = test.path.replace(/@\w+/g, '');
-      const url = test.url.replace(/@\w+/g, '');
-      it(`to load route ${path} => ${url}`, async function () {
-        let locationPath: string;
-        const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
-          locationPath = path;
+        const tests = (fallbackAction === 'abort' || (fallbackAction === '' && config.fallbackAction === 'abort'))
+          ? [
+            { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
+            { path: 'b@default', result: '!parent:b@default!', url: 'b@default' },
+            { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'c/d' },
+            { path: 'e@default/f@parent', result: '!parent:e@default/f@parent!', url: 'e@default/f@parent' },
+            { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'g/h/i' },
+            { path: 'j@default/k@parent/l@child', result: '!parent:j@default/k@parent/l@child!', url: 'j@default/k@parent/l@child' },
+          ]
+          : [
+            { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
+            { path: 'b@default', result: '!parent:b!', url: 'b' },
+            { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'c/d' },
+            { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'e/f' },
+            { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'g/h/i' },
+            { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'j/k/l' },
+          ];
+
+        for (const test of tests) {
+          it(`to load route with fallback action "${fallbackAction}" ${test.path} => ${test.url}`, async function () {
+            let locationPath: string;
+            const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+              locationPath = path;
+            });
+            await $load(test.path, router, platform);
+            assert.strictEqual(host.textContent, test.result, `host.textContent`);
+            assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+            await $teardown();
+          });
+        }
+        it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
+          let locationPath: string;
+          const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+            locationPath = path;
+          });
+          for (const test of tests) {
+            await $load(test.path, router, platform);
+            assert.strictEqual(host.textContent, test.result, `host.textContent`);
+            assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+          }
+          await $teardown();
         });
-        await $load(path, router, platform);
-        assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
-        await $teardown();
-      });
-    }
-    it(`to load above routes in sequence`, async function () {
-      let locationPath: string;
-      const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
-        locationPath = path;
-      });
-      for (const test of tests) {
-        const path = test.path.replace(/@\w+/g, '');
-        const url = test.url.replace(/@\w+/g, '');
-        await $load(path, router, platform);
-        assert.strictEqual(host.textContent, test.result, `host.textContent`);
-        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+
+        for (const test of tests) {
+          const path = test.path.replace(/@\w+/g, '');
+          const result = test.result.replace(/@\w+/g, '');
+          const url = test.url.replace(/@\w+/g, '');
+          it(`to load route with fallback action "${fallbackAction}" ${path} => ${url}`, async function () {
+            let locationPath: string;
+            const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+              locationPath = path;
+            });
+            await $load(path, router, platform);
+            assert.strictEqual(host.textContent, result, `host.textContent`);
+            assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+            await $teardown();
+          });
+        }
+        it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
+          let locationPath: string;
+          const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+            locationPath = path;
+          });
+          for (const test of tests) {
+            const path = test.path.replace(/@\w+/g, '');
+            const result = test.result.replace(/@\w+/g, '');
+            const url = test.url.replace(/@\w+/g, '');
+            await $load(path, router, platform);
+            assert.strictEqual(host.textContent, result, `host.textContent`);
+            assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+          }
+          await $teardown();
+        });
       }
-      await $teardown();
-    });
+    }
   });
 
   describe('can use configuration', function () {

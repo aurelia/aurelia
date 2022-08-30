@@ -85,6 +85,7 @@ export class InstructionParser {
     let scope = true;
     let token!: string;
     let pos: number;
+    const unparsed = instruction;
 
     const specials = [seps.add, seps.clear];
     for (const special of specials) {
@@ -149,6 +150,7 @@ export class InstructionParser {
     }
 
     const routingInstruction: RoutingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope) as RoutingInstruction;
+    routingInstruction.unparsed = unparsed;
 
     return { instruction: routingInstruction, remaining: instruction };
   }

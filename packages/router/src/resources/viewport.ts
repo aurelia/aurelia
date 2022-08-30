@@ -21,6 +21,7 @@ import { Runner, Step } from '../utilities/runner';
 import { waitForRouterStart, getValueOrAttribute } from './utils';
 import { arrayRemove } from '../utilities/utils';
 import { OpenPromise } from '../utilities/open-promise';
+import { FallbackAction } from '../router-options';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -52,6 +53,14 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    * component. The component is passed as a parameter to the fallback.
    */
   @bindable public fallback: string = '';
+
+  /**
+   * Whether the fallback action is to load the fallback component in
+   * place of the unloadable component and continue with any child
+   * instructions or if the fallback is to be called and the processing
+   * of the children to be aborted.
+   */
+  @bindable public fallbackAction: FallbackAction | '' = '';
 
   /**
    * Indicates that the viewport has no scope.
@@ -206,6 +215,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     options.usedBy = getValueOrAttribute('used-by', this.usedBy, isBound, element) as string;
     options.default = getValueOrAttribute('default', this.default, isBound, element) as string;
     options.fallback = getValueOrAttribute('fallback', this.fallback, isBound, element) as string;
+    options.fallbackAction = getValueOrAttribute('fallback-action', this.fallbackAction, isBound, element) as FallbackAction;
     options.noLink = getValueOrAttribute('no-link', this.noLink, isBound, element, true) as boolean;
     options.noTitle = getValueOrAttribute('no-title', this.noTitle, isBound, element, true) as boolean;
     options.noHistory = getValueOrAttribute('no-history', this.noHistory, isBound, element, true) as boolean;

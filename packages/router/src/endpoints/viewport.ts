@@ -462,7 +462,11 @@ export class Viewport extends Endpoint {
             coordinator.cancel();
           } else {
             if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
-              this.getNextContent()!.createComponent(this.connectedCE!, this.options.fallback);
+              const routerOptions = this.router.configuration.options;
+              this.getNextContent()!.createComponent(
+                this.connectedCE!,
+                this.options.fallback || routerOptions.fallback,
+                this.options.fallbackAction || routerOptions.fallbackAction);
             }
           }
         }
@@ -614,7 +618,11 @@ export class Viewport extends Endpoint {
     return Runner.run(step,
       () => this.waitForConnected(),
       () => {
-        this.getNextContent()!.createComponent(this.connectedCE!, this.options.fallback);
+        const routerOptions = this.router.configuration.options;
+        this.getNextContent()!.createComponent(
+          this.connectedCE!,
+          this.options.fallback || routerOptions.fallback,
+          this.options.fallbackAction || routerOptions.fallbackAction);
 
         return this.getNextContent()!.canLoad();
       },

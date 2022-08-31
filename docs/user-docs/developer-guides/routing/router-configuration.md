@@ -6,9 +6,7 @@ The router allows you to configure how it interprets and handles routing in your
 
 The `useHref` configuration setting is something that all developers working with routing in Aurelia need to be aware of. By default, the router will allow you to use both `href` as well as `load` for specifying routes.
 
-Where this can get you into trouble is external links, mailto links and other types of links that do not route.&#x20;
-
-A simple example looks like this:
+Where this can get you into trouble is external links, mailto links and other types of links that do not route. A simple example looks like this:
 
 ```html
 <a href="mailto:myemail@gmail.com">Email Me</a>

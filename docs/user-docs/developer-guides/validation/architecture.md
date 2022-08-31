@@ -10,7 +10,7 @@ description: >-
 
 There are three different interrelated packages for validation. The relation between the packages are depicted in the following diagram.
 
-![Architecture](<../../.gitbook/assets/architecture (1) (1) (1) (1) (1).svg>)
+![Architecture](<../../.gitbook/assets/architecture (1) (1) (1) (1).svg>)
 
 * `@aurelia/validation`: Provides the core validation functionality. Hosts the validator, out-of-the-box rule implementations, and the validation message provider.
 * `@aurelia/validation-html`: Provides the view-specific functionalities such as validation controller, `validate` binding behavior, and subscribers. It wraps the `@aurelia/validation` package so that you do not need to register both packages.
@@ -22,7 +22,7 @@ The rest of the document assumes that validation is view is more common scenario
 
 *   The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
 
-    ![Define rules](<../../../images/validation/seq-define-rules (2) (2).png>)
+    ![Define rules](<../../../images/validation/seq-define-rules (2).png>)
 *   The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
 
     ![Rules class diagram](<../../../images/validation/class-rules (2) (1).png>)

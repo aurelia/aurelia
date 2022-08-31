@@ -351,7 +351,7 @@ export class App implements ICustomElementViewModel {
 
 In this step the view is created from the factory and the render location is set. Subsequently, the view is activated, which involves mainly binding the view with the given scope and attaching the hydrated nodes to the render location.
 
-In this example, a new scope is created, to bind the view, for simplicity. However, if you want to avoid that you may reuse the same scope from the `controller` itself (see [example](https://stackblitz.com/edit/typescript-pzef4n?file=app%2Fapp.ts)) or use that as parent scope depending on your need. To know more about scope and context refer the respective [documentation](../developer-guides/scope-and-binding-context.md). Once the activation is complete you can see the hydrated nodes in DOM.
+In this example, a new scope is created, to bind the view, for simplicity. However, if you want to avoid that you may reuse the same scope from the `controller` itself (see [example](https://stackblitz.com/edit/typescript-pzef4n?file=app%2Fapp.ts)) or use that as parent scope depending on your need. To know more about scope and context refer the respective [documentation](../getting-to-know-aurelia/scope-and-binding-context.md). Once the activation is complete you can see the hydrated nodes in DOM.
 
 ## Remove the view
 

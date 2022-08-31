@@ -41,7 +41,7 @@ import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
-} from './unicode';
+} from './unicode.js';
 
 function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]): TaggedTemplateExpression {
   return new TaggedTemplateExpression(cooked, cooked, func, expressions);

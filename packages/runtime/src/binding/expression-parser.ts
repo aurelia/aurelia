@@ -665,13 +665,13 @@ TPrec extends Precedence.Unary ? IsUnary :
           break;
         case Token.TemplateTail:
           if (state._optional) {
-            throw invalidTaggedTemplateOnOptionalChain(state)
+            throw invalidTaggedTemplateOnOptionalChain(state);
           }
           result = createTemplateTail(state, result as IsLeftHandSide);
           break;
         case Token.TemplateContinuation:
           if (state._optional) {
-            throw invalidTaggedTemplateOnOptionalChain(state)
+            throw invalidTaggedTemplateOnOptionalChain(state);
           }
           result = parseTemplate(state, expressionType, result as IsLeftHandSide, true);
           break;
@@ -973,7 +973,7 @@ function parseMemberExpressionLHS(state: ParserState, lhs: IsLeftHandSide, optio
       state._assignable = !state._optional;
       nextToken(state);
       return new AccessMemberExpression(lhs, rhs, optional);
-  };
+  }
 }
 
 function ensureOptionalSuffix(state: ParserState) {

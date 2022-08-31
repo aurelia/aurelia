@@ -6,18 +6,20 @@ description: Watching data
 
 ## Watching values with @watch
 
-Aurelia provides a way to author your components in a reactive programming model with the `@watch` decorator. Decorating a class itself, or a method inside it with the `@watch` decorator, the corresponding method will be called whenever the watched value changes.
+Aurelia provides a way to author your components in a reactive programming model with the `@watch` decorator. Decorating a class or a method inside it with the `@watch` decorator, the corresponding method will be called whenever the watched value changes.
 
 {% hint style="info" %}
 **Intended usages**
 
-* The `@watch` decorator can only be used on custom element and custom attribute view models.
-* Corresponding watchers of `@watch` decorator will be created once, and bound after `binding`, and unbound before `unbinding` lifecycles. This means mutation during `binding`/ after `unbinding` won't be reacted to, as watchers haven't started or have stopped.
+* The `@watch` decorator can only be used on a custom element and custom attribute view models.
+* Corresponding watchers of `@watch` decorator will be created once, bound after `binding`, and unbound before `unbinding` lifecycles. This means mutation during `binding`/ after `unbinding` won't be reacted to, as watchers haven't started or have stopped.
 {% endhint %}
 
 ## APIs
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 // on class
 @watch(expressionOrPropertyAccessFn, changeHandlerOrCallback)
 class MyClass {}
@@ -41,6 +43,8 @@ The `@watch` decorator allows you to react to changes on a property or computed 
 In the following example, we will call a function every time the name property in our view model is changed.
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class NameComponent {
   name = '';
 
@@ -57,6 +61,8 @@ This is referred to in Aurelia as an expression. You can also observe properties
 This is what an expression looks like observing an array length for changes:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -78,6 +84,8 @@ Sometimes you want to watch multiple values in a component, for that you need to
 To illustrate how you can do this, here is an example:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -101,6 +109,8 @@ Decorating on a class, string as watch expression, with arrow function as callba
 {% endhint %}
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 @watch('counter', (newValue, oldValue, app) => app.log(newValue))
 class App {
 
@@ -119,6 +129,8 @@ Decorating on a class, string as watch expression, with method name as callback
 > ❗❗❗❗ method name will be used to resolve the function `ONCE`, which means changing method after the instance has been created will not be recognized.
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 @watch('counter', 'log')
 class App {
 
@@ -135,6 +147,8 @@ Decorating on a class, string as watch expression, with normal function as callb
 {% endhint %}
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 @watch('counter', function(newValue, oldValue, app) {
   app.log(newValue);
   // or use this, it will point to the instance of this class
@@ -155,6 +169,8 @@ Decorating on a class, normal function as watch expression, with arrow function 
 {% endhint %}
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 @watch(function (app) { return app.counter }, (newValue, oldValue, app) => app.log(newValue))
 class App {
 
@@ -171,6 +187,8 @@ Decorating on a class, arrow function as watch expression, with arrow function a
 {% endhint %}
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 @watch(app => app.counter, (newValue, oldValue, app) => app.log(newValue))
 class App {
 
@@ -187,8 +205,9 @@ Decorating on a method, string as watch expression
 {% endhint %}
 
 ```typescript
-class App {
+import { watch } from '@aurelia/runtime-html';
 
+class App {
   counter = 0;
 
   @watch('counter')
@@ -203,8 +222,9 @@ Decorating on a method, normal function as watch expression
 {% endhint %}
 
 ```typescript
-class App {
+import { watch } from '@aurelia/runtime-html';
 
+class App {
   counter = 0;
 
   @watch(function(app) { return app.counter })
@@ -219,8 +239,9 @@ Decorating on a method, arrow function as watch expression
 {% endhint %}
 
 ```typescript
-class App {
+import { watch } from '@aurelia/runtime-html';
 
+class App {
   counter = 0;
 
   @watch(app => app.counter)
@@ -235,6 +256,8 @@ class App {
 > During `binding` lifecycle, bindings created by `@watch` decorator haven't been activated yet, which means mutations won't be reacted to:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -255,6 +278,8 @@ There will be no log in the console.
 > During `bound` lifecycle, bindings created by `@watch` decorator have been activated, and mutations will be reacted to:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -279,6 +304,8 @@ There will be 1 log in the console that looks like this: `packages changes: 0 ->
 > During `detaching` lifecycle, bindings created by `@watch` decorator have not been de-activated yet, and mutations will still be reacted to:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -299,6 +326,8 @@ There will be 1 log in the console that looks like this: `packages changes: 0 ->
 > During `unbinding` lifecycle, bindings created by `@watch` decorator have been deactivated, and mutations won't be reacted to:
 
 ```typescript
+import { watch } from '@aurelia/runtime-html';
+
 class PostOffice {
   packages = [];
 
@@ -320,35 +349,37 @@ There will be no log in the console.
 
 By default, a watcher will be created for a `@watch()` decorator. This watcher will start observing before `bound` lifecycle of components. How the observation works will depend on the first parameter given.
 
-* If a string, or a symbol is given, it will be used as an expression to observe, similar to how an expression in Aurelia templating works.
+* If a string or a symbol is given, it will be used as an expression to observe, similar to how an expression in Aurelia templating works.
 * If a function is given, it will be used as a computed getter to observe dependencies and evaluate the value to pass into the specified method. There are two mechanisms that can be employed:
-  * For JavaScript environments with native proxy support: Proxy will be used to trap & observe property read. It will also observe collections (such as array, map and set) based on the method invoked. For example, calling `.map(item => item.value)` on an array should observe the mutation of that array, and the property `value` of each item inside the array.
-  *   For environments without native proxy support: A 2nd parameter inside computed getter can be used to manually observe (or register) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
+  * For JavaScript environments with native proxy support: Proxy will be used to trap & observe property read. It will also observe collections (such as array, map and set) based on invoked mehods. For example, calling `.map(item => item.value)` on an array should observe the mutation of that array and the property `value` of each item inside the array.
+  *   For environments without native proxy support: he 2nd parameter inside the computed getter can be used to manually observe (or register) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
 
       ```typescript
       interface IWatcher {
-      observeProperty(obj: object, key: string | number | symbol): void;
-      observeCollection(collection: Array | Map | Set): void;
+          observeProperty(obj: object, key: string | number | symbol): void;
+          observeCollection(collection: Array | Map | Set): void;
       }
       ```
 
-      An example is:
+      **An example is:**
 
       ```typescript
-      class Contact {
-      firstName = 'Chorris';
-      lastName = 'Nuck';
+      import { watch } from '@aurelia/runtime-html';
 
-      @watch((contact, watcher) => {
-        watcher.observeProperty(contact, 'firstName');
-        watcher.observeProperty(contact, 'lastName');
-        return `${contact.firstName} ${contact.lastName}`;
-      })
-      validateFullName(fullName) {
-        if (fullName === 'Chuck Norris') {
-          this.faint();
+      class Contact {
+        firstName = 'Chorris';
+        lastName = 'Nuck';
+
+        @watch((contact, watcher) => {
+          watcher.observeProperty(contact, 'firstName');
+          watcher.observeProperty(contact, 'lastName');
+          return `${contact.firstName} ${contact.lastName}`;
+        })
+        validateFullName(fullName) {
+          if (fullName === 'Chuck Norris') {
+            this.faint();
+          }
         }
-      }
       }
       ```
 
@@ -378,9 +409,11 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
     @watch(object => object.someArray.reverse())
     someMethod() {}
     ```
-*   To ensure identity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
+*   To ensure identity equality with proxies, always be careful with objects not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
 
     ```typescript
+    import { watch } from '@aurelia/runtime-html';
+
     const defaultOptions = {};
 
     class MyClass {
@@ -394,11 +427,12 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
     ```
 
     In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
-*   Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work properly. Don't do the following:
+*   Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise or having an async function won't work properly. Don't do the following:
 
     ```typescript
-    class MyClass {
+    import { watch } from '@aurelia/runtime-html';
 
+    class MyClass {
       // don't do this
       @watch(async myClassInstance => myClassinstance.options)
       applyCustomOptions() {}

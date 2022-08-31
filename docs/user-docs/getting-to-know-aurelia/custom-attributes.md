@@ -2,7 +2,7 @@
 description: Using built-in custom attributes and building your own.
 ---
 
-# Custom attributes
+# Custom Attributes
 
 A custom attribute allows you to create special properties you can use to enhance and decorate existing HTML elements and components. Natively attributes exist in the form of things such as `disabled` on form inputs or aria text labels. Where custom attributes can be especially useful is wrapping existing HTML plugins that generate their own markup.
 
@@ -226,7 +226,7 @@ We have code that will work on the first initialization of our custom property, 
 As a default convention, bindable property change callbacks will use the bindable property name followed by a suffix of `Changed` at the end. The change callback gets two parameters, the new value and the existing value.
 
 {% hint style="info" %}
-Want to learn more about bindable properties and how to configure them? Please reference the [bindable properties section](components/bindable-properties.md).
+Want to learn more about bindable properties and how to configure them? Please reference the [bindable properties section](../components/bindable-properties.md).
 {% endhint %}
 
 Whenever our size or color bindable properties change, our element will be updated accordingly instead of only at render.

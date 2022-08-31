@@ -1,4 +1,4 @@
-# Working with promises in templates
+# Template Promises
 
 When working with promises in Aurelia, previously in version 1 you had to resolve them in your view model and then pass the values to your view templates. It worked, but you had to write code to handle those promise requests. In Aurelia 2 we can work with promises directly inside of our templates.
 

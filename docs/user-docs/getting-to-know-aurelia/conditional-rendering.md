@@ -2,9 +2,9 @@
 description: There are two ways to show and hide content in Aurelia.
 ---
 
-# Showing & hiding content
+# Conditional Rendering
 
-## Conditionally add and remove elements using if.bind
+## if.bind
 
 You can add or remove an element by specifying an `if.bind` on an element and passing in a true or false value.
 
@@ -18,9 +18,18 @@ In the following example, we pass a value called `isLoading` which is populated 
 
 When `isLoading` is a truthy value, the element will be displayed and added to the DOM. When `isLoading` is falsy, the element will be removed from the DOM, disposing of any events or child components inside of it.
 
+There is also an `else` binding that allows you to create `if/else` statements too.
+
+```html
+<div if.bind="showThis">Hello, there.</div>
+<div else>Or else.</div>
+```
+
+The `else` value must be used on an element directly proceeding the `if.bind` or it will not work.
+
 By default, the `if.bind` feature will cache the view-model/view of the element you are using `if.bind` on. Not being aware of this default behavior can lead to confusing situations where the previous state is retained, especially on custom elements.
 
-You can opt out of caching if this becomes a problem by using verbose `if.bind` syntax.
+You can opt-out of caching if this becomes a problem by using verbose `if.bind` syntax.
 
 ```html
 <some-element if="value.bind: showThis; cache: false"></some-element>
@@ -32,7 +41,7 @@ When using the verbose syntax, `value.bind` is the boolean condition that trigge
 Be careful. Using if.bind takes your markup out of the flow of the page. There is causes both reflow and repaint events in the browser, which can be intensive for large applications with a lot of markup.
 {% endhint %}
 
-## Conditionally show and hide elements using show.bind
+## show.bind
 
 You can conditionally show or hide an element by specifying a `show.bind` and passing in a true or false value.
 
@@ -46,7 +55,7 @@ In the following example, we are passing a value called `isLoading` which is pop
 
 When `isLoading` is a truthy value, the element will be visible. When `isLoading` is falsy, the element will be hidden, but remain in the view.
 
-## Switch/case statements in templates using switch.bind
+## switch.bind
 
 In Javascript, we can use `switch/case` statements that act as neater `if` statements. We can use `switch.bind` to achieve the same thing within our templates.
 

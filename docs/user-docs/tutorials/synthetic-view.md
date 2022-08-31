@@ -24,7 +24,7 @@ Before going any further, you should be familiar with some basic Aurelia concept
 
 * Creating a new Aurelia app. This won't be covered in this tutorial and you may refer the other tutorials to this end.
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
-* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
+* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 * Native Web APIs, such as [`createElement`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement).
 
@@ -351,7 +351,7 @@ export class App implements ICustomElementViewModel {
 
 In this step the view is created from the factory and the render location is set. Subsequently, the view is activated, which involves mainly binding the view with the given scope and attaching the hydrated nodes to the render location.
 
-In this example, a new scope is created, to bind the view, for simplicity. However, if you want to avoid that you may reuse the same scope from the `controller` itself (see [example](https://stackblitz.com/edit/typescript-pzef4n?file=app%2Fapp.ts)) or use that as parent scope depending on your need. To know more about scope and context refer the respective [documentation](../getting-to-know-aurelia/scope-and-binding-context.md). Once the activation is complete you can see the hydrated nodes in DOM.
+In this example, a new scope is created, to bind the view, for simplicity. However, if you want to avoid that you may reuse the same scope from the `controller` itself (see [example](https://stackblitz.com/edit/typescript-pzef4n?file=app%2Fapp.ts)) or use that as parent scope depending on your need. To know more about scope and context refer the respective [documentation](../components/scope-and-binding-context.md). Once the activation is complete you can see the hydrated nodes in DOM.
 
 ## Remove the view
 

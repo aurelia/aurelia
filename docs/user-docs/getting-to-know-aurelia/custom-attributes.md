@@ -23,7 +23,7 @@ If you were to replace `customAttribute` with the `customElement` decorator, it 
 Let's create a custom attribute that adds a red background and height to any dom element it is used on:
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { customAttribute, INode } from 'aurelia';
   
   @customAttribute('red-square') 
   export class RedSquareCustomAttribute {
@@ -53,7 +53,7 @@ The `customAttribute` decorator allows you to explicitly create custom attribute
 You can explicitly name the custom attribute using the `name` configuration property.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { customAttribute, INode } from 'aurelia';
   
   @customAttribute({ name: 'red-square' }) 
   export class RedSquareCustomAttribute {
@@ -69,7 +69,7 @@ You can explicitly name the custom attribute using the `name` configuration prop
 The `customAttribute` allows you to also create one or more aliases that this attribute can go by.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { customAttribute, INode } from 'aurelia';
   
   @customAttribute({ name: 'red-square', aliases: ['redify', 'redbox'] }) 
   export class RedSquareCustomAttribute {
@@ -85,7 +85,7 @@ The `customAttribute` allows you to also create one or more aliases that this at
 In some instances, you want a custom attribute that only has one bindable property. You don't actually need to explicitly define the bindable property to do this as Aurelia supports custom attributes with single value bindings.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { customAttribute, INode } from 'aurelia';
   
   @customAttribute('red-square') 
   export class RedSquareCustomAttribute {
@@ -106,8 +106,8 @@ The `value` property is automatically populated if a value is supplied to a cust
 
 When the value is changed, we can access it like this:
 
-```
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+```typescript
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('red-square') 
   export class RedSquareCustomAttribute {
@@ -133,7 +133,7 @@ When the value is changed, we can access it like this:
 When using the custom attribute on a dom element, there are instances where you want to be able to access the element itself. To do this, you can use the `INode` decorator and `HTMLElement` interface to inject the element and target it.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia-framework';
+  import { customAttribute, INode } from 'aurelia';
   
   @customAttribute('red-square') 
   export class RedSquareCustomAttribute {
@@ -152,7 +152,7 @@ In many cases, you might only have a need for custom attributes without user-con
 Using bindable properties, you can create a configurable custom attribute. Taking our example from above, let's make the background color configurable instead of always being red. We will rename the attribute for this.
 
 ```typescript
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('color-square') 
   export class ColorSquareCustomAttribute {
@@ -172,7 +172,7 @@ Using bindable properties, you can create a configurable custom attribute. Takin
 We now have the ability to provide a color on a per-use basis. Let's go one step further and allow the size to be set too.
 
 ```typescript
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('color-square') 
   export class ColorSquareCustomAttribute {
@@ -193,10 +193,10 @@ We now have the ability to provide a color on a per-use basis. Let's go one step
 
 ### Responding to bindable property change events
 
-We have code that will work on the first initialization of our custom property, but if the property is changed after render, nothing else will happen. For this, we need to use the change detection functionality to update the element when any of the bindable properties change.
+We have code that will work on the first initialization of our custom property, but if the property is changed after render, nothing else will happen. We need to use the change detection functionality to update the element when any bindable properties change.
 
 ```typescript
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('color-square') 
   export class ColorSquareCustomAttribute {
@@ -233,12 +233,12 @@ Whenever our size or color bindable properties change, our element will be updat
 
 ### Options binding
 
-Options binding provides a custom attribute with the ability to have multiple bindable properties. Each bindable property must be specified using the `bindable` decorator. The attribute view model may implement an optional `${propertyName}Changed(newValue, oldValue)` callback function for each bindable property.&#x20;
+Options binding provides a custom attribute with the ability to have multiple bindable properties. Each bindable property must be specified using the `bindable` decorator. The attribute view model may implement an optional `${propertyName}Changed(newValue, oldValue)` callback function for each bindable property.
 
 When binding to these options, separate each option with a semicolon and supply a binding command or literal value as in the example below. It is important to note that **bindable properties are converted to dash-case when used in the DOM**, while the view model property they are bound to are kept with their original casing.
 
 ```typescript
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('color-square') 
   export class ColorSquareCustomAttribute {
@@ -278,7 +278,7 @@ To use options binding, here is how you might configure those properties:
 When you have more than one bindable property, you might want to specify which property is the primary one (if any). If you mostly expect the user to only configure one property most of the time, you can specify it is the primary property through the bindable configuration.
 
 ```typescript
-  import { bindable, customAttribute, INode } from 'aurelia-framework';
+  import { bindable, customAttribute, INode } from 'aurelia';
   
   @customAttribute('color-square') 
   export class ColorSquareCustomAttribute {

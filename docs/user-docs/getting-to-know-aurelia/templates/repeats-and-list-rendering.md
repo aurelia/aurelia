@@ -149,7 +149,7 @@ export class RepeaterTemplate {
 }
 ```
 
-To iterate keys, we introduce a concept of a [Value Convertor](../value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
+To iterate keys, we introduce a concept of a [Value Convertor](value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
 
 ```ts
 // resources/value-convertors/keys.ts

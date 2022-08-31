@@ -14,6 +14,8 @@ While building our recipe application, we will cover the following:
 * Programmatically navigating using router API's
 * Working with route parameters
 
+A working demo and code for the following tutorial can also be found [here](https://stackblitz.com/edit/au2-conventions-n56ej9).
+
 ## Installation
 
 To do this tutorial, you'll need a working Aurelia application. We highly recommend following the [Quick Start](../../getting-started/quick-install-guide.md) guide to do this. However, for this tutorial, we have a [starter Aurelia 2 application](https://stackblitz.com/edit/au2-conventions-szx4j9) ready to go that we recommend. It will allow you to follow along and live code.

@@ -63,6 +63,7 @@
   * [Router Configuration](developer-guides/routing/router-configuration.md)
   * [Router Recipes](developer-guides/routing/router-recipes.md)
 * [Validation](developer-guides/validation/README.md)
+  * [Validation Tutorial](developer-guides/validation/validation-tutorial.md)
   * [Plugin Configuration](developer-guides/validation/registering-the-plugin.md)
   * [Defining & Customizing Rules](developer-guides/validation/defining-rules.md)
   * [Architecture](developer-guides/validation/architecture.md)

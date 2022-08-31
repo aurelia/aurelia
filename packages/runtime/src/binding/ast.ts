@@ -61,7 +61,7 @@ export const enum ExpressionKind {
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
-export type BinaryOperator = '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
+export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 
 export type IsPrimary = AccessThisExpression | AccessScopeExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
@@ -124,12 +124,12 @@ export class Unparser implements IVisitor<void> {
 
   public visitAccessMember(expr: AccessMemberExpression): void {
     expr.object.accept(this);
-    this.text += `.${expr.name}`;
+    this.text += `${expr.optional ? '?' : ''}.${expr.name}`;
   }
 
   public visitAccessKeyed(expr: AccessKeyedExpression): void {
     expr.object.accept(this);
-    this.text += '[';
+    this.text += `${expr.optional ? '?.' : ''}[`;
     expr.key.accept(this);
     this.text += ']';
   }
@@ -194,6 +194,7 @@ export class Unparser implements IVisitor<void> {
   public visitCallFunction(expr: CallFunctionExpression): void {
     this.text += '(';
     expr.func.accept(this);
+    this.text += expr.optional ? '?.' : '';
     this.writeArgs(expr.args);
     this.text += ')';
   }
@@ -201,7 +202,7 @@ export class Unparser implements IVisitor<void> {
   public visitCallMember(expr: CallMemberExpression): void {
     this.text += '(';
     expr.object.accept(this);
-    this.text += `.${expr.name}`;
+    this.text += `${expr.optionalMember ? '?.' : ''}.${expr.name}${expr.optionalCall ? '?.' : ''}`;
     this.writeArgs(expr.args);
     this.text += ')';
   }
@@ -212,7 +213,7 @@ export class Unparser implements IVisitor<void> {
     while (i--) {
       this.text += '$parent.';
     }
-    this.text += expr.name;
+    this.text += `${expr.name}${expr.optional ? '?.' : ''}`;
     this.writeArgs(expr.args);
     this.text += ')';
   }
@@ -728,6 +729,7 @@ export class AccessMemberExpression {
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
+    public readonly optional: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
@@ -779,6 +781,7 @@ export class AccessKeyedExpression {
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly key: IsAssign,
+    public readonly optional: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
@@ -817,6 +820,7 @@ export class CallScopeExpression {
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly ancestor: number = 0,
+    public readonly optional: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
@@ -854,6 +858,8 @@ export class CallMemberExpression {
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
+    public readonly optionalMember: boolean = false,
+    public readonly optionalCall: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
@@ -888,6 +894,7 @@ export class CallFunctionExpression {
   public constructor(
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
+    public readonly optional: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
@@ -936,6 +943,8 @@ export class BinaryExpression {
       case '||':
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return this.left.evaluate(f, s, l, c) || this.right.evaluate(f, s, l, c);
+      case '??':
+        return this.left.evaluate(f, s, l, c) ?? this.right.evaluate(f, s, l, c);
       case '==':
         // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, l, c) == this.right.evaluate(f, s, l, c);

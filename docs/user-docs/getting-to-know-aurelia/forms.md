@@ -1,4 +1,4 @@
-# Forms
+# Form Bindings
 
 Handling forms and user input is quite a common task in applications. Whether you are building a login form, data entry, or even a chat application, Aurelia allows you to work with forms intuitively.
 
@@ -753,7 +753,7 @@ class MyApp {
 
 Validation is an important part of creating good forms. Aurelia provides a robust validation plugin that allows you to validate forms, create custom validation rules and configure every facet of validation in your Aurelia applications.
 
-{% content-ref url="validation/" %}
-[validation](validation/)
+{% content-ref url="../developer-guides/validation/" %}
+[validation](../developer-guides/validation/)
 {% endcontent-ref %}
 

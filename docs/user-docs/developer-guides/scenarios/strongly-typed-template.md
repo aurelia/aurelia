@@ -1,6 +1,6 @@
 # Strongly-typed Template
 
-Many users may be familiar with libraries such as [FAST Element](https://www.fast.design/docs/fast-element/declaring-templates) or [lit-html ](https://lit-html.polymer-project.org). They want to know how to write strongly-typed templates with Aurelia.
+Many users may be familiar with libraries such as [FAST Element](https://www.fast.design/docs/fast-element/declaring-templates) or [lit-html ](https://lit-html.polymer-project.org/). They want to know how to write strongly-typed templates with Aurelia.
 
 In the following, we will see how to write a template as follows and introduce it to Aurelia.
 

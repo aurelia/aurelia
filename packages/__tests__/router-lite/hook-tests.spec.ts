@@ -1622,27 +1622,13 @@ describe('router hooks', function () {
         2, 1, 1, 1,
         1, 1, 1, 1,
       ],
-      [
-        4, 1, 1, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        8, 1, 1, 1,
-        1, 1, 1, 1,
-      ],
+
+      // more involved tests are moved to lifecycle-hooks.spec.ts in more simplified form.
+
       // b1.canLoad
-      [
-        1, 1, 2, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        1, 1, 4, 1,
-        1, 1, 1, 1,
-      ],
-      [
-        1, 1, 8, 1,
-        1, 1, 1, 1,
-      ],
+
+      // tests are moved to lifecycle-hooks.spec.ts in more simplified form.
+
       // a1.load
       [
         1, 1, 1, 1,
@@ -2852,10 +2838,8 @@ describe('router hooks', function () {
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
         ...$(phase, ['c1', 'c2'], ticks, 'canLoad'),
         ...$(phase, ['c1', 'c2'], ticks, 'load'),
-        ...$(phase, 'c1',         ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc12',       ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'c2',         ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc22',       ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['c1', 'c2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['gc12', 'gc22'], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
       // phase 2
@@ -2864,22 +2848,19 @@ describe('router hooks', function () {
       mgr.setPrefix(phase);
       await router.load('c2/gc21+c1/unconfigured');
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        ...$(phase, ['gc12', 'c1'], ticks, 'canUnload'),
-        ...$(phase, ['gc22', 'c2'], ticks, 'canUnload'),
-        ...$(phase, ['c2', 'c1'],   ticks, 'canLoad'),
-        ...$(phase, ['gc12', 'c1'], ticks, 'unload'),
-        ...$(phase, ['gc22', 'c2'], ticks, 'unload'),
+        ...$(phase, ['gc12', 'gc22', 'c1', 'c2'], ticks, 'canUnload'),
+        ...$(phase, ['c2', 'c1'], ticks, 'canLoad'),
+        ...$(phase, ['gc12', 'c1', 'gc22', 'c2'], ticks, 'unload'),
         ...$(phase, ['c2', 'c1'],   ticks, 'load'),
         ...$(phase, ['gc12', 'c1'], ticks, 'detaching'),
         ...$(phase, ['gc12', 'c1'], ticks, 'unbinding'),
         ...$(phase, ['c1', 'gc12'], ticks, 'dispose'),
-        ...$(phase, 'c2',           ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc21',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'c2', ticks, 'binding', 'bound', 'attaching', 'attached'),
         ...$(phase, ['gc22', 'c2'], ticks, 'detaching'),
         ...$(phase, ['gc22', 'c2'], ticks, 'unbinding'),
         ...$(phase, ['c2', 'gc22'], ticks, 'dispose'),
         ...$(phase, 'c1',           ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc11',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['gc21', 'gc11'], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
       // phase 3
@@ -2888,22 +2869,19 @@ describe('router hooks', function () {
       mgr.setPrefix(phase);
       await router.load('c1/gc12+c2/gc21');
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        ...$(phase, ['gc21', 'c2'], ticks, 'canUnload'),
-        ...$(phase, ['gc11', 'c1'], ticks, 'canUnload'),
-        ...$(phase, ['c1', 'c2'],   ticks, 'canLoad'),
-        ...$(phase, ['gc21', 'c2'], ticks, 'unload'),
-        ...$(phase, ['gc11', 'c1'], ticks, 'unload'),
-        ...$(phase, ['c1', 'c2'],   ticks, 'load'),
+        ...$(phase, ['gc21', 'gc11', 'c2', 'c1'], ticks, 'canUnload'),
+        ...$(phase, ['c1', 'c2'], ticks, 'canLoad'),
+        ...$(phase, ['gc21', 'c2', 'gc11', 'c1'], ticks, 'unload'),
+        ...$(phase, ['c1', 'c2'], ticks, 'load'),
         ...$(phase, ['gc21', 'c2'], ticks, 'detaching'),
         ...$(phase, ['gc21', 'c2'], ticks, 'unbinding'),
         ...$(phase, ['c2', 'gc21'], ticks, 'dispose'),
-        ...$(phase, 'c1',           ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc12',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'c1', ticks, 'binding', 'bound', 'attaching', 'attached'),
         ...$(phase, ['gc11', 'c1'], ticks, 'detaching'),
         ...$(phase, ['gc11', 'c1'], ticks, 'unbinding'),
         ...$(phase, ['c1', 'gc11'], ticks, 'dispose'),
-        ...$(phase, 'c2',           ticks, 'binding', 'bound', 'attaching', 'attached'),
-        ...$(phase, 'gc21',         ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'c2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, ['gc12', 'gc21'], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
       // stop

@@ -8,7 +8,7 @@ If the example doesn't seem obvious, the following prerequisite reads are recomm
 
 * [extending templating syntax](../../../developer-guides/scenarios/extending-templating-syntax.md)
 
-The following is a code example of how to teach Aurelia to work seamlessly with [Ionic Framework](https://ionicframework.com):
+The following is a code example of how to teach Aurelia to work seamlessly with [Ionic Framework](https://ionicframework.com/):
 
 ```typescript
 export class IonicFramework implements IRegistry {

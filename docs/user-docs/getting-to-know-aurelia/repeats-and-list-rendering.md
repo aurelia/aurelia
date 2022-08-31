@@ -1,4 +1,4 @@
-# Repeats and list rendering
+# List Rendering
 
 ## `repeat.for`
 
@@ -23,7 +23,6 @@ for (let item of items) {
     console.log(item.name);
 }
 ```
-
 
 ### Index and Contextual properties inside of `repeat.for`
 
@@ -62,9 +61,7 @@ class MyComponent {
 <li repeat.for="item of items">${item.name}</li>
 ```
 
-{% hint style="info" %}
-Aurelia will not be able to observe changes to arrays using the `array[index] = value` syntax. To ensure that Aurelia can observe the changes on your array, make use of the Array methods: `Array.prototype.push` , `Array.prototype.pop` , and `Array.prototype.splice` .
-{% endhint }
+Aurelia will not be able to observe changes to arrays using the \`array\[index] = value\` syntax. To ensure that Aurelia can observe the changes on your array, make use of the Array methods: \`Array.prototype.push\` , \`Array.prototype.pop\` , and \`Array.prototype.splice\` . \{% endhint }
 
 ### Ranges Syntax:
 
@@ -102,7 +99,6 @@ In the following example, we generate a range of numbers to 10. We subtract the 
 One of the more useful iterables is the Map, because you can decompose your key and value into two variables directly in the repeater. Although you can repeat over objects straightforwardly, Maps can be two-way bound much more straightforwardly than Objects, so you should try to use Maps where possible.
 
 ```ts
-
 export interface IFriend {
   name: string;
 }
@@ -120,7 +116,6 @@ export class RepeaterTemplate {
       { name : 'Dana' });
   }
 }
-
 ```
 
 ```html
@@ -154,7 +149,7 @@ export class RepeaterTemplate {
 }
 ```
 
-To iterate keys, we introduce a concept of a [Value Convertor](./value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
+To iterate keys, we introduce a concept of a [Value Convertor](templates/value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
 
 ```ts
 // resources/value-convertors/keys.ts
@@ -166,4 +161,3 @@ export class KeysValueConverter {
 
 }
 ```
-

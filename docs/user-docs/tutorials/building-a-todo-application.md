@@ -20,7 +20,7 @@ A todo application comprised of the following features:
 * Todo items can be added and will be pushed to the top of the list.
 
 {% hint style="success" %}
-See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app).
+See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app/).
 {% endhint %}
 
 ## Prerequisites
@@ -28,7 +28,7 @@ See what you are getting yourself into before you continue. There is a working e
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While **these are not hard prerequisites**, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference).
-* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
+* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
 ## Create the app
@@ -313,4 +313,4 @@ Now, let's run the app: `npm start` on the command line and wait for the browser
 
 ![](../.gitbook/assets/image.png)
 
-In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).
+In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app/). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).

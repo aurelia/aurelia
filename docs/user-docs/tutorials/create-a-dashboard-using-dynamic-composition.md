@@ -17,7 +17,7 @@ A simple dashboard application using dynamic composition to render a dynamic das
 The dashboard will be comprised of a handful of different widgets and by leveraging a configuration-based approach, you learn how you can use the `<au-compose>` element to achieve this.
 
 {% hint style="success" %}
-**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app).
+**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app/).
 {% endhint %}
 
 ## Prerequisites
@@ -25,7 +25,7 @@ The dashboard will be comprised of a handful of different widgets and by leverag
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference).
-* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components/).
+* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
 ## Create the app

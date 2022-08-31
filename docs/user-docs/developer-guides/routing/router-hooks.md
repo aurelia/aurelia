@@ -15,11 +15,14 @@ If you worked with Aurelia 1, you might know these by their previous name: route
 ### Creating a custom lifecycle hook
 
 ```typescript
-import Aurelia, { lifecycleHooks, Params, RouteNode, RouterConfiguration } from 'aurelia';
+import Aurelia, { lifecycleHooks, RouterConfiguration } from 'aurelia';
+import { Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
 
 @lifecycleHooks()
 class NoopAuthHandler {
-    canLoad(viewModel, params: Params, next: RouteNode, current: RouteNode) { return true; }
+    canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation) { 
+        return true; 
+    }
 }
 
 Aurelia
@@ -43,26 +46,30 @@ While lifecycle hooks are indeed their own thing independent of the components y
 This is the contract for ordinary route lifecycle hooks for components:
 
 ```typescript
-import { IRouteViewModel, Params, RouteNode } from "aurelia";
+import { Parameters, IRouteableComponent, Navigation, RoutingInstruction } from '@aurelia/router';
 
-class MyComponent implements IRouteViewModel {
-  canLoad(params: Params, next: RouteNode, current: RouteNode);
-  load(params: Params, next: RouteNode, current: RouteNode);
-  canUnload(next: RouteNode, current: RouteNode);
-  unload(next: RouteNode, current: RouteNode);
+class MyComponent implements IRouteableComponent {
+  canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+  load(params: Params, instruction: RoutingInstruction, navigation: Navigation);
+  canUnload(instruction: RoutingInstruction, navigation: Navigation);
+  unload(instruction: RoutingInstruction, navigation: Navigation);
 }
 ```
 
 And this is the contract for shared lifecycle hooks
 
 ```typescript
-import { Params, RouteNode } from "aurelia";
+import { lifecycleHooks } from 'aurelia'; 
+import { Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
 
+@lifecycleHooks()
 class MySharedHooks {
-  canLoad(viewModel, params: Params, next: RouteNode, current: RouteNode);
-  load(viewModel, params: Params, next: RouteNode, current: RouteNode);
-  canUnload(viewModel, next: RouteNode, current: RouteNode);
-  unload(viewModel, next: RouteNode, current: RouteNode);
+  loading(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+  canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+  load(viewModel, params: Params, instruction: RoutingInstruction, navigation: Navigation);
+  canUnload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
+  unloading(viewModel, instruction: RoutingInstruction, navigation: Navigation);
+  unload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
 }
 ```
 
@@ -70,15 +77,15 @@ The only difference is the addition of the first `viewModel` parameter. This com
 
 ### Restricting hooks to specific components
 
-When dealing with route hooks, you might only want to apply those to specific components. Imagine an authentication workflow where you would want to allow unauthenticated users to access your login or contact page.&#x20;
+When dealing with route hooks, you might only want to apply those to specific components. Imagine an authentication workflow where you would want to allow unauthenticated users to access your login or contact page.
 
 To do this, we can specify our route hook as a dependency in the component itself via the `static dependencies` property which takes an array of one or more dependencies.
 
 ```typescript
-import { IRouteViewModel } from "aurelia";
+import { IRouteableComponent } from "@aurelia/router";
 import { AuthHook } from './route-hook';
 
-export class SettingsPage implements IRouteViewModel {
+export class SettingsPage implements IRouteableComponent {
     static dependencies = [ AuthHook ];
 }
 ```
@@ -134,121 +141,13 @@ It is also permitted to define more than one hook per shared hook class:
 ```typescript
 @lifecycleHooks()
 export class LifecycleLogger {
-    canLoad(viewModel, params, next, current) {
-        console.log(`invoking canLoad on ${next.component.name}`);
+    canLoad(viewModel, params, instruction, navigation) {
+        console.log(`invoking canLoad on ${instruction.component.name}`);
         return true;
     }
 
-    load(viewModel, params, next, current) {
-        console.log(`invoking load on ${next.component.name}`);
+    load(viewModel, params, instruction, navigation) {
+        console.log(`invoking load on ${instruction.component.name}`);
     }
 }
 ```
-
-## Authentication using lifecycle hooks
-
-One of the most common scenarios you will use router lifecycle hooks for is adding authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth, or your own authentication implementation, the process is mostly the same.
-
-In this example, we will create a service class that will contain our methods for logging in and out. We will also create a hook that will do the checks when our route loads.
-
-In a real application, your login and logout methods would obtain a token and authentication data. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
-
-{% hint style="warning" %}
-This is only an example. Please use this code as a guide for creating your own solutions. Never blindly copy and paste code without taking the time to understand it first, especially when it comes to authentication.
-{% endhint %}
-
-{% tabs %}
-{% tab title="src/router-hooks/auth-hook.ts" %}
-```typescript
-import { lifecycleHooks, Params, RouteNode } from 'aurelia';
-import { Api } from './services/api';
-
-@lifecycleHooks()
-export class AuthHook {
-
-    constructor(readonly api: Api) {
-    }
-
-    canLoad(viewModel, params: Params, next: RouteNode, current: RouteNode) {
-        const canProceed = next.data.isAuth && this.auth.isLoggedIn;
-
-        if (canProceed) {
-            return true;
-        }
-
-        return 'no-access';
-    }
-}
-```
-{% endtab %}
-
-{% tab title="src/services/auth-service.ts" %}
-```typescript
-import { IRouter} from '@aurelia/router-lite';
-
-export class AuthService {
-    isLoggedIn = false;
-    private _user = null;
-
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    async login(username: string, password: string): Promise<void> {
-        if (username === 'user' && password === 'password') {
-            this.isLoggedIn = true;
-
-            this._user = {
-                username: 'user',
-                email: 'user@domain.com'
-            };
-        } else {
-            this.router.load('/login');
-        }
-    }
-
-    logout(redirect = null): void {
-        this.isLoggedIn = false;
-        this._user = null;
-
-            if (redirect) {
-                this.router.load(redirect);
-            }
-    }
-
-    getCurrentUser() {
-        return this._user;
-    }
-}
-```
-{% endtab %}
-
-{% tab title="settings-page.ts" %}
-```typescript
-import { IRouteViewModel } from "aurelia";
-
-// Import our hook
-import { AuthHook } from './router-hooks/auth-hook';
-
-export class SettingsPage implements IRouteViewModel {
-    // Register the hook with this component
-
-    static dependencies = [AuthHook];
-
-    static data = { isAuth: true };
-}
-```
-{% endtab %}
-
-{% tab title="login-page.ts" %}
-```typescript
-import { IRouteViewModel } from "aurelia";
-
-// Our login component view model has no registered hooks,
-// so it will always be accessible
-export class LoginPage implements IRouteViewModel {}
-```
-{% endtab %}
-{% endtabs %}
-
-This code will run for all routed components and if the component has a `isAuth` data property and the `isLoggedIn` property is not truthy, then we will redirect the user to a route called `no-access` which we did not create in this example.

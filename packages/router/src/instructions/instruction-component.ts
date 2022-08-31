@@ -1,6 +1,7 @@
 import { Constructable, IContainer, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
+import { RoutingInstruction } from './routing-instruction';
 
 export interface IInstructionComponent extends InstructionComponent { }
 
@@ -13,7 +14,7 @@ export interface IInstructionComponent extends InstructionComponent { }
  */
 
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | CustomElementDefinition | Constructable;
-export type ComponentAppellationFunction = () => ComponentAppellation | Promise<ComponentAppellation>;
+export type ComponentAppellationFunction = (instruction?: RoutingInstruction) => ComponentAppellation | Promise<ComponentAppellation>;
 
 export class InstructionComponent {
   /**
@@ -128,9 +129,9 @@ export class InstructionComponent {
     this.func = func;
   }
 
-  public resolve(): void | Promise<ComponentAppellation> {
+  public resolve(instruction: RoutingInstruction): void | Promise<ComponentAppellation> {
     if (this.func !== null) {
-      this.set(this.func());
+      this.set(this.func(instruction));
     }
     if (!(this.promise instanceof Promise)) {
       return;
@@ -160,7 +161,7 @@ export class InstructionComponent {
   }
 
   public get none(): boolean {
-    return !this.isName() && !this.isType() && !this.isInstance();
+    return !this.isName() && !this.isType() && !this.isInstance() && !this.isFunction() && !this.isPromise();
   }
   public isName(): boolean {
     return !!this.name && !this.isType() && !this.isInstance();
@@ -178,7 +179,10 @@ export class InstructionComponent {
     return this.func !== null;
   }
 
-  public toType(container: IContainer): RouteableComponentType | null {
+  public toType(container: IContainer, instruction: RoutingInstruction): RouteableComponentType | null {
+    // TODO: Allow instantiation from a promise here, by awaiting resolve (?)
+    void this.resolve(instruction);
+
     if (this.type !== null) {
       return this.type;
     }
@@ -199,7 +203,10 @@ export class InstructionComponent {
     }
     return null;
   }
-  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement): IRouteableComponent | null {
+  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null {
+    // TODO: Allow instantiation from a promise here, but awaiting resolve?
+    void this.resolve(instruction);
+
     if (this.instance !== null) {
       return this.instance;
     }

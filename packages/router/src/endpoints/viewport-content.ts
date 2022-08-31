@@ -606,7 +606,7 @@ export class ViewportContent extends EndpointContent {
     if (this.instruction.component.none) {
       return null;
     }
-    return this.instruction.component.toType(container);
+    return this.instruction.component.toType(container, this.instruction);
   }
 
   /**
@@ -616,7 +616,7 @@ export class ViewportContent extends EndpointContent {
     if (this.instruction.component.none) {
       return null;
     }
-    return this.instruction.component.toInstance(parentContainer, parentController, parentElement);
+    return this.instruction.component.toInstance(parentContainer, parentController, parentElement, this.instruction);
   }
 
   /**

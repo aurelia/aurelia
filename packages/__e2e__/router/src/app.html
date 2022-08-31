@@ -1,14 +1,16 @@
 <import from="./pages/home"></import>
 <import from="./pages/auth"></import>
+<import from="./pages/child.html"></import>
 <import from="./pages/fallback"></import>
 
 <div class="message">${message}</div>
 <nav>
   <a load="home">Home</a>
   <a load="auth">Register</a>
-  <a load="child/missing">Missing child</a>
+  <a load="child">Child</a>
+  <a load="something/missing">Something missing</a>
 </nav>
-<au-viewport default="home" fallback="fallback" fallback-action="abort"></au-viewport>
+<au-viewport id="root-vp" default="home" fallback="fallback" fallback-action="abort"></au-viewport>
 <hr>
 <div>Fragment hash: <span id="fragment-hash">${router.configuration.options.useUrlFragmentHash}</span> <button click.trigger="toggleFragmentHash()">Toggle url fragment hash</button></div>
 <button click.trigger="toggleIframe()">Show iframe</button>

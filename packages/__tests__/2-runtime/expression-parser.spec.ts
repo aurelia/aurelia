@@ -391,12 +391,21 @@ describe('ExpressionParser', function () {
     ...SimpleLogicalORList
   ];
 
+  // This forms the group Precedence.NullishCoalescing
+  const SimpleNullishCoalescingList: [string, any][] = [
+    [`$38??$39`, new BinaryExpression('??', new AccessScopeExpression('$38'), new AccessScopeExpression('$39'))]
+  ];
+  const SimpleIsNullishCoalescingList: [string, any][] = [
+    ...SimpleIsLogicalORList,
+    ...SimpleNullishCoalescingList
+  ];
+
   // This forms the group Precedence.Conditional
   const SimpleConditionalList: [string, any][] = [
     [`a?b:c`, new ConditionalExpression($a, $b, new AccessScopeExpression('c'))]
   ];
   const SimpleIsConditionalList: [string, any][] = [
-    ...SimpleIsLogicalORList,
+    ...SimpleIsNullishCoalescingList,
     ...SimpleConditionalList
   ];
 
@@ -1223,6 +1232,9 @@ describe('ExpressionParser', function () {
     ...SimpleLogicalORList
       .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('||', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
+    ...SimpleNullishCoalescingList
+      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression('||', e1.right, e2.left), e2.right))]) as [string, any][])
+      .reduce((a, b) => a.concat(b)),
     ...SimpleConditionalList
       .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new ConditionalExpression(e1.condition, e1.yes, new BinaryExpression(e2.operation, new BinaryExpression('||', e1.no, e2.left), e2.right))]) as [string, any][])
       .reduce((a, b) => a.concat(b))
@@ -1235,8 +1247,28 @@ describe('ExpressionParser', function () {
     }
   });
 
+  const ComplexNullishCoalescingList: [string, any][] = [
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}??a`, new BinaryExpression('??', e1, $a)] as [string, any]),
+    ...SimpleLogicalORList
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i2}??${i1}`, new BinaryExpression('??', e2, e1)]) as [string, any][])
+      .reduce((a, b) => a.concat(b)),
+    ...SimpleNullishCoalescingList
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('??', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
+      .reduce((a, b) => a.concat(b)),
+    ...SimpleConditionalList
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, new ConditionalExpression(e1.condition, e1.yes, new BinaryExpression(e2.operation, new BinaryExpression('??', e1.no, e2.left), e2.right))]) as [string, any][])
+      .reduce((a, b) => a.concat(b))
+  ];
+  describe('parse ComplexNullishCoalescingList', function () {
+    for (const [input, expected] of ComplexNullishCoalescingList) {
+      it(input, function () {
+        assert.deepStrictEqual(parseExpression(input), expected, input);
+      });
+    }
+  });
+
   const ComplexConditionalList: [string, any][] = [
-    ...SimpleIsLogicalORList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1, $num0, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1, $num0, $num1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
     ...SimpleConditionalList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1.condition, e1.yes, new ConditionalExpression(e1.no, $num0, $num1))] as [string, any])

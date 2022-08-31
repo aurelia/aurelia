@@ -67,7 +67,6 @@ export {
   ExpressionType,
   parseExpression,
   Char,
-  Access,
   Precedence,
   parse,
   ParserState,

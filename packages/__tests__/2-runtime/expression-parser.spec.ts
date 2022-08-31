@@ -26,7 +26,6 @@ import {
   ValueConverterExpression,
   IsLeftHandSide,
   IsAssign,
-  Access,
   Precedence,
   parseExpression,
   parse,
@@ -42,7 +41,7 @@ import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
-} from './unicode.js';
+} from './unicode';
 
 function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]): TaggedTemplateExpression {
   return new TaggedTemplateExpression(cooked, cooked, func, expressions);
@@ -102,7 +101,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     }
   } else if (expectedMsg == null) {
     if (error == null) {
-      assert.deepStrictEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected, expr);
     } else {
       throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} parse successfully, but it threw "${error.message}"`);
     }
@@ -196,10 +195,13 @@ describe('ExpressionParser', function () {
   // parenthesized and primary are already from the same precedence group
   const SimpleParenthesizedList: [string, any][] = [
     [`(a[b])`,            new AccessKeyedExpression($a, $b)],
+    [`(a?.[b])`,          new AccessKeyedExpression($a, $b, true)],
     [`(a.b)`,             new AccessMemberExpression($a, 'b')],
+    [`(a?.b)`,            new AccessMemberExpression($a, 'b', true)],
     [`(a\`\`)`,           createTaggedTemplate([''], $a, [])],
     [`($this())`,         new CallFunctionExpression($this, [])],
     [`(a())`,             new CallScopeExpression('a', [])],
+    [`(a?.())`,           new CallScopeExpression('a', [], 0, true)],
     [`(!a)`,              new UnaryExpression('!', $a)],
     [`(a+b)`,             new BinaryExpression('+', $a, $b)],
     [`(a?b:c)`,           new ConditionalExpression($a, $b, new AccessScopeExpression('c'))],
@@ -213,17 +215,17 @@ describe('ExpressionParser', function () {
     ...SimpleLiteralList,
     ...SimpleParenthesizedList
   ];
-  // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
+  // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, any][] = [
     ...SimplePrimaryList
       .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, $b)] as [string, any])
   ];
-  // 3. parseMemberExpression.MemberExpression . IdentifierName
+  // 2. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList]
       .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
   ];
-  // 4. parseMemberExpression.MemberExpression TemplateLiteral
+  // 3. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, any][] = [
     ...SimplePrimaryList
       .map(([input, expr]) => [`${input}\`\``, createTaggedTemplate([''], expr, [])] as [string, any]),
@@ -246,14 +248,51 @@ describe('ExpressionParser', function () {
     ...[...AccessScopeList, ...SimpleLiteralList]
       .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
   ];
-  // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
+  // 1. parseOptionalExpression.MemberExpression ?. [ AssignmentExpression ]
+  const SimpleOptionalAccessKeyedList: [string, any][] = [
+    ...SimplePrimaryList
+      .map(([input, expr]) => [`${input}?.[b]`, new AccessKeyedExpression(expr, $b, true)] as [string, any])
+  ];
+  // 2. parseOptionalExpression.MemberExpression ?. IdentifierName
+  const SimpleOptionalAccessMemberList: [string, any][] = [
+    ...[...AccessScopeList, ...SimpleLiteralList]
+      .map(([input, expr]) => [`${input}?.b`, new AccessMemberExpression(expr, 'b', true)] as [string, any]),
+    [`a?.b?.c?.d`, new AccessMemberExpression(new AccessMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', true), 'd', true)] as [string, any]
+  ];
+  // 3. parseOptionalExpression.MemberExpression ?. Arguments
+  const SimpleOptionalCallFunctionList: [string, any][] = [
+    ...[...AccessThisList, ...SimpleLiteralList]
+      .map(([input, expr]) => [`${input}?.()`, new CallFunctionExpression(expr, [], true)] as [string, any])
+  ];
+  // 4. parseOptionalExpression.MemberExpression ?. Arguments
+  const SimpleOptionalCallScopeList: [string, any][] = [
+    ...[...AccessScopeList]
+      .map(([input, expr]) => [`${input}?.()`, new CallScopeExpression(expr.name, [], expr.ancestor, true)] as [string, any])
+  ];
+  // 5. parseOptionalExpression.MemberExpression IdentifierName ?. Arguments
+  //                            MemberExpression ?. IdentifierName Arguments
+  //                            MemberExpression ?. IdentifierName ?. Arguments
+  const SimpleOptionalCallMemberList: [string, any][] = [
+    ...[...AccessScopeList, ...SimpleLiteralList]
+      .map(([input, expr]) => [
+        [`${input}.b?.()`, new CallMemberExpression(expr, 'b', [], false, true)] as [string, any],
+        [`${input}?.b()`, new CallMemberExpression(expr, 'b', [], true, false)] as [string, any],
+        [`${input}?.b?.()`, new CallMemberExpression(expr, 'b', [], true, true)] as [string, any],
+      ]).reduce((acc, cur) => acc.concat(cur))
+  ];
+  // concatenation of 1-3 of MemberExpression,  1-3 of CallExpression and 1-5 of OptionalExpression
   const SimpleLeftHandSideList: [string, any][] = [
     ...SimpleAccessKeyedList,
     ...SimpleAccessMemberList,
     ...SimpleTaggedTemplateList,
     ...SimpleCallFunctionList,
     ...SimpleCallScopeList,
-    ...SimpleCallMemberList
+    ...SimpleCallMemberList,
+    ...SimpleOptionalAccessKeyedList,
+    ...SimpleOptionalAccessMemberList,
+    ...SimpleOptionalCallFunctionList,
+    ...SimpleOptionalCallScopeList,
+    ...SimpleOptionalCallMemberList,
   ];
 
   // concatenation of Primary and Member+CallExpression
@@ -610,12 +649,12 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Unary, exprType);
+            const result = parse(state, Precedence.Unary, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-                assert.deepStrictEqual(result, expected);
+                assert.deepStrictEqual(result, expected, input);
                 assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
                 assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
@@ -632,14 +671,14 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Binary, exprType);
+            const result = parse(state, Precedence.Binary, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-                assert.deepStrictEqual(result, expected);
+                assert.deepStrictEqual(result, expected, input);
                 assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
                 assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
@@ -656,7 +695,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Conditional, exprType);
+            const result = parse(state, Precedence.Conditional, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
@@ -665,7 +704,7 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-                assert.deepStrictEqual(result, expected);
+                assert.deepStrictEqual(result, expected, input);
                 assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
                 assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
@@ -682,7 +721,7 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Assign, exprType);
+            const result = parse(state, Precedence.Assign, exprType);
             if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
               (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
@@ -693,7 +732,7 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
                 (expected.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-                assert.deepStrictEqual(result, expected);
+                assert.deepStrictEqual(result, expected, input);
                 assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
                 assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
@@ -710,8 +749,8 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             const state = new ParserState(input);
-            const result = parse(state, Access.Reset, Precedence.Variadic, exprType);
-            assert.deepStrictEqual(result, expected);
+            const result = parse(state, Precedence.Variadic, exprType);
+            assert.deepStrictEqual(result, expected, input);
           });
         }
       });
@@ -764,7 +803,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexStringLiteralList', function () {
     for (const [input, expected] of ComplexStringLiteralList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -784,7 +823,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexNumberList', function () {
     for (const [input, expected] of ComplexNumberList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -822,7 +861,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexTemplateLiteralList', function () {
     for (const [input, expected] of ComplexTemplateLiteralList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -855,7 +894,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexArrayLiteralList', function () {
     for (const [input, expected] of ComplexArrayLiteralList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -897,19 +936,21 @@ describe('ExpressionParser', function () {
   describe('parse ComplexObjectLiteralList', function () {
     for (const [input, expected] of ComplexObjectLiteralList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
 
   const ComplexAccessKeyedList: [string, any][] = [
-    ...SimpleIsAssignList
-      .map(([input, expr]) => [`a[${input}]`, new AccessKeyedExpression($a, expr)] as [string, any])
+    ...SimpleIsAssignList.map(([input, expr]) => [
+      [`a[${input}]`, new AccessKeyedExpression($a, expr)] as [string, any],
+      [`a?.[${input}]`, new AccessKeyedExpression($a, expr, true)] as [string, any],
+    ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexAccessKeyedList', function () {
     for (const [input, expected] of ComplexAccessKeyedList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -924,12 +965,15 @@ describe('ExpressionParser', function () {
       [`in`],
       [`instanceof`],
       [`of`]]
-      .map(([input]) => [`a.${input}`, new AccessMemberExpression($a, input)] as [string, any])
+      .map(([input]) => [
+        [`a.${input}`, new AccessMemberExpression($a, input)] as [string, any],
+        [`a?.${input}`, new AccessMemberExpression($a, input, true)] as [string, any],
+      ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexAccessMemberList', function () {
     for (const [input, expected] of ComplexAccessMemberList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -965,49 +1009,78 @@ describe('ExpressionParser', function () {
   describe('parse ComplexTaggedTemplateList', function () {
     for (const [input, expected] of ComplexTaggedTemplateList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
 
   const ComplexCallFunctionList: [string, any][] = [
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`$this(${input})`, new CallFunctionExpression($this, [expr])] as [string, any]),
+      .map(([input, expr]) => [
+        [`$this(${input})`, new CallFunctionExpression($this, [expr])] as [string, any],
+        [`$this?.(${input})`, new CallFunctionExpression($this, [expr], true)] as [string, any],
+      ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
       .map(([input, expr]) => [`$this(${input},${input})`, new CallFunctionExpression($this, [expr, expr])] as [string, any])
   ];
   describe('parse ComplexCallFunctionList', function () {
     for (const [input, expected] of ComplexCallFunctionList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
 
   const ComplexCallScopeList: [string, any][] = [
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a(${input})`, new CallScopeExpression('a', [expr])] as [string, any]),
+      .map(([input, expr]) => [
+        [`a(${input})`, new CallScopeExpression('a', [expr])] as [string, any],
+        [`a?.(${input})`, new CallScopeExpression('a', [expr], 0, true)] as [string, any],
+      ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
       .map(([input, expr]) => [`a(${input},${input})`, new CallScopeExpression('a', [expr, expr])] as [string, any])
   ];
   describe('parse ComplexCallScopeList', function () {
     for (const [input, expected] of ComplexCallScopeList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
 
   const ComplexCallMemberList: [string, any][] = [
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a.b(${input})`, new CallMemberExpression($a, 'b', [expr])] as [string, any]),
+      .map(([input, expr]) => [
+        [`a.b(${input})`, new CallMemberExpression($a, 'b', [expr], false, false)] as [string, any],
+        [`a?.b(${input})`, new CallMemberExpression($a, 'b', [expr], true, false)] as [string, any],
+        [`a.b?.(${input})`, new CallMemberExpression($a, 'b', [expr], false, true)] as [string, any],
+        [`a?.b?.(${input})`, new CallMemberExpression($a, 'b', [expr], true, true)] as [string, any],
+      ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a.b(${input},${input})`, new CallMemberExpression($a, 'b', [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`a.b(${input},${input})`, new CallMemberExpression($a, 'b', [expr, expr])] as [string, any]),
+    [`a?.b?.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], true, true)] as [string, any],
+    [`a.b?.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', false), 'c', [], true, true)] as [string, any],
+    [`a?.b.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], false, true)] as [string, any],
+    [`a?.b?.c()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], true, false)] as [string, any],
+
+    [`a?.b?.()()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, true), [], false)] as [string, any],
+    [`a?.b?.().c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], false, false)] as [string, any],
+    [`a?.b?.()?.c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], true, false)] as [string, any],
+    [`a?.b?.().c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], false, true)] as [string, any],
+    [`a?.b?.()?.c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], true, true)] as [string, any],
+    [`a?.b?.()?.()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, true), [], true)] as [string, any],
+
+    [`a?.b()()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, false), [], false)] as [string, any],
+    [`a?.b().c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], false, false)] as [string, any],
+    [`a?.b()?.c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], true, false)] as [string, any],
+    [`a?.b().c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], false, true)] as [string, any],
+    [`a?.b()?.c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], true, true)] as [string, any],
+    [`a?.b()?.()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, false), [], true)] as [string, any],
   ];
   describe('parse ComplexCallMemberList', function () {
     for (const [input, expected] of ComplexCallMemberList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1027,7 +1100,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexUnaryList', function () {
     for (const [input, expected] of ComplexUnaryList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1051,7 +1124,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexMultiplicativeList', function () {
     for (const [input, expected] of ComplexMultiplicativeList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1073,7 +1146,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAdditiveList', function () {
     for (const [input, expected] of ComplexAdditiveList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1095,7 +1168,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexRelationalList', function () {
     for (const [input, expected] of ComplexRelationalList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1117,7 +1190,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexEqualityList', function () {
     for (const [input, expected] of ComplexEqualityList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1137,7 +1210,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexLogicalANDList', function () {
     for (const [input, expected] of ComplexLogicalANDList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1157,7 +1230,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexLogicalORList', function () {
     for (const [input, expected] of ComplexLogicalORList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1171,7 +1244,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexConditionalList', function () {
     for (const [input, expected] of ComplexConditionalList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1187,7 +1260,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAssignList', function () {
     for (const [input, expected] of ComplexAssignList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1206,7 +1279,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexValueConverterList', function () {
     for (const [input, expected] of ComplexValueConverterList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });
@@ -1225,7 +1298,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexBindingBehaviorList', function () {
     for (const [input, expected] of ComplexBindingBehaviorList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected, input);
       });
     }
   });

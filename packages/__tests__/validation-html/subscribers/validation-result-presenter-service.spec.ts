@@ -11,6 +11,7 @@ import {
   ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
+  IValidationResultPresenterService as $IValidationResultPresenterService,
 } from '@aurelia/validation-html';
 import { Person } from '../../validation/_test-resources.js';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util.js';
@@ -66,7 +67,7 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
   }
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<App>>,
-    { template, presenterService = new ValidationResultPresenterService(PLATFORM) }: TestSetupContext
+    { template, presenterService }: TestSetupContext
   ) {
     const ctx = TestContext.create();
     const container = ctx.container;
@@ -78,7 +79,10 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
         ValidationHtmlConfiguration,
         ToNumberValueConverter,
         CustomValidationContainer,
-        Registration.instance(IValidationResultPresenterService, presenterService),
+        Registration.cachedCallback(
+          IValidationResultPresenterService,
+          (x) => presenterService ?? x.get($IValidationResultPresenterService)
+        ),
       )
       .app({
         host,

@@ -18,7 +18,7 @@ We'd love for you to contribute to Aurelia's source code and help make our proje
 
 ## Got a Question or Problem?
 
-If you have questions about how to use Aurelia, please direct these to [Discord](https://discordapp.com/channels/448698263508615178/448698263508615180), [Discourse](https://discourse.aurelia.io), or [StackOverflow](https://stackoverflow.com/questions/tagged/aurelia).
+If you have questions about how to use Aurelia, please direct these to [Discord](https://discordapp.com/channels/448698263508615178/448698263508615180), [Discourse](https://discourse.aurelia.io/), or [StackOverflow](https://stackoverflow.com/questions/tagged/aurelia).
 
 ## Found an Issue?
 

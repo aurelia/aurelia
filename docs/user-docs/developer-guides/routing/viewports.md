@@ -17,41 +17,24 @@ The router allows you to add in multiple viewports into your application and ren
 
 In this example, we have the main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered. When using viewports, think of them like iframes, independent containers that can maintain their own states.
 
-## Fallback routes
+## Specifying a viewport on a route
 
-The `au-viewport` element supports a `fallback` property that allows us to specify a fallback component if a route is not found. If you created your application using the `npx makes aurelia` command and chose routing, you would already have this in your `my-app.html` file.
+Routes will load in the default viewport element by default if there are one or more viewports. However, routes can be told to load into a specific viewport.
 
-For the fallback page, as per the CLI generated approach, we will create two files `missing-page.ts` and `missing-page.html`
-
-{% tabs %}
-{% tab title="missing-page.ts" %}
 ```typescript
-import { IRouteViewModel } from 'aurelia';
+import { IRouteableComponent, routes } from "@aurelia/router";
 
-export class MissingPage implements IRouteViewModel {
-  public static parameters = ['id'];
-  
-  public missingComponent: string ;
-
-  public load(parameters: {id: string}): void {
-    this.missingComponent = parameters.id;
-  }
+@routes([
+    {
+        component: import('./my-component'),
+        path: 'my-component',
+        title: 'Your Component <3',
+        viewport: 'sidebar'
+    }
+])
+export class MyApp implements IRouteableComponent {
 }
 
 ```
-{% endtab %}
 
-{% tab title="missing-page.html" %}
-```html
-<h3>Ouch! Couldn't find '${missingComponent}'!</h3>
-```
-{% endtab %}
-{% endtabs %}
-
-We then import the missing page component and specify it as our fallback.
-
-```html
-<import from="./missing-page"></import>
-
-<au-viewport fallback="missing-page"></au-viewport>
-```
+By specifying the `viewport` property on a route, we can tell it to load into a specific route.

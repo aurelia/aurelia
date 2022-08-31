@@ -30,6 +30,10 @@ The `ref` attribute has several qualifiers you can use in conjunction with custo
 * `custom-attribute.ref="expression"`: create a reference to a custom attribute's view-model
 * `controller.ref="expression"`: create a reference to a custom element's controller instance
 
+{% hint style="info" %}
+Template references are a great way to reference elements inside of view-models for use with third-party libraries. They negate the need to query for elements using Javascript API's.
+{% endhint %}
+
 ## Template variables
 
 In your view templates, you can specify inline variables using the `<let>` custom element.
@@ -54,6 +58,4 @@ You can bind to variable values in a `<let>` too:
 <!-- This will display 8 -->
 <p>${mathEquation}</p>
 ```
-
-
 

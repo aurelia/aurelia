@@ -33,7 +33,7 @@ Every article has several things in common:
 
 #### Article Syntax
 
-Articles are composed of a [Yaml](https://yaml.org) metadata header and [CommonMark](https://commonmark.org) Markdown body. Aurelia also interprets a few Markdown constructs specially, in order to create its site experience.
+Articles are composed of a [Yaml](https://yaml.org/) metadata header and [CommonMark](https://commonmark.org/) Markdown body. Aurelia also interprets a few Markdown constructs specially, in order to create its site experience.
 
 // TODO: Explain special syntax.
 

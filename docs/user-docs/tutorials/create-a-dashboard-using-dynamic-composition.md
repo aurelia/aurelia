@@ -17,7 +17,7 @@ A simple dashboard application using dynamic composition to render a dynamic das
 The dashboard will be comprised of a handful of different widgets and by leveraging a configuration-based approach, you learn how you can use the `<au-compose>` element to achieve this.
 
 {% hint style="success" %}
-**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app).
+**Try before you buy?** See a working example of the app you will be building [here](https://jovial-ritchie-56d617.netlify.app/).
 {% endhint %}
 
 ## Prerequisites

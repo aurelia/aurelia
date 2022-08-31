@@ -1,15 +1,15 @@
 # Navigating
 
-This section details how you can use the load method on the router instance or load attribute to navigate to other parts of your application. Many of the following apply to both configured and direct routing modes.
+This section details how you can use the load method on the router instance or load attribute to navigate to other parts of your application.&#x20;
 
 ### Router instance
 
 To use the `load` method, you have to first inject the router into your component. This can be done easily by using the `IRouter` decorator on your component constructor method. The following code will add a property to your component called `router` which we can reference.
 
 ```typescript
-import { IRouter, IRouteViewModel } from 'aurelia';
+import { IRouter, IRouteableComponent } from '@aurelia/router';
 
-export class MyComponent implements IRouteViewModel {
+export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
@@ -21,9 +21,9 @@ export class MyComponent implements IRouteViewModel {
 The `load` method can accept a simple string value allowing you to navigate to another component without needing to supply any configuration options.
 
 ```typescript
-import { IRouter, IRouteViewModel } from 'aurelia';
+import { IRouter, IRouteableComponent } from '@aurelia/router';
 
-export class MyComponent implements IRouteViewModel {
+export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
@@ -37,9 +37,9 @@ export class MyComponent implements IRouteViewModel {
 You could also use the string value method to pass parameter values and do something like this where our route expects a product ID and we pass 12:
 
 ```typescript
-import { IRouter, IRouteViewModel } from 'aurelia';
+import { IRouter, IRouteableComponent } from '@aurelia/router';
 
-export class MyComponent implements IRouteViewModel {
+export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
@@ -63,9 +63,9 @@ A list of available load options can be found below:
 These option values can be specified as follows and when needed:
 
 ```typescript
-import { IRouter, IRouteViewModel } from 'aurelia';
+import { IRouter, IRouteableComponent } from '@aurelia/router';
 
-export class MyComponent implements IRouteViewModel {
+export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
@@ -115,3 +115,43 @@ In the above example, we provide the route (`id`) value (via `route: profile`). 
     title: 'View Profile'
 },
 ```
+
+## Handling unknown routes
+
+Sometimes a user might attempt to visit a route that doesn't exist (either user error or because it was removed). You will want to configure your applications to display a fallback route in those situations.
+
+To do this, we add a `fallback` attribute to the `au-viewport` element and provide the name of an imported component.
+
+{% code title="my-app.html" %}
+```html
+<import from="./missing-page"></import>
+
+<au-viewport fallback="missing-page"></au-viewport>
+```
+{% endcode %}
+
+Let's create the `missing-page` component (this is required or the fallback behavior will not work). First, we'll create the view-model for our `missing-page` component.
+
+{% code title="missing-page.ts" %}
+```typescript
+export class MissingPage {
+  public static parameters = ['id'];
+  public missingComponent: string ;
+
+  public load(parameters: {id: string}): void {
+    this.missingComponent = parameters.id;
+  }
+}
+
+```
+{% endcode %}
+
+For the `fallback` component, an ID gets passed as a parameter which is the value from the URL. If you were to attempt to visit a non-existent route called "ROB" the `missingComponent` value would be ROB.
+
+Now, the HTML.
+
+{% code title="missing-page.html" %}
+```html
+<h3>Ouch! I couldn't find '${missingComponent}'!</h3>
+```
+{% endcode %}

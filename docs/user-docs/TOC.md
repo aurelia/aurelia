@@ -32,7 +32,7 @@
 * [Templates](getting-to-know-aurelia/templates/README.md)
   * [Interpolation](getting-to-know-aurelia/templates/interpolation.md)
   * [Attribute and property bindings](getting-to-know-aurelia/templates/attribute-and-property-bindings.md)
-  * [Repeats and list rendering](./getting-to-know-aurelia/templates/repeats-and-list-rendering.md)
+  * [Repeats and list rendering](getting-to-know-aurelia/templates/repeats-and-list-rendering.md)
   * [Value converters](getting-to-know-aurelia/templates/value-converters.md)
   * [Event binding](getting-to-know-aurelia/templates/event-binding.md)
   * [Built-in template features](getting-to-know-aurelia/templates/built-in-template-features.md)
@@ -102,6 +102,7 @@
     * [Microsoft FAST](reference/examples/integration/ms-fast.md)
     * [Ionic](reference/examples/integration/ionic.md)
 * [Migrating to Aurelia 2](developer-guides/migrating-to-aurelia-2/README.md)
+  * [For plugin authors](developer-guides/migrating-to-aurelia-2/for-plugin-authors.md)
   * [Side-by-side comparison](developer-guides/migrating-to-aurelia-2/side-by-side-comparison.md)
 * [Cheat Sheet](developer-guides/cheat-sheet.md)
 

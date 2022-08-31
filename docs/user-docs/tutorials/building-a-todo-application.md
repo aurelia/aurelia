@@ -20,7 +20,7 @@ A todo application comprised of the following features:
 * Todo items can be added and will be pushed to the top of the list.
 
 {% hint style="success" %}
-See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app).
+See what you are getting yourself into before you continue. There is a working example of this application [here](https://upbeat-clarke-fe622b.netlify.app/).
 {% endhint %}
 
 ## Prerequisites
@@ -313,4 +313,4 @@ Now, let's run the app: `npm start` on the command line and wait for the browser
 
 ![](../.gitbook/assets/image.png)
 
-In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).
+In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app/). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).

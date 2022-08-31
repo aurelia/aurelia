@@ -9,13 +9,13 @@ Router lifecycle hook methods are all completely optional. You only have to impl
 If you are working with components you are rendering, implementing `IRouteViewModel` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
 
 ```typescript
-import { IRouteViewModel } from "aurelia";
+import { IRouteableComponent, Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
 
-export class MyComponent implements IRouteViewModel {
-    canLoad(params, next, current);
-    load(params, next, current);
-    canUnload(next, current);
-    unload(next, current);
+export class MyComponent implements IRouteableComponent {
+    canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+    load(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+    canUnload(instruction: RoutingInstruction, navigation: Navigation);
+    unload(instruction: RoutingInstruction, navigation: Navigation);
 }
 ```
 
@@ -32,23 +32,27 @@ The `canLoad` method allows you to determine if the component should be loaded o
 When working with the `canLoad` method, you can use promises to delay loading the view until a promise and/or promises have been resolved. If we were to return `true` from this method, the component would be loaded.
 
 ```typescript
-import { IRouteViewModel, Params } from "aurelia";
+import { IRouteableComponent, Parameters } from "@aurelia/router";
 
-export class MyProduct implements IRouteViewModel {
-    canLoad(params: Params) {
+export class MyProduct implements IRouteableComponent {
+    canLoad(params: Parameters) {
         return true;
     }
 }
 ```
 
-Not only can we allow or disallow the component to be loaded but we can also redirect.
+Not only can we allow or disallow the component to be loaded, but we can also redirect. If you want to redirect to the root route, we can inject the router and call the `load` method from inside of `canLoad` to redirect elsewhere.
 
 ```typescript
-import { IRouteViewModel, Params } from "aurelia";
+import { IRouteableComponent, IRouter, Parameters } from "@aurelia/router";
 
-export class MyProduct implements IRouteViewModel {
-    canLoad(params: Params) {
-        return 'login';
+export class MyProduct implements IRouteableComponent {
+    constructor(@IRouter private router: IRouter) {
+        
+    }
+
+    canLoad(params: Parameters) {
+        this.router.load('/');
     }
 }
 ```
@@ -56,10 +60,10 @@ export class MyProduct implements IRouteViewModel {
 If you wanted to load data from an API, you could do so by making the `canLoad` method async which would make it a promise based method. Obviously, you would be awaiting an actual API call of some kind in place of `....load data`
 
 ```typescript
-import { IRouteViewModel, Params } from "aurelia";
+import { IRouteableComponent, Parameters } from "@aurelia/router";
 
-export class MyProduct implements IRouteViewModel {
-    async canLoad(params: Params) {
+export class MyProduct implements IRouteableComponent {
+    async canLoad(params: Parameters) {
         await ....load data
     }
 }
@@ -88,3 +92,53 @@ Like the `canLoad` method, this is just the inverse. It determines if we can nav
 The `unload` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
 
 Like the `load` method, this is just the inverse. It is called when the component is being unloaded (provided `canUnload` wasn't false).
+
+## Loading data inside of components
+
+A common router scenario is you want to route to a specific component, say a component that displays product information based on the ID in the URL. You make a request to the API to get the information and display it.
+
+There are two asynchronous lifecycles that are perfect for dealing with loading data: `canLoad` and `load` - both supporting returning a promise (or async/await).
+
+If the component you are loading absolutely requires the data to exist on the server and be returned, the `canLoad` lifecycle method is the best place to do it. Using our example of a product page, if you couldn't load product information, the page would be useful, right?
+
+From the inside of `canLoad` you can redirect the user elsewhere or return false to throw an error.
+
+```typescript
+import { IRouteableComponent, Parameters } from "@aurelia/router";
+
+export class MyComponent implements IRouteableComponent {
+    async canLoad(params: Parameters) {
+        this.product = await this.api.getProduct(params.productId);
+    }
+}
+```
+
+Similarly, if you want the view to still load even if we can't get the data, you would use the `load` lifecycle callback.
+
+```typescript
+import { IRouteableComponent, Parameters } from "@aurelia/router";
+
+export class MyComponent implements IRouteableComponent {
+    async load(params: Parameters) {
+        this.product = await this.api.getProduct(params.productId);
+    }
+}
+```
+
+When you use `load` and `async` the component will wait for the data to load before rendering.
+
+## Setting the title from within components
+
+While you would in many cases, set the title of a route in your route configuration object using the `title` property, sometimes you want the ability to specify the title property from within the routed component itself.
+
+You can achieve this from within the `canLoad` and `load` methods in your component. By setting the `next.title` property, you can override or transform the title.
+
+```typescript
+import { IRouteableComponent, Parameters, RoutingInstruction, Navigation } from "@aurelia/router";
+
+export class ProductPage implements IRouteableComponent {
+  load(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation) {
+    instruction.route.match.title = 'COOL BEANS';
+  }
+}
+```

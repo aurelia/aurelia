@@ -34,10 +34,10 @@ A path can be made up of either a static string with no additional values in it,
 Named required parameters that are prefixed with a colon. `:productId` when used in a path a named required parameter might look like this:
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import { IRouteableComponent, IRoute } from "@aurelia/router";
 
-export class MyApp implements IRouteViewModel {
-  static routes: Routeable[] = [
+export class MyApp implements IRouteableComponent {
+  static routes: IRoute[] = [
     {
       path: 'product/:productId',
       component: import('./components/product-detail')
@@ -48,13 +48,13 @@ export class MyApp implements IRouteViewModel {
 
 #### Optional named parameters
 
-Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.&#x20;
+Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import { IRouteableComponent, IRoute } from "@aurelia/router";
 
-export class MyApp implements IRouteViewModel {
-  static routes: Routeable[] = [
+export class MyApp implements IRouteableComponent {
+  static routes: IRoute[] = [
     {
       path: 'product/:productId/:variation?',
       component: import('./components/product-detail')
@@ -67,13 +67,13 @@ In the above example, we have an optional parameter called variation. We know it
 
 #### Wildcard parameters
 
-Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead of using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.&#x20;
+Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead of using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import { IRouteableComponent, IRoute } from "@aurelia/router";
 
-export class MyApp implements IRouteViewModel {
-  static routes: Routeable[] = [
+export class MyApp implements IRouteableComponent {
+  static routes: IRoute[] = [
     {
       path: 'files/*path',
       component: import('./components/files-manager')
@@ -95,14 +95,46 @@ Besides the basics of `path` and `component` a route can have additional configu
   * `replace` — completely removes the current component and creates a new one, behaving as if the component changed.
   * `invoke-lifecycles` — calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed)
   * `none` — does nothing (default if nothing has changed for the viewport)
-* `title` — Specify a title for the route. This can be a string or it can be a function that returns a string.
+* `title` — Specify a title for the route. This can be a string, or it can be a function that returns a string.
 * `viewport` — The name of the viewport this component should be loaded into.
 * `data` — Any custom data that should be accessible to matched components or hooks. This is where you can specify data such as roles and other permissions.
-* `routes` — The child routes that can be navigated to from this route.
+* `routes` — The child routes that can be navigated from this route.
+
+### Redirect
+
+By specifying the `redirectTo` property on our route, we can create route aliases. These allow us to redirect to other routes. In the following example, we redirect our default route to the products page.
+
+```typescript
+@route({
+  routes: [
+    { path: '', redirectTo: 'products' },
+    { path: 'products', component: import('./products'), title: 'Products' },
+    { path: 'product/:id', component: import('./product'), title: 'Product' }
+  ]
+})
+export class MyApp {
+
+}
+```
 
 ## Specify routes
 
-When it comes to creating routes, it is important to note that the `component` property can do more than accept inline import statements. If you prefer, you can also import the component itself and specify the component class as the component property.
+When creating routes, it is important to note that the `component` property can do more than accept inline import statements. If you prefer, you can also import the component and specify the component class as the component property.
+
+```typescript
+import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { HomePage } from './components/home-page';
+
+export class MyApp implements IRouteableComponent {
+  static routes: IRoute[] = [
+    {
+      path: ['', 'home'],
+      component: HomePage,
+      title: 'Home',
+    }
+  ]
+}
+```
 
 As you will learn towards the end of this section, inline import statements allow you to implement lazy loaded routes (which might be needed as your application grows in size).
 
@@ -111,10 +143,10 @@ As you will learn towards the end of this section, inline import statements allo
 If you have a lot of routes, the static property might be preferable from a cleanliness perspective.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import { IRouteableComponent, IRoute } from "@aurelia/router";
 
-export class MyApp implements IRouteViewModel {
-  static routes: Routeable[] = [
+export class MyApp implements IRouteableComponent {
+  static routes: IRoute[] = [
     {
       path: ['', 'home'],
       component: import('./components/home-page'),
@@ -125,7 +157,7 @@ export class MyApp implements IRouteViewModel {
 ```
 
 {% hint style="info" %}
-If you have more than a few routes, it might be best practice to write your routes in a separate file and then import it inside of your application.
+If you have more than a few routes, it might be best practice to write them in a separate file and then import them inside your application.
 {% endhint %}
 
 ### Defining routes using the route decorator
@@ -133,7 +165,7 @@ If you have more than a few routes, it might be best practice to write your rout
 The syntax for routes stays the same using the decorator, just how they are defined changes slightly.
 
 ```typescript
-import { route, IRouteViewModel } from '@aurelia/router-lite';
+import { IRouteableComponent } from "@aurelia/router";
 
 @route({
     routes: [
@@ -144,10 +176,79 @@ import { route, IRouteViewModel } from '@aurelia/router-lite';
       }
     ]
 })
-export class MyApp implements IRouteViewModel {
+export class MyApp implements IRouteableComponent {
 
 }
 ```
+
+## Child routes
+
+As your application grows, child routes can become a valuable way to organize your routes and keep things manageable. Instead of defining all your routes top-level, you can create routes inside your child components to keep them contained.
+
+An example of where child routes might be useful in creating a dashboard area for authenticated users.
+
+{% code title="my-app.ts" %}
+```typescript
+export class MyApp {
+    static routes = [
+        {
+            path: '/dashboard',
+            component: () => import('./dashboard-page'),
+            title: 'Dashboard'
+        }
+    ];
+}
+```
+{% endcode %}
+
+We add a route in our top-level `my-app.ts` component where we added routes in our previous examples. Now, we will create the dashboard-page component.
+
+{% code title="dashboard-page.ts" %}
+```typescript
+import { DashboardHome } from './dashboard-home';
+
+import { IRouteableComponent } from '@aurelia/router';
+
+export class DashboardPage implements IRouteableComponent {
+    static routes = [
+        {
+            path: '',
+            component: DashboardHome,
+            title: 'Landing'
+        }
+    ];
+}
+```
+{% endcode %}
+
+{% code title="dashboard-page.html" %}
+```html
+<div>
+    <au-viewport></au-viewport>
+</div>
+```
+{% endcode %}
+
+You will notice we create routes the same way we learned further above. However, we are defining these inside of a component we are using for our dashboard section. Notice how we use the `au-viewport` element inside of the `dashboard-page` component.
+
+Lastly, let's create our default dashboard component for the landing page.
+
+{% code title="dashboard-home.ts" %}
+```typescript
+export class DashboardHome {
+    
+}
+```
+{% endcode %}
+
+{% code title="dashboard-home.html" %}
+```html
+<h1>Dashboard</h1>
+<p>Welcome to your dashboard.</p>
+```
+{% endcode %}
+
+Now, we can contain all of our dashboard-specific routes inside of our `dashboard-page` component for dashboard views. Furthermore, it allows us to implement route guards to prevent unauthorized users from visiting the dashboard.
 
 ## Lazy loaded routes
 
@@ -163,5 +264,52 @@ Most modern bundlers like Webpack support lazy bundling and loading of Javascrip
 By specifying an arrow function that returns an inline `import` we are telling the bundler that our route is to be lazily loaded when requested.
 
 {% hint style="warning" %}
-Inline import statements are a relatively new feature. Inside of your tsconfig.json file, ensure you have your module property set to esnext to support inline import statements using this syntax.
+Inline import statements are a relatively new feature. Inside your tsconfig.json file, ensure you have your module property set to esnext to support inline import statements using this syntax.
 {% endhint %}
+
+## Passing information between routes
+
+We went over creating routes with support for parameters in the creating routes section, but there is an additional property you can specify on a route called `data,` which allows you to associate metadata with a route.
+
+```typescript
+@route({
+  routes: [
+    {
+      id: 'home',
+      path: '',
+      component: import('./home'),
+      title: 'Home'
+    },
+    {
+      path: 'product/:id',
+      component: import('./product'),
+      title: 'Product',
+      data: {
+          requiresAuth: false
+      }
+    }
+  ]
+})
+export class MyApp {
+
+}
+```
+
+This data property will be available in the routable component and can be a great place to store data associated with a route, such as roles and auth permissions. In some instances, the route parameters can be used to pass data, but for other use cases, you should use the data property.
+
+## Styling Active Router Links
+
+A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. When a route is active, by default, a CSS class name of `active` will be added to the route element.
+
+```css
+.active {
+    font-weight: bold;
+}
+```
+
+In your HTML, if you were to create some links with `load` attributes and visit one of those routes, the `active` class would be applied to the link for styling. In the following example, visiting the about route would put `class="active"` onto our `a` element.
+
+```html
+<a load="about">About</a>
+<a load="home">Home</a>
+```

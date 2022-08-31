@@ -85,6 +85,39 @@ export class MyComponent {
 }
 ```
 
+## Accessing the view-model
+
+In some scenarios you may want to access the view-model of the component being rendered using `<au-compose>` we can achieve this by adding the `view-model.ref` binding to our compose element.
+
+```html
+<au-compose view-model.ref="myCompose"></au-compose>
+```
+
+This will add a property to the host class called `myCompose`
+
+```typescript
+export class MyApp {
+    readonly myCompose;
+}
+```
+
+However, one pitfall you will encounter is the view-model that gets passed to the `ref` binding is a constructable component and not the instance itself. If you worked with Aurelia 1, you might be expecting the passed `view-model` instance to be the instance itself, not the class definition.
+
+To access the instance itself, we need to reference the composition controller:
+
+```typescript
+export class MyApp {
+    readonly myCompose;
+    myViewModel;
+    
+    constructor() {
+        this.myViewModel= this.myCompose.composition.controller.viewModel;
+    }
+}
+```
+
+We can now do things such as calling methods inside of our composed view-model and other tasks you might need to accomplish for composed components.
+
 ## Migrating from v1 \<compose>
 
 Composition in Aurelia 2 is fundamentally different than it was in Aurelia 1. The same ease of use is still there, but the way in which some things worked in v1 does not work the same in v2.

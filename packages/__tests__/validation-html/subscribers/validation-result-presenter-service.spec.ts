@@ -18,7 +18,7 @@ import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecF
 
 describe('validation-html/subscribers/validation-result-presenter-service.spec.ts/validation-result-presenter-service', function () {
 
-  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService');
+  const IValidationResultPresenterService = DI.createInterface<$IValidationResultPresenterService>('ValidationResultPresenterService');
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
@@ -63,7 +63,7 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
   }
   interface TestSetupContext {
     template: string;
-    presenterService?: ValidationResultPresenterService;
+    presenterService?: $IValidationResultPresenterService;
   }
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<App>>,

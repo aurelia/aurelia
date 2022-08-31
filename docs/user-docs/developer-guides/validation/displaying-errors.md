@@ -70,7 +70,7 @@ Aurelia
 
 This is useful if you have a custom attribute of the same name, and want to use that over this out-of-the-box custom attribute.
 
-### `validation-container` custom element
+## `validation-container` custom element
 
 The `validation-container`custom element also has similar goal of capturing the validation errors for the children target elements. Additionally, it provides a template to display the errors as well. This helps in reducing the boilerplate created by the `validation-errors` custom attribute. For example, using this custom element, displaying the errors reduces to the following.
 
@@ -104,22 +104,21 @@ It is quite understandable that the CSS-containment of the Shadow DOM can come i
 
 There is another aspect of this configuration option. When a `null`, `undefined`, or '' \(empty string\) is used as the value for this configuration option, it deactivates the usage of this custom element. This is in sense similar to the `UseSubscriberCustomAttribute` configuration option.
 
-### `ValidationResultPresenterService`
+## `ValidationResultPresenterService`
 
 Unlike the previous two approaches, this is a standalone service that manipulates the DOM directly. That it adds elements to DOM for every new errors and removes elements from DOM that are associated with old errors.
 
 To use this, you need to instantiate it and register it with the validation controller.
 
 ```typescript
-import { IValidationController, ValidationResultPresenterService } from '@aurelia/validation';
+import { IValidationController, IValidationResultPresenterService } from '@aurelia/validation';
 
 export class MyApp {
-  private presenter: ValidationResultPresenterService;
 
   public constructor(
-     @newInstanceForScope(IValidationController) private validationController: IValidationController,
+    @newInstanceForScope(IValidationController) private readonly validationController: IValidationController,
+    @IValidationResultPresenterService private readonly presenter: IValidationResultPresenterService;
   ) {
-      this.presenter = new ValidationResultPresenterService();
       this.validationController.addSubscriber(this.presenter);
   }
 }

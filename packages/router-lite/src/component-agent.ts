@@ -113,26 +113,42 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     this._logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
     b.push();
+    let promise: Promise<void> = Promise.resolve();
     for (const hook of this.canUnloadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.canUnload(this.instance, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = false;
+      b.push();
+      promise = promise.then(() => new Promise((res) => {
+        if (tr.guardsResult !== true) {
+          b.pop();
+          res();
+          return;
         }
-        b.pop();
-      });
+        tr.run(() => {
+          return hook.canUnload(this.instance, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = false;
+          }
+          b.pop();
+          res();
+        });
+      }));
     }
     if (this._hasCanUnload) {
-      tr.run(() => {
-        b.push();
-        return this.instance.canUnload!(next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = false;
+      b.push();
+      // deepscan-disable-next-line UNUSED_VAR_ASSIGN
+      promise = promise.then(() => {
+        if (tr.guardsResult !== true) {
+          b.pop();
+          return;
         }
-        b.pop();
+        tr.run(() => {
+          return this.instance.canUnload!(next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = false;
+          }
+          b.pop();
+        });
       });
     }
     b.pop();
@@ -142,26 +158,42 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
     const rootCtx = this.ctx.root;
     b.push();
+    let promise: Promise<void> = Promise.resolve();
     for (const hook of this.canLoadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.canLoad(this.instance, next.params, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+      b.push();
+      promise = promise.then(() => new Promise((res) => {
+        if (tr.guardsResult !== true) {
+          b.pop();
+          res();
+          return;
         }
-        b.pop();
-      });
+        tr.run(() => {
+          return hook.canLoad(this.instance, next.params, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+          }
+          b.pop();
+          res();
+        });
+      }));
     }
     if (this._hasCanLoad) {
-      tr.run(() => {
-        b.push();
-        return this.instance.canLoad!(next.params, next, this.routeNode);
-      }, ret => {
-        if (tr.guardsResult === true && ret !== true) {
-          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+      b.push();
+      // deepscan-disable-next-line UNUSED_VAR_ASSIGN
+      promise = promise.then(() => {
+        if (tr.guardsResult !== true) {
+          b.pop();
+          return;
         }
-        b.pop();
+        tr.run(() => {
+          return this.instance.canLoad!(next.params, next, this.routeNode);
+        }, ret => {
+          if (tr.guardsResult === true && ret !== true) {
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+          }
+          b.pop();
+        });
       });
     }
     b.pop();

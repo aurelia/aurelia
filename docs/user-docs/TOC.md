@@ -35,16 +35,13 @@
   * [Showing & hiding content](getting-to-know-aurelia/templates/showing-and-hiding-content.md)
   * [Repeats and list rendering](getting-to-know-aurelia/templates/repeats-and-list-rendering.md)
   * [Working with promises in templates](getting-to-know-aurelia/templates/working-with-promises-in-templates.md)
-  * [Value converters](getting-to-know-aurelia/templates/value-converters.md)
   * [Event binding](getting-to-know-aurelia/templates/event-binding.md)
   * [Template references and variables](getting-to-know-aurelia/templates/template-references-and-variables.md)
   * [Local templates](getting-to-know-aurelia/templates/local-templates.md)
 * [Custom attributes](getting-to-know-aurelia/custom-attributes.md)
+* [Value converters](getting-to-know-aurelia/value-converters.md)
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
-* [App Tasks](getting-to-know-aurelia/app-tasks.md)
-* [Scope and context](getting-to-know-aurelia/scope-and-binding-context.md)
-* [Logging](getting-to-know-aurelia/logging.md)
 
 ## Developer Guides
 
@@ -81,6 +78,8 @@
 * [Testing](developer-guides/testing.md)
 * [Dialog](developer-guides/dialog.md)
 * [Web Components](developer-guides/web-components.md)
+* [Logging](developer-guides/logging.md)
+* [Scope and context](developer-guides/scope-and-binding-context.md)
 * [Building plugins](developer-guides/building-plugins.md)
 * [Error messages](reference/error-messages/README.md)
   * [Dependency Injection errors](reference/error-messages/dependency-injection-errors.md)

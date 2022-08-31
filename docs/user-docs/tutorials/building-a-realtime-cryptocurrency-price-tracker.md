@@ -30,7 +30,7 @@ Before going any further, you should be familiar with some basic Aurelia concept
 
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference).
 * You are somewhat familiar with [component lifecycles](../getting-to-know-aurelia/components/component-lifecycles.md) (we will be using `binding` in this tutorial).
-* You are familiar with [Aurelia value converters](../getting-to-know-aurelia/templates/value-converters.md) and how they can be used to transform data.
+* You are familiar with [Aurelia value converters](../getting-to-know-aurelia/value-converters.md) and how they can be used to transform data.
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 * You are familiar with `async/await` syntax. A great resource for learning can be found [here](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async\_await).
 
@@ -197,7 +197,7 @@ So, now we are going to create a value converter using the [Internationalization
 
 Inside of `src` create a new folder called `resources` and then inside of `resources` another folder called `value-converters`. It is considered best practice to have your resources inside of a resources/components folder like this. Create a new file called `currency-value-converter.ts`.
 
-To understand what this value converter is doing, you can read about value converters [here](../getting-to-know-aurelia/templates/value-converters.md).
+To understand what this value converter is doing, you can read about value converters [here](../getting-to-know-aurelia/value-converters.md).
 
 ```typescript
 import { valueConverter } from 'aurelia';

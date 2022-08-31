@@ -2,10 +2,15 @@ import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router';
 import { AnimationHooks } from './animation-hooks';
 import { MyApp } from './my-app';
+import { Fallback } from './fallback';
 
 void Aurelia
   .register(
-    RouterConfiguration.customize({ swapOrder: 'detach-attach-simultaneously', }),
+    RouterConfiguration.customize({
+      swapOrder: 'detach-attach-simultaneously',
+      fallback: Fallback,
+    }),
+    Fallback,
     // AnimationHooks,
   )
   .app(MyApp)

@@ -4,12 +4,14 @@ import { sep as separator, posix, resolve } from 'path';
 import v8toIstanbul from 'v8-to-istanbul';
 import istanbul from 'istanbul-lib-coverage';
 
+const coverageFileName = 'coverage-final.json';
+
 function getExitingCoverage(cwd) {
   const coverageFolder = resolve(cwd, 'coverage');
   if (!fs.existsSync(coverageFolder)) {
     fs.mkdirSync(coverageFolder);
   }
-  const coverageFile = resolve(coverageFolder, `coverage-final-e2e.json`);
+  const coverageFile = resolve(coverageFolder, coverageFileName);
   if (fs.existsSync(coverageFile)) {
     return fs.readFileSync(coverageFile, { encoding: 'utf-8' });
   }
@@ -54,6 +56,6 @@ export function addCoverage() {
     if (existingCoverage) {
       coverages.merge(JSON.parse(existingCoverage));
     }
-    fs.writeFileSync(resolve(process.cwd(), `coverage/coverage-final.json`), JSON.stringify(coverages.toJSON()), { encoding: 'utf-8' });
+    fs.writeFileSync(resolve(process.cwd(), `coverage/${coverageFileName}`), JSON.stringify(coverages.toJSON()), { encoding: 'utf-8' });
   });
 }

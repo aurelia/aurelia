@@ -1,7 +1,7 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
-import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
+import { ComponentAppellation, IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';
 import { Navigation } from '../navigation';
@@ -201,7 +201,7 @@ export class ViewportContent extends EndpointContent {
    * will be processed under the fallback component or if the child
    * instructions will be aborted.
    */
-  public createComponent(connectedCE: IConnectedCustomElement, fallback?: string, fallbackAction?: FallbackAction): void {
+  public createComponent(connectedCE: IConnectedCustomElement, fallback?: ComponentAppellation, fallbackAction?: FallbackAction): void {
     // Can be called at multiple times, only process the first
     if (this.contentStates.has('created')) {
       return;
@@ -606,7 +606,7 @@ export class ViewportContent extends EndpointContent {
     if (this.instruction.component.none) {
       return null;
     }
-    return this.instruction.component.toType(container);
+    return this.instruction.component.toType(container, this.instruction);
   }
 
   /**
@@ -616,7 +616,7 @@ export class ViewportContent extends EndpointContent {
     if (this.instruction.component.none) {
       return null;
     }
-    return this.instruction.component.toInstance(parentContainer, parentController, parentElement);
+    return this.instruction.component.toInstance(parentContainer, parentController, parentElement, this.instruction);
   }
 
   /**

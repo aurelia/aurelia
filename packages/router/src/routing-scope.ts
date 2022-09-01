@@ -253,10 +253,12 @@ export class RoutingScope {
     // TODO: Used to have an early exit if no instructions. Restore it?
 
     // If there are any unresolved components (functions or promises), resolve into components
-    const unresolved = instructions.filter(instr => instr.component.isFunction() || instr.component.isPromise());
-    if (unresolved.length > 0) {
-      // TODO(alpha): Fix type here
-      await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
+    const resolvePromises = instructions
+      .filter(instr => instr.isUnresolved)
+      .map(instr => instr.resolve())
+      .filter(result => result instanceof Promise);
+    if (resolvePromises.length > 0) {
+      await Promise.all(resolvePromises);
     }
 
     // If router options defaults to navigations being full state navigation (containing the
@@ -461,10 +463,12 @@ export class RoutingScope {
         }
       }
       // If there are any unresolved components (functions or promises) to be appended, resolve them
-      const unresolved = matchedInstructions.filter(instr => instr.component.isFunction() || instr.component.isPromise());
-      if (unresolved.length > 0) {
-        // TODO(alpha): Fix type here
-        await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
+      const resolvePromises = instructions
+        .filter(instr => instr.isUnresolved)
+        .map(instr => instr.resolve())
+        .filter(result => result instanceof Promise);
+      if (resolvePromises.length > 0) {
+        await Promise.all(resolvePromises);
       }
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 

@@ -86,20 +86,28 @@ This also involves error handling, when the transition is failed.
 This process looks as follows.
 
 - First it is determined if the new instruction is different than the previous one.
-- If it is the same whether or not the same-url-strategy is reload or not. This determines whether the new instruction will be processed or not.
+- If it is the same, it is checked whether or not the same-url-strategy is reload or not. This determines whether the new instruction will be processed or not.
 - If the transition is determined not be processed, then the transition is resolved to `false` (indicating non successful transition), and the next transition (if any) is attempted.
 - Otherwise:
   - The `NavigationStartEvent` is raised
   - The route tree is updated. This process involves converting the viewport instruction tree to one or more (depending on sibling, parent-child etc.) RouteNodes, and appending those to the route tree. Note that the child instructions are marked as residual instructions, and are loaded/processed lazily (TODO(sayan): add more info). The viewport agent for the routing context is also set at this time. The details are outlined [here](#updating-route-tree).
   - After that the following batch of actions are performed:
     - The `canUnload` [hook](#hooks) in the components in the **previous** route tree are invoked.
-    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is cancelled.
+    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is [cancelled](#cancelling-a-navigation).
     - The `canLoad` [hook](#hooks) in the components in the **current** route tree are invoked.
-    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is cancelled.
+    - If the result of the previous action indicates that the previous components cannot be unloaded, then the navigation is [cancelled](#cancelling-a-navigation).
     - The `unload` [hook](#hooks) in the components in the **previous** route tree are invoked.
     - The `load` [hook](#hooks) in the components in the **current** route tree are invoked.
     - The components are then [swapped](#swapping-the-components). That is the old components are deactivated, and the new components are activated.
     - Once the transitions for all nodes end, the `NavigationEndEvent` is raised, the history state as well as the title are updated. And the next transition (if any) is attempted.
+
+## Cancelling a navigation
+
+This process involves the following steps:
+- The updates that were scheduled for the viewport agents, both current and the next ones, are [cancelled](#canceling-the-transition).
+- The `NavigationCancelEvent` is published.
+- If the transition is cancelled with a simple boolean `false`, the transition is resolved with `false` (indicated non-success), and the next transition is attempted.
+- Else the transition is already cancelled with a new navigation instruction. In this phase, the new navigation instruction is [queued](#enqueuing-viewport-instruction-tree) by the router.
 
 # Updating route tree
 
@@ -111,9 +119,53 @@ This process starts with 3 things:
 
 In the beginning, the query parameters, and fragments of the given routeTree as well as the routeTree of the root `RouteContext` are overwritten with the ones from the given viewport instruction tree.
 After that the effective routing context is determined and all the route definitions are awaited, as a promise can be used to grab a route definition (read lazy-loading modules).
-Once that is done, the route-context's node is updated.
-This process roughly looks as follows:
 
+Once that is done, the route-context's node is [updated](#updating-a-route-node).
+
+## Updating a route node
+This process of updating a given route node with a given viewport instruction tree and a routing context roughly looks as follows:
+
+- If the node is not the "root" node then schedule update for the viewport agents. Roughly speaking, this process marks the view port agent such that it can accept the next state (read new routing node/component); more details can be found [here](#scheduling-update).
+- IF the node's routing context matches the given routing context THEN
+  - First compile all the children viewport instructions from the given viewport instruction tree to routing node and append those as children to the given node. The details can be found [here](#compiling-viewport-instruction-and-appending-to-node).
+  - Once that is done, look for any available viewports on the given routing context level, and
+    - get the default components for the viewports,
+    - create a view port instruction for the default component,
+    - compile the viewport instruction to a routing node, and
+    - append it to the given node
+- ELSE drill down the children of the given node and call [update node](#updating-a-route-node) on the children. The goal is to reach the children until the route context of the child node(s) is matched with the one given.
+
+## Compiling viewport instruction and appending to node
+
+This process starts with a route node and a viewport instruction.
+Quite evidently, in this step the viewport instruction is compiled to a route node, and later down the line the new route node is added as a children to the given route node.
+
+Once the child node is created, the process of **appending** the node is very straight-forward.
+It involves appending the child node as one of the children of the given route node, and scheduling update for the viewport-agent associated to the routing context of the child node.
+
+Depending on the type of the viewport instruction, the route node can be **compiled** differently.
+In this phase the viewport instruction can be categorized broadly into string instruction and routed view-model or custom element definition instruction.
+
+Compiling **from the routed view-model or custom element definition instruction** is relatively easier.
+It involves
+- resolving the route definition
+- generating the viewport instruction using the routing context, from the route definition; [details](#generating-viewport-instruction)
+- creating a configured node from the viewport instruction; the details can be found [here](#creating-configured-route-node).
+
+Compiling **from the sting instruction** is inherently bit more involved.
+When dealing with string instructions, there are couple special case that needs to be handled, namely the `../` prefix in the route that handles navigating to the ancestor/parent routing context.
+Whenever, `../` prefix is encountered, the parent node is selected and [this process](#compiling-viewport-instruction-and-appending-to-node) is restarted with the child viewport instraction coming from the given view port instruction.
+The default/non-special case is to create a node by using the [create node](#create-a-node-from-viewport-instruction) routine.
+In case a child node cannot be created, then the given (parent) node is not updated with a child.
+
+## Create a node from viewport instruction
+
+TODO
+---------------- START FROM HERE ------------------------------
+
+## Creating configured route node
+
+TODO
 
 # ViewportAgent
 
@@ -124,6 +176,17 @@ TODO
 TODO
 
 ## Swapping the components
+
+TODO
+
+## Canceling the update
+
+TODO
+
+## Scheduling update
+
+TODO
+
 # Transition
 
 This encapsulates essentially the previous viewport instruction tree and route tree as well as the current ones.
@@ -157,3 +220,9 @@ TODO
 
 TODO
 
+# Viewport (`au-viewport`)
+
+This is a custom element that is out of the box available where the routed views are hosted.
+The custom element in itself is very lean.
+All it does is to grab a [viewport-agent](#viewportagent) for itself, via the injected routing context.
+And thereafter it uses the `attaching` and `detaching` hooks to activate or deactivate the the component via the viewport agent.

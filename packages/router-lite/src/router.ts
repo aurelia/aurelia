@@ -730,7 +730,7 @@ export class Router {
       // From a routing perspective it's simply a "marker": it does not need to be loaded,
       // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
       // other than by reading (deps, optional route config, owned viewports) from it.
-      const rootCtx = this.ctx;// navigationContext.root;
+      const rootCtx = this.ctx;
       const rt = tr.routeTree;
 
       (rt as Writable<RouteTree>).options = vit.options;

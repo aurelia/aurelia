@@ -344,17 +344,18 @@ export function updateNode(
   if (node.context === ctx) {
     // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
     node.clearChildren();
-    return onResolve(resolveAll(...vit.children.map(vi => {
-      return createAndAppendNodes(log, node, vi);
-    })), () => {
-      return resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
-        const defaultInstruction = ViewportInstruction.create({
-          component: vpa.viewport.default,
-          viewport: vpa.viewport.name,
-        });
-        return createAndAppendNodes(log, node, defaultInstruction);
-      }));
-    });
+    // - first append the nodes as children, compiling the viewport instructions.
+    // - if afterward, any viewports are still available
+    //   - look at the default value of those viewports
+    //   - create instructions, and
+    //   - add the compiled nodes from those to children of the node.
+    return onResolve(
+      resolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      () => resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+        const vp = vpa.viewport;
+        return createAndAppendNodes(log, node, ViewportInstruction.create({ component: vp.default, viewport: vp.name, }));
+      }))
+    );
   }
 
   // Drill down until we're at the node whose context matches the provided navigation context
@@ -474,7 +475,7 @@ function createNode(
   // if there are children, then then it might be the case that the parameters are put in the children, and that case it is best to go the default flow.
   // However, when that's not the case, then we perhaps try to lookup the route-id.
   // This is another early termination.
-  if(vi.children.length === 0) {
+  if (vi.children.length === 0) {
     const result = ctx.generateViewportInstruction(vi);
     if (result !== null) {
       (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, result.query, true);

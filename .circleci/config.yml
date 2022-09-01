@@ -514,6 +514,7 @@ jobs:
           command: |
             npx playwright install chromium
             npm run test
+            npx codecov -f ./coverage/coverage-final.json
 
   # Standalone playwright test jobs
   e2e_playwright:

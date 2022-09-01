@@ -1,9 +1,13 @@
+import { DI } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
 import { ValidationResult } from '@aurelia/validation';
 import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
 
 const resultIdAttribute = 'validation-result-id';
 const resultContainerAttribute = 'validation-result-container';
+
+export interface IValidationResultPresenterService extends ValidationResultPresenterService { }
+export const IValidationResultPresenterService = DI.createInterface<IValidationResultPresenterService>('IValidationResultPresenterService', (x) => x.transient(ValidationResultPresenterService));
 
 export class ValidationResultPresenterService implements ValidationResultsSubscriber {
   public constructor(

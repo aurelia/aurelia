@@ -21,6 +21,8 @@ Search open/closed issues before submitting since someone might have asked the s
 
 <!--- Explain the difference from current behavior -->
 
+Repro link https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
+
 ## 💁 Possible Solution
 
 <!--- Ideas how to implement this feature or a similar solution/workaround that already exists -->

@@ -75,6 +75,7 @@
   * [I18n Internationalization](developer-guides/validation/i18n-internationalization.md)
   * [Migration Guide & Breaking Changes](developer-guides/validation/migration-guide.md)
 * [Internationalization (i18n)](developer-guides/internationalization.md)
+* [Animation](developer-guides/animation.md)
 * [Fetch Client](developer-guides/fetch-client.md)
 * [Event Aggregator](developer-guides/event-aggregator.md)
 * [State](developer-guides/state/README.md)

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import fs from 'fs';
-import { sep as separator, posix, resolve, normalize, basename, dirname, } from 'path';
+import { sep as separator, posix, resolve } from 'path';
 import v8toIstanbul from 'v8-to-istanbul';
 import istanbul from 'istanbul-lib-coverage';
 

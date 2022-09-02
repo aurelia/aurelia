@@ -355,7 +355,7 @@ export class RoutingInstruction {
    * Whether the routing instruction is unresolved.
    */
   public get isUnresolved(): boolean {
-    return this.component.isFunction() && this.component.isPromise();
+    return this.component.isFunction() || this.component.isPromise();
   }
 
   /**

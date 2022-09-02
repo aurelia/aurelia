@@ -54,12 +54,41 @@ class $AppTask<K extends Key = Key> {
 }
 
 export const AppTask = Object.freeze({
+  /**
+   * Returns a task that will run just before the root component is created by DI
+   */
   beforeCreate: createAppTaskSlotHook('beforeCreate'),
+  /**
+   * Returns a task that will run after instantiating the root controller,
+   * but before compiling its view (thus means before instantiating the child elements inside it)
+   *
+   * good chance for a router to do some initial work, or initial routing related in general
+   */
   hydrating: createAppTaskSlotHook('hydrating'),
+  /**
+   * Return a task that will run after the hydration of the root controller,
+   * but before hydrating the child element inside
+   *
+   * good chance for a router to do some initial work, or initial routing related in general
+   */
   hydrated: createAppTaskSlotHook('hydrated'),
+  /**
+   * Return a task that will run right before the root component is activated.
+   * In this phase, scope hierarchy is formed, and bindings are getting bound
+   */
   beforeActivate: createAppTaskSlotHook('beforeActivate'),
+  /**
+   * Return a task that will run right after the root component is activated - the app is now running
+   */
   afterActivate: createAppTaskSlotHook('afterActivate'),
+  /**
+   * Return a task that will runs right before the root component is deactivated.
+   * In this phase, scope hierarchy is unlinked, and bindings are getting unbound
+   */
   beforeDeactivate: createAppTaskSlotHook('beforeDeactivate'),
+  /**
+   * Return a task that will run right after the root component is deactivated
+   */
   afterDeactivate: createAppTaskSlotHook('afterDeactivate'),
 });
 

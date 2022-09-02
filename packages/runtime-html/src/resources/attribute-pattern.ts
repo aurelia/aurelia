@@ -1,5 +1,5 @@
 import { DI, emptyArray, Protocol, all } from '@aurelia/kernel';
-import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../shared';
+import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 

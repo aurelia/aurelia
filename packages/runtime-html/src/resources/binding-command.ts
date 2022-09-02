@@ -11,7 +11,7 @@ import {
   SpreadBindingInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { isString } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 

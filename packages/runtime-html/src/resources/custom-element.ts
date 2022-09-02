@@ -13,7 +13,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Children } from '../templating/children';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 

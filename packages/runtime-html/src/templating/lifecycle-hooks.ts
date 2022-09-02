@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { singletonRegistration } from '../utilities-di';
 import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 

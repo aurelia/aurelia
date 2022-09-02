@@ -29,7 +29,7 @@ import { CustomElement, CustomElementDefinition, CustomElementType, defineElemen
 import { BindingCommand, CommandType } from './resources/binding-command';
 import { createLookup, isString } from './utilities';
 import { allResources, singletonRegistration } from './utilities-di';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
 
 import type {
   IContainer,

@@ -52,7 +52,7 @@ export class DialogService implements IDialogService {
   public static register(container: IContainer) {
     container.register(
       singletonRegistration(IDialogService, this),
-      AppTask.beforeDeactivate(IDialogService, dialogService => onResolve(
+      AppTask.deactivating(IDialogService, dialogService => onResolve(
         dialogService.closeAll(),
         (openDialogController) => {
           if (openDialogController.length > 0) {

@@ -13,7 +13,7 @@ The following is a code example of how to teach Aurelia to work seamlessly with 
 ```typescript
 import { AppTask, IContainer, IAttrMapper, NodeObserverLocator } from 'aurelia';
 
-Aurelia.register(AppTask.beforeCreate(IContainer, container => {
+Aurelia.register(AppTask.creating(IContainer, container => {
   const attrMapper = container.get(IAttrMapper);
   const nodeObserverLocator = container.get(NodeObserverLocator);
   attrMapper.useTwoWay((el, property) => {

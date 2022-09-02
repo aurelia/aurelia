@@ -183,7 +183,7 @@ export interface IShadowDOMConfiguration {
 
 export const StyleConfiguration = {
   shadowDOM(config: IShadowDOMConfiguration): IRegistry {
-    return AppTask.beforeCreate(IContainer, container => {
+    return AppTask.creating(IContainer, container => {
       if (config.sharedStyles != null) {
         const factory = container.get(IShadowDOMStyleFactory);
         container.register(instanceRegistration(IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));

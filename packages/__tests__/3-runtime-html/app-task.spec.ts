@@ -23,13 +23,13 @@ describe('3-runtime-html/app-task.spec.ts', function () {
         unbinding() { addCompLog('unbinding'); }
       },
       [
-        AppTask.beforeCreate(() => { addAppTaskLog('creating'); }),
+        AppTask.creating(() => { addAppTaskLog('creating'); }),
         AppTask.hydrating(() => { addAppTaskLog('hydrating'); }),
         AppTask.hydrated(() => { addAppTaskLog('hydrated'); }),
-        AppTask.beforeActivate(() => { addAppTaskLog('activating'); }),
-        AppTask.afterActivate(() => { addAppTaskLog('activated'); }),
-        AppTask.beforeDeactivate(() => { addAppTaskLog('deactivating'); }),
-        AppTask.afterDeactivate(() => { addAppTaskLog('deactivated'); }),
+        AppTask.activating(() => { addAppTaskLog('activating'); }),
+        AppTask.activated(() => { addAppTaskLog('activated'); }),
+        AppTask.deactivating(() => { addAppTaskLog('deactivating'); }),
+        AppTask.deactivated(() => { addAppTaskLog('deactivated'); }),
       ]
     ).started;
 
@@ -66,7 +66,7 @@ describe('3-runtime-html/app-task.spec.ts', function () {
       {},
       [
         Registration.instance('hello', val),
-        AppTask.beforeCreate('hello', (v) => {
+        AppTask.creating('hello', (v) => {
           assert.strictEqual(v, 1);
           val = 2;
         })

@@ -3,15 +3,14 @@ import { isFunction } from './utilities';
 import { instanceRegistration } from './utilities-di';
 import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 
-export type TaskSlot = (
-  'beforeCreate' |
-  'hydrating' |
-  'hydrated' |
-  'beforeActivate' |
-  'afterActivate' |
-  'beforeDeactivate' |
-  'afterDeactivate'
-);
+export type TaskSlot =
+  | 'creating'
+  | 'hydrating'
+  | 'hydrated'
+  | 'activating'
+  | 'activated'
+  | 'deactivating'
+  | 'deactivated';
 
 export const IAppTask = DI.createInterface<IAppTask>('IAppTask');
 export interface IAppTask extends Pick<
@@ -57,7 +56,7 @@ export const AppTask = Object.freeze({
   /**
    * Returns a task that will run just before the root component is created by DI
    */
-  beforeCreate: createAppTaskSlotHook('beforeCreate'),
+  creating: createAppTaskSlotHook('creating'),
   /**
    * Returns a task that will run after instantiating the root controller,
    * but before compiling its view (thus means before instantiating the child elements inside it)
@@ -76,20 +75,20 @@ export const AppTask = Object.freeze({
    * Return a task that will run right before the root component is activated.
    * In this phase, scope hierarchy is formed, and bindings are getting bound
    */
-  beforeActivate: createAppTaskSlotHook('beforeActivate'),
+  activating: createAppTaskSlotHook('activating'),
   /**
    * Return a task that will run right after the root component is activated - the app is now running
    */
-  afterActivate: createAppTaskSlotHook('afterActivate'),
+  activated: createAppTaskSlotHook('activated'),
   /**
    * Return a task that will runs right before the root component is deactivated.
    * In this phase, scope hierarchy is unlinked, and bindings are getting unbound
    */
-  beforeDeactivate: createAppTaskSlotHook('beforeDeactivate'),
+  deactivating: createAppTaskSlotHook('deactivating'),
   /**
    * Return a task that will run right after the root component is deactivated
    */
-  afterDeactivate: createAppTaskSlotHook('afterDeactivate'),
+  deactivated: createAppTaskSlotHook('deactivated'),
 });
 
 export type AppTaskCallbackNoArg = () => void | Promise<void>;

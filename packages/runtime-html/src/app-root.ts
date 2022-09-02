@@ -88,7 +88,7 @@ export class AppRoot implements IDisposable {
       )
     );
 
-    this._hydratePromise = onResolve(this._runAppTasks('beforeCreate'), () => {
+    this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;
       const childCtn = container.createChild();
       let instance: object;
@@ -119,18 +119,18 @@ export class AppRoot implements IDisposable {
 
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
-      return onResolve(this._runAppTasks('beforeActivate'), () => {
+      return onResolve(this._runAppTasks('activating'), () => {
         return onResolve(this.controller.activate(this.controller, null, LifecycleFlags.fromBind, void 0), () => {
-          return this._runAppTasks('afterActivate');
+          return this._runAppTasks('activated');
         });
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
-    return onResolve(this._runAppTasks('beforeDeactivate'), () => {
+    return onResolve(this._runAppTasks('deactivating'), () => {
       return onResolve(this.controller.deactivate(this.controller, null, LifecycleFlags.none), () => {
-        return this._runAppTasks('afterDeactivate');
+        return this._runAppTasks('deactivated');
       });
     });
   }

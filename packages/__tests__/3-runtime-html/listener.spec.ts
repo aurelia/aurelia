@@ -38,7 +38,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
     const { trigger } = await createFixture(
       '<button click.trigger="onClick">',
       { onClick() { log++; } },
-      [AppTask.beforeCreate(IListenerBehaviorOptions, o => { o.expAsHandler = true; })]
+      [AppTask.creating(IListenerBehaviorOptions, o => { o.expAsHandler = true; })]
     ).started;
 
     trigger.click('button');
@@ -52,7 +52,7 @@ describe('3-runtime-html/listener.spec.ts', function () {
       '<button click.trigger="onClick | identity">',
       { onClick() { log++; } },
       [
-        AppTask.beforeCreate(IListenerBehaviorOptions, o => { o.expAsHandler = true; }),
+        AppTask.creating(IListenerBehaviorOptions, o => { o.expAsHandler = true; }),
         ValueConverter.define('identity', class {
           toView(a: any) {
             vcLog++;

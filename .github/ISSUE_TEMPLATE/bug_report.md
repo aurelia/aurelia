@@ -3,19 +3,21 @@ name: 🐛 Bug Report
 about: Did something not work as expected?
 ---
 
-<!-- Thanks for filing an issue 😄 ! Before you submit, please read the following:
+<!---
+Thanks for filing an issue 😄 ! Before you submit, please read the following:
 
-Search open/closed issues before submitting since someone might have asked the same thing before! -->
+Search open/closed issues before submitting since someone might have asked the same thing before!
+-->
 
 # 🐛 Bug Report
 
-<!-- Provide a general summary of the issue here -->
+<!--- Provide a general summary of the issue here -->
 
 Repro link https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
 
 ## 🤔 Expected Behavior
 
-<!-- Tell us what should happen -->
+<!--- Tell us what should happen -->
 
 ## 😯 Current Behavior
 
@@ -23,12 +25,9 @@ Repro link https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
 
 <!--- If you are seeing an error, please include the full error message and stack trace -->
 
-It is best to have a bug report with a repro.
-Create one based on this Stackblitz https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
-
 ## 💁 Possible Solution
 
-<!-- Not obligatory, but suggest a fix/reason for the bug -->
+<!--- Not obligatory, but suggest a fix/reason for the bug -->
 
 ## 🔦 Context
 

@@ -15,10 +15,7 @@ Search open/closed issues before submitting since someone might have asked the s
 
 ## 🤔 Expected Behavior
 
-<!--- Tell us how the feature should work
-
-A repro describing the undesired behavior if possible
-https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html -->
+<!--- Tell us how the feature should work -->
 
 ## 😯 Current Behavior
 

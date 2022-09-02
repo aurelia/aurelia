@@ -46,9 +46,9 @@ class $AppTask<K extends Key = Key> {
   public run(): void | Promise<void> {
     const key = this.k;
     const cb = this.cb;
-    return key === null
+    return (key === null
       ? (cb as AppTaskCallbackNoArg)()
-      : cb(this.c.get(key));
+      : cb(this.c.get(key))) as Promise<void>;
   }
 }
 
@@ -91,8 +91,11 @@ export const AppTask = Object.freeze({
   deactivated: createAppTaskSlotHook('deactivated'),
 });
 
-export type AppTaskCallbackNoArg = () => void | Promise<void>;
-export type AppTaskCallback<T> = (arg: Resolved<T>) => void | Promise<void>;
+// unknown as the return of an app task will be ignored
+// only cares whether it's a promise or not
+// the benefit of unknown is that application can avoid having to write () => { doThingsThatDoesNotReturnVoid() }
+export type AppTaskCallbackNoArg = () => unknown | Promise<unknown>;
+export type AppTaskCallback<T> = (arg: Resolved<T>) => unknown | Promise<unknown>;
 
 function createAppTaskSlotHook(slotName: TaskSlot) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

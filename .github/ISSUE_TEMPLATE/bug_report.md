@@ -13,6 +13,8 @@ Search open/closed issues before submitting since someone might have asked the s
 
 <!--- Provide a general summary of the issue here -->
 
+Repro link https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
+
 ## 🤔 Expected Behavior
 
 <!--- Tell us what should happen -->

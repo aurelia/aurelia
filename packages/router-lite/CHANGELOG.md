@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Bug Fixes:
+
+* **router-lite:** temporarily expose internal typings (#1517) ([8782392](https://github.com/aurelia/aurelia/commit/8782392))
+* **router-lite:** navigation to routes configured in ancestor nodes (#1514) ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **router-lite:** upward relative navigation ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+
+
+### Refactorings:
+
+* **router-lite:** lifecycle hook invocation (#1522) ([d6216d8](https://github.com/aurelia/aurelia/commit/d6216d8))
+* **router-lite:** explicit ctx in href & load ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **router-lite:** null context for root ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Bug Fixes:
+
+* ***:** param binding (#1500) ([f42e536](https://github.com/aurelia/aurelia/commit/f42e536))
+* **i18n:** t param binding handleChange should not call after unbound ([f42e536](https://github.com/aurelia/aurelia/commit/f42e536))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

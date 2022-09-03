@@ -345,10 +345,24 @@ export class RoutingInstruction {
   }
 
   /**
-   * Whether the routing instruction next scope/"children" instructions.
+   * Whether the routing instruction has next scope/"children" instructions.
    */
   public get hasNextScopeInstructions(): boolean {
     return (this.nextScopeInstructions?.length ?? 0) > 0;
+  }
+
+  /**
+   * Whether the routing instruction is unresolved.
+   */
+  public get isUnresolved(): boolean {
+    return this.component.isFunction() || this.component.isPromise();
+  }
+
+  /**
+   * Resolve the routing instruction.
+   */
+  public resolve(): void | Promise<ComponentAppellation> {
+    return this.component.resolve(this);
   }
 
   /**

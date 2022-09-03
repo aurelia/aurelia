@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Bug Fixes:
+
+* **validation-html:** transient injection symbol for presenter service (#1525) ([8652550](https://github.com/aurelia/aurelia/commit/8652550))
+* **validation:** transient injection symbol for presenter service ([8652550](https://github.com/aurelia/aurelia/commit/8652550))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

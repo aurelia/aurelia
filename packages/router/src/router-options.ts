@@ -4,7 +4,7 @@ import { INavigatorOptions } from './navigator';
 import { NavigationState } from './navigation-coordinator';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { IRoutingHookDefinition } from './routing-hook';
-import { IRouter, Router, IRouterConfiguration, RouterConfiguration } from './index';
+import { IRouter, Router, IRouterConfiguration, RouterConfiguration, ComponentAppellation } from './index';
 import { Navigation } from './navigation';
 
 /**
@@ -364,7 +364,7 @@ export class RouterOptions implements INavigatorOptions {
      * The component to be loaded if a specified can't be loaded.
      * The unloadable component is passed as a parameter to the fallback.
      */
-     public fallback: string = '',
+     public fallback: ComponentAppellation = '',
 
      /**
       * Whether the fallback action is to load the fallback component in
@@ -372,7 +372,7 @@ export class RouterOptions implements INavigatorOptions {
       * instructions or if the fallback is to be called and the processing
       * of the children to be aborted.
       */
-     public fallbackAction: FallbackAction = 'process-children',
+     public fallbackAction: FallbackAction = 'abort',
   ) { }
 
   public static create(input: IRouterOptions = {}): RouterOptions {

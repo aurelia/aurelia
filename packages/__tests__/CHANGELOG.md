@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Features:
+
+* **binding:** optional chaining & nullish coalescing (#1523) ([e33d563](https://github.com/aurelia/aurelia/commit/e33d563))
+* **router:** configurable viewport fallback behavior (#1507) ([1e50194](https://github.com/aurelia/aurelia/commit/1e50194))
+
+
+### Bug Fixes:
+
+* **validation-html:** transient injection symbol for presenter service (#1525) ([8652550](https://github.com/aurelia/aurelia/commit/8652550))
+* **validation:** transient injection symbol for presenter service ([8652550](https://github.com/aurelia/aurelia/commit/8652550))
+* **containerless:** ensure host of dynamically created containerless comp is removed (#1518) ([358b2ed](https://github.com/aurelia/aurelia/commit/358b2ed))
+* **router-lite:** navigation to routes configured in ancestor nodes (#1514) ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **router-lite:** upward relative navigation ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **repeater:** re attaching when using the same array with if (#1511) ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+* **repeat:** unsubscribe collection on detaching ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+
+
+### Refactorings:
+
+* **router-lite:** lifecycle hook invocation (#1522) ([d6216d8](https://github.com/aurelia/aurelia/commit/d6216d8))
+* **router-lite:** explicit ctx in href & load ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **router-lite:** null context for root ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* ***:** clean up instanceof code ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

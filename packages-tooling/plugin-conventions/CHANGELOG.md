@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Bug Fixes:
+
+* **hmr:** add ts-ignore to fix in hmr in strict TS (#1515) ([f571004](https://github.com/aurelia/aurelia/commit/f571004))
+* **for "TS700:** Parameter 'data' implicitly has an 'any' type. " on every compontent.ts file when using HMR with typescript in strict mode ([f571004](https://github.com/aurelia/aurelia/commit/f571004))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

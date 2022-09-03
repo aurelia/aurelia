@@ -120,15 +120,9 @@ In the above example, we provide the route (`id`) value (via `route: profile`). 
 
 Sometimes a user might attempt to visit a route that doesn't exist (either user error or because it was removed). You will want to configure your applications to display a fallback route in those situations.
 
-To do this, we add a `fallback` attribute to the `au-viewport` element and provide the name of an imported component.
+To add in fallback behavior, we can do this two ways. The `fallback` attribute on the `<au-viewport>` element or in the router `customize` method (code).
 
-{% code title="my-app.html" %}
-```html
-<import from="./missing-page"></import>
-
-<au-viewport fallback="missing-page"></au-viewport>
-```
-{% endcode %}
+### Create the fallback component
 
 Let's create the `missing-page` component (this is required or the fallback behavior will not work). First, we'll create the view-model for our `missing-page` component.
 
@@ -142,7 +136,6 @@ export class MissingPage {
     this.missingComponent = parameters.id;
   }
 }
-
 ```
 {% endcode %}
 
@@ -153,5 +146,35 @@ Now, the HTML.
 {% code title="missing-page.html" %}
 ```html
 <h3>Ouch! I couldn't find '${missingComponent}'!</h3>
+```
+{% endcode %}
+
+### Programmatically
+
+By using the `fallback` property on the `customize` method when we register the router, we can pass a component.
+
+```typescript
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router';
+import { MyApp } from './my-app';
+import { MissingPage } from './missing-page'; 
+
+Aurelia
+  .register(RouterConfiguration.customize({
+    fallback: MissingPage,
+  }))
+  .app(MyApp)
+  .start();
+```
+
+### Attribute
+
+Sometimes the `fallback` attribute can be the prefered approach to registering a fallback. Import your fallback component and pass the name to the `fallback` attribute. Same result, but it doesn't require touching the router registration.
+
+{% code title="my-app.html" %}
+```html
+<import from="./missing-page"></import>
+
+<au-viewport fallback="missing-page"></au-viewport>
 ```
 {% endcode %}

@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Features:
+
+* **binding:** optional chaining & nullish coalescing (#1523) ([e33d563](https://github.com/aurelia/aurelia/commit/e33d563))
+
+
+### Bug Fixes:
+
+* **repeater:** re attaching when using the same array with if (#1511) ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+* **repeat:** unsubscribe collection on detaching ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+* **e2e:** better e2e test scripts ([855a03f](https://github.com/aurelia/aurelia/commit/855a03f))
+* **build:** remove reference directive, use files in tsconfig instead ([855a03f](https://github.com/aurelia/aurelia/commit/855a03f))
+* **typings:** make ListenerOptions public ([855a03f](https://github.com/aurelia/aurelia/commit/855a03f))
+
+
+### Refactorings:
+
+* ***:** clean up instanceof code ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

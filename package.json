@@ -1,11 +1,11 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.38",
+  "version": "2.0.0-alpha.39",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/router",
-    "packages/__e2e__/router-lite-configured",
+    "packages/__e2e__/router-lite",
     "packages/addons",
     "packages/aurelia",
     "packages/fetch-client",
@@ -55,8 +55,7 @@
     "test/benchmarking-apps/storage",
     "test/benchmarking-apps/test-result",
     "test/benchmarking-apps/viewer/server",
-    "test/benchmarking-apps/viewer/client",
-    "test/js-framework-benchmark/frameworks/keyed/aurelia2-local"
+    "test/benchmarking-apps/viewer/client"
   ],
   "license": "MIT",
   "engines": {
@@ -132,7 +131,8 @@
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.14.1",
     "typescript": "4.7.3",
-    "vite": "^3.0.8"
+    "vite": "^3.0.8",
+    "v8-to-istanbul": "9.0.1"
   },
   "commitlint": {
     "rules": {

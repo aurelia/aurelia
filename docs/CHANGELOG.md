@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.39"></a>
+# 2.0.0-alpha.39 (2022-09-01)
+
+### Features:
+
+* **binding:** optional chaining & nullish coalescing (#1523) ([e33d563](https://github.com/aurelia/aurelia/commit/e33d563))
+* **router:** configurable viewport fallback behavior (#1507) ([1e50194](https://github.com/aurelia/aurelia/commit/1e50194))
+
+BREAKING CHANGES: the router now does not process child instructions after loading a fallback component.
+
+
+### Bug Fixes:
+
+* **validation:** transient injection symbol for presenter service ([8652550](https://github.com/aurelia/aurelia/commit/8652550))
+* **containerless:** ensure host of dynamically created containerless comp is removed (#1518) ([358b2ed](https://github.com/aurelia/aurelia/commit/358b2ed))
+* **router-lite:** temporarily expose internal typings (#1517) ([8782392](https://github.com/aurelia/aurelia/commit/8782392))
+* **router-lite:** navigation to routes configured in ancestor nodes (#1514) ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **hmr:** fix a bug in strict TS (#1515) ([f571004](https://github.com/aurelia/aurelia/commit/f571004))
+* **repeat:** unsubscribe collection on detaching ([89248cc](https://github.com/aurelia/aurelia/commit/89248cc))
+* **typings:** make ListenerOptions public ([855a03f](https://github.com/aurelia/aurelia/commit/855a03f))
+* **router:** fix default on refresh issue (#1501) ([6ad851f](https://github.com/aurelia/aurelia/commit/6ad851f))
+* **i18n:** t param binding handleChange should not call after unbound ([f42e536](https://github.com/aurelia/aurelia/commit/f42e536))
+
+
+### Refactorings:
+
+* **router:** change fallback action default to abort (#1524) ([13617e2](https://github.com/aurelia/aurelia/commit/13617e2))
+* **router-lite:** lifecycle hook invocation (#1522) ([d6216d8](https://github.com/aurelia/aurelia/commit/d6216d8))
+* **router-lite:** explicit ctx in load ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **router-lite:** null context for root ([3882700](https://github.com/aurelia/aurelia/commit/3882700))
+* **ci:** tweak router e2e test script (#1516) ([dcb9541](https://github.com/aurelia/aurelia/commit/dcb9541))
+* **build:** remove reference directive, use files in tsconfig instead ([855a03f](https://github.com/aurelia/aurelia/commit/855a03f))
+
 <a name="2.0.0-alpha.38"></a>
 # 2.0.0-alpha.38 (2022-08-17)
 

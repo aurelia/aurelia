@@ -3,10 +3,8 @@ import { IRouter } from '@aurelia/router';
 export class App {
 
   public static routes = [
-    { path: 'one-route', component: import('./pages/one') },
-    { path: 'two-route', component: () => import('./pages/two') },
-    { path: '/pages/one-route', component: import('./pages/one') },
-    { path: '/pages/two-route', component: () => import('./pages/two') },
+    { path: 'pages/one-route', component: import('./pages/one') },
+    { path: 'pages/two-route', component: () => import('./pages/two') },
   ];
 
   public message = 'Hello, World!';

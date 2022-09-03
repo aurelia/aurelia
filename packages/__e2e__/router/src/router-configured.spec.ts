@@ -56,8 +56,6 @@ test.describe('router', () => {
   });
 
   const tests = [
-    { link: 'One-route', result: 'One page' },
-    { link: 'Two-route', result: 'Two page' },
     { link: 'Pages one-route', result: 'One page' },
     { link: 'Pages two-route', result: 'Two page' },
   ];

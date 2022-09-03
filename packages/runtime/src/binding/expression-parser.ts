@@ -1416,7 +1416,7 @@ const TokenValues = [
   'of'
 ];
 
-const KeywordLookup: Record<string, Token> = {
+const KeywordLookup: Record<string, Token> = Object.assign(Object.create(null), {
   true: Token.TrueKeyword,
   null: Token.NullKeyword,
   false: Token.FalseKeyword,
@@ -1428,7 +1428,7 @@ const KeywordLookup: Record<string, Token> = {
   typeof: Token.TypeofKeyword,
   void: Token.VoidKeyword,
   of: Token.OfKeyword,
-};
+});
 
 /**
  * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)

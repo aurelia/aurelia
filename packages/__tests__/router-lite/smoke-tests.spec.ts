@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
 import { Aurelia, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
@@ -1777,7 +1777,7 @@ describe('router (smoke tests)', function () {
         public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
-              { path: 'c21', component: Promise.resolve({ C21 }), title: 'C21' },
+              { path: 'c21', component: Promise.resolve({ 'default': C21 }), title: 'C21' },
               { path: ['', 'c22'], component: C22, title: 'C22' },
             ]
           };
@@ -1792,7 +1792,7 @@ describe('router (smoke tests)', function () {
         public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
-              { path: ['', 'p1'], component: Promise.resolve({ P1 }), title: 'P1' },
+              { path: ['', 'p1'], component: Promise.resolve({ P1, 'default': { foo: 'bar' }, 'fizz': 'buzz' }).then(x => x.P1), title: 'P1' },
               { path: 'p2', component: P2, title: 'P2' },
               Promise.resolve({ P3 }),
             ]
@@ -1863,6 +1863,54 @@ describe('router (smoke tests)', function () {
 
       await au.stop();
     });
+
+    class InvalidAsyncComponentTestData {
+      public constructor(
+        public readonly name: string,
+        public readonly component: Promise<IModule>
+      ) { }
+    }
+
+    function* getInvalidAsyncComponentTestData() {
+      yield new InvalidAsyncComponentTestData('empty', Promise.resolve({}));
+      yield new InvalidAsyncComponentTestData('no-CE in module', Promise.resolve({ foo() { /** noop */ } }));
+    }
+
+    for (const { name, component } of getInvalidAsyncComponentTestData()) {
+      it(`async configuration - invalid module - ${name}`, async function () {
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root implements IRouteViewModel {
+          public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+            return {
+              routes: [
+                { path: '', component, title: 'P1' },
+              ]
+            };
+          }
+        }
+
+        const ctx = TestContext.create();
+        const { container } = ctx;
+
+        container.register(
+          StandardConfiguration,
+          TestRouterConfiguration.for(LogLevel.warn),
+          RouterConfiguration,
+        );
+
+        const au = new Aurelia(container);
+        const host = ctx.createElement('div');
+
+        try {
+          await au.app({ component: Root, host }).start();
+          assert.fail('expected error');
+        } catch (er) {
+          assert.match((er as Error).message, /does not appear to be a component or CustomElement recognizable by Aurelia/);
+        }
+
+        await au.stop();
+      });
+    }
   });
 
   it('isNavigating indicates router\'s navigation status', async function () {
@@ -2127,9 +2175,7 @@ describe('router (smoke tests)', function () {
         await router.load({ component: Bar, params: { x: '1' } });
         assert.fail('expected error1');
       } catch (er) {
-        assert.match((er as Error).message,
-        /No value for the required parameter 'id'/
-        );
+        assert.match((er as Error).message, /No value for the required parameter 'id'/);
       }
 
       try {

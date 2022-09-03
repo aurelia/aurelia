@@ -1119,6 +1119,7 @@ describe('ExpressionParser', function () {
   const ComplexMultiplicativeList: [string, any][] = [
     ...binaryMultiplicative.map(op => [
       ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsUnaryList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleUnaryList
         .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1141,6 +1142,7 @@ describe('ExpressionParser', function () {
   const ComplexAdditiveList: [string, any][] = [
     ...binaryAdditive.map(op => [
       ...SimpleIsAdditiveList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleMultiplicativeList
         .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1163,6 +1165,7 @@ describe('ExpressionParser', function () {
   const ComplexRelationalList: [string, any][] = [
     ...binaryRelational.map(([op, txt]) => [
       ...SimpleIsRelationalList.map(([i1, e1]) => [`${i1}${txt}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsAdditiveList.map(([i1, e1]) => [`a${txt}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleAdditiveList
         .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i2}${txt}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1185,6 +1188,7 @@ describe('ExpressionParser', function () {
   const ComplexEqualityList: [string, any][] = [
     ...binaryEquality.map(op => [
       ...SimpleIsEqualityList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsRelationalList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleRelationalList
         .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1206,6 +1210,7 @@ describe('ExpressionParser', function () {
 
   const ComplexLogicalANDList: [string, any][] = [
     ...SimpleIsLogicalANDList.map(([i1, e1]) => [`${i1}&&a`, new BinaryExpression('&&', e1, $a)] as [string, any]),
+    ...SimpleIsEqualityList.map(([i1, e1]) => [`a&&${i1}`, new BinaryExpression('&&', $a, e1)] as [string, any]),
     ...SimpleEqualityList
       .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i2}&&${i1}`, new BinaryExpression('&&', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1226,6 +1231,7 @@ describe('ExpressionParser', function () {
 
   const ComplexLogicalORList: [string, any][] = [
     ...SimpleIsLogicalORList.map(([i1, e1]) => [`${i1}||a`, new BinaryExpression('||', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`a||${i1}`, new BinaryExpression('||', $a, e1)] as [string, any]),
     ...SimpleLogicalANDList
       .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i2}||${i1}`, new BinaryExpression('||', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1249,6 +1255,7 @@ describe('ExpressionParser', function () {
 
   const ComplexNullishCoalescingList: [string, any][] = [
     ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}??a`, new BinaryExpression('??', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalORList.map(([i1, e1]) => [`a??${i1}`, new BinaryExpression('??', $a, e1)] as [string, any]),
     ...SimpleLogicalORList
       .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i2}??${i1}`, new BinaryExpression('??', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1269,6 +1276,8 @@ describe('ExpressionParser', function () {
 
   const ComplexConditionalList: [string, any][] = [
     ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1, $num0, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
     ...SimpleConditionalList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1.condition, e1.yes, new ConditionalExpression(e1.no, $num0, $num1))] as [string, any])

@@ -2,7 +2,7 @@ import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/k
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
-import { CustomElement } from './resources/custom-element';
+import { isElementType } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
@@ -88,11 +88,11 @@ export class AppRoot implements IDisposable {
       )
     );
 
-    this._hydratePromise = onResolve(this._runAppTasks('beforeCreate'), () => {
+    this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;
       const childCtn = container.createChild();
       let instance: object;
-      if (CustomElement.isType(component)) {
+      if (isElementType(component)) {
         instance = this.container.get(component);
       } else {
         instance = config.component as ICustomElementViewModel;
@@ -119,18 +119,18 @@ export class AppRoot implements IDisposable {
 
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
-      return onResolve(this._runAppTasks('beforeActivate'), () => {
+      return onResolve(this._runAppTasks('activating'), () => {
         return onResolve(this.controller.activate(this.controller, null, LifecycleFlags.fromBind, void 0), () => {
-          return this._runAppTasks('afterActivate');
+          return this._runAppTasks('activated');
         });
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
-    return onResolve(this._runAppTasks('beforeDeactivate'), () => {
+    return onResolve(this._runAppTasks('deactivating'), () => {
       return onResolve(this.controller.deactivate(this.controller, null, LifecycleFlags.none), () => {
-        return this._runAppTasks('afterDeactivate');
+        return this._runAppTasks('deactivated');
       });
     });
   }

@@ -7,7 +7,7 @@ import {
   SetPropertyInstruction,
 } from './renderer';
 import { IPlatform } from './platform';
-import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
+import { CustomElementDefinition, CustomElementType, generateElementName, getElementDefinition, isElementType } from './resources/custom-element';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { isString } from './utilities';
@@ -23,7 +23,7 @@ export function createElement<C extends Constructable = Constructable>(
   if (isString(tagOrType)) {
     return createElementForTag(p, tagOrType, props, children);
   }
-  if (CustomElement.isType(tagOrType)) {
+  if (isElementType(tagOrType)) {
     return createElementForType(p, tagOrType, props, children);
   }
   throw new Error(`Invalid Tag or Type.`);
@@ -46,7 +46,7 @@ export class RenderPlan {
   public get definition(): CustomElementDefinition {
     if (this._lazyDef === void 0) {
       this._lazyDef = CustomElementDefinition.create({
-        name: CustomElement.generateName(),
+        name: generateElementName(),
         template: this.node,
         needsCompile: isString(this.node),
         instructions: this.instructions,
@@ -114,7 +114,7 @@ function createElementForType(
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
 ): RenderPlan {
-  const definition = CustomElement.getDefinition(Type);
+  const definition = getElementDefinition(Type);
   const instructions: IInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];

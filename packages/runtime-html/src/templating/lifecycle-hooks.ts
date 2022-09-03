@@ -1,5 +1,6 @@
-import { DI, Registration } from '@aurelia/kernel';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../shared';
+import { DI } from '@aurelia/kernel';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
+import { singletonRegistration } from '../utilities-di';
 import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 
 export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
@@ -51,7 +52,7 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
   }
 
   public register(container: IContainer): void {
-    Registration.singleton(ILifecycleHooks, this.Type).register(container);
+    singletonRegistration(ILifecycleHooks, this.Type).register(container);
   }
 }
 

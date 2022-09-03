@@ -16,7 +16,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
         public option = '1';
       },
       [
-        AppTask.beforeCreate(IContainer, container => {
+        AppTask.creating(IContainer, container => {
           const platform = container.get(IPlatform) as BrowserPlatform;
           platform.window.customElements.define(elName, class MyElement extends platform.window.HTMLElement {
 

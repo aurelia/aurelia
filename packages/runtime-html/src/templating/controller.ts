@@ -20,8 +20,8 @@ import {
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
-import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
+import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
 import { ChildrenDefinition, ChildrenObserver } from './children';
 import { IPlatform } from '../platform';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
@@ -218,7 +218,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
-    definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? getElementDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* container      */ctn,
@@ -278,7 +278,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomAttributeController<C>;
     }
 
-    definition = definition ?? CustomAttribute.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? getAttributeDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* own ct         */ctn,
@@ -413,14 +413,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.isStrictBinding = isStrictBinding;
 
-    if ((this.hostController = CustomElement.for(this.host!, optionalCeFind) as Controller | null) !== null) {
+    if ((this.hostController = findElementControllerFor(this.host!, optionalCeFind) as Controller | null) !== null) {
       this.host = this.container.root.get(IPlatform).document.createElement(this.definition!.name);
       if (containerless && location == null) {
         location = this.location = convertToRenderLocation(this.host);
       }
     }
 
-    setRef(this.host!, CustomElement.name, this as IHydratedController);
+    setRef(this.host!, elementBaseName, this as IHydratedController);
     setRef(this.host!, this.definition!.key, this as IHydratedController);
     if (shadowOptions !== null || hasSlots) {
       if (location != null) {
@@ -429,11 +429,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         else
           throw new Error(`AUR0501`);
       }
-      setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this as IHydratedController);
+      setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), elementBaseName, this as IHydratedController);
       setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.shadowRoot;
     } else if (location != null) {
-      setRef(location, CustomElement.name, this as IHydratedController);
+      setRef(location, elementBaseName, this as IHydratedController);
       setRef(location, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.location;
     } else {
@@ -1106,10 +1106,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public is(name: string): boolean {
     switch (this.vmKind) {
       case ViewModelKind.customAttribute: {
-        return CustomAttribute.getDefinition(this.viewModel!.constructor).name === name;
+        return getAttributeDefinition(this.viewModel!.constructor).name === name;
       }
       case ViewModelKind.customElement: {
-        return CustomElement.getDefinition(this.viewModel!.constructor).name === name;
+        return getElementDefinition(this.viewModel!.constructor).name === name;
       }
       case ViewModelKind.synthetic:
         return this.viewFactory!.name === name;
@@ -1123,7 +1123,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public setHost(host: HTMLElement): this {
     if (this.vmKind === ViewModelKind.customElement) {
-      setRef(host, CustomElement.name, this as IHydratedController);
+      setRef(host, elementBaseName, this as IHydratedController);
       setRef(host, this.definition!.key, this as IHydratedController);
     }
     this.host = host;
@@ -1133,7 +1133,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public setShadowRoot(shadowRoot: ShadowRoot): this {
     if (this.vmKind === ViewModelKind.customElement) {
-      setRef(shadowRoot, CustomElement.name, this as IHydratedController);
+      setRef(shadowRoot, elementBaseName, this as IHydratedController);
       setRef(shadowRoot, this.definition!.key, this as IHydratedController);
     }
     this.shadowRoot = shadowRoot;
@@ -1143,7 +1143,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public setLocation(location: IRenderLocation): this {
     if (this.vmKind === ViewModelKind.customElement) {
-      setRef(location, CustomElement.name, this as IHydratedController);
+      setRef(location, elementBaseName, this as IHydratedController);
       setRef(location, this.definition!.key, this as IHydratedController);
     }
     this.location = location;
@@ -1370,7 +1370,7 @@ export function isCustomElementController<C extends ICustomElementViewModel = IC
 }
 
 export function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel {
-  return isObject(value) && CustomElement.isType(value.constructor);
+  return isObject(value) && isElementType(value.constructor);
 }
 
 export class HooksDefinition {

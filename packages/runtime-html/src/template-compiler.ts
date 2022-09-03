@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { DI, emptyArray, Registration, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
+import { DI, emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -25,11 +25,11 @@ import { IPlatform } from './platform';
 import { Bindable, BindableDefinition } from './bindable';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
 import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from './resources/custom-element';
 import { BindingCommand, CommandType } from './resources/binding-command';
 import { createLookup, isString } from './utilities';
-import { allResources } from './utilities-di';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from './shared';
+import { allResources, singletonRegistration } from './utilities-di';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
 
 import type {
   IContainer,
@@ -46,7 +46,7 @@ import type { ICompliationInstruction, IInstruction, } from './renderer';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
-    return Registration.singleton(ITemplateCompiler, this).register(container);
+    return singletonRegistration(ITemplateCompiler, this).register(container);
   }
 
   public debug: boolean = false;
@@ -93,7 +93,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     return CustomElementDefinition.create({
       ...partialDefinition,
-      name: partialDefinition.name || _generateElementName(),
+      name: partialDefinition.name || generateElementName(),
       dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
       instructions: context.rows,
       surrogates: isTemplateElement
@@ -956,7 +956,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction.auSlot = {
           name: slotName,
           fallback: CustomElementDefinition.create({
-            name: _generateElementName(),
+            name: generateElementName(),
             template,
             instructions: fallbackContentContext.rows,
             needsCompile: false,
@@ -1104,7 +1104,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           projectionCompilationContext = context._createChild();
           this._compileNode(template.content, projectionCompilationContext);
           projections[targetSlot] = CustomElementDefinition.create({
-            name: _generateElementName(),
+            name: generateElementName(),
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
@@ -1136,7 +1136,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
       tcInstruction.def = CustomElementDefinition.create({
-        name: _generateElementName(),
+        name: generateElementName(),
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
@@ -1165,7 +1165,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         template.content.appendChild(marker);
 
         tcInstruction.def = CustomElementDefinition.create({
-          name: _generateElementName(),
+          name: generateElementName(),
           template,
           needsCompile: false,
           instructions: [[tcInstructions[i + 1]]],
@@ -1288,7 +1288,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           projectionCompilationContext = context._createChild();
           this._compileNode(template.content, projectionCompilationContext);
           projections[targetSlot] = CustomElementDefinition.create({
-            name: _generateElementName(),
+            name: generateElementName(),
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
@@ -1520,7 +1520,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       localElTypes.push(LocalTemplateType);
-      context._addDep(CustomElement.define({ name, template: localTemplate }, LocalTemplateType));
+      context._addDep(defineElement({ name, template: localTemplate }, LocalTemplateType));
 
       root.removeChild(localTemplate);
     }
@@ -1539,7 +1539,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let i = 0;
     const ii = localElTypes.length;
     for (; ii > i; ++i) {
-      (CustomElement.getDefinition(localElTypes[i]).dependencies as Key[]).push(
+      (getElementDefinition(localElTypes[i]).dependencies as Key[]).push(
         ...context.def.dependencies ?? emptyArray,
         ...context.deps ?? emptyArray,
       );
@@ -1924,7 +1924,7 @@ class TemplateCompilerHooksDefinition<T> implements ResourceDefinition<Construct
   ) {}
 
   public register(c: IContainer) {
-    c.register(Registration.singleton(ITemplateCompilerHooks, this.Type));
+    c.register(singletonRegistration(ITemplateCompilerHooks, this.Type));
   }
 }
 
@@ -1944,6 +1944,5 @@ export const templateCompilerHooks = (target?: Function) => {
 }
 /* eslint-enable */
 
-const _generateElementName = CustomElement.generateName;
 const DEFAULT_SLOT_NAME = 'default';
 const AU_SLOT = 'au-slot';

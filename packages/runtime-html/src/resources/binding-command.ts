@@ -1,4 +1,4 @@
-import { camelCase, Registration, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
 import { BindingMode, ExpressionType, DelegationStrategy, IExpressionParser, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
 import { IAttrMapper } from '../attribute-mapper';
 import {
@@ -11,8 +11,9 @@ import {
   SpreadBindingInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../shared';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { isString } from '../utilities';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -122,8 +123,8 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.singleton(key, Type).register(container);
-    Registration.aliasTo(key, Type).register(container);
+    singletonRegistration(key, Type).register(container);
+    aliasRegistration(key, Type).register(container);
     registerAliases(aliases, BindingCommand, key, container);
   }
 }

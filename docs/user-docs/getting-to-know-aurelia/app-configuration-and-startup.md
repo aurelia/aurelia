@@ -163,8 +163,8 @@ import Aurelia, { AppTask } from 'aurelia';
 const au = new Aurelia();
 
 au.register(
-    AppTask.beforeActivate(() => {
-        console.log('Before activate');
+    AppTask.activating(() => {
+        console.log('activating or before activate');
     })
 );
 ```
@@ -175,8 +175,8 @@ Within a plugin, the code is similar. You would be exporting a function which ac
 ```typescript
 export function register(container: IContainer) {
     container.register(
-        AppTask.beforeActivate(() => {
-            console.log('Before activate');
+        AppTask.activating(() => {
+            console.log('activating or before activate');
         })
     )
 }

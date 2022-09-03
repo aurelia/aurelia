@@ -1,7 +1,7 @@
 import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
-import { CustomElement } from '../resources/custom-element';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../shared';
+import { findElementControllerFor } from '../resources/custom-element';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { isString } from '../utilities';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
@@ -277,7 +277,7 @@ export function filterChildren(
   let i = 0;
   for (; i < ii; ++i) {
     node = nodes[i];
-    $controller = CustomElement.for(node, forOpts);
+    $controller = findElementControllerFor(node, forOpts);
     viewModel = $controller?.viewModel ?? null;
 
     if (filter(node, $controller, viewModel)) {

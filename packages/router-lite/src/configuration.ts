@@ -63,8 +63,8 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
       return url;
     }),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
-    AppTask.afterActivate(IRouter, activation),
-    AppTask.afterDeactivate(IRouter, router => {
+    AppTask.activated(IRouter, activation),
+    AppTask.deactivated(IRouter, router => {
       router.stop();
     }),
     ...DefaultComponents,

@@ -349,11 +349,7 @@ export class ParserState {
 
 const $state = new ParserState('');
 
-export function parseExpression<TType extends ExpressionType = ExpressionType.IsProperty>(input: string, expressionType?: TType):
-TType extends ExpressionType.Interpolation ? Interpolation :
-  TType extends ExpressionType.IsIterator ? ForOfStatement :
-    IsBindingBehavior {
-
+export function parseExpression(input: string, expressionType?: ExpressionType): AnyBindingExpression {
   $state.ip = input;
   $state.length = input.length;
   $state.index = 0;
@@ -369,24 +365,7 @@ TType extends ExpressionType.Interpolation ? Interpolation :
 // It's therefore not considered to have any tangible impact on the maintainability of the code base.
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // eslint-disable-next-line max-lines-per-function
-export function parse<TPrec extends Precedence, TType extends ExpressionType>(state: ParserState, minPrecedence: TPrec, expressionType: TType):
-TPrec extends Precedence.Unary ? IsUnary :
-  TPrec extends Precedence.Binary ? IsBinary :
-    TPrec extends Precedence.LeftHandSide ? IsLeftHandSide :
-      TPrec extends Precedence.Assign ? IsAssign :
-        TPrec extends Precedence.Conditional ? IsConditional :
-          TPrec extends Precedence.Primary ? IsPrimary :
-            TPrec extends Precedence.Multiplicative ? IsBinary :
-              TPrec extends Precedence.Additive ? IsBinary :
-                TPrec extends Precedence.Relational ? IsBinary :
-                  TPrec extends Precedence.Equality ? IsBinary :
-                    TPrec extends Precedence.LogicalAND ? IsBinary :
-                      TPrec extends Precedence.LogicalOR ? IsBinary :
-                        TPrec extends Precedence.Variadic ?
-                          TType extends ExpressionType.Interpolation ? Interpolation :
-                            TType extends ExpressionType.IsIterator ? ForOfStatement :
-                              never : never {
-
+export function parse(state: ParserState, minPrecedence: Precedence, expressionType: ExpressionType): AnyBindingExpression {
   if (expressionType === ExpressionType.IsCustom) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new CustomExpression(state.ip) as any;
@@ -434,7 +413,7 @@ TPrec extends Precedence.Unary ? IsUnary :
      */
     const op = TokenValues[state._currentToken & Token.Type] as UnaryOperator;
     nextToken(state);
-    result = new UnaryExpression(op, parse(state, Precedence.LeftHandSide, expressionType));
+    result = new UnaryExpression(op, parse(state, Precedence.LeftHandSide, expressionType) as IsLeftHandSide);
     state._assignable = false;
   } else {
     /**
@@ -730,7 +709,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       break;
     }
     nextToken(state);
-    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, opToken & Token.Precedence, expressionType));
+    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(state, opToken & Token.Precedence, expressionType) as IsBinary);
     state._assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
@@ -751,9 +730,9 @@ TPrec extends Precedence.Unary ? IsUnary :
    */
 
   if (consumeOpt(state, Token.Question)) {
-    const yes = parse(state, Precedence.Assign, expressionType);
+    const yes = parse(state, Precedence.Assign, expressionType) as IsAssign;
     consume(state, Token.Colon);
-    result = new ConditionalExpression(result as IsBinary, yes, parse(state, Precedence.Assign, expressionType));
+    result = new ConditionalExpression(result as IsBinary, yes, parse(state, Precedence.Assign, expressionType) as IsAssign);
     state._assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
@@ -781,7 +760,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       else
         throw new Error(`AUR0158:${state.ip}`);
     }
-    result = new AssignExpression(result as IsAssignable, parse(state, Precedence.Assign, expressionType));
+    result = new AssignExpression(result as IsAssignable, parse(state, Precedence.Assign, expressionType) as IsAssign);
   }
   if (Precedence.Variadic < minPrecedence) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -802,7 +781,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
-      args.push(parse(state, Precedence.Assign, expressionType));
+      args.push(parse(state, Precedence.Assign, expressionType) as IsAssign);
     }
     result = new ValueConverterExpression(result as IsValueConverter, name, args);
   }
@@ -821,7 +800,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     nextToken(state);
     const args = new Array<IsAssign>();
     while (consumeOpt(state, Token.Colon)) {
-      args.push(parse(state, Precedence.Assign, expressionType));
+      args.push(parse(state, Precedence.Assign, expressionType) as IsAssign);
     }
     result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
@@ -897,7 +876,7 @@ function parseArguments(state: ParserState) {
   nextToken(state);
   const args: IsAssign[] = [];
   while ((state._currentToken as Token) !== Token.CloseParen) {
-    args.push(parse(state, Precedence.Assign, ExpressionType.None));
+    args.push(parse(state, Precedence.Assign, ExpressionType.None) as IsAssign);
     if (!consumeOpt(state, Token.Comma)) {
       break;
     }
@@ -914,7 +893,7 @@ function parseKeyedExpression(state: ParserState, result: IsLeftHandSide, option
   const _optional = state._optional;
 
   nextToken(state);
-  result = new AccessKeyedExpression(result, parse(state, Precedence.Assign, ExpressionType.None), optional);
+  result = new AccessKeyedExpression(result, parse(state, Precedence.Assign, ExpressionType.None) as IsAssign, optional);
   consume(state, Token.CloseBracket);
 
   state._assignable = !_optional;
@@ -1030,7 +1009,7 @@ function parseArrayLiteralExpression(state: ParserState, expressionType: Express
         break;
       }
     } else {
-      elements.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
+      elements.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
       if (consumeOpt(state, Token.Comma)) {
         if ((state._currentToken as Token) === Token.CloseBracket) {
           break;
@@ -1104,19 +1083,19 @@ function parseObjectLiteralExpression(state: ParserState, expressionType: Expres
     if (state._currentToken & Token.StringOrNumericLiteral) {
       nextToken(state);
       consume(state, Token.Colon);
-      values.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
+      values.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
     } else if (state._currentToken & Token.IdentifierName) {
       // IdentifierName = optional colon
       const { _currentChar: currentChar, _currentToken: currentToken, index: index } = state;
       nextToken(state);
       if (consumeOpt(state, Token.Colon)) {
-        values.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator));
+        values.push(parse(state, Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
       } else {
         // Shorthand
         state._currentChar = currentChar;
         state._currentToken = currentToken;
         state.index = index;
-        values.push(parse(state, Precedence.Primary, expressionType & ~ExpressionType.IsIterator));
+        values.push(parse(state, Precedence.Primary, expressionType & ~ExpressionType.IsIterator) as IsAssign);
       }
     } else {
       if (__DEV__)
@@ -1155,7 +1134,7 @@ function parseInterpolation(state: ParserState): Interpolation {
           state.index += 2;
           state._currentChar = state.ip.charCodeAt(state.index);
           nextToken(state);
-          const expression = parse(state, Precedence.Variadic, ExpressionType.Interpolation);
+          const expression = parse(state, Precedence.Variadic, ExpressionType.Interpolation) as IsBindingBehavior | Interpolation;
           expressions.push(expression);
           continue;
         } else {
@@ -1215,11 +1194,11 @@ function parseTemplate(state: ParserState, expressionType: ExpressionType, resul
   const cooked = [state._tokenValue as string];
   // TODO: properly implement raw parts / decide whether we want this
   consume(state, Token.TemplateContinuation);
-  const expressions = [parse(state, Precedence.Assign, expressionType)];
+  const expressions = [parse(state, Precedence.Assign, expressionType) as IsAssign];
   while ((state._currentToken = scanTemplateTail(state)) !== Token.TemplateTail) {
     cooked.push(state._tokenValue as string);
     consume(state, Token.TemplateContinuation);
-    expressions.push(parse(state, Precedence.Assign, expressionType));
+    expressions.push(parse(state, Precedence.Assign, expressionType) as IsAssign);
   }
   cooked.push(state._tokenValue as string);
 

@@ -75,8 +75,8 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
 
   /** @internal */
   private _analyze(m: TMod): AnalyzedModule<TMod> {
-    if(m == null) throw new Error(`Invalid input: ${String(m)}. Expected Object.`);
-    if(typeof m !== 'object') return new AnalyzedModule(m, []);
+    if (m == null) throw new Error(`Invalid input: ${String(m)}. Expected Object.`);
+    if (typeof m !== 'object') return new AnalyzedModule(m, []);
     let value: unknown;
     let isRegistry: boolean;
     let isConstructable: boolean;

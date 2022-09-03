@@ -650,9 +650,11 @@ class NavigationModel implements INavigationModel {
 
   /** @internal */
   public setIsActive(router: IRouter, context: IRouteContext): void {
-    for (const route of this.routes) {
-      route.setIsActive(router, context);
-    }
+    void onResolve(this._promise, () => {
+      for (const route of this.routes) {
+        route.setIsActive(router, context);
+      }
+    });
   }
 
   /** @internal */

@@ -66,10 +66,6 @@ export {
   IExpressionParser,
   ExpressionType,
   parseExpression,
-  Char,
-  Precedence,
-  parse,
-  ParserState,
 } from './binding/expression-parser';
 
 export {

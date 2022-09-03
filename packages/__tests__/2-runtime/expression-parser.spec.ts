@@ -26,10 +26,7 @@ import {
   ValueConverterExpression,
   IsLeftHandSide,
   IsAssign,
-  Precedence,
   parseExpression,
-  parse,
-  ParserState,
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
@@ -650,116 +647,6 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Unary', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Unary, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than UnaryExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Binary', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Binary, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than BinaryExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Conditional', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Conditional, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-              (result.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-                (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than ConditionalExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Assign', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Assign, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-              (result.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
-              (result.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-                (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
-                (expected.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than AssignExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Variadic', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Variadic, exprType);
-            assert.deepStrictEqual(result, expected, input);
           });
         }
       });

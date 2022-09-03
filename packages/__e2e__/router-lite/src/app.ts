@@ -1,12 +1,12 @@
 import { customElement, IRouter, route } from 'aurelia';
 import template from './app.html';
-import { Auth } from './pages/auth';
+// import { Auth } from './pages/auth';
 import { Home } from './pages/home';
 
 @route({
   routes: [
     { id: 'home', path: '', component: Home, title: 'Home' },
-    { path: 'auth', component: Auth, title: 'Sign in' },
+    { path: 'auth', component: import('./pages/auth').then(x => x.Auth), title: 'Sign in' },
   ]
 })
 @customElement({

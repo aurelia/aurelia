@@ -1,4 +1,4 @@
-import { DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Registration, ResourceDefinition } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
 import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
@@ -439,6 +439,13 @@ export class RouteContext {
 
   public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
     return this.moduleLoader.load(promise, m => {
+      // when we have import('./some-path').then(x => x.somethingSpecific)
+      const raw = m.raw;
+      if (typeof raw === 'function') {
+        const def = Protocol.resource.getAll(raw as Constructable).find(isCustomElementDefinition);
+        if (def !== void 0) return def;
+      }
+
       let defaultExport: CustomElementDefinition | undefined = void 0;
       let firstNonDefaultExport: CustomElementDefinition | undefined = void 0;
       for (const item of m.items) {

@@ -267,42 +267,44 @@ const enum Token {
   OpenParen               = 0b0101001000001_0000_000111,
   OpenBrace               = 0b0001000000000_0000_001000,
   Dot                     = 0b0000001000000_0000_001001,
-  QuestionDot             = 0b0100001000000_0000_001010,
-  CloseBrace              = 0b1110000000000_0000_001011,
-  CloseParen              = 0b1110000000000_0000_001100,
-  Comma                   = 0b1100000000000_0000_001101,
-  OpenBracket             = 0b0101001000001_0000_001110,
-  CloseBracket            = 0b1110000000000_0000_001111,
-  Colon                   = 0b1100000000000_0000_010000,
-  Question                = 0b1100000000000_0000_010011,
-  Ampersand               = 0b1100000000000_0000_010100,
-  Bar                     = 0b1100000000000_0000_010101,
-  QuestionQuestion        = 0b1100100000000_0010_010110,
-  BarBar                  = 0b1100100000000_0011_010111,
-  AmpersandAmpersand      = 0b1100100000000_0100_011000,
-  EqualsEquals            = 0b1100100000000_0101_011001,
-  ExclamationEquals       = 0b1100100000000_0101_011010,
-  EqualsEqualsEquals      = 0b1100100000000_0101_011011,
-  ExclamationEqualsEquals = 0b1100100000000_0101_011100,
-  LessThan                = 0b1100100000000_0110_011101,
-  GreaterThan             = 0b1100100000000_0110_011110,
-  LessThanEquals          = 0b1100100000000_0110_011111,
-  GreaterThanEquals       = 0b1100100000000_0110_100000,
-  InKeyword               = 0b1100100001000_0110_100001,
-  InstanceOfKeyword       = 0b1100100001000_0110_100010,
-  Plus                    = 0b0100110000000_0111_100011,
-  Minus                   = 0b0100110000000_0111_100100,
-  TypeofKeyword           = 0b0000010001000_0000_100101,
-  VoidKeyword             = 0b0000010001000_0000_100110,
-  Asterisk                = 0b1100100000000_1000_100111,
-  Percent                 = 0b1100100000000_1000_101000,
-  Slash                   = 0b1100100000000_1000_101001,
-  Equals                  = 0b1000000000000_0000_101010,
-  Exclamation             = 0b0000010000000_0000_101011,
-  TemplateTail            = 0b0100001000001_0000_101100,
-  TemplateContinuation    = 0b0100001000001_0000_101101,
-  OfKeyword               = 0b1000000001010_0000_101110,
-  Arrow                   = 0b0000000000000_0000_101111,
+  DotDot                  = 0b0000000000000_0000_001010,
+  DotDotDot               = 0b0000000000000_0000_001011,
+  QuestionDot             = 0b0100001000000_0000_001100,
+  CloseBrace              = 0b1110000000000_0000_001101,
+  CloseParen              = 0b1110000000000_0000_001110,
+  Comma                   = 0b1100000000000_0000_001111,
+  OpenBracket             = 0b0101001000001_0000_010000,
+  CloseBracket            = 0b1110000000000_0000_010011,
+  Colon                   = 0b1100000000000_0000_010100,
+  Question                = 0b1100000000000_0000_010101,
+  Ampersand               = 0b1100000000000_0000_010110,
+  Bar                     = 0b1100000000000_0000_010111,
+  QuestionQuestion        = 0b1100100000000_0010_011000,
+  BarBar                  = 0b1100100000000_0011_011001,
+  AmpersandAmpersand      = 0b1100100000000_0100_011010,
+  EqualsEquals            = 0b1100100000000_0101_011011,
+  ExclamationEquals       = 0b1100100000000_0101_011100,
+  EqualsEqualsEquals      = 0b1100100000000_0101_011101,
+  ExclamationEqualsEquals = 0b1100100000000_0101_011110,
+  LessThan                = 0b1100100000000_0110_011111,
+  GreaterThan             = 0b1100100000000_0110_100000,
+  LessThanEquals          = 0b1100100000000_0110_100001,
+  GreaterThanEquals       = 0b1100100000000_0110_100010,
+  InKeyword               = 0b1100100001000_0110_100011,
+  InstanceOfKeyword       = 0b1100100001000_0110_100100,
+  Plus                    = 0b0100110000000_0111_100101,
+  Minus                   = 0b0100110000000_0111_100110,
+  TypeofKeyword           = 0b0000010001000_0000_100111,
+  VoidKeyword             = 0b0000010001000_0000_101000,
+  Asterisk                = 0b1100100000000_1000_101001,
+  Percent                 = 0b1100100000000_1000_101010,
+  Slash                   = 0b1100100000000_1000_101011,
+  Equals                  = 0b1000000000000_0000_101100,
+  Exclamation             = 0b0000010000000_0000_101101,
+  TemplateTail            = 0b0100001000001_0000_101110,
+  TemplateContinuation    = 0b0100001000001_0000_101111,
+  OfKeyword               = 0b1000000001010_0000_110000,
+  Arrow                   = 0b0000000000000_0000_110001,
 }
 
 const $false = PrimitiveLiteralExpression.$false;
@@ -432,25 +434,31 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         do {
           nextToken();
           ++ancestor;
-          if (consumeOpt(Token.Dot)) {
-            if (($currentToken as Token) === Token.Dot) {
-              throw invalidDoubleDotOrSpread();
-            } else if (($currentToken as Token) === Token.EOF) {
+          switch (($currentToken as Token)) {
+            case Token.Dot:
+              nextToken();
+              if (($currentToken & Token.IdentifierName) === 0) {
+                throw expectedIdentifier();
+              }
+              break;
+            case Token.DotDot:
+            case Token.DotDotDot:
               throw expectedIdentifier();
-            }
-          } else if (($currentToken as Token) === Token.QuestionDot) {
-            $optional = true;
-            nextToken();
-            if (($currentToken & Token.IdentifierName) === 0) {
-              result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
-              optionalThisTail = true;
-              break primary;
-            }
-          } else if ($currentToken & Token.AccessScopeTerminal) {
-            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
-            break primary;
-          } else {
-            throw invalidMemberExpression();
+            case Token.QuestionDot:
+              $optional = true;
+              nextToken();
+              if (($currentToken & Token.IdentifierName) === 0) {
+                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+                optionalThisTail = true;
+                break primary;
+              }
+              break;
+            default:
+              if ($currentToken & Token.AccessScopeTerminal) {
+                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+                break primary;
+              }
+              throw invalidMemberExpression();
           }
         } while ($currentToken === Token.ParentScope);
         // falls through
@@ -472,6 +480,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         }
         break;
       }
+      case Token.DotDot:
+        throw unexpectedDoubleDot();
+      case Token.DotDotDot:
+        throw invalidSpreadOp();
       case Token.ThisScope: // $this
         $assignable = false;
         nextToken();
@@ -525,6 +537,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       return result as any;
     }
 
+    if (($currentToken as Token) === Token.DotDot || ($currentToken as Token) === Token.DotDotDot) {
+      throw expectedIdentifier();
+    }
+
     if (result.$kind === ExpressionKind.AccessThis) {
       switch ($currentToken as Token) {
         case Token.QuestionDot:
@@ -555,6 +571,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           result = new AccessScopeExpression($tokenValue as string, result.ancestor);
           nextToken();
           break;
+        case Token.DotDot:
+        case Token.DotDotDot:
+          throw expectedIdentifier();
         case Token.OpenParen:
           result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), optionalThisTail);
           break;
@@ -608,6 +627,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           }
           result = parseMemberExpressionLHS(result as IsLeftHandSide, false);
           break;
+        case Token.DotDot:
+        case Token.DotDotDot:
+          throw expectedIdentifier();
         case Token.OpenParen:
           if (result.$kind === ExpressionKind.AccessScope) {
             result = new CallScopeExpression(result.name, parseArguments(), result.ancestor, false);
@@ -634,6 +656,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           break;
       }
     }
+  }
+
+  if (($currentToken as Token) === Token.DotDot || ($currentToken as Token) === Token.DotDotDot) {
+    throw expectedIdentifier();
   }
 
   if (Precedence.Binary < minPrecedence) {
@@ -1408,9 +1434,9 @@ function invalidStartOfExpression() {
   }
 }
 
-function invalidDoubleDotOrSpread() {
+function invalidSpreadOp() {
   if (__DEV__) {
-    return new Error(`AUR0152: Double dot and spread operators are not supported: '${$input}'`);
+    return new Error(`AUR0152: Spread operator is not supported: '${$input}'`);
   } else {
     return new Error(`AUR0152:${$input}`);
   }
@@ -1569,6 +1595,14 @@ function invalidArrowParameterList() {
   }
 }
 
+function unexpectedDoubleDot() {
+  if (__DEV__) {
+    return new Error(`AUR0174: Unexpected token '.' at position ${$index - 1} in ${$input}`);
+  } else {
+    return new Error(`AUR0174:${$input}`);
+  }
+}
+
 // #endregion
 
 /**
@@ -1581,7 +1615,7 @@ function invalidArrowParameterList() {
 const TokenValues = [
   $false, $true, $null, $undefined, '$this', null/* '$host' */, '$parent',
 
-  '(', '{', '.', '?.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
+  '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
 
   '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
@@ -1743,10 +1777,18 @@ CharScanners[Char.Question] = () => {
   return Token.QuestionQuestion;
 };
 
-// .
+// ., ...
 CharScanners[Char.Dot] = () => {
   if (nextChar() <= Char.Nine && $currentChar >= Char.Zero) {
     return scanNumber(true);
+  }
+  if ($currentChar === Char.Dot) {
+    const peek = $input.charCodeAt($index + 1);
+    if (peek !== Char.Dot) {
+      return Token.DotDot;
+    }
+    nextChar();
+    return Token.DotDotDot;
   }
   return Token.Dot;
 };

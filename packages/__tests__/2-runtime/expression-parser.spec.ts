@@ -30,6 +30,7 @@ import {
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
+  ArrowFunction,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -410,9 +411,16 @@ describe('ExpressionParser', function () {
   const SimpleAssignList: [string, any][] = [
     [`a=b`, new AssignExpression($a, $b)]
   ];
+  const SimpleArrowList: [string, any][] = [
+    [`(a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`(a, b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a)],
+    [`a => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`() => 0`, new ArrowFunction([], $num0)],
+  ];
   const SimpleIsAssignList: [string, any][] = [
     ...SimpleIsConditionalList,
-    ...SimpleAssignList
+    ...SimpleArrowList,
+    ...SimpleAssignList,
   ];
 
   // This forms the group Precedence.Variadic
@@ -1471,7 +1479,11 @@ describe('ExpressionParser', function () {
     for (const [input] of SimpleIsAssignList) {
       for (const op of ['(', '[']) {
         it(`throw 'Missing expected token' on "${op}${input}"`, function () {
-          verifyResultOrError(`${op}${input}`, null, 'AUR0167');
+          if (`${op}${input}` === '(a => a') {
+            verifyResultOrError(`${op}${input}`, null, 'AUR0173');
+          } else {
+            verifyResultOrError(`${op}${input}`, null, 'AUR0167');
+          }
           // verifyResultOrError(`${op}${input}`, null, 'Missing expected token');
         });
       }

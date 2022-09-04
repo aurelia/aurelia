@@ -40,6 +40,7 @@ import {
   ExpressionKind,
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
+  ArrowFunction,
 } from './ast';
 import { createLookup } from '../utilities-objects';
 
@@ -304,6 +305,7 @@ const enum Token {
   TemplateTail            = 0b0100001000001_0000_101100,
   TemplateContinuation    = 0b0100001000001_0000_101101,
   OfKeyword               = 0b1000000001010_0000_101110,
+  Arrow                   = 0b0000000000000_0000_101111,
 }
 
 const $false = PrimitiveLiteralExpression.$false;
@@ -467,28 +469,32 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           }
         } while ($currentToken === Token.ParentScope);
         // falls through
-      case Token.Identifier: // identifier
+      case Token.Identifier: { // identifier
+        const id = $tokenValue as string;
         if (expressionType & ExpressionType.IsIterator) {
-          result = new BindingIdentifier($tokenValue as string);
+          result = new BindingIdentifier(id);
         } else {
-          result = new AccessScopeExpression($tokenValue as string, ancestor);
+          result = new AccessScopeExpression(id, ancestor);
         }
         $assignable = !$optional;
         nextToken();
+        if (consumeOpt(Token.Arrow)) {
+          const _optional = $optional;
+          const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+          $optional = _optional;
+          $assignable = false;
+          result = new ArrowFunction([new BindingIdentifier(id)], body);
+        }
         break;
+      }
       case Token.ThisScope: // $this
         $assignable = false;
         nextToken();
         result = $this;
         break;
-      case Token.OpenParen: { // parenthesized expression
-        nextToken();
-        const _optional = $optional;
-        result = parse(Precedence.Assign, expressionType);
-        $optional = _optional;
-        consume(Token.CloseParen);
+      case Token.OpenParen:
+        result = parseCoverParenthesizedExpressionAndArrowParameterList(expressionType);
         break;
-      }
       case Token.OpenBracket:
         result = $input.search(/\s+of\s+/) > $index ? parseArrayDestructuring() : parseArrayLiteralExpression(expressionType);
         break;
@@ -922,7 +928,15 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
     case Token.QuestionDot:
       $optional = true;
       $assignable = false;
-      save();
+
+      const indexSave = $index;
+      const startIndexSave = $startIndex;
+      const currentTokenSave = $currentToken;
+      const currentCharSave = $currentChar;
+      const tokenValueSave = $tokenValue;
+      const assignableSave = $assignable;
+      const optionalSave = $optional;
+
       nextToken();
       ensureOptionalSuffix();
 
@@ -930,7 +944,14 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
         return new CallMemberExpression(lhs, rhs, parseArguments(), optional, true);
       }
 
-      restore();
+      $index = indexSave;
+      $startIndex = startIndexSave;
+      $currentToken = currentTokenSave;
+      $currentChar = currentCharSave;
+      $tokenValue = tokenValueSave;
+      $assignable = assignableSave;
+      $optional = optionalSave;
+
       return new AccessMemberExpression(lhs, rhs, optional);
     case Token.OpenParen:
       $assignable = false;
@@ -965,6 +986,98 @@ function invalidTaggedTemplateOnOptionalChain(): Error {
     return new Error(`AUR0172: Invalid tagged template on optional chain in ${$input}`);
   else
     return new Error(`AUR0172:${$input}`);
+}
+
+function invalidArrowParameterList(): Error {
+  if (__DEV__)
+    return new Error(`AUR0173: Invalid arrow parameter list in ${$input}`);
+  else
+    return new Error(`AUR0173:${$input}`);
+}
+
+
+
+/**
+ * https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
+ * CoverParenthesizedExpressionAndArrowParameterList :
+ *   ( Expression )
+ *   ( )
+ *   ( BindingIdentifier )
+ *   ( Expression , BindingIdentifier )
+ */
+function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: ExpressionType): IsAssign {
+  nextToken();
+
+  const indexSave = $index;
+  const startIndexSave = $startIndex;
+  const currentTokenSave = $currentToken;
+  const currentCharSave = $currentChar;
+  const tokenValueSave = $tokenValue;
+  const assignableSave = $assignable;
+  const optionalSave = $optional;
+
+  const arrowParams: BindingIdentifier[] = [];
+  let invalid = false;
+
+  loop: while (true) {
+    switch ($currentToken as Token) {
+      case Token.Identifier:
+        arrowParams.push(new BindingIdentifier($tokenValue as string));
+        nextToken();
+        break;
+      case Token.CloseParen:
+        nextToken();
+        break loop;
+      default:
+        invalid = true;
+        break loop;
+    }
+
+    switch ($currentToken as Token) {
+      case Token.Comma:
+        nextToken();
+        break;
+      case Token.CloseParen:
+        nextToken();
+        break loop;
+      default:
+        invalid = true;
+        break loop;
+    }
+  }
+
+  if ($currentToken === Token.Arrow) {
+    if (invalid) {
+      throw invalidArrowParameterList();
+    }
+    nextToken();
+    const _optional = $optional;
+    const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+    $optional = _optional;
+    $assignable = false;
+    return new ArrowFunction(arrowParams, body);
+  } else if (!invalid && arrowParams.length === 0) {
+    consume(Token.Arrow);
+  }
+
+  $index = indexSave;
+  $startIndex = startIndexSave;
+  $currentToken = currentTokenSave;
+  $currentChar = currentCharSave;
+  $tokenValue = tokenValueSave;
+  $assignable = assignableSave;
+  $optional = optionalSave;
+
+  const _optional = $optional;
+  const expr = parse(Precedence.Assign, expressionType) as IsAssign;
+  $optional = _optional;
+  consume(Token.CloseParen);
+
+  if ($currentToken === Token.Arrow) {
+    throw invalidArrowParameterList();
+  }
+
+  return expr;
 }
 
 /**
@@ -1219,38 +1332,6 @@ function nextToken(): void {
   $currentToken = Token.EOF;
 }
 
-const { save, restore } = (function () {
-  let index: number = 0;
-  let _startIndex: number = 0;
-  let _currentToken: Token = Token.EOF;
-  let _currentChar: number = 0;
-  let _tokenValue: string | number = '';
-  let _assignable: boolean = true;
-  let _optional: boolean = false;
-
-  function save(): void {
-    index = $index;
-    _startIndex = $startIndex;
-    _currentToken = $currentToken;
-    _currentChar = $currentChar;
-    _tokenValue = $tokenValue;
-    _assignable = $assignable;
-    _optional = $optional;
-  }
-
-  function restore(): void {
-    $index = index;
-    $startIndex = _startIndex;
-    $currentToken = _currentToken;
-    $currentChar = _currentChar;
-    $tokenValue = _tokenValue;
-    $assignable = _assignable;
-    $optional = _optional;
-  }
-
-  return { save, restore };
-})();
-
 function nextChar(): number {
   return $currentChar = $input.charCodeAt(++$index);
 }
@@ -1413,7 +1494,7 @@ const TokenValues = [
   '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
   Token.TemplateTail, Token.TemplateContinuation,
-  'of'
+  'of', '=>'
 ];
 
 const KeywordLookup: Record<string, Token> = Object.assign(Object.create(null), {
@@ -1526,9 +1607,13 @@ CharScanners[Char.Exclamation] = () => {
   return Token.ExclamationEqualsEquals;
 };
 
-// =, ==, ===
+// =, ==, ===, =>
 CharScanners[Char.Equals] =  () => {
-  if (nextChar() !== Char.Equals) {
+  if (nextChar() === Char.GreaterThan) {
+    nextChar();
+    return Token.Arrow;
+  }
+  if ($currentChar !== Char.Equals) {
     return Token.Equals;
   }
   if (nextChar() !== Char.Equals) {

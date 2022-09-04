@@ -33,6 +33,7 @@ export {
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
+  ArrowFunction,
 
   // ast typing helpers
   type AnyBindingExpression,

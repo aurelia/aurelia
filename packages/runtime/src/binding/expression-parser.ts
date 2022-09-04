@@ -893,7 +893,7 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
 function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
   const rhs = $tokenValue as string;
   switch (($currentToken as Token)) {
-    case Token.QuestionDot:
+    case Token.QuestionDot: {
       $optional = true;
       $assignable = false;
 
@@ -923,17 +923,18 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
       $optional = optionalSave;
 
       return new AccessMemberExpression(lhs, rhs, optional);
-    case Token.OpenParen:
+    }
+    case Token.OpenParen: {
       $assignable = false;
       return new CallMemberExpression(lhs, rhs, parseArguments(), optional, false);
-    default:
+    }
+    default: {
       $assignable = !$optional;
       nextToken();
       return new AccessMemberExpression(lhs, rhs, optional);
+    }
   }
 }
-
-
 
 /**
  * https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
@@ -957,6 +958,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   const arrowParams: BindingIdentifier[] = [];
   let invalid = false;
 
+// eslint-disable-next-line no-constant-condition
   loop: while (true) {
     switch ($currentToken as Token) {
       case Token.Identifier:
@@ -1395,7 +1397,6 @@ function consume(token: Token): void {
     throw missingExpectedToken(token);
   }
 }
-
 
 // #region errors
 

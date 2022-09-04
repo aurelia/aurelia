@@ -939,10 +939,10 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
 /**
  * https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
  * CoverParenthesizedExpressionAndArrowParameterList :
- *   ( Expression )
- *   ( )
- *   ( BindingIdentifier )
- *   ( Expression , BindingIdentifier )
+ * ( Expression )
+ * ( )
+ * ( BindingIdentifier )
+ * ( Expression , BindingIdentifier )
  */
 function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: ExpressionType): IsAssign {
   nextToken();

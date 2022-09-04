@@ -1647,12 +1647,11 @@ export class ArrowFunction {
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
     const func = (...args: unknown[]) => {
-      const functionScope = Scope.create({
-        ...this.parameters.reduce((map: IIndexable, param, i) => {
-          map[param.name] = args[i];
-          return map;
-        }, {})
-      });
+      const context = this.parameters.reduce((map, param, i) => {
+        map[param.name] = args[i];
+        return map;
+      }, {} as IIndexable);
+      const functionScope = Scope.fromParent(s, context);
       return this.body.evaluate(f, functionScope, l, c);
     };
     return func;

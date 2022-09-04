@@ -1376,13 +1376,13 @@ describe('ExpressionParser', function () {
       });
     }
     it(`throw 'Unconsumed token' on "$this!"`, function () {
-      verifyResultOrError(`$this!`, null, 'AUR0162');
+      verifyResultOrError(`$this!`, null, 'AUR0156');
       // verifyResultOrError(`$this!`, null, 'Unconsumed token');
     });
     for (const [input] of SimpleIsAssignList) {
       for (const op of [')', ']', '}']) {
         it(`throw 'Unconsumed token' on "${input}${op}"`, function () {
-          verifyResultOrError(`${input}${op}`, null, 'AUR0162');
+          verifyResultOrError(`${input}${op}`, null, 'AUR0156');
           // verifyResultOrError(`${input}${op}`, null, 'Unconsumed token');
         });
       }

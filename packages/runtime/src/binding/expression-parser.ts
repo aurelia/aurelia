@@ -472,6 +472,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         $assignable = !$optional;
         nextToken();
         if (consumeOpt(Token.Arrow)) {
+          if (($currentToken as Token) === Token.OpenBrace) {
+            throw functionBodyInArrowFN();
+          }
           const _optional = $optional;
           const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
           $optional = _optional;
@@ -962,6 +965,14 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
   }
 }
 
+const enum ArrowFnParams {
+  Valid = 0,
+  Invalid = 1,
+  Default = 2,
+  Destructuring = 3,
+  Rest = 4,
+}
+
 /**
  * https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
  * CoverParenthesizedExpressionAndArrowParameterList :
@@ -982,9 +993,10 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   const optionalSave = $optional;
 
   const arrowParams: BindingIdentifier[] = [];
-  let invalid = false;
+  let paramsState = ArrowFnParams.Valid;
+  let isParamList = false;
 
-// eslint-disable-next-line no-constant-condition
+  // eslint-disable-next-line no-constant-condition
   loop: while (true) {
     switch ($currentToken as Token) {
       case Token.Identifier:
@@ -994,36 +1006,83 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       case Token.CloseParen:
         nextToken();
         break loop;
-      default:
-        invalid = true;
+      case Token.CloseParen:
+        nextToken();
+        paramsState = ArrowFnParams.Rest;
+        break;
+      case Token.OpenBrace:
+      case Token.OpenBracket:
+        nextToken();
+        paramsState = ArrowFnParams.Destructuring;
+        break;
+      case Token.DotDotDot:
+        paramsState = ArrowFnParams.Rest;
         break loop;
+      case Token.Comma:
+        paramsState = ArrowFnParams.Invalid;
+        isParamList = true;
+        break loop;
+      case Token.OpenParen:
+        paramsState = ArrowFnParams.Invalid;
+        break loop;
+      default:
+        nextToken();
+        paramsState = ArrowFnParams.Invalid;
+        break;
     }
 
     switch ($currentToken as Token) {
       case Token.Comma:
         nextToken();
-        break;
+        isParamList = true;
+        if (paramsState === ArrowFnParams.Valid) {
+          break;
+        }
+        break loop;
       case Token.CloseParen:
         nextToken();
         break loop;
+      case Token.Equals:
+        if (paramsState === ArrowFnParams.Valid) {
+          paramsState = ArrowFnParams.Default;
+        }
+        break loop;
       default:
-        invalid = true;
+        if (paramsState === ArrowFnParams.Valid) {
+          paramsState = ArrowFnParams.Invalid;
+        }
         break loop;
     }
   }
 
   if ($currentToken === Token.Arrow) {
-    if (invalid) {
-      throw invalidArrowParameterList();
+    if (paramsState === ArrowFnParams.Valid) {
+      nextToken();
+      if (($currentToken as Token) === Token.OpenBrace) {
+        throw functionBodyInArrowFN();
+      }
+      const _optional = $optional;
+      const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+      $optional = _optional;
+      $assignable = false;
+      return new ArrowFunction(arrowParams, body);
     }
-    nextToken();
-    const _optional = $optional;
-    const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
-    $optional = _optional;
-    $assignable = false;
-    return new ArrowFunction(arrowParams, body);
-  } else if (!invalid && arrowParams.length === 0) {
-    consume(Token.Arrow);
+    throw invalidArrowParameterList();
+  } else if (paramsState === ArrowFnParams.Valid && arrowParams.length === 0) {
+    throw missingExpectedToken(Token.Arrow);
+  }
+
+  if (isParamList) {
+    switch (paramsState) {
+      case ArrowFnParams.Invalid:
+        throw invalidArrowParameterList();
+      case ArrowFnParams.Default:
+        throw defaultParamsInArrowFn();
+      case ArrowFnParams.Destructuring:
+        throw destructuringParamsInArrowFn();
+      case ArrowFnParams.Rest:
+        throw restParamsInArrowFn();
+    }
   }
 
   $index = indexSave;
@@ -1040,7 +1099,16 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   consume(Token.CloseParen);
 
   if ($currentToken === Token.Arrow) {
-    throw invalidArrowParameterList();
+    switch (paramsState) {
+      case ArrowFnParams.Invalid:
+        throw invalidArrowParameterList();
+      case ArrowFnParams.Default:
+        throw defaultParamsInArrowFn();
+      case ArrowFnParams.Destructuring:
+        throw destructuringParamsInArrowFn();
+      case ArrowFnParams.Rest:
+        throw restParamsInArrowFn();
+    }
   }
 
   return expr;
@@ -1548,9 +1616,9 @@ function unterminatedTemplateLiteral() {
 
 function missingExpectedToken(token: Token) {
   if (__DEV__) {
-    return new Error(`AUR0167: Missing expected token: '${$input}'`);
+    return new Error(`AUR0167: Missing expected token '${TokenValues[token & Token.Type]}' in '${$input}' `);
   } else {
-    return new Error(`AUR0167:${$input}<${token}`);
+    return new Error(`AUR0167:${$input}<${TokenValues[token & Token.Type]}`);
   }
 }
 
@@ -1595,11 +1663,43 @@ function invalidArrowParameterList() {
   }
 }
 
-function unexpectedDoubleDot() {
+function defaultParamsInArrowFn() {
   if (__DEV__) {
-    return new Error(`AUR0174: Unexpected token '.' at position ${$index - 1} in ${$input}`);
+    return new Error(`AUR0174: Arrow function with default parameters is not supported: ${$input}`);
   } else {
     return new Error(`AUR0174:${$input}`);
+  }
+}
+
+function destructuringParamsInArrowFn() {
+  if (__DEV__) {
+    return new Error(`AUR0175: Arrow function with destructuring parameters is not supported: ${$input}`);
+  } else {
+    return new Error(`AUR0175:${$input}`);
+  }
+}
+
+function restParamsInArrowFn() {
+  if (__DEV__) {
+    return new Error(`AUR0176: Arrow function with rest parameters is not supported: ${$input}`);
+  } else {
+    return new Error(`AUR0176:${$input}`);
+  }
+}
+
+function functionBodyInArrowFN() {
+  if (__DEV__) {
+    return new Error(`AUR0178: Arrow function with function body is not supported: ${$input}`);
+  } else {
+    return new Error(`AUR0178:${$input}`);
+  }
+}
+
+function unexpectedDoubleDot() {
+  if (__DEV__) {
+    return new Error(`AUR0179: Unexpected token '.' at position ${$index - 1} in ${$input}`);
+  } else {
+    return new Error(`AUR0179:${$input}`);
   }
 }
 

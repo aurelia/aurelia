@@ -1381,7 +1381,7 @@ describe('ExpressionParser', function () {
 
     for (const input of ['..', '..a', '..1']) {
       it(`throw unexpectedDoubleDot on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0174');
+        verifyResultOrError(input, null, 'AUR0179');
       });
     }
     for (const input of ['.a.', '.a..']) {
@@ -1540,6 +1540,101 @@ describe('ExpressionParser', function () {
         verifyResultOrError(`${input} of`, null, 'AUR0161');
       });
     }
+
+    // missing => (need to verify when __DEV__ is enabled in test env)
+    it(`throw missingExpectedToken on "()"`, function () {
+      verifyResultOrError(`()`, null, 'AUR0167');
+    });
+
+    for (const input of [
+      `(a[b]) => a`,
+      `(a?.[b]) => a`,
+      `(a.b) => a`,
+      `(a?.b) => a`,
+      `(a\`\`) => a`,
+      `($this()) => a`,
+      `(a()) => a`,
+      `(a?.()) => a`,
+      `(!a) => a`,
+      `(a+b) => a`,
+      `(a?b:c) => a`,
+
+      `(a,a[b]) => a`,
+      `(a,a?.[b]) => a`,
+      `(a,a.b) => a`,
+      `(a,a?.b) => a`,
+      `(a,a\`\`) => a`,
+      `(a,$this()) => a`,
+      `(a,a()) => a`,
+      `(a,a?.()) => a`,
+      `(a,!a) => a`,
+      `(a,a+b) => a`,
+      `(a,a?b:c) => a`,
+      `(a,b?) => a`,
+
+      `(,) => a`,
+      `(a,,) => a`,
+      `(,a) => a`,
+    ])
+    it(`throw invalidArrowParameterList on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0173');
+    });
+
+    for (const input of [
+      // TODO: identify this as optional param?
+      `(a?) => a`,
+    ])
+    it(`throw unconsumedToken on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0156');
+    });
+
+    for (const input of [
+      `(a=b) => a`,
+      `(a,a=b) => a`,
+    ])
+    it(`throw defaultParamsInArrowFn on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0174');
+    });
+
+    for (const input of [
+      `({a}) => a`,
+      `(a,{a}) => a`,
+      `([a]) => a`,
+      `(a,[a]) => a`,
+    ])
+    it(`throw destructuringParamsInArrowFn on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0175');
+    });
+
+    for (const input of [
+      `(a,...b) => a`,
+    ])
+    it(`throw restParamsInArrowFn on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0176');
+    });
+
+    for (const input of [
+      // note: this should ideally throw 'restParamsInArrowFn' as well, but we may impl spread relatively soon anyway
+      `(...a) => a`,
+    ])
+    it(`throw invalidSpreadOp on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0152');
+    });
+
+    for (const input of [
+      `() => {}`,
+      `a => {}`,
+      `(a) => {}`,
+      `(a,b) => {}`,
+
+      `() => {a}`,
+      `a => {a}`,
+      `(a) => {a}`,
+      `(a,b) => {a}`,
+    ])
+    it(`throw functionBodyInArrowFN on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0178');
+    });
   });
 
   describe('unknown unicode IdentifierPart', function () {

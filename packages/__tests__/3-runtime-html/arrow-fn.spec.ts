@@ -1,5 +1,5 @@
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime';
-import { CustomAttribute, INode } from '@aurelia/runtime-html';
+import { AppTask, CustomAttribute, IListenerBehaviorOptions, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
@@ -178,6 +178,19 @@ describe("arrow-fn", function () {
 
     assert.strictEqual(getBy('div').getAttribute('data-color-light'), 'lightred');
     assert.strictEqual(getBy('div').getAttribute('data-color-dark'), 'darkgreen');
+  });
+
+  it('works with event', function () {
+    let i = 0;
+    const { getBy } = createFixture
+      .html`<button click.trigger="() => clicked()">`
+      .component({ clicked: () => i = 1 })
+      // todo: maybe just make it understand function by default
+      .deps(AppTask.creating(IListenerBehaviorOptions, o => o.expAsHandler = true))
+      .build();
+
+    getBy('button').click();
+    assert.strictEqual(i, 1);
   });
 
   it('works with binding behavior', function () {

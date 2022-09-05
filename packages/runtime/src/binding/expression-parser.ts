@@ -95,9 +95,15 @@ export class ExpressionParser {
   private $parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
   private $parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
     $input = expression;
-    $length = expression.length;
     $index = 0;
+    $length = expression.length;
+    $scopeDepth = 0;
+    $startIndex = 0;
+    $currentToken = Token.EOF;
+    $tokenValue = '';
     $currentChar = expression.charCodeAt(0);
+    $assignable = true;
+    $optional = false;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
 }
@@ -340,9 +346,15 @@ function $tokenRaw(): string {
 
 export function parseExpression(input: string, expressionType?: ExpressionType): AnyBindingExpression {
   $input = input;
-  $length = input.length;
   $index = 0;
+  $length = input.length;
+  $scopeDepth = 0;
+  $startIndex = 0;
+  $currentToken = Token.EOF;
+  $tokenValue = '';
   $currentChar = input.charCodeAt(0);
+  $assignable = true;
+  $optional = false;
   return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
 

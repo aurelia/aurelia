@@ -4,9 +4,29 @@ import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
 
+  // leave this test at the top - if any tests below this one fail for unknown reasons, then corrupted parser state may not be properly recovered
+  it("corrupt the parser state to ensure it's correctly reset afterwards", function () {
+    let err: Error;
+    try {
+      createFixture
+        .html`\${((e) => ({ e.v })({ v: 1 }))}`
+        .build();
+    } catch (e) {
+      err = e;
+    }
+    assert.match(err.message, /AUR0167/);
+  });
+
+  it("works with IIFE", function () {
+    const { assertText } = createFixture
+      .html`\${(a => a)(1)}`
+      .build();
+    assertText('1');
+  });
+
   it("works with paren wrapping {}", function () {
     const { assertText } = createFixture
-      .html`\${((e) => ({ a: e.v })({ v: 1 })).a}`
+      .html`\${(((e) => ({ a: e.v }))({ v: 1 })).a}`
       .build();
     assertText('1');
   });

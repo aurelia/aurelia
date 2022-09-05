@@ -1216,6 +1216,7 @@ describe('ExpressionParser', function () {
         (expr as any).ancestor += count;
         break;
       case ExpressionKind.AccessScope:
+        // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
         }
@@ -1239,6 +1240,7 @@ describe('ExpressionParser', function () {
         adjustAncestor(count, expr.expression, input);
         break;
       case ExpressionKind.CallScope:
+        // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
         }

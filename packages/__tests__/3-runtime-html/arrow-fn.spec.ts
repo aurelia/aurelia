@@ -1,4 +1,6 @@
-import { createFixture } from "@aurelia/testing";
+import { BindingBehavior, ValueConverter } from '@aurelia/runtime';
+import { CustomAttribute, INode } from '@aurelia/runtime-html';
+import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
 
@@ -120,5 +122,72 @@ describe("arrow-fn", function () {
       .component({ a: '1' })
       .build();
     assertText('2');
+  });
+
+  it('works with attribute binding + binding command', function () {
+    const { getBy } = createFixture
+      .component({ getValue: v => `light${v}` })
+      .html`<div square.bind="v => getValue(v)">`
+      .deps(CustomAttribute.define('square', class {
+        static inject = [INode];
+
+        value: (v: string) => string;
+        constructor(private readonly host: HTMLElement) {}
+
+        binding() {
+          this.host.setAttribute('data-color', this.value('red'));
+        }
+      }))
+      .build();
+
+    assert.strictEqual(getBy('div').getAttribute('data-color'), 'lightred');
+  });
+
+  it('works with attribute multi binding syntax', function () {
+    const { getBy } = createFixture
+      .component({
+        getValue: v => `light${v}`,
+        getDarkValue: v => `dark${v}`,
+      })
+      .html`<div square="fn1.bind: v => getValue(v); fn2.bind: v => getDarkValue(v)">`
+      .deps(CustomAttribute.define({ name: 'square', bindables: ['fn1', 'fn2'] }, class {
+        static inject = [INode];
+
+        fn1: (v: string) => string;
+        fn2: (v: string) => string;
+
+        constructor(private readonly host: HTMLElement) {}
+
+        binding() {
+          this.host.setAttribute('data-color-light', this.fn1('red'));
+          this.host.setAttribute('data-color-dark', this.fn2('green'));
+        }
+      }))
+      .build();
+
+    assert.strictEqual(getBy('div').getAttribute('data-color-light'), 'lightred');
+    assert.strictEqual(getBy('div').getAttribute('data-color-dark'), 'darkgreen');
+  });
+
+  it('works with binding behavior', function () {
+    const { assertText } = createFixture
+      .html`<div repeat.for="i of items.sort((a, b) => a - b) & log">\${i}</div>`
+      .component({ items: [5, 7, 6] })
+      .deps(BindingBehavior.define('log', class {}))
+      .build();
+    assertText('567');
+  });
+
+  it('works with value converter', function () {
+    const { assertText } = createFixture
+      .html`<div repeat.for="i of items.sort((a, b) => a - b) | identity">\${i}</div>`
+      .component({ items: [5, 7, 6] })
+      .deps(ValueConverter.define('identity', class {
+        toView() {
+          return [1];
+        }
+      }))
+      .build();
+    assertText('1');
   });
 });

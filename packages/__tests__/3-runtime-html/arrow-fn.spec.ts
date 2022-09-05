@@ -1,281 +1,124 @@
-import { Aurelia, CustomElement } from '@aurelia/runtime-html';
-import { TestContext, assert } from "@aurelia/testing";
+import { createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
-  function createFixture() {
-    const ctx = TestContext.create();
-    const au = new Aurelia(ctx.container);
-    const host = ctx.createElement("div");
-    return { au, host };
-  }
 
-  it("can sort number array", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
-      },
-      class {
-        items = [5, 7, 1, 3, 2, 8, 4, 6];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '12345678');
-    await au.stop();
-
-    au.dispose();
+  it("can sort number array", function () {
+    const { assertText } = createFixture
+      .html`<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
+      .component({ items: [5, 7, 6] })
+      .build();
+    assertText('567');
   });
 
-  it.skip("can reactively sort number array", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
-      },
-      class {
-        items = [5, 7, 1, 3, 2, 8, 4, 6];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '12345678');
+  it.skip("can reactively sort number array", function () {
+    const { assertText, component, platform } = createFixture
+      .component({ items: [5, 7, 6] })
+      .html`<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
+      .build();
+    assertText('567');
+
     component.items.push(0);
-    assert.strictEqual(host.textContent, '012345678');
-    await au.stop();
-
-    au.dispose();
+    platform.domWriteQueue.flush();
+    assertText('0567');
   });
 
-  it("can reduce number array", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${items.reduce((sum, x) => sum + x, 0)}`
-      },
-      class {
-        items = [5, 7, 1, 3, 2, 8, 4, 6];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '36');
-    await au.stop();
-
-    au.dispose();
+  it("can reduce number array", function () {
+    const { assertText } = createFixture
+      .html`\${items.reduce((sum, x) => sum + x, 0)}`
+      .component({ items: [3, 4] })
+      .build();
+    assertText('7');
   });
 
-  it.skip("can reactively reduce number array", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${items.reduce((sum, x) => sum + x, 0)}`
-      },
-      class {
-        items = [5, 7, 1, 3, 2, 8, 4, 6];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '36');
-    component.items.push(4);
-    assert.strictEqual(host.textContent, '40');
-    await au.stop();
+  it.skip("can reactively reduce number array", function () {
+    const { component, platform, assertText } = createFixture
+      .component({ items: [3, 4] })
+      .html`\${items.reduce((sum, x) => sum + x, 0)}`
+      .build();
+    assertText('7');
 
-    au.dispose();
+    component.items.push(5);
+    platform.domWriteQueue.flush();
+    assertText('12');
   });
 
-  it("can call nested arrow inline", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${(a => b => a + b)(1)(2)}`
-      },
-      class {}
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '3');
-    await au.stop();
-
-    au.dispose();
+  it("can call nested arrow inline", function () {
+    const { assertText } = createFixture
+      .html`\${(a => b => a + b)(1)(2)}`
+      .build();
+    assertText('3');
   });
 
-  it("can call arrow inline with rest", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}`
-      },
-      class {}
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '6');
-    await au.stop();
-
-    au.dispose();
+  it("can call arrow inline with rest", function () {
+    const { assertText } = createFixture
+      .html`\${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}`
+      .build();
+    assertText('6');
   });
 
-  it("can flatMap nested fn", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `
-          <div repeat.for="item of items.flatMap(x => [x].concat(x.children.flatMap(y => [y].concat(y.children))))">\${item.name}-</div>
-        `.trim()
-      },
-      class {
-        items = [
-          { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
-          { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
-        ];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, 'a1-b1-c1-a2-b2-c2-');
-    await au.stop();
-
-    au.dispose();
+  it("can flatMap nested fn", function () {
+    const { assertText } = createFixture
+        .component({
+          items: [
+            { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
+            { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
+          ]
+        })
+      .html`<div repeat.for="item of items.flatMap(x => [x].concat(x.children.flatMap(y => [y].concat(y.children))))">\${item.name}-</div>`
+      .build();
+    assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it("can flatMap nested fn and access parent scope", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `
-          <div repeat.for="item of items.flatMap(x => x.children.flatMap(y => ([x, y].concat(y.children))))">\${item.name}-</div>
-        `.trim()
-      },
-      class {
-        items = [
-          { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
-          { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
-        ];
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, 'a1-b1-c1-a2-b2-c2-');
-    await au.stop();
-
-    au.dispose();
+  it("can flatMap nested fn and access parent scope", function () {
+    const { assertText } = createFixture
+        .component({
+          items: [
+            { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
+            { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
+          ]
+        })
+      .html`<div repeat.for="item of items.flatMap(x => x.children.flatMap(y => ([x, y].concat(y.children))))">\${item.name}-</div>`
+      .build();
+    assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it("can access the correct scope via $this", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${(a => $this.a)('2')}`
-      },
-      class {
-        a = '1';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '1');
-    await au.stop();
-
-    au.dispose();
+  it("can access the correct scope via $this", function () {
+    const { assertText } = createFixture
+      .html`\${(a => $this.a)('2')}`
+      .component({ a: '1' })
+      .build();
+    assertText('1');
   });
 
-  it("can access the correct scope via $this in nested arrow", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${(a => a => $this.a)('3')('2')}`
-      },
-      class {
-        a = '1';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '1');
-    await au.stop();
-
-    au.dispose();
+  it("can access the correct scope via $this in nested arrow", function () {
+    const { assertText } = createFixture
+      .html`\${(a => a => $this.a)('3')('2')}`
+      .component({ a: '1' })
+      .build();
+    assertText('1');
   });
 
-  it("can access the correct scope via $parent", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => $parent.a)('5')}</div></div></div>`
-      },
-      class {
-        a = '1';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '3');
-    await au.stop();
-
-    au.dispose();
+  it("can access the correct scope via $parent", function () {
+    const { assertText } = createFixture
+      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => $parent.a)('5')}</div></div></div>`
+      .component({ a: '1' })
+      .build();
+    assertText('3');
   });
 
-  it("can access the correct scope via $parent in nested arrow", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.a)('6')('5')}</div></div></div>`
-      },
-      class {
-        a = '1';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '3');
-    await au.stop();
-
-    au.dispose();
+  it("can access the correct scope via $parent in nested arrow", function () {
+    const { assertText } = createFixture
+      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.a)('6')('5')}</div></div></div>`
+      .component({ a: '1' })
+      .build();
+    assertText('3');
   });
 
-  it("can access the correct scope via $parent.$parent in nested arrow", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
-      },
-      class {
-        a = '1';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '2');
-    await au.stop();
-
-    au.dispose();
+  it("can access the correct scope via $parent.$parent in nested arrow", function () {
+    const { assertText } = createFixture
+      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
+      .component({ a: '1' })
+      .build();
+    assertText('2');
   });
 });

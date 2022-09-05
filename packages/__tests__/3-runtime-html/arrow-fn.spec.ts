@@ -184,16 +184,16 @@ describe("arrow-fn", function () {
     const App = CustomElement.define(
       {
         name: "app",
-        template: `\${(a => $this.a)('fn')}`
+        template: `\${(a => $this.a)('2')}`
       },
       class {
-        a = 'vm';
+        a = '1';
       }
     );
     const component = new App();
     au.app({ host, component });
     await au.start();
-    assert.strictEqual(host.textContent, 'vm');
+    assert.strictEqual(host.textContent, '1');
     await au.stop();
 
     au.dispose();
@@ -204,16 +204,16 @@ describe("arrow-fn", function () {
     const App = CustomElement.define(
       {
         name: "app",
-        template: `\${(a => a => $this.a)('fn2')('fn1')}`
+        template: `\${(a => a => $this.a)('3')('2')}`
       },
       class {
-        a = 'vm';
+        a = '1';
       }
     );
     const component = new App();
     au.app({ host, component });
     await au.start();
-    assert.strictEqual(host.textContent, 'vm');
+    assert.strictEqual(host.textContent, '1');
     await au.stop();
 
     au.dispose();
@@ -224,16 +224,16 @@ describe("arrow-fn", function () {
     const App = CustomElement.define(
       {
         name: "app",
-        template: `\${(a => $parent.a)('fn')}`
+        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => $parent.a)('5')}</div></div></div>`
       },
       class {
-        a = 'vm';
+        a = '1';
       }
     );
     const component = new App();
     au.app({ host, component });
     await au.start();
-    assert.strictEqual(host.textContent, 'vm');
+    assert.strictEqual(host.textContent, '3');
     await au.stop();
 
     au.dispose();
@@ -244,16 +244,16 @@ describe("arrow-fn", function () {
     const App = CustomElement.define(
       {
         name: "app",
-        template: `\${(a => a => $parent.a)('fn1')('fn2')}`
+        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.a)('6')('5')}</div></div></div>`
       },
       class {
-        a = 'vm';
+        a = '1';
       }
     );
     const component = new App();
     au.app({ host, component });
     await au.start();
-    assert.strictEqual(host.textContent, 'fn1');
+    assert.strictEqual(host.textContent, '3');
     await au.stop();
 
     au.dispose();
@@ -264,36 +264,16 @@ describe("arrow-fn", function () {
     const App = CustomElement.define(
       {
         name: "app",
-        template: `\${(a => a => $parent.$parent.a)('fn1')('fn2')}`
+        template: `<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
       },
       class {
-        a = 'vm';
+        a = '1';
       }
     );
     const component = new App();
     au.app({ host, component });
     await au.start();
-    assert.strictEqual(host.textContent, 'vm');
-    await au.stop();
-
-    au.dispose();
-  });
-
-  it("stays in the correct scope via $parent in nested arrow", async function () {
-    const { au, host } = createFixture();
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `\${(b => a => $parent.a)('fn1')('fn2')}`
-      },
-      class {
-        a = 'vm';
-      }
-    );
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '');
+    assert.strictEqual(host.textContent, '2');
     await au.stop();
 
     au.dispose();

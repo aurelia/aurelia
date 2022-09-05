@@ -431,6 +431,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
      */
     primary: switch ($currentToken) {
       case Token.ParentScope: // $parent
+        ancestor = $scopeDepth;
         $assignable = false;
         do {
           nextToken();

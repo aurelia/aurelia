@@ -1188,13 +1188,9 @@ describe('ExpressionParser', function () {
     }
   });
 
-  // Anything starting with '{' will be rejected as an arrow fn body so filter those out
-  const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
   const ComplexAssignList: [string, any][] = [
     ...SimpleIsAssignList.map(([i1, e1]) => [`a=${i1}`, new AssignExpression($a, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`a=b=${i1}`, new AssignExpression($a, new AssignExpression($b, e1))] as [string, any]),
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [`()=>${i1}`, new ArrowFunction([], e1)] as [string, any]),
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [`()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [string, any]),
     ...AccessScopeList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
     ...SimpleAccessMemberList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
     ...SimpleAccessKeyedList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
@@ -1204,6 +1200,107 @@ describe('ExpressionParser', function () {
     for (const [input, expected] of ComplexAssignList) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input), expected, input);
+      });
+    }
+  });
+
+  // Anything starting with '{' will be rejected as an arrow fn body so filter those out
+  const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
+  const ComplexArrowFunctionList: [number, string, ArrowFunction][] = [
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `()=>${i1}`, new ArrowFunction([], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [2, `()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [number, string, any]),
+  ];
+  function adjustAncestor(count: number, expr: IsAssign, input: string) {
+    switch (expr.$kind) {
+      case ExpressionKind.AccessThis:
+        (expr as any).ancestor += count;
+        break;
+      case ExpressionKind.AccessScope:
+        if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
+          (expr as any).ancestor += count;
+        }
+        break;
+      case ExpressionKind.ArrayLiteral:
+        for (const el of expr.elements) {
+          adjustAncestor(count, el, input);
+        }
+        break;
+      case ExpressionKind.ObjectLiteral:
+        for (const val of expr.values) {
+          adjustAncestor(count, val, input);
+        }
+        break;
+      case ExpressionKind.Template:
+        for (const ex of expr.expressions) {
+          adjustAncestor(count, ex, input);
+        }
+        break;
+      case ExpressionKind.Unary:
+        adjustAncestor(count, expr.expression, input);
+        break;
+      case ExpressionKind.CallScope:
+        if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
+          (expr as any).ancestor += count;
+        }
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.CallMember:
+        adjustAncestor(count, expr.object, input);
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.CallFunction:
+        adjustAncestor(count, expr.func, input);
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.AccessMember:
+        adjustAncestor(count, expr.object, input);
+        break;
+      case ExpressionKind.AccessKeyed:
+        adjustAncestor(count, expr.object, input);
+        adjustAncestor(count, expr.key, input);
+        break;
+      case ExpressionKind.TaggedTemplate:
+        adjustAncestor(count, expr.func, input);
+        // for (const ex of expr.expressions) {
+        //   adjustAncestor(count, ex, input);
+        // }
+        break;
+      case ExpressionKind.Binary:
+        adjustAncestor(count, expr.left, input);
+        adjustAncestor(count, expr.right, input);
+        break;
+      case ExpressionKind.Conditional:
+        adjustAncestor(count, expr.yes, input);
+        adjustAncestor(count, expr.no, input);
+        adjustAncestor(count, expr.condition, input);
+        break;
+      case ExpressionKind.Assign:
+        adjustAncestor(count, expr.target, input);
+        adjustAncestor(count, expr.value, input);
+        break;
+      case ExpressionKind.ArrowFunction:
+        adjustAncestor(count, expr.body, input);
+        break;
+    }
+  }
+  describe('parse ComplexArrowFunctionList', function () {
+    for (const [depth, input, expected] of ComplexArrowFunctionList) {
+      it(input, function () {
+        try {
+          // adjust and restore ancestor for reused expressions
+          adjustAncestor(depth, expected, input);
+          assert.deepStrictEqual(parseExpression(input), expected, input);
+        } catch (e) {
+          throw e;
+        } finally {
+          adjustAncestor(-depth, expected, input);
+        }
       });
     }
   });

@@ -327,6 +327,7 @@ export const enum ExpressionType {
 let $input: string = '';
 let $index: number = 0;
 let $length: number = 0;
+let $scopeDepth: number = 0;
 let $startIndex: number = 0;
 let $currentToken: Token = Token.EOF;
 let $tokenValue: string | number = '';
@@ -476,8 +477,11 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             throw functionBodyInArrowFN();
           }
           const _optional = $optional;
+          const _scopeDepth = $scopeDepth;
+          ++$scopeDepth;
           const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
           $optional = _optional;
+          $scopeDepth = _scopeDepth;
           $assignable = false;
           result = new ArrowFunction([new BindingIdentifier(id)], body);
         }
@@ -490,7 +494,17 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       case Token.ThisScope: // $this
         $assignable = false;
         nextToken();
-        result = $this;
+        switch ($scopeDepth) {
+          case 0:
+            result = $this;
+            break;
+          case 1:
+            result = $parent;
+            break;
+          default:
+            result = new AccessThisExpression($scopeDepth);
+            break;
+        }
         break;
       case Token.OpenParen:
         result = parseCoverParenthesizedExpressionAndArrowParameterList(expressionType);
@@ -1020,8 +1034,11 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
 
       nextToken();
       const _optional = $optional;
+      const _scopeDepth = $scopeDepth;
+      ++$scopeDepth;
       const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
       $optional = _optional;
+      $scopeDepth = _scopeDepth;
       $assignable = false;
       return new ArrowFunction(arrowParams, body, true);
     }
@@ -1101,8 +1118,11 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         throw functionBodyInArrowFN();
       }
       const _optional = $optional;
+      const _scopeDepth = $scopeDepth;
+      ++$scopeDepth;
       const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
       $optional = _optional;
+      $scopeDepth = _scopeDepth;
       $assignable = false;
       return new ArrowFunction(arrowParams, body);
     }

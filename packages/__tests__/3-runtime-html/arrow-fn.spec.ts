@@ -178,4 +178,124 @@ describe("arrow-fn", function () {
 
     au.dispose();
   });
+
+  it("can access the correct scope via $this", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(a => $this.a)('fn')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, 'vm');
+    await au.stop();
+
+    au.dispose();
+  });
+
+  it("can access the correct scope via $this in nested arrow", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(a => a => $this.a)('fn2')('fn1')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, 'vm');
+    await au.stop();
+
+    au.dispose();
+  });
+
+  it("can access the correct scope via $parent", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(a => $parent.a)('fn')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, 'vm');
+    await au.stop();
+
+    au.dispose();
+  });
+
+  it("can access the correct scope via $parent in nested arrow", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(a => a => $parent.a)('fn1')('fn2')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, 'fn1');
+    await au.stop();
+
+    au.dispose();
+  });
+
+  it("can access the correct scope via $parent.$parent in nested arrow", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(a => a => $parent.$parent.a)('fn1')('fn2')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, 'vm');
+    await au.stop();
+
+    au.dispose();
+  });
+
+  it("stays in the correct scope via $parent in nested arrow", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${(b => a => $parent.a)('fn1')('fn2')}`
+      },
+      class {
+        a = 'vm';
+      }
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, '');
+    await au.stop();
+
+    au.dispose();
+  });
 });

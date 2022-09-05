@@ -24,6 +24,17 @@ describe("arrow-fn", function () {
     assertText('0567');
   });
 
+  it("can observe property accessed in each parameter", function () {
+    const { component, assertText } = createFixture
+      .component({ items: [{ v: 0 }, { v: 1 }] })
+      .html`<div repeat.for="i of items.filter(i => i.v > 0)">\${i.v}</div>`
+      .build();
+    assertText('1');
+
+    component.items[0].v = 1;
+    assertText('11');
+  });
+
   it("can reduce number array", function () {
     const { assertText } = createFixture
       .html`\${items.reduce((sum, x) => sum + x, 0)}`

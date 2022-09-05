@@ -205,6 +205,8 @@ describe('ExpressionParser', function () {
     [`(a?b:c)`,           new ConditionalExpression($a, $b, new AccessScopeExpression('c'))],
     [`(a=b)`,             new AssignExpression($a, $b)],
     [`(a=>a)`,            new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`({})`,              new ObjectLiteralExpression([], [])],
+    [`({a})`,             new ObjectLiteralExpression(['a'], [$a])],
   ];
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
@@ -1208,6 +1210,8 @@ describe('ExpressionParser', function () {
   const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
   const ComplexArrowFunctionList: [number, string, ArrowFunction][] = [
     ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `()=>${i1}`, new ArrowFunction([], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `(a)=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `a=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
     ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [2, `()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [number, string, any]),
   ];
   function adjustAncestor(count: number, expr: IsAssign, input: string) {
@@ -1291,7 +1295,7 @@ describe('ExpressionParser', function () {
         break;
     }
   }
-  describe('parse ComplexArrowFunctionList', function () {
+  describe.only('parse ComplexArrowFunctionList', function () {
     for (const [depth, input, expected] of ComplexArrowFunctionList) {
       it(input, function () {
         try {

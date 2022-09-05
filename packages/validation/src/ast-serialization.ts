@@ -257,7 +257,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.DestructuringRestAssignment}","target":${expr.target.accept(this)},"indexOrProperties":${Array.isArray(expr.indexOrProperties) ? serializePrimitives(expr.indexOrProperties) : serializePrimitive(expr.indexOrProperties)}}`;
   }
   public visitArrowFunction(expr: AST.ArrowFunction): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ArrowFunction}","parameters":${this.serializeExpressions(expr.parameters)},"body":${expr.body.accept(this)},"rest":${serializePrimitive(expr.rest)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ArrowFunction}","parameters":${this.serializeExpressions(expr.args)},"body":${expr.body.accept(this)},"rest":${serializePrimitive(expr.rest)}}`;
   }
   private serializeExpressions(args: readonly AST.IsExpressionOrStatement[]): string {
     let text = '[';

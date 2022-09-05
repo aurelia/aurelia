@@ -169,7 +169,24 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitArrowFunction(expr: ArrowFunction): void {
-    // TODO
+    const args = expr.args;
+    const ii = args.length;
+    let i = 0;
+    let text = '(';
+    let name: string;
+    for (; i < ii; ++i) {
+      name = args[i].name;
+      if (i > 0) {
+        text += ', ';
+      }
+      if (i < ii - 1) {
+        text += name;
+      } else {
+        text += expr.rest ? `...${name}` : name;
+      }
+    }
+    this.text += `${text}) => `;
+    expr.body.accept(this);
   }
 
   public visitObjectLiteral(expr: ObjectLiteralExpression): void {
@@ -1641,14 +1658,14 @@ export class ArrowFunction {
   public get hasUnbind(): false { return false; }
 
   public constructor(
-    public parameters: BindingIdentifier[],
+    public args: BindingIdentifier[],
     public body: IsAssign,
     public rest: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
     const func = (...args: unknown[]) => {
-      const params = this.parameters;
+      const params = this.args;
       const rest = this.rest;
       const lastIdx = params.length - 1;
       const context = params.reduce<IIndexable>((map, param, i) => {

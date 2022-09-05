@@ -203,7 +203,8 @@ describe('ExpressionParser', function () {
     [`(!a)`,              new UnaryExpression('!', $a)],
     [`(a+b)`,             new BinaryExpression('+', $a, $b)],
     [`(a?b:c)`,           new ConditionalExpression($a, $b, new AccessScopeExpression('c'))],
-    [`(a=b)`,             new AssignExpression($a, $b)]
+    [`(a=b)`,             new AssignExpression($a, $b)],
+    [`(a=>a)`,            new ArrowFunction([new BindingIdentifier('a')], $a)],
   ];
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
@@ -1185,9 +1186,13 @@ describe('ExpressionParser', function () {
     }
   });
 
+  // Anything starting with '{' will be rejected as an arrow fn body so filter those out
+  const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
   const ComplexAssignList: [string, any][] = [
     ...SimpleIsAssignList.map(([i1, e1]) => [`a=${i1}`, new AssignExpression($a, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`a=b=${i1}`, new AssignExpression($a, new AssignExpression($b, e1))] as [string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [`()=>${i1}`, new ArrowFunction([], e1)] as [string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [`()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [string, any]),
     ...AccessScopeList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
     ...SimpleAccessMemberList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
     ...SimpleAccessKeyedList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
@@ -1478,11 +1483,7 @@ describe('ExpressionParser', function () {
     for (const [input] of SimpleIsAssignList) {
       for (const op of ['(', '[']) {
         it(`throw 'Missing expected token' on "${op}${input}"`, function () {
-          if (`${op}${input}` === '(a => a') {
-            verifyResultOrError(`${op}${input}`, null, 'AUR0173');
-          } else {
-            verifyResultOrError(`${op}${input}`, null, 'AUR0167');
-          }
+          verifyResultOrError(`${op}${input}`, null, 'AUR0167');
         });
       }
     }

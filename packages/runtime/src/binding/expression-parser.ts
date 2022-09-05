@@ -1004,25 +1004,30 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         nextToken();
         break;
       case Token.CloseParen:
+        // ()     - only valid if followed directly by an arrow
         nextToken();
         break loop;
-      case Token.CloseParen:
-        nextToken();
-        paramsState = ArrowFnParams.Rest;
-        break;
       case Token.OpenBrace:
+        // ({     - may be a valid parenthesized expression
       case Token.OpenBracket:
+        // ([     - may be a valid parenthesized expression
         nextToken();
         paramsState = ArrowFnParams.Destructuring;
         break;
       case Token.DotDotDot:
+        // (...    - never valid
+        // (a,...  - never valid
         paramsState = ArrowFnParams.Rest;
         break loop;
       case Token.Comma:
+        // (,     - never valid
+        // (a,,   - never valid
         paramsState = ArrowFnParams.Invalid;
         isParamList = true;
         break loop;
       case Token.OpenParen:
+        // ((     - may be a valid nested parenthesized expression or arrow fn
+        // (a,(   - never valid
         paramsState = ArrowFnParams.Invalid;
         break loop;
       default:
@@ -1038,14 +1043,25 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         if (paramsState === ArrowFnParams.Valid) {
           break;
         }
+        // ([something invalid],   - treat as arrow fn / invalid arrow params
         break loop;
       case Token.CloseParen:
         nextToken();
         break loop;
       case Token.Equals:
+        // (a=a     - may be a valid parenthesized expression
         if (paramsState === ArrowFnParams.Valid) {
           paramsState = ArrowFnParams.Default;
         }
+        break loop;
+      case Token.Arrow:
+        // (a,a=>  - never valid
+        if (isParamList) {
+          throw invalidArrowParameterList();
+        }
+        // (a=>    - may be a valid parenthesized expression with nested arrow fn
+        nextToken();
+        paramsState = ArrowFnParams.Invalid;
         break loop;
       default:
         if (paramsState === ArrowFnParams.Valid) {
@@ -1069,10 +1085,12 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
     }
     throw invalidArrowParameterList();
   } else if (paramsState === ArrowFnParams.Valid && arrowParams.length === 0) {
+    // ()    - never valid as a standalone expression
     throw missingExpectedToken(Token.Arrow);
   }
 
   if (isParamList) {
+    // ([something invalid],   - treat as arrow fn / invalid arrow params
     switch (paramsState) {
       case ArrowFnParams.Invalid:
         throw invalidArrowParameterList();
@@ -1099,6 +1117,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   consume(Token.CloseParen);
 
   if ($currentToken === Token.Arrow) {
+    // we only get here if there was a valid parenthesized expression which was not valid as arrow fn params
     switch (paramsState) {
       case ArrowFnParams.Invalid:
         throw invalidArrowParameterList();

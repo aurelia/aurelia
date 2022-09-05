@@ -171,6 +171,25 @@ Exponentiation (`a**b`) and bitwise operators are not supported.
 * `foo = bar`
 * `foo = bar = baz`
 
+### Lambda Expressions
+
+Lambda expressions can be used to call methods like `Array#filter`, `Array#sort`, but can also be passed in as an argument to a method on your ViewModel or even invoked as an IIFE.
+
+* `() => 42`
+* `x => x.name` (e.g. `${items.map(x => x.name).join(', ')}`)
+* `(...args) => args.join(', ')`
+* `(a => b => c => a + b + c)(1)(2)(3)` (renders '6')
+* `items.reduce((sum, x) => sum + x, 0)`
+
+{% hint style="warning" %}
+**Warning**
+
+- Wrapping the expression body in braces (`(a, b) => { ... }`) is not supported.
+- Default parameters (`(a = 42) => ...`) are not supported.
+- Destructuring parameters (`({a}) => ...` or `([a]) => ...`) is not supported.
+
+{% endhint %}
+
 ### Member and Call Expressions
 
 Member expressions with special meaning in Aurelia:

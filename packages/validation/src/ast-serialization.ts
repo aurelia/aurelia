@@ -28,6 +28,7 @@ enum ASTExpressionTypes {
   DestructuringAssignment = 'DestructuringAssignment',
   DestructuringSingleAssignment = 'DestructuringSingleAssignment',
   DestructuringRestAssignment = 'DestructuringRestAssignment',
+  ArrowFunction = 'ArrowFunction',
 }
 
 export class Deserializer implements IExpressionHydrator {
@@ -144,6 +145,9 @@ export class Deserializer implements IExpressionHydrator {
       case ASTExpressionTypes.DestructuringRestAssignment: {
         return new AST.DestructuringAssignmentRestExpression(this.hydrate(raw.target), this.hydrate(raw.indexOrProperties));
       }
+      case ASTExpressionTypes.ArrowFunction: {
+        return new AST.ArrowFunction(this.hydrate(raw.parameters), this.hydrate(raw.body), this.hydrate(raw.rest));
+      }
       default:
         if (Array.isArray(raw)) {
           if (typeof raw[0] === 'object') {
@@ -251,6 +255,9 @@ export class Serializer implements AST.IVisitor<string> {
   }
   public visitDestructuringAssignmentRestExpression(expr: AST.DestructuringAssignmentRestExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.DestructuringRestAssignment}","target":${expr.target.accept(this)},"indexOrProperties":${Array.isArray(expr.indexOrProperties) ? serializePrimitives(expr.indexOrProperties) : serializePrimitive(expr.indexOrProperties)}}`;
+  }
+  public visitArrowFunction(expr: AST.ArrowFunction): string {
+    return `{"$TYPE":"${ASTExpressionTypes.ArrowFunction}","parameters":${this.serializeExpressions(expr.args)},"body":${expr.body.accept(this)},"rest":${serializePrimitive(expr.rest)}}`;
   }
   private serializeExpressions(args: readonly AST.IsExpressionOrStatement[]): string {
     let text = '[';

@@ -45,6 +45,8 @@ import {
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
   DestructuringAssignmentExpression,
+  ArrowFunction,
+  BindingIdentifier,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -2874,6 +2876,35 @@ describe('DestructuringAssignmentExpression', function () {
       assert.deepStrictEqual(bc, { a:42, c:42});
     });
   });
-
 });
 /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+
+describe('arrow function unparsing', function () {
+  it('unparses arrow fn', function () {
+    assert.strictEqual(
+      new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a')).toString(),
+      '(a) => a'
+    );
+  });
+
+  it('unparses arrow fn with single rest parameter', function () {
+    assert.strictEqual(
+      new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'), true).toString(),
+      '(...a) => a'
+    );
+  });
+
+  it('unparses arrow fn with 2 params', function () {
+    assert.strictEqual(
+      new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a')).toString(),
+      '(a, b) => a'
+    );
+  });
+
+  it('unparses arrow fn with 2 params with rest', function () {
+    assert.strictEqual(
+      new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'), true).toString(),
+      '(a, ...b) => a'
+    );
+  });
+});

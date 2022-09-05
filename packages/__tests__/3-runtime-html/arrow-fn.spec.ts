@@ -4,6 +4,13 @@ import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
 
+  it("works with paren wrapping {}", function () {
+    const { assertText } = createFixture
+      .html`\${((e) => ({ a: e.v })({ v: 1 })).a}`
+      .build();
+    assertText('1');
+  });
+
   it("can sort number array", function () {
     const { assertText } = createFixture
       .html`<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`

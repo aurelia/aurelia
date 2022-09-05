@@ -1924,7 +1924,7 @@ CharScanners[Char.Dot] = () => {
     if (nextChar() !== Char.Dot) {
       return Token.DotDot;
     }
-    nextChar()
+    nextChar();
     return Token.DotDotDot;
   }
   return Token.Dot;

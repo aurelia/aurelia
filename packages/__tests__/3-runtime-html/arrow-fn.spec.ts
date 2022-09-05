@@ -142,7 +142,7 @@ describe("arrow-fn", function () {
         items = [
           { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
           { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
-        ]
+        ];
       }
     );
     const component = new App();
@@ -167,7 +167,7 @@ describe("arrow-fn", function () {
         items = [
           { name: 'a1', children: [{ name: 'b1', children: [{ name: 'c1' }] }] },
           { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
-        ]
+        ];
       }
     );
     const component = new App();

@@ -414,7 +414,9 @@ describe('ExpressionParser', function () {
   ];
   const SimpleArrowList: [string, any][] = [
     [`(a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`(...a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a, true)],
     [`(a, b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a)],
+    [`(a, ...b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a, true)],
     [`a => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
     [`() => 0`, new ArrowFunction([], $num0)],
   ];
@@ -1608,18 +1610,11 @@ describe('ExpressionParser', function () {
     });
 
     for (const input of [
-      `(a,...b) => a`,
+      `(...a,) => a`,
+      `(...a,b) => a`,
     ])
-    it(`throw restParamsInArrowFn on "${input}"`, function () {
+    it(`throw restParamsMustBeLastParam on "${input}"`, function () {
       verifyResultOrError(input, null, 'AUR0176');
-    });
-
-    for (const input of [
-      // note: this should ideally throw 'restParamsInArrowFn' as well, but we may impl spread relatively soon anyway
-      `(...a) => a`,
-    ])
-    it(`throw invalidSpreadOp on "${input}"`, function () {
-      verifyResultOrError(input, null, 'AUR0152');
     });
 
     for (const input of [

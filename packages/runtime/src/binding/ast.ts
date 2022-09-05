@@ -1643,12 +1643,20 @@ export class ArrowFunction {
   public constructor(
     public parameters: BindingIdentifier[],
     public body: IsAssign,
+    public rest: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
     const func = (...args: unknown[]) => {
-      const context = this.parameters.reduce<IIndexable>((map, param, i) => {
-        map[param.name] = args[i];
+      const params = this.parameters;
+      const rest = this.rest;
+      const lastIdx = params.length - 1;
+      const context = params.reduce<IIndexable>((map, param, i) => {
+        if (rest && i === lastIdx) {
+          map[param.name] = args.slice(i);
+        } else {
+          map[param.name] = args[i];
+        }
         return map;
       }, {});
       const functionScope = Scope.fromParent(s, context);

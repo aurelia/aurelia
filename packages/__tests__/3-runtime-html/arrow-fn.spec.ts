@@ -111,6 +111,24 @@ describe("arrow-fn", function () {
     au.dispose();
   });
 
+  it("can call arrow inline with rest", async function () {
+    const { au, host } = createFixture();
+    const App = CustomElement.define(
+      {
+        name: "app",
+        template: `\${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}`
+      },
+      class {}
+    );
+    const component = new App();
+    au.app({ host, component });
+    await au.start();
+    assert.strictEqual(host.textContent, '6');
+    await au.stop();
+
+    au.dispose();
+  });
+
   it("can flatMap nested fn", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(

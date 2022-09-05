@@ -966,11 +966,10 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
 }
 
 const enum ArrowFnParams {
-  Valid = 0,
-  Invalid = 1,
-  Default = 2,
-  Destructuring = 3,
-  Rest = 4,
+  Valid         = 1,
+  Invalid       = 2,
+  Default       = 3,
+  Destructuring = 4,
 }
 
 /**
@@ -998,6 +997,35 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
 
   // eslint-disable-next-line no-constant-condition
   loop: while (true) {
+    if (($currentToken as Token) === Token.DotDotDot) {
+      nextToken();
+      if (($currentToken as Token) !== Token.Identifier) {
+        throw expectedIdentifier();
+      }
+      arrowParams.push(new BindingIdentifier($tokenValue as string));
+
+      nextToken();
+      if (($currentToken as Token) === Token.Comma) {
+        throw restParamsMustBeLastParam();
+      }
+
+      if (($currentToken as Token) !== Token.CloseParen) {
+        throw invalidSpreadOp();
+      }
+
+      nextToken();
+      if (($currentToken as Token) !== Token.Arrow) {
+        throw invalidSpreadOp();
+      }
+
+      nextToken();
+      const _optional = $optional;
+      const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+      $optional = _optional;
+      $assignable = false;
+      return new ArrowFunction(arrowParams, body, true);
+    }
+
     switch ($currentToken as Token) {
       case Token.Identifier:
         arrowParams.push(new BindingIdentifier($tokenValue as string));
@@ -1014,11 +1042,6 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         nextToken();
         paramsState = ArrowFnParams.Destructuring;
         break;
-      case Token.DotDotDot:
-        // (...    - never valid
-        // (a,...  - never valid
-        paramsState = ArrowFnParams.Rest;
-        break loop;
       case Token.Comma:
         // (,     - never valid
         // (a,,   - never valid
@@ -1098,8 +1121,6 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         throw defaultParamsInArrowFn();
       case ArrowFnParams.Destructuring:
         throw destructuringParamsInArrowFn();
-      case ArrowFnParams.Rest:
-        throw restParamsInArrowFn();
     }
   }
 
@@ -1125,8 +1146,6 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         throw defaultParamsInArrowFn();
       case ArrowFnParams.Destructuring:
         throw destructuringParamsInArrowFn();
-      case ArrowFnParams.Rest:
-        throw restParamsInArrowFn();
     }
   }
 
@@ -1698,9 +1717,9 @@ function destructuringParamsInArrowFn() {
   }
 }
 
-function restParamsInArrowFn() {
+function restParamsMustBeLastParam() {
   if (__DEV__) {
-    return new Error(`AUR0176: Arrow function with rest parameters is not supported: ${$input}`);
+    return new Error(`AUR0176: Rest parameter must be last formal parameter in arrow function: ${$input}`);
   } else {
     return new Error(`AUR0176:${$input}`);
   }
@@ -1902,11 +1921,10 @@ CharScanners[Char.Dot] = () => {
     return scanNumber(true);
   }
   if ($currentChar === Char.Dot) {
-    const peek = $input.charCodeAt($index + 1);
-    if (peek !== Char.Dot) {
+    if (nextChar() !== Char.Dot) {
       return Token.DotDot;
     }
-    nextChar();
+    nextChar()
     return Token.DotDotDot;
   }
   return Token.Dot;

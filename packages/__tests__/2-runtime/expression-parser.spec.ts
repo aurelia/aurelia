@@ -1295,7 +1295,7 @@ describe('ExpressionParser', function () {
         break;
     }
   }
-  describe.only('parse ComplexArrowFunctionList', function () {
+  describe('parse ComplexArrowFunctionList', function () {
     for (const [depth, input, expected] of ComplexArrowFunctionList) {
       it(input, function () {
         try {

@@ -26,8 +26,6 @@ Sometimes you might want to display a list of values in successive order, a rang
 
 {% embed url="https://stackblitz.com/edit/aurelia-repeat-range?embed=1&file=my-app.html" %}
 
-
-
 ## Expression syntax
 
 Aurelia's expression parser implements a subset of [ECMAScript Expressions](https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions). For the features that are supported, you can typically expect the JavaScript in your view to work the same way as it would in your view model, or in the browser console. In addition, there are two adjustments:
@@ -71,7 +69,7 @@ non-ASCII characters in the [Latin](https://en.wikipedia.org/wiki/Latin\_script\
 * `'\t'` - The literal string `[TAB]`
 * `'\''` - The literal string `'`
 * `'\\'` - The literal string `\`
-* `'\\n'` - The literal string `\n`
+* `'\\n'` - The literal string&#x20;
 * `'\u0061'` - The literal string `a`
 
 {% hint style="warning" %}
@@ -184,10 +182,9 @@ Lambda expressions can be used to call methods like `Array#filter`, `Array#sort`
 {% hint style="warning" %}
 **Warning**
 
-- Wrapping the expression body in braces (`(a, b) => { ... }`) is not supported.
-- Default parameters (`(a = 42) => ...`) are not supported.
-- Destructuring parameters (`({a}) => ...` or `([a]) => ...`) is not supported.
-
+* Wrapping the expression body in braces (`(a, b) => { ... }`) is not supported.
+* Default parameters (`(a = 42) => ...`) are not supported.
+* Destructuring parameters (`({a}) => ...` or `([a]) => ...`) is not supported.
 {% endhint %}
 
 ### Member and Call Expressions

@@ -22,10 +22,10 @@ The rest of the document assumes that validation is view is more common scenario
 
 *   The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
 
-    ![Define rules](<../../../images/validation/seq-define-rules (1).png>)
+    ![Define rules](<../../../images/validation/seq-define-rules (1) (1).png>)
 *   The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
 
-    ![Rules class diagram](<../../../images/validation/class-rules (1) (2).png>)
+    ![Rules class diagram](<../../../images/validation/class-rules (1) (1) (1).png>)
 *   The validator (`IValidator` instance) allows you to execute a [validate instruction](defining-rules.md#validator-and-validate-instruction), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
 
     ![Rules class diagram](<../../../images/validation/seq-validator (1) (1).png>)

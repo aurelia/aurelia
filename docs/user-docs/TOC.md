@@ -25,6 +25,7 @@
 * [Conditional rendering](getting-to-know-aurelia/conditional-rendering.md)
 * [List rendering](getting-to-know-aurelia/repeats-and-list-rendering.md)
 * [Event handling](getting-to-know-aurelia/event-handling.md)
+* [Lambda Expressions](getting-to-know-aurelia/lambda-expressions.md)
 * [Template references](getting-to-know-aurelia/template-references.md)
 * [Template variables](getting-to-know-aurelia/template-variables.md)
 * [Local templates](getting-to-know-aurelia/local-templates.md)

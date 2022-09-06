@@ -2,7 +2,7 @@
 description: Learn all there is to know about Aurelia's HTML templating syntax.
 ---
 
-# Template Syntax
+# Template syntax
 
 Aurelia uses an HTML-based syntax for templating, allowing you to build applications straightforwardly. All Aurelia templates are valid spec-compliant HTML that works in all browsers and HTML parsers.
 
@@ -66,14 +66,34 @@ You can also use ternaries inside of your interpolation expressions:
 <p>${isTrue ? 'True' : 'False'}</p>
 ```
 
-### Syntax
+### Optional Syntax
+
+Also supported in template expressions is optional syntax. Aurelia supports the following optional syntax in templates.
+
+* `??`
+* `?.`
+* `?.()`
+* `?.[]`
+
+{% hint style="warning" %}
+While Aurelia supports a few optional syntaxes, `??=` is not supported.
+{% endhint %}
+
+Using optional syntax and nullish coalescing allows us to create safer expressions without the need for `if.bind` or boilerplate code in view models.
+
+```html
+${myValue ?? 'Some default'}
+```
+
+This can help clean up what otherwise might have been long and complex ternary expressions to achieve the above result.
+
+### Notes on syntax
 
 You would be forgiven for thinking that you can do pretty much anything that Javascript allows you to do, but there are limitations in what you can do inside of interpolation you need to be aware of.
 
 1. Expressions cannot be chained using `;` or `,`
 2. You cannot use primitives such as `Boolean`, `String`, `instanceOf`, `typeof` and so on
-3. Quite a few of the operators introduced in ES2015 and beyond, including nullish coalescing and optional chaining
-4. You can only use the pipe separator `|` when using value converters, but not as a bitwise operator
+3. You can only use the pipe separator `|` when using value converters, but not as a bitwise operator
 
 ## Attribute Bindings
 

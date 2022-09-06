@@ -160,8 +160,16 @@ In case a child node cannot be created, then the given (parent) node is not upda
 
 ## Create a node from viewport instruction
 
-TODO
----------------- START FROM HERE ------------------------------
+The node creation process looks as follows.
+
+- IF there is already a recognized route present in the given viewport instruction THEN [create a configured node](#creating-configured-route-node) from that. This is the first early termination. If the viewport instruction is created using the [RouteContext](#generating-viewport-instruction), then a recognized route is bound to be present there. This relieves us recognizing the route actually in downstream, saving us double/duplicate work.
+- IF the viewport instruction has no children, and we can create a new viewport instruction using the [RouteContext](#generating-viewport-instruction) THEN [create a configured node](#creating-configured-route-node) from that. This might be the case when there are structured and hierarchical navigation instruction made using route-id and parameters. The viewport instructions with children are excluded from this case, as when a path like `route/param-a/param-b` is parsed to create the viewport instruction, then the parameters are put as the children of the root viewport instruction, in which case, it is best to leave that for the default route recognition pipeline, as described below.
+
+Else the general case is that the viewport instruction is created by parsing a path like `route/param-a/[param-b]` or `route/param-a/[param-b]/child-route/param-c`.
+
+- For such multi-part instruction, it is collapsed first that is the path is re-constructed by concatenating values of each segment.
+- The re-constructed path is then recognized. This is done using the recognizer, bound to the routing context of the given node. The recognizer, unaware of any child configuration, matches only the part from the beginning for which it can find a matching path (inclusive the parameters). The rest it put to the `residue`. When the path cannot be recognized the recognizer returns `null`.
+- IF the recognizer returns `null` OR the `residue` matches the re-constructed path (It means that empty route is configured, and recognizer matches the empty path, but not the given path itself. This puts the whole path into residue) THEN --------- CONT.
 
 ## Creating configured route node
 

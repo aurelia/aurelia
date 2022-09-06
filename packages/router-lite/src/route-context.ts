@@ -203,20 +203,17 @@ export class RouteContext {
       } else {
         const routeDef = RouteDefinition.resolve(child, definition, null, this);
         if (routeDef instanceof Promise) {
-          if (isPartialChildRouteConfig(child) && child.path != null) {
-            for (const path of ensureArrayOfStrings(child.path)) {
-              this.$addRoute(path, child.caseSensitive ?? false, routeDef);
-            }
-            const idx = this.childRoutes.length;
-            const p = routeDef.then(resolvedRouteDef => {
-              return this.childRoutes[idx] = resolvedRouteDef;
-            });
-            this.childRoutes.push(p);
-            navModel.addRoute(p);
-            allPromises.push(p.then(noop));
-          } else {
-            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
+          if (!isPartialChildRouteConfig(child) || child.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
+          for (const path of ensureArrayOfStrings(child.path)) {
+            this.$addRoute(path, child.caseSensitive ?? false, routeDef);
           }
+          const idx = this.childRoutes.length;
+          const p = routeDef.then(resolvedRouteDef => {
+            return this.childRoutes[idx] = resolvedRouteDef;
+          });
+          this.childRoutes.push(p);
+          navModel.addRoute(p);
+          allPromises.push(p.then(noop));
         } else {
           for (const path of routeDef.path) {
             this.$addRoute(path, routeDef.caseSensitive, routeDef);

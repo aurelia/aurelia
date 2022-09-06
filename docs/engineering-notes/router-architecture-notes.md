@@ -154,7 +154,7 @@ It involves
 
 Compiling **from the sting instruction** is inherently bit more involved.
 When dealing with string instructions, there are couple special case that needs to be handled, namely the `../` prefix in the route that handles navigating to the ancestor/parent routing context.
-Whenever, `../` prefix is encountered, the parent node is selected and [this process](#compiling-viewport-instruction-and-appending-to-node) is restarted with the child viewport instraction coming from the given view port instruction.
+Whenever, `../` prefix is encountered, the parent node is selected and [this process](#compiling-viewport-instruction-and-appending-to-node) is restarted with the child viewport instruction coming from the given view port instruction.
 The default/non-special case is to create a node by using the [create node](#create-a-node-from-viewport-instruction) routine.
 In case a child node cannot be created, then the given (parent) node is not updated with a child.
 

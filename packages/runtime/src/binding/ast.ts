@@ -433,9 +433,11 @@ export class Unparser implements IVisitor<void> {
 }
 
 // export interface IAstEvaluator {
-//   readonly scope: Scope;
-//   create<T>(kind: ExpressionKind.ValueConverter, name: string): ValueConverterInstance<T>;
-//   create<T>(kind: ExpressionKind.BindingBehavior, name: string): BindingBehaviorInstance<T>;
+//   strict?: boolean;
+//   strictFnCall?: boolean;
+//   get: IServiceLocator['get'];
+//   getConverter?<T>(name: string): ValueConverterInstance<T>;
+//   getBehavior?<T>(name: string): BindingBehaviorInstance<T>;
 // }
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
@@ -756,7 +758,7 @@ export class AccessMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
     if (f & LF.isStrictBindingStrategy) {
       if (instance == null) {
         return instance;
@@ -808,9 +810,9 @@ export class AccessKeyedExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
     if (instance instanceof Object) {
-      const key = this.key.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as string;
+      const key = this.key.evaluate(f, s, l, c) as string;
       if (c !== null) {
         c.observe(instance, key);
       }
@@ -886,7 +888,7 @@ export class CallMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
 
     const args = this.args.map(a => a.evaluate(f, s, l, c));
     const func = getFunction(f, instance, this.name);

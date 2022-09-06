@@ -41,15 +41,14 @@ export const enum LifecycleFlags {
   none                          = 0b0000_000_00_0,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags        = 0b0_011_00_00_1,
-  observeLeafPropertiesOnly     = 0b0_001_00_00_0,
-  noFlush                       = 0b0_010_00_00_0,
-  bindingStrategy               = 0b0_000_00_00_1,
-  isStrictBindingStrategy       = 0b0_000_00_00_1,
-  fromBind                      = 0b0_000_00_01_0,
-  fromUnbind                    = 0b0_000_00_10_0,
-  mustEvaluate                  = 0b0_000_01_00_0,
-  dispose                       = 0b0_000_10_00_0,
+  persistentBindingFlags        = 0b0_01_00_00_1,
+  noFlush                       = 0b0_01_00_00_0,
+  bindingStrategy               = 0b0_00_00_00_1,
+  isStrictBindingStrategy       = 0b0_00_00_00_1,
+  fromBind                      = 0b0_00_00_01_0,
+  fromUnbind                    = 0b0_00_00_10_0,
+  mustEvaluate                  = 0b0_00_01_00_0,
+  dispose                       = 0b0_00_10_00_0,
 }
 
 export interface IConnectable {

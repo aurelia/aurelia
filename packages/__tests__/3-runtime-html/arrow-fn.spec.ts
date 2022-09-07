@@ -39,18 +39,6 @@ describe("arrow-fn", function () {
     assertText('567');
   });
 
-  it.skip("can reactively sort number array", function () {
-    const { assertText, component, platform } = createFixture
-      .component({ items: [5, 7, 6] })
-      .html`<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
-      .build();
-    assertText('567');
-
-    component.items.push(0);
-    platform.domWriteQueue.flush();
-    assertText('0567');
-  });
-
   it("can observe property accessed in each parameter", function () {
     const { component, assertText } = createFixture
       .component({ items: [{ v: 0 }, { v: 1 }] })
@@ -68,18 +56,6 @@ describe("arrow-fn", function () {
       .component({ items: [3, 4] })
       .build();
     assertText('7');
-  });
-
-  it.skip("can reactively reduce number array", function () {
-    const { component, platform, assertText } = createFixture
-      .component({ items: [3, 4] })
-      .html`\${items.reduce((sum, x) => sum + x, 0)}`
-      .build();
-    assertText('7');
-
-    component.items.push(5);
-    platform.domWriteQueue.flush();
-    assertText('12');
   });
 
   it("can call nested arrow inline", function () {
@@ -240,5 +216,311 @@ describe("arrow-fn", function () {
       }))
       .build();
     assertText('1');
+  });
+
+  describe('array obervation', function () {
+    it('observes on .map()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.map(i => i + 1)}`
+        .build();
+      assertText('2');
+
+      component.items.push(2);
+      flush();
+      assertText('2,3');
+
+      component.items.push(3);
+      flush();
+      assertText('2,3,4');
+    });
+
+    it('observes on repeat + .map()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`<div repeat.for="i of items.map(i => i + 1)">\${i}`
+        .build();
+      assertText('2');
+
+      component.items.push(2);
+      flush();
+      assertText('23');
+
+      component.items.push(3);
+      flush();
+      assertText('234');
+    });
+
+    it('observes on <let> + .map()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`<let i.bind="items.map(i => i + 1)"></let>\${i}`
+        .build();
+      assertText('2');
+
+      component.items.push(2);
+      flush();
+      assertText('2,3');
+
+      component.items.push(3);
+      flush();
+      assertText('2,3,4');
+    });
+
+    it('observes on .filter()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.filter(i => i > 1)}`
+        .build();
+      assertText('');
+
+      component.items.push(2);
+      flush();
+      assertText('2');
+
+      component.items.push(3);
+      flush();
+      assertText('2,3');
+    });
+
+    it('observes on .at()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.at(-1)}`
+        .build();
+      assertText('1');
+
+      component.items.push(2);
+      flush();
+      assertText('2');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .includes()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.includes(2)}`
+        .build();
+      assertText('false');
+
+      component.items.push(2);
+      flush();
+      assertText('true');
+
+      component.items.splice(0);
+      flush();
+      assertText('false');
+    });
+
+    it('observes on .indexOf()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.indexOf(2)}`
+        .build();
+      assertText('-1');
+
+      component.items.push(2);
+      flush();
+      assertText('1');
+
+      component.items.splice(0);
+      flush();
+      assertText('-1');
+    });
+
+    it('observes on .lastIndexOf()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.lastIndexOf(2)}`
+        .build();
+      assertText('-1');
+
+      component.items.push(2);
+      flush();
+      assertText('1');
+
+      component.items.splice(0);
+      flush();
+      assertText('-1');
+    });
+
+    it('observes on .findIndex()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.findIndex(x => x === 2)}`
+        .build();
+      assertText('-1');
+
+      component.items.push(2);
+      flush();
+      assertText('1');
+
+      component.items.splice(0);
+      flush();
+      assertText('-1');
+    });
+
+    it('observes on .find()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.find(x => x === 2)}`
+        .build();
+      assertText('undefined');
+
+      component.items.push(2);
+      flush();
+      assertText('2');
+
+      component.items.splice(0);
+      flush();
+      assertText('undefined');
+    });
+
+    it('observes on .flat()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [[1]] })
+        .html`\${items.flat()}`
+        .build();
+      assertText('1');
+
+      component.items.push([2]);
+      flush();
+      assertText('1,2');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .flatMap()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.flatMap(i => [i + 1])}`
+        .build();
+      assertText('2');
+
+      component.items.push(2);
+      flush();
+      assertText('2,3');
+
+      component.items.splice(1);
+      flush();
+      assertText('2');
+    });
+
+    it('observes on .join()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.join(', ')}`
+        .build();
+      assertText('1');
+
+      component.items.push(2);
+      flush();
+      assertText('1, 2');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .reduce()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.reduce((acc, i) => acc + i, 0)}`
+        .build();
+      assertText('1');
+
+      component.items.push(2);
+      flush();
+      assertText('3');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .reduceRight()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.reduceRight((acc, i) => acc + i)}`
+        .build();
+      assertText('1');
+
+      component.items.push(2);
+      flush();
+      assertText('3');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .slice()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.slice(0)}`
+        .build();
+      assertText('1');
+
+      component.items.push(2);
+      flush();
+      assertText('1,2');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on .every()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.every(i => i < 2)}`
+        .build();
+      assertText('true');
+
+      component.items.push(2);
+      flush();
+      assertText('false');
+
+      component.items.splice(1);
+      flush();
+      assertText('true');
+    });
+
+    it('observes on .some()', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [1] })
+        .html`\${items.some(i => i > 1)}`
+        .build();
+      assertText('false');
+
+      component.items.push(2);
+      flush();
+      assertText('true');
+
+      component.items.splice(1);
+      flush();
+      assertText('false');
+    });
+
+    it('observes on .sort', function () {
+      const { component, flush, assertText } = createFixture
+        .component({ items: [3, 1] })
+        .html`\${items.sort((a, b) => a - b)}`
+        .build();
+      assertText('1,3');
+
+      component.items.push(2);
+      flush();
+      assertText('1,2,3');
+
+      component.items.splice(2);
+      flush();
+      assertText('1,2');
+    });
   });
 });

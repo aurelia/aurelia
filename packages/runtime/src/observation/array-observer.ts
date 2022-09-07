@@ -309,7 +309,7 @@ const observe = {
       $sort.call(this, compareFn);
       return this;
     }
-    const len = this.length;
+    let len = this.length;
     if (len < 2) {
       return this;
     }
@@ -325,7 +325,19 @@ const observe = {
       compareFn = sortCompare;
     }
     quickSort(this, o.indexMap, 0, i, compareFn);
-    o.notify();
+    // todo(fred): it shouldn't notify if the sort produce a stable array:
+    //             where every item has the same index before/after
+    //             though this is inefficient we loop a few times like this
+    let shouldNotify = false;
+    for (i = 0, len = o.indexMap.length; len > i; ++i) {
+      if (o.indexMap[i] !== i) {
+        shouldNotify = true;
+        break;
+      }
+    }
+    if (shouldNotify) {
+      o.notify();
+    }
     return this;
   }
 };

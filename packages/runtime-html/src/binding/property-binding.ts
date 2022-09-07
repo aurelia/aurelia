@@ -1,4 +1,4 @@
-import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
+import { AccessorType, BindingMode, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
 import { BindingTargetSubscriber } from './binding-utils';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
@@ -95,6 +95,28 @@ export class PropertyBinding implements IAstBasedBinding {
       }
     }
 
+    if (shouldQueueFlush) {
+      // Queue the new one before canceling the old one, to prevent early yield
+      task = this.task;
+      this.task = this.taskQueue.queueTask(() => {
+        this.interceptor.updateTarget(newValue, flags);
+        this.task = null;
+      }, updateTaskOpts);
+      task?.cancel();
+      task = null;
+    } else {
+      this.interceptor.updateTarget(newValue, flags);
+    }
+  }
+
+  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    this.obs.version++;
+    const newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    this.obs.clear();
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;

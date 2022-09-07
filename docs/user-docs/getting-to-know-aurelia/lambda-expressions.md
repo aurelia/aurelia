@@ -36,7 +36,30 @@ We are calling a callback function called `isGood` defined inside of our templat
 ```
 {% endcode %}
 
-Observation-wise, Aurelia knows to only observe `selected` property of every item in `items`, as well as `pos` property of every **selected item**. This means changing the value of `selected` property of any item will result in the re-evaluation of the above expression. Changing the value of `pos` property of any **selected item** will also trigger the re-evaluation.
+Observation-wise, Aurelia knows to only observe `selected` property of every item in `items`, as well as `pos` property of every **selected item**. This means changing the value of `selected` property of any item will result in the re-evaluation of the above expression. Changing the value of `pos` property of any **selected item** will also trigger the re-evaluation. Aurelia will also subscribe to the mutation of the array `items` to refresh this binding.
+
+{% hint style="info" %}
+**Methods on array that will create an array subscription**
+
+* map
+* filter
+* includes
+* indexOf
+* lastIndexOf
+* findIndex
+* find
+* flat
+* flatMap
+* join
+* reduce
+* reduceRight
+* slice
+* some
+
+Methods that trigger self mutation like `sort`/`splice`/`push`/`pop`/`shift`/`unshift`/`reverse` will not result in a subsription it's unclear when and how to refresh the binding.
+
+For sorting, it is recommended that we create a new array with `slice` before sorting: `items.slice(0).sort(...)` since `sort()` mutates the existing array and could sometimes make the outcome confusing to follow.
+{% endhint %}
 
 Like we might have inside of a value converter, you can see we use two Javascript functions `filter` and `sort` — Aurelia's lamba expression support means we can chain these functions without needing to write any code in a view-model or value converter.
 
@@ -56,7 +79,7 @@ As the following:
 <my-button click.trigger="e => handleClick(e)">
 ```
 
-As a result `.call` is being deprecated in Aurelia as the lambda expression syntax allows us to handle this in a more Javascript way.
+As a result `.call` is being deprecated in Aurelia as the lambda expression syntax allows us to handle this in a more JavaScript way.
 
 ### Interpolation Expressions
 

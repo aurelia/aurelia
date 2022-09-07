@@ -552,6 +552,10 @@ export class MyApp {
 | delegate | **✓**         |             |
 | capture  | **✓**         |             |
 
+{% hint style="info" }
+In v2, if an expression return a function, that function will be use as the handler for the event. V1 only evaluates the expression.
+{% endhint }
+
 ### Contextual Properties
 
 **General**
@@ -590,6 +594,25 @@ export class MyApp {
 {% hint style="info" %}
 In Aurelia 2, The framework automatically computes observation without the need for any configuration or decorator.
 {% endhint %}
+
+### Observation in template
+
+| type | example | type | Aurelia 1 | Aurelia 2 |
+| - | - | - | - | - |
+| property | `${a}` | syntax: | **✓** | **✓** |
+| | | observation: | **✓** | **✓** |
+| member | `${a.b}` | syntax: | **✓** | **✓** |
+| | | observation: | **✓** | **✓** |
+| value conveter | `${a \| convert: value }` | syntax: | **✓** | **✓** |
+| | | observation: | **✓** | **✓** |
+| binding behavior | `${a & behavior: config }` | syntax: | **✓** | **✓** |
+| | | observation: | **✗** | **✗** |
+| function call | `${doThing(param)}` | syntax: | **✓** | **✓** |
+| | | observation: | **✓** | **✓** |
+| array methods | `${items.join(', ')}` | syntax: | **✓** | **✓** |
+| | | observation (on array): | **✗** | **✓** |
+| lambda | `${items.filter(x => x.v > 70)}` | syntax: | **✗** | **✓** |
+| | | observation: | **✗** | **✓** |
 
 ### @attributePattern
 

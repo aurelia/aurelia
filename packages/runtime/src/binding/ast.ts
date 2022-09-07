@@ -875,8 +875,8 @@ export class CallScopeExpression {
 }
 
 const autoObserveArrayMethods =
-  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
-// sort,      // bad support, self mutation + unclear dependency
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some'.split(' ');
+// sort,      // not support, self mutation + unclear dependency
 
 // push,      // not supported, self mutation + unclear dependency
 // pop,       // not supported, self mutation + unclear dependency

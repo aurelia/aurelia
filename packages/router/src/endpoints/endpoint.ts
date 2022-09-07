@@ -97,6 +97,19 @@ export class Endpoint {
   }
 
   /**
+   * The content for a specific navigation (or coordinator)
+   */
+   public getNavigationContent(navigation: NavigationCoordinator | Navigation): EndpointContent | null {
+    if (navigation instanceof NavigationCoordinator) {
+      navigation = navigation.navigation;
+    }
+    if (navigation instanceof Navigation) {
+      return this.contents.find(content => content.navigation === navigation) ?? null;
+    }
+    return null;
+  }
+
+  /**
    * The active content, next or current.
    */
   public get activeContent(): EndpointContent {
@@ -212,14 +225,14 @@ export class Endpoint {
    *
    * @param _step - The previous step in this transition Run
    */
-  public cancelContentChange(_coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
+  public cancelContentChange(_coordinator: NavigationCoordinator, _noExitStep: Step<void> | null = null): void | Step<void> {
     throw new Error(`Method 'cancelContentChange' needs to be implemented in all endpoints!`);
   }
 
   /**
    * Get any configured routes in the relevant content's component type.
    */
-  public getRoutes(): Route[] | null {
+  public getRoutes(): Route[] {
     throw new Error(`Method 'getRoutes' needs to be implemented in all endpoints!`);
   }
 
@@ -239,8 +252,7 @@ export class Endpoint {
    * @param _connectedCE - The custom element that's being removed
    */
   public removeEndpoint(_step: Step | null, _connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
-    this.getContent().delete();
-    this.getNextContent()?.delete();
+    this.contents.forEach(content => content.delete());
     return true;
   }
 
@@ -249,7 +261,7 @@ export class Endpoint {
    *
    * @param step - The previous step in this transition Run
    */
-  public canUnload(_step: Step<boolean> | null): boolean | Promise<boolean> {
+  public canUnload(_coordinator: NavigationCoordinator, _step: Step<boolean> | null): boolean | Promise<boolean> {
     return true;
   }
   /**
@@ -257,7 +269,7 @@ export class Endpoint {
    *
    * @param step - The previous step in this transition Run
    */
-  public canLoad(_step: Step<boolean>): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  public canLoad(_coordinator: NavigationCoordinator, _step: Step<boolean>): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     return true;
   }
 
@@ -266,7 +278,7 @@ export class Endpoint {
    *
    * @param step - The previous step in this transition Run
    */
-  public unload(_step: Step<void> | null): void | Step<void> {
+  public unload(_coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
     return;
   }
   /**
@@ -274,7 +286,7 @@ export class Endpoint {
    *
    * @param step - The previous step in this transition Run
    */
-  public load(_step: Step<void>): Step<void> | void {
+  public load(_coordinator: NavigationCoordinator, _step: Step<void>): Step<void> | void {
     return;
   }
 }

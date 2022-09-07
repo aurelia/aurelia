@@ -130,6 +130,7 @@ export class ViewportScope extends Endpoint {
 
   public transition(coordinator: NavigationCoordinator): void {
     Runner.run(null,
+      (step: Step<void>) => coordinator.setEndpointStep(this, step.root),
       () => coordinator.addEndpointState(this, 'guardedUnload'),
       () => coordinator.addEndpointState(this, 'guardedLoad'),
       () => coordinator.addEndpointState(this, 'guarded'),
@@ -166,8 +167,15 @@ export class ViewportScope extends Endpoint {
       this.removeSourceItem();
     }
   }
-  public cancelContentChange(coordinator: NavigationCoordinator, _step: Step<void> | null): void | Step<void> {
+  public cancelContentChange(coordinator: NavigationCoordinator, noExitStep: Step<void> | null = null): void | Step<void> {
+    // First cancel content change in all children
+    [...new Set(this.scope.children.map(scope => scope.endpoint))].forEach(child => child.cancelContentChange(coordinator, noExitStep));
+
     const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
+    if (nextContentIndex < 0) {
+      return;
+    }
+
     this.contents.splice(nextContentIndex, 1);
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);
@@ -236,15 +244,16 @@ export class ViewportScope extends Endpoint {
     }
   }
 
-  public getRoutes(): Route[] | null {
+  public getRoutes(): Route[] {
+    const routes = [];
     if (this.rootComponentType !== null) {
       // TODO: Fix it so that this isn't necessary!
       const Type = this.rootComponentType.constructor === this.rootComponentType.constructor.constructor
         ? this.rootComponentType
         : this.rootComponentType.constructor as RouteableComponentType;
 
-      return Routes.getConfiguration(Type);
+      routes.push(...(Routes.getConfiguration(Type) ?? []));
     }
-    return null;
+    return routes;
   }
 }

@@ -94,7 +94,12 @@ export class RoutingInstruction {
    */
   public unparsed: string | null = null;
 
-  public constructor(
+  /**
+   * Whether the routing instruction has been cancelled (aborted) for some reason
+   */
+   public cancelled: boolean = false;
+
+   public constructor(
     component?: ComponentAppellation | Promise<ComponentAppellation>,
     endpoint?: EndpointHandle,
     parameters?: ComponentParameters,
@@ -355,7 +360,7 @@ export class RoutingInstruction {
    * Whether the routing instruction is unresolved.
    */
   public get isUnresolved(): boolean {
-    return this.component.isFunction() && this.component.isPromise();
+    return this.component.isFunction() || this.component.isPromise();
   }
 
   /**

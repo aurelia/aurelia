@@ -155,6 +155,45 @@ describe('Router', function () {
     return { au, container, platform, host, router, ctx, tearDown };
   }
 
+  async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+    const ctx = TestContext.create();
+
+    const { container, platform } = ctx;
+
+    const App = CustomElement.define({
+      name: 'app',
+      template: '<au-viewport name="app"></au-viewport>',
+      dependencies
+    }, class {
+      public static routes: IRoute[] = routes;
+    });
+
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host as any);
+
+    const au = new Aurelia(container)
+      .register(
+        RouterConfiguration.customize(config ?? {}),
+        App)
+      .app({ host: host, component: App });
+
+    const router = getModifiedRouter(container);
+    const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+    await au.start();
+
+    async function $teardown() {
+      unspyNavigationStates(router, _pushState, _replaceState);
+      RouterConfiguration.customize();
+      await au.stop(true);
+      ctx.doc.body.removeChild(host);
+
+      au.dispose();
+    }
+
+    return { ctx, container, platform, host, au, router, $teardown, App };
+  }
+
   it('can be created', async function () {
     this.timeout(5000);
 
@@ -1330,45 +1369,7 @@ describe('Router', function () {
   });
 
   describe('can use configuration', function () {
-    this.timeout(30000);
-
-    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.create();
-
-      const { container, platform } = ctx;
-
-      const App = CustomElement.define({
-        name: 'app',
-        template: '<au-viewport></au-viewport>',
-        dependencies
-      }, class {
-        public static routes: IRoute[] = routes;
-      });
-
-      const host = ctx.doc.createElement('div');
-      ctx.doc.body.appendChild(host as any);
-
-      const au = new Aurelia(container)
-        .register(
-          RouterConfiguration.customize(config ?? {}),
-          App)
-        .app({ host: host, component: App });
-
-      const router = getModifiedRouter(container);
-      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
-
-      await au.start();
-
-      async function $teardown() {
-        unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop(true);
-        ctx.doc.body.removeChild(host);
-
-        au.dispose();
-      }
-
-      return { ctx, container, platform, host, au, router, $teardown, App };
-    }
+    this.timeout(5000);
 
     function $removeViewport(instructions) {
       if (Array.isArray(instructions)) {
@@ -1599,56 +1600,7 @@ describe('Router', function () {
   });
 
   describe('can use title configuration', function () {
-    this.timeout(30000);
-
-    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.create();
-
-      const { container, platform } = ctx;
-
-      const App = CustomElement.define({
-        name: 'app',
-        template: '<au-viewport></au-viewport>',
-        dependencies
-      }, class {
-        public static routes: IRoute[] = routes;
-      });
-
-      const host = ctx.doc.createElement('div');
-      ctx.doc.body.appendChild(host as any);
-
-      const au = new Aurelia(container)
-        .register(
-          RouterConfiguration.customize(config ?? {}),
-          App)
-        .app({ host: host, component: App });
-
-      const router = getModifiedRouter(container);
-      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
-
-      await au.start();
-
-      async function $teardown() {
-        unspyNavigationStates(router, _pushState, _replaceState);
-        RouterConfiguration.customize();
-        await au.stop(true);
-        ctx.doc.body.removeChild(host);
-
-        au.dispose();
-      }
-
-      return { ctx, container, platform, host, au, router, $teardown, App };
-    }
-
-    function $removeViewport(instructions) {
-      for (const instruction of instructions) {
-        instruction.viewport = null;
-        instruction.viewportName = null;
-        if (Array.isArray(instruction.nextScopeInstructions)) {
-          $removeViewport(instruction.nextScopeInstructions);
-        }
-      }
-    }
+    this.timeout(5000);
 
     const Parent = CustomElement.define({ name: 'my-parent', template: '!my-parent!<au-viewport name="parent"></au-viewport>' }, class {
       public static title: string = 'TheParent';
@@ -1820,45 +1772,7 @@ describe('Router', function () {
   });
 
   describe('can use lifecycleHooks', function () {
-    this.timeout(30000);
-
-    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.create();
-
-      const { container, platform } = ctx;
-
-      const App = CustomElement.define({
-        name: 'app',
-        template: '<au-viewport name="app"></au-viewport>',
-        dependencies
-      }, class {
-        public static routes: IRoute[] = routes;
-      });
-
-      const host = ctx.doc.createElement('div');
-      ctx.doc.body.appendChild(host as any);
-
-      const au = new Aurelia(container)
-        .register(
-          RouterConfiguration.customize(config ?? {}),
-          App)
-        .app({ host: host, component: App });
-
-      const router = getModifiedRouter(container);
-      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
-
-      await au.start();
-
-      async function $teardown() {
-        unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop(true);
-        ctx.doc.body.removeChild(host);
-
-        au.dispose();
-      }
-
-      return { ctx, container, platform, host, au, router, $teardown, App };
-    }
+    this.timeout(5000);
 
     const calledHooks = [];
     @lifecycleHooks()
@@ -1901,56 +1815,79 @@ describe('Router', function () {
     });
   });
 
-  describe('can use viewport scope', function () {
+  describe('can redirect', function () {
     this.timeout(30000);
 
-    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.create();
+    const routes = [
+      { path: 'route-zero', component: 'zero' },
+      { path: 'route-one', component: 'one' },
+      { path: 'route-two', component: 'two' },
+      { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
+    ];
 
-      const { container, platform } = ctx;
+    const Zero = CustomElement.define({ name: 'zero', template: '!zero!' });
+    const One = CustomElement.define({ name: 'one', template: '!one!<au-viewport name="one-vp"></au-viewport>', });
+    const Two = CustomElement.define({ name: 'two', template: '!two!', }, class { public canLoad() { return 'route-zero'; } });
+    const Three = CustomElement.define({ name: 'three', template: '!three!', }, class { public canLoad() { return 'zero'; } });
+    const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
 
-      const App = CustomElement.define({
-        name: 'app',
-        template: '<au-viewport name="app"></au-viewport>',
-        dependencies
-      }, class {
-        public static routes: IRoute[] = routes;
+    const tests = [
+      { load: '/route-two', result: '!zero!', },
+      { load: '/route-one/route-two', result: '!one!!zero!', },
+      { load: '/route-one/route-one/route-two', result: '!one!!one!!zero!', },
+
+      { load: '/route-two/route-one', result: '!zero!', },
+      { load: '/route-one/route-two/route-one', result: '!one!!zero!', },
+      { load: '/route-one/route-one/route-two/route-one', result: '!one!!one!!zero!', },
+
+      { load: '/three', result: '!zero!', },
+      { load: '/route-one/three', result: '!one!!zero!', },
+      { load: '/route-one/route-one/three', result: '!one!!one!!zero!', },
+
+      { load: '/three/route-one', result: '!zero!', },
+      { load: '/route-one/three/route-one', result: '!one!!zero!', },
+      { load: '/route-one/route-one/three/route-one', result: '!one!!one!!zero!', },
+
+      { load: '/route-two', result: '!zero!', },
+      { load: '/one/route-two', result: '!one!!zero!', },
+      { load: '/one/one/route-two', result: '!one!!one!!zero!', },
+
+      { load: '/route-two/one', result: '!zero!', },
+      { load: '/one/route-two/one', result: '!one!!zero!', },
+      { load: '/one/one/route-two/one', result: '!one!!one!!zero!', },
+
+      { load: '/three', result: '!zero!', },
+      { load: '/one/three', result: '!one!!zero!', },
+      { load: '/one/one/three', result: '!one!!one!!zero!', },
+
+      { load: '/three/one', result: '!zero!', },
+      { load: '/one/three/one', result: '!one!!zero!', },
+      { load: '/one/one/three/one', result: '!one!!one!!zero!', },
+
+      { load: '/four', result: '!zero!', },
+      { load: '/route-one/four', result: '!one!!zero!', },
+      { load: '/route-one/one/four', result: '!one!!one!!zero!', },
+
+      { load: '/four/one', result: '!zero!', },
+      { load: '/route-one/four/one', result: '!one!!zero!', },
+      { load: '/route-one/one/four/one', result: '!one!!one!!zero!', },
+    ];
+
+    for (const test of tests) {
+      it(`to route in canLoad (${test.load})`, async function () {
+        const { platform, host, router, $teardown } = await $setup({}, [Zero, One, Two, Three, Four], routes);
+
+        await $load(test.load, router, platform);
+        await platform.domWriteQueue.yield();
+        assert.strictEqual(host.textContent, test.result, test.load);
+
+        await $teardown();
       });
-
-      const host = ctx.doc.createElement('div');
-      ctx.doc.body.appendChild(host as any);
-
-      const au = new Aurelia(container)
-        .register(
-          RouterConfiguration.customize(config ?? {}),
-          App)
-        .app({ host: host, component: App });
-
-      const router = getModifiedRouter(container);
-      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
-
-      await au.start();
-
-      async function $teardown() {
-        unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop(true);
-        ctx.doc.body.removeChild(host);
-
-        au.dispose();
-      }
-
-      return { ctx, container, platform, host, au, router, $teardown, App };
     }
+  });
 
-    function $removeViewport(instructions) {
-      for (const instruction of instructions) {
-        instruction.viewport = null;
-        instruction.viewportName = null;
-        if (Array.isArray(instruction.nextScopeInstructions)) {
-          $removeViewport(instruction.nextScopeInstructions);
-        }
-      }
-    }
+  describe('can use viewport scope', function () {
+    this.timeout(5000);
 
     const part = '<au-viewport-scope><a load="my-one">One</a><a load="my-two">Two</a>:<au-viewport default="my-zero"></au-viewport></au-viewport-scope>';
     const Siblings = CustomElement.define({ name: 'my-siblings', template: `!my-siblings!${part}|${part}` }, class { });

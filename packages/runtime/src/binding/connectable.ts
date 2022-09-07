@@ -1,4 +1,4 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects';
+import { def, defineHiddenProp, ensureProto, isArray } from '../utilities-objects';
 import { getArrayObserver } from '../observation/array-observer';
 import { getSetObserver } from '../observation/set-observer';
 import { getMapObserver } from '../observation/map-observer';
@@ -46,7 +46,7 @@ function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
   let obs: CollectionObserver;
-  if (collection instanceof Array) {
+  if (isArray(collection)) {
     obs = getArrayObserver(collection);
   } else if (collection instanceof Set) {
     obs = getSetObserver(collection);

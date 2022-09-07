@@ -1,6 +1,7 @@
 import { DI, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
+import { isArray } from './utilities-objects';
 
 export interface IBinding {
   interceptor: this;
@@ -272,7 +273,7 @@ export function cloneIndexMap(indexMap: IndexMap): IndexMap {
 }
 
 export function isIndexMap(value: unknown): value is IndexMap {
-  return value instanceof Array && (value as IndexMap).isIndexMap === true;
+  return isArray(value) && (value as IndexMap).isIndexMap === true;
 }
 
 export interface IArrayIndexObserver extends IObserver {

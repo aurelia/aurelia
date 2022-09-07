@@ -5,7 +5,7 @@ import { ISignaler } from '../observation/signaler';
 import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../value-converter';
 import { IConnectableBinding } from './connectable';
-import { isFunction, isString } from '../utilities-objects';
+import { isArray, isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -874,6 +874,21 @@ export class CallScopeExpression {
   }
 }
 
+const autoObserveArrayMethods =
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
+// sort,      // bad support, self mutation + unclear dependency
+
+// push,      // not supported, self mutation + unclear dependency
+// pop,       // not supported, self mutation + unclear dependency
+// shift,     // not supported, self mutation + unclear dependency
+// splice,    // not supported, self mutation + unclear dependency
+// unshift,   // not supported, self mutation + unclear dependency
+// reverse,   // not supported, self mutation + unclear dependency
+
+// keys,    // not meaningful in template
+// values,  // not meaningful in template
+// entries, // not meaningful in template
+
 export class CallMemberExpression {
   public get $kind(): ExpressionKind.CallMember { return ExpressionKind.CallMember; }
   public get hasBind(): false { return false; }
@@ -893,6 +908,9 @@ export class CallMemberExpression {
     const args = this.args.map(a => a.evaluate(f, s, l, c));
     const func = getFunction(f, instance, this.name);
     if (func) {
+      if (isArray(instance) && autoObserveArrayMethods.includes(this.name)) {
+        c?.observeCollection(instance);
+      }
       return func.apply(instance, args);
     }
     return void 0;
@@ -1684,7 +1702,7 @@ export class ArrowFunction {
     return func;
   }
 
-  public assign(f: LF, s: Scope, l: IServiceLocator, value: unknown): void {
+  public assign(_f: LF, _s: Scope, _l: IServiceLocator, _value: unknown): void {
     return void 0;
   }
 

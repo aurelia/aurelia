@@ -1,4 +1,4 @@
-import { connectable, LifecycleFlags } from '@aurelia/runtime';
+import { connectable, IndexMap, LifecycleFlags } from '@aurelia/runtime';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -50,6 +50,22 @@ export class LetBinding implements IAstBasedBinding {
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
     newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    this.obs.clear();
+    if (newValue !== previousValue) {
+      target[targetProperty] = newValue;
+    }
+  }
+
+  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+
+    const target = this.target as IIndexable;
+    const targetProperty = this.targetProperty;
+    const previousValue: unknown = target[targetProperty];
+    this.obs.version++;
+    const newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;

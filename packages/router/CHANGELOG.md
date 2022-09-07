@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.40"></a>
+# 2.0.0-alpha.40 (2022-09-07)
+
+### Bug Fixes:
+
+* **router:** fix route import component issue (#1534) ([15b84f1](https://github.com/aurelia/aurelia/commit/15b84f1))
+
+
+### Refactorings:
+
+* **app-task:** consistent hook name style ing/ed (#1540) ([5a11ea0](https://github.com/aurelia/aurelia/commit/5a11ea0))
+
 <a name="2.0.0-alpha.39"></a>
 # 2.0.0-alpha.39 (2022-09-01)
 

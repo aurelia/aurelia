@@ -32,7 +32,7 @@ export class RefBinding implements IAstBasedBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+    this.sourceExpression.assign(this.$scope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -44,8 +44,8 @@ export class RefBinding implements IAstBasedBinding {
     }
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, null) === this.target) {
-      sourceExpression.assign(flags, this.$scope!, this.locator, null);
+    if (sourceExpression.evaluate(this.$scope!, this.locator, null) === this.target) {
+      sourceExpression.assign(this.$scope!, this.locator, null);
     }
 
     // source expression might have been modified durring assign, via a BB

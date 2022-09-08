@@ -1,7 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
   BindingMode,
-  connectable,
   ExpressionKind,
   LifecycleFlags,
   AccessorType,
@@ -10,7 +9,7 @@ import {
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
 import { IPlatform } from '../platform';
-import { BindingTargetSubscriber } from './binding-utils';
+import { connectableBinding, BindingTargetSubscriber } from './binding-utils';
 
 import type {
   ITask,
@@ -89,9 +88,9 @@ export class AttributeBinding implements IAstBasedBinding {
     this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
   }
 
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    this.sourceExpression.assign(flags, this.$scope, this.locator, value);
+  public updateSource(value: unknown, _flags: LifecycleFlags): void {
+    // flags |= this.persistentFlags;
+    this.sourceExpression.assign(this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -119,7 +118,7 @@ export class AttributeBinding implements IAstBasedBinding {
       if (shouldConnect) {
         this.obs.version++;
       }
-      newValue = sourceExpression.evaluate(flags, $scope, locator, interceptor);
+      newValue = sourceExpression.evaluate($scope, locator, interceptor);
       if (shouldConnect) {
         this.obs.clear();
       }
@@ -161,6 +160,7 @@ export class AttributeBinding implements IAstBasedBinding {
     }
 
     let targetObserver = this.targetObserver;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.target as HTMLElement,
@@ -178,7 +178,7 @@ export class AttributeBinding implements IAstBasedBinding {
     if ($mode & toViewOrOneTime) {
       shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        this.value = sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null),
+        this.value = sourceExpression.evaluate(scope, this.locator, shouldConnect ? interceptor : null),
         flags
       );
     }
@@ -216,4 +216,4 @@ export class AttributeBinding implements IAstBasedBinding {
   }
 }
 
-connectable(AttributeBinding);
+connectableBinding(true, true)(AttributeBinding);

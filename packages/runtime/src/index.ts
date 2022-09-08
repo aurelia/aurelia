@@ -54,6 +54,7 @@ export {
   type BindingIdentifierOrPattern,
   type UnaryOperator,
   type IExpressionHydrator,
+  type IAstEvaluator,
 } from './binding/ast';
 export {
   type IObserverLocatorBasedConnectable,

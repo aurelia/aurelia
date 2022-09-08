@@ -49,7 +49,7 @@ export class BindingContext implements IBindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
-  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: Scope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null) {
       if (__DEV__)
         throw new Error(`AUR0203: Scope is ${scope}.`);

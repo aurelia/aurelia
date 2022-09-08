@@ -11,6 +11,7 @@ import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator';
 import type { IPlatform } from '../platform';
 import type { IAstBasedBinding } from './interfaces-bindings';
+import { connectableBinding } from './binding-utils';
 
 const addListenerOptions = {
   [DelegationStrategy.capturing]: { capture: true },
@@ -55,7 +56,7 @@ export class Listener implements IAstBasedBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    let result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, null);
+    let result = this.sourceExpression.evaluate(this.$scope, this.locator, null);
 
     delete overrideContext.$event;
 
@@ -141,3 +142,5 @@ export class Listener implements IAstBasedBinding {
     return;
   }
 }
+
+connectableBinding(true, true, false);

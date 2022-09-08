@@ -1,5 +1,5 @@
-import { AnyBindingExpression, IConnectableBinding } from '@aurelia/runtime';
+import { AnyBindingExpression, IAstEvaluator, IConnectableBinding } from '@aurelia/runtime';
 
-export interface IAstBasedBinding extends IConnectableBinding {
+export interface IAstBasedBinding extends IConnectableBinding, IAstEvaluator {
   sourceExpression: AnyBindingExpression;
 }

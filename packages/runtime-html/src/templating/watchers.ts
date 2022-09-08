@@ -2,7 +2,6 @@ import {
   connectable,
   ConnectableSwitcher,
   ExpressionKind,
-  LifecycleFlags,
   ProxyObservable,
 } from '@aurelia/runtime';
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -17,6 +16,7 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
+import { connectableBinding } from '../binding/binding-utils';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;
@@ -133,7 +133,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
-      value = expr.evaluate(0, this.scope, this.locator, this);
+      value = expr.evaluate(this.scope, this.locator, this);
       this.obs.clear();
     }
     if (!Object.is(value, oldValue)) {
@@ -149,7 +149,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
     this.isBound = true;
     this.obs.version++;
-    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, this.locator, this);
+    this.value = this.expression.evaluate(this.scope, this.locator, this);
     this.obs.clear();
   }
 
@@ -164,4 +164,4 @@ export class ExpressionWatcher implements IConnectableBinding {
 }
 
 connectable(ComputedWatcher);
-connectable(ExpressionWatcher);
+connectableBinding(true, true)(ExpressionWatcher);

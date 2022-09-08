@@ -1,4 +1,5 @@
-import { connectable, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { connectableBinding } from './binding-utils';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -9,7 +10,6 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
-
 export interface LetBinding extends IAstBasedBinding {}
 
 export class LetBinding implements IAstBasedBinding {
@@ -40,7 +40,7 @@ export class LetBinding implements IAstBasedBinding {
     this._toBindingContext = toBindingContext;
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
     if (!this.isBound) {
       return;
     }
@@ -49,14 +49,14 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
     if (!this.isBound) {
       return;
     }
@@ -65,7 +65,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    const newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -89,7 +89,7 @@ export class LetBinding implements IAstBasedBinding {
     }
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty]
-      = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, this.interceptor);
+      = this.sourceExpression.evaluate(scope, this.locator, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -112,4 +112,4 @@ export class LetBinding implements IAstBasedBinding {
   }
 }
 
-connectable(LetBinding);
+connectableBinding(true, true)(LetBinding);

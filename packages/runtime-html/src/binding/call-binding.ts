@@ -4,8 +4,11 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
+/**
+ * A binding for handling .call syntax
+ */
 export interface CallBinding extends IAstBasedBinding {}
-export class CallBinding {
+export class CallBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -26,7 +29,7 @@ export class CallBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     overrideContext.$event = args;
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, null);
+    const result = this.sourceExpression.evaluate(this.$scope!, this, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
@@ -68,11 +71,11 @@ export class CallBinding {
     this.isBound = false;
   }
 
-  public observe(obj: object, propertyName: string): void {
+  public observe(_obj: object, _propertyName: string): void {
     return;
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
     return;
   }
 }

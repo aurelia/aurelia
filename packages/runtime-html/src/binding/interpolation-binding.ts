@@ -6,6 +6,7 @@ import {
   LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
+import { connectableBinding } from './binding-utils';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -184,7 +185,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -218,7 +219,6 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
 
     this.value = this.sourceExpression.evaluate(
-      flags,
       scope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -272,7 +272,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     public readonly locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly p: IPlatform,
-    private readonly strict: boolean,
+    public readonly strict: boolean,
   ) {
     this.oL = observerLocator;
   }
@@ -307,7 +307,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
         obsRecord.version++;
       }
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -338,7 +338,6 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     this.obs.version++;
     const v = this.value = this.sourceExpression.evaluate(
-      LifecycleFlags.none,
       this.$scope!,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -368,7 +367,6 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
 
     const v = this.value = this.sourceExpression.evaluate(
-      flags,
       scope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -409,4 +407,4 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 }
 
-connectable(ContentBinding);
+connectableBinding(void 0, false, true)(ContentBinding);

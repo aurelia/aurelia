@@ -11,7 +11,7 @@ class AuthorArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  load({ name }: Params): void {
+  loading({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       const params = ArticleListQueryParams.create({
         ...this.$articles.params,
@@ -30,7 +30,7 @@ class FavoritedArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  load({ name }: Params): void {
+  loading({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       const params = ArticleListQueryParams.create({
         ...this.$articles.params,
@@ -59,7 +59,7 @@ export class ProfileViewCustomElement implements IRouteViewModel {
     @IUserState readonly $user: IUserState,
   ) {}
 
-  load({ name }: Params): void {
+  loading({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       await this.$profile.load(name as string);
     });

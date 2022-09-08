@@ -45,7 +45,7 @@ export class AuthViewCustomElement implements IRouteViewModel {
     @IUserState readonly $user: IUserState,
   ) {}
 
-  load(params: Params, next: RouteNode): void {
+  loading(params: Params, next: RouteNode): void {
     this.mode = next.instruction!.component.value as 'login' | 'register';
   }
 

@@ -20,7 +20,7 @@ export class EditorViewCustomElement implements IRouteViewModel {
     this.local = $article.current.clone();
   }
 
-  load({ slug }: Params): void {
+  loading({ slug }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       await this.$article.load(slug);
     });

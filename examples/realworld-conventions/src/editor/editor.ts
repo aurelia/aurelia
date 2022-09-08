@@ -19,7 +19,7 @@ export class Editor implements IRouteableComponent {
     this.local = $article.current.clone();
   }
 
-  async load({ slug }: Parameters) {
+  async loading({ slug }: Parameters) {
     await this.$article.load(slug as string);
   }
 

@@ -46,7 +46,7 @@ export function* prependDeferrable(
 ) {
   if (deferUntil === 'none') {
     yield `${prefix}.${component}.canLoad`;
-    yield `${prefix}.${component}.load`;
+    yield `${prefix}.${component}.loading`;
   }
 
   for (const call of calls) {
@@ -144,9 +144,9 @@ describe('router config', function () {
           unbinding: hookSpecsMap.unbinding.sync,
 
           canLoad: hookSpecsMap.canLoad.sync,
-          load: hookSpecsMap.load.sync,
+          loading: hookSpecsMap.loading.sync,
           canUnload: hookSpecsMap.canUnload.sync,
-          unload: hookSpecsMap.unload.sync,
+          unloading: hookSpecsMap.unloading.sync,
         }),
       },
       {
@@ -262,7 +262,7 @@ describe('router config', function () {
                     yield `start.root1.attaching`;
                     yield `start.root1.attached`;
 
-                    yield* prepend(phase1, t1c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* prepend(phase1, t1c, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1c, $t2c }] of [
                       [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -271,8 +271,8 @@ describe('router config', function () {
                     ] as const) {
                       yield `${phase}.${$t1c}.canUnload`;
                       yield `${phase}.${$t2c}.canLoad`;
-                      yield `${phase}.${$t1c}.unload`;
-                      yield `${phase}.${$t2c}.load`;
+                      yield `${phase}.${$t1c}.unloading`;
+                      yield `${phase}.${$t2c}.loading`;
 
                       switch (routerOptionsSpec.swapStrategy) {
                         case 'parallel-remove-first':
@@ -774,9 +774,9 @@ function getAllAsyncSpecs(count: number): HookSpecs {
     unbinding: hookSpecsMap.unbinding.async(count),
 
     canLoad: hookSpecsMap.canLoad.async(count),
-    load: hookSpecsMap.load.async(count),
+    loading: hookSpecsMap.loading.async(count),
     canUnload: hookSpecsMap.canUnload.async(count),
-    unload: hookSpecsMap.unload.async(count),
+    unloading: hookSpecsMap.unloading.async(count),
   });
 }
 

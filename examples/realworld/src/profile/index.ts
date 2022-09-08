@@ -12,7 +12,7 @@ class AuthorArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  async load({ name }: Params) {
+  async loading({ name }: Params) {
     const params = ArticleListQueryParams.create({
       ...this.$articles.params,
       favorited: undefined,
@@ -29,7 +29,7 @@ class FavoritedArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  async load({ name }: Params) {
+  async loading({ name }: Params) {
     const params = ArticleListQueryParams.create({
       ...this.$articles.params,
       author: undefined,
@@ -55,7 +55,7 @@ export class ProfileViewCustomElement implements IRouteViewModel {
     @IUserState readonly $user: IUserState,
   ) {}
 
-  async load({ name }: Params) {
+  async loading({ name }: Params) {
     await this.$profile.load(name as string);
   }
 

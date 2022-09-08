@@ -20,12 +20,12 @@ class NoopHandler {
     return true;
   }
 
-  load(...args) {
+  loading(...args) {
     console.log('In load shared hook', ...args);
   }
 
-  unload(...args) {
-    console.log('In unload shared hook', ...args);
+  unloading(...args) {
+    console.log('In unloading shared hook', ...args);
   }
 }
 
@@ -41,12 +41,12 @@ class SecondHandler {
     return true;
   }
 
-  load(vm, params, instruction, navigation) {
+  loading(vm, params, instruction, navigation) {
     console.log('In load second handler', vm, params, instruction, navigation);
   }
 
-  unload(vm, instruction, navigation) {
-    console.log('In unload second handler', vm, instruction, navigation);
+  unloading(vm, instruction, navigation) {
+    console.log('In unloading second handler', vm, instruction, navigation);
   }
 }
 

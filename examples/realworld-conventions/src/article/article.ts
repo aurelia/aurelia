@@ -32,7 +32,7 @@ export class Article implements IRouteableComponent {
     @IArticleState readonly $article: IArticleState,
   ) { }
 
-  async load({ slug }: Parameters) {
+  async loading({ slug }: Parameters) {
     await Promise.all([
       this.$article.load(slug as string),
       this.$article.loadComments(slug as string),

@@ -29,7 +29,7 @@ export class ArticleViewCustomElement implements IRouteViewModel {
     @IArticleState readonly $article: IArticleState,
   ) {}
 
-  async load({ slug }: Params) {
+  async loading({ slug }: Params) {
     await Promise.all([
       this.$article.load(slug),
       this.$article.loadComments(slug!),

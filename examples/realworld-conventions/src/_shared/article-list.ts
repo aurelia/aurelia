@@ -27,7 +27,7 @@ export class ArticleList implements IRouteableComponent {
     return this.tag !== undefined ? `tag=${this.tag},` : '';
   }
 
-  async load({ mode, page, tag, name }: Parameters, instruction: RoutingInstruction): Promise<void> {
+  async loading({ mode, page, tag, name }: Parameters, instruction: RoutingInstruction): Promise<void> {
     // Component serves as three so set the right name
     this.componentName = instruction.component.name ?? 'article-list';
 

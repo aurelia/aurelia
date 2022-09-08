@@ -46,7 +46,7 @@ export class AuthViewCustomElement implements IRouteableComponent {
     @IUserState readonly $user: IUserState,
   ) { }
 
-  load(params: Parameters, instruction: RoutingInstruction): void {
+  loading(params: Parameters, instruction: RoutingInstruction): void {
     this.mode = instruction.component.name as 'login' | 'register';
   }
 

@@ -17,7 +17,7 @@ export class Description {
 
     }
 
-    public load(parameters) {
+    public loading(parameters) {
         this.book = this.bookService.getBook(parameters.id);
     }
 }

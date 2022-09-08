@@ -69,7 +69,7 @@ describe('History navigations', function () {
   });
   const Foo = CustomElement.define({ name: 'foo', template: `foo`, }, class {
     public static parameters: string[] = ['id'];
-    public load(parameters) {
+    public loading(parameters) {
       result.parameters = { ...parameters };
     }
   });

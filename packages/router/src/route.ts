@@ -85,8 +85,8 @@ export class Route {
     // TODO: Look into adding these:
     // public readonly canLoad: readonly CanLoad[],
     // public readonly canUnload: readonly CanUnload[],
-    // public readonly load: readonly Load[],
-    // public readonly unload: readonly Unload[],
+    // public readonly loading: readonly Load[],
+    // public readonly unloading: readonly Unload[],
   ) { }
 
   /**

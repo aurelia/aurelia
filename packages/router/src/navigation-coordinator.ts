@@ -32,8 +32,8 @@ export type NavigationState =
   'guardedUnload' | // fulfilled when canUnload (if any) has been called
   'guardedLoad' | // fulfilled when canLoad (if any) has been called
   'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called
-  'unloaded' | // fulfilled when unload (if any) has been called
-  'loaded' | // fulfilled when load (if any) has been called
+  'unloaded' | // fulfilled when unloading (if any) has been called
+  'loaded' | // fulfilled when loading (if any) has been called
   'routed' | // fulfilled when initial routing hooks (if any) have been called
   'bound' | // fulfilled when bind has been called
   'swapped' |

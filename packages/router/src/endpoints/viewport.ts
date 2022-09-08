@@ -528,7 +528,7 @@ export class Viewport extends Endpoint {
       },
     ];
 
-    // The transition routing hooks, unload and load
+    // The transition routing hooks, unloading and loading
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
       (step: Step<void>) => {

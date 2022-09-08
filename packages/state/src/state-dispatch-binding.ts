@@ -47,7 +47,7 @@ export class StateDispatchBinding implements IConnectableBinding {
   public callSource(e: Event) {
     const $scope = this.$scope!;
     $scope.overrideContext.$event = e;
-    const value = this.expr.evaluate(LifecycleFlags.isStrictBindingStrategy, $scope, this.locator, null);
+    const value = this.expr.evaluate($scope, this.locator, null);
     delete $scope.overrideContext.$event;
     if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);

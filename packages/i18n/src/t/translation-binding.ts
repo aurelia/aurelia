@@ -70,6 +70,8 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   /** @internal */
   private _isInterpolation!: boolean;
   private readonly _targetAccessors: Set<IAccessor>;
+  /** @internal */
+  private _isBinding = 0;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -130,17 +132,22 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
+    if (this.isBound) {
+      return;
+    }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!this.expr) { throw new Error('key expression is missing'); }
+    this._isBinding++;
     this.scope = scope;
     this._isInterpolation = this.expr instanceof Interpolation;
 
-    this._keyExpression = this.expr.evaluate(flags, scope, this.locator, this) as string;
+    this._keyExpression = this.expr.evaluate(scope, this.locator, this) as string;
     this._ensureKeyExpression();
     this.parameter?.$bind(flags, scope);
 
     this._updateTranslations(flags);
     this.isBound = true;
+    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -166,7 +173,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? this.expr.evaluate(flags, this.scope, this.locator, this) as string
+        ? this.expr.evaluate(this.scope, this.locator, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -206,7 +213,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, attribute)
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
+          const shouldQueueUpdate = this._isBinding === 0 && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
           } else {
@@ -219,7 +226,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
     let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = (flags & LifecycleFlags.fromBind) === 0;
+      shouldQueueContent = this._isBinding === 0;
       if (!shouldQueueContent) {
         this._updateContent(content, flags);
       }
@@ -375,7 +382,7 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(this.scope, this.locator, this) as i18next.TOptions;
     this.obs.clear();
     this.updater(flags);
   }
@@ -390,7 +397,7 @@ class ParameterBinding {
       this.expr.bind(flags, scope, this);
     }
 
-    this.value = this.expr.evaluate(flags, scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(scope, this.locator, this) as i18next.TOptions;
     this.isBound = true;
   }
 

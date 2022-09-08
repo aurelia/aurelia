@@ -34,6 +34,8 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
   private readonly taskQueue: TaskQueue;
+  /** @internal */
+  private _isBinding = 0;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private targetObserver!: IAccessor;
@@ -96,16 +98,17 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
       return;
     }
     this.isBound = true;
+    this._isBinding++;
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = this.sourceExpression.evaluate(
-      LifecycleFlags.isStrictBindingStrategy,
       this.$scope,
       this.locator,
       this.mode > oneTime ? this : null),
       LifecycleFlags.none
     );
+    this._isBinding--;
   }
 
   public $unbind(): void {
@@ -133,10 +136,10 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
     obsRecord.clear();
 
     let task: ITask | null;
@@ -159,12 +162,11 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     const value = this.sourceExpression.evaluate(
-      LifecycleFlags.isStrictBindingStrategy,
       $scope,
       this.locator,
       this.mode > oneTime ? this : null
     );
-    const shouldQueueFlush = (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
 
     if (value === this._value) {
       return;

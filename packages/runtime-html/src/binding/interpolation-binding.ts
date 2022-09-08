@@ -162,9 +162,6 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   public task: ITask | null = null;
   public isBound: boolean = false;
 
-  /** @internal */
-  private _isBinding = 0;
-
   /**
    * A semi-private property used by connectable mixin
    */
@@ -222,7 +219,6 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
 
     this.isBound = true;
-    this._isBinding++;
     this.$scope = scope;
 
     if (this.sourceExpression.hasBind) {
@@ -237,7 +233,6 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     if (this.value instanceof Array) {
       this.observeCollection(this.value);
     }
-    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {

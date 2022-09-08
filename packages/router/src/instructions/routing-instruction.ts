@@ -94,7 +94,12 @@ export class RoutingInstruction {
    */
   public unparsed: string | null = null;
 
-  public constructor(
+  /**
+   * Whether the routing instruction has been cancelled (aborted) for some reason
+   */
+   public cancelled: boolean = false;
+
+   public constructor(
     component?: ComponentAppellation | Promise<ComponentAppellation>,
     endpoint?: EndpointHandle,
     parameters?: ComponentParameters,

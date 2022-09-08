@@ -65,8 +65,8 @@ describe('Runner', function () {
       steps: [
         (step) => `one (${step.previousValue})`,
         (step) => `two (${step.previousValue})`,
-        (step) => createTimedPromise(`three (${step.previousValue})`, 2000),
-        (step) => createTimedPromise(`four (${step.previousValue})`, 1000),
+        (step) => createTimedPromise(`three (${step.previousValue})`, 200),
+        (step) => createTimedPromise(`four (${step.previousValue})`, 100),
       ],
       result: 'four (three (two (one (undefined))))',
       cancelled: 'two (one (undefined))', // Now rejecting, not supporting partials
@@ -74,8 +74,8 @@ describe('Runner', function () {
     },
     {
       steps: [
-        (step) => createTimedPromise(`four (${step.previousValue})`, 1000),
-        (step) => createTimedPromise(`three (${step.previousValue})`, 2000),
+        (step) => createTimedPromise(`four (${step.previousValue})`, 100),
+        (step) => createTimedPromise(`three (${step.previousValue})`, 200),
         (step) => `two (${step.previousValue})`,
         (step) => `one (${step.previousValue})`,
       ],
@@ -101,7 +101,7 @@ describe('Runner', function () {
       const stepsPromise = Runner.run(null, ...test.steps) as Promise<unknown>;
       setTimeout(() => {
         Runner.cancel(stepsPromise);
-      }, 1500);
+      }, 150);
 
       await stepsPromise.then(_result => {
         // assert.strictEqual(result, test.cancelled, `#${i}`);

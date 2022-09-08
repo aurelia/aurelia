@@ -281,7 +281,7 @@ export class RoutingScope {
       addInstruction.scope = addInstruction.scope!.owningScope!;
     }
 
-    const allChangedEndpoints: IEndpoint[] = [];
+    let allChangedEndpoints: IEndpoint[] = [];
 
     // Match the instructions to available endpoints within, and with the help of, their scope
     // TODO(return): This needs to be updated
@@ -470,6 +470,15 @@ export class RoutingScope {
       if (resolvePromises.length > 0) {
         await Promise.all(resolvePromises);
       }
+
+      // Remove cancelled endpoints from changed endpoints
+      earlierMatchedInstructions.filter(instruction => instruction.cancelled).forEach(instruction => {
+        const lastIndex = earlierMatchedInstructions.lastIndexOf(instruction);
+        const lastInstruction = earlierMatchedInstructions[lastIndex];
+        if (lastInstruction.cancelled) {
+          allChangedEndpoints = allChangedEndpoints.filter(endpoint => endpoint !== lastInstruction.endpoint.instance);
+        }
+      });
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 
     return allChangedEndpoints;
@@ -546,7 +555,7 @@ export class RoutingScope {
       // As long as the sibling constraint (above) is in, this will only be at most one instruction
       if (nonClearInstructions.length > 0) {
         for (const instruction of nonClearInstructions) {
-          const foundRoute = this.findMatchingRoute(RoutingInstruction.stringify(router, nonClearInstructions));
+          const foundRoute = this.findMatchingRoute(instruction.unparsed ?? RoutingInstruction.stringify(router, nonClearInstructions));
           if (foundRoute?.foundConfiguration ?? false) {
             route = foundRoute!;
             route.instructions = [...clearInstructions, ...route.instructions];
@@ -718,23 +727,23 @@ export class RoutingScope {
     return instructions;
   }
 
-  public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
+  public canUnload(coordinator: NavigationCoordinator, step: Step<boolean> | null): boolean | Promise<boolean> {
     return Runner.run(step,
       (stepParallel: Step<boolean>) => {
         return Runner.runParallel(stepParallel,
           ...this.children.map(child => child.endpoint !== null
-            ? (childStep: Step<boolean>) => child.endpoint.canUnload(childStep)
-            : (childStep: Step<boolean>) => child.canUnload(childStep)
+            ? (childStep: Step<boolean>) => child.endpoint.canUnload(coordinator, childStep)
+            : (childStep: Step<boolean>) => child.canUnload(coordinator, childStep)
           ));
       },
       (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result)) as boolean | Promise<boolean>;
   }
 
-  public unload(step: Step<void> | null): Step<void> {
+  public unload(coordinator: NavigationCoordinator, step: Step<void> | null): Step<void> {
     return Runner.runParallel(step,
       ...this.children.map(child => child.endpoint !== null
-        ? (childStep: Step<void>) => child.endpoint.unload(childStep)
-        : (childStep: Step<void>) => child.unload(childStep)
+        ? (childStep: Step<void>) => child.endpoint.unload(coordinator, childStep)
+        : (childStep: Step<void>) => child.unload(coordinator, childStep)
       )) as Step<void>;
   }
 
@@ -752,26 +761,33 @@ export class RoutingScope {
   }
 
   public findMatchingRoute(path: string): FoundRoute | null {
+    let found: FoundRoute | null = null;
     if (this.isViewportScope && !this.passThroughScope) {
-      return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
-    }
-    if (this.isViewport) {
-      return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
-    }
-
-    // TODO: Match specified names here
-
-    for (const child of this.enabledChildren) {
-      const found = child.findMatchingRoute(path);
-      if (found !== null) {
-        return found;
+      found = this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
+    } else if (this.isViewport) {
+      found = this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
+    } else {
+      for (const child of this.enabledChildren) {
+        found = child.findMatchingRoute(path);
+        if (found?.foundConfiguration) {
+          break;
+        }
       }
     }
-    return null;
+
+    if (found?.foundConfiguration) {
+      return found;
+    }
+
+    if (this.parent != null) {
+      return this.parent.findMatchingRoute(path);
+    }
+
+    return found;
   }
 
-  private findMatchingRouteInRoutes(path: string, routes: Route[] | null): FoundRoute | null {
-    if (!Array.isArray(routes)) {
+  private findMatchingRouteInRoutes(path: string, routes: Route[]): FoundRoute | null {
+    if (!Array.isArray(routes) || routes.length === 0) {
       return null;
     }
 

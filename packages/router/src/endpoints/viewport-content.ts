@@ -276,7 +276,7 @@ export class ViewportContent extends EndpointContent {
       }
       if (typeof result === 'string') {
         innerStep.exit();
-        return [RoutingInstruction.create(result, this.endpoint as Viewport)];
+        return result;
       }
       return result as Promise<RoutingInstruction[]>;
     }));
@@ -289,7 +289,7 @@ export class ViewportContent extends EndpointContent {
           return false;
         }
         if (typeof hooksResult === 'string') {
-          return [RoutingInstruction.create(hooksResult, this.endpoint as Viewport)];
+          return hooksResult;
         }
         return hooksResult as Promise<RoutingInstruction[]>;
       }
@@ -301,11 +301,8 @@ export class ViewportContent extends EndpointContent {
     }
 
     const result = instance.canLoad(merged, this.instruction, this.navigation);
-    if (typeof result === 'boolean') {
+    if (typeof result === 'boolean' || typeof result === 'string') {
       return result;
-    }
-    if (typeof result === 'string') {
-      return [RoutingInstruction.create(result, this.endpoint as Viewport)];
     }
     return result as Promise<RoutingInstruction[]>;
   }

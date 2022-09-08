@@ -1,14 +1,14 @@
 import { customElement } from 'aurelia';
-import template from './two.html';
+import template from './three.html';
 import { AnimationHooks } from './animation-hooks';
 
 @customElement({
-  name: 'two',
+  name: 'three',
   template,
   dependencies: [AnimationHooks],
 })
-export class Two {
-  canLoad() {
-    return '/ett/tva/tre';
-  }
+export class Three {
+  public static routes = [
+    { path: 'ett/tva/tre', component: 'one' },
+  ];
 }

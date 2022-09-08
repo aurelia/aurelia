@@ -4,7 +4,7 @@ import { TransitionComponent } from './component.js';
 import { Transition } from './transition.js';
 import { TransitionViewport } from './transition-viewport.js';
 
-export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
+export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unloading', 'loading'];
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
 export const removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 
@@ -18,13 +18,13 @@ export function* getStartHooks(root: string) {
 export function* getStopHooks(root: string, p: string, c: string = '', c3 = '', c4 = '') {
   yield `stop.${root}.detaching`;
 
-  if (p) { yield* prepend('stop', p, 'unload', 'detaching'); }
+  if (p) { yield* prepend('stop', p, 'unloading', 'detaching'); }
 
   yield `stop.${root}.unbinding`;
 
-  if (c) { yield* prepend('stop', c, 'unload', 'detaching'); }
-  if (c3) { yield* prepend('stop', c3, 'unload', 'detaching'); }
-  if (c4) { yield* prepend('stop', c4, 'unload', 'detaching'); }
+  if (c) { yield* prepend('stop', c, 'unloading', 'detaching'); }
+  if (c3) { yield* prepend('stop', c3, 'unloading', 'detaching'); }
+  if (c4) { yield* prepend('stop', c4, 'unloading', 'detaching'); }
 
   if (p) { yield* prepend('stop', p, 'unbinding'); }
   if (c) { yield* prepend('stop', c, 'unbinding'); }
@@ -150,11 +150,11 @@ export function getHooks(deferUntil, swapStrategy, phase, ...siblingTransitions)
     }
 
     // for (let i = 0; i <= siblingHooks.length - 2; i++) {
-    //   TransitionViewport.delayHook(siblingHooks[i], siblingHooks[i + 1], 'unload');
+    //   TransitionViewport.delayHook(siblingHooks[i], siblingHooks[i + 1], 'unloading');
     // }
 
     for (let i = 0; i <= siblingHooks.length - 2; i++) {
-      TransitionViewport.delayHook(siblingHooks[i], siblingHooks[i + 1], 'load');
+      TransitionViewport.delayHook(siblingHooks[i], siblingHooks[i + 1], 'loading');
     }
   }
 
@@ -502,7 +502,7 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
   // } while (delayed && guard > 0);
 
   // for (let i = 0; i <= removeViewports.length - 2; i++) {
-  //   if (delayHooks(removeViewports, `${removeViewports[i].from.name}.unload`, `${removeViewports[i + 1].from.name}.unload`)) {
+  //   if (delayHooks(removeViewports, `${removeViewports[i].from.name}.unloading`, `${removeViewports[i + 1].from.name}.unloading`)) {
   //     console.log('delaying unload', removeViewports[i].from.name, removeViewports);
   //   }
   // }
@@ -684,8 +684,8 @@ export function getPrepended(prefix: string, component: string, ...hooks: (HookN
 export function* getSingleHooks(deferUntil, swapStrategy, componentKind, phase, from, to) {
   if (from) { yield `${phase}.${from}.canUnload`; }
   if (to) { yield `${phase}.${to}.canLoad`; }
-  if (from) { yield `${phase}.${from}.unload`; }
-  if (to) { yield `${phase}.${to}.load`; }
+  if (from) { yield `${phase}.${from}.unloading`; }
+  if (to) { yield `${phase}.${to}.loading`; }
   switch (swapStrategy) {
     case 'parallel-remove-first':
       switch (componentKind) {
@@ -718,8 +718,8 @@ export function* getSingleHooks(deferUntil, swapStrategy, componentKind, phase, 
 
 export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, phase, from, to) {
   const parentAdd: HookName[] = [...addHooks];
-  const childAdd: HookName[] = ['canLoad', 'load', ...addHooks];
-  const parentRemove: HookName[] = ['unload', ...removeHooks];
+  const childAdd: HookName[] = ['canLoad', 'loading', ...addHooks];
+  const parentRemove: HookName[] = ['unloading', ...removeHooks];
   const childRemove: HookName[] = [...removeHooks];
 
   if (from.c) { yield `${phase}.${from.c}.canUnload`; }
@@ -733,16 +733,16 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
     childAdd.shift();
   }
 
-  if (from.c) { yield `${phase}.${from.c}.unload`; }
+  if (from.c) { yield `${phase}.${from.c}.unloading`; }
 
-  if (from.p) { yield `${phase}.${from.p}.unload`; }
+  if (from.p) { yield `${phase}.${from.p}.unloading`; }
 
   parentRemove.shift();
 
-  yield `${phase}.${to.p}.load`;
+  yield `${phase}.${to.p}.loading`;
 
   if (deferUntil === 'load-hooks') {
-    if (to.c) { yield `${phase}.${to.c}.load`; }
+    if (to.c) { yield `${phase}.${to.c}.loading`; }
 
     childAdd.shift();
   }
@@ -1039,7 +1039,7 @@ export function assertHooks(actual: any, expected: any): void {
 function filterHooks(hooks: string[]): string[] {
   return hooks.filter(hook => hook
     && !hook.startsWith('stop.')
-    // && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unload') || hook.endsWith('load'))
+    // && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unloading') || hook.endsWith('loading'))
   ).map(hook => hook.replace(/<.*?>/gi, ''));
 }
 

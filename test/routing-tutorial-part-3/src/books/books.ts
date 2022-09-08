@@ -17,7 +17,7 @@ export class Books {
 
     }
 
-    public load() {
+    public loading() {
         this.books = this.bookService.getBooks();
     }
 }

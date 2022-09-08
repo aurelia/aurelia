@@ -9,11 +9,11 @@ export class Five {
     return true;
   }
 
-  load(...args) {
+  loading(...args) {
     console.log('In Five load hook', ...args);
   }
 
-  unload(...args) {
-    console.log('In Five unload hook', ...args);
+  unloading(...args) {
+    console.log('In Five unloading hook', ...args);
   }
 }

@@ -93,9 +93,9 @@ export const hookSpecsMap = {
   dispose: getHookSpecs('dispose').sync,
 
   canLoad: getHookSpecs('canLoad'),
-  load: getHookSpecs('load'),
+  loading: getHookSpecs('loading'),
   canUnload: getHookSpecs('canUnload'),
-  unload: getHookSpecs('unload'),
+  unloading: getHookSpecs('unloading'),
 };
 
 function groupByPrefix(list: string[]): Record<string, string[]> {
@@ -139,6 +139,6 @@ function filterHooks(hooks: string[]): string[] {
     && !hook.endsWith('.tick')
     // && !hook.endsWith('.dispose')
     // && !hook.startsWith('stop.')
-    && (hook.includes('canUnload') || hook.includes('canLoad') || hook.includes('unload') || hook.includes('load'))
+    && (hook.includes('canUnload') || hook.includes('canLoad') || hook.includes('unloading') || hook.includes('loading'))
   ).map(hook => hook.replace(/:.*?\./gi, '.').replace(/\.enter$/, ''));
 }

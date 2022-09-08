@@ -23,7 +23,7 @@ export class Profile implements IRouteableComponent {
     @IUserState readonly $user: IUserState,
   ) { }
 
-  async load({ name }: Parameters) {
+  async loading({ name }: Parameters) {
     await this.$profile.load(name as string);
   }
 

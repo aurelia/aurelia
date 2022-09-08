@@ -31,7 +31,7 @@ function join(sep: string, ...parts: string[]): string {
   }).join(sep);
 }
 
-const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'canLoad', 'load', 'canUnload', 'unload'] as const;
+const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'canLoad', 'loading', 'canUnload', 'unloading'] as const;
 type HookName = typeof hookNames[number] | 'dispose';
 
 class DelayedInvokerFactory<T extends HookName> {
@@ -61,9 +61,9 @@ export class HookSpecs {
     public readonly dispose: DelayedInvokerFactory<'dispose'>,
 
     public readonly canLoad: DelayedInvokerFactory<'canLoad'>,
-    public readonly load: DelayedInvokerFactory<'load'>,
+    public readonly loading: DelayedInvokerFactory<'loading'>,
     public readonly canUnload: DelayedInvokerFactory<'canUnload'>,
-    public readonly unload: DelayedInvokerFactory<'unload'>,
+    public readonly unloading: DelayedInvokerFactory<'unloading'>,
 
     public readonly ticks: number,
   ) { }
@@ -84,9 +84,9 @@ export class HookSpecs {
       DelayedInvoker.dispose(),
 
       input.canLoad || DelayedInvoker.canLoad(ticks),
-      input.load || DelayedInvoker.load(ticks),
+      input.loading || DelayedInvoker.loading(ticks),
       input.canUnload || DelayedInvoker.canUnload(ticks),
-      input.unload || DelayedInvoker.unload(ticks),
+      input.unloading || DelayedInvoker.unloading(ticks),
 
       ticks,
     );
@@ -106,9 +106,9 @@ export class HookSpecs {
     $this.dispose = void 0;
 
     $this.canLoad = void 0;
-    $this.load = void 0;
+    $this.loading = void 0;
     $this.canUnload = void 0;
-    $this.unload = void 0;
+    $this.unloading = void 0;
   }
 
   public toString(exclude: number = this.ticks): string {
@@ -133,9 +133,9 @@ abstract class TestVM implements IViewModel {
   public readonly detachingDI: DelayedInvoker<'detaching'>;
   public readonly unbindingDI: DelayedInvoker<'unbinding'>;
   public readonly canLoadDI: DelayedInvoker<'canLoad'>;
-  public readonly loadDI: DelayedInvoker<'load'>;
+  public readonly loadingDI: DelayedInvoker<'loading'>;
   public readonly canUnloadDI: DelayedInvoker<'canUnload'>;
-  public readonly unloadDI: DelayedInvoker<'unload'>;
+  public readonly unloadingDI: DelayedInvoker<'unloading'>;
   public readonly disposeDI: DelayedInvoker<'dispose'>;
 
   public constructor(mgr: INotifierManager, p: IPlatform, specs: HookSpecs) {
@@ -146,9 +146,9 @@ abstract class TestVM implements IViewModel {
     this.detachingDI = specs.detaching.create(mgr, p);
     this.unbindingDI = specs.unbinding.create(mgr, p);
     this.canLoadDI = specs.canLoad.create(mgr, p);
-    this.loadDI = specs.load.create(mgr, p);
+    this.loadingDI = specs.loading.create(mgr, p);
     this.canUnloadDI = specs.canUnload.create(mgr, p);
-    this.unloadDI = specs.unload.create(mgr, p);
+    this.unloadingDI = specs.unloading.create(mgr, p);
     this.disposeDI = specs.dispose.create(mgr, p);
   }
 
@@ -159,9 +159,9 @@ abstract class TestVM implements IViewModel {
   public detaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.detachingDI.invoke(this, () => { return this.$detaching(i, p, f); }); }
   public unbinding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p, f); }); }
   public canLoad(p: P, n: Navigation, c: Navigation | null): boolean | RoutingInstruction | RoutingInstruction[] | Promise<boolean | RoutingInstruction | RoutingInstruction[]> { return this.canLoadDI.invoke(this, () => { return this.$canLoad(p, n, c); }); }
-  public load(p: P, n: Navigation, c: Navigation | null): void | Promise<void> { return this.loadDI.invoke(this, () => { return this.$load(p, n, c); }); }
+  public loading(p: P, n: Navigation, c: Navigation | null): void | Promise<void> { return this.loadingDI.invoke(this, () => { return this.$loading(p, n, c); }); }
   public canUnload(n: Navigation | null, c: Navigation): boolean | Promise<boolean> { return this.canUnloadDI.invoke(this, () => { return this.$canUnload(n, c); }); }
-  public unload(n: Navigation | null, c: Navigation): void | Promise<void> { return this.unloadDI.invoke(this, () => { return this.$unload(n, c); }); }
+  public unloading(n: Navigation | null, c: Navigation): void | Promise<void> { return this.unloadingDI.invoke(this, () => { return this.$unloading(n, c); }); }
   public dispose(): void { void this.disposeDI.invoke(this, () => { this.$dispose(); }); }
 
   protected $binding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
@@ -171,9 +171,9 @@ abstract class TestVM implements IViewModel {
   protected $detaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
   protected $unbinding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
   protected $canLoad(_p: P, _n: Navigation, _c: Navigation | null): boolean | RoutingInstruction | RoutingInstruction[] | Promise<boolean | RoutingInstruction | RoutingInstruction[]> { return true; }
-  protected $load(_p: P, _n: Navigation, _c: Navigation | null): void | Promise<void> { /* do nothing */ }
+  protected $loading(_p: P, _n: Navigation, _c: Navigation | null): void | Promise<void> { /* do nothing */ }
   protected $canUnload(_n: Navigation | null, _c: Navigation): boolean | Promise<boolean> { return true; }
-  protected $unload(_n: Navigation | null, _c: Navigation): void | Promise<void> { /* do nothing */ }
+  protected $unloading(_n: Navigation | null, _c: Navigation): void | Promise<void> { /* do nothing */ }
   protected $dispose(this: Partial<Writable<this>>): void {
     this.bindingDI = void 0;
     this.boundDI = void 0;
@@ -245,9 +245,9 @@ class NotifierManager {
   public readonly detaching: Notifier = new Notifier(this, 'detaching');
   public readonly unbinding: Notifier = new Notifier(this, 'unbinding');
   public readonly canLoad: Notifier = new Notifier(this, 'canLoad');
-  public readonly load: Notifier = new Notifier(this, 'load');
+  public readonly loading: Notifier = new Notifier(this, 'loading');
   public readonly canUnload: Notifier = new Notifier(this, 'canUnload');
-  public readonly unload: Notifier = new Notifier(this, 'unload');
+  public readonly unloading: Notifier = new Notifier(this, 'unloading');
   public readonly dispose: Notifier = new Notifier(this, 'dispose');
 
   public enter(vm: TestVM, tracker: Notifier): void {
@@ -276,9 +276,9 @@ class NotifierManager {
     this.detaching.dispose();
     this.unbinding.dispose();
     this.canLoad.dispose();
-    this.load.dispose();
+    this.loading.dispose();
     this.canUnload.dispose();
-    this.unload.dispose();
+    this.unloading.dispose();
     this.dispose.dispose();
 
     this.entryNotifyHistory = void 0;
@@ -292,9 +292,9 @@ class NotifierManager {
     this.detaching = void 0;
     this.unbinding = void 0;
     this.canLoad = void 0;
-    this.load = void 0;
+    this.loading = void 0;
     this.canUnload = void 0;
-    this.unload = void 0;
+    this.unloading = void 0;
     this.$dispose = void 0;
   }
 }
@@ -313,9 +313,9 @@ class DelayedInvoker<T extends HookName> {
   public static detaching(ticks: number = 0): DelayedInvokerFactory<'detaching'> { return new DelayedInvokerFactory('detaching', ticks); }
   public static unbinding(ticks: number = 0): DelayedInvokerFactory<'unbinding'> { return new DelayedInvokerFactory('unbinding', ticks); }
   public static canLoad(ticks: number = 0): DelayedInvokerFactory<'canLoad'> { return new DelayedInvokerFactory('canLoad', ticks); }
-  public static load(ticks: number = 0): DelayedInvokerFactory<'load'> { return new DelayedInvokerFactory('load', ticks); }
+  public static loading(ticks: number = 0): DelayedInvokerFactory<'loading'> { return new DelayedInvokerFactory('loading', ticks); }
   public static canUnload(ticks: number = 0): DelayedInvokerFactory<'canUnload'> { return new DelayedInvokerFactory('canUnload', ticks); }
-  public static unload(ticks: number = 0): DelayedInvokerFactory<'unload'> { return new DelayedInvokerFactory('unload', ticks); }
+  public static unloading(ticks: number = 0): DelayedInvokerFactory<'unloading'> { return new DelayedInvokerFactory('unloading', ticks); }
   public static dispose(ticks: number = 0): DelayedInvokerFactory<'dispose'> { return new DelayedInvokerFactory('dispose', ticks); }
 
   public invoke(vm: TestVM, cb: () => any): any { // TODO(fkleuver): get rid of `any`
@@ -658,7 +658,7 @@ describe('router hooks', function () {
                 switch (ticks) {
                   case 0:
                     yield* $('start', 'root1', ticks, 'binding', 'bound', 'attaching', 'attached');
-                    yield* $(phase1, t1, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* $(phase1, t1, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1, $t2 }] of [
                       [phase2, { $t1: t1, $t2: t2 }],
@@ -667,8 +667,8 @@ describe('router hooks', function () {
                     ] as const) {
                       yield* $(phase, $t1, ticks, 'canUnload');
                       yield* $(phase, $t2, ticks, 'canLoad');
-                      yield* $(phase, $t1, ticks, 'unload');
-                      yield* $(phase, $t2, ticks, 'load');
+                      yield* $(phase, $t1, ticks, 'unloading');
+                      yield* $(phase, $t2, ticks, 'loading');
 
                       switch (opts.swapStrategy) {
                         case 'parallel-remove-first':
@@ -689,7 +689,7 @@ describe('router hooks', function () {
                     break;
                   case 1:
                     yield* $('start', 'root1', ticks, 'binding', 'bound', 'attaching', 'attached');
-                    yield* $(phase1, t1, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* $(phase1, t1, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1, $t2 }] of [
                       [phase2, { $t1: t1, $t2: t2 }],
@@ -698,8 +698,8 @@ describe('router hooks', function () {
                     ] as const) {
                       yield* $(phase, $t1, ticks, 'canUnload');
                       yield* $(phase, $t2, ticks, 'canLoad');
-                      yield* $(phase, $t1, ticks, 'unload');
-                      yield* $(phase, $t2, ticks, 'load');
+                      yield* $(phase, $t1, ticks, 'unloading');
+                      yield* $(phase, $t2, ticks, 'loading');
 
                       switch (opts.swapStrategy) {
                         case 'parallel-remove-first':
@@ -823,11 +823,11 @@ describe('router hooks', function () {
 
                     switch (opts.resolutionMode) {
                       case 'dynamic':
-                        yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                        yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                         break;
                       case 'static':
                         yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'canLoad');
-                        yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'load');
+                        yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'loading');
                         yield* $(phase1, [t1.vp0, t1.vp1], ticks, 'binding', 'bound', 'attaching', 'attached');
                         break;
                     }
@@ -846,8 +846,8 @@ describe('router hooks', function () {
                       switch (opts.resolutionMode) {
                         case 'dynamic':
                           if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'canLoad'); }
-                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unload'); }
-                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'load'); }
+                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unloading'); }
+                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'loading'); }
 
                           switch (opts.swapStrategy) {
                             case 'parallel-remove-first':
@@ -862,8 +862,8 @@ describe('router hooks', function () {
                           }
 
                           if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'canLoad'); }
-                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unload'); }
-                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'load'); }
+                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unloading'); }
+                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'loading'); }
 
                           switch (opts.swapStrategy) {
                             case 'parallel-remove-first':
@@ -881,11 +881,11 @@ describe('router hooks', function () {
                           if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'canLoad'); }
                           if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'canLoad'); }
 
-                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unload'); }
-                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unload'); }
+                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unloading'); }
+                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unloading'); }
 
-                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'load'); }
-                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'load'); }
+                          if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'loading'); }
+                          if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'loading'); }
 
                           switch (opts.swapStrategy) {
                             case 'parallel-remove-first':
@@ -922,8 +922,8 @@ describe('router hooks', function () {
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
                     yield* interleave(
-                      $(phase1, t1.vp0, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
-                      $(phase1, t1.vp1, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
+                      $(phase1, t1.vp0, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                      $(phase1, t1.vp1, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
                     );
 
                     for (const [phase, { $t1, $t2 }] of [
@@ -948,8 +948,8 @@ describe('router hooks', function () {
                                 const t2 = action === 'add' ? $t2[vp] : ($t2[vp] ? '-' : '');
 
                                 if ($t1[vp] !== $t2[vp]) { yield* $(phase, t2, ticks, 'canLoad'); }
-                                if ($t1[vp] !== $t2[vp]) { yield* $(phase, t1, ticks, 'unload'); }
-                                if ($t1[vp] !== $t2[vp]) { yield* $(phase, t2, ticks, 'load'); }
+                                if ($t1[vp] !== $t2[vp]) { yield* $(phase, t1, ticks, 'unloading'); }
+                                if ($t1[vp] !== $t2[vp]) { yield* $(phase, t2, ticks, 'loading'); }
                               }
 
                               yield* interleave(
@@ -980,16 +980,16 @@ describe('router hooks', function () {
                               yield* interleave(
                                 (function* () {
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'canLoad'); }
-                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unload'); }
-                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'load'); }
+                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unloading'); }
+                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'loading'); }
 
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'detaching', 'unbinding', 'dispose'); }
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'binding', 'bound', 'attaching', 'attached'); }
                                 })(),
                                 (function* () {
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'canLoad'); }
-                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unload'); }
-                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'load'); }
+                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unloading'); }
+                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'loading'); }
 
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'detaching', 'unbinding', 'dispose'); }
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'binding', 'bound', 'attaching', 'attached'); }
@@ -1000,16 +1000,16 @@ describe('router hooks', function () {
                               yield* interleave(
                                 (function* () {
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'canLoad'); }
-                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unload'); }
-                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'load'); }
+                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unloading'); }
+                                  if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'loading'); }
 
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'binding', 'bound', 'attaching', 'attached'); }
                                   if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'detaching', 'unbinding', 'dispose'); }
                                 })(),
                                 (function* () {
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'canLoad'); }
-                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unload'); }
-                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'load'); }
+                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unloading'); }
+                                  if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'loading'); }
 
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'binding', 'bound', 'attaching', 'attached'); }
                                   if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'detaching', 'unbinding', 'dispose'); }
@@ -1024,12 +1024,12 @@ describe('router hooks', function () {
                             (function* () { if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'canLoad'); } })(),
                           );
                           yield* interleave(
-                            (function* () { if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unload'); } })(),
-                            (function* () { if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unload'); } })(),
+                            (function* () { if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t1[firstVp], ticks, 'unloading'); } })(),
+                            (function* () { if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t1[secondVp], ticks, 'unloading'); } })(),
                           );
                           yield* interleave(
-                            (function* () { if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'load'); } })(),
-                            (function* () { if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'load'); } })(),
+                            (function* () { if ($t1[firstVp] !== $t2[firstVp]) { yield* $(phase, $t2[firstVp], ticks, 'loading'); } })(),
+                            (function* () { if ($t1[secondVp] !== $t2[secondVp]) { yield* $(phase, $t2[secondVp], ticks, 'loading'); } })(),
                           );
 
                           switch (opts.swapStrategy) {
@@ -1165,11 +1165,11 @@ describe('router hooks', function () {
 
                     switch (opts.resolutionMode) {
                       case 'dynamic':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                         break;
                       case 'static':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'load');
+                        yield* $(phase1, [t1.p, t1.c], ticks, 'loading');
 
                         yield* $(phase1, [t1.p, t1.c], ticks, 'binding', 'bound', 'attaching', 'attached');
                         break;
@@ -1184,8 +1184,8 @@ describe('router hooks', function () {
                       if ($t1.p === $t2.p) {
                         yield* $(phase, $t1.c, ticks, 'canUnload');
                         yield* $(phase, $t2.c, ticks, 'canLoad');
-                        yield* $(phase, $t1.c, ticks, 'unload');
-                        yield* $(phase, $t2.c, ticks, 'load');
+                        yield* $(phase, $t1.c, ticks, 'unloading');
+                        yield* $(phase, $t2.c, ticks, 'loading');
 
                         switch (opts.swapStrategy) {
                           case 'parallel-remove-first':
@@ -1204,13 +1204,13 @@ describe('router hooks', function () {
 
                         switch (opts.resolutionMode) {
                           case 'dynamic':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
-                            yield* $(phase, $t2.p, ticks, 'load');
+                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                            yield* $(phase, $t2.p, ticks, 'loading');
                             break;
                           case 'static':
                             yield* $(phase, $t2.c, ticks, 'canLoad');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
-                            yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
+                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                            yield* $(phase, [$t2.p, $t2.c], ticks, 'loading');
                             break;
                         }
 
@@ -1232,7 +1232,7 @@ describe('router hooks', function () {
 
                         switch (opts.resolutionMode) {
                           case 'dynamic':
-                            yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                            yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                             break;
                           case 'static':
                             yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
@@ -1250,11 +1250,11 @@ describe('router hooks', function () {
 
                     switch (opts.resolutionMode) {
                       case 'dynamic':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                         break;
                       case 'static':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'load');
+                        yield* $(phase1, [t1.p, t1.c], ticks, 'loading');
 
                         yield* $(phase1, t1.p, ticks, 'binding', 'bound', 'attaching');
                         yield* interleave(
@@ -1273,8 +1273,8 @@ describe('router hooks', function () {
                       if ($t1.p === $t2.p) {
                         yield* $(phase, $t1.c, ticks, 'canUnload');
                         yield* $(phase, $t2.c, ticks, 'canLoad');
-                        yield* $(phase, $t1.c, ticks, 'unload');
-                        yield* $(phase, $t2.c, ticks, 'load');
+                        yield* $(phase, $t1.c, ticks, 'unloading');
+                        yield* $(phase, $t2.c, ticks, 'loading');
 
                         switch (opts.swapStrategy) {
                           case 'parallel-remove-first':
@@ -1298,13 +1298,13 @@ describe('router hooks', function () {
 
                         switch (opts.resolutionMode) {
                           case 'dynamic':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
-                            yield* $(phase, $t2.p, ticks, 'load');
+                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                            yield* $(phase, $t2.p, ticks, 'loading');
                             break;
                           case 'static':
                             yield* $(phase, $t2.c, ticks, 'canLoad');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
-                            yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
+                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                            yield* $(phase, [$t2.p, $t2.c], ticks, 'loading');
                             break;
                         }
 
@@ -1329,7 +1329,7 @@ describe('router hooks', function () {
                                   $(phase, $t2.p, ticks, 'attaching'),
                                 );
                                 yield* $(phase, $t2.p, ticks, 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                                yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                                 break;
                               case 'static':
                                 yield* interleave(
@@ -1354,7 +1354,7 @@ describe('router hooks', function () {
                                 yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                                yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                                 break;
                               case 'static':
                                 yield* interleave(
@@ -1382,7 +1382,7 @@ describe('router hooks', function () {
                                 );
                                 yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
-                                yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                                yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                                 break;
                               case 'static':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
@@ -1429,13 +1429,13 @@ describe('router hooks', function () {
         canUnload: DelayedInvoker.canUnload(1),
       }),
       HookSpecs.create(0, {
-        unload: DelayedInvoker.unload(1),
+        unloading: DelayedInvoker.unloading(1),
       }),
       HookSpecs.create(0, {
         canLoad: DelayedInvoker.canLoad(1),
       }),
       HookSpecs.create(0, {
-        load: DelayedInvoker.load(1),
+        loading: DelayedInvoker.loading(1),
       }),
 
       HookSpecs.create(0, {
@@ -1488,42 +1488,42 @@ describe('router hooks', function () {
           const hookName = hookSpec.toString().slice(0, -3) as typeof hookNames[number];
           switch (opts.resolutionMode) {
             case 'dynamic':
-              yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+              yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
               switch (hookName) {
                 case 'canLoad':
                   yield* $(phase1, 'c', 1, 'canLoad');
-                  yield* $(phase1, 'c', 0, 'load', 'binding', 'bound', 'attaching', 'attached');
+                  yield* $(phase1, 'c', 0, 'loading', 'binding', 'bound', 'attaching', 'attached');
                   break;
-                case 'load':
+                case 'loading':
                   yield* $(phase1, 'c', 0, 'canLoad');
-                  yield* $(phase1, 'c', 1, 'load');
+                  yield* $(phase1, 'c', 1, 'loading');
                   yield* $(phase1, 'c', 0, 'binding', 'bound', 'attaching', 'attached');
                   break;
                 case 'binding':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'load');
+                  yield* $(phase1, 'c', 0, 'canLoad', 'loading');
                   yield* $(phase1, 'c', 1, 'binding');
                   yield* $(phase1, 'c', 0, 'bound', 'attaching', 'attached');
                   break;
                 case 'bound':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'load', 'binding');
+                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding');
                   yield* $(phase1, 'c', 1, 'bound');
                   yield* $(phase1, 'c', 0, 'attaching', 'attached');
                   break;
                 case 'attaching':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'load', 'binding', 'bound');
+                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound');
                   yield* $(phase1, 'c', 1, 'attaching');
                   yield* $(phase1, 'c', 0, 'attached');
                   break;
                 case 'attached':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'load', 'binding', 'bound', 'attaching');
+                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching');
                   yield* $(phase1, 'c', 1, 'attached');
                   break;
                 default:
-                  yield* $(phase1, 'c', 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                   break;
               }
 
-              yield* $(phase1, 'd', 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+              yield* $(phase1, 'd', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
               break;
             case 'static':
               switch (hookName) {
@@ -1531,19 +1531,19 @@ describe('router hooks', function () {
                   yield* $(phase1, ['a', 'b'], 0, 'canLoad');
                   yield* $(phase1, 'c', 1, 'canLoad');
                   yield* $(phase1, 'd', 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching', 'attached');
                   break;
-                case 'load':
+                case 'loading':
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b'], 0, 'load');
-                  yield* $(phase1, 'c', 1, 'load');
-                  yield* $(phase1, 'd', 0, 'load');
+                  yield* $(phase1, ['a', 'b'], 0, 'loading');
+                  yield* $(phase1, 'c', 1, 'loading');
+                  yield* $(phase1, 'd', 0, 'loading');
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching', 'attached');
                   break;
                 case 'binding':
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching', 'attached');
                   yield* $(phase1, 'c', 1, 'binding');
                   yield* $(phase1, 'c', 0, 'bound', 'attaching', 'attached');
@@ -1551,7 +1551,7 @@ describe('router hooks', function () {
                   break;
                 case 'bound':
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching', 'attached');
                   yield* $(phase1, 'c', 0, 'binding');
                   yield* $(phase1, 'c', 1, 'bound');
@@ -1560,7 +1560,7 @@ describe('router hooks', function () {
                   break;
                 case 'attaching':
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching', 'attached');
                   yield* $(phase1, 'c', 0, 'binding', 'bound');
                   yield* $(phase1, 'c', 0, 'attaching.enter');
@@ -1569,7 +1569,7 @@ describe('router hooks', function () {
                   break;
                 case 'attached':
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching', 'attached');
                   yield* $(phase1, 'c', 0, 'binding', 'bound', 'attaching');
                   yield* $(phase1, 'c', 0, 'attached.enter');
@@ -1578,7 +1578,7 @@ describe('router hooks', function () {
                   break;
                 default:
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'load');
+                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
                   yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching', 'attached');
                   break;
               }
@@ -1590,21 +1590,21 @@ describe('router hooks', function () {
               yield* $(phase2, 'd', 0, 'canUnload');
               yield* $(phase2, 'c', 1, 'canUnload');
               yield* $(phase2, 'b', 0, 'canUnload');
-              yield* $(phase2, ['d', 'c', 'b'], 0, 'unload');
+              yield* $(phase2, ['d', 'c', 'b'], 0, 'unloading');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'detaching');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'unbinding');
               break;
-            case 'unload':
+            case 'unloading':
               yield* $(phase2, ['d', 'c', 'b'], 0, 'canUnload');
-              yield* $(phase2, 'd', 0, 'unload');
-              yield* $(phase2, 'c', 1, 'unload');
-              yield* $(phase2, 'b', 0, 'unload');
+              yield* $(phase2, 'd', 0, 'unloading');
+              yield* $(phase2, 'c', 1, 'unloading');
+              yield* $(phase2, 'b', 0, 'unloading');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'detaching');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'unbinding');
               break;
             case 'detaching':
               yield* $(phase2, ['d', 'c', 'b'], 0, 'canUnload');
-              yield* $(phase2, ['d', 'c', 'b'], 0, 'unload');
+              yield* $(phase2, ['d', 'c', 'b'], 0, 'unloading');
               yield* $(phase2, 'd', 0, 'detaching');
               yield* $(phase2, 'c', 0, 'detaching.enter');
               yield* $(phase2, 'b', 0, 'detaching');
@@ -1614,7 +1614,7 @@ describe('router hooks', function () {
               break;
             case 'unbinding':
               yield* $(phase2, ['d', 'c', 'b'], 0, 'canUnload');
-              yield* $(phase2, ['d', 'c', 'b'], 0, 'unload');
+              yield* $(phase2, ['d', 'c', 'b'], 0, 'unloading');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'detaching');
               yield* $(phase2, 'd', 0, 'unbinding');
               yield* $(phase2, 'c', 0, 'unbinding.enter');
@@ -1624,7 +1624,7 @@ describe('router hooks', function () {
               break;
             default:
               yield* $(phase2, ['d', 'c', 'b'], 0, 'canUnload');
-              yield* $(phase2, ['d', 'c', 'b'], 0, 'unload');
+              yield* $(phase2, ['d', 'c', 'b'], 0, 'unloading');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'detaching');
               yield* $(phase2, ['d', 'c', 'b'], 0, 'unbinding');
               break;
@@ -1679,11 +1679,11 @@ describe('router hooks', function () {
       const spec: ISiblingTransitionSpec = {
         a: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(aCanLoad),
-          load: DelayedInvoker.load(aLoad),
+          loading: DelayedInvoker.loading(aLoad),
         }),
         b: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(bCanLoad),
-          load: DelayedInvoker.load(bLoad),
+          loading: DelayedInvoker.loading(bLoad),
         }),
       };
 
@@ -1715,12 +1715,12 @@ describe('router hooks', function () {
               yield* interleave(
                 (function* () {
                   yield* $(phase1, 'a', aCanLoad, 'canLoad');
-                  yield* $(phase1, 'a', aLoad, 'load');
+                  yield* $(phase1, 'a', aLoad, 'loading');
                   yield* $(phase1, 'a', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
                 (function* () {
                   yield* $(phase1, 'b', bCanLoad, 'canLoad');
-                  yield* $(phase1, 'b', bLoad, 'load');
+                  yield* $(phase1, 'b', bLoad, 'loading');
                   yield* $(phase1, 'b', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
               );
@@ -1731,8 +1731,8 @@ describe('router hooks', function () {
                 $(phase1, 'b', bCanLoad, 'canLoad'),
               );
               yield* interleave(
-                $(phase1, 'a', aLoad, 'load'),
-                $(phase1, 'b', bLoad, 'load'),
+                $(phase1, 'a', aLoad, 'loading'),
+                $(phase1, 'b', bLoad, 'loading'),
               );
               yield* interleave(
                 $(phase1, 'a', 1, 'binding', 'bound', 'attaching', 'attached'),
@@ -1779,11 +1779,11 @@ describe('router hooks', function () {
       const spec: IParentChildTransitionSpec = {
         a1: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(a1CanLoad),
-          load: DelayedInvoker.load(a1Load),
+          loading: DelayedInvoker.loading(a1Load),
         }),
         a2: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(a2CanLoad),
-          load: DelayedInvoker.load(a2Load),
+          loading: DelayedInvoker.loading(a2Load),
         }),
       };
 
@@ -1819,19 +1819,19 @@ describe('router hooks', function () {
           switch (opts.resolutionMode) {
             case 'dynamic':
               yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
-              yield* $(phase1, 'a1', a1Load, 'load');
+              yield* $(phase1, 'a1', a1Load, 'loading');
               yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
 
               yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-              yield* $(phase1, 'a2', a2Load, 'load');
+              yield* $(phase1, 'a2', a2Load, 'loading');
               yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
               break;
             case 'static':
               yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
               yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
 
-              yield* $(phase1, 'a1', a1Load, 'load');
-              yield* $(phase1, 'a2', a2Load, 'load');
+              yield* $(phase1, 'a1', a1Load, 'loading');
+              yield* $(phase1, 'a2', a2Load, 'loading');
 
               yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching');
               yield* interleave(
@@ -1977,19 +1977,19 @@ describe('router hooks', function () {
       const spec: IParentSiblingsChildSiblingsTransitionSpec = {
         a1: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(a1CanLoad),
-          load: DelayedInvoker.load(a1Load),
+          loading: DelayedInvoker.loading(a1Load),
         }),
         a2: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(a2CanLoad),
-          load: DelayedInvoker.load(a2Load),
+          loading: DelayedInvoker.loading(a2Load),
         }),
         b1: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(b1CanLoad),
-          load: DelayedInvoker.load(b1Load),
+          loading: DelayedInvoker.loading(b1Load),
         }),
         b2: HookSpecs.create(1, {
           canLoad: DelayedInvoker.canLoad(b2CanLoad),
-          load: DelayedInvoker.load(b2Load),
+          loading: DelayedInvoker.loading(b2Load),
         }),
       };
 
@@ -2035,24 +2035,24 @@ describe('router hooks', function () {
               yield* interleave(
                 (function* () {
                   yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
-                  yield* $(phase1, 'a1', a1Load, 'load');
+                  yield* $(phase1, 'a1', a1Load, 'loading');
                   yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
                 (function* () {
                   yield* $(phase1, 'b1', b1CanLoad, 'canLoad');
-                  yield* $(phase1, 'b1', b1Load, 'load');
+                  yield* $(phase1, 'b1', b1Load, 'loading');
                   yield* $(phase1, 'b1', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
               );
               yield* interleave(
                 (function* () {
                   yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-                  yield* $(phase1, 'a2', a2Load, 'load');
+                  yield* $(phase1, 'a2', a2Load, 'loading');
                   yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
                 (function* () {
                   yield* $(phase1, 'b2', b2CanLoad, 'canLoad');
-                  yield* $(phase1, 'b2', b2Load, 'load');
+                  yield* $(phase1, 'b2', b2Load, 'loading');
                   yield* $(phase1, 'b2', 1, 'binding', 'bound', 'attaching', 'attached');
                 })(),
               );
@@ -2078,19 +2078,19 @@ describe('router hooks', function () {
 
               yield* interleave(
                 (function* () {
-                  yield* $(phase1, 'a1', a1Load, 'load');
+                  yield* $(phase1, 'a1', a1Load, 'loading');
                 })(),
                 (function* () {
-                  yield* $(phase1, 'b1', b1Load, 'load');
+                  yield* $(phase1, 'b1', b1Load, 'loading');
                 })(),
                 (function* () {
-                  yield* $(phase1, '-', a1Load, 'load');
-                  yield* $(phase1, 'a2', a2Load, 'load');
+                  yield* $(phase1, '-', a1Load, 'loading');
+                  yield* $(phase1, 'a2', a2Load, 'loading');
                 })(),
                 (function* () {
-                  yield* $(phase1, '-', b1Load, 'load');
+                  yield* $(phase1, '-', b1Load, 'loading');
                   if (a1Load > 2) { yield ''; }
-                  yield* $(phase1, 'b2', b2Load, 'load');
+                  yield* $(phase1, 'b2', b2Load, 'loading');
                 })(),
               );
 
@@ -2188,7 +2188,7 @@ describe('router hooks', function () {
       'attaching',
       'attached',
       'canLoad',
-      'load',
+      'loading',
     ] as HookName[]) {
       runTest({
         async action(router, container) {
@@ -2213,7 +2213,7 @@ describe('router hooks', function () {
       'detaching',
       'unbinding',
       'canUnload',
-      'unload',
+      'unloading',
     ] as HookName[]) {
       const throwsInTarget1 = ['canUnload'].includes(hookName);
 
@@ -2231,7 +2231,7 @@ describe('router hooks', function () {
             public async attaching() { throw new Error(`error in attaching`); }
             public async attached() { throw new Error(`error in attached`); }
             public async canLoad() { throw new Error(`error in canLoad`); }
-            public async load() { throw new Error(`error in load`); }
+            public async loading() { throw new Error(`error in load`); }
           });
 
           container.register(target1, target2);
@@ -2250,9 +2250,9 @@ describe('router hooks', function () {
       'detaching',
       'unbinding',
       'canUnload',
-      'unload',
+      'unloading',
     ] as HookName[]) {
-      const throwsInTarget1 = ['canUnload', 'unload'].includes(hookName);
+      const throwsInTarget1 = ['canUnload', 'unloading'].includes(hookName);
 
       runTest({
         async action(router, container) {
@@ -2267,15 +2267,15 @@ describe('router hooks', function () {
             public async bound() { throw new Error(`error in bound`); }
             public async attaching() { throw new Error(`error in attaching`); }
             public async attached() { throw new Error(`error in attached`); }
-            public async load() { throw new Error(`error in load`); }
+            public async loading() { throw new Error(`error in load`); }
           });
 
           container.register(target1, target2);
           await router.load(target1);
           await router.load(target2);
         },
-        messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'load'}`),
-        stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'load'}`),
+        messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'loading'}`),
+        stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'loading'}`),
         toString() {
           return `${String(this.messageMatcher)} with load,binding,bound,attaching`;
         },

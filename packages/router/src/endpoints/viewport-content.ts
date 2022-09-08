@@ -398,21 +398,36 @@ export class ViewportContent extends EndpointContent {
         const parameters = this.instruction.typeParameters(this.router);
         const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
 
-        const hooks = this.getLifecycleHooks(instance, 'load').map(hook =>
+        const hooks = this.getLifecycleHooks(instance, 'loading').map(hook =>
           () => hook(instance, merged, this.instruction, this.navigation));
+
+        hooks.push(...this.getLifecycleHooks(instance, 'load').map(hook =>
+          () => {
+            console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
+            return hook(instance, merged, this.instruction, this.navigation);
+          }));
 
         if (hooks.length !== 0) {
           // Add hook in component
-          if (instance.load != null) {
-            hooks.push(() => instance.load!(merged, this.instruction, this.navigation));
+          if (instance.loading != null) {
+            hooks.push(() => instance.loading!(merged, this.instruction, this.navigation));
+          }
+          if ((instance as any).load != null) {
+            console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
+            hooks.push(() => (instance as any).load!(merged, this.instruction, this.navigation));
           }
 
           return Runner.run(null, ...hooks);
         }
 
         // Skip if there's no hook in component
-        if (instance.load != null) {
-          return instance.load(merged, this.instruction, this.navigation);
+        if (instance.loading != null) {
+          return instance.loading(merged, this.instruction, this.navigation);
+        }
+        // Skip if there's no hook in component
+        if ((instance as any).load != null) {
+          console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
+          return (instance as any).load(merged, this.instruction, this.navigation);
         }
       }
     ) as Step<void>;
@@ -441,21 +456,35 @@ export class ViewportContent extends EndpointContent {
       });
     }
 
-    const hooks = this.getLifecycleHooks(instance, 'unload').map(hook =>
+    const hooks = this.getLifecycleHooks(instance, 'unloading').map(hook =>
       () => hook(instance, this.instruction, navigation));
+
+    hooks.push(...this.getLifecycleHooks(instance, 'unload').map(hook =>
+      () => {
+        console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
+        return hook(instance, this.instruction, navigation);
+      }));
 
     if (hooks.length !== 0) {
       // Add hook in component
-      if (instance.unload != null) {
-        hooks.push(() => instance.unload!(this.instruction, navigation));
+      if (instance.unloading != null) {
+        hooks.push(() => instance.unloading!(this.instruction, navigation));
+      }
+      if ((instance as any).unload != null) {
+        console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
+        hooks.push(() => (instance as any).unload!(this.instruction, navigation));
       }
 
       return Runner.run(null, ...hooks) as void | Promise<void>;
     }
 
     // Skip if there's no hook in component
-    if (instance.unload != null) {
-      return instance.unload(this.instruction, navigation);
+    if (instance.unloading != null) {
+      return instance.unloading(this.instruction, navigation);
+    }
+    if ((instance as any).unload != null) {
+      console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
+      return (instance as any).unload(this.instruction, navigation);
     }
   }
 

@@ -27,10 +27,10 @@ export class SlowAttachParent {
     setInterval(() => { _this.seconds++; }, 1000);
   }
 
-  public load(_params, _instruction, navigation) {
+  public loading(_params, _instruction, navigation) {
     this.backwards = navigation.navigation.back;
   }
-  public unload(_params, _instruction, navigation) {
+  public unloading(_params, _instruction, navigation) {
     this.backwards = navigation.navigation?.back;
   }
 

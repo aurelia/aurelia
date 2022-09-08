@@ -23,7 +23,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
-  load(
+  loading(
     params: Parameters,
     instruction: RoutingInstruction,
     navigation: Navigation,
@@ -32,7 +32,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): boolean | Promise<boolean>;
-  unload(
+  unloading(
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): void | Promise<void>;
@@ -55,9 +55,9 @@ export class HookSpecs {
     public readonly $dispose: IHookSpec<'dispose'>,
 
     public readonly canLoad: IHookSpec<'canLoad'>,
-    public readonly load: IHookSpec<'load'>,
+    public readonly loading: IHookSpec<'loading'>,
     public readonly canUnload: IHookSpec<'canUnload'>,
-    public readonly unload: IHookSpec<'unload'>,
+    public readonly unloading: IHookSpec<'unloading'>,
   ) { }
 
   public static create(
@@ -76,9 +76,9 @@ export class HookSpecs {
       hookSpecsMap.dispose,
 
       input.canLoad || hookSpecsMap.canLoad.sync,
-      input.load || hookSpecsMap.load.sync,
+      input.loading || hookSpecsMap.loading.sync,
       input.canUnload || hookSpecsMap.canUnload.sync,
-      input.unload || hookSpecsMap.unload.sync,
+      input.unloading || hookSpecsMap.unloading.sync,
     );
   }
 
@@ -96,9 +96,9 @@ export class HookSpecs {
     $this.$dispose = void 0;
 
     $this.canLoad = void 0;
-    $this.load = void 0;
+    $this.loading = void 0;
     $this.canUnload = void 0;
-    $this.unload = void 0;
+    $this.unloading = void 0;
   }
 
   public toString(exclude?: string): string {
@@ -123,9 +123,9 @@ const hookNames = [
   'unbinding',
 
   'canLoad',
-  'load',
+  'loading',
   'canUnload',
-  'unload',
+  'unloading',
 ] as const;
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
@@ -281,21 +281,21 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public load(
+  public loading(
     params: Parameters,
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): void | Promise<void> {
     this.viewport = instruction.viewport.instance as Viewport;
-    // console.log('TestViewModel load', this.name);
-    // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
-    return this.specs.load.invoke(
+    // console.log('TestViewModel loading', this.name);
+    // this.hia.loading.notify(`${this.viewport?.name}.${this.name}`);
+    return this.specs.loading.invoke(
       this,
       () => {
-        // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$load(params, instruction, navigation);
+        // this.hia.loading.notify(`${this.viewport?.name}.${this.name}`);
+        return this.$loading(params, instruction, navigation);
       },
-      this.hia.load,
+      this.hia.loading,
     );
   }
 
@@ -319,20 +319,20 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public unload(
+  public unloading(
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): void | Promise<void> {
     this.viewport = instruction.viewport.instance as Viewport;
-    // console.log('TestViewModel unload', this.name);
-    // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
-    return this.specs.unload.invoke(
+    // console.log('TestViewModel unloading', this.name);
+    // this.hia.unloading.notify(`${this.viewport?.name}.${this.name}`);
+    return this.specs.unloading.invoke(
       this,
       () => {
-        // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$unload(instruction, navigation);
+        // this.hia.unloading.notify(`${this.viewport?.name}.${this.name}`);
+        return this.$unloading(instruction, navigation);
       },
-      this.hia.unload,
+      this.hia.unloading,
     );
   }
 
@@ -391,7 +391,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     return true;
   }
 
-  protected $load(
+  protected $loading(
     _params: Parameters,
     _instruction: RoutingInstruction,
     _navigation: Navigation,
@@ -406,7 +406,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     return true;
   }
 
-  protected $unload(
+  protected $unloading(
     _instruction: RoutingInstruction,
     _navigation: Navigation,
   ): void | Promise<void> {

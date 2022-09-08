@@ -8,11 +8,11 @@ export class TransitionViewport {
 
   public canUnload: boolean = true;
   public canLoad: boolean = true;
-  public unload: boolean = true;
-  public load: boolean = true;
+  public unloading: boolean = true;
+  public loading: boolean = true;
   public deactivate: boolean = true;
 
-  public static routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
+  public static routingHooks: HookName[] = ['canUnload', 'canLoad', 'unloading', 'loading'];
   public static addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
   public static removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 
@@ -95,12 +95,12 @@ export class TransitionViewport {
   public constructor(public readonly transition: Transition, public readonly isTop: boolean) {
     if (transition.from.isEmpty) {
       this.canUnload = false;
-      this.unload = false;
+      this.unloading = false;
       this.deactivate = false;
     }
     if (transition.to.isEmpty) {
       this.canLoad = false;
-      this.load = false;
+      this.loading = false;
     }
   }
 
@@ -143,7 +143,7 @@ export class TransitionViewport {
   //         }
   //       }
   //       break;
-  //     case 'unload':
+  //     case 'unloading':
   //       if (deferUntil === 'load-hooks') {
   //         for (let i = transitions.length - 1; i >= 0; i--) {
   //           const { from } = transitions[i];
@@ -167,7 +167,7 @@ export class TransitionViewport {
   //         }
   //       }
   //       break;
-  //     case 'load':
+  //     case 'loading':
   //       {
   //         const len = deferUntil === 'load-hooks' ? transitions.length : 1;
   //         for (let i = 0; i < len; i++) {
@@ -203,25 +203,25 @@ export class TransitionViewport {
       this.canLoad = false;
     }
 
-    if (!routingStep || deferUntil === 'load-hooks' && this.unload) {
+    if (!routingStep || deferUntil === 'load-hooks' && this.unloading) {
       //   if (deferUntil === 'guard-hooks') {
-      //     this.setRoutingHook(phase, 'unload');
+      //     this.setRoutingHook(phase, 'unloading');
       //     this.hooks.push('');
       // } else {
       if (this.isTop) {
-        // TransitionViewport.setRemoveHooks(deferUntil, phase, 'unload', false, topViewport, removeViewports);
-        TransitionViewport.getRemoveHooks(deferUntil, phase, 'unload', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
+        // TransitionViewport.setRemoveHooks(deferUntil, phase, 'unloading', false, topViewport, removeViewports);
+        TransitionViewport.getRemoveHooks(deferUntil, phase, 'unloading', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
       }
       // }
-      this.unload = false;
+      this.unloading = false;
     }
 
-    if (!routingStep || deferUntil === 'load-hooks' && this.load) {
-      this.setRoutingHook(phase, 'load');
+    if (!routingStep || deferUntil === 'load-hooks' && this.loading) {
+      this.setRoutingHook(phase, 'loading');
       if (deferUntil === 'load-hooks') {
         this.hooks.push('');
       }
-      this.load = false;
+      this.loading = false;
     }
   }
 
@@ -275,7 +275,7 @@ export class TransitionViewport {
 
   private setRoutingHook(phase: string, hook: HookName, onlyDelay = false): string[] {
     if (this[hook] as boolean) {
-      const component = hook === 'canUnload' || hook === 'unload' ? this.from : this.to;
+      const component = hook === 'canUnload' || hook === 'unloading' ? this.from : this.to;
       const hooks = TransitionViewport.getPrepended(phase, component.name, ...component.getTimed(hook));
       if (onlyDelay) {
         this.hooks.push('', ...hooks.slice(1));
@@ -360,8 +360,8 @@ export class TransitionViewport {
     let delayed = false;
 
     delayed = TransitionViewport.delayHooks(viewports, 'canUnload', 'canLoad') || delayed;
-    delayed = TransitionViewport.delayHooks(viewports, 'canUnload', 'unload') || delayed;
-    delayed = TransitionViewport.delayHooks(viewports, 'canUnload', 'load') || delayed;
+    delayed = TransitionViewport.delayHooks(viewports, 'canUnload', 'unloading') || delayed;
+    delayed = TransitionViewport.delayHooks(viewports, 'canUnload', 'loading') || delayed;
 
     // for (let i = 0; i <= removeViewports.length - 2; i++) {
     //   if (delayHooks(removeViewports, `${removeViewports[i].from.name}.canUnload`, `${removeViewports[i + 1].from.name}.canUnload`)) {
@@ -371,8 +371,8 @@ export class TransitionViewport {
     // }
 
     if (deferUntil === 'guard-hooks' || deferUntil === 'load-hooks') {
-      delayed = TransitionViewport.delayHooks(viewports, 'canLoad', 'unload') || delayed;
-      delayed = TransitionViewport.delayHooks(viewports, 'canLoad', 'load') || delayed;
+      delayed = TransitionViewport.delayHooks(viewports, 'canLoad', 'unloading') || delayed;
+      delayed = TransitionViewport.delayHooks(viewports, 'canLoad', 'loading') || delayed;
 
       for (let i = 0; i <= addViewports.length - 2; i++) {
         delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'canLoad') || delayed;
@@ -380,16 +380,16 @@ export class TransitionViewport {
     }
 
     if (deferUntil === 'load-hooks') {
-      delayed = TransitionViewport.delayHooks(viewports, 'unload', 'load') || delayed;
+      delayed = TransitionViewport.delayHooks(viewports, 'unloading', 'loading') || delayed;
 
       // for (let i = 0; i <= removeViewports.length - 2; i++) {
-      //   if (delayHooks(removeViewports, `${removeViewports[i].from.name}.unload`, `${removeViewports[i + 1].from.name}.unload`)) {
+      //   if (delayHooks(removeViewports, `${removeViewports[i].from.name}.unloading`, `${removeViewports[i + 1].from.name}.unloading`)) {
       //     // console.log('delaying unload', removeViewports[i].from.name, removeViewports);
       //   }
       // }
 
       for (let i = 0; i <= addViewports.length - 2; i++) {
-        delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'load') || delayed;
+        delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'loading') || delayed;
       }
       for (let i = 0; i <= addViewports.length - 2; i++) {
         delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'binding') || delayed;
@@ -406,8 +406,8 @@ export class TransitionViewport {
     // Start at 1 and -2 since first viewport is (if applicable) both add and remove and don't need processing
     for (let i = 1, j = removeViewports.length - 2; i < minLength; i++, j--) {
       delayed = TransitionViewport.delayHooks([removeViewports[j], addViewports[i]], 'canUnload', 'canLoad') || delayed;
-      delayed = TransitionViewport.delayHooks([removeViewports[j], addViewports[i]], 'canLoad', 'unload') || delayed;
-      delayed = TransitionViewport.delayHooks([removeViewports[j], addViewports[i]], 'unload', 'load') || delayed;
+      delayed = TransitionViewport.delayHooks([removeViewports[j], addViewports[i]], 'canLoad', 'unloading') || delayed;
+      delayed = TransitionViewport.delayHooks([removeViewports[j], addViewports[i]], 'unloading', 'loading') || delayed;
     }
     return delayed;
   }

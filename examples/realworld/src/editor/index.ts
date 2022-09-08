@@ -18,7 +18,7 @@ export class EditorViewCustomElement implements IRouteViewModel {
     this.local = $article.current.clone();
   }
 
-  async load({ slug }: Params) {
+  async loading({ slug }: Params) {
     await this.$article.load(slug);
   }
 

@@ -38,9 +38,9 @@ export type TitleFunction = (viewModel: IRouteableComponent, instruction: Naviga
 export interface IRouteableComponent extends ICustomElementViewModel {
   reloadBehavior?: ReloadBehavior;
   canLoad?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
-  load?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
+  loading?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
   canUnload?(instruction: RoutingInstruction, navigation: Navigation | null): boolean | Promise<boolean>;
-  unload?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
+  unloading?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
   readonly $controller?: ICustomElementController<this>;
 }
 

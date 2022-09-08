@@ -15,11 +15,11 @@ export class DoubleSlow {
     this.element = controller.host;
   }
 
-  public load(_params, _instruction, navigation) {
+  public loading(_params, _instruction, navigation) {
     this.backwards = navigation.navigation.back;
     return new Promise(r => setTimeout(r, 2000));
   }
-  public unload(_instruction, navigation) {
+  public unloading(_instruction, navigation) {
     this.backwards = navigation.navigation.back;
   }
 

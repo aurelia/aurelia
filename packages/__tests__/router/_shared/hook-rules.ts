@@ -2,7 +2,7 @@ import { SwapStrategy } from './create-fixture.js';
 import { HookName } from './hook-invocation-tracker.js';
 import { Viewport } from './viewport.js';
 
-export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
+export const routingHooks: HookName[] = ['canUnload', 'canLoad', 'unloading', 'loading'];
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
 export const removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 
@@ -126,12 +126,12 @@ function getViewportHooks(swapStrategy: SwapStrategy, phase: string, viewport: V
         hooks.push(`${phase}:${viewport.name}.${viewport.to.name}.canLoad.leave`);
       }
       if (!viewport.from.isEmpty) {
-        hooks.push(`${phase}:${viewport.name}.${viewport.from.name}.unload.enter`);
-        hooks.push(`${phase}:${viewport.name}.${viewport.from.name}.unload.leave`);
+        hooks.push(`${phase}:${viewport.name}.${viewport.from.name}.unloading.enter`);
+        hooks.push(`${phase}:${viewport.name}.${viewport.from.name}.unloading.leave`);
       }
       if (!viewport.to.isEmpty) {
-        hooks.push(`${phase}:${viewport.name}.${viewport.to.name}.load.enter`);
-        hooks.push(`${phase}:${viewport.name}.${viewport.to.name}.load.leave`);
+        hooks.push(`${phase}:${viewport.name}.${viewport.to.name}.loading.enter`);
+        hooks.push(`${phase}:${viewport.name}.${viewport.to.name}.loading.leave`);
       }
 
       switch (swapStrategy) {
@@ -266,13 +266,13 @@ function getViewports(root: string, from: string, to: string): {
 // export function* getStopHooks(root: string, p: string, c: string = '', c3 = '', c4 = '') {
 //   yield `stop.${root}.detaching`;
 
-//   if (p) { yield* prepend('stop', p, 'unload', 'detaching'); }
+//   if (p) { yield* prepend('stop', p, 'unloading', 'detaching'); }
 
 //   yield `stop.${root}.unbinding`;
 
-//   if (c) { yield* prepend('stop', c, 'unload', 'detaching'); }
-//   if (c3) { yield* prepend('stop', c3, 'unload', 'detaching'); }
-//   if (c4) { yield* prepend('stop', c4, 'unload', 'detaching'); }
+//   if (c) { yield* prepend('stop', c, 'unloading', 'detaching'); }
+//   if (c3) { yield* prepend('stop', c3, 'unloading', 'detaching'); }
+//   if (c4) { yield* prepend('stop', c4, 'unloading', 'detaching'); }
 
 //   if (p) { yield* prepend('stop', p, 'unbinding'); }
 //   if (c) { yield* prepend('stop', c, 'unbinding'); }

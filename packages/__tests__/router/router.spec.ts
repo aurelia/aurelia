@@ -58,7 +58,7 @@ describe('Router', function () {
       //   console.log('canLoad', 'closest viewport', this.router.getClosestViewport(this));
       //   return true;
       // }
-      public load(params) {
+      public loading(params) {
         // console.log('load', 'closest viewport', this.router.getClosestViewport(this));
         if (params.id) { this.id = params.id; }
         if (params.name) { this.name = params.name; }
@@ -70,7 +70,7 @@ describe('Router', function () {
     const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
       public static parameters = ['id'];
       public id = 'no id';
-      public load(params) { if (params.id) { this.id = params.id; } }
+      public loading(params) { if (params.id) { this.id = params.id; } }
     });
     const Qux = CustomElement.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
       public canLoad() { return true; }
@@ -82,8 +82,8 @@ describe('Router', function () {
           return true;
         }
       }
-      public load() { return true; }
-      public unload() { return true; }
+      public loading() { return true; }
+      public unloading() { return true; }
     });
     const Quux = CustomElement.define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
     const Corge = CustomElement.define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport>Viewport: dummy<au-viewport name="dummy"></au-viewport></template>' });
@@ -122,7 +122,7 @@ describe('Router', function () {
         public param: number;
         public entry: number = 0;
         public reloadBehavior: string = plughReloadBehavior;
-        public load(params) {
+        public loading(params) {
           console.log('plugh.load', this.entry, this.reloadBehavior, plughReloadBehavior);
           this.param = +params[0];
           this.entry++;
@@ -485,7 +485,7 @@ describe('Router', function () {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
-      public load(params) {
+      public loading(params) {
         if (params.id) { this.id = params.id; }
         if (params.name) { this.name = params.name; }
       }
@@ -1277,7 +1277,7 @@ describe('Router', function () {
           dependencies.push(CustomElement.define({ name, template }, class {
             public static parameters = ['id'];
             public param: string;
-            public load(params) {
+            public loading(params) {
               if (params.id !== void 0) {
                 this.param = params.id;
               }
@@ -1399,7 +1399,7 @@ describe('Router', function () {
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }], title: 'GrandchildConfig' },
       ];
       public param: string;
-      public load(params) {
+      public loading(params) {
         if (params.id !== void 0) {
           this.param = params.id;
         }
@@ -1412,7 +1412,7 @@ describe('Router', function () {
       public static parameters = ['id'];
       public static title = (vm) => vm.param !== void 0 ? vm.param : 'Child2';
       public param: string;
-      public load(params) {
+      public loading(params) {
         if (params.id !== void 0) {
           this.param = params.id;
         }
@@ -1616,7 +1616,7 @@ describe('Router', function () {
     const Child = CustomElement.define({ name: 'my-child', template: `!my-child\${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>` }, class {
       public static title = (vm) => `TheChild${vm.param !== void 0 ? `(${vm.param})` : ''}`;
       public param: string;
-      public load(params) {
+      public loading(params) {
         if (params.id !== void 0) {
           this.param = params.id;
         }
@@ -1626,7 +1626,7 @@ describe('Router', function () {
       public static parameters: string[] = ['id'];
       public static title = (vm) => `TheChild2${vm.param !== void 0 ? `(${vm.param})` : ''}`;
       public param: string;
-      public load(params) {
+      public loading(params) {
         if (params.id !== void 0) {
           this.param = params.id;
         }
@@ -1779,9 +1779,9 @@ describe('Router', function () {
     class Hooks {
       public name = 'Hooks';
       public canLoad(vm) { calledHooks.push(`${this.name}:${vm.name}:canLoad`); return true; }
-      public load(vm) { calledHooks.push(`${this.name}:${vm.name}:load`); }
+      public loading(vm) { calledHooks.push(`${this.name}:${vm.name}:load`); }
       public canUnload(vm) { calledHooks.push(`${this.name}:${vm.name}:canUnload`); return true; }
-      public unload(vm) { calledHooks.push(`${this.name}:${vm.name}:unload`); }
+      public unloading(vm) { calledHooks.push(`${this.name}:${vm.name}:unload`); }
 
       // TODO: Put these in once core supports them
       // public binding(vm) { calledHooks.push(`${this.name}:${vm.name}:binding`); }

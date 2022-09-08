@@ -787,7 +787,7 @@ export class RoutingScope {
   }
 
   private findMatchingRouteInRoutes(path: string, routes: Route[]): FoundRoute | null {
-    if (!Array.isArray(routes) || routes.length === 0) {
+    if (routes.length === 0) {
       return null;
     }
 

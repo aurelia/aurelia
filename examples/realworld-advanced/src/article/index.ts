@@ -31,7 +31,7 @@ export class ArticleViewCustomElement implements IRouteViewModel {
     @IArticleState readonly $article: IArticleState,
   ) {}
 
-  load({ slug }: Params): void {
+  loading({ slug }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       await Promise.all([
         this.$article.load(slug),

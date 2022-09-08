@@ -9,7 +9,7 @@ export class Missing {
     public static parameters: string[] = ['id'];
     public missingComponent: string;
 
-    public load(parameters) {
+    public loading(parameters) {
         this.missingComponent = parameters.id;
     }
 }

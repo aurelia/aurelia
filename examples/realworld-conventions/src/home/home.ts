@@ -18,7 +18,7 @@ export class Home implements IRouteableComponent {
     @IUserState readonly $user: IUserState,
   ) { }
 
-  load() {
+  loading() {
     if (this.$articleList.params instanceof ArticleListQueryParams) {
       this.$articleList.params.author = undefined;
       this.$articleList.params.favorited = undefined;

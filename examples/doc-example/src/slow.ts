@@ -6,7 +6,7 @@ import { customElement } from '@aurelia/runtime-html';
 Slow
 `})
 export class Slow {
-  public load(params) {
+  public loading(params) {
     console.log('Slow params', params);
   }
 

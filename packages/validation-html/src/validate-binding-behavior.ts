@@ -167,22 +167,22 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     while (expression.name !== 'validate' && expression !== void 0) {
       expression = expression.expression as BindingBehaviorExpression;
     }
-    const evaluationFlags = flags | LifecycleFlags.isStrictBindingStrategy;
+    // const evaluationFlags = flags | LifecycleFlags.isStrictBindingStrategy;
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, locator, this.triggerMediator));
+          trigger = this.ensureTrigger(arg.evaluate(scope, locator, this.triggerMediator));
           break;
         case 1:
-          controller = this.ensureController(arg.evaluate(evaluationFlags, scope, locator, this.controllerMediator));
+          controller = this.ensureController(arg.evaluate(scope, locator, this.controllerMediator));
           break;
         case 2:
-          rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, locator, this.rulesMediator));
+          rules = this.ensureRules(arg.evaluate(scope, locator, this.rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, locator, null)}`);
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(scope, locator, null)}`);
       }
     }
 

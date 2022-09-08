@@ -64,6 +64,9 @@ export class AttributeBinding implements IAstBasedBinding {
    */
   public oL: IObserverLocator;
 
+  /** @internal */
+  private _isBinding = 0;
+
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
     target: INode,
@@ -110,7 +113,7 @@ export class AttributeBinding implements IAstBasedBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     let shouldConnect: boolean = false;
     let task: ITask | null;
     if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
@@ -153,6 +156,7 @@ export class AttributeBinding implements IAstBasedBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
+    this._isBinding++;
 
     let sourceExpression = this.sourceExpression;
     if (sourceExpression.hasBind) {
@@ -186,6 +190,7 @@ export class AttributeBinding implements IAstBasedBinding {
       targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
     }
 
+    this._isBinding++;
     this.isBound = true;
   }
 

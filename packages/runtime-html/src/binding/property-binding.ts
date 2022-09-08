@@ -38,6 +38,9 @@ export class PropertyBinding implements IAstBasedBinding {
   private task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
 
+  /** @internal */
+  private _isBinding = 0;
+
   /**
    * A semi-private property used by connectable mixin
    *
@@ -78,7 +81,7 @@ export class PropertyBinding implements IAstBasedBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     let shouldConnect: boolean = false;
 
@@ -113,7 +116,7 @@ export class PropertyBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
     const newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
     this.obs.clear();
@@ -138,6 +141,7 @@ export class PropertyBinding implements IAstBasedBinding {
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
+    this._isBinding++;
     // Force property binding to always be strict
     flags |= LifecycleFlags.isStrictBindingStrategy;
 
@@ -183,6 +187,7 @@ export class PropertyBinding implements IAstBasedBinding {
       }
     }
 
+    this._isBinding--;
     this.isBound = true;
   }
 

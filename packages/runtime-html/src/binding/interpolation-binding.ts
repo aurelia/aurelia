@@ -45,6 +45,9 @@ export class InterpolationBinding implements IBinding {
   private readonly targetObserver: AccessorOrObserver;
   private task: ITask | null = null;
 
+  /** @internal */
+  private _isBinding = 0;
+
   /**
    * A semi-private property used by connectable mixin
    */
@@ -90,7 +93,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._isBinding === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -115,6 +118,8 @@ export class InterpolationBinding implements IBinding {
     }
     this.isBound = true;
     this.$scope = scope;
+    this._isBinding++;
+
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
@@ -122,6 +127,7 @@ export class InterpolationBinding implements IBinding {
       partBindings[i].$bind(flags, scope);
     }
     this.updateTarget(void 0, flags);
+    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -155,6 +161,9 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   public $scope?: Scope;
   public task: ITask | null = null;
   public isBound: boolean = false;
+
+  /** @internal */
+  private _isBinding = 0;
 
   /**
    * A semi-private property used by connectable mixin
@@ -190,6 +199,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
         obsRecord.clear();
       }
     }
+    // todo(maybe should do strict comparison?)
     if (newValue != this.value) {
       this.value = newValue;
       if (newValue instanceof Array) {
@@ -212,6 +222,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
 
     this.isBound = true;
+    this._isBinding++;
     this.$scope = scope;
 
     if (this.sourceExpression.hasBind) {
@@ -226,6 +237,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     if (this.value instanceof Array) {
       this.observeCollection(this.value);
     }
+    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -261,6 +273,9 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   public task: ITask | null = null;
   public isBound: boolean = false;
 
+  /** @internal */
+  private _isBinding = 0;
+
   /**
    * A semi-private property used by connectable mixin
    */
@@ -277,7 +292,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.oL = observerLocator;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+  public updateTarget(value: unknown, _flags: LifecycleFlags): void {
     const target = this.target;
     const NodeCtor = this.p.Node;
     const oldValue = this.value;
@@ -324,7 +339,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
+    const shouldQueueFlush = this._isBinding === 0;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue, flags);
     } else {
@@ -346,7 +361,12 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     if (v instanceof Array) {
       this.observeCollection(v);
     }
-    this.queueUpdate(v, LifecycleFlags.none);
+    const shouldQueueFlush = this._isBinding === 0;
+    if (shouldQueueFlush) {
+      this.queueUpdate(v, LifecycleFlags.none);
+    } else {
+      this.updateTarget(v, LifecycleFlags.none);
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
@@ -359,6 +379,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
     this.isBound = true;
     this.$scope = scope;
+    this._isBinding++;
 
     if (this.sourceExpression.hasBind) {
       this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
@@ -375,6 +396,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       this.observeCollection(v);
     }
     this.updateTarget(v, flags);
+    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {

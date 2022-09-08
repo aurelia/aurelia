@@ -1,10 +1,11 @@
 import { ITask } from '@aurelia/platform';
 import { DI } from '@aurelia/kernel';
-import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, BindingMediator, IBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, BindingMediator, IAstEvaluator, IBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
 import {
   PropertyBinding,
   IPlatform,
-  ICustomElementViewModel,
+  type ICustomElementViewModel,
+  connectableBinding,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
@@ -47,6 +48,7 @@ export enum ValidationTrigger {
 /* @internal */
 export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
+export interface ValidateBindingBehavior extends IAstEvaluator {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
@@ -156,9 +158,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
   }
 
-  private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
+  private processBindingExpressionArgs(_flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: Scope = this.scope;
-    const locator = this.locator;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
     let controller: ValidationController | undefined;
@@ -173,16 +174,16 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this.ensureTrigger(arg.evaluate(scope, locator, this.triggerMediator));
+          trigger = this.ensureTrigger(arg.evaluate(scope, this, this.triggerMediator));
           break;
         case 1:
-          controller = this.ensureController(arg.evaluate(scope, locator, this.controllerMediator));
+          controller = this.ensureController(arg.evaluate(scope, this, this.controllerMediator));
           break;
         case 2:
-          rules = this.ensureRules(arg.evaluate(scope, locator, this.rulesMediator));
+          rules = this.ensureRules(arg.evaluate(scope, this, this.rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(scope, locator, null)}`);
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(scope, this, null)}`);
       }
     }
 
@@ -300,6 +301,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
   }
 }
+
+connectableBinding(true, true)(ValidateBindingBehavior);
 
 class ValidateArgumentsDelta {
   public constructor(

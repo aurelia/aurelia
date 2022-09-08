@@ -1,6 +1,5 @@
 import { toArray } from '@aurelia/kernel';
 import {
-  connectable,
   AccessorType,
   CustomExpression,
   ExpressionType,
@@ -10,6 +9,8 @@ import {
 import {
   CustomElement,
   IPlatform,
+  IAstBasedBinding,
+  connectableBinding,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -19,7 +20,6 @@ import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
   IsExpression,
-  IConnectableBinding,
   IExpressionParser,
   IObserverLocator,
   IObserverLocatorBasedConnectable,
@@ -48,7 +48,7 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IConnectableBinding { }
+export interface TranslationBinding extends IAstBasedBinding { }
 
 const forOpts = { optional: true } as const;
 const taskQueueOpts: QueueTaskOptions = {
@@ -141,7 +141,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this.scope = scope;
     this._isInterpolation = this.expr instanceof Interpolation;
 
-    this._keyExpression = this.expr.evaluate(scope, this.locator, this) as string;
+    this._keyExpression = this.expr.evaluate(scope, this, this) as string;
     this._ensureKeyExpression();
     this.parameter?.$bind(flags, scope);
 
@@ -173,7 +173,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? this.expr.evaluate(this.scope, this.locator, this) as string
+        ? this.expr.evaluate(this.scope, this, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -348,7 +348,7 @@ class AccessorUpdateTask {
   }
 }
 
-interface ParameterBinding extends IConnectableBinding {}
+interface ParameterBinding extends IAstBasedBinding {}
 
 class ParameterBinding {
 
@@ -382,7 +382,7 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = this.expr.evaluate(this.scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(this.scope, this, this) as i18next.TOptions;
     this.obs.clear();
     this.updater(flags);
   }
@@ -397,7 +397,7 @@ class ParameterBinding {
       this.expr.bind(flags, scope, this);
     }
 
-    this.value = this.expr.evaluate(scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(scope, this, this) as i18next.TOptions;
     this.isBound = true;
   }
 
@@ -415,5 +415,5 @@ class ParameterBinding {
   }
 }
 
-connectable(TranslationBinding);
-connectable(ParameterBinding);
+connectableBinding(true, true)(TranslationBinding);
+connectableBinding(true, true)(ParameterBinding);

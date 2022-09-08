@@ -1,13 +1,12 @@
 
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
-  connectable,
   type IOverrideContext,
   LifecycleFlags,
   Scope,
-  type IConnectableBinding,
   type IsBindingBehavior
 } from '@aurelia/runtime';
+import { connectableBinding, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -17,9 +16,8 @@ import { createStateBindingScope } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateDispatchBinding extends IConnectableBinding { }
-@connectable()
-export class StateDispatchBinding implements IConnectableBinding {
+export interface StateDispatchBinding extends IAstBasedBinding { }
+export class StateDispatchBinding implements IAstBasedBinding {
   public interceptor: this = this;
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
@@ -47,7 +45,7 @@ export class StateDispatchBinding implements IConnectableBinding {
   public callSource(e: Event) {
     const $scope = this.$scope!;
     $scope.overrideContext.$event = e;
-    const value = this.expr.evaluate($scope, this.locator, null);
+    const value = this.expr.evaluate($scope, this, null);
     delete $scope.overrideContext.$event;
     if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);
@@ -92,3 +90,5 @@ export class StateDispatchBinding implements IConnectableBinding {
       && 'type' in value;
   }
 }
+
+connectableBinding(true, true)(StateDispatchBinding);

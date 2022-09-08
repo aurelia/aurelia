@@ -67,7 +67,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, _flags: LifecycleFlags): void {
     // flags |= this.persistentFlags;
-    this.sourceExpression.assign(this.$scope!, this.locator, value);
+    this.sourceExpression.assign(this.$scope!, this, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -92,7 +92,7 @@ export class PropertyBinding implements IAstBasedBinding {
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
+      newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -118,7 +118,7 @@ export class PropertyBinding implements IAstBasedBinding {
     }
     const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
+    const newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -176,7 +176,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(scope, this.locator, shouldConnect ? interceptor : null),
+        sourceExpression.evaluate(scope, this, shouldConnect ? interceptor : null),
         flags,
       );
     }

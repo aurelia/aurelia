@@ -49,7 +49,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
+    newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -65,7 +65,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
+    const newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -89,7 +89,7 @@ export class LetBinding implements IAstBasedBinding {
     }
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty]
-      = this.sourceExpression.evaluate(scope, this.locator, this.interceptor);
+      = this.sourceExpression.evaluate(scope, this, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;

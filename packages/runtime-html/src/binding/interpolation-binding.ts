@@ -191,7 +191,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -227,7 +227,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
 
     this.value = this.sourceExpression.evaluate(
       scope,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (this.value instanceof Array) {
@@ -317,7 +317,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
         obsRecord.version++;
       }
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
-      newValue = sourceExpression.evaluate(this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = sourceExpression.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -349,7 +349,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.obs.version++;
     const v = this.value = this.sourceExpression.evaluate(
       this.$scope!,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     this.obs.clear();
@@ -384,7 +384,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
     const v = this.value = this.sourceExpression.evaluate(
       scope,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {

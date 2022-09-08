@@ -104,6 +104,12 @@ export {
   type IsTwoWayPredicate,
 } from './attribute-mapper';
 export {
+  IAstBasedBinding,
+} from './binding/interfaces-bindings';
+export {
+  connectableBinding,
+} from './binding/binding-utils';
+export {
   Listener,
 } from './binding/listener';
 export {

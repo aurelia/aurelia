@@ -56,7 +56,7 @@ export class Listener implements IAstBasedBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    let result = this.sourceExpression.evaluate(this.$scope, this.locator, null);
+    let result = this.sourceExpression.evaluate(this.$scope, this, null);
 
     delete overrideContext.$event;
 

@@ -93,7 +93,7 @@ export class AttributeBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, _flags: LifecycleFlags): void {
     // flags |= this.persistentFlags;
-    this.sourceExpression.assign(this.$scope, this.locator, value);
+    this.sourceExpression.assign(this.$scope, this, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -107,7 +107,6 @@ export class AttributeBinding implements IAstBasedBinding {
     const interceptor = this.interceptor;
     const sourceExpression = this.sourceExpression;
     const $scope = this.$scope;
-    const locator = this.locator;
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -121,7 +120,7 @@ export class AttributeBinding implements IAstBasedBinding {
       if (shouldConnect) {
         this.obs.version++;
       }
-      newValue = sourceExpression.evaluate($scope, locator, interceptor);
+      newValue = sourceExpression.evaluate($scope, this, interceptor);
       if (shouldConnect) {
         this.obs.clear();
       }
@@ -182,7 +181,7 @@ export class AttributeBinding implements IAstBasedBinding {
     if ($mode & toViewOrOneTime) {
       shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        this.value = sourceExpression.evaluate(scope, this.locator, shouldConnect ? interceptor : null),
+        this.value = sourceExpression.evaluate(scope, this, shouldConnect ? interceptor : null),
         flags
       );
     }

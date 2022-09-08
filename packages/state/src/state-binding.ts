@@ -7,9 +7,9 @@ import {
   connectable, LifecycleFlags,
   Scope,
   type IAccessor,
-  type IConnectableBinding,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
+import { connectableBinding, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -21,9 +21,8 @@ const { toView, oneTime } = BindingMode;
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateBinding extends IConnectableBinding { }
-@connectable()
-export class StateBinding implements IConnectableBinding, IStoreSubscriber<object> {
+export interface StateBinding extends IAstBasedBinding { }
+export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
   public readonly oL: IObserverLocator;
   public interceptor: this = this;
   public locator: IServiceLocator;
@@ -214,3 +213,5 @@ const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
   preempt: true,
 };
+
+connectableBinding(true, true)(StateBinding);

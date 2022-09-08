@@ -2,7 +2,7 @@
 description: Learn all there is to know about creating routes in Aurelia.
 ---
 
-# Creating routes
+# Creating Routes
 
 The router takes your routing instructions and matches the URL to determine what components to render. In the case of configured routes, when the URL patch matches the configured route path, the component is loaded. If you are using the direct router because there is no configuration the premise is the same without the configuration part.
 
@@ -248,7 +248,33 @@ export class DashboardHome {
 ```
 {% endcode %}
 
-Now, we can contain all of our dashboard-specific routes inside of our `dashboard-page` component for dashboard views. Furthermore, it allows us to implement route guards to prevent unauthorized users from visiting the dashboard.
+Now, we can contain all dashboard-specific routes inside of our `dashboard-page` component for dashboard views. Furthermore, it allows us to implement route guards to prevent unauthorized users from visiting the dashboard.
+
+## Catch all / 404 not found route
+
+When a user attempts to visit a route that does not exist, we want to catch this route attempt using a catch-all route. We can use a wildcard `*` to create a route that does this.
+
+{% hint style="warning" %}
+When using a catch-all wildcard route, ensure that it is the last route in your routes array so it does not hijack any other valid route first.
+{% endhint %}
+
+A good use of a catch-all route might be to redirect users away to a landing page. For example, if you had an online store you might just redirect users to a products page.
+
+```typescript
+{
+    path: '*',
+    redirectTo: '/products'
+}
+```
+
+You can also specify a component that gets loaded like a normal route:
+
+```typescript
+{
+    path: '*',
+    component: () => import('./not-found')
+}
+```
 
 ## Lazy loaded routes
 

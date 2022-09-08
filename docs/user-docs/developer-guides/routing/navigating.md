@@ -116,9 +116,13 @@ In the above example, we provide the route (`id`) value (via `route: profile`). 
 },
 ```
 
-## Handling unknown routes
+## Handling unknown components
 
-Sometimes a user might attempt to visit a route that doesn't exist (either user error or because it was removed). You will want to configure your applications to display a fallback route in those situations.
+If you are using the router to render components in your application, there might be situations where a component attempts to be rendered that does not exist. This can happen while using direct routing (not configured routing)
+
+{% hint style="warning" %}
+This section is not for catch-all/404 routes. If you are using configured routing, you are looking for the [section on catch-all routes here](creating-routes.md#catch-all-404-not-found-route).
+{% endhint %}
 
 To add in fallback behavior, we can do this two ways. The `fallback` attribute on the `<au-viewport>` element or in the router `customize` method (code).
 
@@ -178,3 +182,9 @@ Sometimes the `fallback` attribute can be the prefered approach to registering a
 <au-viewport fallback="missing-page"></au-viewport>
 ```
 {% endcode %}
+
+## Redirecting
+
+Depending on the scenario, you will want to redirect users in your application. Unlike using the `load` API on the router where we manually route (for example, after logging in) redirection allows us to redirect inside router hooks.
+
+Please see the [Routing Lifecycle](routing-lifecycle.md#canload) section to learn how to implement redirection inside of your components.

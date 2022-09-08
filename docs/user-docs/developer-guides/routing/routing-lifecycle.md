@@ -1,4 +1,4 @@
-# Routing lifecycle
+# Routing Lifecycle
 
 Inside your routable components which implement the `IRouteViewModel` interface, there are certain methods that are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
 
@@ -29,7 +29,7 @@ If you were loading data from an API based on values provided in the URL, you wo
 
 The `canLoad` method allows you to determine if the component should be loaded or not. If your component relies on data being present from the API or other requirements being fulfilled before being allowed to render, this is the method you would use.
 
-When working with the `canLoad` method, you can use promises to delay loading the view until a promise and/or promises have been resolved. If we were to return `true` from this method, the component would be loaded.
+When working with the `canLoad` method, you can use promises to delay loading the view until a promise and/or promises have been resolved. The component would be loaded if we were to return `true` from this method.
 
 ```typescript
 import { IRouteableComponent, Parameters } from "@aurelia/router";
@@ -41,23 +41,45 @@ export class MyProduct implements IRouteableComponent {
 }
 ```
 
-Not only can we allow or disallow the component to be loaded, but we can also redirect. If you want to redirect to the root route, we can inject the router and call the `load` method from inside of `canLoad` to redirect elsewhere.
+#### Redirecting
+
+Not only can we allow or disallow the component to be loaded, but we can also redirect. If you want to redirect to the root route, return a string with a `/` inside it. You can return a route ID, route path match or navigation instruction from inside this callback to redirect.
 
 ```typescript
-import { IRouteableComponent, IRouter, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router";
 
 export class MyProduct implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-        
-    }
-
     canLoad(params: Parameters) {
-        this.router.load('/');
+        return '/'; // Matches default empty route
     }
 }
 ```
 
-If you wanted to load data from an API, you could do so by making the `canLoad` method async which would make it a promise based method. Obviously, you would be awaiting an actual API call of some kind in place of `....load data`
+```typescript
+import { IRouteableComponent, Parameters } from "@aurelia/router";
+
+export class MyProduct implements IRouteableComponent {
+    canLoad(params: Parameters) {
+        return 'products'; // Matches route with ID 'products'
+    }
+}
+```
+
+```typescript
+import { IRouteableComponent, Parameters } from "@aurelia/router";
+
+export class MyProduct implements IRouteableComponent {
+    canLoad(params: Parameters) {
+        return '/products/54'; // Matches route path for product/:productId
+    }
+}
+```
+
+{% hint style="warning" %}
+Returning a boolean false, string or RoutingInstruction from within the `canLoad` function will cancel the router navigation.
+{% endhint %}
+
+If you wanted to load data from an API, you could make the `canLoad` method async, which would make it a promise-based method. You would be awaiting an actual API call of some kind in place of `....load data`
 
 ```typescript
 import { IRouteableComponent, Parameters } from "@aurelia/router";

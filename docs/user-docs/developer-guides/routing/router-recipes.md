@@ -109,3 +109,17 @@ export class ViewProduct implements IRouteableComponent {
     }
 }
 ```
+
+## Redirect away from a component
+
+Using the `canLoad` lifecycle hook, we can redirect users. In the following example, we redirect a user to a `/products` route. You would have this wrapped in a check to determine if the component loads or if the user is redirected away.
+
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
+
+export class ViewProduct implements IRouteableComponent {
+    async canLoad(params) {
+        return '/products';
+    }
+}
+```

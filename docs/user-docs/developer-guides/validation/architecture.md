@@ -22,13 +22,13 @@ The rest of the document assumes that validation is view is more common scenario
 
 *   The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
 
-    ![Define rules](<../../../images/validation/seq-define-rules (1) (1) (2).png>)
+    ![Define rules](<../../../images/validation/seq-define-rules (1) (1) (2) (1).png>)
 *   The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
 
     ![Rules class diagram](<../../../images/validation/class-rules (1) (1) (1).png>)
 *   The validator (`IValidator` instance) allows you to execute a [validate instruction](defining-rules.md#validator-and-validate-instruction), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
 
-    ![Rules class diagram](<../../../images/validation/seq-validator (1) (1) (2).png>)
+    ![Rules class diagram](<../../../images/validation/seq-validator (1) (1) (2) (1).png>)
 *   The last piece of the puzzle is to getting the rules executed on demand. For this the validation controller (`IValidationController` instance) is used along with the `validate` binding behavior (more on these later). The binding behavior registers the property binding with the validation controller, and on configured event, instructs the controller to validate the binding. The validation controller eventually ends up invoking the `IValidator#validate` with certain instruction which triggers the workflow shown in the last diagram. The following diagram shows a simplified version of this.
 
     ![Rules class diagram](<../../../images/validation/seq-validation-controller (1) (1) (1).png>)

@@ -26,13 +26,11 @@ import {
   ValueConverterExpression,
   IsLeftHandSide,
   IsAssign,
-  Precedence,
   parseExpression,
-  parse,
-  ParserState,
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
+  ArrowFunction,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -205,7 +203,10 @@ describe('ExpressionParser', function () {
     [`(!a)`,              new UnaryExpression('!', $a)],
     [`(a+b)`,             new BinaryExpression('+', $a, $b)],
     [`(a?b:c)`,           new ConditionalExpression($a, $b, new AccessScopeExpression('c'))],
-    [`(a=b)`,             new AssignExpression($a, $b)]
+    [`(a=b)`,             new AssignExpression($a, $b)],
+    [`(a=>a)`,            new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`({})`,              new ObjectLiteralExpression([], [])],
+    [`({a})`,             new ObjectLiteralExpression(['a'], [$a])],
   ];
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
@@ -413,9 +414,18 @@ describe('ExpressionParser', function () {
   const SimpleAssignList: [string, any][] = [
     [`a=b`, new AssignExpression($a, $b)]
   ];
+  const SimpleArrowList: [string, any][] = [
+    [`(a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`(...a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a, true)],
+    [`(a, b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a)],
+    [`(a, ...b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a, true)],
+    [`a => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
+    [`() => 0`, new ArrowFunction([], $num0)],
+  ];
   const SimpleIsAssignList: [string, any][] = [
     ...SimpleIsConditionalList,
-    ...SimpleAssignList
+    ...SimpleArrowList,
+    ...SimpleAssignList,
   ];
 
   // This forms the group Precedence.Variadic
@@ -650,116 +660,6 @@ describe('ExpressionParser', function () {
         for (const [input, expected] of SimpleBindingBehaviorList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Unary', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Unary, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than UnaryExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Binary', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Binary, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than BinaryExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Conditional', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Conditional, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-              (result.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-                (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than ConditionalExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Assign', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Assign, exprType);
-            if ((result.$kind & ExpressionKind.IsPrimary) > 0 ||
-              (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-              (result.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-              (result.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
-              (result.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-              if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
-                (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
-                (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
-                (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
-                (expected.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-                assert.deepStrictEqual(result, expected, input);
-                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
-              } else {
-                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
-                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
-              }
-            } else {
-              throw new Error('Should not parse anything higher than AssignExpression');
-            }
-          });
-        }
-      });
-
-      describe('parse SimpleBindingBehaviorList with Precedence.Variadic', function () {
-        for (const [input, expected] of SimpleBindingBehaviorList) {
-          it(input, function () {
-            const state = new ParserState(input);
-            const result = parse(state, Precedence.Variadic, exprType);
-            assert.deepStrictEqual(result, expected, input);
           });
         }
       });
@@ -1119,6 +1019,7 @@ describe('ExpressionParser', function () {
   const ComplexMultiplicativeList: [string, any][] = [
     ...binaryMultiplicative.map(op => [
       ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsUnaryList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleUnaryList
         .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1141,6 +1042,7 @@ describe('ExpressionParser', function () {
   const ComplexAdditiveList: [string, any][] = [
     ...binaryAdditive.map(op => [
       ...SimpleIsAdditiveList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleMultiplicativeList
         .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1163,6 +1065,7 @@ describe('ExpressionParser', function () {
   const ComplexRelationalList: [string, any][] = [
     ...binaryRelational.map(([op, txt]) => [
       ...SimpleIsRelationalList.map(([i1, e1]) => [`${i1}${txt}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsAdditiveList.map(([i1, e1]) => [`a${txt}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleAdditiveList
         .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i2}${txt}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1185,6 +1088,7 @@ describe('ExpressionParser', function () {
   const ComplexEqualityList: [string, any][] = [
     ...binaryEquality.map(op => [
       ...SimpleIsEqualityList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsRelationalList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
       ...SimpleRelationalList
         .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
@@ -1206,6 +1110,7 @@ describe('ExpressionParser', function () {
 
   const ComplexLogicalANDList: [string, any][] = [
     ...SimpleIsLogicalANDList.map(([i1, e1]) => [`${i1}&&a`, new BinaryExpression('&&', e1, $a)] as [string, any]),
+    ...SimpleIsEqualityList.map(([i1, e1]) => [`a&&${i1}`, new BinaryExpression('&&', $a, e1)] as [string, any]),
     ...SimpleEqualityList
       .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i2}&&${i1}`, new BinaryExpression('&&', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1226,6 +1131,7 @@ describe('ExpressionParser', function () {
 
   const ComplexLogicalORList: [string, any][] = [
     ...SimpleIsLogicalORList.map(([i1, e1]) => [`${i1}||a`, new BinaryExpression('||', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`a||${i1}`, new BinaryExpression('||', $a, e1)] as [string, any]),
     ...SimpleLogicalANDList
       .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i2}||${i1}`, new BinaryExpression('||', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1249,6 +1155,7 @@ describe('ExpressionParser', function () {
 
   const ComplexNullishCoalescingList: [string, any][] = [
     ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}??a`, new BinaryExpression('??', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalORList.map(([i1, e1]) => [`a??${i1}`, new BinaryExpression('??', $a, e1)] as [string, any]),
     ...SimpleLogicalORList
       .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i2}??${i1}`, new BinaryExpression('??', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
@@ -1269,6 +1176,8 @@ describe('ExpressionParser', function () {
 
   const ComplexConditionalList: [string, any][] = [
     ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1, $num0, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
     ...SimpleIsAssignList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
     ...SimpleConditionalList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1.condition, e1.yes, new ConditionalExpression(e1.no, $num0, $num1))] as [string, any])
@@ -1293,6 +1202,111 @@ describe('ExpressionParser', function () {
     for (const [input, expected] of ComplexAssignList) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input), expected, input);
+      });
+    }
+  });
+
+  // Anything starting with '{' will be rejected as an arrow fn body so filter those out
+  const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
+  const ComplexArrowFunctionList: [number, string, ArrowFunction][] = [
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `()=>${i1}`, new ArrowFunction([], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `(a)=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `a=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [2, `()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [number, string, any]),
+  ];
+  function adjustAncestor(count: number, expr: IsAssign, input: string) {
+    switch (expr.$kind) {
+      case ExpressionKind.AccessThis:
+        (expr as any).ancestor += count;
+        break;
+      case ExpressionKind.AccessScope:
+        // eslint-disable-next-line no-useless-escape
+        if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
+          (expr as any).ancestor += count;
+        }
+        break;
+      case ExpressionKind.ArrayLiteral:
+        for (const el of expr.elements) {
+          adjustAncestor(count, el, input);
+        }
+        break;
+      case ExpressionKind.ObjectLiteral:
+        for (const val of expr.values) {
+          adjustAncestor(count, val, input);
+        }
+        break;
+      case ExpressionKind.Template:
+        for (const ex of expr.expressions) {
+          adjustAncestor(count, ex, input);
+        }
+        break;
+      case ExpressionKind.Unary:
+        adjustAncestor(count, expr.expression, input);
+        break;
+      case ExpressionKind.CallScope:
+        // eslint-disable-next-line no-useless-escape
+        if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
+          (expr as any).ancestor += count;
+        }
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.CallMember:
+        adjustAncestor(count, expr.object, input);
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.CallFunction:
+        adjustAncestor(count, expr.func, input);
+        for (const arg of expr.args) {
+          adjustAncestor(count, arg, input);
+        }
+        break;
+      case ExpressionKind.AccessMember:
+        adjustAncestor(count, expr.object, input);
+        break;
+      case ExpressionKind.AccessKeyed:
+        adjustAncestor(count, expr.object, input);
+        adjustAncestor(count, expr.key, input);
+        break;
+      case ExpressionKind.TaggedTemplate:
+        adjustAncestor(count, expr.func, input);
+        // for (const ex of expr.expressions) {
+        //   adjustAncestor(count, ex, input);
+        // }
+        break;
+      case ExpressionKind.Binary:
+        adjustAncestor(count, expr.left, input);
+        adjustAncestor(count, expr.right, input);
+        break;
+      case ExpressionKind.Conditional:
+        adjustAncestor(count, expr.yes, input);
+        adjustAncestor(count, expr.no, input);
+        adjustAncestor(count, expr.condition, input);
+        break;
+      case ExpressionKind.Assign:
+        adjustAncestor(count, expr.target, input);
+        adjustAncestor(count, expr.value, input);
+        break;
+      case ExpressionKind.ArrowFunction:
+        adjustAncestor(count, expr.body, input);
+        break;
+    }
+  }
+  describe('parse ComplexArrowFunctionList', function () {
+    for (const [depth, input, expected] of ComplexArrowFunctionList) {
+      it(input, function () {
+        try {
+          // adjust and restore ancestor for reused expressions
+          adjustAncestor(depth, expected, input);
+          assert.deepStrictEqual(parseExpression(input), expected, input);
+        } catch (e) {
+          throw e;
+        } finally {
+          adjustAncestor(-depth, expected, input);
+        }
       });
     }
   });
@@ -1461,52 +1475,66 @@ describe('ExpressionParser', function () {
     ]) {
       it(`throw 'Invalid start of expression' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0151');
-        // verifyResultOrError(input, null, 'Invalid start of expression');
       });
     }
 
-    for (const input of ['..', '...', '..a', '...a', '..1', '...1', '.a.', '.a..']) {
-      it(`throw 'Unconsumed token' on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0156');
-        // verifyResultOrError(input, null, 'Unconsumed token');
-      });
-    }
     it(`throw 'Unconsumed token' on "$this!"`, function () {
-      verifyResultOrError(`$this!`, null, 'AUR0162');
-      // verifyResultOrError(`$this!`, null, 'Unconsumed token');
+      verifyResultOrError(`$this!`, null, 'AUR0156');
     });
     for (const [input] of SimpleIsAssignList) {
       for (const op of [')', ']', '}']) {
         it(`throw 'Unconsumed token' on "${input}${op}"`, function () {
-          verifyResultOrError(`${input}${op}`, null, 'AUR0162');
-          // verifyResultOrError(`${input}${op}`, null, 'Unconsumed token');
+          verifyResultOrError(`${input}${op}`, null, 'AUR0156');
         });
       }
     }
 
-    for (const start of ['$parent', '$parent.$parent']) {
-      for (const middle of ['..', '...']) {
-        for (const end of ['', 'bar', '$parent']) {
-          const expr = `${start}${middle}${end}`;
-          it(`throw 'Double dot and spread operators are not supported' on "${expr}"`, function () {
-            verifyResultOrError(expr, null, 'AUR0152');
-            // verifyResultOrError(expr, null, 'Double dot and spread operators are not supported');
-          });
-        }
+    for (const input of ['..', '..a', '..1']) {
+      it(`throw unexpectedDoubleDot on "${input}"`, function () {
+        verifyResultOrError(input, null, 'AUR0179');
+      });
+    }
+    for (const input of ['.a.', '.a..']) {
+      it(`throw unconsumedToken on "${input}"`, function () {
+        verifyResultOrError(input, null, 'AUR0156');
+      });
+    }
+    for (const input of ['...', '...a', '...1']) {
+      it(`throw invalidSpreadOp on "${input}"`, function () {
+        verifyResultOrError(input, null, 'AUR0152');
+      });
+    }
+
+    for (const start of ['$this', '$parent', '$parent.$parent', 'a', '.1']) {
+      for (const end of ['', 'a', '$parent', '1']) {
+        it(`throw expectedIdentifier on "${start}..${end}"`, function () {
+          verifyResultOrError(`${start}..${end}`, null, 'AUR0153');
+        });
+
+        it(`throw expectedIdentifier on "${start}...${end}"`, function () {
+          verifyResultOrError(`${start}...${end}`, null, 'AUR0153');
+        });
       }
+    }
+
+    for (const [input] of SimpleIsNativeLeftHandSideList) {
+      it(`throw expectedIdentifier on "${input}.."`, function () {
+        verifyResultOrError(`${input}..`, null, 'AUR0153');
+      });
+      it(`throw expectedIdentifier on "${input}..."`, function () {
+        verifyResultOrError(`${input}...`, null, 'AUR0153');
+      });
     }
 
     for (const nonTerminal of ['!', ' of', ' typeof', '=']) {
       it(`throw 'Invalid member expression' on "$parent${nonTerminal}"`, function () {
         verifyResultOrError(`$parent${nonTerminal}`, null, 'AUR0154');
-        // verifyResultOrError(`$parent${nonTerminal}`, null, 'Invalid member expression');
       });
     }
 
     for (const op of ['!', '(', '+', '-', '.', '[', 'typeof']) {
       it(`throw 'Unexpected end of expression' on "${op}"`, function () {
         verifyResultOrError(op, null, 'AUR0155');
-        // verifyResultOrError(op, null, 'Unexpected end of expression');
       });
     }
 
@@ -1514,32 +1542,21 @@ describe('ExpressionParser', function () {
       it(`throw 'Expected identifier' on "${input}."`, function () {
         if (typeof expr['value'] !== 'number' || input.includes('.')) { // only non-float numbers are allowed to end on a dot
           verifyResultOrError(`${input}.`, null, 'AUR0153');
-          // verifyResultOrError(`${input}.`, null, 'Expected identifier');
         } else {
           verifyResultOrError(`${input}.`, expr, null);
         }
       });
     }
 
-    for (const [input] of SimpleIsNativeLeftHandSideList) {
-      for (const dots of ['..', '...']) {
-        it(`throw 'Expected identifier' on "${input}${dots}"`, function () {
-          verifyResultOrError(`${input}${dots}`, null, 'AUR0153');
-          // verifyResultOrError(`${input}${dots}`, null, 'Expected identifier');
-        });
-      }
-    }
     for (const input of ['.1.', '.1..']) {
       it(`throw'Expected identifier' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0153');
-        // verifyResultOrError(input, null, 'Expected identifier');
       });
     }
 
     for (const [input] of SimpleIsBindingBehaviorList) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
-        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', ExpressionType.IsIterator);
       });
     }
     for (const [input] of [
@@ -1547,28 +1564,24 @@ describe('ExpressionParser', function () {
     ] as [string, any][]) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
-        // verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', ExpressionType.IsIterator);
       });
     }
 
     for (const input of ['{', '{[]}', '{[}', '{[a]}', '{[a}', '{{', '{(']) {
       it(`throw 'Invalid or unsupported property definition in object literal' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0164');
-        // verifyResultOrError(input, null, 'Invalid or unsupported property definition in object literal');
       });
     }
 
     for (const input of ['"', '\'']) {
       it(`throw 'Unterminated quote in string literal' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0165');
-        // verifyResultOrError(input, null, 'Unterminated quote in string literal');
       });
     }
 
     for (const input of ['`', '` ', `\`\${a}`]) {
       it(`throw 'Unterminated template string' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0166');
-        // verifyResultOrError(input, null, 'Unterminated template string');
       });
     }
 
@@ -1576,53 +1589,45 @@ describe('ExpressionParser', function () {
       for (const op of ['(', '[']) {
         it(`throw 'Missing expected token' on "${op}${input}"`, function () {
           verifyResultOrError(`${op}${input}`, null, 'AUR0167');
-          // verifyResultOrError(`${op}${input}`, null, 'Missing expected token');
         });
       }
     }
     for (const [input] of SimpleIsConditionalList) {
       it(`throw 'Missing expected token' on "${input}?${input}"`, function () {
         verifyResultOrError(`${input}?${input}`, null, 'AUR0167');
-        // verifyResultOrError(`${input}?${input}`, null, 'Missing expected token');
       });
     }
     for (const [input] of AccessScopeList) {
       it(`throw 'Missing expected token' on "{${input}"`, function () {
         verifyResultOrError(`{${input}`, null, 'AUR0167');
-        // verifyResultOrError(`{${input}`, null, 'Missing expected token');
       });
     }
     for (const [input] of SimpleStringLiteralList) {
       it(`throw 'Missing expected token' on "{${input}}"`, function () {
         verifyResultOrError(`{${input}}`, null, `AUR0167`);
-        // verifyResultOrError(`{${input}}`, null, 'Missing expected token');
       });
     }
     for (const input of ['{24}', '{24, 24}', '{\'\'}', '{a.b}', '{a[b]}', '{a()}']) {
       it(`throw 'Missing expected token' on "${input}"`, function () {
         verifyResultOrError(input, null, `AUR0167:${input}`);
-        // verifyResultOrError(input, null, 'Missing expected token');
       });
     }
 
     for (const input of ['#', ';', '@', '^', '~', '\\', 'foo;']) {
       it(`throw 'Unexpected character' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0168');
-        // verifyResultOrError(input, null, 'Unexpected character');
       });
     }
 
     for (const [input] of SimpleIsAssignList) {
       it(`throw 'Expected identifier to come after ValueConverter operator' on "${input}|"`, function () {
         verifyResultOrError(`${input}|`, null, 'AUR0159');
-        // verifyResultOrError(`${input}|`, null, 'Expected identifier to come after ValueConverter operator');
       });
     }
 
     for (const [input] of SimpleIsAssignList) {
       it(`throw 'Expected identifier to come after BindingBehavior operator' on "${input}&"`, function () {
         verifyResultOrError(`${input}&`, null, 'AUR0160');
-        // verifyResultOrError(`${input}&`, null, 'Expected identifier to come after BindingBehavior operator');
       });
     }
 
@@ -1633,16 +1638,102 @@ describe('ExpressionParser', function () {
     ]) {
       it(`throw 'Left hand side of expression is not assignable' on "${input}=a"`, function () {
         verifyResultOrError(`${input}=a`, null, `AUR0158:${input}=a`);
-        // verifyResultOrError(`${input}=a`, null, 'Left hand side of expression is not assignable');
       });
     }
 
     for (const [input] of SimpleIsBindingBehaviorList.filter(([, e]) => !e.ancestor)) {
       it(`throw 'Unexpected keyword "of"' on "${input} of"`, function () {
         verifyResultOrError(`${input} of`, null, 'AUR0161');
-        // verifyResultOrError(`${input} of`, null, 'Unexpected keyword "of"');
       });
     }
+
+    // missing => (need to verify when __DEV__ is enabled in test env)
+    it(`throw missingExpectedToken on "()"`, function () {
+      verifyResultOrError(`()`, null, 'AUR0167');
+    });
+
+    for (const input of [
+      `(a[b]) => a`,
+      `(a?.[b]) => a`,
+      `(a.b) => a`,
+      `(a?.b) => a`,
+      `(a\`\`) => a`,
+      `($this()) => a`,
+      `(a()) => a`,
+      `(a?.()) => a`,
+      `(!a) => a`,
+      `(a+b) => a`,
+      `(a?b:c) => a`,
+
+      `(a,a[b]) => a`,
+      `(a,a?.[b]) => a`,
+      `(a,a.b) => a`,
+      `(a,a?.b) => a`,
+      `(a,a\`\`) => a`,
+      `(a,$this()) => a`,
+      `(a,a()) => a`,
+      `(a,a?.()) => a`,
+      `(a,!a) => a`,
+      `(a,a+b) => a`,
+      `(a,a?b:c) => a`,
+      `(a,b?) => a`,
+
+      `(,) => a`,
+      `(a,,) => a`,
+      `(,a) => a`,
+    ])
+    it(`throw invalidArrowParameterList on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0173');
+    });
+
+    for (const input of [
+      // TODO: identify this as optional param?
+      `(a?) => a`,
+    ])
+    it(`throw unconsumedToken on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0156');
+    });
+
+    for (const input of [
+      `(a=b) => a`,
+      `(a,a=b) => a`,
+    ])
+    it(`throw defaultParamsInArrowFn on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0174');
+    });
+
+    for (const input of [
+      `({a}) => a`,
+      `(a,{a}) => a`,
+      `([a]) => a`,
+      `(a,[a]) => a`,
+    ])
+    it(`throw destructuringParamsInArrowFn on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0175');
+    });
+
+    for (const input of [
+      `(...a,) => a`,
+      `(...a,b) => a`,
+    ])
+    it(`throw restParamsMustBeLastParam on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0176');
+    });
+
+    for (const input of [
+      `() => {}`,
+      `a => {}`,
+      `(a) => {}`,
+      `(a,b) => {}`,
+
+      `() => {a}`,
+      `a => {a}`,
+      `(a) => {a}`,
+      `(a,b) => {a}`,
+    ])
+    it(`throw functionBodyInArrowFN on "${input}"`, function () {
+      verifyResultOrError(input, null, 'AUR0178');
+    });
   });
 
   describe('unknown unicode IdentifierPart', function () {
@@ -1650,7 +1741,6 @@ describe('ExpressionParser', function () {
       it(char, function () {
         const identifier = `$${char}`;
         verifyResultOrError(identifier, null, 'AUR0168');
-        // verifyResultOrError(identifier, null, 'Unexpected character');
       });
     }
   });

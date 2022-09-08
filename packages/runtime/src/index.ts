@@ -33,6 +33,7 @@ export {
   DestructuringAssignmentExpression,
   DestructuringAssignmentSingleExpression,
   DestructuringAssignmentRestExpression,
+  ArrowFunction,
 
   // ast typing helpers
   type AnyBindingExpression,
@@ -67,9 +68,6 @@ export {
   ExpressionType,
   parseExpression,
   Char,
-  Precedence,
-  parse,
-  ParserState,
 } from './binding/expression-parser';
 
 export {

@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -60,7 +60,6 @@ import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/upda
 import { Focus } from './resources/custom-attributes/focus';
 import { Show } from './resources/custom-attributes/show';
 import { Portal } from './resources/template-controllers/portal';
-import { ObserveShallow } from './resources/template-controllers/flags';
 import { Else, If } from './resources/template-controllers/if';
 import { Repeat } from './resources/template-controllers/repeat';
 import { With } from './resources/template-controllers/with';
@@ -82,6 +81,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { ICoercionConfiguration } from '@aurelia/runtime';
+import { instanceRegistration } from './utilities-di';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -177,7 +177,6 @@ export const DefaultBindingLanguage = [
 
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
 export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
-export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
 export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
@@ -220,7 +219,6 @@ export const DefaultResources = [
   TwoWayBindingBehaviorRegistration,
   SanitizeValueConverterRegistration,
   ViewValueConverterRegistration,
-  ObserveShallowRegistration,
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -330,7 +328,7 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
        * - `DefaultRenderers`
        */
       return container.register(
-        Registration.instance(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
+        instanceRegistration(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
         ...DefaultComponents,
         ...DefaultResources,
         ...DefaultBindingSyntax,

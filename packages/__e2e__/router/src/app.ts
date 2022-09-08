@@ -1,6 +1,12 @@
 import { IRouter } from '@aurelia/router';
 
 export class App {
+
+  public static routes = [
+    { path: 'pages/one-route', component: import('./pages/one') },
+    { path: 'pages/two-route', component: () => import('./pages/two') },
+  ];
+
   public message = 'Hello, World!';
   public iframeSrc: string;
   public iframeVisible: boolean;

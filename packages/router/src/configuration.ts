@@ -84,9 +84,9 @@ export class RouterConfiguration {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      AppTask.beforeActivate(IRouter, RouterConfiguration.configurationCall),
-      AppTask.afterActivate(IRouter, (router: IRouter) => router.initialLoad() as Promise<void>),
-      AppTask.afterDeactivate(IRouter, (router: IRouter) => router.stop()),
+      AppTask.activating(IRouter, RouterConfiguration.configurationCall),
+      AppTask.activated(IRouter, (router: IRouter) => router.initialLoad() as Promise<void>),
+      AppTask.deactivated(IRouter, (router: IRouter) => router.stop()),
     );
   }
 

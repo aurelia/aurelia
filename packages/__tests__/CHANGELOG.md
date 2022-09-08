@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.40"></a>
+# 2.0.0-alpha.40 (2022-09-07)
+
+### Features:
+
+* ***:** template expression auto observe array methods ([001fe4c](https://github.com/aurelia/aurelia/commit/001fe4c))
+* **template:** support arrow function syntax (#1541) ([499ace7](https://github.com/aurelia/aurelia/commit/499ace7))
+
+
+### Bug Fixes:
+
+* **binding:** fix regression from nullish coalescing (#1537) ([a96511a](https://github.com/aurelia/aurelia/commit/a96511a))
+* **router-lite:** specific module import (#1536) ([31f4af9](https://github.com/aurelia/aurelia/commit/31f4af9))
+* **router-lite:** specific module import #1530 ([31f4af9](https://github.com/aurelia/aurelia/commit/31f4af9))
+
+
+### Performance Improvements:
+
+* **binding:** inline keyword lookup (decrease bundle size) ([1384dc2](https://github.com/aurelia/aurelia/commit/1384dc2))
+* **binding:** make parser state module-scoped ([1384dc2](https://github.com/aurelia/aurelia/commit/1384dc2))
+
+
+### Refactorings:
+
+* **app-task:** consistent hook name style ing/ed (#1540) ([5a11ea0](https://github.com/aurelia/aurelia/commit/5a11ea0))
+* **expression-parser:** cleanup / reduce bundle size (#1539) ([1384dc2](https://github.com/aurelia/aurelia/commit/1384dc2))
+* **binding:** fix expression parser keyword lookup issue ([1384dc2](https://github.com/aurelia/aurelia/commit/1384dc2))
+
 <a name="2.0.0-alpha.39"></a>
 # 2.0.0-alpha.39 (2022-09-01)
 

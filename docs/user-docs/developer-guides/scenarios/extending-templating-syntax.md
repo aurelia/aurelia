@@ -125,7 +125,7 @@ import { inject, IContainer, IAttrMapper, INodeObserverLocator, AppTask, Aurelia
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IContainer, container => {
+    AppTask.creating(IContainer, container => {
       const attrMapper = container.get(IAttrMapper);
       const nodeObserverLocator = container.get(INodeObserverLocator);
       attrMapper.useTwoWay((el, property) => {

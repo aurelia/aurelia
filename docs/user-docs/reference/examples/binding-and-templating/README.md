@@ -26,8 +26,6 @@ Sometimes you might want to display a list of values in successive order, a rang
 
 {% embed url="https://stackblitz.com/edit/aurelia-repeat-range?embed=1&file=my-app.html" %}
 
-
-
 ## Expression syntax
 
 Aurelia's expression parser implements a subset of [ECMAScript Expressions](https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions). For the features that are supported, you can typically expect the JavaScript in your view to work the same way as it would in your view model, or in the browser console. In addition, there are two adjustments:
@@ -71,7 +69,7 @@ non-ASCII characters in the [Latin](https://en.wikipedia.org/wiki/Latin\_script\
 * `'\t'` - The literal string `[TAB]`
 * `'\''` - The literal string `'`
 * `'\\'` - The literal string `\`
-* `'\\n'` - The literal string `\n`
+* `'\\n'` - The literal string&#x20;
 * `'\u0061'` - The literal string `a`
 
 {% hint style="warning" %}
@@ -170,6 +168,24 @@ Exponentiation (`a**b`) and bitwise operators are not supported.
 
 * `foo = bar`
 * `foo = bar = baz`
+
+### Lambda Expressions
+
+Lambda expressions can be used to call methods like `Array#filter`, `Array#sort`, but can also be passed in as an argument to a method on your ViewModel or even invoked as an IIFE.
+
+* `() => 42`
+* `x => x.name` (e.g. `${items.map(x => x.name).join(', ')}`)
+* `(...args) => args.join(', ')`
+* `(a => b => c => a + b + c)(1)(2)(3)` (renders '6')
+* `items.reduce((sum, x) => sum + x, 0)`
+
+{% hint style="warning" %}
+**Warning**
+
+* Wrapping the expression body in braces (`(a, b) => { ... }`) is not supported.
+* Default parameters (`(a = 42) => ...`) are not supported.
+* Destructuring parameters (`({a}) => ...` or `([a]) => ...`) is not supported.
+{% endhint %}
 
 ### Member and Call Expressions
 

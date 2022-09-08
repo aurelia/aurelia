@@ -1,4 +1,4 @@
-import { Registration, DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
 import {
   BindingMode,
   ExpressionType,
@@ -19,9 +19,9 @@ import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import { Listener, ListenerOptions } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
-import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
+import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
 import { IPlatform } from './platform';
@@ -29,6 +29,7 @@ import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
 import { defineProp, isString } from './utilities';
+import { singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -377,7 +378,7 @@ type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(targe
 export function renderer<TType extends string>(targetType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     target.register = function (container: IContainer): void {
-      Registration.singleton(IRenderer, this).register(container);
+      singletonRegistration(IRenderer, this).register(container);
     };
     defineProp(target.prototype, 'target', {
       configurable: true,
@@ -408,7 +409,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
-      return CustomElement.for(refHost)!;
+      return findElementControllerFor(refHost)!;
     case 'view':
       // todo: returns node sequences for fun?
       if (__DEV__)
@@ -417,13 +418,13 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
         throw new Error(`AUR0750`);
     case 'view-model':
       // this means it supports returning undefined
-      return CustomElement.for(refHost)!.viewModel;
+      return findElementControllerFor(refHost)!.viewModel;
     default: {
-      const caController = CustomAttribute.for(refHost, refTargetName);
+      const caController = findAttributeControllerFor(refHost, refTargetName);
       if (caController !== void 0) {
         return caController.viewModel;
       }
-      const ceController = CustomElement.for(refHost, { name: refTargetName });
+      const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
         if (__DEV__)
           throw new Error(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
@@ -1212,7 +1213,7 @@ export class SpreadRenderer implements IRenderer {
           case InstructionType.spreadElementProp:
             renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
               spreadBinding,
-              CustomElement.for(target),
+              findElementControllerFor(target),
               (inst as SpreadElementPropBindingInstruction).instructions,
             );
             break;

@@ -1,6 +1,6 @@
 # Component lifecycles
 
-Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times.&#x20;
+Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times.
 
 For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
 
@@ -27,9 +27,9 @@ export class MyComponent {
 
 ## Define
 
-The "define" hook is the go-to hook for contextual dynamic composition. It runs just after the constructor and can be treated like a late interceptor for the `@customElement` decorator / `CustomElement.define` api: it allows you to change the `CustomElementDefinition` created by the framework before it is compiled, as well as make certain changes to the controller (for example, wrapping or overriding the `scope`).&#x20;
+The "define" hook is the go-to hook for contextual dynamic composition. It runs just after the constructor and can be treated like a late interceptor for the `@customElement` decorator / `CustomElement.define` api: it allows you to change the `CustomElementDefinition` created by the framework before it is compiled, as well as make certain changes to the controller (for example, wrapping or overriding the `scope`).
 
-You'll have the compiled definition of the parent (owning) element available, as well as the custom element's own hydration context. The returned definition is the cache key for the compiled definition.&#x20;
+You'll have the compiled definition of the parent (owning) element available, as well as the custom element's own hydration context. The returned definition is the cache key for the compiled definition.
 
 To make a change only the first time the hook is invoked for an instance underneath a particular parent definition (affecting all instances of the type underneath that parent definition), mutate and return the existing definition; to make a contextual change (that needs to be re-compiled per instance), clone the definition before mutating and returning it.
 
@@ -45,7 +45,7 @@ export class MyComponent {
 
 #### hydrating()
 
-The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It runs synchronously right after the `define` hook and can still be considered part of "construction".&#x20;
+The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It runs synchronously right after the `define` hook and can still be considered part of "construction".
 
 From a caching perspective, it has a direct 1-1 parity with the `define` hook: the hydration is cached per unique definition that is returned from `define` (or per parent definition, if no new definition is returned from `define`). Therefore, if you need true per-instance contextual registrations (should be rare), make sure to bust the cache per instance by returning a clone from the `define` hook.
 
@@ -75,7 +75,7 @@ export class MyComponent {
 
 #### created()
 
-The "created" hook is the last hook that can be considered part of "construction". It is called (synchronously) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the created hooks execute bottom-up, from child to parent (whereas `define`, `hydrating` and `hydrated` are all top-down). This is also the last hook that runs only once per instance.&#x20;
+The "created" hook is the last hook that can be considered part of "construction". It is called (synchronously) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the created hooks execute bottom-up, from child to parent (whereas `define`, `hydrating` and `hydrated` are all top-down). This is also the last hook that runs only once per instance.
 
 Here you can perform any last-minute work that requires having all child components hydrated and that might affect the `bind` and `attach` lifecycles.
 
@@ -91,9 +91,9 @@ export class MyComponent {
 
 #### binding()
 
-If your component has a method named "binding", then the framework will invoke it after the bindable properties of your component are assigned. In terms of the component hierarchy, the binding hooks execute top-down, from parent to child, so your bindables will have their values set by the owning components, but the bindings in your view are not yet set.&#x20;
+If your component has a method named "binding", then the framework will invoke it after the bindable properties of your component are assigned. In terms of the component hierarchy, the binding hooks execute top-down, from parent to child, so your bindables will have their values set by the owning components, but the bindings in your view are not yet set.
 
-This is a good place to perform any work or make changes to anything that your view would depend on because data still flows down synchronously. This is the best time to do anything that might affect children as well. We prefer using this hook over `bound`, unless you specifically need `bound` for a situation when `binding` is too early.&#x20;
+This is a good place to perform any work or make changes to anything that your view would depend on because data still flows down synchronously. This is the best time to do anything that might affect children as well. We prefer using this hook over `bound`, unless you specifically need `bound` for a situation when `binding` is too early.
 
 You can optionally return a `Promise` either making the method asynchronous or creating a promise object. If you do so, it will suspend the binding and attaching of the children until the promise is resolved. This is useful for fetching/save of data before rendering.
 
@@ -186,4 +186,12 @@ export class MyComponent {
     dispose() {
     }
 }
+```
+
+## Lifecycle Hooks
+
+The lifecycle hooks API supports all of the above lifecycle methods. Using the `lifecycleHooks` decorator you can perform actions at various points of the component lifecycle.
+
+```typescript
+import { lifecycleHooks } from '@aurelia/runtime-html';
 ```

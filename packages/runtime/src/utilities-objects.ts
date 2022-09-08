@@ -20,6 +20,9 @@ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v =
 export const isString = (v: unknown): v is string => typeof v === 'string';
 
 /** @internal */
+export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
+
+/** @internal */
 export function defineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
   def(obj, key, {
     enumerable: false,

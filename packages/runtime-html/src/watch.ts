@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { emptyArray } from '@aurelia/kernel';
-import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement } from './resources/custom-element';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './shared';
+import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
+import { getElementDefinition, isElementType } from './resources/custom-element';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 import { isFunction } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
@@ -107,11 +107,11 @@ export function watch<T extends object = object>(
     //
     // temporarily works around this order sensitivity by manually add the watch def
     // manual
-    if (CustomAttribute.isType(Type)) {
-      CustomAttribute.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
+    if (isAttributeType(Type)) {
+      getAttributeDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
-    if (CustomElement.isType(Type)) {
-      CustomElement.getDefinition(Type).watches.push(watchDef as IWatchDefinition);
+    if (isElementType(Type)) {
+      getElementDefinition(Type).watches.push(watchDef as IWatchDefinition);
     }
   };
 }

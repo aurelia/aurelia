@@ -44,7 +44,7 @@ import { Aurelia, IWcElementRegistry } from 'aurelia';
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IWcElementRegistry, registry => {
+    AppTask.creating(IWcElementRegistry, registry => {
       registry.define('tick-clock', class TickClock {
         static template = '${message}';
 
@@ -75,7 +75,7 @@ import { Aurelia, IWcElementRegistry } from 'aurelia';
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IWcElementRegistry, registry => {
+    AppTask.creating(IWcElementRegistry, registry => {
       registry.define('tick-clock', class TickClock {
         static template = '${message}';
         static shadowOptions = { mode: 'open' };
@@ -107,7 +107,7 @@ import { INode, Aurelia, IWcElementRegistry } from 'aurelia';
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IWcElementRegistry, registry => {
+    AppTask.creating(IWcElementRegistry, registry => {
       registry.define('tick-clock', class TickClock {
         static template = '${message}';
         static shadowOptions = { mode: 'open' };
@@ -148,7 +148,7 @@ document.body.innerHTML = '<tick-clock format="short"></tick-clock>';
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IWcElementRegistry, registry => {
+    AppTask.creating(IWcElementRegistry, registry => {
       registry.define('tick-clock', class TickClock {
         static template = '${message}';
         static shadowOptions = { mode: 'open' };
@@ -190,7 +190,7 @@ document.body.innerHTML = '<div is="tick-clock"></div>'
 
 Aurelia
   .register(
-    AppTask.beforeCreate(IWcElementRegistry, registry => {
+    AppTask.creating(IWcElementRegistry, registry => {
       registry.define('tick-clock', class TickClock {
         static template = '${message}';
 

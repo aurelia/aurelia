@@ -5,7 +5,7 @@ import { ISignaler } from '../observation/signaler';
 import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../value-converter';
 import { IConnectableBinding } from './connectable';
-import { isFunction, isString } from '../utilities-objects';
+import { isArray, isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -46,17 +46,18 @@ export const enum ExpressionKind {
   Binary                        = 0b0000000000001_01110, //
   Conditional                   = 0b0000000000001_11111, //
   Assign                        = 0b0000100000000_10000, // IsAssignable
-  ValueConverter                = 0b0010010000001_10001, //
-  BindingBehavior               = 0b0010011000001_10010, //
-  HtmlLiteral                   = 0b0000000000001_10011, //
-  ArrayBindingPattern           = 0b0100000000000_10100, //
-  ObjectBindingPattern          = 0b0100000000000_10101, //
-  BindingIdentifier             = 0b0100000000000_10110, //
-  ForOfStatement                = 0b0000011000001_10111, //
-  Interpolation                 = 0b0000000000000_11000, //
-  ArrayDestructuring            = 0b0101100000000_11001, // IsAssignable
-  ObjectDestructuring           = 0b0110100000000_11001, // IsAssignable
-  DestructuringAssignmentLeaf   = 0b1000100000000_11001, // IsAssignable
+  ArrowFunction                 = 0b0000000000000_10001, //
+  ValueConverter                = 0b0010010000001_10010, //
+  BindingBehavior               = 0b0010011000001_10011, //
+  HtmlLiteral                   = 0b0000000000001_10100, //
+  ArrayBindingPattern           = 0b0100000000000_10101, //
+  ObjectBindingPattern          = 0b0100000000000_10110, //
+  BindingIdentifier             = 0b0100000000000_10111, //
+  ForOfStatement                = 0b0000011000001_11000, //
+  Interpolation                 = 0b0000000000000_11001, //
+  ArrayDestructuring            = 0b0101100000000_11010, // IsAssignable
+  ObjectDestructuring           = 0b0110100000000_11011, // IsAssignable
+  DestructuringAssignmentLeaf   = 0b1000100000000_11100, // IsAssignable
 }
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -69,7 +70,7 @@ export type IsLeftHandSide = IsPrimary | CallFunctionExpression | CallMemberExpr
 export type IsUnary = IsLeftHandSide | UnaryExpression;
 export type IsBinary = IsUnary | BinaryExpression;
 export type IsConditional = IsBinary | ConditionalExpression;
-export type IsAssign = IsConditional | AssignExpression;
+export type IsAssign = IsConditional | AssignExpression | ArrowFunction;
 export type IsValueConverter = IsAssign | ValueConverterExpression;
 export type IsBindingBehavior = IsValueConverter | BindingBehaviorExpression;
 export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
@@ -90,6 +91,7 @@ export interface IVisitor<T = unknown> {
   visitAccessThis(expr: AccessThisExpression): T;
   visitArrayBindingPattern(expr: ArrayBindingPattern): T;
   visitArrayLiteral(expr: ArrayLiteralExpression): T;
+  visitArrowFunction(expr: ArrowFunction): T;
   visitAssign(expr: AssignExpression): T;
   visitBinary(expr: BinaryExpression): T;
   visitBindingBehavior(expr: BindingBehaviorExpression): T;
@@ -164,6 +166,27 @@ export class Unparser implements IVisitor<void> {
       elements[i].accept(this);
     }
     this.text += ']';
+  }
+
+  public visitArrowFunction(expr: ArrowFunction): void {
+    const args = expr.args;
+    const ii = args.length;
+    let i = 0;
+    let text = '(';
+    let name: string;
+    for (; i < ii; ++i) {
+      name = args[i].name;
+      if (i > 0) {
+        text += ', ';
+      }
+      if (i < ii - 1) {
+        text += name;
+      } else {
+        text += expr.rest ? `...${name}` : name;
+      }
+    }
+    this.text += `${text}) => `;
+    expr.body.accept(this);
   }
 
   public visitObjectLiteral(expr: ObjectLiteralExpression): void {
@@ -410,9 +433,11 @@ export class Unparser implements IVisitor<void> {
 }
 
 // export interface IAstEvaluator {
-//   readonly scope: Scope;
-//   create<T>(kind: ExpressionKind.ValueConverter, name: string): ValueConverterInstance<T>;
-//   create<T>(kind: ExpressionKind.BindingBehavior, name: string): BindingBehaviorInstance<T>;
+//   strict?: boolean;
+//   strictFnCall?: boolean;
+//   get: IServiceLocator['get'];
+//   getConverter?<T>(name: string): ValueConverterInstance<T>;
+//   getBehavior?<T>(name: string): BindingBehaviorInstance<T>;
 // }
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
@@ -733,7 +758,7 @@ export class AccessMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
     if (f & LF.isStrictBindingStrategy) {
       if (instance == null) {
         return instance;
@@ -785,9 +810,9 @@ export class AccessKeyedExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
     if (instance instanceof Object) {
-      const key = this.key.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as string;
+      const key = this.key.evaluate(f, s, l, c) as string;
       if (c !== null) {
         c.observe(instance, key);
       }
@@ -849,6 +874,21 @@ export class CallScopeExpression {
   }
 }
 
+const autoObserveArrayMethods =
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some'.split(' ');
+// sort,      // not support, self mutation + unclear dependency
+
+// push,      // not supported, self mutation + unclear dependency
+// pop,       // not supported, self mutation + unclear dependency
+// shift,     // not supported, self mutation + unclear dependency
+// splice,    // not supported, self mutation + unclear dependency
+// unshift,   // not supported, self mutation + unclear dependency
+// reverse,   // not supported, self mutation + unclear dependency
+
+// keys,    // not meaningful in template
+// values,  // not meaningful in template
+// entries, // not meaningful in template
+
 export class CallMemberExpression {
   public get $kind(): ExpressionKind.CallMember { return ExpressionKind.CallMember; }
   public get hasBind(): false { return false; }
@@ -863,11 +903,14 @@ export class CallMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
+    const instance = this.object.evaluate(f, s, l, c) as IIndexable;
 
     const args = this.args.map(a => a.evaluate(f, s, l, c));
     const func = getFunction(f, instance, this.name);
     if (func) {
+      if (isArray(instance) && autoObserveArrayMethods.includes(this.name)) {
+        c?.observeCollection(instance);
+      }
       return func.apply(instance, args);
     }
     return void 0;
@@ -1622,6 +1665,49 @@ export class DestructuringAssignmentRestExpression {
 
   public accept<T>(_visitor: IVisitor<T>): T {
     return _visitor.visitDestructuringAssignmentRestExpression(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
+}
+
+export class ArrowFunction {
+  public get $kind(): ExpressionKind.ArrowFunction { return ExpressionKind.ArrowFunction; }
+  public get hasBind(): false { return false; }
+  public get hasUnbind(): false { return false; }
+
+  public constructor(
+    public args: BindingIdentifier[],
+    public body: IsAssign,
+    public rest: boolean = false,
+  ) {}
+
+  public evaluate(f: LF, s: Scope, l: IServiceLocator, c: IConnectable | null): unknown {
+    const func = (...args: unknown[]) => {
+      const params = this.args;
+      const rest = this.rest;
+      const lastIdx = params.length - 1;
+      const context = params.reduce<IIndexable>((map, param, i) => {
+        if (rest && i === lastIdx) {
+          map[param.name] = args.slice(i);
+        } else {
+          map[param.name] = args[i];
+        }
+        return map;
+      }, {});
+      const functionScope = Scope.fromParent(s, context);
+      return this.body.evaluate(f, functionScope, l, c);
+    };
+    return func;
+  }
+
+  public assign(_f: LF, _s: Scope, _l: IServiceLocator, _value: unknown): void {
+    return void 0;
+  }
+
+  public accept<T>(visitor: IVisitor<T>): T {
+    return visitor.visitArrowFunction(this);
   }
 
   public toString(): string {

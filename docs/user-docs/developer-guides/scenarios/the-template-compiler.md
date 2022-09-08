@@ -60,7 +60,7 @@ import Aurelia, { AppTask, ITemplateCompiler } from 'aurelia';
 import { MyApp } from './my-app';
 
 Aurelia
-  .register(AppTask.beforeCreate(ITemplateCompiler, compiler => compiler.debug = true))
+  .register(AppTask.creating(ITemplateCompiler, compiler => compiler.debug = true))
   .app(MyApp)
   .start();
 ```

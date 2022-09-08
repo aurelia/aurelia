@@ -333,7 +333,21 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 
   public handleCollectionChange(): void {
-    this.queueUpdate(this.value, LifecycleFlags.none);
+    if (!this.isBound) {
+      return;
+    }
+    this.obs.version++;
+    const v = this.value = this.sourceExpression.evaluate(
+      LifecycleFlags.none,
+      this.$scope!,
+      this.locator,
+      (this.mode & toView) > 0 ?  this.interceptor : null,
+    );
+    this.obs.clear();
+    if (v instanceof Array) {
+      this.observeCollection(v);
+    }
+    this.queueUpdate(v, LifecycleFlags.none);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {

@@ -1,6 +1,6 @@
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
-import { IObserverLocator } from '@aurelia/runtime';
+import { FlushQueue, IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { hJsx } from './h';
@@ -18,6 +18,7 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   });
 };
 
+// eslint-disable-next-line max-lines-per-function
 export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>(
   template: string | Node,
   $class?: T,
@@ -64,8 +65,28 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
 
   let startPromise: Promise<void> | void = void 0;
   if (autoStart) {
-    au.app({ host: host, component });
-    startPromise = au.start();
+    try {
+      au.app({ host: host, component });
+      startPromise = au.start();
+    } catch (ex) {
+      try {
+        const dispose = () => {
+          root.remove();
+          au.dispose();
+        };
+        const ret = au.stop();
+        if (ret instanceof Promise)
+          void ret.then(dispose);
+        else
+          dispose();
+        FlushQueue.instance.clear();
+      } catch {
+        console.warn('(!) corrupted fixture state, should isolate the failing test and restart the run'
+          + 'as it is likely that this failing fixture creation will pollute others.');
+      }
+
+      throw ex;
+    }
   }
 
   let tornCount = 0;

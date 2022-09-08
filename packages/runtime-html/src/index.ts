@@ -223,9 +223,6 @@ export {
   templateController,
 } from './resources/custom-attribute';
 export {
-  ObserveShallow,
-} from './resources/template-controllers/flags';
-export {
   If,
   Else,
 } from './resources/template-controllers/if';
@@ -400,6 +397,7 @@ export {
   isCustomElementController,
   isCustomElementViewModel,
   ViewModelKind,
+  HooksDefinition,
   type ControllerVisitor,
   type IViewModel,
   IController,

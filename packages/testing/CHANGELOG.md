@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.40"></a>
+# 2.0.0-alpha.40 (2022-09-07)
+
+### Features:
+
+* **template:** support arrow function syntax (#1541) ([499ace7](https://github.com/aurelia/aurelia/commit/499ace7))
+
 <a name="2.0.0-alpha.39"></a>
 # 2.0.0-alpha.39 (2022-09-01)
 

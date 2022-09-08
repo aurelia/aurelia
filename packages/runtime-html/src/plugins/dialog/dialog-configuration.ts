@@ -1,9 +1,10 @@
-import { IContainer, IRegistry, noop, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 
 import { IDialogGlobalSettings } from './dialog-interfaces';
 import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl';
 import { AppTask } from '../../app-task';
 import { DialogService } from './dialog-service';
+import { singletonRegistration } from '../../utilities-di';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
@@ -18,7 +19,7 @@ function createDialogConfiguration(settingsProvider: DialogConfigurationProvider
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
       ...registrations,
-      AppTask.beforeCreate(() => settingsProvider(ctn.get(IDialogGlobalSettings)) as void)
+      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)) as void)
     ),
     customize(cb: DialogConfigurationProvider, regs?: IRegistry[]) {
       return createDialogConfiguration(cb, regs ?? registrations);
@@ -45,7 +46,7 @@ export const DialogConfiguration = createDialogConfiguration(() => {
     throw new Error(`AUR0904`);
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {
-    container.register(Registration.singleton(IDialogGlobalSettings, this));
+    container.register(singletonRegistration(IDialogGlobalSettings, this));
   }
 }]);
 

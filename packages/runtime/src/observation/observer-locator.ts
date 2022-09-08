@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { def, hasOwnProp } from '../utilities-objects';
+import { def, hasOwnProp, isArray } from '../utilities-objects';
 
 import type {
   Collection,
@@ -119,7 +119,7 @@ export class ObserverLocator {
 
     switch (key) {
       case 'length':
-        if (obj instanceof Array) {
+        if (isArray(obj)) {
           return getArrayObserver(obj).getLengthObserver();
         }
         break;
@@ -131,7 +131,7 @@ export class ObserverLocator {
         }
         break;
       default:
-        if (obj instanceof Array && isArrayIndex(key)) {
+        if (isArray(obj) && isArrayIndex(key)) {
           return getArrayObserver(obj).getIndexObserver(Number(key));
         }
         break;
@@ -199,7 +199,7 @@ export type RepeatableCollection = Collection | null | undefined | number;
 
 export function getCollectionObserver(collection: RepeatableCollection): CollectionObserver | undefined {
   let obs: CollectionObserver | undefined;
-  if (collection instanceof Array) {
+  if (isArray(collection)) {
     obs = getArrayObserver(collection);
   } else if (collection instanceof Map) {
     obs = getMapObserver(collection);

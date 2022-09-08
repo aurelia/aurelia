@@ -1,12 +1,13 @@
-import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
 import { IEventTarget, INode } from './dom';
 import { IPlatform } from './platform';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { isFunction, isPromise } from './utilities';
+import { instanceRegistration } from './utilities-di';
 
 import type {
   Constructable,
@@ -106,7 +107,7 @@ export class Aurelia implements IDisposable {
       bc,
       host,
       null,
-      CustomElementDefinition.create({ name: CustomElement.generateName(), template: host, enhance: true }),
+      CustomElementDefinition.create({ name: generateElementName(), template: host, enhance: true }),
     );
     return onResolve(
       view.activate(view, parentController, LifecycleFlags.fromBind),
@@ -132,7 +133,7 @@ export class Aurelia implements IDisposable {
           throw new Error(`AUR0769`);
       }
       p = new BrowserPlatform(host.ownerDocument.defaultView);
-      this.container.register(Registration.instance(IPlatform, p));
+      this.container.register(instanceRegistration(IPlatform, p));
     } else {
       p = this.container.get(IPlatform);
     }

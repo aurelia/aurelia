@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.40"></a>
+# 2.0.0-alpha.40 (2022-09-07)
+
+### Bug Fixes:
+
+* **router-lite:** specific module import (#1536) ([31f4af9](https://github.com/aurelia/aurelia/commit/31f4af9))
+* **router-lite:** specific module import #1530 ([31f4af9](https://github.com/aurelia/aurelia/commit/31f4af9))
+* **router-lite:** nav-model promise handling (#1535) ([d9d5dae](https://github.com/aurelia/aurelia/commit/d9d5dae))
+
+
+### Refactorings:
+
+* **app-task:** consistent hook name style ing/ed (#1540) ([5a11ea0](https://github.com/aurelia/aurelia/commit/5a11ea0))
+
 <a name="2.0.0-alpha.39"></a>
 # 2.0.0-alpha.39 (2022-09-01)
 

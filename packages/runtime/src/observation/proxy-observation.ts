@@ -1,4 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
+import { isArray } from '../utilities-objects';
 import { connecting, currentConnectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
@@ -50,7 +51,7 @@ function doNotCollect(key: PropertyKey): boolean {
 }
 
 function createProxy<T extends object>(obj: T): T {
-  const handler: ProxyHandler<object> = obj instanceof Array
+  const handler: ProxyHandler<object> = isArray(obj)
     ? arrayHandler
     : obj instanceof Map || obj instanceof Set
       ? collectionHandler

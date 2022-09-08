@@ -54,4 +54,16 @@ test.describe('router', () => {
     await page.click('a:text("Something missing in child")');
     await expect(page.locator('#child-vp')).toContainText('Fallback for: something/missing');
   });
+
+  const tests = [
+    { link: 'Pages one-route', result: 'One page' },
+    { link: 'Pages two-route', result: 'Two page' },
+  ];
+
+  for (const t of tests) {
+    test(`loads async route when clicking on link "${t.link}"`, async ({ page }) => {
+      await page.click(`a:text("${t.link}")`);
+      await expect(page.locator('#root-vp')).toContainText(t.result);
+    });
+  }
 });

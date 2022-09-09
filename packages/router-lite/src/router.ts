@@ -777,14 +777,14 @@ export class Router {
           this.cancelNavigation(tr);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking unload on ${prev.length} nodes`);
+        this.logger.trace(`run() - invoking unloading on ${prev.length} nodes`);
         for (const node of prev) {
-          node.context.vpa.unload(tr, b);
+          node.context.vpa.unloading(tr, b);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking load on ${next.length} nodes`);
+        this.logger.trace(`run() - invoking loading on ${next.length} nodes`);
         for (const node of next) {
-          node.context.vpa.load(tr, b);
+          node.context.vpa.loading(tr, b);
         }
       }).continueWith(b => {
         this.logger.trace(`run() - invoking swap on ${all.length} nodes`);

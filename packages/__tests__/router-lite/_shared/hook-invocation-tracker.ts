@@ -13,9 +13,9 @@ export type HookName = (
   'dispose' |
 
   'canLoad' |
-  'load' |
+  'loading' |
   'canUnload' |
-  'unload'
+  'unloading'
 );
 
 export type MaybeHookName = HookName | '';
@@ -112,9 +112,9 @@ export class HookInvocationAggregator {
   public readonly $$dispose: HookInvocationTracker = new HookInvocationTracker(this, 'dispose');
 
   public readonly canLoad: HookInvocationTracker = new HookInvocationTracker(this, 'canLoad');
-  public readonly load: HookInvocationTracker = new HookInvocationTracker(this, 'load');
+  public readonly loading: HookInvocationTracker = new HookInvocationTracker(this, 'loading');
   public readonly canUnload: HookInvocationTracker = new HookInvocationTracker(this, 'canUnload');
-  public readonly unload: HookInvocationTracker = new HookInvocationTracker(this, 'unload');
+  public readonly unloading: HookInvocationTracker = new HookInvocationTracker(this, 'unloading');
 
   public notify(
     componentName: string,
@@ -141,9 +141,9 @@ export class HookInvocationAggregator {
     this.unbinding.dispose();
     this.$$dispose.dispose();
     this.canLoad.dispose();
-    this.load.dispose();
+    this.loading.dispose();
     this.canUnload.dispose();
-    this.unload.dispose();
+    this.unloading.dispose();
 
     const $this = this as Partial<Writable<this>>;
     $this.notifyHistory = void 0;
@@ -158,8 +158,8 @@ export class HookInvocationAggregator {
     $this.unbinding = void 0;
     $this.$$dispose = void 0;
     $this.canLoad = void 0;
-    $this.load = void 0;
+    $this.loading = void 0;
     $this.canUnload = void 0;
-    $this.unload = void 0;
+    $this.unloading = void 0;
   }
 }

@@ -55,9 +55,9 @@ export const hookSpecsMap = {
   dispose: getHookSpecs('dispose').sync,
 
   canLoad: getHookSpecs('canLoad'),
-  load: getHookSpecs('load'),
+  loading: getHookSpecs('loading'),
   canUnload: getHookSpecs('canUnload'),
-  unload: getHookSpecs('unload'),
+  unloading: getHookSpecs('unloading'),
 };
 
 function groupByPrefix(list: string[]): Record<string, string[]> {

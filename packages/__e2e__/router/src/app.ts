@@ -3,6 +3,7 @@ import { IRouter } from '@aurelia/router';
 export class App {
 
   public static routes = [
+    { path: ['', 'home'], component: import('./pages/home') },
     { path: 'pages/one-route', component: import('./pages/one') },
     { path: 'pages/two-route', component: () => import('./pages/two') },
   ];

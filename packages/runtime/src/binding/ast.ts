@@ -495,7 +495,6 @@ export class BindingBehaviorExpression {
     const key = this._key;
     const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
     if (behavior == null) {
-      debugger;
       if (__DEV__)
         throw new Error(`AUR0101: BindingBehavior named '${name}' could not be found. Did you forget to register it as a dependency?`);
       else

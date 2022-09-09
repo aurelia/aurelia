@@ -1,5 +1,5 @@
 import {
-  emptyArray,
+  emptyArray, Key,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -37,6 +37,11 @@ export class MockBinding implements IConnectableBinding {
   public obs!: BindingObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
+
+  public get(key: Key) {
+    this.trace('get', key);
+    return null!;
+  }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     this.trace('updateTarget', value, flags);

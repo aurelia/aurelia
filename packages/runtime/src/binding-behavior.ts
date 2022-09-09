@@ -5,6 +5,7 @@ import {
   firstDefined,
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
+  Resolved,
 } from '@aurelia/kernel';
 import { BindingMode, Collection, IndexMap, LifecycleFlags } from './observation';
 import { registerAliases } from './alias';
@@ -181,6 +182,18 @@ export class BindingInterceptor implements IInterceptableBinding {
       binding.interceptor = this;
       binding = interceptor as IInterceptableBinding;
     }
+  }
+
+  public get(key: Key): Resolved<Key> {
+    return this.binding.get(key);
+  }
+
+  public getConverter(name: string) {
+    return (this.binding as any).getConverter?.(name);
+  }
+
+  public getBehavior(name: string) {
+    return (this.binding as any).getBehavior?.(name);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

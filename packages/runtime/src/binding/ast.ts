@@ -464,14 +464,19 @@ export class BindingBehaviorExpression {
   public get $kind(): ExpressionKind.BindingBehavior { return ExpressionKind.BindingBehavior; }
   public get hasBind(): true { return true; }
   public get hasUnbind(): true { return true; }
-  public readonly behaviorKey: string;
+  /**
+   * The name of the property to store a binding behavior on the binding when binding
+   *
+   * @internal
+   */
+  private readonly _key: string;
 
   public constructor(
     public readonly expression: IsBindingBehavior,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
   ) {
-    this.behaviorKey = BindingBehavior.keyFrom(name);
+    this._key = `_bb_${name}`;
   }
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
@@ -482,38 +487,41 @@ export class BindingBehaviorExpression {
     return this.expression.assign(s, e, val);
   }
 
-  public bind(f: LF, s: Scope, b: IConnectableBinding): void {
+  public bind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     if (this.expression.hasBind) {
       this.expression.bind(f, s, b);
     }
-    const behavior = b.locator.get<BindingBehaviorInstance>(this.behaviorKey);
+    const name = this.name;
+    const key = this._key;
+    const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
     if (behavior == null) {
+      debugger;
       if (__DEV__)
-        throw new Error(`AUR0101: BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0101: BindingBehavior named '${name}' could not be found. Did you forget to register it as a dependency?`);
       else
-        throw new Error(`AUR0101:${this.name}`);
+        throw new Error(`AUR0101:${name}`);
     }
     if (!(behavior instanceof BindingBehaviorFactory)) {
-      if ((b as BindingWithBehavior)[this.behaviorKey] === void 0) {
-        (b as BindingWithBehavior)[this.behaviorKey] = behavior;
-        behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(s, b.locator, null) as {}[]));
+      if ((b as BindingWithBehavior)[key] === void 0) {
+        (b as BindingWithBehavior)[key] = behavior;
+        behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
       } else {
         if (__DEV__)
-          throw new Error(`AUR0102: BindingBehavior named '${this.name}' already applied.`);
+          throw new Error(`AUR0102: BindingBehavior '${name}' already applied.`);
         else
-          throw new Error(`AUR0102:${this.name}`);
+          throw new Error(`AUR0102:${name}`);
       }
     }
   }
 
-  public unbind(f: LF, s: Scope, b: IConnectableBinding): void {
-    const key = this.behaviorKey;
+  public unbind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+    const internalKey = this._key;
     const $b = b as BindingWithBehavior;
-    if ($b[key] !== void 0) {
-      if (isFunction($b[key]!.unbind)) {
-        $b[key]!.unbind(f, s, b);
+    if ($b[internalKey] !== void 0) {
+      if (isFunction($b[internalKey]!.unbind)) {
+        $b[internalKey]!.unbind(f, s, b);
       }
-      $b[key] = void 0;
+      $b[internalKey] = void 0;
     }
     if (this.expression.hasUnbind) {
       this.expression.unbind(f, s, b);
@@ -531,7 +539,7 @@ export class BindingBehaviorExpression {
 
 export class ValueConverterExpression {
   public get $kind(): ExpressionKind.ValueConverter { return ExpressionKind.ValueConverter; }
-  public readonly converterKey: string;
+  // public readonly converterKey: string;
   public get hasBind(): false { return false; }
   public get hasUnbind(): true { return true; }
 
@@ -540,16 +548,16 @@ export class ValueConverterExpression {
     public readonly name: string,
     public readonly args: readonly IsAssign[],
   ) {
-    this.converterKey = ValueConverter.keyFrom(name);
   }
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
-    const vc = e?.getConverter?.(this.converterKey) as ValueConverterInstance & { signals?: string[] };
+    const name = this.name;
+    const vc = e?.getConverter?.(name) as ValueConverterInstance & { signals?: string[] };
     if (vc == null) {
       if (__DEV__)
-        throw new Error(`AUR0103: ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0103: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
       else
-        throw new Error(`AUR0103:${this.name}`);
+        throw new Error(`AUR0103:${name}`);
     }
     // note: the cast is expected. To connect, it just needs to be a IConnectable
     // though to work with signal, it needs to have `handleChange`
@@ -559,7 +567,9 @@ export class ValueConverterExpression {
       const signals = vc.signals;
       if (signals != null) {
         const signaler = e?.get?.(ISignaler);
-        for (let i = 0, ii = signals.length; i < ii; ++i) {
+        const ii = signals.length;
+        let i = 0;
+        for (; i < ii; ++i) {
           // todo: signaler api
           signaler?.addSignalListener(signals[i], c as unknown as ISubscriber);
         }
@@ -572,12 +582,13 @@ export class ValueConverterExpression {
   }
 
   public assign(s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
-    const vc = e?.get?.<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
+    const name = this.name;
+    const vc = e?.getConverter?.<ValueConverterExpression & ValueConverterInstance>(name);
     if (vc == null) {
       if (__DEV__)
-        throw new Error(`AUR0104: ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0104: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
       else
-        throw new Error(`AUR0104:${this.name}`);
+        throw new Error(`AUR0104:${name}`);
     }
     if ('fromView' in vc) {
       val = vc.fromView!(val, ...this.args.map(a => a.evaluate(s, e, null)));
@@ -585,13 +596,14 @@ export class ValueConverterExpression {
     return this.expression.assign(s, e, val);
   }
 
-  public unbind(_f: LF, _s: Scope, b: IConnectableBinding): void {
-    const vc = b.locator.get(this.converterKey) as { signals?: string[] };
+  public unbind(_f: LF, _s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+    const vc = b.getConverter?.(this.name) as { signals?: string[] };
     if (vc.signals === void 0) {
       return;
     }
-    const signaler = b.locator.get(ISignaler);
-    for (let i = 0; i < vc.signals.length; ++i) {
+    const signaler = b.get(ISignaler);
+    let i = 0;
+    for (; i < vc.signals.length; ++i) {
       // the cast is correct, as the value converter expression would only add
       // a IConnectable that also implements `ISubscriber` interface to the signaler
       signaler.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);

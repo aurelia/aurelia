@@ -1,6 +1,16 @@
 import { ITask } from '@aurelia/platform';
-import { DI } from '@aurelia/kernel';
-import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, BindingMediator, IAstEvaluator, IBinding, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { DI, IServiceLocator } from '@aurelia/kernel';
+import {
+  bindingBehavior,
+  BindingBehaviorExpression,
+  BindingInterceptor,
+  IAstEvaluator,
+  IObserverLocator,
+  IBinding,
+  IConnectableBinding,
+  LifecycleFlags,
+  Scope
+} from '@aurelia/runtime';
 import {
   PropertyBinding,
   IPlatform,
@@ -48,7 +58,6 @@ export enum ValidationTrigger {
 /* @internal */
 export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
-export interface ValidateBindingBehavior extends IAstEvaluator {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
@@ -82,7 +91,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
-    this.setPropertyBinding();
+    this._setPropertyBinding();
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
@@ -116,9 +125,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   public $bind(flags: LifecycleFlags, scope: Scope) {
     this.scope = scope;
     this.binding.$bind(flags, scope);
-    this.setTarget();
-    const delta = this.processBindingExpressionArgs(flags);
-    this.processDelta(delta);
+    this._setTarget();
+    const delta = this._processBindingExpressionArgs(flags);
+    this._processDelta(delta);
   }
 
   public $unbind(flags: LifecycleFlags) {
@@ -135,15 +144,15 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new ValidateArgumentsDelta(void 0, this.ensureTrigger(newValue), void 0));
+    this._processDelta(new ValidateArgumentsDelta(void 0, this._ensureTrigger(newValue), void 0));
   }
 
   public handleControllerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new ValidateArgumentsDelta(this.ensureController(newValue), void 0, void 0));
+    this._processDelta(new ValidateArgumentsDelta(this._ensureController(newValue), void 0, void 0));
   }
 
   public handleRulesChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new ValidateArgumentsDelta(void 0, void 0, this.ensureRules(newValue)));
+    this._processDelta(new ValidateArgumentsDelta(void 0, void 0, this._ensureRules(newValue)));
   }
 
   public handleValidationEvent(event: ValidationEvent): void {
@@ -158,7 +167,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
   }
 
-  private processBindingExpressionArgs(_flags: LifecycleFlags): ValidateArgumentsDelta {
+  /** @internal */
+  private _processBindingExpressionArgs(_flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: Scope = this.scope;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
@@ -174,23 +184,26 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this.ensureTrigger(arg.evaluate(scope, this, this.triggerMediator));
+          trigger = this._ensureTrigger(arg.evaluate(scope, this, this.triggerMediator));
           break;
         case 1:
-          controller = this.ensureController(arg.evaluate(scope, this, this.controllerMediator));
+          controller = this._ensureController(arg.evaluate(scope, this, this.controllerMediator));
           break;
         case 2:
-          rules = this.ensureRules(arg.evaluate(scope, this, this.rulesMediator));
+          rules = this._ensureRules(arg.evaluate(scope, this, this.rulesMediator));
           break;
         default:
           throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(scope, this, null)}`);
       }
     }
 
-    return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
+    return new ValidateArgumentsDelta(this._ensureController(controller), this._ensureTrigger(trigger), rules);
   }
 
   private task: ITask | null = null;
+  // todo(sayan): we should not be spying on a private method to do assertion
+  //              if it's not observable from a high level, then we should tweak the tests
+  //              or make assumption, rather than breaking encapsulation
   private validateBinding() {
     // Queue the new one before canceling the old one, to prevent early yield
     const task = this.task;
@@ -202,7 +215,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  private processDelta(delta: ValidateArgumentsDelta) {
+  /** @internal */
+  private _processDelta(delta: ValidateArgumentsDelta) {
     const trigger = delta.trigger ?? this.trigger;
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
@@ -234,7 +248,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  private ensureTrigger(trigger: unknown): ValidationTrigger {
+  /** @internal */
+  private _ensureTrigger(trigger: unknown): ValidationTrigger {
     if (trigger === (void 0) || trigger === null) {
       trigger = this.defaultTrigger;
     } else if (!Object.values(ValidationTrigger).includes(trigger as ValidationTrigger)) {
@@ -243,7 +258,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     return trigger as ValidationTrigger;
   }
 
-  private ensureController(controller: unknown): ValidationController {
+  /** @internal */
+  private _ensureController(controller: unknown): ValidationController {
     if (controller === (void 0) || controller === null) {
       controller = this.scopedController;
     } else if (!(controller instanceof ValidationController)) {
@@ -252,13 +268,15 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     return controller as ValidationController;
   }
 
-  private ensureRules(rules: unknown): PropertyRule[] | undefined {
+  /** @internal */
+  private _ensureRules(rules: unknown): PropertyRule[] | undefined {
     if (Array.isArray(rules) && rules.every((item) => item instanceof PropertyRule)) {
       return rules;
     }
   }
 
-  private setPropertyBinding() {
+  /** @internal */
+  private _setPropertyBinding() {
     let binding: IBinding = this.binding;
     while (!(binding instanceof PropertyBinding) && binding !== void 0) {
       binding = (binding as unknown as BindingInterceptor).binding;
@@ -269,7 +287,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.propertyBinding = binding as BindingWithBehavior;
   }
 
-  private setTarget() {
+  /** @internal */
+  private _setTarget() {
     const target = this.propertyBinding.target;
     if (target instanceof this.platform.Node) {
       this.target = target as HTMLElement;
@@ -311,3 +330,40 @@ class ValidateArgumentsDelta {
     public rules?: PropertyRule[],
   ) { }
 }
+
+type MediatedBinding<K extends string> = {
+  [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
+};
+
+export interface BindingMediator<K extends string> extends Omit<IAstEvaluator, 'get'>, IConnectableBinding { }
+export class BindingMediator<K extends string> implements IConnectableBinding {
+  public interceptor = this;
+
+  public constructor(
+    public readonly key: K,
+    public readonly binding: MediatedBinding<K>,
+    public oL: IObserverLocator,
+    public locator: IServiceLocator,
+  ) {
+  }
+
+  public $bind(): void {
+    if (__DEV__)
+      throw new Error(`AUR0213: Method not implemented.`);
+    else
+      throw new Error(`AUR0213:$bind`);
+  }
+
+  public $unbind(): void {
+    if (__DEV__)
+      throw new Error(`AUR0214: Method not implemented.`);
+    else
+      throw new Error(`AUR0214:$unbind`);
+  }
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    this.binding[this.key](newValue, previousValue, flags);
+  }
+}
+
+connectableBinding(true, true)(BindingMediator);

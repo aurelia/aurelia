@@ -152,11 +152,12 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  ensureProto(proto, 'observe', observe, true);
-  ensureProto(proto, 'observeCollection', observeCollection, true);
-  ensureProto(proto, 'subscribeTo', subscribeTo, true);
+  ensureProto(proto, 'observe', observe);
+  ensureProto(proto, 'observeCollection', observeCollection);
+  ensureProto(proto, 'subscribeTo', subscribeTo);
   def(proto, 'obs', { get: getObserverRecord });
   // optionally add these two methods to normalize a connectable impl
+  // though don't override if it already exists
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
 
@@ -168,41 +169,3 @@ export function connectable<TProto, TClass>(target: DecoratableConnectable<TProt
 export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
   return target == null ? connectableDecorator : connectableDecorator(target);
 }
-
-export type MediatedBinding<K extends string> = {
-  [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface BindingMediator<K extends string> extends IConnectableBinding { }
-export class BindingMediator<K extends string> implements IConnectableBinding {
-  public interceptor = this;
-
-  public constructor(
-    public readonly key: K,
-    public readonly binding: MediatedBinding<K>,
-    public oL: IObserverLocator,
-    public locator: IServiceLocator,
-  ) {
-  }
-
-  public $bind(): void {
-    if (__DEV__)
-      throw new Error(`AUR0213: Method not implemented.`);
-    else
-      throw new Error(`AUR0213:$bind`);
-  }
-
-  public $unbind(): void {
-    if (__DEV__)
-      throw new Error(`AUR0214: Method not implemented.`);
-    else
-      throw new Error(`AUR0214:$unbind`);
-  }
-
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.binding[this.key](newValue, previousValue, flags);
-  }
-}
-
-connectableDecorator(BindingMediator);

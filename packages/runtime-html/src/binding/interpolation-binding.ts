@@ -9,7 +9,7 @@ import {
 import { connectableBinding } from './binding-utils';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
-import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IIndexable, IServiceLocator, Key } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IndexMap,
@@ -71,6 +71,10 @@ export class InterpolationBinding implements IBinding {
     for (; ii > i; ++i) {
       partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
     }
+  }
+
+  public get(key: Key) {
+    return this.locator.get(key);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

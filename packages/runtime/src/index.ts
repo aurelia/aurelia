@@ -60,8 +60,6 @@ export {
   type IObserverLocatorBasedConnectable,
   type IConnectableBinding,
   connectable,
-  BindingMediator,
-  type MediatedBinding,
   BindingObserverRecord,
 } from './binding/connectable';
 export {

@@ -45,7 +45,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
   public constructor(
     public readonly obj: IObservable,
     observerLocator: IObserverLocator,
-    public readonly get: (obj: object, watcher: IConnectable) => unknown,
+    public readonly $get: (obj: object, watcher: IConnectable) => unknown,
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
@@ -95,7 +95,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.obs.version++;
     try {
       enter(this);
-      return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this.value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear();
       this.running = false;

@@ -1,4 +1,4 @@
-import { DI, emptyArray, InstanceProvider } from '@aurelia/kernel';
+import { DI, emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
 import {
   BindingMode,
   ExpressionType,
@@ -10,6 +10,7 @@ import {
   ExpressionKind,
   IBinding,
   Scope,
+  BindingBehavior,
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding';
 import { AttributeBinding } from './binding/attribute';
@@ -931,7 +932,7 @@ export function applyBindingBehavior<T extends IInterceptableBinding>(
   }
   while (behaviorExpressionIndex > 0) {
     const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
-    const behaviorOrFactory = locator.get<BindingBehaviorFactory | BindingBehaviorInstance>(behaviorExpression.behaviorKey);
+    const behaviorOrFactory = locator.get<BindingBehaviorFactory | BindingBehaviorInstance>(BindingBehavior.keyFrom(behaviorExpression.name));
     if (behaviorOrFactory instanceof BindingBehaviorFactory) {
       binding = behaviorOrFactory.construct(binding, behaviorExpression) as T;
     }
@@ -1253,6 +1254,10 @@ class SpreadBinding implements IBinding {
   ) {
     this.ctrl = _hydrationContext.controller;
     this.locator = this.ctrl.container;
+  }
+
+  public get(key: Key) {
+    return this.locator.get(key);
   }
 
   public $bind(flags: LifecycleFlags, _scope: Scope): void {

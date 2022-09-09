@@ -4,7 +4,6 @@ import {
   bindingBehavior,
   BindingBehaviorInstance,
   BindingInterceptor,
-  BindingMediator,
   IBinding,
   IObserverLocator,
   Scope,
@@ -28,6 +27,7 @@ import {
   ValidationController,
   ValidationHtmlConfiguration,
   ValidationTrigger,
+  BindingMediator,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
 import { Organization, Person } from '../validation/_test-resources.js';

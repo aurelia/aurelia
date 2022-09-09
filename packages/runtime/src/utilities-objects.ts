@@ -37,10 +37,9 @@ export function defineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T 
 export function ensureProto<T extends object, K extends keyof T>(
   proto: T,
   key: K,
-  defaultValue: unknown,
-  force: boolean = false
+  defaultValue: unknown
 ): void {
-  if (force || !hasOwnProp.call(proto, key)) {
+  if (!(key in proto)) {
     defineHiddenProp(proto, key, defaultValue);
   }
 }

@@ -14,7 +14,7 @@
   <a load="pages/two-route">Pages two-route</a>
 </nav>
 
-<au-viewport id="root-vp" default="home" fallback="fallback" fallback-action="abort"></au-viewport>
+<au-viewport id="root-vp" fallback="fallback" fallback-action="abort"></au-viewport>
 <hr>
 <div>Fragment hash: <span id="fragment-hash">${router.configuration.options.useUrlFragmentHash}</span> <button
     click.trigger="toggleFragmentHash()">Toggle url fragment hash</button></div>

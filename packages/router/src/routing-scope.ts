@@ -463,7 +463,7 @@ export class RoutingScope {
         }
       }
       // If there are any unresolved components (functions or promises) to be appended, resolve them
-      const resolvePromises = instructions
+      const resolvePromises = matchedInstructions
         .filter(instr => instr.isUnresolved)
         .map(instr => instr.resolve())
         .filter(result => result instanceof Promise);

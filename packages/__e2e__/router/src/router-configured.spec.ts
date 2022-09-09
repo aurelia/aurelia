@@ -15,6 +15,12 @@ test.describe('router', () => {
     await expect(page.locator('#root-vp')).toHaveText('Home page');
   });
 
+  test('reloads home route', async ({ page }) => {
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+    await page.reload();
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+  });
+
   test('loads route when clicking on link', async ({ page }) => {
     await page.click('a:text("Register")');
     await expect(page.locator('#root-vp')).toContainText('Auth page');

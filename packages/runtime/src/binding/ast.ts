@@ -2,8 +2,8 @@ import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aur
 import { LifecycleFlags as LF } from '../observation';
 import { BindingContext, Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
-import { ValueConverter, ValueConverterInstance } from '../value-converter';
+import { BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
+import { ValueConverterInstance } from '../value-converter';
 import { IConnectableBinding } from './connectable';
 import { isArray, isFunction, isString } from '../utilities-objects';
 

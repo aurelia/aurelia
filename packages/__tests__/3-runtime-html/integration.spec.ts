@@ -91,6 +91,7 @@ describe('runtime-html.integration', function () {
       public readonly component: Class<TApp>,
       public readonly registrations: any[] = [],
       public readonly verify: (ctx: IntegrationTestExecutionContext<TApp>) => void | Promise<void>,
+      public readonly only = false,
     ) { }
   }
 
@@ -524,7 +525,7 @@ describe('runtime-html.integration', function () {
   }
 
   for (const data of getTestData()) {
-    $it(data.name, async function (ctx: IntegrationTestExecutionContext<any>) {
+    (data.only ? $it.only : $it)(data.name, async function (ctx: IntegrationTestExecutionContext<any>) {
       await data.verify(ctx);
     }, data);
   }

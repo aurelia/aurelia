@@ -180,6 +180,7 @@ export class PropertyBinding implements IAstBasedBinding {
         flags,
       );
     }
+
     if ($mode & fromView) {
       (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
       if (!shouldConnect) {

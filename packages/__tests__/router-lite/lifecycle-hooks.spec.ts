@@ -94,7 +94,7 @@ describe('lifecycle hooks', function () {
     logger.trace(`${hookName} - end ${component}`);
   }
 
-  type Hooks = 'canLoad' | 'load' | 'canUnload' | 'unload';
+  type Hooks = 'canLoad' | 'loading' | 'canUnload' | 'unloading';
 
   abstract class AsyncBaseHook implements ILifecycleHooks<IRouteViewModel, Hooks> {
     public get waitMs(): Record<Hooks, number> | number | null { return null; }
@@ -113,15 +113,15 @@ describe('lifecycle hooks', function () {
       await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
       return true;
     }
-    public async load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
-      await log('load', next, this.getWaitTime('load'), this.logger);
+    public async loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+      await log('loading', next, this.getWaitTime('loading'), this.logger);
     }
     public async canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<boolean> {
       await log('canUnload', current ?? rn, this.getWaitTime('canUnload'), this.logger);
       return true;
     }
-    public async unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
-      await log('unload', current ?? rn, this.getWaitTime('unload'), this.logger);
+    public async unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
+      await log('unloading', current ?? rn, this.getWaitTime('unloading'), this.logger);
     }
   }
 
@@ -142,20 +142,20 @@ describe('lifecycle hooks', function () {
       await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
       return true;
     }
-    public async load(_params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
-      await log('load', next, this.getWaitTime('load'), this.logger);
+    public async loading(_params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
+      await log('loading', next, this.getWaitTime('loading'), this.logger);
     }
     public async canUnload(rn: RouteNode, current?: RouteNode): Promise<boolean> {
       await log('canUnload', current ?? rn, this.getWaitTime('canUnload'), this.logger);
       return true;
     }
-    public async unload(rn: RouteNode, current?: RouteNode): Promise<void> {
-      await log('unload', current ?? rn, this.getWaitTime('unload'), this.logger);
+    public async unloading(rn: RouteNode, current?: RouteNode): Promise<void> {
+      await log('unloading', current ?? rn, this.getWaitTime('unloading'), this.logger);
     }
   }
 
   function createHookTimingConfiguration(option: Partial<Record<Hooks, number>> = {}) {
-    return { canLoad: 1, load: 1, canUnload: 1, unload: 1, ...option };
+    return { canLoad: 1, loading: 1, canUnload: 1, unloading: 1, ...option };
   }
 
   // the simplified textbook example of authorization hook
@@ -242,7 +242,7 @@ describe('lifecycle hooks', function () {
   });
 
   it('multiple synchronous hooks - without preemption', async function () {
-    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'load' | 'canUnload' | 'unload'> {
+    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'loading' | 'canUnload' | 'unloading'> {
       public constructor(
         @ILogger private readonly logger: ILogger,
       ) {
@@ -252,15 +252,15 @@ describe('lifecycle hooks', function () {
         this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
         return true;
       }
-      public load(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
-        this.logger.trace(`load ${(next.instruction as IViewportInstruction).component}`);
+      public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.logger.trace(`loading ${(next.instruction as IViewportInstruction).component}`);
       }
       public canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): boolean | Promise<boolean> {
         this.logger.trace(`canUnload ${((current ?? rn).instruction as IViewportInstruction).component}`);
         return true;
       }
-      public unload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
-        this.logger.trace(`unload ${((current ?? rn).instruction as IViewportInstruction).component}`);
+      public unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
+        this.logger.trace(`unloading ${((current ?? rn).instruction as IViewportInstruction).component}`);
       }
     }
     @lifecycleHooks()
@@ -299,9 +299,9 @@ describe('lifecycle hooks', function () {
       /Hook1\] canLoad ''/,
       /Hook2\] canLoad ''/,
       /Home\] canLoad ''/,
-      /Hook1\] load ''/,
-      /Hook2\] load ''/,
-      /Home\] load ''/,
+      /Hook1\] loading ''/,
+      /Hook2\] loading ''/,
+      /Home\] loading ''/,
     ], 'init');
 
     // round #2
@@ -315,12 +315,12 @@ describe('lifecycle hooks', function () {
       /Hook1\] canLoad 'foo'/,
       /Hook2\] canLoad 'foo'/,
       /Foo\] canLoad 'foo'/,
-      /Hook1\] unload ''/,
-      /Hook2\] unload ''/,
-      /Home\] unload ''/,
-      /Hook1\] load 'foo'/,
-      /Hook2\] load 'foo'/,
-      /Foo\] load 'foo'/,
+      /Hook1\] unloading ''/,
+      /Hook2\] unloading ''/,
+      /Home\] unloading ''/,
+      /Hook1\] loading 'foo'/,
+      /Hook2\] loading 'foo'/,
+      /Foo\] loading 'foo'/,
     ], 'round#2');
 
     await au.stop();
@@ -367,12 +367,12 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
 
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Hook1\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Home\] load - end ''/,
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Hook1\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Home\] loading - end ''/,
     ], 'init');
 
     // round #2
@@ -394,19 +394,19 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Hook1\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Home\] unload - end ''/,
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Hook1\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Home\] unloading - end ''/,
 
-      /Hook1\] load - start 'foo'/,
-      /Hook2\] load - start 'foo'/,
-      /Foo\] load - start 'foo'/,
-      /Hook1\] load - end 'foo'/,
-      /Hook2\] load - end 'foo'/,
-      /Foo\] load - end 'foo'/,
+      /Hook1\] loading - start 'foo'/,
+      /Hook2\] loading - start 'foo'/,
+      /Foo\] loading - start 'foo'/,
+      /Hook1\] loading - end 'foo'/,
+      /Hook2\] loading - end 'foo'/,
+      /Foo\] loading - end 'foo'/,
     ], 'round#2');
 
     await au.stop();
@@ -453,12 +453,12 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - start ''/,
       /Home\] canLoad - end ''/,
 
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Hook1\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Home\] load - end ''/,
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Hook1\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Home\] loading - end ''/,
     ], 'init');
 
     // round #2
@@ -480,19 +480,19 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Hook1\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Home\] unload - end ''/,
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Hook1\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Home\] unloading - end ''/,
 
-      /Hook1\] load - start 'foo'/,
-      /Hook2\] load - start 'foo'/,
-      /Foo\] load - start 'foo'/,
-      /Hook1\] load - end 'foo'/,
-      /Hook2\] load - end 'foo'/,
-      /Foo\] load - end 'foo'/,
+      /Hook1\] loading - start 'foo'/,
+      /Hook2\] loading - start 'foo'/,
+      /Foo\] loading - start 'foo'/,
+      /Hook1\] loading - end 'foo'/,
+      /Hook2\] loading - end 'foo'/,
+      /Foo\] loading - end 'foo'/,
     ], 'round#2');
 
     await au.stop();
@@ -540,13 +540,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - unload');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - unloading');
 
     // round #2
     eventLog.clear();
@@ -568,21 +568,21 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - end 'foo'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Home\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Hook1\] unload - end ''/,
-    ], 12, 'round#2 - unload');
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Home\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Hook1\] unloading - end ''/,
+    ], 12, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'foo'/,
-      /Hook2\] load - start 'foo'/,
-      /Foo\] load - start 'foo'/,
-      /Foo\] load - end 'foo'/,
-      /Hook2\] load - end 'foo'/,
-      /Hook1\] load - end 'foo'/,
-    ], 18, 'round#2 - load');
+      /Hook1\] loading - start 'foo'/,
+      /Hook2\] loading - start 'foo'/,
+      /Foo\] loading - start 'foo'/,
+      /Foo\] loading - end 'foo'/,
+      /Hook2\] loading - end 'foo'/,
+      /Hook1\] loading - end 'foo'/,
+    ], 18, 'round#2 - loading');
 
     await au.stop();
   });
@@ -636,13 +636,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -712,13 +712,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -786,13 +786,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -833,21 +833,21 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - end 'foo\/123'/,
     ], 'round#3');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Home\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Hook1\] unload - end ''/,
-    ], 12, 'round#3 - unload');
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Home\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Hook1\] unloading - end ''/,
+    ], 12, 'round#3 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'foo\/123'/,
-      /Hook2\] load - start 'foo\/123'/,
-      /Foo\] load - start 'foo\/123'/,
-      /Foo\] load - end 'foo\/123'/,
-      /Hook2\] load - end 'foo\/123'/,
-      /Hook1\] load - end 'foo\/123'/,
-    ], 18, 'round#3 - load');
+      /Hook1\] loading - start 'foo\/123'/,
+      /Hook2\] loading - start 'foo\/123'/,
+      /Foo\] loading - start 'foo\/123'/,
+      /Foo\] loading - end 'foo\/123'/,
+      /Hook2\] loading - end 'foo\/123'/,
+      /Hook1\] loading - end 'foo\/123'/,
+    ], 18, 'round#3 - loading');
     assert.strictEqual(eventLog.log.length, 24);
 
     await au.stop();
@@ -912,13 +912,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -949,21 +949,21 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Home\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Hook1\] unload - end ''/,
-    ], 14, 'round#2 - unload');
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Home\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Hook1\] unloading - end ''/,
+    ], 14, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'bar'/,
-      /Hook2\] load - start 'bar'/,
-      /Bar\] load - start 'bar'/,
-      /Bar\] load - end 'bar'/,
-      /Hook2\] load - end 'bar'/,
-      /Hook1\] load - end 'bar'/,
-    ], 20, 'round#2 - load');
+      /Hook1\] loading - start 'bar'/,
+      /Hook2\] loading - start 'bar'/,
+      /Bar\] loading - start 'bar'/,
+      /Bar\] loading - end 'bar'/,
+      /Hook2\] loading - end 'bar'/,
+      /Hook1\] loading - end 'bar'/,
+    ], 20, 'round#2 - loading');
     await au.stop();
   });
 
@@ -1021,13 +1021,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -1060,21 +1060,21 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Home\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Hook1\] unload - end ''/,
-    ], 14, 'round#2 - unload');
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Home\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Hook1\] unloading - end ''/,
+    ], 14, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'bar'/,
-      /Hook2\] load - start 'bar'/,
-      /Bar\] load - start 'bar'/,
-      /Bar\] load - end 'bar'/,
-      /Hook2\] load - end 'bar'/,
-      /Hook1\] load - end 'bar'/,
-    ], 20, 'round#2 - load');
+      /Hook1\] loading - start 'bar'/,
+      /Hook2\] loading - start 'bar'/,
+      /Bar\] loading - start 'bar'/,
+      /Bar\] loading - end 'bar'/,
+      /Hook2\] loading - end 'bar'/,
+      /Hook1\] loading - end 'bar'/,
+    ], 20, 'round#2 - loading');
     await au.stop();
   });
 
@@ -1128,13 +1128,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -1169,21 +1169,21 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start ''/,
-      /Hook2\] unload - start ''/,
-      /Home\] unload - start ''/,
-      /Home\] unload - end ''/,
-      /Hook2\] unload - end ''/,
-      /Hook1\] unload - end ''/,
-    ], 24, 'round#2 - unload');
+      /Hook1\] unloading - start ''/,
+      /Hook2\] unloading - start ''/,
+      /Home\] unloading - start ''/,
+      /Home\] unloading - end ''/,
+      /Hook2\] unloading - end ''/,
+      /Hook1\] unloading - end ''/,
+    ], 24, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'bar'/,
-      /Hook2\] load - start 'bar'/,
-      /Bar\] load - start 'bar'/,
-      /Bar\] load - end 'bar'/,
-      /Hook2\] load - end 'bar'/,
-      /Hook1\] load - end 'bar'/,
-    ], 30, 'round#2 - load');
+      /Hook1\] loading - start 'bar'/,
+      /Hook2\] loading - start 'bar'/,
+      /Bar\] loading - start 'bar'/,
+      /Bar\] loading - end 'bar'/,
+      /Hook2\] loading - end 'bar'/,
+      /Hook1\] loading - end 'bar'/,
+    ], 30, 'round#2 - loading');
     assert.strictEqual(eventLog.log.length, 36);
 
     // round #3
@@ -1205,20 +1205,20 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - end 'foo\/123'/,
     ], 'round#3');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unload - start 'bar'/,
-      /Hook2\] unload - start 'bar'/,
-      /Bar\] unload - start 'bar'/,
-      /Bar\] unload - end 'bar'/,
-      /Hook2\] unload - end 'bar'/,
-      /Hook1\] unload - end 'bar'/,
-    ], 12, 'round#3 - unload');
+      /Hook1\] unloading - start 'bar'/,
+      /Hook2\] unloading - start 'bar'/,
+      /Bar\] unloading - start 'bar'/,
+      /Bar\] unloading - end 'bar'/,
+      /Hook2\] unloading - end 'bar'/,
+      /Hook1\] unloading - end 'bar'/,
+    ], 12, 'round#3 - unloading');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start 'foo\/123'/,
-      /Hook2\] load - start 'foo\/123'/,
-      /Foo\] load - start 'foo\/123'/,
-      /Foo\] load - end 'foo\/123'/,
-      /Hook2\] load - end 'foo\/123'/,
-      /Hook1\] load - end 'foo\/123'/,
+      /Hook1\] loading - start 'foo\/123'/,
+      /Hook2\] loading - start 'foo\/123'/,
+      /Foo\] loading - start 'foo\/123'/,
+      /Foo\] loading - end 'foo\/123'/,
+      /Hook2\] loading - end 'foo\/123'/,
+      /Hook1\] loading - end 'foo\/123'/,
     ], 18, 'round#3 - load');
     assert.strictEqual(eventLog.log.length, 24);
 
@@ -1273,13 +1273,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -1342,13 +1342,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -1411,13 +1411,13 @@ describe('lifecycle hooks', function () {
       /Home\] canLoad - end ''/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] load - start ''/,
-      /Hook2\] load - start ''/,
-      /Home\] load - start ''/,
-      /Home\] load - end ''/,
-      /Hook2\] load - end ''/,
-      /Hook1\] load - end ''/,
-    ], 6, 'init - load');
+      /Hook1\] loading - start ''/,
+      /Hook2\] loading - start ''/,
+      /Home\] loading - start ''/,
+      /Home\] loading - end ''/,
+      /Hook2\] loading - end ''/,
+      /Hook1\] loading - end ''/,
+    ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
@@ -1447,33 +1447,33 @@ describe('lifecycle hooks', function () {
             /B1\] canLoad - start 'b1'/,
             /A1\] canLoad - end 'a1'/,
             /B1\] canLoad - end 'b1'/,
-            /A1\] load - start 'a1'/,
-            /B1\] load - start 'b1'/,
-            /A1\] load - end 'a1'/,
-            /B1\] load - end 'b1'/,
-          ], 'load');
+            /A1\] loading - start 'a1'/,
+            /B1\] loading - start 'b1'/,
+            /A1\] loading - end 'a1'/,
+            /B1\] loading - end 'b1'/,
+          ], 'loading');
         } else {
           eventLog.assertLog([
             /A1\] canLoad - start 'a1'/,
             /B1\] canLoad - start 'b1'/,
             /B1\] canLoad - end 'b1'/,
             /A1\] canLoad - end 'a1'/,
-            /A1\] load - start 'a1'/,
-            /B1\] load - start 'b1'/,
-            /A1\] load - end 'a1'/,
-            /B1\] load - end 'b1'/,
-          ], 'load');
+            /A1\] loading - start 'a1'/,
+            /B1\] loading - start 'b1'/,
+            /A1\] loading - end 'a1'/,
+            /B1\] loading - end 'b1'/,
+          ], 'loading');
         }
         eventLog.assertLogOrderInvariant([
           /A2\] canLoad - start 'a2'/,
           /B2\] canLoad - start 'b2'/,
           /B2\] canLoad - end 'b2'/,
           /A2\] canLoad - end 'a2'/,
-          /A2\] load - start 'a2'/,
-          /B2\] load - start 'b2'/,
-          /A2\] load - end 'a2'/,
-          /B2\] load - end 'b2'/,
-        ], 8, 'load part2');
+          /A2\] loading - start 'a2'/,
+          /B2\] loading - start 'b2'/,
+          /A2\] loading - end 'a2'/,
+          /B2\] loading - end 'b2'/,
+        ], 8, 'loading part2');
       };
     }
     yield {
@@ -1500,21 +1500,21 @@ describe('lifecycle hooks', function () {
         /B1\] canLoad - start 'b1'/,
         /A1\] canLoad - end 'a1'/,
         /B1\] canLoad - end 'b1'/,
-        /A1\] load - start 'a1'/,
-        /B1\] load - start 'b1'/,
-        /A1\] load - end 'a1'/,
-        /B1\] load - end 'b1'/,
-      ], 'load');
+        /A1\] loading - start 'a1'/,
+        /B1\] loading - start 'b1'/,
+        /A1\] loading - end 'a1'/,
+        /B1\] loading - end 'b1'/,
+      ], 'loading');
       eventLog.assertLogOrderInvariant([
         /A2\] canLoad - start 'a2'/,
         /B2\] canLoad - start 'b2'/,
         /B2\] canLoad - end 'b2'/,
         /A2\] canLoad - end 'a2'/,
-        /A2\] load - start 'a2'/,
-        /B2\] load - start 'b2'/,
-        /A2\] load - end 'a2'/,
-        /B2\] load - end 'b2'/,
-      ], 8, 'load part2');
+        /A2\] loading - start 'a2'/,
+        /B2\] loading - start 'b2'/,
+        /A2\] loading - end 'a2'/,
+        /B2\] loading - end 'b2'/,
+      ], 8, 'loading part2');
     }
     yield {
       name: 'a1/a2+b1(canLoad:2)/b2',

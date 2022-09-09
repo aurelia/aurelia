@@ -303,22 +303,22 @@ export class ViewportAgent {
     }).start();
   }
 
-  public unload(tr: Transition, b: Batch): void {
+  public unloading(tr: Transition, b: Batch): void {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
     b.push();
 
-    // run unload bottom-up
+    // run unloading bottom-up
     Batch.start(b1 => {
-      this.logger.trace(`unload() - invoking on children at %s`, this);
+      this.logger.trace(`unloading() - invoking on children at %s`, this);
       for (const node of this.currNode!.children) {
-        node.context.vpa.unload(tr, b1);
+        node.context.vpa.unloading(tr, b1);
       }
     }).continueWith(b1 => {
       switch (this.currState) {
         case State.currCanUnloadDone:
-          this.logger.trace(`unload() - invoking on existing component at %s`, this);
+          this.logger.trace(`unloading() - invoking on existing component at %s`, this);
           switch (this.$plan) {
             case 'none':
               this.currState = State.currUnloadDone;
@@ -328,30 +328,30 @@ export class ViewportAgent {
               this.currState = State.currUnload;
               b1.push();
               Batch.start(b2 => {
-                this.logger.trace(`unload() - finished invoking on children, now invoking on own component at %s`, this);
-                this.curCA!.unload(tr, this.nextNode, b2);
+                this.logger.trace(`unloading() - finished invoking on children, now invoking on own component at %s`, this);
+                this.curCA!.unloading(tr, this.nextNode, b2);
               }).continueWith(() => {
-                this.logger.trace(`unload() - finished at %s`, this);
+                this.logger.trace(`unloading() - finished at %s`, this);
                 this.currState = State.currUnloadDone;
                 b1.pop();
               }).start();
               return;
           }
         case State.currIsEmpty:
-          this.logger.trace(`unload() - nothing to unload at %s`, this);
+          this.logger.trace(`unloading() - nothing to unload at %s`, this);
           for (const node of this.currNode!.children) {
-            node.context.vpa.unload(tr, b);
+            node.context.vpa.unloading(tr, b);
           }
           return;
         default:
-          this.unexpectedState('unload');
+          this.unexpectedState('unloading');
       }
     }).continueWith(() => {
       b.pop();
     }).start();
   }
 
-  public load(tr: Transition, b: Batch): void {
+  public loading(tr: Transition, b: Batch): void {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
@@ -361,39 +361,39 @@ export class ViewportAgent {
     Batch.start(b1 => {
       switch (this.nextState) {
         case State.nextCanLoadDone: {
-          this.logger.trace(`load() - invoking on new component at %s`, this);
+          this.logger.trace(`loading() - invoking on new component at %s`, this);
           this.nextState = State.nextLoad;
           switch (this.$plan) {
             case 'none':
               return;
             case 'invoke-lifecycles':
-              return this.curCA!.load(tr, this.nextNode!, b1);
+              return this.curCA!.loading(tr, this.nextNode!, b1);
             case 'replace':
-              return this.nextCA!.load(tr, this.nextNode!, b1);
+              return this.nextCA!.loading(tr, this.nextNode!, b1);
           }
         }
         case State.nextIsEmpty:
-          this.logger.trace(`load() - nothing to load at %s`, this);
+          this.logger.trace(`loading() - nothing to load at %s`, this);
           return;
         default:
-          this.unexpectedState('load');
+          this.unexpectedState('loading');
       }
     }).continueWith(b1 => {
       switch (this.nextState) {
         case State.nextLoad:
-          this.logger.trace(`load() - finished own component, now invoking on children at %s`, this);
+          this.logger.trace(`loading() - finished own component, now invoking on children at %s`, this);
           this.nextState = State.nextLoadDone;
           for (const node of this.nextNode!.children) {
-            node.context.vpa.load(tr, b1);
+            node.context.vpa.loading(tr, b1);
           }
           return;
         case State.nextIsEmpty:
           return;
         default:
-          this.unexpectedState('load');
+          this.unexpectedState('loading');
       }
     }).continueWith(() => {
-      this.logger.trace(`load() - finished at %s`, this);
+      this.logger.trace(`loading() - finished at %s`, this);
       b.pop();
     }).start();
   }
@@ -447,12 +447,12 @@ export class ViewportAgent {
       this.nextState === State.nextIsScheduled &&
       this.$resolution === 'dynamic'
     ) {
-      this.logger.trace(`activate() - invoking canLoad(), load() and activate() on new component due to resolution 'dynamic' at %s`, this);
+      this.logger.trace(`activate() - invoking canLoad(), loading() and activate() on new component due to resolution 'dynamic' at %s`, this);
       // This is the default v2 mode "lazy loading" situation
       Batch.start(b1 => {
         this.canLoad(tr, b1);
       }).continueWith(b1 => {
-        this.load(tr, b1);
+        this.loading(tr, b1);
       }).continueWith(b1 => {
         this.activate(initiator, tr, b1);
       }).continueWith(() => {
@@ -585,7 +585,7 @@ export class ViewportAgent {
         for (const node of newChildren) {
           tr.run(() => {
             b1.push();
-            return node.context.vpa.load(tr, b1);
+            return node.context.vpa.loading(tr, b1);
           }, () => {
             b1.pop();
           });

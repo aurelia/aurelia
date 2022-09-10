@@ -1499,6 +1499,12 @@ describe('ExpressionParser', function () {
         verifyResultOrError(input, null, 'AUR0156');
       });
     }
+
+    // https://github.com/aurelia/aurelia/issues/808
+    it(`throw unconsumedToken on "\${entry.hour}:\${entry:minute}"`, function () {
+      verifyResultOrError(`\${entry.hour}:\${entry:minute}`, null, 'AUR0156');
+    });
+
     for (const input of ['...', '...a', '...1']) {
       it(`throw invalidSpreadOp on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0152');

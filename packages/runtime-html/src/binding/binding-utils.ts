@@ -53,10 +53,14 @@ export function connectableBinding(strict: boolean | undefined, strictFnCall: bo
  *
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
-export function astEvaluator(strict = true, strictFnCall = true) {
+export function astEvaluator(strict?: boolean | undefined, strictFnCall = true) {
   return (target: Constructable<IAstEvaluator>) => {
     const proto = target.prototype;
-    def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
+    // some evaluator may have their strict configurable in some way
+    // undefined to leave the property alone
+    if (strict != null) {
+      def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
+    }
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
     defineHiddenProp(proto, 'get', function (this: IAstBasedBinding, key: Key) {
       return this.locator.get(key);

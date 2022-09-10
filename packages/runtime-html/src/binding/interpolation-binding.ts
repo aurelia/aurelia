@@ -431,4 +431,4 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 }
 
 connectable()(ContentBinding);
-astEvaluator(false, false)(ContentBinding);
+astEvaluator(void 0, false)(ContentBinding);

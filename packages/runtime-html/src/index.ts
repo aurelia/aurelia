@@ -1,9 +1,6 @@
 export {
   // todo: only exception for now for hmr, remove
   LifecycleFlags,
-  // todo: only exception for convention, remove
-  valueConverter,
-  bindingBehavior,
 } from '@aurelia/runtime';
 export {
   bindable,
@@ -26,6 +23,21 @@ export {
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
 } from './configuration';
+
+export {
+  bindingBehavior,
+  BindingBehavior,
+  BindingBehaviorDefinition,
+  type PartialBindingBehaviorDefinition,
+  type BindingBehaviorKind,
+  type BindingBehaviorDecorator,
+  type BindingBehaviorInstance,
+  type BindingBehaviorType,
+  BindingInterceptor,
+  BindingBehaviorFactory,
+  BindingBehaviorStrategy,
+  type IInterceptableBinding,
+} from './resources/binding-behavior';
 
 export {
   BindingModeBehavior,
@@ -295,6 +307,18 @@ export {
   AuCompose,
   type IDynamicComponentActivate,
 } from './resources/custom-elements/au-compose';
+
+export {
+  ValueConverter,
+  ValueConverterDefinition,
+  type PartialValueConverterDefinition,
+  type ValueConverterKind,
+  type ValueConverterDecorator,
+  type ValueConverterInstance,
+  type ValueConverterType,
+  valueConverter,
+} from './resources/value-converter';
+
 export {
   ISanitizer,
   SanitizeValueConverter,

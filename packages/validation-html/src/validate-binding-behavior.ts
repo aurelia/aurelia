@@ -1,24 +1,18 @@
-import { ITask } from '@aurelia/platform';
 import { DI, IServiceLocator } from '@aurelia/kernel';
+import { ITask } from '@aurelia/platform';
 import {
-  bindingBehavior,
   BindingBehaviorExpression,
   BindingInterceptor,
   IAstEvaluator,
-  IObserverLocator,
   IBinding,
   IConnectableBinding,
+  IObserverLocator,
   LifecycleFlags,
   Scope
 } from '@aurelia/runtime';
-import {
-  PropertyBinding,
-  IPlatform,
-  type ICustomElementViewModel,
-  connectableBinding,
-} from '@aurelia/runtime-html';
+import { bindingBehavior, connectableBinding, IPlatform, PropertyBinding, type ICustomElementViewModel } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
-import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
+import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
 
 /**
  * Validation triggers.
@@ -335,6 +329,7 @@ type MediatedBinding<K extends string> = {
   [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface BindingMediator<K extends string> extends Omit<IAstEvaluator, 'get'>, IConnectableBinding { }
 export class BindingMediator<K extends string> implements IConnectableBinding {
   public interceptor = this;

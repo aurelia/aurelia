@@ -1,11 +1,12 @@
-import { DI, Registration, type Resolved } from '@aurelia/kernel';
-
-import type {
-  Constructable,
-  IContainer,
-  IResolver,
-  Key,
+import {
+  DI, Registration,
+  type IResolver,
+  type Key,
+  type Resolved
 } from '@aurelia/kernel';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
+
+import type { Constructable, IContainer, IResourceKind, ResourceDefinition } from '@aurelia/kernel';
 
 // todo: replace existing resource code with this resolver
 // ===================
@@ -63,3 +64,21 @@ export const callbackRegistration = Registration.callback;
 
 /** @internal */
 export const transientRegistration = Registration.transient;
+
+export function alias(...aliases: readonly string[]) {
+  return function (target: Constructable) {
+    const key = getAnnotationKeyFor('aliases');
+    const existing = getOwnMetadata(key, target) as string[] | undefined;
+    if (existing === void 0) {
+      defineMetadata(key, aliases, target);
+    } else {
+      existing.push(...aliases);
+    }
+  };
+}
+
+export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
+  for (let i = 0, ii = aliases.length; i < ii; ++i) {
+    Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
+  }
+}

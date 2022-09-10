@@ -12,7 +12,7 @@ import {
   IExpressionParser,
   LifecycleFlags,
   ExpressionKind,
-  IsBindingBehavior
+  // IsBindingBehavior
 } from '@aurelia/runtime';
 import {
   parsePropertyName,
@@ -115,19 +115,20 @@ export class BindingInfo {
 
 class PropertyInfo {
   public constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public object: any,
     public propertyName: string,
   ) { }
 }
 
-export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
+export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, _flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
   let propertyInfo = info.propertyInfo;
   if (propertyInfo !== void 0) {
     return propertyInfo;
   }
 
   const scope = info.scope;
-  let expression = binding.sourceExpression.expression as IsBindingBehavior;
+  let expression = binding.sourceExpression.expression;
   const locator = binding.locator;
   let toCachePropertyName = true;
   let propertyName: string = '';
@@ -146,6 +147,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
+        // eslint-disable-next-line
         memberName = `[${(keyExpr.evaluate(scope, locator, null) as any).toString()}]`;
         break;
       }
@@ -159,6 +161,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   if (expression === void 0) {
     throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let object: any;
   if (propertyName.length === 0) {
     propertyName = expression.name;
@@ -221,6 +224,7 @@ export interface IValidationController {
   /**
    * Validates and notifies the subscribers with the result.
    *
+   * @template TObject
    * @param {ValidateInstruction<TObject>} [instruction] - If omitted, then all the registered objects and bindings will be validated.
    */
   validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult>;
@@ -380,6 +384,7 @@ export class ValidationController implements IValidationController {
       instructions = [
         ...Array.from(this.objects.entries())
           .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         ...(!objectTag ? Array.from(this.bindings.entries()) : [])
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {

@@ -93,11 +93,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
   } catch (e) {
     error = e;
   }
-  if (exprType === ExpressionType.Interpolation && !(expected instanceof Interpolation)) {
-    if (error != null) {
-      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} not to throw, but it threw "${error.message}"`);
-    }
-  } else if (expectedMsg == null) {
+  if (expectedMsg == null) {
     if (error == null) {
       assert.deepStrictEqual(actual, expected, expr);
     } else {
@@ -1418,7 +1414,11 @@ describe('ExpressionParser', function () {
     [`$a`,                      null],
     [`$a$a`,                    null],
     [`$\\{a`,                   null],
+    [`\${a}}`,                  new Interpolation(['', '}'],                          [$a])],
     [`\${a}\${b}`,              new Interpolation(['', '', ''],                       [$a, $b])],
+    [`\${a}}\${b}`,             new Interpolation(['', '}', ''],                      [$a, $b])],
+    [`\${a}\${b}}`,             new Interpolation(['', '', '}'],                      [$a, $b])],
+    [`\${a}}\${b}}`,            new Interpolation(['', '}', '}'],                     [$a, $b])],
     [`a\${a}\${b}`,             new Interpolation(['a', '', ''],                      [$a, $b])],
     [`\${a}a\${b}`,             new Interpolation(['', 'a', ''],                      [$a, $b])],
     [`a\${a}a\${b}`,            new Interpolation(['a', 'a', ''],                     [$a, $b])],
@@ -1501,9 +1501,46 @@ describe('ExpressionParser', function () {
     }
 
     // https://github.com/aurelia/aurelia/issues/808
-    it(`throw unconsumedToken on "\${entry.hour}:\${entry:minute}"`, function () {
-      verifyResultOrError(`\${entry.hour}:\${entry:minute}`, null, 'AUR0156');
-    });
+    for (const token of [
+      ')', ':', ',', ']',
+    ]) {
+      const accessScope = `\${a${token}}`;
+      it(`throw unconsumedToken on interpolation "${accessScope}"`, function () {
+        verifyResultOrError(accessScope, null, 'AUR0156', ExpressionType.Interpolation);
+      });
+
+      const accessMember = `\${a.b${token}}`;
+      it(`throw unconsumedToken on interpolation "${accessMember}"`, function () {
+        verifyResultOrError(accessMember, null, 'AUR0156', ExpressionType.Interpolation);
+      });
+    }
+    for (const token of [
+      '%', '*', '/', '>', '<',
+      '=', '?', ' instanceof', ' in',
+    ]) {
+      const accessScope = `\${a${token}}`;
+      it(`throw unexpectedEndOfExpression on interpolation "${accessScope}"`, function () {
+        verifyResultOrError(accessScope, null, 'AUR0155', ExpressionType.Interpolation);
+      });
+
+      const accessMember = `\${a.b${token}}`;
+      it(`throw unexpectedEndOfExpression on interpolation "${accessMember}"`, function () {
+        verifyResultOrError(accessMember, null, 'AUR0155', ExpressionType.Interpolation);
+      });
+    }
+    for (const token of [
+      ' of',
+    ]) {
+      const accessScope = `\${a${token}}`;
+      it(`throw unexpectedOfKeyword on interpolation "${accessScope}"`, function () {
+        verifyResultOrError(accessScope, null, 'AUR0161', ExpressionType.Interpolation);
+      });
+
+      const accessMember = `\${a.b${token}}`;
+      it(`throw unexpectedOfKeyword on interpolation "${accessMember}"`, function () {
+        verifyResultOrError(accessMember, null, 'AUR0161', ExpressionType.Interpolation);
+      });
+    }
 
     for (const input of ['...', '...a', '...1']) {
       it(`throw invalidSpreadOp on "${input}"`, function () {

@@ -73,17 +73,14 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
 
       // @ts-ignore
       previousControllers.forEach(controller => {
-        const values = { ...controller.viewModel };
         const hydrationContext = controller.container.get(IHydrationContext)
         const hydrationInst = hydrationContext.instruction;
 
-        // @ts-ignore
-        Object.keys(values).forEach(key => {
-          // @ts-ignore
-          if (!controller.bindings?.some(y => y.sourceExpression?.name === key && y.targetProperty)) {
-            delete values[key];
-          }
+        const values = {};
+        Object.keys(controller.definition.bindables).forEach(property => {
+          values[property] = controller.viewModel[property];
         });
+
         const h = controller.host;
         delete controller._compiledDef;
         controller.viewModel = controller.container.invoke(currentClassType);

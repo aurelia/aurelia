@@ -9,7 +9,7 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { connectableBinding, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { connectableBinding, type IBindingController, type IAstBasedBinding, State } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -33,19 +33,19 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
   private readonly taskQueue: TaskQueue;
-  /** @internal */
-  private _isBinding = 0;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private targetObserver!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
+  /** @internal */ private readonly _controller: IBindingController;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
   public mode: BindingMode = toView;
 
   public constructor(
+    controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
     taskQueue: TaskQueue,
@@ -54,6 +54,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     prop: PropertyKey,
     store: IStore<object>,
   ) {
+    this._controller = controller;
     this.locator = locator;
     this.taskQueue = taskQueue;
     this._store = store;
@@ -97,7 +98,6 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
       return;
     }
     this.isBound = true;
-    this._isBinding++;
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
@@ -107,7 +107,6 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
       this.mode > oneTime ? this : null),
       LifecycleFlags.none
     );
-    this._isBinding--;
   }
 
   public $unbind(): void {
@@ -135,7 +134,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
     newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
@@ -165,7 +164,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
       this,
       this.mode > oneTime ? this : null
     );
-    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
 
     if (value === this._value) {
       return;

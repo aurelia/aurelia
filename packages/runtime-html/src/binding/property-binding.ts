@@ -1,5 +1,6 @@
 import { AccessorType, BindingMode, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
 import { BindingTargetSubscriber, connectableBinding } from './binding-utils';
+import { State } from '../templating/controller';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -11,7 +12,7 @@ import type {
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -38,17 +39,17 @@ export class PropertyBinding implements IAstBasedBinding {
   private task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
 
-  /** @internal */
-  private _isBinding = 0;
-
   /**
    * A semi-private property used by connectable mixin
    *
    * @internal
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
+    controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly taskQueue: TaskQueue,
@@ -57,6 +58,7 @@ export class PropertyBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
   }
 
@@ -81,7 +83,7 @@ export class PropertyBinding implements IAstBasedBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     let shouldConnect: boolean = false;
 
@@ -116,7 +118,7 @@ export class PropertyBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
-    const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
     const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
@@ -141,7 +143,6 @@ export class PropertyBinding implements IAstBasedBinding {
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    this._isBinding++;
     // Force property binding to always be strict
     flags |= LifecycleFlags.isStrictBindingStrategy;
 
@@ -188,7 +189,6 @@ export class PropertyBinding implements IAstBasedBinding {
       }
     }
 
-    this._isBinding--;
     this.isBound = true;
   }
 

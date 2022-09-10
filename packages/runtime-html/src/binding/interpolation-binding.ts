@@ -7,6 +7,7 @@ import {
   connectable,
 } from '@aurelia/runtime';
 import { astEvaluator } from './binding-utils';
+import { State } from '../templating/controller';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -20,7 +21,7 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
@@ -53,8 +54,11 @@ export class InterpolationBinding implements IBinding {
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
+    controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly taskQueue: TaskQueue,
@@ -63,6 +67,7 @@ export class InterpolationBinding implements IBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = ast.expressions;
@@ -96,7 +101,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = this._isBinding === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state === State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -281,7 +286,11 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private readonly _controller: IBindingController;
+
   public constructor(
+    controller: IBindingController,
     public readonly locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly taskQueue: TaskQueue,
@@ -290,6 +299,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     public readonly target: Text,
     public readonly strict: boolean,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
   }
 
@@ -340,7 +350,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = this._isBinding === 0;
+    const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue, flags);
     } else {

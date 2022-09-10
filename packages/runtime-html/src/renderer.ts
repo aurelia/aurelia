@@ -825,6 +825,7 @@ export class InterpolationBindingRenderer implements IRenderer {
     const container = renderingCtrl.container;
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.Interpolation);
     const binding = new InterpolationBinding(
+      renderingCtrl,
       container,
       this._observerLocator,
       this._platform.domWriteQueue,
@@ -876,7 +877,16 @@ export class PropertyBindingRenderer implements IRenderer {
     instruction: PropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsProperty);
-    const binding = new PropertyBinding(renderingCtrl.container, this._observerLocator, this._platform.domWriteQueue, expr, getTarget(target), instruction.to, instruction.mode);
+    const binding = new PropertyBinding(
+      renderingCtrl,
+      renderingCtrl.container,
+      this._observerLocator,
+      this._platform.domWriteQueue,
+      expr,
+      getTarget(target),
+      instruction.to,
+      instruction.mode,
+    );
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)
       : binding
@@ -909,7 +919,16 @@ export class IteratorBindingRenderer implements IRenderer {
     instruction: IteratorBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsIterator);
-    const binding = new PropertyBinding(renderingCtrl.container, this._observerLocator, this._platform.domWriteQueue, expr, getTarget(target), instruction.to, BindingMode.toView);
+    const binding = new PropertyBinding(
+      renderingCtrl,
+      renderingCtrl.container,
+      this._observerLocator,
+      this._platform.domWriteQueue,
+      expr,
+      getTarget(target),
+      instruction.to,
+      BindingMode.toView
+    );
     renderingCtrl.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr.iterable, renderingCtrl.container)
       : binding);
@@ -982,6 +1001,7 @@ export class TextBindingRenderer implements IRenderer {
     for (; ii > i; ++i) {
       part = dynamicParts[i];
       binding = new ContentBinding(
+        renderingCtrl,
         container,
         this._observerLocator,
         this._platform.domWriteQueue,
@@ -1123,7 +1143,16 @@ export class StylePropertyBindingRenderer implements IRenderer {
     instruction: StylePropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsProperty);
-    const binding = new PropertyBinding(renderingCtrl.container, this._observerLocator, this._platform.domWriteQueue, expr, target.style, instruction.to, BindingMode.toView);
+    const binding = new PropertyBinding(
+      renderingCtrl,
+      renderingCtrl.container,
+      this._observerLocator,
+      this._platform.domWriteQueue,
+      expr,
+      target.style,
+      instruction.to,
+      BindingMode.toView
+    );
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)
       : binding
@@ -1150,6 +1179,7 @@ export class AttributeBindingRenderer implements IRenderer {
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsProperty);
     const binding = new AttributeBinding(
+      renderingCtrl,
       renderingCtrl.container,
       this._observerLocator,
       this._platform.domWriteQueue,

@@ -17,6 +17,7 @@ describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
     sut = new AttrBindingBehavior();
     container = ctx.container;
     binding = new PropertyBinding(
+      { state: 0 },
       container,
       undefined,
       undefined,

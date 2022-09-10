@@ -1,5 +1,5 @@
 import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
-import { BindingMode, Collection, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { BindingBehaviorInstance, BindingMode, Collection, IAstEvaluator, IndexMap, LifecycleFlags, ValueConverterInstance } from '@aurelia/runtime';
 import { def, isFunction, isString } from '../utilities';
 import { registerAliases } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
@@ -10,11 +10,6 @@ import type { BindingBehaviorExpression, BindingObserverRecord, ForOfStatement, 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
 }>;
-
-export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...args: T[]): void;
-} & T;
 
 export const enum BindingBehaviorStrategy {
   singleton = 1,
@@ -159,16 +154,12 @@ export class BindingInterceptor implements IInterceptableBinding {
     return this.binding.get(key);
   }
 
-  public getConverter(name: string) {
-    // todo: typings here
-    // eslint-disable-next-line
-    return (this.binding as any).getConverter?.(name);
+  public getConverter<T>(name: string): ValueConverterInstance<T> | undefined {
+    return (this.binding as IAstEvaluator).getConverter<T>?.(name);
   }
 
-  public getBehavior(name: string) {
-    // todo: typings here
-    // eslint-disable-next-line
-    return (this.binding as any).getBehavior?.(name);
+  public getBehavior<T>(name: string): BindingBehaviorInstance<T> | undefined {
+    return (this.binding as IAstEvaluator).getBehavior<T>?.(name);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

@@ -31,7 +31,6 @@ export {
   type PartialBindingBehaviorDefinition,
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
-  type BindingBehaviorInstance,
   type BindingBehaviorType,
   BindingInterceptor,
   BindingBehaviorFactory,
@@ -117,6 +116,7 @@ export {
 } from './attribute-mapper';
 export {
   IAstBasedBinding,
+  IBindingController,
 } from './binding/interfaces-bindings';
 export {
   astEvaluator,
@@ -315,7 +315,6 @@ export {
   type PartialValueConverterDefinition,
   type ValueConverterKind,
   type ValueConverterDecorator,
-  type ValueConverterInstance,
   type ValueConverterType,
   valueConverter,
 } from './resources/value-converter';
@@ -429,6 +428,7 @@ export {
   isCustomElementViewModel,
   ViewModelKind,
   HooksDefinition,
+  State,
   type ControllerVisitor,
   type IViewModel,
   IController,

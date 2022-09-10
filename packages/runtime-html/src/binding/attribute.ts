@@ -8,8 +8,8 @@ import {
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
-import { IPlatform } from '../platform';
 import { connectableBinding, BindingTargetSubscriber } from './binding-utils';
+import { State } from '../templating/controller';
 
 import type {
   ITask,
@@ -23,7 +23,7 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -66,8 +66,11 @@ export class AttributeBinding implements IAstBasedBinding {
 
   /** @internal */
   private _isBinding = 0;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
+    controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public taskQueue: TaskQueue,
@@ -82,6 +85,7 @@ export class AttributeBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this._controller = controller;
     this.target = target as Element;
     this.oL = observerLocator;
   }
@@ -112,7 +116,7 @@ export class AttributeBinding implements IAstBasedBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._isBinding === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let shouldConnect: boolean = false;
     let task: ITask | null;
     if (ast.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {

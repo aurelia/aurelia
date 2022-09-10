@@ -5,13 +5,12 @@ import {
 
 import { IEventTarget } from '../dom';
 import { isFunction } from '../utilities';
+import { connectableBinding } from './binding-utils';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator';
-import type { IPlatform } from '../platform';
 import type { IAstBasedBinding } from './interfaces-bindings';
-import { connectableBinding } from './binding-utils';
 
 const addListenerOptions = {
   [DelegationStrategy.capturing]: { capture: true },

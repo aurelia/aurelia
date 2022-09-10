@@ -291,6 +291,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       );
       const target = { value: '' };
       const binding = new InterpolationBinding(
+        { state: 0 },
         container,
         observerLocator,
         {} as any,
@@ -374,6 +375,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       );
       const target = { value: '' };
       const binding = new InterpolationBinding(
+        { state: 0 },
         container,
         observerLocator,
         {} as any,

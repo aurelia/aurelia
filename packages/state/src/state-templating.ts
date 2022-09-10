@@ -116,6 +116,7 @@ export class StateBindingInstructionRenderer implements IRenderer {
     instruction: StateBindingInstruction,
   ): void {
     const binding = new StateBinding(
+      renderingCtrl,
       renderingCtrl.container,
       this._observerLocator,
       this.p.domWriteQueue,

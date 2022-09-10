@@ -13,7 +13,7 @@ describe('SelfBindingBehavior', function () {
     container = DI.createContainer();
     Registration.instance(IPlatform, { }).register(container);
     sut = new SelfBindingBehavior();
-    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any, {} as any);
+    binding = new PropertyBinding({ state: 0 }, undefined, undefined, undefined, undefined, undefined, container as any, {} as any);
     originalCallSource = binding['callSource'] = function () { return; };
     binding['targetEvent'] = 'foo';
     sut.bind(undefined, undefined, binding as any);

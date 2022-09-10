@@ -27,6 +27,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const source = { name: 'hello' };
         const target = { name: '' };
         const binding = new PropertyBinding(
+          { state: 0 },
           container,
           observerLocator,
           {} as any,
@@ -59,6 +60,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const target = { value: '' };
         const scope = createScopeForTest(target, source);
         const binding = new PropertyBinding(
+          { state: 0 },
           container,
           observerLocator,
           container.get(IPlatform).domWriteQueue,

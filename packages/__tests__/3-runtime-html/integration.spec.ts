@@ -222,7 +222,7 @@ describe('runtime-html.integration', function () {
 
           assert.strictEqual(childVm.value, 42);
           assert.strictEqual(app.value, 42);
-        }
+        },
       );
     }
     {

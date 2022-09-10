@@ -10,6 +10,8 @@ import {
   CustomElement,
   IPlatform,
   IAstBasedBinding,
+  IBindingController,
+  State,
   connectableBinding,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
@@ -70,8 +72,6 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   /** @internal */
   private _isInterpolation!: boolean;
   private readonly _targetAccessors: Set<IAccessor>;
-  /** @internal */
-  private _isBinding = 0;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -82,12 +82,17 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private readonly _controller: IBindingController;
+
   public constructor(
+    controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
     platform: IPlatform,
     target: INode,
   ) {
+    this._controller = controller;
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
     this.platform = platform;
@@ -127,7 +132,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
     let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(context, observerLocator, platform, target);
+      binding = new TranslationBinding(controller, context, observerLocator, platform, target);
       controller.addBinding(binding);
     }
     return binding;
@@ -139,7 +144,6 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!this.expr) { throw new Error('key expression is missing'); }
-    this._isBinding++;
     this.scope = scope;
     this._isInterpolation = this.expr instanceof Interpolation;
 
@@ -149,7 +153,6 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
     this._updateTranslations(flags);
     this.isBound = true;
-    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -215,7 +218,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, attribute)
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = this._isBinding === 0 && (accessor.type & AccessorType.Layout) > 0;
+          const shouldQueueUpdate = this._controller.state !== State.activating && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
           } else {
@@ -228,7 +231,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
     let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = this._isBinding === 0;
+      shouldQueueContent = this._controller.state !== State.activating;
       if (!shouldQueueContent) {
         this._updateContent(content, flags);
       }

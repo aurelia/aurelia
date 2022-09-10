@@ -37,6 +37,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         beforeEach(function () {
           sut = new Behavior();
           binding = new PropertyBinding(
+            { state: 0 },
             container as any,
             {} as any,
             undefined,

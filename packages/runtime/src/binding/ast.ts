@@ -441,9 +441,9 @@ export interface IAstEvaluator {
   /** Allow an AST to retrieve a service that it needs */
   get?: IServiceLocator['get'];
   /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T>(name: string): ValueConverterInstance<T>;
+  getConverter?<T>(name: string): ValueConverterInstance<T> | undefined;
   /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T>(name: string): BindingBehaviorInstance<T>;
+  getBehavior?<T>(name: string): BindingBehaviorInstance<T> | undefined;
 }
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };

@@ -20,7 +20,7 @@ export class BindingTargetSubscriber implements ISubscriber {
   // deepscan-disable-next-line
   public handleChange(value: unknown, _: unknown, flags: LifecycleFlags): void {
     const b = this.b;
-    if (value !== b.sourceExpression.evaluate(b.$scope!, b, null)) {
+    if (value !== b.ast.evaluate(b.$scope!, b, null)) {
       b.updateSource(value, flags);
     }
   }
@@ -56,9 +56,7 @@ export function connectableBinding(strict: boolean | undefined, strictFnCall: bo
 export function astEvaluator(strict = true, strictFnCall = true) {
   return (target: Constructable<IAstEvaluator>) => {
     const proto = target.prototype;
-    if (strict != null) {
-      def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
-    }
+    def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
     defineHiddenProp(proto, 'get', function (this: IAstBasedBinding, key: Key) {
       return this.locator.get(key);

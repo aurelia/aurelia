@@ -80,7 +80,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; ii > i; ++i) {
       binding = bindings[i];
       if (binding.target === this && binding.targetProperty === 'items') {
-        forOf = this.forOf = binding.sourceExpression as ForOfStatement;
+        forOf = this.forOf = binding.ast as ForOfStatement;
         this._forOfBinding = binding;
 
         let expression = forOf.iterable;

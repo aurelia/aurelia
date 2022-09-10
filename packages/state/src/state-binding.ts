@@ -28,7 +28,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
   public isBound: boolean = false;
-  public sourceExpression: IsBindingBehavior;
+  public ast: IsBindingBehavior;
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
@@ -58,7 +58,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
-    this.sourceExpression = expr;
+    this.ast = expr;
     this.target = target;
     this.targetProperty = prop;
   }
@@ -101,7 +101,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
-    this.updateTarget(this._value = this.sourceExpression.evaluate(
+    this.updateTarget(this._value = this.ast.evaluate(
       this.$scope,
       this,
       this.mode > oneTime ? this : null),
@@ -138,7 +138,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
+    newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     obsRecord.clear();
 
     let task: ITask | null;
@@ -160,7 +160,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    const value = this.sourceExpression.evaluate(
+    const value = this.ast.evaluate(
       $scope,
       this,
       this.mode > oneTime ? this : null

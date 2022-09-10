@@ -140,7 +140,7 @@ export class BindingInterceptor implements IInterceptableBinding {
   public readonly $scope: Scope | undefined;
   public readonly isBound!: boolean;
   public readonly obs!: BindingObserverRecord;
-  public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
+  public readonly ast!: IsBindingBehavior | ForOfStatement;
   public readonly mode!: BindingMode;
 
   public constructor(
@@ -202,7 +202,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 }
 
 /* eslint-disable */
-const interceptableProperties = ['isBound', '$scope', 'obs', 'sourceExpression', 'locator', 'oL'];
+const interceptableProperties = ['isBound', '$scope', 'obs', 'ast', 'locator', 'oL'];
 interceptableProperties.forEach(prop => {
   def(BindingInterceptor.prototype, prop, {
     enumerable: false,

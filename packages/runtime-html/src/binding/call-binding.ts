@@ -17,7 +17,7 @@ export class CallBinding implements IAstBasedBinding {
   public targetObserver: IAccessor;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior,
+    public ast: IsBindingBehavior,
     public readonly target: object,
     public readonly targetProperty: string,
     observerLocator: IObserverLocator,
@@ -29,7 +29,7 @@ export class CallBinding implements IAstBasedBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     overrideContext.$event = args;
-    const result = this.sourceExpression.evaluate(this.$scope!, this, null);
+    const result = this.ast.evaluate(this.$scope!, this, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
@@ -46,8 +46,8 @@ export class CallBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this.interceptor);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this.interceptor);
     }
 
     this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
@@ -61,8 +61,8 @@ export class CallBinding implements IAstBasedBinding {
       return;
     }
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

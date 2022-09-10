@@ -172,7 +172,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public readonly sourceExpression: IsExpression,
+    public readonly ast: IsExpression,
     public readonly target: object,
     public readonly targetProperty: string,
     public readonly locator: IServiceLocator,
@@ -186,16 +186,16 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     if (!this.isBound) {
       return;
     }
-    const sourceExpression = this.sourceExpression;
+    const ast = this.ast;
     const obsRecord = this.obs;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
       shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
+      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -226,11 +226,11 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.isBound = true;
     this.$scope = scope;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
-    this.value = this.sourceExpression.evaluate(
+    this.value = this.ast.evaluate(
       scope,
       this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -246,8 +246,8 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
     this.isBound = false;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
@@ -282,7 +282,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public readonly sourceExpression: IsExpression,
+    public readonly ast: IsExpression,
     public readonly target: Text,
     public readonly locator: IServiceLocator,
     observerLocator: IObserverLocator,
@@ -312,9 +312,9 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     if (!this.isBound) {
       return;
     }
-    const sourceExpression = this.sourceExpression;
+    const ast = this.ast;
     const obsRecord = this.obs;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
       shouldConnect = (this.mode & toView) > 0;
@@ -322,7 +322,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
         obsRecord.version++;
       }
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
-      newValue = sourceExpression.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
+      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -352,7 +352,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       return;
     }
     this.obs.version++;
-    const v = this.value = this.sourceExpression.evaluate(
+    const v = this.value = this.ast.evaluate(
       this.$scope!,
       this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -381,13 +381,13 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.$scope = scope;
     this._isBinding++;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
     flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
 
-    const v = this.value = this.sourceExpression.evaluate(
+    const v = this.value = this.ast.evaluate(
       scope,
       this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
@@ -405,8 +405,8 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     this.isBound = false;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     // TODO: should existing value (either connected node, or a string)

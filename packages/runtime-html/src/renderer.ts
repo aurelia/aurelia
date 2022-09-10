@@ -839,10 +839,10 @@ export class InterpolationBindingRenderer implements IRenderer {
     let partBinding: InterpolationPartBinding;
     for (; ii > i; ++i) {
       partBinding = partBindings[i];
-      if (partBinding.sourceExpression.$kind === ExpressionKind.BindingBehavior) {
+      if (partBinding.ast.$kind === ExpressionKind.BindingBehavior) {
         partBindings[i] = applyBindingBehavior(
           partBinding,
-          partBinding.sourceExpression as unknown as IsBindingBehavior,
+          partBinding.ast as unknown as IsBindingBehavior,
           container
         );
       }

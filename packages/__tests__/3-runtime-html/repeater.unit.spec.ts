@@ -555,7 +555,7 @@ describe(`Repeat`, function () {
         const binding: PropertyBinding = {
           target: null,
           targetProperty: 'items',
-          sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
+          ast: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
         const hydratable: IHydratableController = {
           bindings: [binding]

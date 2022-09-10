@@ -68,7 +68,7 @@ export class AttributeBinding implements IAstBasedBinding {
   private _isBinding = 0;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | ForOfStatement,
+    public ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -93,7 +93,7 @@ export class AttributeBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, _flags: LifecycleFlags): void {
     // flags |= this.persistentFlags;
-    this.sourceExpression.assign(this.$scope, this, value);
+    this.ast.assign(this.$scope, this, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -105,7 +105,7 @@ export class AttributeBinding implements IAstBasedBinding {
 
     const mode = this.mode;
     const interceptor = this.interceptor;
-    const sourceExpression = this.sourceExpression;
+    const ast = this.ast;
     const $scope = this.$scope;
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
@@ -115,12 +115,12 @@ export class AttributeBinding implements IAstBasedBinding {
     const shouldQueueFlush = this._isBinding === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     let shouldConnect: boolean = false;
     let task: ITask | null;
-    if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
+    if (ast.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
       shouldConnect = (mode & oneTime) === 0;
       if (shouldConnect) {
         this.obs.version++;
       }
-      newValue = sourceExpression.evaluate($scope, this, interceptor);
+      newValue = ast.evaluate($scope, this, interceptor);
       if (shouldConnect) {
         this.obs.clear();
       }
@@ -157,9 +157,9 @@ export class AttributeBinding implements IAstBasedBinding {
     this.$scope = scope;
     this._isBinding++;
 
-    let sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    let ast = this.ast;
+    if (ast.hasBind) {
+      ast.bind(flags, scope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver;
@@ -172,8 +172,8 @@ export class AttributeBinding implements IAstBasedBinding {
       );
     }
 
-    // during bind, binding behavior might have changed sourceExpression
-    sourceExpression = this.sourceExpression;
+    // during bind, binding behavior might have changed ast
+    ast = this.ast;
     const $mode = this.mode;
     const interceptor = this.interceptor;
     let shouldConnect: boolean = false;
@@ -181,7 +181,7 @@ export class AttributeBinding implements IAstBasedBinding {
     if ($mode & toViewOrOneTime) {
       shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        this.value = sourceExpression.evaluate(scope, this, shouldConnect ? interceptor : null),
+        this.value = ast.evaluate(scope, this, shouldConnect ? interceptor : null),
         flags
       );
     }
@@ -201,8 +201,8 @@ export class AttributeBinding implements IAstBasedBinding {
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope, this.interceptor);
     }
     this.$scope = null!;
     this.value = void 0;

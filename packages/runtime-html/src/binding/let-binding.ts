@@ -30,7 +30,7 @@ export class LetBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public sourceExpression: IsExpression,
+    public ast: IsExpression,
     public targetProperty: string,
     observerLocator: IObserverLocator,
     public locator: IServiceLocator,
@@ -49,7 +49,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
+    newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -65,7 +65,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
+    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -83,13 +83,13 @@ export class LetBinding implements IAstBasedBinding {
     this.$scope = scope;
     this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
-    const sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    const ast = this.ast;
+    if (ast.hasBind) {
+      ast.bind(flags, scope, this.interceptor);
     }
-    // sourceExpression might have been changed during bind
+    // ast might have been changed during bind
     this.target[this.targetProperty]
-      = this.sourceExpression.evaluate(scope, this, this.interceptor);
+      = this.ast.evaluate(scope, this, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -100,9 +100,9 @@ export class LetBinding implements IAstBasedBinding {
       return;
     }
 
-    const sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasUnbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    const ast = this.ast;
+    if (ast.hasUnbind) {
+      ast.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
     this.obs.clearAll();

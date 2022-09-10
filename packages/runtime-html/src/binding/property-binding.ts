@@ -49,7 +49,7 @@ export class PropertyBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | ForOfStatement,
+    public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
@@ -67,7 +67,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public updateSource(value: unknown, _flags: LifecycleFlags): void {
     // flags |= this.persistentFlags;
-    this.sourceExpression.assign(this.$scope!, this, value);
+    this.ast.assign(this.$scope!, this, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -86,13 +86,13 @@ export class PropertyBinding implements IAstBasedBinding {
     let shouldConnect: boolean = false;
 
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-    if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
+    if (this.ast.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect
       shouldConnect = this.mode > oneTime;
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
+      newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -118,7 +118,7 @@ export class PropertyBinding implements IAstBasedBinding {
     }
     const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
+    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -151,9 +151,9 @@ export class PropertyBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    let sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    let ast = this.ast;
+    if (ast.hasBind) {
+      ast.bind(flags, scope, this.interceptor);
     }
 
     const observerLocator = this.oL;
@@ -168,15 +168,15 @@ export class PropertyBinding implements IAstBasedBinding {
       this.targetObserver = targetObserver;
     }
 
-    // during bind, binding behavior might have changed sourceExpression
+    // during bind, binding behavior might have changed ast
     // deepscan-disable-next-line
-    sourceExpression = this.sourceExpression;
+    ast = this.ast;
     const interceptor = this.interceptor;
     const shouldConnect = ($mode & toView) > 0;
 
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(scope, this, shouldConnect ? interceptor : null),
+        ast.evaluate(scope, this, shouldConnect ? interceptor : null),
         flags,
       );
     }
@@ -199,8 +199,8 @@ export class PropertyBinding implements IAstBasedBinding {
 
     this.persistentFlags = LifecycleFlags.none;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

@@ -181,7 +181,7 @@ describe('validation-i18n/localization.spec.ts/validation-i18n', function () {
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
+    assert.equal(binding.ast.expression.toString(), rawExpression);
   }
 
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {

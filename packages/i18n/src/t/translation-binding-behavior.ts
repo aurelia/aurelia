@@ -9,11 +9,11 @@ import type { Scope } from '@aurelia/runtime';
 export class TranslationBindingBehavior {
 
   public bind(flags: LifecycleFlags, _scope: Scope, binding: BindingWithBehavior) {
-    const expression = binding.sourceExpression.expression;
+    const expression = binding.ast.expression;
 
     if (!(expression instanceof ValueConverterExpression)) {
-      const vcExpression = new ValueConverterExpression(expression as IsValueConverter, ValueConverters.translationValueConverterName, binding.sourceExpression.args);
-      (binding.sourceExpression as Writable<BindingBehaviorExpression>).expression = vcExpression;
+      const vcExpression = new ValueConverterExpression(expression as IsValueConverter, ValueConverters.translationValueConverterName, binding.ast.args);
+      (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
     }
   }
 }

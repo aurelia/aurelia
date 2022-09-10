@@ -170,12 +170,12 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     let trigger: ValidationTrigger | undefined;
     let controller: ValidationController | undefined;
 
-    let expression = this.propertyBinding.sourceExpression;
-    while (expression.name !== 'validate' && expression !== void 0) {
-      expression = expression.expression as BindingBehaviorExpression;
+    let ast = this.propertyBinding.ast;
+    while (ast.name !== 'validate' && ast !== void 0) {
+      ast = ast.expression as BindingBehaviorExpression;
     }
     // const evaluationFlags = flags | LifecycleFlags.isStrictBindingStrategy;
-    const args = expression.args;
+    const args = ast.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
       switch (i) {

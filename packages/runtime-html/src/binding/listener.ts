@@ -43,7 +43,7 @@ export class Listener implements IAstBasedBinding {
   public constructor(
     public platform: IPlatform,
     public targetEvent: string,
-    public sourceExpression: IsBindingBehavior,
+    public ast: IsBindingBehavior,
     public target: Node,
     public eventDelegator: IEventDelegator,
     public locator: IServiceLocator,
@@ -56,7 +56,7 @@ export class Listener implements IAstBasedBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    let result = this.sourceExpression.evaluate(this.$scope, this, null);
+    let result = this.ast.evaluate(this.$scope, this, null);
 
     delete overrideContext.$event;
 
@@ -89,9 +89,9 @@ export class Listener implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    const sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    const ast = this.ast;
+    if (ast.hasBind) {
+      ast.bind(flags, scope, this.interceptor);
     }
 
     if (this._options.strategy === DelegationStrategy.none) {
@@ -115,9 +115,9 @@ export class Listener implements IAstBasedBinding {
       return;
     }
 
-    const sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasUnbind) {
-      sourceExpression.unbind(flags, this.$scope, this.interceptor);
+    const ast = this.ast;
+    if (ast.hasUnbind) {
+      ast.unbind(flags, this.$scope, this.interceptor);
     }
 
     this.$scope = null!;

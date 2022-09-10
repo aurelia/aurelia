@@ -32,7 +32,7 @@ import {
 } from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
-  sourceExpression: BindingBehaviorExpression;
+  ast: BindingBehaviorExpression;
   target: Element | object;
 };
 export const enum ValidateEventKind {
@@ -128,7 +128,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   }
 
   const scope = info.scope;
-  let expression = binding.sourceExpression.expression;
+  let expression = binding.ast.expression;
   let toCachePropertyName = true;
   let propertyName: string = '';
   while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
@@ -158,7 +158,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     expression = expression.object;
   }
   if (expression === void 0) {
-    throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
+    throw new Error(`Unable to parse binding expression: ${binding.ast.expression}`); // TODO: use reporter/logger
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let object: any;

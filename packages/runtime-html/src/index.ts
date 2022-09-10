@@ -523,7 +523,8 @@ export {
 } from './templating/watchers';
 
 export {
-  alias
+  alias,
+  registerAliases,
 } from './utilities-di';
 
 export {

@@ -375,8 +375,6 @@ export {
 
   subscriberCollection,
 
-  bindingBehavior,
-  BindingBehavior,
   type BindingBehaviorInstance,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
@@ -414,9 +412,6 @@ export {
   // IRendererRegistration,
   // RuntimeConfiguration,
 
-  alias,
-  registerAliases,
-
   BindingMode,
   // ExpressionKind,
   // Hooks,
@@ -453,14 +448,12 @@ export {
   // ICollectionObserver,
   // ICollectionSubscriber,
 
-  ValueConverter,
   // ValueConverterDefinition,
   // PartialValueConverterDefinition,
   // ValueConverterKind,
   // ValueConverterDecorator,
   type ValueConverterInstance,
   // ValueConverterType,
-  valueConverter,
   type IndexMap,
 
 } from '@aurelia/runtime';
@@ -769,6 +762,15 @@ export {
   // ColonPrefixedBindAttributePattern,
   // DotSeparatedAttributePattern,
   // RefAttributePattern,
+
+  alias,
+  registerAliases,
+
+  bindingBehavior,
+  BindingBehavior,
+
+  valueConverter,
+  ValueConverter,
 
   bindingCommand,
   // BindingCommand,

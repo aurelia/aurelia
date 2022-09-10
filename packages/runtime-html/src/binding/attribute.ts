@@ -14,6 +14,7 @@ import { connectableBinding, BindingTargetSubscriber } from './binding-utils';
 import type {
   ITask,
   QueueTaskOptions,
+  TaskQueue,
 } from '@aurelia/platform';
 import type {
   ForOfStatement,
@@ -44,7 +45,6 @@ export class AttributeBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public p: IPlatform;
   public $scope: Scope = null!;
   public task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
@@ -68,6 +68,9 @@ export class AttributeBinding implements IAstBasedBinding {
   private _isBinding = 0;
 
   public constructor(
+    public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
+    public taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -78,11 +81,8 @@ export class AttributeBinding implements IAstBasedBinding {
     public targetAttribute: string,
     public targetProperty: string,
     public mode: BindingMode,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
   ) {
     this.target = target as Element;
-    this.p = locator.get(IPlatform);
     this.oL = observerLocator;
   }
 
@@ -131,7 +131,7 @@ export class AttributeBinding implements IAstBasedBinding {
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
         task = this.task;
-        this.task = this.p.domWriteQueue.queueTask(() => {
+        this.task = this.taskQueue.queueTask(() => {
           this.task = null;
           interceptor.updateTarget(newValue, flags);
         }, taskOptions);

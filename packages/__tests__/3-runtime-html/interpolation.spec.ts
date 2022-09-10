@@ -291,13 +291,13 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       );
       const target = { value: '' };
       const binding = new InterpolationBinding(
+        container,
         observerLocator,
+        {} as any,
         interpolation,
         target,
         'value',
         BindingMode.toView,
-        container,
-        {} as any,
       );
       const source = { checked: false, yesMsg: 'yes', noMsg: 'no' };
 
@@ -374,13 +374,13 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       );
       const target = { value: '' };
       const binding = new InterpolationBinding(
+        container,
         observerLocator,
+        {} as any,
         interpolation,
         target,
         'value',
         BindingMode.toView,
-        container,
-        {} as any,
       );
       const source = {
         checked1: false,

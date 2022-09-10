@@ -41,12 +41,11 @@ export class Listener implements IAstBasedBinding {
   private readonly _options: ListenerOptions;
 
   public constructor(
-    public platform: IPlatform,
-    public targetEvent: string,
+    public locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: Node,
+    public targetEvent: string,
     public eventDelegator: IEventDelegator,
-    public locator: IServiceLocator,
     options: ListenerOptions,
   ) {
     this._options = options;

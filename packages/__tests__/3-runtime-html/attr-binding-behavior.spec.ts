@@ -16,7 +16,15 @@ describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = ctx.container;
-    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container, {} as any);
+    binding = new PropertyBinding(
+      container,
+      undefined,
+      undefined,
+      undefined,
+      target,
+      targetProperty,
+      {} as any
+    );
     sut.bind(undefined, undefined, binding);
   });
 

@@ -26,7 +26,15 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         const source = { name: 'hello' };
         const target = { name: '' };
-        const binding = new PropertyBinding(accessScopeExpr, target, 'name', BindingMode.toView, observerLocator, container, {} as any);
+        const binding = new PropertyBinding(
+          container,
+          observerLocator,
+          {} as any,
+          accessScopeExpr,
+          target,
+          'name',
+          BindingMode.toView,
+        );
 
         binding.$bind(LifecycleFlags.none, createScopeForTest(source));
 
@@ -50,7 +58,15 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const target = { value: '' };
         const scope = createScopeForTest(target, source);
-        const binding = new PropertyBinding(conditionalExpr, target, 'value', BindingMode.toView, observerLocator, container, container.get(IPlatform).domWriteQueue);
+        const binding = new PropertyBinding(
+          container,
+          observerLocator,
+          container.get(IPlatform).domWriteQueue,
+          conditionalExpr,
+          target,
+          'value',
+          BindingMode.toView,
+        );
 
         let handleChangeCallCount = 0;
         binding.handleChange = (handleChange => {
@@ -104,7 +120,13 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const source = { value: '' };
         const oc = { name: 'hello' };
         const scope = createScopeForTest(source, oc);
-        const binding = new LetBinding(accessScopeExpr, 'value', observerLocator, container, true);
+        const binding = new LetBinding(
+          container,
+          observerLocator,
+          accessScopeExpr,
+          'value',
+          true
+        );
 
         binding.$bind(LifecycleFlags.none, scope);
 
@@ -128,7 +150,13 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const source = { value: '' };
         const oc = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const scope = createScopeForTest(source, oc);
-        const binding = new LetBinding(conditionalExpr, 'value', observerLocator, container, true);
+        const binding = new LetBinding(
+          container,
+          observerLocator,
+          conditionalExpr,
+          'value',
+          true
+        );
 
         let handleChangeCallCount = 0;
         binding.handleChange = (handleChange => {

@@ -22,7 +22,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
   public isBound: boolean = false;
-  public expr: IsBindingBehavior;
+  public ast: IsBindingBehavior;
   private readonly target: HTMLElement;
   private readonly targetProperty: string;
 
@@ -30,14 +30,14 @@ export class StateDispatchBinding implements IAstBasedBinding {
 
   public constructor(
     locator: IServiceLocator,
-    store: IStore<object>,
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
+    store: IStore<object>,
   ) {
     this.locator = locator;
     this._store = store;
-    this.expr = expr;
+    this.ast = expr;
     this.target = target;
     this.targetProperty = prop;
   }
@@ -45,7 +45,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
   public callSource(e: Event) {
     const $scope = this.$scope!;
     $scope.overrideContext.$event = e;
-    const value = this.expr.evaluate($scope, this, null);
+    const value = this.ast.evaluate($scope, this, null);
     delete $scope.overrideContext.$event;
     if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);

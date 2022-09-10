@@ -12,9 +12,9 @@ export class RefBinding implements IAstBasedBinding {
   public $scope?: Scope = void 0;
 
   public constructor(
+    public locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: object,
-    public locator: IServiceLocator,
   ) {}
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {

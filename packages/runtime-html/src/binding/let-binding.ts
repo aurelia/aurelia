@@ -30,10 +30,10 @@ export class LetBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   public constructor(
+    public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
     toBindingContext: boolean = false,
   ) {
     this.oL = observerLocator;

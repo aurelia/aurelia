@@ -15,7 +15,7 @@ import {
 import i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions } from '@aurelia/platform';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
@@ -75,6 +75,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
+  private readonly taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
   /**
    * A semi-private property used by connectable mixin
@@ -82,10 +83,10 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public readonly oL: IObserverLocator;
 
   public constructor(
-    target: INode,
-    observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
     platform: IPlatform,
+    target: INode,
   ) {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
@@ -93,6 +94,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
     this.i18n.subscribeLocaleChange(this);
+    this.taskQueue = platform.domWriteQueue;
   }
 
   public static create({
@@ -125,7 +127,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
     let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context, platform);
+      binding = new TranslationBinding(context, observerLocator, platform, target);
       controller.addBinding(binding);
     }
     return binding;
@@ -233,7 +235,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
 
     if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-      this.task = this.platform.domWriteQueue.queueTask(() => {
+      this.task = this.taskQueue.queueTask(() => {
         this.task = null;
         for (const updateTask of accessorUpdateTasks) {
           updateTask.run();

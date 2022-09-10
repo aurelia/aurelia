@@ -47,18 +47,18 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
 
   public constructor(
     locator: IServiceLocator,
-    taskQueue: TaskQueue,
-    store: IStore<object>,
     observerLocator: IObserverLocator,
-    expr: IsBindingBehavior,
+    taskQueue: TaskQueue,
+    ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
+    store: IStore<object>,
   ) {
     this.locator = locator;
     this.taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
-    this.ast = expr;
+    this.ast = ast;
     this.target = target;
     this.targetProperty = prop;
   }

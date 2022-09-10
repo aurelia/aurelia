@@ -49,13 +49,13 @@ export class PropertyBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   public constructor(
+    public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
+    private readonly taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
-    private readonly taskQueue: TaskQueue,
   ) {
     this.oL = observerLocator;
   }

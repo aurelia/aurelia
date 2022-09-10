@@ -55,17 +55,17 @@ export class InterpolationBinding implements IBinding {
   public readonly oL: IObserverLocator;
 
   public constructor(
+    public locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public interpolation: Interpolation,
+    private readonly taskQueue: TaskQueue,
+    public ast: Interpolation,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    public locator: IServiceLocator,
-    private readonly taskQueue: TaskQueue,
   ) {
     this.oL = observerLocator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
-    const expressions = interpolation.expressions;
+    const expressions = ast.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     const ii = expressions.length;
     let i = 0;
@@ -76,7 +76,7 @@ export class InterpolationBinding implements IBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
-    const staticParts = this.interpolation.parts;
+    const staticParts = this.ast.parts;
     const ii = partBindings.length;
     let result = '';
     let i = 0;
@@ -282,11 +282,12 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public readonly ast: IsExpression,
-    public readonly target: Text,
     public readonly locator: IServiceLocator,
     observerLocator: IObserverLocator,
+    private readonly taskQueue: TaskQueue,
     private readonly p: IPlatform,
+    public readonly ast: IsExpression,
+    public readonly target: Text,
     public readonly strict: boolean,
   ) {
     this.oL = observerLocator;
@@ -421,7 +422,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   // queue a force update
   private queueUpdate(newValue: unknown, flags: LifecycleFlags): void {
     const task = this.task;
-    this.task = this.p.domWriteQueue.queueTask(() => {
+    this.task = this.taskQueue.queueTask(() => {
       this.task = null;
       this.updateTarget(newValue, flags);
     }, queueTaskOptions);

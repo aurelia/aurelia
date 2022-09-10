@@ -24,7 +24,13 @@ describe.skip('CallBinding', function () {
   function createFixture(ast: IsBindingBehavior, target: any, targetProperty: string) {
     const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const observerLocator = createObserverLocator(container);
-    const sut = new CallBinding(ast as any, target, targetProperty, observerLocator, container);
+    const sut = new CallBinding(
+      container,
+      observerLocator,
+      ast as any,
+      target,
+      targetProperty,
+    );
 
     return { sut, container, observerLocator };
   }

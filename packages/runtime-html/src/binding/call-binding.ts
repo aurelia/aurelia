@@ -17,11 +17,11 @@ export class CallBinding implements IAstBasedBinding {
   public targetObserver: IAccessor;
 
   public constructor(
+    public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
     public ast: IsBindingBehavior,
     public readonly target: object,
     public readonly targetProperty: string,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
   ) {
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }

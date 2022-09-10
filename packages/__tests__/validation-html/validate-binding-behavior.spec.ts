@@ -6,13 +6,13 @@ import {
   IObserverLocator,
   Scope,
   LifecycleFlags,
-  valueConverter,
 } from '@aurelia/runtime';
 import {
   bindable,
   bindingBehavior,
   customAttribute,
   BindingInterceptor,
+  valueConverter,
   CustomElement,
   customElement,
   IPlatform,

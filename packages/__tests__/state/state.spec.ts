@@ -1,5 +1,4 @@
-import { ValueConverter } from '@aurelia/runtime';
-import { customAttribute, customElement, ICustomAttributeController } from '@aurelia/runtime-html';
+import { ValueConverter, customAttribute, customElement, ICustomAttributeController } from '@aurelia/runtime-html';
 import { StateDefaultConfiguration, fromState } from '@aurelia/state';
 import { assert, createFixture } from '@aurelia/testing';
 

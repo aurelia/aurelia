@@ -5,12 +5,13 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression, BindingMode, LifecycleFlags, ValueConverter } from '@aurelia/runtime';
+import { Interpolation, ConditionalExpression, AccessScopeExpression, BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import {
   CustomElement,
   InterpolationBinding,
   SVGAnalyzerRegistration,
   IPlatform,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 
 type CaseType = {

@@ -1,5 +1,6 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
-import { IExpressionParser, ExpressionType, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { IExpressionParser, ExpressionType, LifecycleFlags, Scope, IAstEvaluator } from '@aurelia/runtime';
+import { astEvaluator } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
   IPropertyRule,
@@ -187,6 +188,7 @@ interface ModelPropertyRule<TRuleConfig extends { tag?: string; messageKey?: str
   rules: Record<string, TRuleConfig>[];
 }
 
+export interface ModelValidationExpressionHydrator extends IAstEvaluator {}
 export class ModelValidationExpressionHydrator implements IValidationExpressionHydrator {
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
@@ -255,7 +257,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
         const parsed = this.parser.parse(when, ExpressionType.None);
         rule.canExecute = (object: IValidateable) => {
           // const flags = LifecycleFlags.none; // TODO? need to get the flags propagated here?
-          return parsed.evaluate(Scope.create({ $object: object }), this.locator, null) as boolean;
+          return parsed.evaluate(Scope.create({ $object: object }), this, null) as boolean;
         };
       } else if (typeof when === 'function') {
         rule.canExecute = when;
@@ -313,3 +315,5 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     return new RuleProperty(expression, name, raw.displayName);
   }
 }
+
+astEvaluator()(ModelValidationExpressionHydrator);

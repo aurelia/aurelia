@@ -24,7 +24,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this._platform = binding.locator.get(IPlatform);
+    this._platform = binding.get(IPlatform);
     this._taskQueue = this._platform.taskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
@@ -77,7 +77,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(scope, this.locator, null));
+      const delay = Number(this.firstArg.evaluate(scope, this, null));
       this.opts.delay = this.delay = isNaN(delay) ? defaultDelay : delay;
     }
     this.binding.$bind(flags, scope);

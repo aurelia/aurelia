@@ -6,10 +6,10 @@ import {
   LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
-import { connectableBinding } from './binding-utils';
+import { astEvaluator } from './binding-utils';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
-import type { IIndexable, IServiceLocator, Key } from '@aurelia/kernel';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IndexMap,
@@ -34,6 +34,7 @@ const queueTaskOptions: QueueTaskOptions = {
 // value converters and binding behaviors.
 // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
 // in which case the renderer will create the TextBinding directly
+export interface InterpolationBinding extends IBinding {}
 export class InterpolationBinding implements IBinding {
   public interceptor: this = this;
 
@@ -73,10 +74,6 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public get(key: Key) {
-    return this.locator.get(key);
-  }
-
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
@@ -84,10 +81,12 @@ export class InterpolationBinding implements IBinding {
     let result = '';
     let i = 0;
     if (ii === 1) {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       result = staticParts[0] + partBindings[0].value + staticParts[1];
     } else {
       result = staticParts[0];
       for (; ii > i; ++i) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         result += partBindings[i].value + staticParts[i + 1];
       }
     }
@@ -150,6 +149,7 @@ export class InterpolationBinding implements IBinding {
     this.task = null;
   }
 }
+astEvaluator()(InterpolationBinding);
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
@@ -200,7 +200,8 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
         obsRecord.clear();
       }
     }
-    // todo(maybe should do strict comparison?)
+    // todo(!=): maybe should do strict comparison?
+    // eslint-disable-next-line eqeqeq
     if (newValue != this.value) {
       this.value = newValue;
       if (newValue instanceof Array) {
@@ -428,4 +429,5 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 }
 
-connectableBinding(void 0, false, true)(ContentBinding);
+connectable()(ContentBinding);
+astEvaluator(false, false)(ContentBinding);

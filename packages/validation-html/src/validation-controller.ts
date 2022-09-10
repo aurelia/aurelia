@@ -129,7 +129,6 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
 
   const scope = info.scope;
   let expression = binding.sourceExpression.expression;
-  const locator = binding.locator;
   let toCachePropertyName = true;
   let propertyName: string = '';
   while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
@@ -148,7 +147,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
         // eslint-disable-next-line
-        memberName = `[${(keyExpr.evaluate(scope, locator, null) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(scope, binding, null) as any).toString()}]`;
         break;
       }
       default:
@@ -167,7 +166,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     propertyName = expression.name;
     object = scope.bindingContext;
   } else {
-    object = expression.evaluate(scope, locator, null);
+    object = expression.evaluate(scope, binding, null);
   }
   if (object === null || object === void 0) {
     return (void 0);

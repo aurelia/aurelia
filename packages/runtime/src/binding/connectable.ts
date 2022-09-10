@@ -3,7 +3,7 @@ import { getArrayObserver } from '../observation/array-observer';
 import { getSetObserver } from '../observation/set-observer';
 import { getMapObserver } from '../observation/map-observer';
 
-import type { Class, IServiceLocator } from '@aurelia/kernel';
+import type { Class } from '@aurelia/kernel';
 import type {
   IConnectable,
   ISubscribable,

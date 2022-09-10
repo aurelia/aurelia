@@ -103,7 +103,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this._store.subscribe(this);
     this.updateTarget(this._value = this.sourceExpression.evaluate(
       this.$scope,
-      this.locator,
+      this,
       this.mode > oneTime ? this : null),
       LifecycleFlags.none
     );
@@ -138,7 +138,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = this.sourceExpression.evaluate(this.$scope!, this.locator, this.interceptor);
+    newValue = this.sourceExpression.evaluate(this.$scope!, this, this.interceptor);
     obsRecord.clear();
 
     let task: ITask | null;
@@ -162,7 +162,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     const value = this.sourceExpression.evaluate(
       $scope,
-      this.locator,
+      this,
       this.mode > oneTime ? this : null
     );
     const shouldQueueFlush = this._isBinding === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;

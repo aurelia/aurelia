@@ -24,7 +24,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.taskQueue = binding.locator.get(IPlatform).taskQueue;
+    this.taskQueue = binding.get(IPlatform).taskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }
@@ -61,7 +61,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(scope, this.locator, null));
+      const delay = Number(this.firstArg.evaluate(scope, this, null));
       this.opts.delay = isNaN(delay) ? defaultDelay : delay;
     }
     this.binding.$bind(flags, scope);

@@ -10,7 +10,11 @@ import {
   AccessScopeExpression,
   Scope,
   ExpressionKind,
+  IAstEvaluator,
 } from '@aurelia/runtime';
+import {
+  astEvaluator
+} from '@aurelia/runtime-html';
 import {
   ValidationRuleAlias,
   RequiredRule,
@@ -106,6 +110,8 @@ class ValidationMessageEvaluationContext {
     return this.messageProvider.getDisplayName(propertyName, displayName);
   }
 }
+
+export interface PropertyRule extends IAstEvaluator {}
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
@@ -150,7 +156,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (expression === void 0) {
       value = object;
     } else {
-      value = expression.evaluate(scope, this.locator, null);
+      value = expression.evaluate(scope, this, null);
     }
 
     let isValid = true;
@@ -173,7 +179,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
               rule,
               object,
             ));
-          message = this.messageProvider.getMessage(rule).evaluate(messageEvaluationScope, null!, null) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(messageEvaluationScope, this, null) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
@@ -419,6 +425,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
   // #endregion
 }
+astEvaluator()(PropertyRule);
 
 export class ModelBasedRule {
   public constructor(

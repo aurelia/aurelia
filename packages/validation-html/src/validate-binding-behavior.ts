@@ -2,7 +2,7 @@ import { DI, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   BindingBehaviorExpression,
-  IAstEvaluator,
+  connectable,
   IBinding,
   IConnectableBinding,
   IObserverLocator,
@@ -10,7 +10,8 @@ import {
   Scope
 } from '@aurelia/runtime';
 import {
-  bindingBehavior, BindingInterceptor, connectableBinding, IPlatform, PropertyBinding, type ICustomElementViewModel
+  astEvaluator,
+  bindingBehavior, BindingInterceptor, IPlatform, PropertyBinding, type ICustomElementViewModel
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
@@ -316,7 +317,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 }
 
-connectableBinding(true, true)(ValidateBindingBehavior);
+connectable()(ValidateBindingBehavior);
+astEvaluator()(ValidateBindingBehavior);
 
 class ValidateArgumentsDelta {
   public constructor(
@@ -331,7 +333,7 @@ type MediatedBinding<K extends string> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface BindingMediator<K extends string> extends Omit<IAstEvaluator, 'get'>, IConnectableBinding { }
+export interface BindingMediator<K extends string> extends IConnectableBinding { }
 export class BindingMediator<K extends string> implements IConnectableBinding {
   public interceptor = this;
 
@@ -362,4 +364,5 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   }
 }
 
-connectableBinding(true, true)(BindingMediator);
+connectable()(BindingMediator);
+astEvaluator()(BindingMediator);

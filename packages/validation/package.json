@@ -47,7 +47,8 @@
     "@aurelia/kernel": "2.0.0-alpha.40",
     "@aurelia/metadata": "2.0.0-alpha.40",
     "@aurelia/platform": "2.0.0-alpha.40",
-    "@aurelia/runtime": "2.0.0-alpha.40"
+    "@aurelia/runtime": "2.0.0-alpha.40",
+    "@aurelia/runtime-html": "2.0.0-alpha.40"
   },
   "devDependencies": {
     "typescript": "4.7.3"

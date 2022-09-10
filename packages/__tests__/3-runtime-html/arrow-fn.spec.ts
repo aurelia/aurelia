@@ -1,5 +1,4 @@
-import { BindingBehavior, ValueConverter } from '@aurelia/runtime';
-import { AppTask, CustomAttribute, IListenerBehaviorOptions, INode } from '@aurelia/runtime-html';
+import { BindingBehavior, ValueConverter, AppTask, CustomAttribute, IListenerBehaviorOptions, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {

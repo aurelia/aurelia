@@ -16,8 +16,11 @@ import {
   optional,
   Class,
 } from '@aurelia/kernel';
-import { valueConverter, bindingBehavior, BindingBehaviorInstance, LifecycleFlags, Scope, IBinding, ValueConverter } from '@aurelia/runtime';
+import { BindingBehaviorInstance, LifecycleFlags, Scope, IBinding } from '@aurelia/runtime';
 import {
+  valueConverter,
+  bindingBehavior,
+  ValueConverter,
   Controller,
   customElement,
   CustomElement,

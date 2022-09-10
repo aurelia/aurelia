@@ -1,7 +1,6 @@
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
   ArrayObserver,
-  bindingBehavior,
   BindingBehaviorInstance,
   BindingInterceptor,
   IBinding,
@@ -12,6 +11,7 @@ import {
 } from '@aurelia/runtime';
 import {
   bindable,
+  bindingBehavior,
   customAttribute,
   CustomElement,
   customElement,

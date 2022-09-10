@@ -1,9 +1,7 @@
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
-import { LifecycleFlags as LF } from '../observation';
+import { IBinding, LifecycleFlags as LF } from '../observation';
 import { BindingContext, Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior';
-import { ValueConverterInstance } from '../value-converter';
 import { IConnectableBinding } from './connectable';
 import { isArray, isFunction, isString } from '../utilities-objects';
 
@@ -460,6 +458,11 @@ export class CustomExpression {
   }
 }
 
+export type BindingBehaviorInstance<T extends {} = {}> = {
+  bind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
+  unbind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
+} & T;
+
 export class BindingBehaviorExpression {
   public get $kind(): ExpressionKind.BindingBehavior { return ExpressionKind.BindingBehavior; }
   public get hasBind(): true { return true; }
@@ -496,20 +499,18 @@ export class BindingBehaviorExpression {
     const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
     if (behavior == null) {
       if (__DEV__)
-        throw new Error(`AUR0101: BindingBehavior named '${name}' could not be found. Did you forget to register it as a dependency?`);
+        throw new Error(`AUR0101: BindingBehavior '${name}' could not be found. Did you forget to register it as a dependency?`);
       else
         throw new Error(`AUR0101:${name}`);
     }
-    if (!(behavior instanceof BindingBehaviorFactory)) {
-      if ((b as BindingWithBehavior)[key] === void 0) {
-        (b as BindingWithBehavior)[key] = behavior;
-        behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
-      } else {
-        if (__DEV__)
-          throw new Error(`AUR0102: BindingBehavior '${name}' already applied.`);
-        else
-          throw new Error(`AUR0102:${name}`);
-      }
+    if ((b as BindingWithBehavior)[key] === void 0) {
+      (b as BindingWithBehavior)[key] = behavior;
+      behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
+    } else {
+      if (__DEV__)
+        throw new Error(`AUR0102: BindingBehavior '${name}' already applied.`);
+      else
+        throw new Error(`AUR0102:${name}`);
     }
   }
 
@@ -535,6 +536,11 @@ export class BindingBehaviorExpression {
     return Unparser.unparse(this);
   }
 }
+
+export type ValueConverterInstance<T extends {} = {}> = {
+  toView(input: unknown, ...args: unknown[]): unknown;
+  fromView?(input: unknown, ...args: unknown[]): unknown;
+} & T;
 
 export class ValueConverterExpression {
   public get $kind(): ExpressionKind.ValueConverter { return ExpressionKind.ValueConverter; }

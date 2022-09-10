@@ -523,6 +523,10 @@ export {
 } from './templating/watchers';
 
 export {
+  alias
+} from './utilities-di';
+
+export {
   // configurations
   DialogConfiguration,
   type DialogConfigurationProvider,

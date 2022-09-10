@@ -4,7 +4,7 @@ import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
   BindingMode,
-  connectable, LifecycleFlags,
+  LifecycleFlags,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior

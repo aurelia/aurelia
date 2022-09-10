@@ -1,6 +1,6 @@
 import { Class } from '@aurelia/kernel';
-import { BindingBehavior } from '@aurelia/runtime';
 import {
+  BindingBehavior,
   customElement,
   bindable,
   CustomElement,

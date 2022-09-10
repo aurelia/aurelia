@@ -1,8 +1,6 @@
 import {
   alias,
-  valueConverter
-} from '@aurelia/runtime';
-import {
+  valueConverter,
   bindable,
   customAttribute,
   INode,

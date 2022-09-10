@@ -6,11 +6,9 @@ import {
   IObserverLocator,
   LifecycleFlags,
   BindingBehaviorExpression,
-  BindingBehaviorFactory,
   ExpressionKind,
   IBinding,
   Scope,
-  BindingBehavior,
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding';
 import { AttributeBinding } from './binding/attribute';
@@ -20,6 +18,7 @@ import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import { Listener, ListenerOptions } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
+import { BindingBehavior, BindingBehaviorFactory, IInterceptableBinding } from './resources/binding-behavior';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
@@ -38,7 +37,6 @@ import type {
   IsBindingBehavior,
   AnyBindingExpression,
   BindingBehaviorInstance,
-  IInterceptableBinding,
   IObservable,
   ForOfStatement,
   DelegationStrategy,

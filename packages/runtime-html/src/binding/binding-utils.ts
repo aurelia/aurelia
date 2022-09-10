@@ -1,6 +1,8 @@
 import { Constructable, type Key } from '@aurelia/kernel';
 import { def, defineHiddenProp } from '../utilities';
-import { BindingBehavior, connectable, IConnectableBinding, ISubscriber, LifecycleFlags, ValueConverter } from '@aurelia/runtime';
+import { connectable, IConnectableBinding, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { BindingBehavior } from '../resources/binding-behavior';
+import { ValueConverter } from '../resources/value-converter';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
 interface ITwoWayBindingImpl extends IAstBasedBinding {

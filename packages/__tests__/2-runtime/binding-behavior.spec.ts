@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { bindingBehavior, BindingBehavior } from '@aurelia/runtime';
+import { bindingBehavior, BindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe(`@bindingBehavior('foo')`, function () {

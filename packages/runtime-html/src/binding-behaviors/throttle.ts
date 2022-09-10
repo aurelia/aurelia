@@ -1,9 +1,9 @@
 import { IPlatform } from '@aurelia/kernel';
 import { BindingInterceptor, LifecycleFlags } from '@aurelia/runtime';
-import { bindingBehavior } from '../resources/binding-behavior';
+import { bindingBehavior, IInterceptableBinding } from '../resources/binding-behavior';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
-import type { BindingBehaviorExpression, IInterceptableBinding, IsAssign, Scope } from '@aurelia/runtime';
+import type { BindingBehaviorExpression, IsAssign, Scope } from '@aurelia/runtime';
 
 const defaultDelay = 200;
 

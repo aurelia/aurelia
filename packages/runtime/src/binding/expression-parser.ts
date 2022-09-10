@@ -830,7 +830,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
   if ($currentToken !== Token.EOF) {
-    if (expressionType & ExpressionType.Interpolation) {
+    if ((expressionType & ExpressionType.Interpolation) > 0 && $currentToken === Token.CloseBrace) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }

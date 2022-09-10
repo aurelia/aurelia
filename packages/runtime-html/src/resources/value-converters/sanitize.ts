@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '../value-converter';
 
 export interface ISanitizer {
   /**

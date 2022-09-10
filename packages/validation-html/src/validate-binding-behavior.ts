@@ -2,7 +2,6 @@ import { DI, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   BindingBehaviorExpression,
-  BindingInterceptor,
   IAstEvaluator,
   IBinding,
   IConnectableBinding,
@@ -10,7 +9,9 @@ import {
   LifecycleFlags,
   Scope
 } from '@aurelia/runtime';
-import { bindingBehavior, connectableBinding, IPlatform, PropertyBinding, type ICustomElementViewModel } from '@aurelia/runtime-html';
+import {
+  bindingBehavior, BindingInterceptor, connectableBinding, IPlatform, PropertyBinding, type ICustomElementViewModel
+} from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
 

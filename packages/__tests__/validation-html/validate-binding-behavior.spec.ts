@@ -2,7 +2,6 @@ import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration }
 import {
   ArrayObserver,
   BindingBehaviorInstance,
-  BindingInterceptor,
   IBinding,
   IObserverLocator,
   Scope,
@@ -13,6 +12,7 @@ import {
   bindable,
   bindingBehavior,
   customAttribute,
+  BindingInterceptor,
   CustomElement,
   customElement,
   IPlatform,

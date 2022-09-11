@@ -2387,11 +2387,7 @@ describe('router hooks', function () {
       } catch (e) {
         console.error(e);
       }
-      verifyInvocationsEqual(mgr.fullNotifyHistory, [
-        // ...$(phase, ['root'], ticks, 'detaching'),
-        // ...$(phase, ['root'], ticks, 'unbinding'),
-        // ...$(phase, ['root'], ticks, 'dispose'),
-      ]);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
       mgr.$dispose();
     });
 
@@ -3051,5 +3047,118 @@ describe('router hooks', function () {
         mgr.$dispose();
       });
     }
+  });
+
+  describe('error recovery from unconfigured route', function () {
+    it('single level', async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'ce-a', template: 'a' })
+      class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'ce-b', template: 'b' })
+      class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: ['', 'a'], component: A, title: 'A' },
+          { path: 'b', component: B, title: 'B' },
+        ]
+      })
+      @customElement({
+        name: 'my-app',
+        template: `
+        <a href="a"></a>
+        <a href="b"></a>
+        <a href="c"></a>
+        <au-viewport></au-viewport>
+        `
+      })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      const queue = platform.domWriteQueue;
+      const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
+      assert.html.textContent(host, 'a', 'load');
+
+      let phase = 'round#1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      anchorC.click();
+      await queue.yield();
+      try {
+        await router['currentTr'].promise;
+        assert.fail('expected error');
+      } catch { /* noop */ }
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      phase = 'round#2';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      anchorB.click();
+      await queue.yield();
+      await router['currentTr'].promise; // actual wait is done here
+      assert.html.textContent(host, 'b', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'ce-a', ticks, 'canUnload'),
+        ...$(phase, 'ce-b', ticks, 'canLoad'),
+        ...$(phase, 'ce-a', ticks, 'unloading'),
+        ...$(phase, 'ce-b', ticks, 'loading'),
+        ...$(phase, 'ce-a', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'ce-b', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      phase = 'round#3';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      anchorC.click();
+      await queue.yield();
+      try {
+        await router['currentTr'].promise;
+        assert.fail('expected error');
+      } catch { /* noop */ }
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      phase = 'round#4';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      anchorA.click();
+      await queue.yield();
+      await router['currentTr'].promise; // actual wait is done here
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'ce-b', ticks, 'canUnload'),
+        ...$(phase, 'ce-a', ticks, 'canLoad'),
+        ...$(phase, 'ce-b', ticks, 'unloading'),
+        ...$(phase, 'ce-a', ticks, 'loading'),
+        ...$(phase, 'ce-b', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'ce-a', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      phase = 'round#5';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('c');
+        assert.fail('expected error');
+      } catch { /* noop */ }
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      phase = 'round#6';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      anchorB.click();
+      await router.load('b');
+      assert.html.textContent(host, 'b', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'ce-a', ticks, 'canUnload'),
+        ...$(phase, 'ce-b', ticks, 'canLoad'),
+        ...$(phase, 'ce-a', ticks, 'unloading'),
+        ...$(phase, 'ce-b', ticks, 'loading'),
+        ...$(phase, 'ce-a', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'ce-b', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      await tearDown();
+    });
   });
 });

@@ -3050,7 +3050,7 @@ describe('router hooks', function () {
   });
 
   describe('error recovery from unconfigured route', function () {
-    it('single level', async function () {
+    it('single level - single viewport', async function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 'ce-a', template: 'a' })
@@ -3090,6 +3090,7 @@ describe('router hooks', function () {
         await router['currentTr'].promise;
         assert.fail('expected error');
       } catch { /* noop */ }
+      assert.html.textContent(host, 'a', `${phase} - text`);
       verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
       phase = 'round#2';
@@ -3117,6 +3118,7 @@ describe('router hooks', function () {
         await router['currentTr'].promise;
         assert.fail('expected error');
       } catch { /* noop */ }
+      assert.html.textContent(host, 'b', `${phase} - text`);
       verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
       phase = 'round#4';
@@ -3141,6 +3143,7 @@ describe('router hooks', function () {
         await router.load('c');
         assert.fail('expected error');
       } catch { /* noop */ }
+      assert.html.textContent(host, 'a', `${phase} - text`);
       verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
       phase = 'round#6';
@@ -3158,6 +3161,148 @@ describe('router hooks', function () {
         ...$(phase, 'ce-b', ticks, 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
+      await tearDown();
+    });
+
+    it.only('parent-child', async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 'gc-11', template: 'gc-11' })
+      class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc-12', template: 'gc-12' })
+      class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc-21', template: 'gc-21' })
+      class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 'gc-22', template: 'gc-22' })
+      class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc-11', component: Gc11 },
+          { path: 'gc-12', component: Gc12 },
+        ]
+      })
+      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'gc-21', component: Gc21 },
+          { path: 'gc-22', component: Gc22 },
+        ]
+      })
+      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'p1', component: P1 },
+          { path: 'p2', component: P2 },
+        ]
+      })
+      @customElement({
+        name: 'my-app',
+        template: '<au-viewport></au-viewport>'
+      })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11], { resolutionMode: 'dynamic' }, LogLevel.trace);
+
+      let phase = 'round#1';
+      console.log(`---------------${phase}---------------`);
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('p1/gc-11');
+      assert.html.textContent(host, 'gc-11', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['p-1', 'gc-11'], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      phase = 'round#2';
+      console.log(`---------------${phase}---------------`);
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('p3');
+        assert.fail(`${phase} - expected error`);
+      } catch { /* noop */ }
+      assert.html.textContent(host, 'gc-11', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      phase = 'round#3';
+      console.log(`---------------${phase}---------------`);
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('p1/gc-12');
+      assert.html.textContent(host, 'gc-12', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'gc-11', ticks, 'canUnload'),
+        ...$(phase, 'gc-12', ticks, 'canLoad'),
+        ...$(phase, 'gc-11', ticks, 'unloading'),
+        ...$(phase, 'gc-12', ticks, 'loading'),
+        ...$(phase, 'gc-11', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'gc-12', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      phase = 'round#4';
+      console.log(`---------------${phase}---------------`);
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('p1/gc-13');
+        assert.fail(`${phase} - expected error`);
+      } catch { /* noop */ }
+      assert.html.textContent(host, 'gc-12', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'gc-12', ticks, 'canUnload'),
+      ]);
+
+      // phase = 'round#2';
+      // mgr.fullNotifyHistory.length = 0;
+      // mgr.setPrefix(phase);
+      // await router.load('p2');
+      // assert.html.textContent(host, 'gc-21', `${phase} - text`);
+      // verifyInvocationsEqual(mgr.fullNotifyHistory, [
+      //   ...$(phase, ['gc-11', 'p-1'], ticks, 'canUnload'),
+      //   ...$(phase, 'p-2', ticks, 'canLoad'),
+      //   ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
+      //   ...$(phase, 'p-2', ticks, 'loading'),
+      //   ...$(phase, 'gc-11', ticks, 'detaching'),
+      //   ...$(phase, 'p-1', ticks, 'detaching'),
+      //   ...$(phase, 'gc-11', ticks, 'unbinding'),
+      //   ...$(phase, 'p-1', ticks, 'unbinding'),
+      //   ...$(phase, 'p-1', ticks, 'dispose'),
+      //   ...$(phase, 'gc-11', ticks, 'dispose'),
+      //   ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      //   ...$(phase, 'gc-21', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+      // ]);
+
+      // phase = 'round#3';
+      // mgr.fullNotifyHistory.length = 0;
+      // mgr.setPrefix(phase);
+      // try {
+      //   await router.load('p2/gc-23');
+      //   assert.fail(`${phase} - expected error`);
+      // } catch {/* noop */ }
+      // assert.html.textContent(host, 'gc-21', `${phase} - text`);
+      // verifyInvocationsEqual(mgr.fullNotifyHistory, [
+      //   ...$(phase, /* [ */'gc-21'/* , 'p-1'] */, ticks, 'canUnload'),
+      //   // ...$(phase, 'p-2', ticks, 'canLoad'),
+      //   // ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
+      //   // ...$(phase, 'p-2', ticks, 'loading'),
+      //   // ...$(phase, 'gc-11', ticks, 'detaching'),
+      //   // ...$(phase, 'p-1', ticks, 'detaching'),
+      //   // ...$(phase, 'gc-11', ticks, 'unbinding'),
+      //   // ...$(phase, 'p-1', ticks, 'unbinding'),
+      //   // ...$(phase, 'p-1', ticks, 'dispose'),
+      //   // ...$(phase, 'gc-11', ticks, 'dispose'),
+      //   // ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      //   // ...$(phase, 'gc-21', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+      // ]);
+
+      // phase = 'stop';
+      // mgr.fullNotifyHistory.length = 0;
+      // mgr.setPrefix(phase);
       await tearDown();
     });
   });

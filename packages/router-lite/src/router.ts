@@ -873,13 +873,13 @@ export class Router {
     const guardsResult = tr.guardsResult;
     this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
 
-    if (guardsResult === false) {
+    if (guardsResult === false || tr.erredWithUnknownRoute) {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition();
     } else {
-      void onResolve(this.enqueue(guardsResult === true ? tr.prevInstructions : guardsResult, 'api', tr.managedState, tr), () => {
+      void onResolve(this.enqueue(guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
       });
     }

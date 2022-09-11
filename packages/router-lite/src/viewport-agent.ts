@@ -773,9 +773,7 @@ function ensureGuardsResultIsTrue(vpa: ViewportAgent, tr: Transition): void {
 }
 
 function ensureTransitionHasNotErrored(tr: Transition): void {
-  if (tr.error !== void 0) {
-    throw tr.error;
-  }
+  if (tr.error !== void 0 && !tr.erredWithUnknownRoute) throw tr.error;
 }
 
 const enum State {

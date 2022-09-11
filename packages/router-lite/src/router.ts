@@ -194,7 +194,13 @@ export class NavigationOptions extends RouterOptions {
   }
 }
 
+/** @internal */
+export class UnknownRouteError extends Error { }
+
 export class Transition {
+  private _erredWithUnknownRoute: boolean = false;
+  public get erredWithUnknownRoute(): boolean { return this._erredWithUnknownRoute; }
+
   private constructor(
     public readonly id: number,
     public readonly prevInstructions: ViewportInstructionTree,
@@ -213,7 +219,7 @@ export class Transition {
     public error: unknown,
   ) { }
 
-  public static create(input: Omit<Transition, 'run' | 'handleError'>): Transition {
+  public static create(input: Omit<Transition, 'run' | 'handleError' | 'erredWithUnknownRoute'>): Transition {
     return new Transition(
       input.id,
       input.prevInstructions,
@@ -252,6 +258,7 @@ export class Transition {
   }
 
   public handleError(err: unknown): void {
+    this._erredWithUnknownRoute = err instanceof UnknownRouteError;
     this.reject!(this.error = err);
   }
 
@@ -573,7 +580,7 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
-    if(instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
+    if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
     if (typeof instructionOrInstructions === 'string') {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
@@ -656,14 +663,18 @@ export class Router {
       logger.debug(`Transition succeeded: %s`, nextTr);
       return ret;
     }).catch(err => {
-      logger.error(`Navigation failed: %s`, nextTr, err);
-      this._isNavigating = false;
-      const $nextTr = this.nextTr;
-      // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
-      if($nextTr !== null) {
-        ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+      logger.error(`Transition %s failed: %s`, nextTr, err);
+      if(nextTr.erredWithUnknownRoute) {
+        this.cancelNavigation(nextTr);
       } else {
-        this._routeTree = nextTr.previousRouteTree;
+        this._isNavigating = false;
+        const $nextTr = this.nextTr;
+        // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
+        if ($nextTr !== null) {
+          ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+        } else {
+          this._routeTree = nextTr.previousRouteTree;
+        }
       }
       throw err;
     });
@@ -859,15 +870,16 @@ export class Router {
     this.instructions = tr.prevInstructions;
     this._routeTree = tr.previousRouteTree;
     this._isNavigating = false;
-    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${tr.guardsResult}`));
+    const guardsResult = tr.guardsResult;
+    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
 
-    if (tr.guardsResult === false) {
+    if (guardsResult === false) {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition();
     } else {
-      void onResolve(this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
+      void onResolve(this.enqueue(guardsResult === true ? tr.prevInstructions : guardsResult, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
       });
     }

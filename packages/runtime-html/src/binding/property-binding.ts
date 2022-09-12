@@ -1,5 +1,5 @@
-import { AccessorType, BindingMode, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
-import { BindingTargetSubscriber, connectableBinding } from './binding-utils';
+import { AccessorType, BindingMode, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
@@ -219,6 +219,7 @@ export class PropertyBinding implements IAstBasedBinding {
   }
 }
 
-connectableBinding(true, true)(PropertyBinding);
+connectable(PropertyBinding);
+astEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

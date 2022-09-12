@@ -4,12 +4,13 @@ import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
   BindingMode,
+  connectable,
   LifecycleFlags,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { connectableBinding, type IBindingController, type IAstBasedBinding, State } from '@aurelia/runtime-html';
+import { type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -213,4 +214,5 @@ const updateTaskOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-connectableBinding(true, true)(StateBinding);
+connectable(StateBinding);
+astEvaluator(true)(StateBinding);

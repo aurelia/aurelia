@@ -1,5 +1,5 @@
-import { IndexMap, LifecycleFlags } from '@aurelia/runtime';
-import { connectableBinding } from './binding-utils';
+import { connectable, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { astEvaluator } from './binding-utils';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -112,4 +112,5 @@ export class LetBinding implements IAstBasedBinding {
   }
 }
 
-connectableBinding(true, true)(LetBinding);
+connectable(LetBinding);
+astEvaluator(true)(LetBinding);

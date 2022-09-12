@@ -120,7 +120,6 @@ export {
 } from './binding/interfaces-bindings';
 export {
   astEvaluator,
-  connectableBinding,
 } from './binding/binding-utils';
 export {
   Listener,

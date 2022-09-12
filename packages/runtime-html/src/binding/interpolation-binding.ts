@@ -47,9 +47,6 @@ export class InterpolationBinding implements IBinding {
   private readonly targetObserver: AccessorOrObserver;
   private task: ITask | null = null;
 
-  /** @internal */
-  private _isBinding = 0;
-
   /**
    * A semi-private property used by connectable mixin
    */
@@ -101,7 +98,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = this._controller.state === State.activating && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -126,7 +123,6 @@ export class InterpolationBinding implements IBinding {
     }
     this.isBound = true;
     this.$scope = scope;
-    this._isBinding++;
 
     const partBindings = this.partBindings;
     const ii = partBindings.length;
@@ -135,7 +131,6 @@ export class InterpolationBinding implements IBinding {
       partBindings[i].$bind(flags, scope);
     }
     this.updateTarget(void 0, flags);
-    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -154,7 +149,7 @@ export class InterpolationBinding implements IBinding {
     this.task = null;
   }
 }
-astEvaluator()(InterpolationBinding);
+astEvaluator(true)(InterpolationBinding);
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
@@ -261,6 +256,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
 }
 
 connectable(InterpolationPartBinding);
+astEvaluator(true)(InterpolationPartBinding);
 
 export interface ContentBinding extends IAstBasedBinding {}
 

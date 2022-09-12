@@ -1,6 +1,6 @@
 import { Constructable, type Key } from '@aurelia/kernel';
 import { def, defineHiddenProp } from '../utilities';
-import { connectable, IAstEvaluator, IConnectableBinding, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { IAstEvaluator, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import type { IAstBasedBinding } from './interfaces-bindings';
@@ -24,28 +24,6 @@ export class BindingTargetSubscriber implements ISubscriber {
       b.updateSource(value, flags);
     }
   }
-}
-
-export function connectableBinding(strict: boolean | undefined, strictFnCall: boolean, makeConnectable = true) {
-  return function (target: Constructable<IConnectableBinding>) {
-    const proto = target.prototype;
-    if (makeConnectable) {
-      connectable(target);
-    }
-    if (strict != null) {
-      def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
-    }
-    def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-    defineHiddenProp(proto, 'get', function (this: IAstBasedBinding, key: Key) {
-      return this.locator.get(key);
-    });
-    defineHiddenProp(proto, 'getConverter', function (this: IAstBasedBinding, name: string) {
-      return this.locator.get(ValueConverter.keyFrom(name));
-    });
-    defineHiddenProp(proto, 'getBehavior', function (this: IAstBasedBinding, name: string) {
-      return this.locator.get(BindingBehavior.keyFrom(name));
-    });
-  };
 }
 
 /**

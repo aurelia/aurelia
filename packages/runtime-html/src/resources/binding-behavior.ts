@@ -129,6 +129,7 @@ export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' 
 export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
+  public readonly type = 'instance';
   public interceptor: this = this;
   public readonly oL!: IObserverLocator;
   public readonly locator!: IServiceLocator;

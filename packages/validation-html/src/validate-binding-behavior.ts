@@ -318,7 +318,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 }
 
 connectable()(ValidateBindingBehavior);
-astEvaluator()(ValidateBindingBehavior);
+astEvaluator(true)(ValidateBindingBehavior);
 
 class ValidateArgumentsDelta {
   public constructor(
@@ -365,4 +365,4 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
 }
 
 connectable()(BindingMediator);
-astEvaluator()(BindingMediator);
+astEvaluator(true)(BindingMediator);

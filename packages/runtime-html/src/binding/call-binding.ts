@@ -3,6 +3,7 @@ import { LifecycleFlags } from '@aurelia/runtime';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
+import { astEvaluator } from './binding-utils';
 
 /**
  * A binding for handling .call syntax
@@ -79,3 +80,5 @@ export class CallBinding implements IAstBasedBinding {
     return;
   }
 }
+
+astEvaluator(true)(CallBinding);

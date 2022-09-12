@@ -5,6 +5,7 @@ import {
   ExpressionType,
   LifecycleFlags,
   Interpolation,
+  connectable,
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -12,7 +13,7 @@ import {
   IAstBasedBinding,
   IBindingController,
   State,
-  connectableBinding,
+  astEvaluator,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -420,5 +421,8 @@ class ParameterBinding {
   }
 }
 
-connectableBinding(true, true)(TranslationBinding);
-connectableBinding(true, true)(ParameterBinding);
+connectable(TranslationBinding);
+astEvaluator(true)(TranslationBinding);
+
+connectable(ParameterBinding);
+astEvaluator(true)(ParameterBinding);

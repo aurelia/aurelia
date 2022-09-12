@@ -4,6 +4,8 @@ import {
   ExpressionKind,
   ProxyObservable,
 } from '@aurelia/runtime';
+import { astEvaluator } from '../binding/binding-utils';
+
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
@@ -16,7 +18,6 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
-import { connectableBinding } from '../binding/binding-utils';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;
@@ -164,4 +165,7 @@ export class ExpressionWatcher implements IConnectableBinding {
 }
 
 connectable(ComputedWatcher);
-connectableBinding(true, true)(ExpressionWatcher);
+astEvaluator(true)(ComputedWatcher);
+
+connectable(ExpressionWatcher);
+astEvaluator(true)(ExpressionWatcher);

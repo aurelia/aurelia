@@ -5,7 +5,7 @@ import {
 
 import { IEventTarget } from '../dom';
 import { isFunction } from '../utilities';
-import { connectableBinding } from './binding-utils';
+import { astEvaluator } from './binding-utils';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
@@ -141,4 +141,4 @@ export class Listener implements IAstBasedBinding {
   }
 }
 
-connectableBinding(true, true, false);
+astEvaluator(true, true)(Listener);

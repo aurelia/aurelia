@@ -1278,6 +1278,10 @@ class SpreadBinding implements IBinding {
     return this.ctrl.isStrictBinding;
   }
 
+  public get state() {
+    return this.ctrl.state;
+  }
+
   public constructor(
     /** @internal */ private readonly _innerBindings: IBinding[],
     /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,

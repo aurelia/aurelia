@@ -5,10 +5,11 @@ import {
   LifecycleFlags,
   AccessorType,
   IObserver,
+  connectable,
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
-import { connectableBinding, BindingTargetSubscriber } from './binding-utils';
+import { BindingTargetSubscriber, astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';
 
 import type {
@@ -224,4 +225,5 @@ export class AttributeBinding implements IAstBasedBinding {
   }
 }
 
-connectableBinding(true, true)(AttributeBinding);
+connectable(AttributeBinding);
+astEvaluator(true)(AttributeBinding);

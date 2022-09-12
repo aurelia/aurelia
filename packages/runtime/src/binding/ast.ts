@@ -459,6 +459,7 @@ export class CustomExpression {
 }
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
+  type?: 'instance' | 'factory';
   bind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
 } & T;
@@ -505,7 +506,7 @@ export class BindingBehaviorExpression {
     }
     if ((b as BindingWithBehavior)[key] === void 0) {
       (b as BindingWithBehavior)[key] = behavior;
-      behavior.bind(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
+      behavior.bind?.(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
     } else {
       if (__DEV__)
         throw new Error(`AUR0102: BindingBehavior '${name}' already applied.`);
@@ -518,9 +519,7 @@ export class BindingBehaviorExpression {
     const internalKey = this._key;
     const $b = b as BindingWithBehavior;
     if ($b[internalKey] !== void 0) {
-      if (isFunction($b[internalKey]!.unbind)) {
-        $b[internalKey]!.unbind(f, s, b);
-      }
+      $b[internalKey]!.unbind?.(f, s, b);
       $b[internalKey] = void 0;
     }
     if (this.expression.hasUnbind) {

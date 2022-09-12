@@ -4,9 +4,10 @@ import {
   type IOverrideContext,
   LifecycleFlags,
   Scope,
-  type IsBindingBehavior
+  type IsBindingBehavior,
+  connectable
 } from '@aurelia/runtime';
-import { connectableBinding, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { astEvaluator, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -91,4 +92,5 @@ export class StateDispatchBinding implements IAstBasedBinding {
   }
 }
 
-connectableBinding(true, true)(StateDispatchBinding);
+connectable(StateDispatchBinding);
+astEvaluator(true)(StateDispatchBinding);

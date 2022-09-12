@@ -27,6 +27,8 @@ export function batch(fn: () => unknown): void {
       let pair: [ISubscriberRecord<IAnySubscriber>, BatchRecord];
       let subs: ISubscriberRecord<IAnySubscriber>;
       let batchRecord: BatchRecord;
+      let indexMap: IndexMap;
+      let hasChanges = false;
       for (pair of newBatch) {
         subs = pair[0];
         batchRecord = pair[1];
@@ -36,7 +38,21 @@ export function batch(fn: () => unknown): void {
         if (batchRecord[0] === 1) {
           subs.notify(batchRecord[1], batchRecord[2], batchRecord[3]);
         } else {
-          subs.notifyCollection(batchRecord[1], batchRecord[2]);
+          indexMap = batchRecord[1];
+          hasChanges = false;
+          if (indexMap.deletedIndices.length > 0) {
+            hasChanges = true;
+          } else {
+            for (let i = 0, ii = indexMap.length; i < ii; ++i) {
+              if (indexMap[i] !== i) {
+                hasChanges = true;
+                break;
+              }
+            }
+          }
+          if (hasChanges) {
+            subs.notifyCollection(indexMap, batchRecord[2]);
+          }
         }
       }
     } finally {

@@ -12,6 +12,7 @@ type BatchRecord = ValueBatchRecord | CollectionBatchRecord;
 type Batch = Map<ISubscriberRecord<IAnySubscriber>, BatchRecord>;
 
 let currBatch: Batch | null = new Map();
+// eslint-disable-next-line import/no-mutable-exports
 export let batching = false;
 
 export function batch(fn: () => unknown): void {
@@ -66,7 +67,7 @@ export function addCollectionBatch(
   indexMap: IndexMap,
   flags: LF,
 ) {
-  let batchRecord = currBatch!.get(subs);
+  const batchRecord = currBatch!.get(subs);
   if (batchRecord === void 0) {
     currBatch!.set(subs, [2, indexMap, flags]);
   } else {
@@ -81,7 +82,7 @@ export function addValueBatch(
   oldValue: unknown,
   flags: LF,
 ) {
-  let batchRecord = currBatch!.get(subs);
+  const batchRecord = currBatch!.get(subs);
   if (batchRecord === void 0) {
     currBatch!.set(subs, [1, newValue, oldValue, flags]);
   } else {

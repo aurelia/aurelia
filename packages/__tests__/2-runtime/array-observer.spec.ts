@@ -361,9 +361,7 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      batch(() => {
-
-      });
+      batch(() => { /* do nothing */ });
       assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
@@ -439,8 +437,6 @@ describe(`ArrayObserver`, function () {
   //     );
   //   });
   // });
-
-
 
   describe(`observePush`, function () {
     const initArr = [[], [1], [1, 2]];

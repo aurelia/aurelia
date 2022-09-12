@@ -8,6 +8,7 @@ import type {
   ICollectionObserver,
   ICollectionSubscriberCollection,
 } from '../observation';
+import { batching, addCollectionBatch } from './subscriber-batch';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -40,7 +41,8 @@ const observe = {
       for (const entry of this.entries()) {
         if (entry[0] === key) {
           if (entry[1] !== oldValue) {
-            o.indexMap.deletedItems.push(o.indexMap[i]);
+            o.indexMap.deletedIndices.push(o.indexMap[i]);
+            o.indexMap.deletedItems.push(entry);
             o.indexMap[i] = -2;
             o.notify();
           }
@@ -65,9 +67,10 @@ const observe = {
       const indexMap = o.indexMap;
       let i = 0;
       // deepscan-disable-next-line
-      for (const _ of this.keys()) {
+      for (const key of this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(indexMap[i]);
+          indexMap.deletedIndices.push(indexMap[i]);
+          indexMap.deletedItems.push(key);
         }
         i++;
       }
@@ -92,7 +95,8 @@ const observe = {
     for (const entry of this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(indexMap[i]);
+          indexMap.deletedIndices.push(indexMap[i]);
+          indexMap.deletedItems.push(entry);
         }
         indexMap.splice(i, 1);
         const deleteResult = $delete.call(this, value);
@@ -156,11 +160,17 @@ export class MapObserver {
   }
 
   public notify(): void {
+    const subs = this.subs;
     const indexMap = this.indexMap;
+    if (batching) {
+      addCollectionBatch(subs, indexMap, LifecycleFlags.none);
+      return;
+    }
+
     const size = this.collection.size;
 
     this.indexMap = createIndexMap(size);
-    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
+    subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

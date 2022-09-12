@@ -8,7 +8,7 @@ import {
   LifecycleFlags as LF,
   applyMutationsToIndices,
   synchronizeIndices,
-  // batch,
+  batch,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -35,7 +35,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
     const newArr = this.newArr;
     const oldArr = this.oldArr;
 
-    const deleted = indexMap.deletedItems.sort((a, b) => a - b);
+    const deleted = indexMap.deletedIndices.sort((a, b) => a - b);
     const deletedLen = deleted.length;
     let j = 0;
     for (let i = 0; i < deletedLen; ++i) {
@@ -61,6 +61,213 @@ describe(`ArrayObserver`, function () {
   before(function () {
     disableArrayObservation();
     enableArrayObservation();
+  });
+
+  describe('should allow subscribing for immediate notification', function () {
+    function $test(arr: unknown[], fn: (arr: unknown[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: unknown[]) {
+      const s = new SpySubscriber();
+      const sut = new ArrayObserver(arr);
+      sut.subscribe(s);
+
+      batch(() => {
+        fn(arr);
+      });
+
+      assert.deepStrictEqual(
+        s.collectionChanges.pop(),
+        new CollectionChangeSet(0, LF.none, copyIndexMap(existing, deletedIndices, deletedItems)),
+      );
+    }
+
+    describe('empty array', function () {
+      it('2x push', function () {
+        $test([], arr => {
+          arr.push(1);
+          arr.push(2);
+        }, [-2, -2]);
+      });
+
+      it('2x unshift', function () {
+        $test([], arr => {
+          arr.unshift(1);
+          arr.unshift(2);
+        }, [-2, -2]);
+      });
+
+      it('2x push + 2x unshift', function () {
+        $test([], arr => {
+          arr.push(1);
+          arr.push(2);
+          arr.unshift(3);
+          arr.unshift(4);
+        }, [-2, -2, -2, -2]);
+      });
+
+      it('push + pop', function () {
+        $test([], arr => {
+          arr.push(1);
+          arr.pop()
+        }, [], [], []);
+      });
+
+      it('push + push + pop', function () {
+        $test([], arr => {
+          arr.push(1);
+          arr.push(2);
+          arr.pop()
+        }, [-2], [], []);
+      });
+    });
+
+    describe('array w/ 1 item', function () {
+      it('2x push', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.push(3);
+        }, [0, -2, -2]);
+      });
+
+      it('2x unshift', function () {
+        $test([1], arr => {
+          arr.unshift(2);
+          arr.unshift(3);
+        }, [-2, -2, 0]);
+      });
+
+      it('2x push + 2x unshift', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.push(3);
+          arr.unshift(4);
+          arr.unshift(5);
+        }, [-2, -2, 0, -2, -2]);
+      });
+
+      it('push + pop', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.pop()
+        }, [0], [], []);
+      });
+
+      it('push + push + pop', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.push(3);
+          arr.pop()
+        }, [0, -2], [], []);
+      });
+
+      it('push + shift', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.shift()
+        }, [-2], [0], [1]);
+      });
+
+      it('push + push + shift', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.push(3);
+          arr.shift()
+        }, [-2, -2], [0], [1]);
+      });
+
+      it('push + splice(0, 2, 3, 4)', function () {
+        $test([1], arr => {
+          arr.push(2);
+          arr.splice(0, 2, 3, 4)
+        }, [-2, -2], [0], [1]);
+      });
+    });
+
+    describe('array w/ 2 item', function () {
+      it('2x push', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.push(4);
+        }, [0, 1, -2, -2]);
+      });
+
+      it('2x unshift', function () {
+        $test([1, 2], arr => {
+          arr.unshift(3);
+          arr.unshift(4);
+        }, [-2, -2, 0, 1]);
+      });
+
+      it('2x push + 2x unshift', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.push(4);
+          arr.unshift(5);
+          arr.unshift(6);
+        }, [-2, -2, 0, 1, -2, -2]);
+      });
+
+      it('push + pop', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.pop()
+        }, [0, 1], [], []);
+      });
+
+      it('push + push + pop', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.push(4);
+          arr.pop()
+        }, [0, 1, -2], [], []);
+      });
+
+      it('push + shift', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.shift()
+        }, [1, -2], [0], [1]);
+      });
+
+      it('push + push + shift', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.push(4);
+          arr.shift()
+        }, [1, -2, -2], [0], [1]);
+      });
+
+      it('push + splice(0, 2, 3, 4)', function () {
+        $test([1, 2], arr => {
+          arr.push(3);
+          arr.splice(0, 2, 4, 5)
+        }, [-2, -2, -2], [0, 1], [1, 2]);
+      });
+    });
+  });
+
+  describe('should allow unsubscribing for batched notification', function () {
+    it('push', function () {
+      const s = new SpySubscriber();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      sut.subscribe(s);
+      sut.unsubscribe(s);
+      batch(() => {
+        arr.push(1);
+      });
+      assert.strictEqual(s.collectionChanges.length, 0);
+    });
+  });
+
+  describe('should not notify batched subscribers if there are no changes', function () {
+    it('push', function () {
+      const s = new SpySubscriber();
+      const arr = [];
+      sut = new ArrayObserver(arr);
+      batch(() => {
+
+      });
+      assert.strictEqual(s.collectionChanges.length, 0);
+    });
   });
 
   describe('should allow subscribing for immediate notification', function () {
@@ -135,33 +342,7 @@ describe(`ArrayObserver`, function () {
   //   });
   // });
 
-  // describe('should allow unsubscribing for batched notification', function () {
-  //   it('push', function () {
-  //     const s = new SpySubscriber();
-  //     const arr = [];
-  //     sut = new ArrayObserver(arr);
-  //     sut.subscribe(s);
-  //     sut.unsubscribeFromCollection(s);
-  //     batch(
-  //       function () {
-  //         arr.push(1);
-  //       },
-  //     );
-  //     assert.strictEqual(s.collectionChanges.length, 0);
-  //   });
-  // });
 
-  // describe('should not notify batched subscribers if there are no changes', function () {
-  //   it('push', function () {
-  //     const s = new SpySubscriber();
-  //     const arr = [];
-  //     sut = new ArrayObserver(arr);
-  //     batch(
-  //       function () { return; },
-  //     );
-  //     assert.strictEqual(s.collectionChanges.length, 0);
-  //   });
-  // });
 
   describe(`observePush`, function () {
     const initArr = [[], [1], [1, 2]];

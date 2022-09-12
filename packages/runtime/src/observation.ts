@@ -225,16 +225,18 @@ export type AccessorOrObserver = (IAccessor | IObserver) & {
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
  *
- * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
+ * The deletedIndices property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
-export type IndexMap = number[] & {
-  deletedItems: number[];
+ export type IndexMap<T = unknown> = number[] & {
+  deletedIndices: number[];
+  deletedItems: T[];
   isIndexMap: true;
 };
 
-export function copyIndexMap(
-  existing: number[] & { deletedItems?: number[] },
-  deletedItems?: number[],
+export function copyIndexMap<T = unknown>(
+  existing: number[] & { deletedIndices?: number[]; deletedItems?: T[] },
+  deletedIndices?: number[],
+  deletedItems?: T[],
 ): IndexMap {
   const { length } = existing;
   const arr = Array(length) as IndexMap;
@@ -242,6 +244,13 @@ export function copyIndexMap(
   while (i < length) {
     arr[i] = existing[i];
     ++i;
+  }
+  if (deletedIndices !== void 0) {
+    arr.deletedIndices = deletedIndices.slice(0);
+  } else if (existing.deletedIndices !== void 0) {
+    arr.deletedIndices = existing.deletedIndices.slice(0);
+  } else {
+    arr.deletedIndices = [];
   }
   if (deletedItems !== void 0) {
     arr.deletedItems = deletedItems.slice(0);
@@ -260,6 +269,7 @@ export function createIndexMap(length: number = 0): IndexMap {
   while (i < length) {
     arr[i] = i++;
   }
+  arr.deletedIndices = [];
   arr.deletedItems = [];
   arr.isIndexMap = true;
   return arr;
@@ -267,6 +277,7 @@ export function createIndexMap(length: number = 0): IndexMap {
 
 export function cloneIndexMap(indexMap: IndexMap): IndexMap {
   const clone = indexMap.slice() as IndexMap;
+  clone.deletedIndices = indexMap.deletedIndices.slice();
   clone.deletedItems = indexMap.deletedItems.slice();
   clone.isIndexMap = true;
   return clone;

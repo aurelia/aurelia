@@ -451,7 +451,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     //   collectionSize - end
     // )
     // if (this.collectionStrategy.count() > 0) {
-    //   const deletion = indexMap.deletedItems;
+    //   const deletion = indexMap.deletedIndices;
     //   const hasDeletion = deletion.length > 0;
     //   if (hasDeletion) {
     //     const deletionIndex = deletion[0];

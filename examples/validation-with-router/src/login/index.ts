@@ -20,7 +20,7 @@ export class AuthViewCustomElement implements IRouteViewModel {
     this.user = new UserLogin('', '');
   }
 
-  public load(): void {
+  public loading(): void {
     this.authService.logout();
 
     this.validationRules
@@ -31,7 +31,7 @@ export class AuthViewCustomElement implements IRouteViewModel {
           .required();
   }
 
-  public unload(): void | Promise<void> {
+  public unloading(): void | Promise<void> {
     this.validationRules.off(this.user);
   }
 

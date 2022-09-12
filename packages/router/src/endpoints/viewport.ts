@@ -360,7 +360,9 @@ export class Viewport extends Endpoint {
       }
     }
 
-    const parentDefaultRoute = (this.scope.parent?.endpoint.getRoutes() ?? []).filter(route => route.path === '').length > 0;
+    const parentDefaultRoute = (this.scope.parent?.endpoint.getRoutes() ?? [])
+      .filter(route => (Array.isArray(route.path) ? route.path : [route.path]).includes(''))
+      .length > 0;
     if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && (this.options.default || parentDefaultRoute)) {
       const instructions = RoutingInstruction.parse(this.router, this.options.default ?? '');
       if (instructions.length === 0 && parentDefaultRoute) {

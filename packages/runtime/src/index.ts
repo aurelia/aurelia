@@ -77,6 +77,7 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
+  mergeIndexMaps,
 } from './observation/array-observer';
 export {
   MapObserver,

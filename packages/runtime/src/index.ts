@@ -77,7 +77,6 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
-  mergeIndexMaps,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -217,4 +216,5 @@ export {
   cloneIndexMap,
   createIndexMap,
   ICoercionConfiguration,
+  mergeIndexMaps,
 } from './observation';

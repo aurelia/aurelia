@@ -162,14 +162,14 @@ export class MapObserver {
   public notify(): void {
     const subs = this.subs;
     const indexMap = this.indexMap;
+    const size = this.collection.size;
+    this.indexMap = createIndexMap(size);
+
     if (batching) {
-      addCollectionBatch(subs, indexMap, LifecycleFlags.none);
+      addCollectionBatch(subs, indexMap);
       return;
     }
 
-    const size = this.collection.size;
-
-    this.indexMap = createIndexMap(size);
     subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 

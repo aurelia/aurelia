@@ -396,14 +396,14 @@ export class ArrayObserver {
   public notify(): void {
     const subs = this.subs;
     const indexMap = this.indexMap;
+    const length = this.collection.length;
+    this.indexMap = createIndexMap(length);
+
     if (batching) {
-      addCollectionBatch(subs, indexMap, LifecycleFlags.none);
+      addCollectionBatch(subs, indexMap);
       return;
     }
 
-    const length = this.collection.length;
-
-    this.indexMap = createIndexMap(length);
     subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
@@ -521,45 +521,6 @@ export function applyMutationsToIndices(indexMap: IndexMap): IndexMap {
     }
   }
   return $indexMap;
-}
-
-export function mergeIndexMaps(indexMaps: [IndexMap, ...IndexMap[]]): IndexMap {
-  const mergedMap = cloneIndexMap(indexMaps[0]);
-  const mDelIndices = mergedMap.deletedIndices;
-  const mDelItems = mergedMap.deletedItems;
-
-  for (let idx = 1, idxLen = indexMaps.length; idx < idxLen; ++idx) {
-    const currMap = indexMaps[idx];
-
-    // Step 1: remove the deleted items from the merged map and add deleted records for items that already existed prior to the first mutation.
-    // After this step the current and merged map will have the same length.
-    const cDelIndices = currMap.deletedIndices;
-    const cDelItems = currMap.deletedItems;
-    for (let i = 0, ii = cDelIndices.length; i < ii; ++i) {
-      const cDelIdx = cDelIndices[i];
-      // If the index was previously added and later removed again then we don't track the deletion;
-      // it effectively never existed in the first place.
-      if (mergedMap[cDelIdx] !== -2) {
-        mDelIndices.push(cDelIdx);
-        mDelItems.push(cDelItems[i]);
-      }
-
-      mergedMap.splice(cDelIdx, 1);
-    }
-
-    // Step 2: reorder the existing items in the merged map.
-    const mergedMapCopy = mergedMap.slice();
-    for (let i = 0, ii = mergedMap.length; i < ii; ++i) {
-      const curr = currMap[i];
-      if (curr === -2) {
-        mergedMap[i] = -2;
-      } else {
-        mergedMap[i] = mergedMapCopy[curr];
-      }
-    }
-  }
-
-  return mergedMap;
 }
 
 /**

@@ -6,9 +6,9 @@ import {
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
-  BindingMode,
 } from '@aurelia/runtime';
 import {
+  BindingMode,
   CommandType,
   IRenderer,
   renderer,

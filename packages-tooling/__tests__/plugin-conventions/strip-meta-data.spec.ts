@@ -1,4 +1,4 @@
-import { BindingMode } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime-html';
 import { stripMetaData } from '@aurelia/plugin-conventions';
 import * as assert from 'assert';
 

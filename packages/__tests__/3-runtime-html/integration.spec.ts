@@ -4,8 +4,6 @@ import {
 } from '@aurelia/kernel';
 import {
   BindingMode,
-} from '@aurelia/runtime';
-import {
   Aurelia,
   Controller,
   CustomElement,

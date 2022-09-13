@@ -1,5 +1,6 @@
 // import { DI, IContainer } from '@aurelia/kernel';
-// import { LetBinding, LifecycleFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, Scope, Scope, State } from '@aurelia/runtime';
+// import { LetBinding, LifecycleFlags, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, Scope, Scope, State } from '@aurelia/runtime';
+// import { BindingMode } from '@aurelia/runtime-html';
 // import { MockExpression } from '../mock.js';
 // import { assert } from '@aurelia/testing';
 

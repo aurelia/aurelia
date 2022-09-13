@@ -1,4 +1,4 @@
-import { BindingMode } from '@aurelia/runtime';
+import { BindingMode } from '../../binding/interfaces-bindings';
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';

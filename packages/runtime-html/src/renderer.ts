@@ -1,6 +1,5 @@
 import { DI, emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
 import {
-  BindingMode,
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
@@ -10,6 +9,7 @@ import {
   IBinding,
   Scope,
 } from '@aurelia/runtime';
+import { BindingMode } from './binding/interfaces-bindings';
 import { CallBinding } from './binding/call-binding';
 import { AttributeBinding } from './binding/attribute';
 import { InterpolationBinding, InterpolationPartBinding, ContentBinding } from './binding/interpolation-binding';

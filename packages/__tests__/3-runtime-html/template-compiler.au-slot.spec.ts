@@ -1,8 +1,5 @@
 import {
-  BindingMode
-} from '@aurelia/runtime';
-import {
-  AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
+  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
 } from '@aurelia/runtime-html';
 import {
   assert, TestContext

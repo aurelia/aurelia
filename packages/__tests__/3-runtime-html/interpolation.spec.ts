@@ -5,8 +5,9 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression, BindingMode, LifecycleFlags } from '@aurelia/runtime';
+import { Interpolation, ConditionalExpression, AccessScopeExpression, LifecycleFlags } from '@aurelia/runtime';
 import {
+  BindingMode,
   CustomElement,
   InterpolationBinding,
   SVGAnalyzerRegistration,

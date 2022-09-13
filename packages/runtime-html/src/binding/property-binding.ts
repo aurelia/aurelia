@@ -1,6 +1,7 @@
-import { AccessorType, BindingMode, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { AccessorType, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
 import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
+import { BindingMode } from './interfaces-bindings';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';

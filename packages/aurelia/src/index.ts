@@ -412,7 +412,6 @@ export {
   // IRendererRegistration,
   // RuntimeConfiguration,
 
-  BindingMode,
   // ExpressionKind,
   // Hooks,
   LifecycleFlags,
@@ -520,6 +519,8 @@ export {
   AppTask,
   // TaskStatus,
   // QueueTaskTargetOptions,
+
+  BindingMode,
 
   bindable,
   type PartialBindableDefinition,

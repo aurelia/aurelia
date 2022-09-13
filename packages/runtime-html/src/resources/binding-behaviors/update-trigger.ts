@@ -1,4 +1,5 @@
-import { BindingMode, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
+import { IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode } from '../../binding/interfaces-bindings';
 import { EventSubscriber } from '../../observation/event-delegator';
 import { NodeObserverConfig } from '../../observation/observer-locator';
 import { bindingBehavior } from '../binding-behavior';

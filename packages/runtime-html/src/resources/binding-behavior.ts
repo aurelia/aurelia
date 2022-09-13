@@ -1,5 +1,6 @@
 import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
-import { BindingBehaviorInstance, BindingMode, Collection, IAstEvaluator, IndexMap, LifecycleFlags, ValueConverterInstance } from '@aurelia/runtime';
+import { BindingBehaviorInstance, Collection, IAstEvaluator, IndexMap, LifecycleFlags, ValueConverterInstance } from '@aurelia/runtime';
+import { BindingMode } from '../binding/interfaces-bindings';
 import { def, isFunction, isString } from '../utilities';
 import { registerAliases } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';

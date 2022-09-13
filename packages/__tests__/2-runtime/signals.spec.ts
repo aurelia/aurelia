@@ -4,7 +4,6 @@
 // } from '@aurelia/kernel';
 // import {
 //   Binding,
-//   BindingMode,
 //   IObserverLocator,
 //   IsBindingBehavior,
 //   Scope,
@@ -12,6 +11,7 @@
 //   LifecycleFlags,
 //   SignalBindingBehavior
 // } from '@aurelia/runtime';
+// import { BindingMode } from '@aurelia/runtime-html';
 
 // describe('SignalBindingBehavior', function () {
 //   const container: IContainer = DI.createContainer();

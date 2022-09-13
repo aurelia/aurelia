@@ -309,21 +309,22 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
     // #region ref-binding order
     {
       title: 'works regardless of declaration order',
-      template: '<input value.to-view="div?.toString()"><div ref="div"></div>',
+      template: '<input value.to-view="div.toString()"><div ref="div"></div>',
       assertFn: (ctx, host) => {
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },
     {
       title: 'works regardless of declaration order, and template controller in path',
-      template: '<input value.to-view="div?.toString()"><div if.bind="true" ref="div"></div>',
+      template: '<input value.to-view="div.toString()"><div if.bind="true" ref="div"></div>',
       assertFn: (ctx, host) => {
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },
+
     {
       title: 'works regardless of declaration order, and template controller in path with delayed composition',
-      template: '<input value.to-view="div?.toString()"><div if.bind="renderDiv" ref="div"></div>',
+      template: '<input value.to-view="div.toString()"><div if.bind="renderDiv" ref="div"></div>',
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;

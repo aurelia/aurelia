@@ -284,7 +284,7 @@ describe(`ArrayObserver`, function () {
         }, [1, -2, -2], [0], [1]);
       });
 
-      it('push + splice(0, 2, 3, 4)', function () {
+      it('push + splice(0, 2, 4, 5)', function () {
         verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.splice(0, 2, 4, 5);
@@ -647,6 +647,486 @@ describe(`ArrayObserver`, function () {
 
       it('sort(desc) + sort(asc) + sort(desc)', function () {
         verifyChanges([S(1), S(2)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+          arr.sort(desc);
+        });
+      });
+    });
+
+    describe('array w/ 3 item', function () {
+      it('2x push', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.push(S(5));
+        });
+      });
+
+      it('2x unshift', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.unshift(S(4));
+          arr.unshift(S(5));
+        });
+      });
+
+      it('2x push + 2x unshift', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.push(S(5));
+          arr.unshift(S(6));
+          arr.unshift(S(7));
+        });
+      });
+
+      it('push + pop', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.pop();
+        });
+      });
+
+      it('unshift + shift', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.unshift(S(4));
+          arr.shift();
+        });
+      });
+
+      it('push + push + pop', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.push(S(5));
+          arr.pop();
+        });
+      });
+
+      it('push + shift', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.shift();
+        });
+      });
+
+      it('push + push + shift', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.push(S(5));
+          arr.shift();
+        });
+      });
+
+      it('push + splice(0, 2, 5, 6)', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.splice(0, 2, S(5), S(6));
+        });
+      });
+
+      it('splice(1, 0, 2) + splice(1, 1)', function () {
+        verifyChanges([S(1), S(3), S(4)], arr => {
+          arr.splice(1, 0, S(2));
+          arr.splice(1, 1);
+        });
+      });
+
+      it('splice(1, 0, 2, 3) + splice(1, 1)', function () {
+        verifyChanges([S(1), S(4), S(5)], arr => {
+          arr.splice(1, 0, S(2), S(3));
+          arr.splice(1, 1);
+        });
+      });
+
+      it('splice each item with two new items', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.splice(2, 1, S(3), S(4));
+          arr.splice(4, 1, S(5), S(6));
+        });
+      });
+
+      it('splice each item with two new items and sort asc in-between', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.sort(asc);
+          arr.splice(2, 1, S(3), S(4));
+          arr.sort(asc);
+          arr.splice(4, 1, S(5), S(6));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice each item with two new items and sort desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.sort(desc);
+          arr.splice(2, 1, S(3), S(4));
+          arr.sort(desc);
+          arr.splice(4, 1, S(5), S(6));
+          arr.sort(desc);
+        });
+      });
+
+      it('splice each item with two new items and sort alternating asc & desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.sort(asc);
+          arr.splice(2, 1, S(3), S(4));
+          arr.sort(desc);
+          arr.splice(4, 1, S(5), S(6));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice each item with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(2, 1, S(5), S(6));
+          arr.splice(1, 1, S(3), S(4));
+          arr.splice(0, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the middle item with three new items and sort asc', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(1, 1, S(2), S(4), S(5));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice the middle item with three new items and sort desc', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(1, 1, S(2), S(4), S(5));
+          arr.sort(desc);
+        });
+      });
+
+      it('push + reverse', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse + reverse', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.reverse();
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('push + sort(desc)', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.sort(desc);
+        });
+      });
+
+      it('push + sort(asc)', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.push(S(4));
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc)', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc) + sort(desc)', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+          arr.sort(desc);
+        });
+      });
+    });
+
+    describe('array w/ 4 item', function () {
+      it('2x push', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.push(S(6));
+        });
+      });
+
+      it('2x unshift', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.unshift(S(5));
+          arr.unshift(S(6));
+        });
+      });
+
+      it('2x push + 2x unshift', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.push(S(6));
+          arr.unshift(S(7));
+          arr.unshift(S(8));
+        });
+      });
+
+      it('push + pop', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.pop();
+        });
+      });
+
+      it('unshift + shift', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.unshift(S(5));
+          arr.shift();
+        });
+      });
+
+      it('push + push + pop', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.push(S(6));
+          arr.pop();
+        });
+      });
+
+      it('push + shift', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.shift();
+        });
+      });
+
+      it('push + push + shift', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.push(S(6));
+          arr.shift();
+        });
+      });
+
+      it('push + splice(0, 2, 5, 6)', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.splice(0, 2, S(6), S(7));
+        });
+      });
+
+      it('splice(1, 0, 2) + splice(1, 1)', function () {
+        verifyChanges([S(1), S(3), S(5), S(6)], arr => {
+          arr.splice(1, 0, S(2));
+          arr.splice(1, 1);
+        });
+      });
+
+      it('splice(1, 0, 2, 3) + splice(1, 1)', function () {
+        verifyChanges([S(1), S(5), S(6), S(7)], arr => {
+          arr.splice(1, 0, S(2), S(3));
+          arr.splice(1, 1);
+        });
+      });
+
+      it('splice three of the items each with two new items', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.splice(2, 1, S(3), S(4));
+          arr.splice(4, 1, S(5), S(6));
+        });
+      });
+
+      it('splice three of the items each with two new items and sort asc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(asc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(asc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice three of the items each with two new items and sort desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(desc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(desc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(desc);
+        });
+      });
+
+      it('splice three of the items each with two new items and sort alternating asc & desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(asc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(desc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice the first three items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(2, 1, S(5), S(6));
+          arr.splice(1, 1, S(3), S(4));
+          arr.splice(0, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the last three items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(3, 1, S(5), S(6));
+          arr.splice(2, 1, S(3), S(4));
+          arr.splice(1, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the first two items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(1, 1, S(3), S(4));
+          arr.splice(0, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the middle two items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(2, 1, S(3), S(4));
+          arr.splice(1, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the last two items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(3, 1, S(3), S(4));
+          arr.splice(2, 1, S(1), S(2));
+        });
+      });
+
+      it('splice each item with two new items', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(1), S(2));
+          arr.splice(2, 1, S(3), S(4));
+          arr.splice(4, 1, S(5), S(6));
+          arr.splice(6, 1, S(7), S(8));
+        });
+      });
+
+      it('splice each item with two new items and sort asc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(asc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(asc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(asc);
+          arr.splice(6, 1, S(11), S(12));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice each item with two new items and sort desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(desc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(desc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(desc);
+          arr.splice(6, 1, S(11), S(12));
+          arr.sort(desc);
+        });
+      });
+
+      it('splice each item with two new items and sort alternating asc & desc in-between', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(0, 1, S(5), S(6));
+          arr.sort(asc);
+          arr.splice(2, 1, S(7), S(8));
+          arr.sort(desc);
+          arr.splice(4, 1, S(9), S(10));
+          arr.sort(asc);
+          arr.splice(6, 1, S(11), S(12));
+          arr.sort(desc);
+        });
+      });
+
+      it('splice each item with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(3, 1, S(7), S(8));
+          arr.splice(2, 1, S(5), S(6));
+          arr.splice(1, 1, S(3), S(4));
+          arr.splice(0, 1, S(1), S(2));
+        });
+      });
+
+      it('splice the middle item with three new items and sort asc', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(1, 1, S(2), S(5), S(6));
+          arr.sort(asc);
+        });
+      });
+
+      it('splice the middle item with three new items and sort desc', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(1, 1, S(2), S(5), S(6));
+          arr.sort(desc);
+        });
+      });
+
+      it('push + reverse', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse + reverse', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.reverse();
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('push + sort(desc)', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.sort(desc);
+        });
+      });
+
+      it('push + sort(asc)', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.push(S(5));
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc)', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc) + sort(desc)', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.sort(desc);
           arr.sort(asc);
           arr.sort(desc);

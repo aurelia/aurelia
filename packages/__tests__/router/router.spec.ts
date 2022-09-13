@@ -1826,7 +1826,7 @@ describe('Router', function () {
     ];
 
     const Zero = CustomElement.define({ name: 'zero', template: '!zero!' });
-    const One = CustomElement.define({ name: 'one', template: '!one!<au-viewport name="one-vp"></au-viewport>', });
+    const One = CustomElement.define({ name: 'one', template: '!one!<au-viewport name="one-vp"></au-viewport>' });
     const Two = CustomElement.define({ name: 'two', template: '!two!', }, class { public canLoad() { return 'route-zero'; } });
     const Three = CustomElement.define({ name: 'three', template: '!three!', }, class { public canLoad() { return 'zero'; } });
     const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
@@ -1880,6 +1880,167 @@ describe('Router', function () {
         await $load(test.load, router, platform);
         await platform.domWriteQueue.yield();
         assert.strictEqual(host.textContent, test.result, test.load);
+
+        await $teardown();
+      });
+    }
+  });
+
+  describe('can activate links', function () {
+    this.timeout(30000);
+
+    const routes = [
+      { id: 'route-one', path: 'route-one', component: 'one-route' },
+      { id: 'route-two', path: 'route-two/:id', component: 'two-route' },
+      { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
+    ];
+
+    const Nav = CustomElement.define({
+      name: 'nav', template: `
+      <style>.active { background-color: gold; }</style>
+
+      <a load="one">one</a>
+      <a load="two(123)">two(123)</a>
+      <a load="two(456)">two(456)</a>
+      <a load="route-one">route-one</a>
+      <a load="route-two/123">route-two/123</a>
+      <a load="route-two/456">route-two/456</a>
+
+      <au-viewport name="nav-vp"></au-viewport>
+    `,
+    });
+
+    const NavBind = CustomElement.define({
+      name: 'nav-bind', template: `
+      <style>.active { background-color: gold; }</style>
+
+      <a load.bind="{ component: 'one' }">bind: { component: 'one' }</a>
+      <a load.bind="{ component: 'two', parameters: { id: 123 }}">bind: { component: 'two', parameters: { id: 123 }}</a>
+      <a load.bind="{ component: 'two', parameters: { id: 456 }}">bind: { component: 'two', parameters: { id: 456 }}</a>
+      <a load.bind="{ id: 'route-one' }">bind: { id: 'route-one' }</a>
+      <a load.bind="{ id: 'route-two', parameters: { id: 123 }}">bind: { id: 'route-two', parameters: { id: 123 }}</a>
+      <a load.bind="{ id: 'route-two', parameters: { id: 456 }}">bind: { id: 'route-two', parameters: { id: 456 }}</a>
+
+      <au-viewport name="nav-vp"></au-viewport>
+    `,
+    });
+
+    const NavAttributes = CustomElement.define({
+      name: 'nav-attributes', template: `
+      <style>.active { background-color: gold; }</style>
+
+      <a load="component: one">attributes: component: one</a>
+      <a load="component: two; parameters.bind: { id: 123 };">attributes: component: two; parameters.bind: { id: 123 };</a>
+      <a load="component: two; parameters.bind: { id: 456 };">attributes: component: two; parameters.bind: { id: 456 };</a>
+      <a load="id: route-one">attributes: { id: route-one }</a>
+      <a load="id: route-two; parameters.bind: { id: 123 };">attributes: id: route-two; parameters.bind: { id: 123 };</a>
+      <a load="id: route-two; parameters.bind: { id: 456 };">attributes: id: route-two; parameters.bind: { id: 456 };</a>
+
+      <au-viewport name="nav-vp"></au-viewport>
+    `,
+    });
+
+    const One = CustomElement.define({ name: 'one', template: '!one!' });
+    const Two = CustomElement.define({ name: 'two', template: '!two${id}!' }, class {
+      public static parameters = ['id'];
+      public id: string;
+      public loading(params) { if (params.id != null) { this.id = `:${params.id}`; } }
+    });
+    const OneRoute = CustomElement.define({ name: 'one-route', template: '!one-route!' });
+    const TwoRoute = CustomElement.define({ name: 'two-route', template: '!two-route${id}!' }, class {
+      public static parameters = ['id'];
+      public id: string;
+      public loading(params) { if (params.id != null) { this.id = `:${params.id}`; } }
+    });
+
+    const tests = [
+      { load: 'one', result: '!one!', },
+      { load: 'two(123)', result: '!two:123!', },
+      { load: 'two(456)', result: '!two:456!', },
+      { load: 'route-one', result: '!one-route!', },
+      { load: 'route-two/123', result: '!two-route:123!', },
+      { load: 'route-two/456', result: '!two-route:456!', },
+    ];
+
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      it(`for "${test.load}"`, async function () {
+        const { platform, host, router, $teardown } = await $setup({}, [Nav, One, Two, OneRoute, TwoRoute], routes);
+
+        await $load('/nav', router, platform);
+        await platform.domWriteQueue.yield();
+
+        const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
+        const link = links[i];
+        link.click();
+        await platform.domWriteQueue.yield();
+
+        assert.includes(host.textContent, test.result, test.load);
+        for (const l of links) {
+          assert.strictEqual(l.classList.contains('active'), l === link, `${l.innerText}: ${l.classList.contains('active')}`);
+        }
+
+        await $teardown();
+      });
+    }
+
+    const bindTests = [
+      { load: 'bind: one', result: '!one!', },
+      { load: 'bind: two(123)', result: '!two:123!', },
+      { load: 'bind: two(456)', result: '!two:456!', },
+      { load: 'bind: route-one', result: '!one-route!', },
+      { load: 'bind: route-two/123', result: '!two-route:123!', },
+      { load: 'bind: route-two/456', result: '!two-route:456!', },
+    ];
+
+    for (let i = 0; i < bindTests.length; i++) {
+      const test = bindTests[i];
+      it(`for "${test.load}"`, async function () {
+        const { platform, host, router, $teardown } = await $setup({}, [NavBind, One, Two, OneRoute, TwoRoute], routes);
+
+        await $load('/nav-bind', router, platform);
+        await platform.domWriteQueue.yield();
+
+        const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
+        const link = links[i];
+        link.click();
+        await platform.domWriteQueue.yield();
+
+        assert.includes(host.textContent, test.result, test.load);
+        for (const l of links) {
+          assert.strictEqual(l.classList.contains('active'), l === link, `${l.innerText}: ${l.classList.contains('active')}`);
+        }
+
+        await $teardown();
+      });
+    }
+
+    const attributesTests = [
+      { load: 'attributes: one', result: '!one!', },
+      { load: 'attributes: two(123)', result: '!two:123!', },
+      { load: 'attributes: two(456)', result: '!two:456!', },
+      { load: 'attributes: route-one', result: '!one-route!', },
+      { load: 'attributes: route-two/123', result: '!two-route:123!', },
+      { load: 'attributes: route-two/456', result: '!two-route:456!', },
+    ];
+
+    for (let i = 0; i < attributesTests.length; i++) {
+      const test = attributesTests[i];
+      it(`for "${test.load}"`, async function () {
+        const { platform, host, router, $teardown } = await $setup({}, [NavAttributes, One, Two, OneRoute, TwoRoute], routes);
+
+        await $load('/nav-attributes', router, platform);
+        await platform.domWriteQueue.yield();
+
+        const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
+        const link = links[i];
+        link.click();
+        await platform.domWriteQueue.yield();
+
+        assert.includes(host.textContent, test.result, test.load);
+        for (const l of links) {
+          assert.strictEqual(l.classList.contains('active'), l === link, `${l.innerText}: ${l.classList.contains('active')}`);
+        }
 
         await $teardown();
       });

@@ -1,7 +1,8 @@
-import { bindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
 import type { Scope } from '@aurelia/runtime';
+import { bindingBehavior } from '@aurelia/runtime-html';
 
 @bindingBehavior(ValueConverters.numberFormatValueConverterName)
 export class NumberFormatBindingBehavior {

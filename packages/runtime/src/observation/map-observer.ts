@@ -11,6 +11,7 @@ import type {
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
 const $set = proto.set;
@@ -65,6 +66,7 @@ const observe = {
       const indexMap = o.indexMap;
       let i = 0;
       // deepscan-disable-next-line
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (const _ of this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);

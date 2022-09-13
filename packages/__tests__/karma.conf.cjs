@@ -239,6 +239,9 @@ const commonChromeFlags = [
   '--disable-extensions',
   '--disable-infobars',
   '--disable-translate',
+  '--disable-application-cache',
+  '--media-cache-size=1',
+  '--disk-cache-size=1',
 ];
 
 const testDirs = [

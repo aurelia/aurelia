@@ -100,7 +100,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
-    const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container, container.get(IPlatform));
+    const binding = new TranslationBinding({ state: 0 }, container, container.get(IObserverLocator), container.get(IPlatform), targetElement);
     const hydratable = ({ container, bindings: [binding] } as unknown as IHydratableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;

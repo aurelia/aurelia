@@ -2,9 +2,10 @@ import {
   connectable,
   ConnectableSwitcher,
   ExpressionKind,
-  LifecycleFlags,
   ProxyObservable,
 } from '@aurelia/runtime';
+import { astEvaluator } from '../binding/binding-utils';
+
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
@@ -45,7 +46,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
   public constructor(
     public readonly obj: IObservable,
     observerLocator: IObserverLocator,
-    public readonly get: (obj: object, watcher: IConnectable) => unknown,
+    public readonly $get: (obj: object, watcher: IConnectable) => unknown,
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
@@ -95,7 +96,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.obs.version++;
     try {
       enter(this);
-      return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this.value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear();
       this.running = false;
@@ -133,7 +134,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
-      value = expr.evaluate(0, this.scope, this.locator, this);
+      value = expr.evaluate(this.scope, this, this);
       this.obs.clear();
     }
     if (!Object.is(value, oldValue)) {
@@ -149,7 +150,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
     this.isBound = true;
     this.obs.version++;
-    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, this.locator, this);
+    this.value = this.expression.evaluate(this.scope, this, this);
     this.obs.clear();
   }
 
@@ -164,4 +165,7 @@ export class ExpressionWatcher implements IConnectableBinding {
 }
 
 connectable(ComputedWatcher);
+astEvaluator(true)(ComputedWatcher);
+
 connectable(ExpressionWatcher);
+astEvaluator(true)(ExpressionWatcher);

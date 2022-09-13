@@ -116,13 +116,14 @@ export class StateBindingInstructionRenderer implements IRenderer {
     instruction: StateBindingInstruction,
   ): void {
     const binding = new StateBinding(
+      renderingCtrl,
       renderingCtrl.container,
-      this.p.domWriteQueue,
-      this._stateContainer,
       this._observerLocator,
+      this.p.domWriteQueue,
       ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction),
       target,
       instruction.to,
+      this._stateContainer,
     );
     renderingCtrl.addBinding(binding);
   }
@@ -146,10 +147,10 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     const expr = ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsProperty);
     const binding = new StateDispatchBinding(
       renderingCtrl.container,
-      this._stateContainer,
       expr,
       target,
-      instruction.from
+      instruction.from,
+      this._stateContainer,
     );
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)

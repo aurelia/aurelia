@@ -75,9 +75,15 @@ export class ComputedObserver implements
   /** @internal */
   private readonly _obj: object;
 
-  public readonly get: (watcher: IConnectable) => unknown;
+  /**
+   * The getter this observer is wrapping
+   */
+  public readonly $get: (watcher: IConnectable) => unknown;
 
-  public readonly set: undefined | ((v: unknown) => void);
+  /**
+   * The setter this observer is wrapping
+   */
+  public readonly $set: undefined | ((v: unknown) => void);
 
   /** @internal */
   private readonly _useProxy: boolean;
@@ -95,15 +101,15 @@ export class ComputedObserver implements
     observerLocator: IObserverLocator,
   ) {
     this._obj = obj;
-    this.get = get;
-    this.set = set;
+    this.$get = get;
+    this.$set = set;
     this._useProxy = useProxy;
     this.oL = observerLocator;
   }
 
   public getValue() {
     if (this.subs.count === 0) {
-      return this.get.call(this._obj, this);
+      return this.$get.call(this._obj, this);
     }
     if (this._isDirty) {
       this.compute();
@@ -114,11 +120,11 @@ export class ComputedObserver implements
 
   // deepscan-disable-next-line
   public setValue(v: unknown, _flags: LifecycleFlags): void {
-    if (isFunction(this.set)) {
+    if (isFunction(this.$set)) {
       if (v !== this._value) {
         // setting running true as a form of batching
         this._isRunning = true;
-        this.set.call(this._obj, v);
+        this.$set.call(this._obj, v);
         this._isRunning = false;
 
         this.run();
@@ -188,7 +194,7 @@ export class ComputedObserver implements
     this.obs.version++;
     try {
       enterConnectable(this);
-      return this._value = unwrap(this.get.call(this._useProxy ? wrap(this._obj) : this._obj, this));
+      return this._value = unwrap(this.$get.call(this._useProxy ? wrap(this._obj) : this._obj, this));
     } finally {
       this.obs.clear();
       this._isRunning = false;

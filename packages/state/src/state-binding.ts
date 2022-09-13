@@ -4,12 +4,13 @@ import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
   BindingMode,
-  connectable, LifecycleFlags,
+  connectable,
+  LifecycleFlags,
   Scope,
   type IAccessor,
-  type IConnectableBinding,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
+import { type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -21,15 +22,14 @@ const { toView, oneTime } = BindingMode;
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateBinding extends IConnectableBinding { }
-@connectable()
-export class StateBinding implements IConnectableBinding, IStoreSubscriber<object> {
+export interface StateBinding extends IAstBasedBinding { }
+export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
   public readonly oL: IObserverLocator;
   public interceptor: this = this;
   public locator: IServiceLocator;
   public $scope?: Scope | undefined;
   public isBound: boolean = false;
-  public sourceExpression: IsBindingBehavior;
+  public ast: IsBindingBehavior;
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
@@ -40,24 +40,27 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
+  /** @internal */ private readonly _controller: IBindingController;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
   public mode: BindingMode = toView;
 
   public constructor(
+    controller: IBindingController,
     locator: IServiceLocator,
-    taskQueue: TaskQueue,
-    store: IStore<object>,
     observerLocator: IObserverLocator,
-    expr: IsBindingBehavior,
+    taskQueue: TaskQueue,
+    ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
+    store: IStore<object>,
   ) {
+    this._controller = controller;
     this.locator = locator;
     this.taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
-    this.sourceExpression = expr;
+    this.ast = ast;
     this.target = target;
     this.targetProperty = prop;
   }
@@ -99,10 +102,9 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
-    this.updateTarget(this._value = this.sourceExpression.evaluate(
-      LifecycleFlags.isStrictBindingStrategy,
+    this.updateTarget(this._value = this.ast.evaluate(
       this.$scope,
-      this.locator,
+      this,
       this.mode > oneTime ? this : null),
       LifecycleFlags.none
     );
@@ -133,10 +135,10 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     obsRecord.clear();
 
     let task: ITask | null;
@@ -158,13 +160,12 @@ export class StateBinding implements IConnectableBinding, IStoreSubscriber<objec
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    const value = this.sourceExpression.evaluate(
-      LifecycleFlags.isStrictBindingStrategy,
+    const value = this.ast.evaluate(
       $scope,
-      this.locator,
+      this,
       this.mode > oneTime ? this : null
     );
-    const shouldQueueFlush = (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
 
     if (value === this._value) {
       return;
@@ -212,3 +213,6 @@ const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
   preempt: true,
 };
+
+connectable(StateBinding);
+astEvaluator(true)(StateBinding);

@@ -136,8 +136,8 @@ interface CollectionLengthObserverImpl extends ISubscriberCollection, ICollectio
 
 function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
   const proto = klass.prototype as ISubscriberCollection;
-  ensureProto(proto, 'subscribe', subscribe, true);
-  ensureProto(proto, 'unsubscribe', unsubscribe, true);
+  ensureProto(proto, 'subscribe', subscribe);
+  ensureProto(proto, 'unsubscribe', unsubscribe);
   withFlushQueue(klass);
   subscriberCollection(klass);
 }

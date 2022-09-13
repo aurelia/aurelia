@@ -1,5 +1,7 @@
-import { bindingBehavior, alias, BindingBehaviorInstance, LifecycleFlags, Scope, IBinding } from '@aurelia/runtime';
+import { BindingBehaviorInstance, LifecycleFlags, Scope, IBinding } from '@aurelia/runtime';
 import {
+  bindingBehavior,
+  alias,
   bindable,
   customAttribute,
   INode,

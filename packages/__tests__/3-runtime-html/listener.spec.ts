@@ -1,5 +1,4 @@
-import { ValueConverter } from '@aurelia/runtime';
-import { AppTask, IListenerBehaviorOptions } from '@aurelia/runtime-html';
+import { AppTask, IListenerBehaviorOptions, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/listener.spec.ts', function () {

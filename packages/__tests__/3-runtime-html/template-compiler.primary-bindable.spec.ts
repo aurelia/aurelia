@@ -7,17 +7,15 @@ import {
   PLATFORM,
 } from '@aurelia/testing';
 import {
+  bindable,
   bindingBehavior,
   valueConverter,
-  ValueConverter,
-} from '@aurelia/runtime';
-import {
-  bindable,
   customAttribute,
   CustomElement,
   INode,
   CustomAttribute,
   Aurelia,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 
 describe('template-compiler.primary-bindable.spec.ts', function () {

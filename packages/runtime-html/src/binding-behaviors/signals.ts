@@ -1,4 +1,5 @@
-import { bindingBehavior, ISignaler, LifecycleFlags } from '@aurelia/runtime';
+import { ISignaler, LifecycleFlags } from '@aurelia/runtime';
+import { bindingBehavior } from '../resources/binding-behavior';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {

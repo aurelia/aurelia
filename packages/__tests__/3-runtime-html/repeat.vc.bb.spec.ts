@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { valueConverter, bindingBehavior } from '@aurelia/runtime';
-import { Aurelia, CustomElement, ICustomElementController, IPlatform } from '@aurelia/runtime-html';
+import { valueConverter, bindingBehavior, Aurelia, CustomElement, ICustomElementController, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 

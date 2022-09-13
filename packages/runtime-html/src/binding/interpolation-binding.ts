@@ -6,6 +6,8 @@ import {
   LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
+import { astEvaluator } from './binding-utils';
+import { State } from '../templating/controller';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -19,7 +21,7 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
@@ -33,6 +35,7 @@ const queueTaskOptions: QueueTaskOptions = {
 // value converters and binding behaviors.
 // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
 // in which case the renderer will create the TextBinding directly
+export interface InterpolationBinding extends IBinding {}
 export class InterpolationBinding implements IBinding {
   public interceptor: this = this;
 
@@ -48,19 +51,23 @@ export class InterpolationBinding implements IBinding {
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
+    controller: IBindingController,
+    public locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public interpolation: Interpolation,
+    private readonly taskQueue: TaskQueue,
+    public ast: Interpolation,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    public locator: IServiceLocator,
-    private readonly taskQueue: TaskQueue,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
-    const expressions = interpolation.expressions;
+    const expressions = ast.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     const ii = expressions.length;
     let i = 0;
@@ -71,15 +78,17 @@ export class InterpolationBinding implements IBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
-    const staticParts = this.interpolation.parts;
+    const staticParts = this.ast.parts;
     const ii = partBindings.length;
     let result = '';
     let i = 0;
     if (ii === 1) {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       result = staticParts[0] + partBindings[0].value + staticParts[1];
     } else {
       result = staticParts[0];
       for (; ii > i; ++i) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         result += partBindings[i].value + staticParts[i + 1];
       }
     }
@@ -89,7 +98,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -114,6 +123,7 @@ export class InterpolationBinding implements IBinding {
     }
     this.isBound = true;
     this.$scope = scope;
+
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
@@ -139,6 +149,7 @@ export class InterpolationBinding implements IBinding {
     this.task = null;
   }
 }
+astEvaluator(true)(InterpolationBinding);
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
@@ -161,7 +172,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   public readonly oL: IObserverLocator;
 
   public constructor(
-    public readonly sourceExpression: IsExpression,
+    public readonly ast: IsExpression,
     public readonly target: object,
     public readonly targetProperty: string,
     public readonly locator: IServiceLocator,
@@ -175,20 +186,22 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     if (!this.isBound) {
       return;
     }
-    const sourceExpression = this.sourceExpression;
+    const ast = this.ast;
     const obsRecord = this.obs;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
       shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
     }
+    // todo(!=): maybe should do strict comparison?
+    // eslint-disable-next-line eqeqeq
     if (newValue != this.value) {
       this.value = newValue;
       if (newValue instanceof Array) {
@@ -213,14 +226,13 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.isBound = true;
     this.$scope = scope;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
-    this.value = this.sourceExpression.evaluate(
-      flags,
+    this.value = this.ast.evaluate(
       scope,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (this.value instanceof Array) {
@@ -234,8 +246,8 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
     this.isBound = false;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
@@ -244,6 +256,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
 }
 
 connectable(InterpolationPartBinding);
+astEvaluator(true)(InterpolationPartBinding);
 
 export interface ContentBinding extends IAstBasedBinding {}
 
@@ -261,23 +274,32 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   public task: ITask | null = null;
   public isBound: boolean = false;
 
+  /** @internal */
+  private _isBinding = 0;
+
   /**
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private readonly _controller: IBindingController;
+
   public constructor(
-    public readonly sourceExpression: IsExpression,
-    public readonly target: Text,
+    controller: IBindingController,
     public readonly locator: IServiceLocator,
     observerLocator: IObserverLocator,
+    private readonly taskQueue: TaskQueue,
     private readonly p: IPlatform,
-    private readonly strict: boolean,
+    public readonly ast: IsExpression,
+    public readonly target: Text,
+    public readonly strict: boolean,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+  public updateTarget(value: unknown, _flags: LifecycleFlags): void {
     const target = this.target;
     const NodeCtor = this.p.Node;
     const oldValue = this.value;
@@ -297,9 +319,9 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     if (!this.isBound) {
       return;
     }
-    const sourceExpression = this.sourceExpression;
+    const ast = this.ast;
     const obsRecord = this.obs;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
       shouldConnect = (this.mode & toView) > 0;
@@ -307,7 +329,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
         obsRecord.version++;
       }
       flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, shouldConnect ? this.interceptor : null);
+      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -324,7 +346,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
+    const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue, flags);
     } else {
@@ -337,17 +359,21 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       return;
     }
     this.obs.version++;
-    const v = this.value = this.sourceExpression.evaluate(
-      LifecycleFlags.none,
+    const v = this.value = this.ast.evaluate(
       this.$scope!,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     this.obs.clear();
     if (v instanceof Array) {
       this.observeCollection(v);
     }
-    this.queueUpdate(v, LifecycleFlags.none);
+    const shouldQueueFlush = this._isBinding === 0;
+    if (shouldQueueFlush) {
+      this.queueUpdate(v, LifecycleFlags.none);
+    } else {
+      this.updateTarget(v, LifecycleFlags.none);
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
@@ -360,23 +386,24 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
     this.isBound = true;
     this.$scope = scope;
+    this._isBinding++;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this.interceptor as IIndexable & this);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
     }
 
     flags |= this.strict ? LifecycleFlags.isStrictBindingStrategy : 0;
 
-    const v = this.value = this.sourceExpression.evaluate(
-      flags,
+    const v = this.value = this.ast.evaluate(
       scope,
-      this.locator,
+      this,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {
       this.observeCollection(v);
     }
     this.updateTarget(v, flags);
+    this._isBinding--;
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -385,8 +412,8 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     this.isBound = false;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     // TODO: should existing value (either connected node, or a string)
@@ -401,7 +428,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   // queue a force update
   private queueUpdate(newValue: unknown, flags: LifecycleFlags): void {
     const task = this.task;
-    this.task = this.p.domWriteQueue.queueTask(() => {
+    this.task = this.taskQueue.queueTask(() => {
       this.task = null;
       this.updateTarget(newValue, flags);
     }, queueTaskOptions);
@@ -409,4 +436,5 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 }
 
-connectable(ContentBinding);
+connectable()(ContentBinding);
+astEvaluator(void 0, false)(ContentBinding);

@@ -12,7 +12,7 @@ import {
   IExpressionParser,
   LifecycleFlags,
   ExpressionKind,
-  IsBindingBehavior
+  // IsBindingBehavior
 } from '@aurelia/runtime';
 import {
   parsePropertyName,
@@ -32,7 +32,7 @@ import {
 } from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
-  sourceExpression: BindingBehaviorExpression;
+  ast: BindingBehaviorExpression;
   target: Element | object;
 };
 export const enum ValidateEventKind {
@@ -115,20 +115,20 @@ export class BindingInfo {
 
 class PropertyInfo {
   public constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public object: any,
     public propertyName: string,
   ) { }
 }
 
-export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
+export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, _flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
   let propertyInfo = info.propertyInfo;
   if (propertyInfo !== void 0) {
     return propertyInfo;
   }
 
   const scope = info.scope;
-  let expression = binding.sourceExpression.expression as IsBindingBehavior;
-  const locator = binding.locator;
+  let expression = binding.ast.expression;
   let toCachePropertyName = true;
   let propertyName: string = '';
   while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
@@ -146,7 +146,8 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, locator, null) as any).toString()}]`;
+        // eslint-disable-next-line
+        memberName = `[${(keyExpr.evaluate(scope, binding, null) as any).toString()}]`;
         break;
       }
       default:
@@ -157,14 +158,15 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     expression = expression.object;
   }
   if (expression === void 0) {
-    throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
+    throw new Error(`Unable to parse binding expression: ${binding.ast.expression}`); // TODO: use reporter/logger
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let object: any;
   if (propertyName.length === 0) {
     propertyName = expression.name;
     object = scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, locator, null);
+    object = expression.evaluate(scope, binding, null);
   }
   if (object === null || object === void 0) {
     return (void 0);
@@ -221,6 +223,7 @@ export interface IValidationController {
   /**
    * Validates and notifies the subscribers with the result.
    *
+   * @template TObject
    * @param {ValidateInstruction<TObject>} [instruction] - If omitted, then all the registered objects and bindings will be validated.
    */
   validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult>;
@@ -380,6 +383,7 @@ export class ValidationController implements IValidationController {
       instructions = [
         ...Array.from(this.objects.entries())
           .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         ...(!objectTag ? Array.from(this.bindings.entries()) : [])
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {

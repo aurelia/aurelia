@@ -1,25 +1,28 @@
 import { toArray } from '@aurelia/kernel';
 import {
-  connectable,
   AccessorType,
   CustomExpression,
   ExpressionType,
   LifecycleFlags,
   Interpolation,
+  connectable,
 } from '@aurelia/runtime';
 import {
   CustomElement,
   IPlatform,
+  IAstBasedBinding,
+  IBindingController,
+  State,
+  astEvaluator,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions } from '@aurelia/platform';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
   IsExpression,
-  IConnectableBinding,
   IExpressionParser,
   IObserverLocator,
   IObserverLocatorBasedConnectable,
@@ -48,7 +51,7 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IConnectableBinding { }
+export interface TranslationBinding extends IAstBasedBinding { }
 
 const forOpts = { optional: true } as const;
 const taskQueueOpts: QueueTaskOptions = {
@@ -73,24 +76,31 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
+  private readonly taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
   /**
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private readonly _controller: IBindingController;
+
   public constructor(
-    target: INode,
-    observerLocator: IObserverLocator,
+    controller: IBindingController,
     public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
     platform: IPlatform,
+    target: INode,
   ) {
+    this._controller = controller;
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
     this.platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
     this.i18n.subscribeLocaleChange(this);
+    this.taskQueue = platform.domWriteQueue;
   }
 
   public static create({
@@ -123,19 +133,22 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
     let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context, platform);
+      binding = new TranslationBinding(controller, context, observerLocator, platform, target);
       controller.addBinding(binding);
     }
     return binding;
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
+    if (this.isBound) {
+      return;
+    }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!this.expr) { throw new Error('key expression is missing'); }
     this.scope = scope;
     this._isInterpolation = this.expr instanceof Interpolation;
 
-    this._keyExpression = this.expr.evaluate(flags, scope, this.locator, this) as string;
+    this._keyExpression = this.expr.evaluate(scope, this, this) as string;
     this._ensureKeyExpression();
     this.parameter?.$bind(flags, scope);
 
@@ -166,7 +179,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? this.expr.evaluate(flags, this.scope, this.locator, this) as string
+        ? this.expr.evaluate(this.scope, this, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -206,7 +219,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, attribute)
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
+          const shouldQueueUpdate = this._controller.state !== State.activating && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
           } else {
@@ -219,14 +232,14 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
     let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = (flags & LifecycleFlags.fromBind) === 0;
+      shouldQueueContent = this._controller.state !== State.activating;
       if (!shouldQueueContent) {
         this._updateContent(content, flags);
       }
     }
 
     if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-      this.task = this.platform.domWriteQueue.queueTask(() => {
+      this.task = this.taskQueue.queueTask(() => {
         this.task = null;
         for (const updateTask of accessorUpdateTasks) {
           updateTask.run();
@@ -341,7 +354,7 @@ class AccessorUpdateTask {
   }
 }
 
-interface ParameterBinding extends IConnectableBinding {}
+interface ParameterBinding extends IAstBasedBinding {}
 
 class ParameterBinding {
 
@@ -375,7 +388,7 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = this.expr.evaluate(flags, this.scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(this.scope, this, this) as i18next.TOptions;
     this.obs.clear();
     this.updater(flags);
   }
@@ -390,7 +403,7 @@ class ParameterBinding {
       this.expr.bind(flags, scope, this);
     }
 
-    this.value = this.expr.evaluate(flags, scope, this.locator, this) as i18next.TOptions;
+    this.value = this.expr.evaluate(scope, this, this) as i18next.TOptions;
     this.isBound = true;
   }
 
@@ -409,4 +422,7 @@ class ParameterBinding {
 }
 
 connectable(TranslationBinding);
+astEvaluator(true)(TranslationBinding);
+
 connectable(ParameterBinding);
+astEvaluator(true)(ParameterBinding);

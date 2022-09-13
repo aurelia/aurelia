@@ -15,15 +15,15 @@ export const enum ValueConverters {
 }
 
 export type BindingWithBehavior = IBinding & {
-  sourceExpression: BindingBehaviorExpression;
+  ast: BindingBehaviorExpression;
 };
 
 export function createIntlFormatValueConverterExpression(name: string, binding: BindingWithBehavior) {
 
-  const expression = binding.sourceExpression.expression;
+  const expression = binding.ast.expression;
 
   if (!(expression instanceof ValueConverterExpression)) {
-    const vcExpression = new ValueConverterExpression(expression as IsValueConverter, name, binding.sourceExpression.args);
-    (binding.sourceExpression as Writable<BindingBehaviorExpression>).expression = vcExpression;
+    const vcExpression = new ValueConverterExpression(expression as IsValueConverter, name, binding.ast.args);
+    (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
   }
 }

@@ -12,9 +12,9 @@ export class RefBinding implements IAstBasedBinding {
   public $scope?: Scope = void 0;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior,
-    public target: object,
     public locator: IServiceLocator,
+    public ast: IsBindingBehavior,
+    public target: object,
   ) {}
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {
@@ -28,11 +28,11 @@ export class RefBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    if (this.sourceExpression.hasBind) {
-      this.sourceExpression.bind(flags, scope, this);
+    if (this.ast.hasBind) {
+      this.ast.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+    this.ast.assign(this.$scope, this, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -43,16 +43,16 @@ export class RefBinding implements IAstBasedBinding {
       return;
     }
 
-    let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, null) === this.target) {
-      sourceExpression.assign(flags, this.$scope!, this.locator, null);
+    let ast = this.ast;
+    if (ast.evaluate(this.$scope!, this, null) === this.target) {
+      ast.assign(this.$scope!, this, null);
     }
 
     // source expression might have been modified durring assign, via a BB
     // deepscan-disable-next-line
-    sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasUnbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    ast = this.ast;
+    if (ast.hasUnbind) {
+      ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

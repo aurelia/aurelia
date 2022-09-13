@@ -1,7 +1,8 @@
-import { observable, SetterObserver, IObservable, ValueConverter, IObserverLocator } from '@aurelia/runtime';
+import { observable, SetterObserver, IObservable, IObserverLocator } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { noop } from '@aurelia/kernel';
 import type { IObserver } from '@aurelia/runtime';
+import { ValueConverter } from '@aurelia/runtime-html';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';

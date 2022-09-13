@@ -1,5 +1,5 @@
 import { ComposableObjectComponentType, IViewLocator, ViewSelector } from '../../templating/view';
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '../value-converter';
 import type { ICustomElementViewModel } from '../../templating/controller';
 
 export class ViewValueConverter {

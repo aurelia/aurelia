@@ -1,4 +1,4 @@
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '@aurelia/runtime-html';
 import { I18N } from '../i18n';
 import { Signals, ValueConverters } from '../utils';
 
@@ -11,7 +11,7 @@ export class DateFormatValueConverter {
   ) {}
 
   public toView(value: string | number | Date, options?: Intl.DateTimeFormatOptions, locale?: string) {
-
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if ((!value && value !== 0) || (typeof value === 'string' && value.trim() === '')) {
       return value;
     }

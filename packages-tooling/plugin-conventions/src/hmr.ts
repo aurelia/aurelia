@@ -80,7 +80,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         // @ts-ignore
         Object.keys(values).forEach(key => {
           // @ts-ignore
-          if (!controller.bindings?.some(y => y.sourceExpression?.name === key && y.targetProperty)) {
+          if (!controller.bindings?.some(y => y.ast?.name === key && y.targetProperty)) {
             delete values[key];
           }
         });

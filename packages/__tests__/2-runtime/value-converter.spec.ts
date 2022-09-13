@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { valueConverter, ValueConverter } from '@aurelia/runtime';
+import { valueConverter, ValueConverter } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe(`@valueConverter('foo')`, function () {

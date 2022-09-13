@@ -1,48 +1,15 @@
-import {
-  ResourceType,
-  Registration,
-  mergeArrays,
-  firstDefined,
-  DI,
-  fromAnnotationOrDefinitionOrTypeOrDefault,
-} from '@aurelia/kernel';
-import { BindingMode, Collection, IndexMap, LifecycleFlags } from './observation';
-import { registerAliases } from './alias';
-import {
-  appendResourceKey,
-  def,
-  defineMetadata,
-  getAnnotationKeyFor,
-  getOwnMetadata,
-  getResourceKeyFor,
-  hasOwnMetadata,
-  isFunction,
-  isString,
-} from './utilities-objects';
+import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
+import { BindingBehaviorInstance, BindingMode, Collection, IAstEvaluator, IndexMap, LifecycleFlags, ValueConverterInstance } from '@aurelia/runtime';
+import { def, isFunction, isString } from '../utilities';
+import { registerAliases } from '../utilities-di';
+import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
-import type {
-  Constructable,
-  IContainer,
-  ResourceDefinition,
-  IResourceKind,
-  PartialResourceDefinition,
-  IServiceLocator,
-  Key,
-} from '@aurelia/kernel';
-import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable';
-import type { BindingBehaviorExpression, ForOfStatement, IsBindingBehavior } from './binding/ast';
-import type { IObserverLocator } from './observation/observer-locator';
-import type { IBinding } from './observation';
-import type { Scope } from './observation/binding-context';
+import type { Constructable, IContainer, IResourceKind, IServiceLocator, Key, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
+import type { BindingBehaviorExpression, BindingObserverRecord, ForOfStatement, IBinding, IConnectableBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
 }>;
-
-export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...args: T[]): void;
-} & T;
 
 export const enum BindingBehaviorStrategy {
   singleton = 1,
@@ -162,13 +129,14 @@ export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' 
 export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
+  public readonly type = 'instance';
   public interceptor: this = this;
   public readonly oL!: IObserverLocator;
   public readonly locator!: IServiceLocator;
   public readonly $scope: Scope | undefined;
   public readonly isBound!: boolean;
   public readonly obs!: BindingObserverRecord;
-  public readonly sourceExpression!: IsBindingBehavior | ForOfStatement;
+  public readonly ast!: IsBindingBehavior | ForOfStatement;
   public readonly mode!: BindingMode;
 
   public constructor(
@@ -181,6 +149,18 @@ export class BindingInterceptor implements IInterceptableBinding {
       binding.interceptor = this;
       binding = interceptor as IInterceptableBinding;
     }
+  }
+
+  public get(key: Key): Resolved<Key> {
+    return this.binding.get(key);
+  }
+
+  public getConverter<T>(name: string): ValueConverterInstance<T> | undefined {
+    return (this.binding as IAstEvaluator).getConverter<T>?.(name);
+  }
+
+  public getBehavior<T>(name: string): BindingBehaviorInstance<T> | undefined {
+    return (this.binding as IAstEvaluator).getBehavior<T>?.(name);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -214,7 +194,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 }
 
 /* eslint-disable */
-const interceptableProperties = ['isBound', '$scope', 'obs', 'sourceExpression', 'locator', 'oL'];
+const interceptableProperties = ['isBound', '$scope', 'obs', 'ast', 'locator', 'oL'];
 interceptableProperties.forEach(prop => {
   def(BindingInterceptor.prototype, prop, {
     enumerable: false,

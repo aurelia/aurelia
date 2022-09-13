@@ -1,5 +1,3 @@
-import { alias } from '@aurelia/runtime';
-
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
@@ -10,6 +8,7 @@ import type { ITask } from '@aurelia/platform';
 
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import type { HydrateAttributeInstruction } from '../../renderer';
+import { alias } from '../../utilities-di';
 
 export class Show implements ICustomAttributeViewModel {
   @bindable public value: unknown;

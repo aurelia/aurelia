@@ -21,7 +21,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   public readonly oldArr: unknown[];
   public readonly newArr: unknown[];
 
-  public constructor(
+public constructor(
     oldArr: unknown[],
     newArr: unknown[],
   ) {
@@ -64,7 +64,7 @@ describe(`ArrayObserver`, function () {
   });
 
   describe('should allow subscribing for batched notification', function () {
-    function $verifyChanges(arr: number[], fn: (arr: number[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: number[]) {
+    function verifyChanges(arr: number[], fn: (arr: number[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: number[]) {
       const s = new SpySubscriber();
       const sut = new ArrayObserver(arr);
       sut.subscribe(s);
@@ -79,7 +79,7 @@ describe(`ArrayObserver`, function () {
       );
     }
 
-    function $verifyNoChanges(arr: number[], fn: (arr: number[]) => void) {
+    function verifyNoChanges(arr: number[], fn: (arr: number[]) => void) {
       const s = new SpySubscriber();
       const sut = new ArrayObserver(arr);
       sut.subscribe(s);
@@ -91,23 +91,32 @@ describe(`ArrayObserver`, function () {
       assert.strictEqual(s.collectionChanges.length, 0);
     }
 
+    function asc(a: number, b: number) {
+      if (a === b) return 0;
+      return a > b ? 1 : -1;
+    }
+    function desc(a: number, b: number) {
+      if (a === b) return 0;
+      return a > b ? -1 : 1;
+    }
+
     describe('empty array', function () {
       it('2x push', function () {
-        $verifyChanges([], arr => {
+        verifyChanges([], arr => {
           arr.push(1);
           arr.push(2);
         }, [-2, -2]);
       });
 
       it('2x unshift', function () {
-        $verifyChanges([], arr => {
+        verifyChanges([], arr => {
           arr.unshift(1);
           arr.unshift(2);
         }, [-2, -2]);
       });
 
       it('2x push + 2x unshift', function () {
-        $verifyChanges([], arr => {
+        verifyChanges([], arr => {
           arr.push(1);
           arr.push(2);
           arr.unshift(3);
@@ -116,21 +125,21 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + pop', function () {
-        $verifyNoChanges([], arr => {
+        verifyNoChanges([], arr => {
           arr.push(1);
           arr.pop();
         });
       });
 
       it('unshift + shift', function () {
-        $verifyNoChanges([], arr => {
+        verifyNoChanges([], arr => {
           arr.unshift(1);
           arr.shift();
         });
       });
 
       it('push + push + pop', function () {
-        $verifyChanges([], arr => {
+        verifyChanges([], arr => {
           arr.push(1);
           arr.push(2);
           arr.pop();
@@ -140,21 +149,21 @@ describe(`ArrayObserver`, function () {
 
     describe('array w/ 1 item', function () {
       it('2x push', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.push(3);
         }, [0, -2, -2]);
       });
 
       it('2x unshift', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.unshift(2);
           arr.unshift(3);
         }, [-2, -2, 0]);
       });
 
       it('2x push + 2x unshift', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.push(3);
           arr.unshift(4);
@@ -163,21 +172,21 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + pop', function () {
-        $verifyNoChanges([1], arr => {
+        verifyNoChanges([1], arr => {
           arr.push(2);
           arr.pop();
         });
       });
 
       it('unshift + shift', function () {
-        $verifyNoChanges([1], arr => {
+        verifyNoChanges([1], arr => {
           arr.unshift(2);
           arr.shift();
         });
       });
 
       it('push + push + pop', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.push(3);
           arr.pop();
@@ -185,14 +194,14 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + shift', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.shift();
         }, [-2], [0], [1]);
       });
 
       it('push + push + shift', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.push(3);
           arr.shift();
@@ -200,14 +209,14 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + splice(0, 2, 3, 4)', function () {
-        $verifyChanges([1], arr => {
+        verifyChanges([1], arr => {
           arr.push(2);
           arr.splice(0, 2, 3, 4);
         }, [-2, -2], [0], [1]);
       });
 
       it('splice(1, 0, 2) + splice(1, 1)', function () {
-        $verifyNoChanges([1], arr => {
+        verifyNoChanges([1], arr => {
           arr.splice(1, 0, 2);
           arr.splice(1, 1);
         });
@@ -216,21 +225,21 @@ describe(`ArrayObserver`, function () {
 
     describe('array w/ 2 item', function () {
       it('2x push', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.push(4);
         }, [0, 1, -2, -2]);
       });
 
       it('2x unshift', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.unshift(3);
           arr.unshift(4);
         }, [-2, -2, 0, 1]);
       });
 
       it('2x push + 2x unshift', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.push(4);
           arr.unshift(5);
@@ -239,21 +248,21 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + pop', function () {
-        $verifyNoChanges([1, 2], arr => {
+        verifyNoChanges([1, 2], arr => {
           arr.push(3);
           arr.pop();
         });
       });
 
       it('unshift + shift', function () {
-        $verifyNoChanges([1, 2], arr => {
+        verifyNoChanges([1, 2], arr => {
           arr.unshift(3);
           arr.shift();
         });
       });
 
       it('push + push + pop', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.push(4);
           arr.pop();
@@ -261,14 +270,14 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + shift', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.shift();
         }, [1, -2], [0], [1]);
       });
 
       it('push + push + shift', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.push(4);
           arr.shift();
@@ -276,35 +285,35 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + splice(0, 2, 3, 4)', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.splice(0, 2, 4, 5);
         }, [-2, -2, -2], [0, 1], [1, 2]);
       });
 
       it('splice(1, 0, 2) + splice(1, 1)', function () {
-        $verifyNoChanges([1, 3], arr => {
+        verifyNoChanges([1, 3], arr => {
           arr.splice(1, 0, 2);
           arr.splice(1, 1);
         });
       });
 
       it('push + reverse', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
           arr.reverse();
         }, [-2, 1, 0]);
       });
 
       it('reverse + reverse', function () {
-        $verifyNoChanges([1, 2], arr => {
+        verifyNoChanges([1, 2], arr => {
           arr.reverse();
           arr.reverse();
         });
       });
 
       it('reverse + reverse + reverse', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.reverse();
           arr.reverse();
           arr.reverse();
@@ -312,31 +321,31 @@ describe(`ArrayObserver`, function () {
       });
 
       it('push + sort(a>b?-1:1)', function () {
-        $verifyChanges([1, 2], arr => {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
-          arr.sort((a, b) => a>b?-1:1);
+          arr.sort(desc);
         }, [-2, 1, 0]);
       });
 
-      it('push + sort(a>b?1:-1)', function () {
-        $verifyChanges([1, 2], arr => {
+      it('push + sort(asc)', function () {
+        verifyChanges([1, 2], arr => {
           arr.push(3);
-          arr.sort((a, b) => a>b?1:-1);
+          arr.sort(asc);
         }, [0, 1, -2]);
       });
 
-      it('sort(a>b?-1:1) + sort(a>b?1:-1)', function () {
-        $verifyNoChanges([1, 2], arr => {
-          arr.sort((a, b) => a>b?-1:1);
-          arr.sort((a, b) => a>b?1:-1);
+      it('sort(a>b?-1:1) + sort(asc)', function () {
+        verifyNoChanges([1, 2], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
         });
       });
 
-      it('sort(a>b?-1:1) + sort(a>b?1:-1) + sort(a>b?-1:1)', function () {
-        $verifyChanges([1, 2], arr => {
-          arr.sort((a, b) => a>b?-1:1);
-          arr.sort((a, b) => a>b?1:-1);
-          arr.sort((a, b) => a>b?-1:1);
+      it('sort(a>b?-1:1) + sort(asc) + sort(a>b?-1:1)', function () {
+        verifyChanges([1, 2], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+          arr.sort(desc);
         }, [1, 0]);
       });
     });
@@ -363,6 +372,286 @@ describe(`ArrayObserver`, function () {
       sut = new ArrayObserver(arr);
       batch(() => { /* do nothing */ });
       assert.strictEqual(s.collectionChanges.length, 0);
+    });
+  });
+
+  describe('synchronize batched indexMap changes', function () {
+    function verifyChanges(arr: symbol[], fn: (arr: symbol[]) => void) {
+      const copy = arr.slice();
+      const s = new SynchronizingCollectionSubscriber(copy, arr);
+      const sut = new ArrayObserver(arr);
+      sut.subscribe(s);
+
+      batch(() => {
+        fn(arr);
+      });
+
+      assert.deepStrictEqual(copy, arr);
+    }
+
+    function asc(a: symbol, b: symbol) {
+      const $a = a.toString();
+      const $b = b.toString();
+      if ($a === $b) return 0;
+      return $a > $b ? 1 : -1;
+    }
+    function desc(a: symbol, b: symbol) {
+      const $a = a.toString();
+      const $b = b.toString();
+      if ($a === $b) return 0;
+      return $a > $b ? -1 : 1;
+    }
+
+    const S = Symbol;
+
+    describe('empty array', function () {
+      it('2x push', function () {
+        verifyChanges([], arr => {
+          arr.push(S(1));
+          arr.push(S(2));
+        });
+      });
+
+      it('2x unshift', function () {
+        verifyChanges([], arr => {
+          arr.unshift(S(1));
+          arr.unshift(S(2));
+        });
+      });
+
+      it('2x push + 2x unshift', function () {
+        verifyChanges([], arr => {
+          arr.push(S(1));
+          arr.push(S(2));
+          arr.unshift(S(3));
+          arr.unshift(S(4));
+        });
+      });
+
+      it('push + pop', function () {
+        verifyChanges([], arr => {
+          arr.push(S(1));
+          arr.pop();
+        });
+      });
+
+      it('unshift + shift', function () {
+        verifyChanges([], arr => {
+          arr.unshift(S(1));
+          arr.shift();
+        });
+      });
+
+      it('push + push + pop', function () {
+        verifyChanges([], arr => {
+          arr.push(S(1));
+          arr.push(S(2));
+          arr.pop();
+        });
+      });
+    });
+
+    describe('array w/ 1 item', function () {
+      it('2x push', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.push(S(3));
+        });
+      });
+
+      it('2x unshift', function () {
+        verifyChanges([S(1)], arr => {
+          arr.unshift(S(2));
+          arr.unshift(S(3));
+        });
+      });
+
+      it('2x push + 2x unshift', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.push(S(3));
+          arr.unshift(S(4));
+          arr.unshift(S(5));
+        });
+      });
+
+      it('push + pop', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.pop();
+        });
+      });
+
+      it('unshift + shift', function () {
+        verifyChanges([S(1)], arr => {
+          arr.unshift(S(2));
+          arr.shift();
+        });
+      });
+
+      it('push + push + pop', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.push(S(3));
+          arr.pop();
+        });
+      });
+
+      it('push + shift', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.shift();
+        });
+      });
+
+      it('push + push + shift', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.push(S(3));
+          arr.shift();
+        });
+      });
+
+      it('push + splice(0, 2, 3, 4)', function () {
+        verifyChanges([S(1)], arr => {
+          arr.push(S(2));
+          arr.splice(0, 2, S(3), S(4));
+        });
+      });
+
+      it('splice(1, 0, 2) + splice(1, 1)', function () {
+        verifyChanges([S(1)], arr => {
+          arr.splice(1, 0, S(2));
+          arr.splice(1, 1);
+        });
+      });
+    });
+
+    describe('array w/ 2 item', function () {
+      it('2x push', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.push(S(4));
+        });
+      });
+
+      it('2x unshift', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.unshift(S(3));
+          arr.unshift(S(4));
+        });
+      });
+
+      it('2x push + 2x unshift', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.push(S(4));
+          arr.unshift(S(5));
+          arr.unshift(S(6));
+        });
+      });
+
+      it('push + pop', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.pop();
+        });
+      });
+
+      it('unshift + shift', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.unshift(S(3));
+          arr.shift();
+        });
+      });
+
+      it('push + push + pop', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.push(S(4));
+          arr.pop();
+        });
+      });
+
+      it('push + shift', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.shift();
+        });
+      });
+
+      it('push + push + shift', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.push(S(4));
+          arr.shift();
+        });
+      });
+
+      it('push + splice(0, 2, 3, 4)', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.splice(0, 2, S(4), S(5));
+        });
+      });
+
+      it('splice(1, 0, 2) + splice(1, 1)', function () {
+        verifyChanges([S(1), S(3)], arr => {
+          arr.splice(1, 0, S(2));
+          arr.splice(1, 1);
+        });
+      });
+
+      it('push + reverse', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('reverse + reverse + reverse', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.reverse();
+          arr.reverse();
+          arr.reverse();
+        });
+      });
+
+      it('push + sort(desc)', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.sort(desc);
+        });
+      });
+
+      it('push + sort(asc)', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.push(S(3));
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc)', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+        });
+      });
+
+      it('sort(desc) + sort(asc) + sort(desc)', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.sort(desc);
+          arr.sort(asc);
+          arr.sort(desc);
+        });
+      });
     });
   });
 

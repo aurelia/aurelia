@@ -102,8 +102,10 @@ export class Focus implements ICustomAttributeViewModel {
     const el = this._element;
     const isFocused = this._isElFocused;
     const shouldFocus = this.value;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (shouldFocus && !isFocused) {
       el.focus();
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     } else if (!shouldFocus && isFocused) {
       el.blur();
     }

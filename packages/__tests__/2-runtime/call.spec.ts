@@ -21,10 +21,16 @@ import {
 
 // eslint-disable-next-line mocha/no-skipped-tests
 describe.skip('CallBinding', function () {
-  function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
+  function createFixture(ast: IsBindingBehavior, target: any, targetProperty: string) {
     const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const observerLocator = createObserverLocator(container);
-    const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);
+    const sut = new CallBinding(
+      container,
+      observerLocator,
+      ast as any,
+      target,
+      targetProperty,
+    );
 
     return { sut, container, observerLocator };
   }

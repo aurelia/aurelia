@@ -1,5 +1,10 @@
-import { AnyBindingExpression, IConnectableBinding } from '@aurelia/runtime';
+import { AnyBindingExpression, IAstEvaluator, IConnectableBinding } from '@aurelia/runtime';
+import { State } from '../templating/controller';
 
-export interface IAstBasedBinding extends IConnectableBinding {
-  sourceExpression: AnyBindingExpression;
+export type IAstBasedBinding = IAstEvaluator & IConnectableBinding & {
+  ast: AnyBindingExpression;
+};
+
+export interface IBindingController {
+  readonly state: State;
 }

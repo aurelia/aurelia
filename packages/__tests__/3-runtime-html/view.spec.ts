@@ -128,7 +128,7 @@ describe.skip(`ViewFactory`, function () {
 
 // public compose(composable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
 //   const nodes = (<Writable<IController>>composable).nodes = new MockTextNodeSequence();
-//   addBinding(composable, new PropertyBinding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
+//   addBinding(composable, new PropertyBinding(this.ast, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController, flags: LF, scope: Scope): void {

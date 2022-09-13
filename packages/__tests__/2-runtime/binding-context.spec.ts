@@ -1,7 +1,6 @@
 import {
   BindingContext,
-  LifecycleFlags as LF,
-  Scope,
+  Scope
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
@@ -209,62 +208,62 @@ describe('Scope', function () {
 describe('BindingContext', function () {
   describe('get', function () {
     it('undefined', function () {
-      assert.throws(() => BindingContext.get(undefined, undefined, undefined, LF.none), 'Scope is undefined', `() => BindingContext.get(undefined, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(undefined, undefined, undefined), 'Scope is undefined', `() => BindingContext.get(undefined, undefined, undefined)`);
     });
 
     it('null', function () {
-      assert.throws(() => BindingContext.get(null, undefined, undefined, LF.none), 'Scope is null', `() => BindingContext.get(null, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(null, undefined, undefined), 'Scope is null', `() => BindingContext.get(null, undefined, undefined)`);
     });
 
     it('{ bindingContext: undefined, overrideContext: undefined }', function () {
       const scope = { } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, undefined, `actual`);
     });
 
     it('{ bindingContext: undefined, overrideContext: null }', function () {
       const scope = { overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, null, `actual`);
     });
 
     it('{ bindingContext: undefined, overrideContext: {} }', function () {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, overrideContext, `actual`);
     });
 
     it('{ bindingContext: null, overrideContext: undefined }', function () {
       const scope = { } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, undefined, `actual`);
     });
 
     it('{ bindingContext: null, overrideContext: null }', function () {
       const scope = { overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, null, `actual`);
     });
 
     it('{ bindingContext: null, overrideContext: {} }', function () {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, overrideContext, `actual`);
     });
 
     it('{ bindingContext: {}, overrideContext: undefined }', function () {
       const bindingContext = {} as any;
       const scope = { bindingContext } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, bindingContext, `actual`);
     });
 
     it('{ bindingContext: {}, overrideContext: null }', function () {
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext: null} as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, bindingContext, `actual`);
     });
 
@@ -272,7 +271,7 @@ describe('BindingContext', function () {
       const overrideContext = {} as any;
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext } as any;
-      const actual = BindingContext.get(scope, null, null, LF.none);
+      const actual = BindingContext.get(scope, null, null);
       assert.strictEqual(actual, bindingContext, `actual`);
     });
 
@@ -281,7 +280,7 @@ describe('BindingContext', function () {
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
-      const actual = BindingContext.get(scope2, null, null, LF.none);
+      const actual = BindingContext.get(scope2, null, null);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -292,7 +291,7 @@ describe('BindingContext', function () {
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
-      const actual = BindingContext.get(scope3, null, null, LF.none);
+      const actual = BindingContext.get(scope3, null, null);
       assert.strictEqual(actual, bindingContext3, `actual`);
     });
 
@@ -305,7 +304,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, null, null, LF.none);
+      const actual = BindingContext.get(scope4, null, null);
       assert.strictEqual(actual, bindingContext4, `actual`);
     });
 
@@ -314,7 +313,7 @@ describe('BindingContext', function () {
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
-      const actual = BindingContext.get(scope2, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope2, 'foo', null);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -325,7 +324,7 @@ describe('BindingContext', function () {
       const scope1 = Scope.create(bindingContext1, null);
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
-      const actual = BindingContext.get(scope3, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope3, 'foo', null);
       assert.strictEqual(actual, bindingContext3, `actual`);
     });
 
@@ -338,7 +337,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext4, `actual`);
     });
 
@@ -351,7 +350,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext1, `actual`);
     });
 
@@ -364,7 +363,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -377,7 +376,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext3, `actual`);
     });
 
@@ -390,7 +389,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext4, `actual`);
     });
 
@@ -404,7 +403,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope1.overrideContext, `actual`);
     });
 
@@ -418,7 +417,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope2.overrideContext, `actual`);
     });
 
@@ -432,7 +431,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope3.overrideContext, `actual`);
     });
 
@@ -446,7 +445,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
       scope4.overrideContext['foo'] = 'bar';
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope4.overrideContext, `actual`);
     });
 
@@ -460,7 +459,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope1.overrideContext, `actual`);
     });
 
@@ -474,7 +473,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope2.overrideContext, `actual`);
     });
 
@@ -488,7 +487,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope3.overrideContext, `actual`);
     });
 
@@ -502,7 +501,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
       scope4.overrideContext['foo'] = 'bar';
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, scope4.overrideContext, `actual`);
     });
 
@@ -516,7 +515,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -530,7 +529,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext3, `actual`);
     });
 
@@ -544,7 +543,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', null, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', null);
       assert.strictEqual(actual, bindingContext4, `actual`);
     });
 
@@ -558,7 +557,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 1);
       assert.strictEqual(actual, scope3.bindingContext, `actual`);
     });
 
@@ -572,7 +571,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 1);
       assert.strictEqual(actual, bindingContext3, `actual`);
     });
 
@@ -586,7 +585,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 1, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 1);
       assert.strictEqual(actual, scope3.overrideContext, `actual`);
     });
 
@@ -600,7 +599,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 2);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -614,7 +613,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 2);
       assert.strictEqual(actual, scope2.overrideContext, `actual`);
     });
 
@@ -628,7 +627,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 2, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 2);
       assert.strictEqual(actual, bindingContext2, `actual`);
     });
 
@@ -642,7 +641,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 3);
       assert.strictEqual(actual, scope1.overrideContext, `actual`);
     });
 
@@ -656,7 +655,7 @@ describe('BindingContext', function () {
       scope2.overrideContext['foo'] = 'bar';
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 3);
       assert.strictEqual(actual, bindingContext1, `actual`);
     });
 
@@ -670,7 +669,7 @@ describe('BindingContext', function () {
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       scope3.overrideContext['foo'] = 'bar';
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 3, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 3);
       assert.strictEqual(actual, bindingContext1, `actual`);
     });
 
@@ -683,7 +682,7 @@ describe('BindingContext', function () {
       const scope2 = Scope.fromParent(scope1, bindingContext2);
       const scope3 = Scope.fromParent(scope2, bindingContext3);
       const scope4 = Scope.fromParent(scope3, bindingContext4);
-      const actual = BindingContext.get(scope4, 'foo', 4, LF.none);
+      const actual = BindingContext.get(scope4, 'foo', 4);
       assert.strictEqual(actual, undefined, `actual`);
     });
   });

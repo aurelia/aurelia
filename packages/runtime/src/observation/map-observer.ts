@@ -12,6 +12,7 @@ import { batching, addCollectionBatch } from './subscriber-batch';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
 const $set = proto.set;

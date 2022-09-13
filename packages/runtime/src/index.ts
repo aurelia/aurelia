@@ -1,8 +1,4 @@
 export {
-  alias,
-  registerAliases,
-} from './alias';
-export {
   ExpressionKind,
   // Ast nodes
   CallFunctionExpression,
@@ -37,6 +33,7 @@ export {
 
   // ast typing helpers
   type AnyBindingExpression,
+  type BindingBehaviorInstance,
   type IsPrimary,
   type IsLiteral,
   type IsLeftHandSide,
@@ -54,13 +51,13 @@ export {
   type BindingIdentifierOrPattern,
   type UnaryOperator,
   type IExpressionHydrator,
+  type IAstEvaluator,
+  type ValueConverterInstance,
 } from './binding/ast';
 export {
   type IObserverLocatorBasedConnectable,
   type IConnectableBinding,
   connectable,
-  BindingMediator,
-  type MediatedBinding,
   BindingObserverRecord,
 } from './binding/connectable';
 export {
@@ -155,32 +152,6 @@ export {
 export {
   ConnectableSwitcher,
 } from './observation/connectable-switcher';
-
-export {
-  bindingBehavior,
-  BindingBehavior,
-  BindingBehaviorDefinition,
-  type PartialBindingBehaviorDefinition,
-  type BindingBehaviorKind,
-  type BindingBehaviorDecorator,
-  type BindingBehaviorInstance,
-  type BindingBehaviorType,
-  BindingInterceptor,
-  BindingBehaviorFactory,
-  BindingBehaviorStrategy,
-  type IInterceptableBinding,
-} from './binding-behavior';
-
-export {
-  ValueConverter,
-  ValueConverterDefinition,
-  type PartialValueConverterDefinition,
-  type ValueConverterKind,
-  type ValueConverterDecorator,
-  type ValueConverterInstance,
-  type ValueConverterType,
-  valueConverter,
-} from './value-converter';
 
 export {
   BindingMode,

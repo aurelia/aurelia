@@ -477,7 +477,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public handleInnerCollectionChange(): void {
-    const newItems = this.iterable.evaluate(LifecycleFlags.none, this.parent.scope, this._container, null) as Collection;
+    const newItems = this.iterable.evaluate(this.parent.scope, this._container, null) as Collection;
     const oldItems = this.items;
     this.items = newItems;
     if (newItems === oldItems) {

@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { valueConverter } from '@aurelia/runtime';
-import { IPlatform } from '@aurelia/runtime-html';
+import { valueConverter, IPlatform } from '@aurelia/runtime-html';
 import { TestContext } from '@aurelia/testing';
 
 export interface TestExecutionContext<TApp> {

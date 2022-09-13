@@ -157,7 +157,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
   describe('view-model', function () {
     it('works with literal object', async function () {
-      const { ctx, appHost, startPromise, tearDown } = createFixture(
+      const { appHost, tearDown } = createFixture(
         `\${message}<au-compose view-model.bind="{ activate }">`,
         class App {
           public message = 'hello world';
@@ -170,12 +170,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
-      assert.strictEqual(appHost.textContent, 'hello world');
-      // compose is done changing things
-      // but UI update by message prop change is queued
-      ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'Aurelia!!');
 
       await tearDown();
@@ -184,7 +178,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('works with custom element', async function () {
       let activateCallCount = 0;
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost, tearDown } = createFixture(
         '<au-compose view-model.bind="fieldVm">',
         class App {
           public message = 'hello world';
@@ -200,8 +194,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
       assert.strictEqual(appHost.textContent, '');
       assert.strictEqual(appHost.querySelector('input').value, 'hello');
       assert.strictEqual(activateCallCount, 1);
@@ -213,7 +205,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('works with promise of custom element', async function () {
       let activateCallCount = 0;
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost, tearDown } = await createFixture(
         '<au-compose view-model.bind="getVm()">',
         class App {
           public getVm() {
@@ -228,9 +220,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
             ));
           }
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.strictEqual(appHost.textContent, '');
       assert.strictEqual(appHost.querySelector('input').value, 'hello');
@@ -244,7 +234,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('passes model to activate method', async function () {
       const models: unknown[] = [];
       const model = { a: 1, b: Symbol() };
-      const { startPromise, tearDown } = createFixture(
+      createFixture(
         `<au-compose view-model.bind="{ activate }" model.bind="model">`,
         class App {
           public model = model;
@@ -254,11 +244,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
       assert.deepStrictEqual(models, [model]);
-
-      await tearDown();
     });
 
     it('waits for activate promise', async function () {
@@ -294,7 +280,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       await tearDown();
     });
 
-    it('does not re-compose when only model is updated', async function () {
+    it('does not re-compose when only model is updated', function () {
       let constructorCallCount = 0;
       let model = { a: 1, b: Symbol() };
       const models1: unknown[] = [model];
@@ -307,15 +293,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           models2.push(model);
         }
       }
-      const { ctx, component, startPromise, tearDown } = createFixture(
+      const { ctx, component } = createFixture(
         `<au-compose view-model.bind="vm" model.bind="model">`,
         class App {
           public model = model;
           public vm = PlainViewModelClass;
         }
       );
-
-      await startPromise;
 
       assert.strictEqual(constructorCallCount, 1);
       assert.deepStrictEqual(models1, models2);
@@ -328,14 +312,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(constructorCallCount, 1);
       assert.strictEqual(models2.length, 2);
       assert.deepStrictEqual(models1, models2);
-
-      await tearDown();
     });
   });
 
   describe('integration with repeat', function () {
-    it('works with repeat in view only composition', async function () {
-      const { appHost, startPromise, tearDown } = createFixture(
+    it('works with repeat in view only composition', function () {
+      const { appHost } = createFixture(
         `<au-compose repeat.for="i of 5" view.bind="getView()">`,
         class App {
           public getMessage(i: number) {
@@ -347,20 +329,16 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
       const divs = Array.from(appHost.querySelectorAll('div'));
       assert.strictEqual(divs.length, 5);
       divs.forEach((div, i) => {
         assert.strictEqual(div.textContent, `div ${i}: Hello ${i}`);
       });
-
-      await tearDown();
     });
 
-    it('works with repeat in literal object composition', async function () {
+    it('works with repeat in literal object composition', function () {
       const models: unknown[] = [];
-      const { startPromise, tearDown } = createFixture(
+      createFixture(
         `<au-compose repeat.for="i of 5" view-model.bind="{ activate }" model.bind="{ index: i }">`,
         class App {
           public activate = (model: unknown) => {
@@ -369,15 +347,11 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
       assert.deepStrictEqual(models, Array.from({ length: 5 }, (_, index) => ({ index })));
-
-      await tearDown();
     });
 
     it('deactivates when collection changes', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost } = createFixture(
         `<au-compose repeat.for="i of items" view.bind="getView()">`,
         class App {
           public items = 5;
@@ -389,8 +363,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           }
         }
       );
-
-      await startPromise;
 
       let divs = Array.from(appHost.querySelectorAll('div'));
       assert.strictEqual(divs.length, 5);
@@ -404,8 +376,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       divs.forEach((div, i) => {
         assert.strictEqual(div.textContent, `div ${i}: Hello ${i}`);
       });
-
-      await tearDown();
     });
   });
 
@@ -1044,7 +1014,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       name: 'el1',
       template: `<p><au-slot>`
     }, class Element1 {});
-    const { appHost, startPromise, tearDown } = createFixture(
+    const { appHost, startPromise } = createFixture(
       `<au-compose repeat.for="i of 3" view-model.bind="vm"><input value.to-view="message + i" au-slot>`,
       class App {
         public message = 'Aurelia';
@@ -1058,7 +1028,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       Array.from(appHost.querySelectorAll('p input')).map((i: HTMLInputElement) => i.value),
       ['Aurelia0', 'Aurelia1', 'Aurelia2']
     );
-    await tearDown();
   });
 
   if (typeof window !== 'undefined') {

@@ -11,17 +11,16 @@ import {
   sink,
 } from '@aurelia/kernel';
 import {
-  bindingBehavior,
   BindingBehaviorInstance,
   IBinding,
   Scope,
   LifecycleFlags,
-  valueConverter,
 } from '@aurelia/runtime';
 import {
   AuSlot,
   Case,
   Controller,
+  bindingBehavior,
   customElement,
   CustomElement,
   Repeat,
@@ -32,6 +31,7 @@ import {
   ICustomElementController,
   bindable,
   INode,
+  valueConverter,
 } from '@aurelia/runtime-html';
 import {
   assert,

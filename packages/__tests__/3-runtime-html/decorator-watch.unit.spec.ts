@@ -145,7 +145,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       expr.evaluate = (evaluate => {
         return function (...args: unknown[]) {
           evaluateCallCount++;
-          assert.strictEqual(args[3], watcher);
+          assert.strictEqual(args[2], watcher);
           return evaluate.apply(this, args);
         };
       })(expr.evaluate);

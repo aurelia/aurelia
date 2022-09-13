@@ -1,9 +1,6 @@
 export {
   // todo: only exception for now for hmr, remove
   LifecycleFlags,
-  // todo: only exception for convention, remove
-  valueConverter,
-  bindingBehavior,
 } from '@aurelia/runtime';
 export {
   bindable,
@@ -26,6 +23,20 @@ export {
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
 } from './configuration';
+
+export {
+  bindingBehavior,
+  BindingBehavior,
+  BindingBehaviorDefinition,
+  type PartialBindingBehaviorDefinition,
+  type BindingBehaviorKind,
+  type BindingBehaviorDecorator,
+  type BindingBehaviorType,
+  BindingInterceptor,
+  BindingBehaviorFactory,
+  BindingBehaviorStrategy,
+  type IInterceptableBinding,
+} from './resources/binding-behavior';
 
 export {
   BindingModeBehavior,
@@ -103,6 +114,13 @@ export {
   IAttrMapper,
   type IsTwoWayPredicate,
 } from './attribute-mapper';
+export {
+  IAstBasedBinding,
+  IBindingController,
+} from './binding/interfaces-bindings';
+export {
+  astEvaluator,
+} from './binding/binding-utils';
 export {
   Listener,
 } from './binding/listener';
@@ -289,6 +307,17 @@ export {
   AuCompose,
   type IDynamicComponentActivate,
 } from './resources/custom-elements/au-compose';
+
+export {
+  ValueConverter,
+  ValueConverterDefinition,
+  type PartialValueConverterDefinition,
+  type ValueConverterKind,
+  type ValueConverterDecorator,
+  type ValueConverterType,
+  valueConverter,
+} from './resources/value-converter';
+
 export {
   ISanitizer,
   SanitizeValueConverter,
@@ -398,6 +427,7 @@ export {
   isCustomElementViewModel,
   ViewModelKind,
   HooksDefinition,
+  State,
   type ControllerVisitor,
   type IViewModel,
   IController,
@@ -491,6 +521,11 @@ export {
   ComputedWatcher,
   ExpressionWatcher,
 } from './templating/watchers';
+
+export {
+  alias,
+  registerAliases,
+} from './utilities-di';
 
 export {
   // configurations

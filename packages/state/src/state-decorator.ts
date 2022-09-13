@@ -61,10 +61,10 @@ class HydratingLifecycleHooks {
     const container = controller.container;
     controller.addBinding(new StateGetterBinding(
       container,
+      vm,
+      this.key,
       container.get(IStore),
       this.$get,
-      vm,
-      this.key
     ));
   }
 }
@@ -84,10 +84,10 @@ class CreatedLifecycleHooks {
     const container = controller.container;
     controller.addBinding(new StateGetterBinding(
       container,
+      vm,
+      this.key,
       container.get(IStore),
       this.$get,
-      vm,
-      this.key
     ));
   }
 }

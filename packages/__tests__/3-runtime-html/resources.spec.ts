@@ -1,6 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { alias } from '@aurelia/runtime';
-import { Aurelia, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
+import { alias, Aurelia, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
 import { assert, TestContext } from "@aurelia/testing";
 
 function startAndStop(component: CustomElementType) {

@@ -9,7 +9,7 @@ import {
 } from '@aurelia/kernel';
 import {
   ValueConverter,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
 describe('3-runtime-html/array-length-observer.spec.ts', function () {
 

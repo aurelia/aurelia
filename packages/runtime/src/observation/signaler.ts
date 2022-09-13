@@ -2,15 +2,13 @@ import { DI } from '@aurelia/kernel';
 import { createLookup } from '../utilities-objects';
 import type { ISubscriber, LifecycleFlags } from '../observation';
 
-type Signal = string;
-
 export interface ISignaler extends Signaler {}
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
 export class Signaler {
   public signals: Record<string, Set<ISubscriber> | undefined> = createLookup();
 
-  public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
+  public dispatchSignal(name: string, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];
     if (listeners === undefined) {
       return;
@@ -21,7 +19,7 @@ export class Signaler {
     }
   }
 
-  public addSignalListener(name: Signal, listener: ISubscriber): void {
+  public addSignalListener(name: string, listener: ISubscriber): void {
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
@@ -31,10 +29,7 @@ export class Signaler {
     }
   }
 
-  public removeSignalListener(name: Signal, listener: ISubscriber): void {
-    const listeners = this.signals[name];
-    if (listeners) {
-      listeners.delete(listener);
-    }
+  public removeSignalListener(name: string, listener: ISubscriber): void {
+    this.signals[name]?.delete(listener);
   }
 }

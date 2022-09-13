@@ -7,7 +7,6 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
 } from '@aurelia/kernel';
-import { registerAliases } from '@aurelia/runtime';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Children } from '../templating/children';
@@ -15,7 +14,7 @@ import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString } from '../utilities';
-import { aliasRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,

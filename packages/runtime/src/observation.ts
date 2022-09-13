@@ -10,6 +10,7 @@ export interface IBinding {
   readonly isBound: boolean;
   $bind(flags: LifecycleFlags, scope: Scope): void;
   $unbind(flags: LifecycleFlags): void;
+  get: IServiceLocator['get'];
 }
 
 export const ICoercionConfiguration = DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');

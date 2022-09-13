@@ -1,5 +1,6 @@
 import { AccessorType, BindingMode, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
-import { BindingTargetSubscriber } from './binding-utils';
+import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
+import { State } from '../templating/controller';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -11,7 +12,7 @@ import type {
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -44,16 +45,20 @@ export class PropertyBinding implements IAstBasedBinding {
    * @internal
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | ForOfStatement,
+    controller: IBindingController,
+    public locator: IServiceLocator,
+    observerLocator: IObserverLocator,
+    private readonly taskQueue: TaskQueue,
+    public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    observerLocator: IObserverLocator,
-    public locator: IServiceLocator,
-    private readonly taskQueue: TaskQueue,
   ) {
+    this._controller = controller;
     this.oL = observerLocator;
   }
 
@@ -62,9 +67,9 @@ export class PropertyBinding implements IAstBasedBinding {
     this.targetObserver!.setValue(value, flags, this.target, this.targetProperty);
   }
 
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    this.sourceExpression.assign(flags, this.$scope!, this.locator, value);
+  public updateSource(value: unknown, _flags: LifecycleFlags): void {
+    // flags |= this.persistentFlags;
+    this.ast.assign(this.$scope!, this, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -78,18 +83,18 @@ export class PropertyBinding implements IAstBasedBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     let shouldConnect: boolean = false;
 
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-    if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
+    if (this.ast.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect
       shouldConnect = this.mode > oneTime;
       if (shouldConnect) {
         obsRecord.version++;
       }
-      newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+      newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
       if (shouldConnect) {
         obsRecord.clear();
       }
@@ -113,9 +118,9 @@ export class PropertyBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
-    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
-    const newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.interceptor);
+    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -147,9 +152,9 @@ export class PropertyBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    let sourceExpression = this.sourceExpression;
-    if (sourceExpression.hasBind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    let ast = this.ast;
+    if (ast.hasBind) {
+      ast.bind(flags, scope, this.interceptor);
     }
 
     const observerLocator = this.oL;
@@ -164,18 +169,19 @@ export class PropertyBinding implements IAstBasedBinding {
       this.targetObserver = targetObserver;
     }
 
-    // during bind, binding behavior might have changed sourceExpression
+    // during bind, binding behavior might have changed ast
     // deepscan-disable-next-line
-    sourceExpression = this.sourceExpression;
+    ast = this.ast;
     const interceptor = this.interceptor;
     const shouldConnect = ($mode & toView) > 0;
 
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.locator, shouldConnect ? interceptor : null),
+        ast.evaluate(scope, this, shouldConnect ? interceptor : null),
         flags,
       );
     }
+
     if ($mode & fromView) {
       (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
       if (!shouldConnect) {
@@ -193,8 +199,8 @@ export class PropertyBinding implements IAstBasedBinding {
 
     this.persistentFlags = LifecycleFlags.none;
 
-    if (this.sourceExpression.hasUnbind) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
@@ -214,5 +220,6 @@ export class PropertyBinding implements IAstBasedBinding {
 }
 
 connectable(PropertyBinding);
+astEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { valueConverter, bindingBehavior } from '@aurelia/runtime';
-import { customElement, customAttribute } from '@aurelia/runtime-html';
+import { valueConverter, bindingBehavior, customElement, customAttribute } from '@aurelia/runtime-html';
 
 @customElement({ name: 'ce' })
 export class CE {}

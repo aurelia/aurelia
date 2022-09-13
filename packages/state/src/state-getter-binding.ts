@@ -35,10 +35,10 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
 
   public constructor(
     locator: IServiceLocator,
-    store: IStore<object>,
-    getValue: (s: unknown) => unknown,
     target: object,
     prop: PropertyKey,
+    store: IStore<object>,
+    getValue: (s: unknown) => unknown,
   ) {
     this.locator = locator;
     this._store = store;

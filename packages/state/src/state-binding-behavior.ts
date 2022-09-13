@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Writable } from '@aurelia/kernel';
-import { bindingBehavior, BindingBehaviorExpression, BindingInterceptor, IInterceptableBinding, IOverrideContext, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { BindingBehaviorExpression, IOverrideContext, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { bindingBehavior, BindingInterceptor, IInterceptableBinding, } from '@aurelia/runtime-html';
 import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope, defProto } from './state-utilities';

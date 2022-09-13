@@ -247,12 +247,12 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
         assert.instanceOf(namePropValueObserver, ComputedObserver);
         assert.strictEqual(
-          namePropValueObserver.get,
+          namePropValueObserver.$get,
           Object.getOwnPropertyDescriptor(Property.prototype, 'value').get,
           'It should have kept information about the original descriptor [[get]]',
         );
         assert.strictEqual(
-          namePropValueObserver.set,
+          namePropValueObserver.$set,
           Object.getOwnPropertyDescriptor(Property.prototype, 'value').set,
           'It should have kept information about the original descriptor [[set]]',
         );

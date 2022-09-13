@@ -1,6 +1,6 @@
 import { IContainer, noop, toArray } from '@aurelia/kernel';
-import { LifecycleFlags, BindingMode } from '@aurelia/runtime';
-import { Aurelia, bindable, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, BindingMode, bindable, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 

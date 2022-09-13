@@ -8,7 +8,6 @@ import {
 } from '@aurelia/kernel';
 import {
   LifecycleFlags,
-  BindingMode,
   ICollectionObserver,
   CollectionKind,
   IObserverLocator,
@@ -19,6 +18,7 @@ import { IRenderLocation } from '../../dom';
 import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
+import { BindingMode } from '../../binding/interfaces-bindings';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';

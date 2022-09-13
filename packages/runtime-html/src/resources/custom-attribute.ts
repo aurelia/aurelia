@@ -6,6 +6,7 @@ import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
+import { BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -18,7 +19,6 @@ import type {
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
-import { BindingMode } from '@aurelia/runtime';
 
 declare module '@aurelia/kernel' {
   interface IContainer {

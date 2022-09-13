@@ -1,11 +1,11 @@
 import {
   AccessorOrObserver,
   AccessorType,
-  BindingMode,
   ExpressionKind,
   LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
+import { BindingMode } from './interfaces-bindings';
 import { astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';
 

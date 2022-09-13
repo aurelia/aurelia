@@ -1,5 +1,6 @@
 import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { BindingMode, ExpressionType, DelegationStrategy, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { ExpressionType, DelegationStrategy, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
 import {
   AttributeBindingInstruction,

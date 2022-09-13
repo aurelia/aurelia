@@ -177,7 +177,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const $indexMap = applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
       if ($indexMap.deletedIndices.length > 0) {
-        $indexMap.deletedIndices.sort(compareNumber);
         const ret = onResolve(
           this._deactivateAndRemoveViewsByKey($indexMap, flags),
           () => {

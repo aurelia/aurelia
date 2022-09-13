@@ -35,7 +35,7 @@ public constructor(
     const newArr = this.newArr;
     const oldArr = this.oldArr;
 
-    const deleted = indexMap.deletedIndices.sort((a, b) => a - b);
+    const deleted = indexMap.deletedIndices;
     const deletedLen = deleted.length;
     let j = 0;
     for (let i = 0; i < deletedLen; ++i) {
@@ -347,6 +347,45 @@ describe(`ArrayObserver`, function () {
           arr.sort(asc);
           arr.sort(desc);
         }, [1, 0]);
+      });
+    });
+
+    describe('array w/ 4 item', function () {
+      // note: these tests were failing on synchronization during implementation but succeeded here; the error was in the applyMutationsToIndices
+      it('splice the first three items each with two new items in reverse order', function () {
+        verifyChanges([1, 2, 3, 4], arr => {
+          arr.splice(2, 1, 5, 6); // 1, 2, [5], [6], 4
+          arr.splice(1, 1, 3, 4); // 1, [3], [4], [5], [6], 4
+          arr.splice(0, 1, 1, 2); // [1], [2], [3], [4], [5], [6], 4
+        }, [-2, -2, -2, -2, -2, -2, 3], [2, 1, 0], [3, 2, 1]);
+      });
+
+      it('splice the first two items each with two new items in reverse order', function () {
+        verifyChanges([1, 2, 3, 4], arr => {
+          arr.splice(1, 1, 3, 4); // 1, [3], [4], 3, 4
+          arr.splice(0, 1, 1, 2); // [1], [2], [3], [4], 3, 4
+        }, [-2, -2, -2, -2, 2, 3], [1, 0], [2, 1]);
+      });
+
+      it('splice the middle two items each with two new items in reverse order', function () {
+        verifyChanges([1, 2, 3, 4], arr => {
+          arr.splice(2, 1, 3, 4); // 1, 2, [3], [4], 4
+          arr.splice(1, 1, 1, 2); // 1, [1], [2], [3], [4], 4
+        }, [0, -2, -2, -2, -2, 3], [2, 1], [3, 2]);
+      });
+
+      it('splice the first and third items each with two new items in reverse order', function () {
+        verifyChanges([1, 2, 3, 4], arr => {
+          arr.splice(2, 1, 5, 6); // 1, 2, [5], [6], 4
+          arr.splice(0, 1, 7, 8); // [7], [8], 2, [5], [6], 4
+        }, [-2, -2, 1, -2, -2, 3], [2, 0], [3, 1]);
+      });
+
+      it('splice the second and fourth items each with two new items in reverse order', function () {
+        verifyChanges([1, 2, 3, 4], arr => {
+          arr.splice(3, 1, 5, 6); // 1, 2, 3, [5], [6]
+          arr.splice(1, 1, 7, 8); // 1, [7], [8], 3, [5], [6]
+        }, [0, -2, -2, 2, -2, -2], [3, 1], [4, 2]);
       });
     });
   });
@@ -777,6 +816,13 @@ describe(`ArrayObserver`, function () {
         });
       });
 
+      it('splice the first two items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3)], arr => {
+          arr.splice(1, 1, S(4), S(5));
+          arr.splice(0, 1, S(6), S(7));
+        });
+      });
+
       it('splice each item with two new items in reverse order', function () {
         verifyChanges([S(1), S(2), S(3)], arr => {
           arr.splice(2, 1, S(5), S(6));
@@ -933,7 +979,7 @@ describe(`ArrayObserver`, function () {
         });
       });
 
-      it('splice three of the items each with two new items', function () {
+      it('splice the first three items each with two new items', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.splice(0, 1, S(1), S(2));
           arr.splice(2, 1, S(3), S(4));
@@ -941,7 +987,7 @@ describe(`ArrayObserver`, function () {
         });
       });
 
-      it('splice three of the items each with two new items and sort asc in-between', function () {
+      it('splice the first three items each with two new items and sort asc in-between', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.splice(0, 1, S(5), S(6));
           arr.sort(asc);
@@ -952,7 +998,7 @@ describe(`ArrayObserver`, function () {
         });
       });
 
-      it('splice three of the items each with two new items and sort desc in-between', function () {
+      it('splice the first three items each with two new items and sort desc in-between', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.splice(0, 1, S(5), S(6));
           arr.sort(desc);
@@ -963,7 +1009,7 @@ describe(`ArrayObserver`, function () {
         });
       });
 
-      it('splice three of the items each with two new items and sort alternating asc & desc in-between', function () {
+      it('splice the first three items each with two new items and sort alternating asc & desc in-between', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.splice(0, 1, S(5), S(6));
           arr.sort(asc);
@@ -992,22 +1038,36 @@ describe(`ArrayObserver`, function () {
 
       it('splice the first two items each with two new items in reverse order', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
-          arr.splice(1, 1, S(3), S(4));
-          arr.splice(0, 1, S(1), S(2));
+          arr.splice(1, 1, S(5), S(6));
+          arr.splice(0, 1, S(7), S(8));
         });
       });
 
       it('splice the middle two items each with two new items in reverse order', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
-          arr.splice(2, 1, S(3), S(4));
-          arr.splice(1, 1, S(1), S(2));
+          arr.splice(2, 1, S(5), S(6));
+          arr.splice(1, 1, S(7), S(8));
         });
       });
 
       it('splice the last two items each with two new items in reverse order', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
-          arr.splice(3, 1, S(3), S(4));
-          arr.splice(2, 1, S(1), S(2));
+          arr.splice(3, 1, S(5), S(6));
+          arr.splice(2, 1, S(7), S(8));
+        });
+      });
+
+      it('splice the first and third items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(2, 1, S(5), S(6));
+          arr.splice(0, 1, S(7), S(8));
+        });
+      });
+
+      it('splice the second and fourth items each with two new items in reverse order', function () {
+        verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+          arr.splice(3, 1, S(5), S(6));
+          arr.splice(1, 1, S(7), S(8));
         });
       });
 

@@ -13,7 +13,11 @@ type ValueBatchRecord = [
   unknown, // newValue
   LF,
 ];
-type BatchRecord = ValueBatchRecord | IndexMap;
+type CollectionBatchRecord = [
+  2,
+  IndexMap,
+];
+type BatchRecord = ValueBatchRecord | CollectionBatchRecord;
 type Batch = Map<ISubscriberRecord<IAnySubscriber>, BatchRecord>;
 
 let currBatch: Batch | null = new Map();
@@ -44,7 +48,7 @@ export function batch(fn: () => unknown): void {
         if (batchRecord[0] === 1) {
           subs.notify(batchRecord[1], batchRecord[2], batchRecord[3]);
         } else {
-          indexMap = batchRecord as IndexMap;
+          indexMap = batchRecord[1];
           hasChanges = false;
           if (indexMap.deletedIndices.length > 0) {
             hasChanges = true;
@@ -72,7 +76,7 @@ export function addCollectionBatch(
   indexMap: IndexMap,
 ) {
   if (!currBatch!.has(subs)) {
-    currBatch!.set(subs, indexMap);
+    currBatch!.set(subs, [2, indexMap]);
   }
 }
 

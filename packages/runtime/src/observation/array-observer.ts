@@ -22,6 +22,7 @@ import type {
 } from '../observation';
 import { def, defineHiddenProp, isFunction } from '../utilities-objects';
 import { addCollectionBatch, batching } from './subscriber-batch';
+import { compareNumber } from '@aurelia/kernel';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -508,6 +509,13 @@ export function applyMutationsToIndices(indexMap: IndexMap): IndexMap {
   let j = 0;
   let i = 0;
   const $indexMap = cloneIndexMap(indexMap);
+
+  // during a batch, items could be deleted in a non-linear order with multiple splices
+  if ($indexMap.deletedIndices.length > 1) {
+    // TODO: also synchronize deletedItems when we need them
+    $indexMap.deletedIndices.sort(compareNumber);
+  }
+
   const len = $indexMap.length;
   for (; i < len; ++i) {
     while ($indexMap.deletedIndices[j] <= i - offset) {

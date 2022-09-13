@@ -1,10 +1,6 @@
-import { LifecycleFlags } from '../observation';
-
 import type { IIndexable } from '@aurelia/kernel';
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
 import { hasOwnProp } from '../utilities-objects';
-
-const marker = Object.freeze({});
 
 export class BindingContext implements IBindingContext {
   [key: string]: unknown;

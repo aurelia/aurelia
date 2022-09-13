@@ -1,5 +1,5 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
-import { IExpressionParser, ExpressionType, LifecycleFlags, Scope, IAstEvaluator } from '@aurelia/runtime';
+import { IExpressionParser, ExpressionType, Scope, IAstEvaluator } from '@aurelia/runtime';
 import { astEvaluator } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {

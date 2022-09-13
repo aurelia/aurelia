@@ -601,8 +601,8 @@ export class ValueConverterExpression {
   }
 
   public unbind(_f: LF, _s: Scope, b: IAstEvaluator & IConnectableBinding): void {
-    const vc = b.getConverter?.(this.name) as { signals?: string[] };
-    if (vc.signals === void 0) {
+    const vc = b.getConverter?.(this.name) as { signals?: string[] } | undefined;
+    if (vc?.signals === void 0) {
       return;
     }
     const signaler = b.get(ISignaler);

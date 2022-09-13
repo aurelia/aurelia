@@ -142,12 +142,9 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public async validate(
     object?: IValidateable,
     tag?: string,
-    flags?: LifecycleFlags,
+    _flags?: LifecycleFlags,
     scope?: Scope
   ): Promise<ValidationResult[]> {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
     if (scope === void 0) {
       scope = Scope.create({ [rootObjectSymbol]: object });
     }

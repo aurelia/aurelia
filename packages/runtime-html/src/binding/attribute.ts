@@ -178,6 +178,7 @@ export class AttributeBinding implements IAstBasedBinding {
     }
 
     // during bind, binding behavior might have changed ast
+    // deepscan-disable-next-line
     ast = this.ast;
     const $mode = this.mode;
     const interceptor = this.interceptor;

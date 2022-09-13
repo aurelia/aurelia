@@ -11,7 +11,7 @@ import type {
   ISubscriberRecord,
   LifecycleFlags as LF,
 } from '../observation';
-import { addCollectionBatch, addValueBatch, batching } from './subscriber-batch';
+import { addValueBatch, batching } from './subscriber-batch';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
@@ -181,11 +181,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notifyCollection(indexMap: IndexMap, flags: LF): void {
-    if (batching) {
-      addCollectionBatch(this as ISubscriberRecord<ICollectionSubscriber>, indexMap);
-      return;
-    }
-
     const sub0 = this.s0 as ICollectionSubscriber;
     const sub1 = this.s1 as ICollectionSubscriber;
     const sub2 = this.s2 as ICollectionSubscriber;

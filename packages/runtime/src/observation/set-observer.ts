@@ -147,14 +147,14 @@ export class SetObserver {
   public notify(): void {
     const subs = this.subs;
     const indexMap = this.indexMap;
-    const size = this.collection.size;
-    this.indexMap = createIndexMap(size);
-
     if (batching) {
       addCollectionBatch(subs, indexMap);
       return;
     }
 
+    const size = this.collection.size;
+
+    this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 

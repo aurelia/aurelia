@@ -216,5 +216,4 @@ export {
   cloneIndexMap,
   createIndexMap,
   ICoercionConfiguration,
-  mergeIndexMaps,
 } from './observation';

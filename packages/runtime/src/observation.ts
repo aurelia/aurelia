@@ -287,54 +287,6 @@ export function isIndexMap(value: unknown): value is IndexMap {
   return isArray(value) && (value as IndexMap).isIndexMap === true;
 }
 
-export function mergeIndexMaps(...indexMaps: [IndexMap, ...IndexMap[]]): IndexMap {
-  const mergedMap = cloneIndexMap(indexMaps[0]);
-  const mDelIndices = mergedMap.deletedIndices;
-  const mDelItems = mergedMap.deletedItems;
-
-  for (let idx = 1, idxLen = indexMaps.length; idx < idxLen; ++idx) {
-    const currMap = indexMaps[idx];
-
-    // Step 1: remove the deleted items from the merged map and add deleted records for items that already existed prior to the first mutation
-    const cDelIndices = currMap.deletedIndices;
-    const cDelItems = currMap.deletedItems;
-    for (let i = 0, ii = cDelIndices.length; i < ii; ++i) {
-      const cDelIdx = cDelIndices[i];
-      // If the index was previously added and later removed again then we don't track the deletion;
-      // it effectively never existed in the first place.
-      if (mergedMap[cDelIdx] !== -2) {
-        mDelIndices.push(cDelIdx);
-        mDelItems.push(cDelItems[i]);
-      }
-
-      mergedMap.splice(cDelIdx, 1);
-    }
-
-    // Step 2: add new items to the merged map.
-    for (let i = 0, ii = currMap.length; i < ii; ++i) {
-      if (currMap[i] === -2) {
-        mergedMap.splice(i, 0, -2);
-      }
-    }
-
-    // Step 3: reorder the existing items in the merged map.
-    let offset = 0;
-    const mergedMapCopy = mergedMap.slice();
-    for (let i = 0, ii = currMap.length; i < ii; ++i) {
-      const prev = mergedMap[i]
-      const curr = currMap[i];
-      if (curr !== -2 && curr !== i) {
-        const prev = mergedMapCopy[curr];
-        if (prev !== -2) {
-          // mergedMap[i] = prev;
-        }
-      }
-    }
-  }
-
-  return mergedMap;
-}
-
 export interface IArrayIndexObserver extends IObserver {
   owner: ICollectionObserver<CollectionKind.array>;
 }

@@ -396,14 +396,14 @@ export class ArrayObserver {
   public notify(): void {
     const subs = this.subs;
     const indexMap = this.indexMap;
-    const length = this.collection.length;
-    this.indexMap = createIndexMap(length);
-
     if (batching) {
       addCollectionBatch(subs, indexMap);
       return;
     }
 
+    const length = this.collection.length;
+
+    this.indexMap = createIndexMap(length);
     subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 

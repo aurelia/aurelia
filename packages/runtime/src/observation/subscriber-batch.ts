@@ -3,7 +3,6 @@ import {
   ISubscriberRecord,
   ICollectionSubscriber,
   IndexMap,
-  mergeIndexMaps,
   LifecycleFlags,
 } from '../observation.js';
 import type { IAnySubscriber } from './subscriber-collection.js';
@@ -14,12 +13,7 @@ type ValueBatchRecord = [
   unknown, // newValue
   LF,
 ];
-type CollectionBatchRecord = [
-  2,
-  IndexMap, // mergedMap
-  IndexMap[] | undefined, // batch
-];
-type BatchRecord = ValueBatchRecord | CollectionBatchRecord;
+type BatchRecord = ValueBatchRecord | IndexMap;
 type Batch = Map<ISubscriberRecord<IAnySubscriber>, BatchRecord>;
 
 let currBatch: Batch | null = new Map();
@@ -39,8 +33,7 @@ export function batch(fn: () => unknown): void {
       let pair: [ISubscriberRecord<IAnySubscriber>, BatchRecord];
       let subs: ISubscriberRecord<IAnySubscriber>;
       let batchRecord: BatchRecord;
-      let mergedMap: IndexMap;
-      let mapBatch: IndexMap[] | undefined;
+      let indexMap: IndexMap;
       let hasChanges = false;
       for (pair of newBatch) {
         subs = pair[0];
@@ -51,24 +44,20 @@ export function batch(fn: () => unknown): void {
         if (batchRecord[0] === 1) {
           subs.notify(batchRecord[1], batchRecord[2], batchRecord[3]);
         } else {
-          mergedMap = batchRecord[1];
-          mapBatch = batchRecord[2];
-          if (mapBatch !== void 0) {
-            mergedMap = mergeIndexMaps(mergedMap, ...mapBatch);
-          }
+          indexMap = batchRecord as IndexMap;
           hasChanges = false;
-          if (mergedMap.deletedIndices.length > 0) {
+          if (indexMap.deletedIndices.length > 0) {
             hasChanges = true;
           } else {
-            for (let i = 0, ii = mergedMap.length; i < ii; ++i) {
-              if (mergedMap[i] !== i) {
+            for (let i = 0, ii = indexMap.length; i < ii; ++i) {
+              if (indexMap[i] !== i) {
                 hasChanges = true;
                 break;
               }
             }
           }
           if (hasChanges) {
-            subs.notifyCollection(mergedMap, LifecycleFlags.none);
+            subs.notifyCollection(indexMap, LifecycleFlags.none);
           }
         }
       }
@@ -82,11 +71,8 @@ export function addCollectionBatch(
   subs: ISubscriberRecord<ICollectionSubscriber>,
   indexMap: IndexMap,
 ) {
-  const batchRecord = currBatch!.get(subs) as CollectionBatchRecord;
-  if (batchRecord === void 0) {
-    currBatch!.set(subs, [2, indexMap, void 0]);
-  } else {
-    (batchRecord[2] ??= []).push(indexMap);
+  if (!currBatch!.has(subs)) {
+    currBatch!.set(subs, indexMap);
   }
 }
 
@@ -96,7 +82,7 @@ export function addValueBatch(
   oldValue: unknown,
   flags: LF,
 ) {
-  const batchRecord = currBatch!.get(subs) as ValueBatchRecord;
+  const batchRecord = currBatch!.get(subs);
   if (batchRecord === void 0) {
     currBatch!.set(subs, [1, newValue, oldValue, flags]);
   } else {

@@ -39,6 +39,8 @@ export function batch(fn: () => unknown): void {
       let batchRecord: BatchRecord;
       let indexMap: IndexMap;
       let hasChanges = false;
+      let i: number;
+      let ii: number;
       for (pair of newBatch) {
         subs = pair[0];
         batchRecord = pair[1];
@@ -53,7 +55,7 @@ export function batch(fn: () => unknown): void {
           if (indexMap.deletedIndices.length > 0) {
             hasChanges = true;
           } else {
-            for (let i = 0, ii = indexMap.length; i < ii; ++i) {
+            for (i = 0, ii = indexMap.length; i < ii; ++i) {
               if (indexMap[i] !== i) {
                 hasChanges = true;
                 break;

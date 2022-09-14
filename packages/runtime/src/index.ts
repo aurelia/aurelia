@@ -147,6 +147,9 @@ export {
   subscriberCollection,
 } from './observation/subscriber-collection';
 export {
+  batch,
+} from './observation/subscriber-batch';
+export {
   ConnectableSwitcher,
 } from './observation/connectable-switcher';
 

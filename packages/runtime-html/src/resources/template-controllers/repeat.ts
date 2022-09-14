@@ -1,4 +1,4 @@
-import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
+import { nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
   BindingBehaviorExpression,
@@ -176,8 +176,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const oldLength = this.views.length;
       const $indexMap = applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
-      if ($indexMap.deletedItems.length > 0) {
-        $indexMap.deletedItems.sort(compareNumber);
+      if ($indexMap.deletedIndices.length > 0) {
         const ret = onResolve(
           this._deactivateAndRemoveViewsByKey($indexMap, flags),
           () => {
@@ -318,7 +317,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, views } = this;
 
-    const deleted = indexMap.deletedItems;
+    const deleted = indexMap.deletedIndices;
     const deletedLen = deleted.length;
     let i = 0;
     for (; deletedLen > i; ++i) {

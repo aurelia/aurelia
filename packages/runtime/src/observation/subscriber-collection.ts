@@ -11,6 +11,7 @@ import type {
   ISubscriberRecord,
   LifecycleFlags as LF,
 } from '../observation';
+import { addValueBatch, batching } from './subscriber-batch';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
@@ -138,6 +139,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notify(val: unknown, oldVal: unknown, flags: LF): void {
+    if (batching) {
+      addValueBatch(this, val, oldVal, flags);
+      return;
+    }
     /**
      * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
      * callSubscribers invocation, so we're caching them all before invoking any.

@@ -22,7 +22,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
    */
   @bindable public id?: string;
 
-  private _separateProperties = false;
+  /** @internal */ private _separateProperties = false;
   private hasHref: boolean | null = null;
 
   private routerNavigationSubscription!: IDisposable;
@@ -104,6 +104,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
   }
 
+  /** @internal */
   private _findRoute(value: string | IRoute): FoundRoute {
     if (typeof value === 'string') {
       return new FoundRoute();

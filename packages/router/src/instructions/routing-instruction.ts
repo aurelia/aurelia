@@ -406,10 +406,10 @@ export class RoutingInstruction {
       return false;
     }
     if (typeof thisRoute === 'string' || typeof otherRoute === 'string') {
-      return (thisRoute ?? '') === (otherRoute ?? '');
+      return thisRoute === otherRoute;
     }
 
-    return ((thisRoute as Route).id ?? '') === ((otherRoute as Route).id ?? '');
+    return (thisRoute as Route).id === (otherRoute as Route).id;
   }
 
   /**

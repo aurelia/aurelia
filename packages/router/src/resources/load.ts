@@ -22,7 +22,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
    */
   @bindable public id?: string;
 
-  private separateProperties = false;
+  private _separateProperties = false;
   private hasHref: boolean | null = null;
 
   private routerNavigationSubscription!: IDisposable;
@@ -40,7 +40,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public binding(): void {
     if (this.value == null) {
-      this.separateProperties = true;
+      this._separateProperties = true;
     }
     this.element.addEventListener('click', this.linkHandler);
     this.updateValue();
@@ -60,7 +60,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   private updateValue(): void {
-    if (this.separateProperties) {
+    if (this._separateProperties) {
       this.value = {
         component: this.component,
         parameters: this.parameters,
@@ -74,9 +74,9 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     if (!this.hasHref) {
       let value = this.value as string;
-      if (typeof this.value !== 'string') {
-        const instruction = RoutingInstruction.from(this.router, this.value as IRoutingInstruction).shift() as RoutingInstruction;
-        const found = this.findRoute(this.value as IRoute);
+      if (typeof value !== 'string') {
+        const instruction = RoutingInstruction.from(this.router, value as IRoutingInstruction).shift() as RoutingInstruction;
+        const found = this._findRoute(value as IRoute);
         if (found.foundConfiguration) {
           instruction.route = found.matching;
         }
@@ -95,21 +95,16 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   private async updateActive(): Promise<void> {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
     const routeValue = typeof this.value === 'string' ? { id: this.value, path: this.value } : this.value;
-    const found = this.findRoute(routeValue as IRoute);
+    const found = this._findRoute(routeValue as IRoute);
     const instructions = found.foundConfiguration
       ? found.instructions
       : getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
     const element = getLoadIndicator(this.element as HTMLElement);
 
-    const unresolvedPromise = RoutingInstruction.resolve(instructions);
-    if (unresolvedPromise instanceof Promise) {
-      await unresolvedPromise;
-    }
-
     element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
   }
 
-  private findRoute(value: string | IRoute): FoundRoute {
+  private _findRoute(value: string | IRoute): FoundRoute {
     if (typeof value === 'string') {
       return new FoundRoute();
     }

@@ -57,6 +57,7 @@ export interface IRoutingInstruction {
   parameters?: ComponentParameters;
   children?: LoadInstruction[];
   options?: ILoadOptions;
+  id?: string;
 }
 
 // export interface IRoute extends Partial<IRoutingInstruction> {

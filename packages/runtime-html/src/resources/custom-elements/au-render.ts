@@ -1,5 +1,5 @@
 import { Constructable, nextId, onResolve } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { IPlatform } from '../../platform';
@@ -9,6 +9,7 @@ import { bindable } from '../../bindable';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isPromise, isString } from '../../utilities';
+import { BindingMode } from '../../binding/interfaces-bindings';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;

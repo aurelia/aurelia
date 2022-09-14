@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { DI, emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
-import { BindingMode, ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
@@ -30,6 +30,7 @@ import { BindingCommand, CommandType } from './resources/binding-command';
 import { createLookup, isString } from './utilities';
 import { allResources, singletonRegistration } from './utilities-di';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
+import { BindingMode } from './binding/interfaces-bindings';
 
 import type {
   IContainer,

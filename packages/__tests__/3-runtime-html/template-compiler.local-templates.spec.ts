@@ -2,9 +2,7 @@ import {
   DefaultLogger, IContainer, ILogEvent, ISink, kebabCase, LoggerConfiguration, LogLevel
 } from '@aurelia/kernel';
 import {
-  BindingMode
-} from '@aurelia/runtime';
-import {
+  BindingMode,
   Aurelia, bindable,
   BindableDefinition, CustomAttributeDefinition, customElement,
   CustomElement, CustomElementDefinition, HydrateElementInstruction

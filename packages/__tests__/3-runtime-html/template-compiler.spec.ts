@@ -11,13 +11,13 @@ import {
   parseExpression,
   AccessScopeExpression,
   BindingIdentifier,
-  BindingMode,
   DelegationStrategy,
   PrimitiveLiteralExpression,
   IExpressionParser,
 } from '@aurelia/runtime';
 import {
   bindable,
+  BindingMode,
   BindableDefinition,
   customAttribute,
   CustomAttribute,

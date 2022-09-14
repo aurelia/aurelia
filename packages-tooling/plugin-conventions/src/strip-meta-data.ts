@@ -1,6 +1,5 @@
 import { kebabCase } from '@aurelia/kernel';
-import { BindingMode } from '@aurelia/runtime';
-import { PartialBindableDefinition } from '@aurelia/runtime-html';
+import { BindingMode, PartialBindableDefinition } from '@aurelia/runtime-html';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
 interface IStrippedHtml {

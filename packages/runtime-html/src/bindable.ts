@@ -1,5 +1,6 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
-import { BindingMode, ICoercionConfiguration } from '@aurelia/runtime';
+import { ICoercionConfiguration } from '@aurelia/runtime';
+import { BindingMode } from './binding/interfaces-bindings';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './utilities-metadata';
 import { isString } from './utilities';
 

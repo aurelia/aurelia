@@ -3,14 +3,13 @@ import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kerne
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
-  BindingMode,
   connectable,
   LifecycleFlags,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber

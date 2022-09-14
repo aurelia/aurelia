@@ -69,7 +69,7 @@ export class RoutingInstruction {
   /**
    * The configured route, if any, that the routing instruction is part of.
    */
-  public route: FoundRoute | null = null;
+  public route: FoundRoute | string | null = null;
 
   /**
    * The instruction is the start/first instruction of a configured route.
@@ -97,9 +97,9 @@ export class RoutingInstruction {
   /**
    * Whether the routing instruction has been cancelled (aborted) for some reason
    */
-   public cancelled: boolean = false;
+  public cancelled: boolean = false;
 
-   public constructor(
+  public constructor(
     component?: ComponentAppellation | Promise<ComponentAppellation>,
     endpoint?: EndpointHandle,
     parameters?: ComponentParameters,
@@ -158,9 +158,10 @@ export class RoutingInstruction {
         instructions.push(RoutingInstruction.create(instruction) as RoutingInstruction);
       } else if (InstructionComponent.isDefinition(instruction)) {
         instructions.push(RoutingInstruction.create(instruction.Type) as RoutingInstruction);
-      } else if ('component' in instruction) {
+      } else if ('component' in instruction || 'id' in instruction) {
         const viewportComponent = instruction;
         const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters) as RoutingInstruction;
+        newInstruction.route = instruction.id ?? null;
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
           newInstruction.nextScopeInstructions = RoutingInstruction.from(context, viewportComponent.children);
         }
@@ -231,6 +232,21 @@ export class RoutingInstruction {
         .map(instruction => instruction.stringify(context, excludeEndpoint, endpointContext))
         .filter(instruction => instruction.length > 0)
         .join(Separators.for(context).sibling);
+  }
+
+  /**
+   * Resolve a list of routing instructions, returning a promise that should be awaited if needed.
+   *
+   * @param instructions - The instructions to resolve
+   */
+  public static resolve(instructions: RoutingInstruction[]): void | Promise<void | ComponentAppellation[]> {
+    const resolvePromises = instructions
+      .filter(instr => instr.isUnresolved)
+      .map(instr => instr.resolve())
+      .filter(result => result instanceof Promise);
+    if (resolvePromises.length > 0) {
+      return Promise.all(resolvePromises) as Promise<void | ComponentAppellation[]>;
+    }
   }
 
   /**
@@ -455,26 +471,20 @@ export class RoutingInstruction {
         excludeCurrentComponent = true;
       }
     }
+
     const nextInstructions: RoutingInstruction[] | null = this.nextScopeInstructions;
     // Start with the scope modifier (if any)
     let stringified: string = this.scopeModifier;
-    // It's a configured route...
-    if (this.route !== null) {
-      // ...that's already added as part of a configuration, so skip to next scope!
-      if (!this.routeStart) {
-        return Array.isArray(nextInstructions)
-          ? RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext)
-          : '';
-      }
-      // ...that's the first instruction of a route...
-      const path = this.route.matching;
-      // ...so add the route.
-      stringified += path.endsWith(seps.scope)
-        ? path.slice(0, -seps.scope.length)
-        : path;
-    } else { // Not (part of) a route so add it
-      stringified += this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent);
+
+    // It's a configured route that's already added as part of a configuration, so skip to next scope!
+    if (this.route instanceof FoundRoute && !this.routeStart) {
+      return Array.isArray(nextInstructions)
+        ? RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext)
+        : '';
     }
+    const path = this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent);
+    stringified += path.endsWith(seps.scope) ? path.slice(0, -seps.scope.length) : path;
+
     // If any next scope/child instructions...
     if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
       // ...get them as string...
@@ -591,7 +601,7 @@ export class RoutingInstruction {
    */
   public getTitle(navigation: Navigation): string {
     // If it's a configured route...
-    if (this.route !== null) {
+    if (this.route instanceof FoundRoute) {
       // ...get the configured route title.
       const routeTitle = this.route.match?.title;
       // If there's a configured title, use it. Otherwise fallback to
@@ -626,6 +636,16 @@ export class RoutingInstruction {
    * @param excludeComponent - Whether to exclude component names in the string
    */
   private stringifyShallow(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
+    if (this.route != null) {
+      const path = this.route instanceof FoundRoute ? this.route.matching : this.route;
+      return path
+        .split('/')
+        .map(part => part.startsWith(':')
+          ? this.parameters.get(context, part.slice(1))
+          : part)
+        .join('/');
+    }
+
     const seps = Separators.for(context);
     // Start with component (unless excluded)
     let instructionString = !excludeComponent ? this.component.name ?? '' : '';

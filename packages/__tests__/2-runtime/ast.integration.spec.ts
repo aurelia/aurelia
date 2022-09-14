@@ -1,10 +1,10 @@
 import {
   AccessScopeExpression,
-  BindingMode,
   ConditionalExpression,
   LifecycleFlags
 } from '@aurelia/runtime';
 import {
+  BindingMode,
   IPlatform,
   LetBinding,
   PropertyBinding,

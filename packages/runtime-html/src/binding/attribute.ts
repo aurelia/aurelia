@@ -1,6 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
-  BindingMode,
   ExpressionKind,
   LifecycleFlags,
   AccessorType,
@@ -8,6 +7,7 @@ import {
   connectable,
 } from '@aurelia/runtime';
 
+import { BindingMode } from './interfaces-bindings';
 import { AttributeObserver } from '../observation/element-attribute-observer';
 import { BindingTargetSubscriber, astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';

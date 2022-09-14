@@ -4,10 +4,10 @@ import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
-  BindingMode,
   type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
+  BindingMode,
   CommandType,
   IHydratableController,
   IRenderer,

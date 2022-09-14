@@ -24,7 +24,7 @@ export class FoundRoute {
     return this.match !== null;
   }
   public get foundInstructions(): boolean {
-    return this.instructions.length > 0;
+    return this.instructions.some(instruction => !instruction.component.none);
   }
   public get hasRemaining(): boolean {
     return this.instructions.some(instruction => instruction.hasNextScopeInstructions);

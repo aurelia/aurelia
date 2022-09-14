@@ -64,9 +64,10 @@ describe(`ArrayObserver`, function () {
   });
 
   describe('should allow subscribing for batched notification', function () {
+    const observerMap = new WeakMap<unknown[], ArrayObserver>();
     function verifyChanges(arr: number[], fn: (arr: number[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: number[]) {
       const s = new SpySubscriber();
-      const sut = new ArrayObserver(arr);
+      const sut = observerMap.get(arr) ?? (observerMap.set(arr, new ArrayObserver(arr)).get(arr));
       sut.subscribe(s);
 
       batch(() => {
@@ -387,6 +388,37 @@ describe(`ArrayObserver`, function () {
           arr.splice(1, 1, 7, 8); // 1, [7], [8], 3, [5], [6]
         }, [0, -2, -2, 2, -2, -2], [3, 1], [4, 2]);
       });
+    });
+
+    it('works with double nested batch', function () {
+      const arr = [1, 2, 3];
+      const o = new ArrayObserver(arr);
+      let map: IndexMap;
+      let callCount = 0;
+      o.subscribe({
+        handleCollectionChange(indexMap) {
+          map = indexMap;
+          callCount++;
+        },
+      });
+      batch(() => {
+        arr.splice(1, 1, 5);
+        assert.deepStrictEqual(arr, [1, 5, 3]);
+        batch(() => {
+          arr.splice(0, 1, 7);
+        });
+        assert.strictEqual(callCount, 1);
+        assert.deepStrictEqual(arr, [7, 5, 3]);
+        assert.deepStrictEqual(
+          map,
+          Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })
+        );
+      });
+      assert.strictEqual(callCount, 2);
+      assert.deepStrictEqual(
+        map,
+        Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })
+      );
     });
   });
 

@@ -22,7 +22,6 @@ import type {
 } from '../observation';
 import { def, defineHiddenProp, isFunction } from '../utilities-objects';
 import { addCollectionBatch, batching } from './subscriber-batch';
-import { compareNumber } from '@aurelia/kernel';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -496,6 +495,12 @@ export function getArrayObserver(array: unknown[]): ArrayObserver {
   }
   return observer;
 }
+
+/**
+ * A compare function to pass to `Array.prototype.sort` for sorting numbers.
+ * This is needed for numeric sort, since the default sorts them as strings.
+ */
+const compareNumber = (a: number, b: number): number => a - b;
 
 /**
  * Applies offsets to the non-negative indices in the IndexMap

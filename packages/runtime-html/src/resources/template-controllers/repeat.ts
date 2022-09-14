@@ -1,4 +1,4 @@
-import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
+import { nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
   BindingBehaviorExpression,

@@ -8,7 +8,7 @@ import { FoundRoute } from '../found-route';
 import { Endpoint, EndpointType } from '../endpoints/endpoint';
 import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
-import { IRouter, IRouterConfiguration, Navigation } from '../index';
+import { IRouter, IRouterConfiguration, Navigation, Route } from '../index';
 import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
 import { Separators } from '../router-options';
 import { IContainer } from '@aurelia/kernel';
@@ -394,6 +394,25 @@ export class RoutingInstruction {
   }
 
   /**
+   * Compare the routing instruction's route with the route of another routing
+   * instruction.
+   *
+   * @param other - The routing instruction to compare to
+   */
+  public sameRoute(other: RoutingInstruction): boolean {
+    const thisRoute = this.route?.match;
+    const otherRoute = other.route?.match;
+    if (thisRoute == null || otherRoute == null) {
+      return false;
+    }
+    if (typeof thisRoute === 'string' || typeof otherRoute === 'string') {
+      return thisRoute === otherRoute;
+    }
+
+    return (thisRoute as Route).id === (otherRoute as Route).id;
+  }
+
+  /**
    * Compare the routing instruction's component with the component of another routing
    * instruction. Compares on name unless `compareType` is `true`.
    *
@@ -554,8 +573,16 @@ export class RoutingInstruction {
   public isIn(context: IRouterConfiguration | IRouter | IContainer, searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
     const matching = searchIn.filter(instruction => {
-      if (!instruction.sameComponent(context, this)) {
-        return false;
+      // Match either routes...
+      if (this.route != null || instruction.route != null) {
+        if (!instruction.sameRoute(this)) {
+          return false;
+        }
+      } else {
+        // ... or components
+        if (!instruction.sameComponent(context, this)) {
+          return false;
+        }
       }
       // Use own type if we have it, the other's type if not
       const instructionType = instruction.component.type ?? this.component.type;

@@ -332,6 +332,7 @@ jobs:
           command: |
             cd packages/__tests__
             npm run << parameters.npm_command >>
+          no_output_timeout: "3m"
 
       - when:
           condition: << parameters.coverage >>
@@ -406,6 +407,7 @@ jobs:
           command: |
             cd packages-tooling/__tests__
             npm run << parameters.npm_command >>
+          no_output_timeout: "3m"
 
   lint_packages:
     executor: docker_circleci
@@ -515,6 +517,7 @@ jobs:
           command: |
             npx playwright install chromium
             npm run test
+          no_output_timeout: "3m"
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -575,6 +578,7 @@ jobs:
             cd test/playwright
             npm run build
             npm run e2e:<< parameters.suite >>
+          no_output_timeout: "2m"
 
   js_framework_benchmark:
     executor: docker_circleci_bench

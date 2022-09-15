@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { PropertyBinding, AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
-import { TestContext, assert } from '@aurelia/testing';
+import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
   let target: any;
@@ -26,14 +26,20 @@ describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
       targetProperty,
       {} as any
     );
-    sut.bind(undefined, undefined, binding);
+    sut.bind(undefined, binding);
   });
 
-  it('bind()   should put a DataAttributeObserver on the binding', function () {
+  it('[UNIT] bind()   should put a DataAttributeObserver on the binding', function () {
     assert.strictEqual(binding.targetObserver instanceof DataAttributeAccessor, true, `binding.targetObserver instanceof DataAttributeAccessor`);
   });
 
   // it('unbind() should clear the DataAttributeObserver from the binding', function () {
   //   // TODO: it doesn't actually do, and it should
   // });
+  it('works with property binding', function () {
+    const { getBy } = createFixture
+      .html`<div bla.bind="1 & attr">`
+      .build();
+    assert.strictEqual(getBy('div').getAttribute('bla'), '1');
+  });
 });

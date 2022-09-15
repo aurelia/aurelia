@@ -6,7 +6,6 @@ import {
   IBinding,
   IConnectableBinding,
   IObserverLocator,
-  LifecycleFlags,
   Scope
 } from '@aurelia/runtime';
 import {
@@ -118,15 +117,15 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope) {
+  public $bind(scope: Scope) {
     this.scope = scope;
-    this.binding.$bind(flags, scope);
+    this.binding.$bind(scope);
     this._setTarget();
-    const delta = this._processBindingExpressionArgs(flags);
+    const delta = this._processBindingExpressionArgs();
     this._processDelta(delta);
   }
 
-  public $unbind(flags: LifecycleFlags) {
+  public $unbind() {
     this.task?.cancel();
     this.task = null;
 
@@ -136,7 +135,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
     this.controller?.removeSubscriber(this);
     this.controller?.unregisterBinding(this.propertyBinding);
-    this.binding.$unbind(flags);
+    this.binding.$unbind();
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown): void {
@@ -164,7 +163,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   /** @internal */
-  private _processBindingExpressionArgs(_flags: LifecycleFlags): ValidateArgumentsDelta {
+  private _processBindingExpressionArgs(): ValidateArgumentsDelta {
     const scope: Scope = this.scope;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;

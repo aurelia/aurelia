@@ -1,7 +1,6 @@
 import {
   ISubscriber,
   ISubscriberRecord,
-  LifecycleFlags as LifecycleFlags,
   subscriberCollection
 } from '@aurelia/runtime';
 import { createSpy, assert } from '@aurelia/testing';
@@ -13,8 +12,7 @@ interface Test {
 }
 
 describe('2-runtime/subscriber-collection.spec.ts', function () {
-  it('calls subscribers', function () {
-    const flags = LifecycleFlags.none;
+  it('[UNIT] calls subscribers', function () {
     const observer = new Test();
     const observer2 = new Test();
 
@@ -25,7 +23,7 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
     const callable3 = { handleChange: createSpy() };
     observer.subs.add(callable3);
     const callable4 = {
-      handleChange: createSpy(() => observer2.subs.notify('new value2', 'old value2', flags))
+      handleChange: createSpy(() => observer2.subs.notify('new value2', 'old value2'))
     };
     observer.subs.add(callable4);
     const callable5 = { handleChange: createSpy() };
@@ -42,75 +40,75 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
     const callable10 = { handleChange: createSpy() };
     observer2.subs.add(callable10);
 
-    observer.subs.notify('new value', 'old value', flags);
+    observer.subs.notify('new value', 'old value');
 
     assert.deepStrictEqual(
       callable1.handleChange.calls,
       [
-        ['new value', 'old value', flags],
+        ['new value', 'old value'],
       ],
       `callable1.handleChange`,
     );
     assert.deepStrictEqual(
       callable2.handleChange.calls,
       [
-        ['new value', 'old value', flags],
+        ['new value', 'old value'],
       ],
       `callable2.handleChange`,
     );
     assert.deepStrictEqual(
       callable3.handleChange.calls,
       [
-        ['new value', 'old value', flags],
+        ['new value', 'old value'],
       ],
       `callable3.handleChange`,
     );
     assert.deepStrictEqual(
       callable4.handleChange.calls,
       [
-        ['new value', 'old value', flags],
+        ['new value', 'old value'],
       ],
       `callable4.handleChange`,
     );
     assert.deepStrictEqual(
       callable5.handleChange.calls,
       [
-        ['new value', 'old value', flags],
+        ['new value', 'old value'],
       ],
       `callable5.handleChange`,
     );
     assert.deepStrictEqual(
       callable6.handleChange.calls,
       [
-        ['new value2', 'old value2', flags],
+        ['new value2', 'old value2'],
       ],
       `callable6.handleChange`,
     );
     assert.deepStrictEqual(
       callable7.handleChange.calls,
       [
-        ['new value2', 'old value2', flags],
+        ['new value2', 'old value2'],
       ],
       `callable7.handleChange`,
     );
     assert.deepStrictEqual(
       callable8.handleChange.calls,
       [
-        ['new value2', 'old value2', flags],
+        ['new value2', 'old value2'],
       ],
       `callable8.handleChange`,
     );
     assert.deepStrictEqual(
       callable9.handleChange.calls,
       [
-        ['new value2', 'old value2', flags],
+        ['new value2', 'old value2'],
       ],
       `callable9.handleChange`,
     );
     assert.deepStrictEqual(
       callable10.handleChange.calls,
       [
-        ['new value2', 'old value2', flags],
+        ['new value2', 'old value2'],
       ],
       `callable10.handleChange`,
     );

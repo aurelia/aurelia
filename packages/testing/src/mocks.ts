@@ -1,5 +1,5 @@
 import {
-  emptyArray, Key,
+  Key,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -43,20 +43,20 @@ export class MockBinding implements IConnectableBinding {
     return null!;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    this.trace('updateTarget', value, flags);
+  public updateTarget(value: unknown): void {
+    this.trace('updateTarget', value);
   }
 
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
-    this.trace('updateSource', value, flags);
+  public updateSource(value: unknown): void {
+    this.trace('updateSource', value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    this.trace('handleChange', newValue, _previousValue, flags);
+  public handleChange(newValue: unknown, _previousValue: unknown): void {
+    this.trace('handleChange', newValue, _previousValue);
   }
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.trace('handleCollectionChange', indexMap, flags);
+  public handleCollectionChange(indexMap: IndexMap): void {
+    this.trace('handleCollectionChange', indexMap);
   }
 
   public observe(obj: IIndexable, propertyName: string): void {
@@ -144,8 +144,8 @@ export class MockSignaler {
 export class MockPropertySubscriber {
   public calls: [keyof MockPropertySubscriber, ...any[]][] = [];
 
-  public handleChange(newValue: any, previousValue: any, flags: LifecycleFlags): void {
-    this.trace(`handleChange`, newValue, previousValue, flags);
+  public handleChange(newValue: any, previousValue: any): void {
+    this.trace(`handleChange`, newValue, previousValue);
   }
 
   public trace(fnName: keyof MockPropertySubscriber, ...args: any[]): void {
@@ -356,7 +356,6 @@ export class MockBrowserHistoryLocation {
 
 export class ChangeSet implements IDisposable {
   public readonly index: number;
-  public readonly flags: LifecycleFlags;
 
   public get newValue(): any {
     return this._newValue;
@@ -370,12 +369,10 @@ export class ChangeSet implements IDisposable {
 
   public constructor(
     index: number,
-    flags: LifecycleFlags,
     newValue: any,
     oldValue: any,
   ) {
     this.index = index;
-    this.flags = flags;
 
     this._newValue = newValue;
     this._oldValue = oldValue;
@@ -425,7 +422,6 @@ export class ProxyChangeSet implements IDisposable {
 
 export class CollectionChangeSet implements IDisposable {
   public readonly index: number;
-  public readonly flags: LifecycleFlags;
 
   public get indexMap(): IndexMap {
     return this._indexMap;
@@ -435,11 +431,9 @@ export class CollectionChangeSet implements IDisposable {
 
   public constructor(
     index: number,
-    flags: LifecycleFlags,
     indexMap: IndexMap,
   ) {
     this.index = index;
-    this.flags = flags;
 
     this._indexMap = indexMap;
   }
@@ -496,27 +490,19 @@ export class SpySubscriber implements IDisposable {
     this._callCount = 0;
   }
 
-  public handleChange(newValue: any, oldValue: any, flags: LifecycleFlags): void {
+  public handleChange(newValue: any, oldValue: any): void {
     if (this._changes === void 0) {
-      this._changes = [new ChangeSet(this._callCount++, flags, newValue, oldValue)];
+      this._changes = [new ChangeSet(this._callCount++, newValue, oldValue)];
     } else {
-      this._changes.push(new ChangeSet(this._callCount++, flags, newValue, oldValue));
+      this._changes.push(new ChangeSet(this._callCount++, newValue, oldValue));
     }
   }
 
-  public handleProxyChange(key: PropertyKey, newValue: any, oldValue: any, flags: LifecycleFlags): void {
-    if (this._proxyChanges === void 0) {
-      this._proxyChanges = [new ProxyChangeSet(this._callCount++, flags, key, newValue, oldValue)];
-    } else {
-      this._proxyChanges.push(new ProxyChangeSet(this._callCount++, flags, key, newValue, oldValue));
-    }
-  }
-
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(indexMap: IndexMap): void {
     if (this._collectionChanges === void 0) {
-      this._collectionChanges = [new CollectionChangeSet(this._callCount++, flags, indexMap)];
+      this._collectionChanges = [new CollectionChangeSet(this._callCount++, indexMap)];
     } else {
-      this._collectionChanges.push(new CollectionChangeSet(this._callCount++, flags, indexMap));
+      this._collectionChanges.push(new CollectionChangeSet(this._callCount++, indexMap));
     }
   }
 

@@ -1,9 +1,7 @@
 import {
-  LifecycleFlags as LF,
   ISubscriberRecord,
   ICollectionSubscriber,
   IndexMap,
-  LifecycleFlags,
 } from '../observation.js';
 import type { IAnySubscriber } from './subscriber-collection.js';
 
@@ -11,7 +9,6 @@ type ValueBatchRecord = [
   1,
   unknown, // oldValue
   unknown, // newValue
-  LF,
 ];
 type CollectionBatchRecord = [
   2,
@@ -48,7 +45,7 @@ export function batch(fn: () => unknown): void {
           prevBatch.set(subs, batchRecord);
         }
         if (batchRecord[0] === 1) {
-          subs.notify(batchRecord[1], batchRecord[2], batchRecord[3]);
+          subs.notify(batchRecord[1], batchRecord[2]);
         } else {
           indexMap = batchRecord[1];
           hasChanges = false;
@@ -63,7 +60,7 @@ export function batch(fn: () => unknown): void {
             }
           }
           if (hasChanges) {
-            subs.notifyCollection(indexMap, LifecycleFlags.none);
+            subs.notifyCollection(indexMap);
           }
         }
       }
@@ -86,14 +83,12 @@ export function addValueBatch(
   subs: ISubscriberRecord<IAnySubscriber>,
   newValue: unknown,
   oldValue: unknown,
-  flags: LF,
 ) {
   const batchRecord = currBatch!.get(subs);
   if (batchRecord === void 0) {
-    currBatch!.set(subs, [1, newValue, oldValue, flags]);
+    currBatch!.set(subs, [1, newValue, oldValue]);
   } else {
     batchRecord[1] = newValue;
     batchRecord[2] = oldValue;
-    batchRecord[3] = flags;
   }
 }

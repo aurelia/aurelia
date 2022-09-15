@@ -51,7 +51,7 @@ export class CallBinding implements IAstBasedBinding {
       this.ast.bind(flags, scope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), this.target, this.targetProperty);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -67,7 +67,7 @@ export class CallBinding implements IAstBasedBinding {
     }
 
     this.$scope = void 0;
-    this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
+    this.targetObserver.setValue(null, this.target, this.targetProperty);
 
     this.isBound = false;
   }
@@ -76,7 +76,7 @@ export class CallBinding implements IAstBasedBinding {
     return;
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown): void {
     return;
   }
 }

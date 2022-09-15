@@ -1,7 +1,7 @@
 import { AccessorType } from '@aurelia/runtime';
 import { createLookup } from '../utilities';
 
-import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
+import type { IAccessor } from '@aurelia/runtime';
 
 const nsMap: Record<string, AttributeNSAccessor> = createLookup();
 
@@ -31,7 +31,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     return obj.getAttributeNS(this.ns, propertyKey);
   }
 
-  public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
+  public setValue(newValue: string | null, obj: HTMLElement, key: string): void {
     if (newValue == null) {
       obj.removeAttributeNS(this.ns, key);
     } else {

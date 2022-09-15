@@ -1,6 +1,6 @@
 import { AccessorType } from '@aurelia/runtime';
 
-import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
+import type { IAccessor } from '@aurelia/runtime';
 
 /**
  * Attribute accessor for HTML elements.
@@ -18,7 +18,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     return obj.getAttribute(key);
   }
 
-  public setValue(newValue: string | null, f: LifecycleFlags, obj: HTMLElement, key: string): void {
+  public setValue(newValue: string | null, obj: HTMLElement, key: string): void {
     if (newValue == null) {
       obj.removeAttribute(key);
     } else {

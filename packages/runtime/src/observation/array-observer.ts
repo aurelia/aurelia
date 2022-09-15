@@ -1,6 +1,5 @@
 import {
   createIndexMap,
-  LifecycleFlags,
   AccessorType,
   ISubscriberCollection,
   ICollectionSubscriberCollection,
@@ -404,7 +403,7 @@ export class ArrayObserver {
     const length = this.collection.length;
 
     this.indexMap = createIndexMap(length);
-    subs.notifyCollection(indexMap, LifecycleFlags.none);
+    this.subs.notifyCollection(indexMap);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
@@ -436,8 +435,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     return this.owner.collection[this.index];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public setValue(newValue: unknown, flag: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     if (newValue === this.getValue()) {
       return;
     }
@@ -458,7 +456,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
   /**
    * From interface `ICollectionSubscriber`
    */
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(indexMap: IndexMap): void {
     const index = this.index;
     const noChange = indexMap[index] === index;
     if (noChange) {
@@ -468,7 +466,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     const currValue = this.value = this.getValue();
     // hmm
     if (prevValue !== currValue) {
-      this.subs.notify(currValue, prevValue, flags);
+      this.subs.notify(currValue, prevValue);
     }
   }
 

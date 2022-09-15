@@ -1,5 +1,4 @@
 import {
-  LifecycleFlags,
   AccessorType,
   IObserver,
 } from '../observation';
@@ -48,7 +47,7 @@ export class ComputedObserver implements
       configurable: true,
       get: $get,
       set: (/* Computed Observer */v) => {
-        observer.setValue(v, LifecycleFlags.none);
+        observer.setValue(v);
       },
     });
 
@@ -119,7 +118,7 @@ export class ComputedObserver implements
   }
 
   // deepscan-disable-next-line
-  public setValue(v: unknown, _flags: LifecycleFlags): void {
+  public setValue(v: unknown): void {
     if (isFunction(this.$set)) {
       if (v !== this._value) {
         // setting running true as a form of batching
@@ -171,7 +170,7 @@ export class ComputedObserver implements
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, LifecycleFlags.none);
+    this.subs.notify(this._value, oV);
   }
 
   private run(): void {

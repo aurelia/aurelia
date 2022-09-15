@@ -1,4 +1,4 @@
-import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 
 import type { EventSubscriber } from './event-delegator';
 import type { INode } from '../dom';
@@ -53,27 +53,24 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     return this._value;
   }
 
-  public setValue(newValue: string | null, flags: LifecycleFlags): void {
+  public setValue(newValue: string | null): void {
     if (Object.is(newValue, this._value)) {
       return;
     }
     this._oldValue = this._value;
     this._value = newValue;
     this._hasChanges = true;
-    if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
-      this._flushChanges(flags);
+    if (!this.handler.config.readonly) {
+      this._flushChanges();
     }
   }
 
   /** @internal */
-  private _flushChanges(flags: LifecycleFlags): void {
+  private _flushChanges(): void {
     if (this._hasChanges) {
       this._hasChanges = false;
       this._obj[this._key as string] = this._value ?? this.handler.config.default;
-
-      if ((flags & LifecycleFlags.fromBind) === 0) {
-        this.queue.add(this);
-      }
+      this.queue.add(this);
     }
   }
 
@@ -102,7 +99,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, LifecycleFlags.none);
+    this.subs.notify(this._value, oV);
   }
 }
 

@@ -573,7 +573,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.isStrictBinding) {
-      flags |= LifecycleFlags.isStrictBindingStrategy;
+      // todo(bigopon): set bindings to strict based on this
     }
 
     this.$initiator = initiator;

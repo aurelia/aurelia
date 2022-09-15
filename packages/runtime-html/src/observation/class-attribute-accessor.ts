@@ -1,5 +1,5 @@
 import { emptyArray } from '@aurelia/kernel';
-import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
 import { hasOwnProperty, isString } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
@@ -31,12 +31,10 @@ export class ClassAttributeAccessor implements IAccessor {
     return this.value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     this.value = newValue;
     this._hasChanges = newValue !== this._oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
-      this._flushChanges();
-    }
+    this._flushChanges();
   }
 
   /** @internal */

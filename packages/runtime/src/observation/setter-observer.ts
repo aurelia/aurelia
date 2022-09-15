@@ -1,4 +1,4 @@
-import { AccessorType, LifecycleFlags } from '../observation';
+import { AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { def, isFunction } from '../utilities-objects';
 
@@ -33,8 +33,6 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   private _observing: boolean = false;
   public readonly queue!: FlushQueue;
 
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
   private readonly _obj: IIndexable;
   private readonly _key: string;
 
@@ -50,14 +48,13 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
     return this._value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     if (this._observing) {
       if (Object.is(newValue, this._value)) {
         return;
       }
       this._oldValue = this._value;
       this._value = newValue;
-      this.f = flags;
       this.queue.add(this);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -81,7 +78,7 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 
   public start(): this {
@@ -96,7 +93,7 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
           configurable: true,
           get: (/* Setter Observer */) => this.getValue(),
           set: (/* Setter Observer */value) => {
-            this.setValue(value, LifecycleFlags.none);
+            this.setValue(value);
           },
         },
       );
@@ -119,7 +116,7 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
   }
 }
 
-type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown) => void;
 
 export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
@@ -131,8 +128,6 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   private _value: unknown = void 0;
   /** @internal */
   private _oldValue: unknown = void 0;
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
   /** @internal */
   private readonly cb?: ChangeHandlerCallback;
   /** @internal */
@@ -160,15 +155,14 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
     return this._value;
   }
 
-  public setValue(value: unknown, flags: LifecycleFlags): void {
+  public setValue(value: unknown): void {
     if (this._hasSetter) {
       value = this._setter!(value, null);
     }
     if (!Object.is(value, this._value)) {
       this._oldValue = this._value;
       this._value = value;
-      this.f = flags;
-      this.cb?.call(this._obj, this._value, this._oldValue, flags);
+      this.cb?.call(this._obj, this._value, this._oldValue);
       this.queue.add(this);
     }
   }
@@ -176,7 +170,7 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 }
 

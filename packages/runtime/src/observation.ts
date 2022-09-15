@@ -1,7 +1,8 @@
 import { DI, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { isArray } from './utilities-objects';
+
 import type { Scope } from './observation/binding-context';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
-import { isArray } from './utilities-objects';
 
 export interface IBinding {
   interceptor: this;
@@ -24,17 +25,12 @@ export interface ICoercionConfiguration {
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
 
 export const enum LifecycleFlags {
-  none                          = 0b0000_000_00_0,
+  none                          = 0b0_00_00,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags        = 0b0_01_00_00_1,
-  noFlush                       = 0b0_01_00_00_0,
-  bindingStrategy               = 0b0_00_00_00_1,
-  isStrictBindingStrategy       = 0b0_00_00_00_1,
-  fromBind                      = 0b0_00_00_01_0,
-  fromUnbind                    = 0b0_00_00_10_0,
-  mustEvaluate                  = 0b0_00_01_00_0,
-  dispose                       = 0b0_00_10_00_0,
+  fromBind                      = 0b0_00_01,
+  fromUnbind                    = 0b0_00_10,
+  dispose                       = 0b0_01_00,
 }
 
 export interface IConnectable {
@@ -64,11 +60,11 @@ export interface IBatchable {
 }
 
 export interface ISubscriber<TValue = unknown> {
-  handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
+  handleChange(newValue: TValue, previousValue: TValue): void;
 }
 
 export interface ICollectionSubscriber {
-  handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
+  handleCollectionChange(indexMap: IndexMap): void;
 }
 
 export interface ISubscribable {
@@ -91,8 +87,8 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
   has(subscriber: T): boolean;
   remove(subscriber: T): boolean;
   any(): boolean;
-  notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-  notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
+  notify(value: unknown, oldValue: unknown): void;
+  notifyCollection(indexMap: IndexMap): void;
 }
 
 /**
@@ -195,7 +191,7 @@ export const enum AccessorType {
 export interface IAccessor<TValue = unknown> {
   type: AccessorType;
   getValue(obj?: object, key?: PropertyKey): TValue;
-  setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
+  setValue(newValue: TValue, obj?: object, key?: PropertyKey): void;
 }
 
 /**

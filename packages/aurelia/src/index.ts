@@ -232,6 +232,7 @@ export {
 
 export {
   CollectionKind,
+  batch,
   // CallFunctionExpression,
   // connects,
   // observes,

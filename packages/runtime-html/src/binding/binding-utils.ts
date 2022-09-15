@@ -1,12 +1,12 @@
 import { Constructable, type Key } from '@aurelia/kernel';
 import { def, defineHiddenProp } from '../utilities';
-import { IAstEvaluator, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { IAstEvaluator, ISubscriber } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
 interface ITwoWayBindingImpl extends IAstBasedBinding {
-  updateSource(value: unknown, flags: LifecycleFlags): void;
+  updateSource(value: unknown): void;
 }
 
 /**
@@ -18,10 +18,10 @@ export class BindingTargetSubscriber implements ISubscriber {
   ) { }
 
   // deepscan-disable-next-line
-  public handleChange(value: unknown, _: unknown, flags: LifecycleFlags): void {
+  public handleChange(value: unknown, _: unknown): void {
     const b = this.b;
     if (value !== b.ast.evaluate(b.$scope!, b, null)) {
-      b.updateSource(value, flags);
+      b.updateSource(value);
     }
   }
 }

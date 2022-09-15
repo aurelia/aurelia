@@ -225,15 +225,15 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
   }
   @bindingBehavior('interceptor')
   class InterceptorBindingBehavior extends BindingInterceptor {
-    public updateSource(value: unknown, flags: LifecycleFlags) {
+    public updateSource(value: unknown) {
       if (this.interceptor !== this) {
-        this.interceptor.updateSource(value, flags);
+        this.interceptor.updateSource(value);
       } else {
         let binding = this as BindingInterceptor;
         while (binding.binding !== void 0) {
           binding = binding.binding as BindingInterceptor;
         }
-        binding.updateSource(value, flags);
+        binding.updateSource(value);
       }
     }
   }

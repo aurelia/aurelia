@@ -1,4 +1,4 @@
-import { LifecycleFlags, subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
 import { isString } from '../utilities';
 
 import type {
@@ -44,9 +44,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   /** @internal */
   private readonly _attr: string;
 
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
-
   public constructor(
     obj: HTMLElement,
     // todo: rename to attr and sub-attr
@@ -64,12 +61,10 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     return this._value;
   }
 
-  public setValue(value: unknown, flags: LifecycleFlags): void {
+  public setValue(value: unknown): void {
     this._value = value;
     this._hasChanges = value !== this._oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
-      this._flushChanges();
-    }
+    this._flushChanges();
   }
 
   /** @internal */
@@ -145,7 +140,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         this._oldValue = this._value;
         this._value = newValue;
         this._hasChanges = false;
-        this.f = LifecycleFlags.none;
         this.queue.add(this);
       }
     }
@@ -167,7 +161,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 }
 

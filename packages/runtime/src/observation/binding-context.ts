@@ -85,6 +85,7 @@ export class BindingContext implements IBindingContext {
       && overrideContext != null
       && !(name in overrideContext)
       && !(
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         overrideContext.bindingContext
         && name in overrideContext.bindingContext
       )
@@ -133,6 +134,7 @@ export class BindingContext implements IBindingContext {
     //   } while (currentScope != null);
     // }
 
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return scope.bindingContext || scope.overrideContext;
   }
 }

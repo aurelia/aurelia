@@ -1,5 +1,5 @@
 import { DI, IPlatform } from '@aurelia/kernel';
-import { AccessorType, IObserver, ISubscriberCollection, LifecycleFlags } from '../observation';
+import { AccessorType, IObserver, ISubscriberCollection } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 import type { ITask, QueueTaskOptions } from '@aurelia/platform';
@@ -133,7 +133,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
     return this.obj[this.key];
   }
 
-  public setValue(v: unknown, f: LifecycleFlags) {
+  public setValue(_v: unknown) {
     // todo: this should be allowed, probably
     // but the construction of dirty checker should throw instead
     throw new Error(`Trying to set value for property ${this.key} in dirty checker`);
@@ -148,7 +148,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
     const newValue = this.getValue();
 
     this._oldValue = newValue;
-    this.subs.notify(newValue, oldValue, LifecycleFlags.none);
+    this.subs.notify(newValue, oldValue);
   }
 
   public subscribe(subscriber: ISubscriber): void {

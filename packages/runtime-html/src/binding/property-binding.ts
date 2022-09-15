@@ -35,8 +35,6 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public targetObserver?: AccessorOrObserver = void 0;
 
-  public persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   private task: ITask | null = null;
   private targetSubscriber: BindingTargetSubscriber | null = null;
 
@@ -48,37 +46,36 @@ export class PropertyBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
   /** @internal */
   private readonly _controller: IBindingController;
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
 
   public constructor(
     controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    private readonly taskQueue: TaskQueue,
+    taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
   ) {
     this._controller = controller;
+    this._taskQueue = taskQueue;
     this.oL = observerLocator;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    this.targetObserver!.setValue(value, flags, this.target, this.targetProperty);
+  public updateTarget(value: unknown): void {
+    this.targetObserver!.setValue(value, this.target, this.targetProperty);
   }
 
-  public updateSource(value: unknown, _flags: LifecycleFlags): void {
-    // flags |= this.persistentFlags;
+  public updateSource(value: unknown): void {
     this.ast.assign(this.$scope!, this, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown): void {
     if (!this.isBound) {
       return;
     }
-
-    flags |= this.persistentFlags;
 
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -104,18 +101,18 @@ export class PropertyBinding implements IAstBasedBinding {
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(newValue, flags);
+      this.task = this._taskQueue.queueTask(() => {
+        this.interceptor.updateTarget(newValue);
         this.task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
     } else {
-      this.interceptor.updateTarget(newValue, flags);
+      this.interceptor.updateTarget(newValue);
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(_indexMap: IndexMap): void {
     if (!this.isBound) {
       return;
     }
@@ -126,14 +123,14 @@ export class PropertyBinding implements IAstBasedBinding {
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(newValue, flags);
+      this.task = this._taskQueue.queueTask(() => {
+        this.interceptor.updateTarget(newValue);
         this.task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
     } else {
-      this.interceptor.updateTarget(newValue, flags);
+      this.interceptor.updateTarget(newValue);
     }
   }
 
@@ -144,12 +141,6 @@ export class PropertyBinding implements IAstBasedBinding {
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // Force property binding to always be strict
-    flags |= LifecycleFlags.isStrictBindingStrategy;
-
-    // Store flags which we can only receive during $bind and need to pass on
-    // to the AST during evaluate/connect/assign
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
 
@@ -179,14 +170,13 @@ export class PropertyBinding implements IAstBasedBinding {
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
         ast.evaluate(scope, this, shouldConnect ? interceptor : null),
-        flags,
       );
     }
 
     if ($mode & fromView) {
       (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
       if (!shouldConnect) {
-        interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
+        interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }
     }
 
@@ -197,8 +187,6 @@ export class PropertyBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
-
-    this.persistentFlags = LifecycleFlags.none;
 
     if (this.ast.hasUnbind) {
       this.ast.unbind(flags, this.$scope!, this.interceptor);

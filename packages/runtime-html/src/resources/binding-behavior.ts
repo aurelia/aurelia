@@ -120,11 +120,11 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
 }
 
 export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {
-  updateTarget?(value: unknown, flags: LifecycleFlags): void;
-  updateSource?(value: unknown, flags: LifecycleFlags): void;
+  updateTarget?(value: unknown): void;
+  updateSource?(value: unknown): void;
 
   callSource?(args: object): unknown;
-  handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+  handleChange?(newValue: unknown, previousValue: unknown): void;
 };
 
 export interface BindingInterceptor extends IConnectableBinding {}
@@ -164,20 +164,20 @@ export class BindingInterceptor implements IInterceptableBinding {
     return (this.binding as IAstEvaluator).getBehavior<T>?.(name);
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    this.binding.updateTarget!(value, flags);
+  public updateTarget(value: unknown): void {
+    this.binding.updateTarget!(value);
   }
-  public updateSource(value: unknown, flags: LifecycleFlags): void {
-    this.binding.updateSource!(value, flags);
+  public updateSource(value: unknown): void {
+    this.binding.updateSource!(value);
   }
   public callSource(args: object): unknown {
     return this.binding.callSource!(args);
   }
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.binding.handleChange(newValue, previousValue, flags);
+  public handleChange(newValue: unknown, previousValue: unknown): void {
+    this.binding.handleChange(newValue, previousValue);
   }
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.binding.handleCollectionChange(indexMap, flags);
+  public handleCollectionChange(indexMap: IndexMap): void {
+    this.binding.handleCollectionChange(indexMap);
   }
   public observe(obj: object, key: string): void {
     this.binding.observe(obj, key);

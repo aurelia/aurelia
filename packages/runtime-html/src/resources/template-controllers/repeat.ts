@@ -68,9 +68,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   ) {}
 
   public binding(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LF,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
+    _flags: LF,
   ): void | Promise<void> {
     const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
@@ -94,7 +94,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    this._refreshCollectionObserver(flags);
+    this._refreshCollectionObserver();
     const dec = forOf.declaration;
     if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
       this.local = dec.evaluate(this.$controller.scope, binding, null) as string;
@@ -103,49 +103,45 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   public attaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LF,
+    _parent: IHydratedParentController,
+    _flags: LF,
   ): void | Promise<void> {
-    this._normalizeToArray(flags);
+    this._normalizeToArray();
 
-    return this._activateAllViews(initiator, flags);
+    return this._activateAllViews(initiator);
   }
 
   public detaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LF,
+    _parent: IHydratedParentController,
+    _flags: LF,
   ): void | Promise<void> {
-    this._refreshCollectionObserver(flags);
+    this._refreshCollectionObserver();
 
-    return this._deactivateAllViews(initiator, flags);
+    return this._deactivateAllViews(initiator);
   }
 
   // called by SetterObserver
-  public itemsChanged(flags: LF): void {
+  public itemsChanged(): void {
     const { $controller } = this;
     if (!$controller.isActive) {
       return;
     }
-    flags |= $controller.flags;
-    this._refreshCollectionObserver(flags);
-    this._normalizeToArray(flags);
+    this._refreshCollectionObserver();
+    this._normalizeToArray();
 
     const ret = onResolve(
-      this._deactivateAllViews(null, flags),
+      this._deactivateAllViews(null),
       () => {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-        return this._activateAllViews(null, flags);
+        return this._activateAllViews(null);
       },
     );
     if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
   // called by a CollectionObserver
-  public handleCollectionChange(
-    indexMap: IndexMap | undefined,
-    flags: LF,
-  ): void {
+  public handleCollectionChange(indexMap: IndexMap | undefined): void {
     const { $controller } = this;
     if (!$controller.isActive) {
       return;
@@ -160,15 +156,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
 
-    flags |= $controller.flags;
-    this._normalizeToArray(flags);
+    this._normalizeToArray();
 
     if (indexMap === void 0) {
       const ret = onResolve(
-        this._deactivateAllViews(null, flags),
+        this._deactivateAllViews(null),
         () => {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this._activateAllViews(null, flags);
+          return this._activateAllViews(null);
         },
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
@@ -178,24 +173,24 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       // first detach+unbind+(remove from array) the deleted view indices
       if ($indexMap.deletedIndices.length > 0) {
         const ret = onResolve(
-          this._deactivateAndRemoveViewsByKey($indexMap, flags),
+          this._deactivateAndRemoveViewsByKey($indexMap),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLength, $indexMap, flags);
+            return this._createAndActivateAndSortViewsByKey(oldLength, $indexMap);
           },
         );
         if (isPromise(ret)) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLength, $indexMap, flags);
+        this._createAndActivateAndSortViewsByKey(oldLength, $indexMap);
       }
     }
   }
 
   // todo: subscribe to collection from inner expression
   /** @internal */
-  private _refreshCollectionObserver(_flags: LF): void {
+  private _refreshCollectionObserver(): void {
     const scope = this.$controller.scope;
 
     let innerItems = this._innerItems;
@@ -221,7 +216,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
-  private _normalizeToArray(flags: LF): void {
+  private _normalizeToArray(): void {
     const items: Items<C> = this.items;
     if (items instanceof Array) {
       this._normalizedItems = items;
@@ -232,7 +227,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     const normalizedItems: unknown[] = [];
-    this.forOf.iterate(flags, items, (arr, index, item) => {
+    this.forOf.iterate(0, items, (arr, index, item) => {
       normalizedItems[index] = item;
     });
     this._normalizedItems = normalizedItems;
@@ -241,7 +236,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _activateAllViews(
     initiator: IHydratedController | null,
-    flags: LF,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -251,10 +245,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const { $controller, _factory: factory, local, _location: location, items } = this;
     const parentScope = $controller.scope;
     const forOf = this.forOf;
-    const newLen = forOf.count(flags, items);
+    const newLen = forOf.count(0, items);
     const views = this.views = Array(newLen);
 
-    forOf.iterate(flags, items, (arr, i, item) => {
+    forOf.iterate(0, items, (arr, i, item) => {
       view = views[i] = factory.create().setLocation(location);
       view.nodes.unlink();
       if(this._hasDestructuredLocal) {
@@ -264,7 +258,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
-      ret = view.activate(initiator ?? view, $controller, flags, viewScope);
+      ret = view.activate(initiator ?? view, $controller, 0, viewScope);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -280,7 +274,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
-    flags: LF,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -293,7 +286,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; ii > i; ++i) {
       view = views[i];
       view.release();
-      ret = view.deactivate(initiator ?? view, $controller, flags);
+      ret = view.deactivate(initiator ?? view, $controller, 0);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -309,7 +302,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _deactivateAndRemoveViewsByKey(
     indexMap: IndexMap,
-    flags: LF,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -323,7 +315,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; deletedLen > i; ++i) {
       view = views[deleted[i]];
       view.release();
-      ret = view.deactivate(view, $controller, flags);
+      ret = view.deactivate(view, $controller, 0);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -347,7 +339,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   private _createAndActivateAndSortViewsByKey(
     oldLength: number,
     indexMap: IndexMap,
-    flags: LF,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -399,7 +390,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 
-        ret = view.activate(view, $controller, flags, viewScope);
+        ret = view.activate(view, $controller, 0, viewScope);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }

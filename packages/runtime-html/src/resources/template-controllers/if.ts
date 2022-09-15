@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { nextId, onResolve } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
@@ -31,8 +32,8 @@ export class If implements ICustomAttributeViewModel {
   })
   public cache: boolean = true;
   private pending: void | Promise<void> = void 0;
-  private _wantsDeactivate: boolean = false;
-  private _swapId: number = 0;
+  /** @internal */ private _wantsDeactivate: boolean = false;
+  /** @internal */ private _swapId: number = 0;
 
   public constructor(
     private readonly ifFactory: IViewFactory,

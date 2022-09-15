@@ -3,7 +3,6 @@ import {
   IDirtyChecker,
   IObserverLocator,
   INodeObserverLocator,
-  LifecycleFlags as LF,
   ComputedObserver
 } from '@aurelia/runtime';
 import {
@@ -100,7 +99,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       let newValue1: unknown;
       let oldValue1: unknown;
       const subscriber1 = {
-        handleChange($newValue: unknown, $oldValue: unknown, _flags: LF) {
+        handleChange($newValue: unknown, $oldValue: unknown) {
           evaluated1 = instance.prop;
           newValue1 = $newValue;
           oldValue1 = $oldValue;
@@ -111,9 +110,8 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       let evaluated2: unknown;
       let newValue2: unknown;
       let oldValue2: unknown;
-      let _flags2: LF;
       const subscriber2 = {
-        handleChange($newValue: unknown, $oldValue: unknown, _flags: LF) {
+        handleChange($newValue: unknown, $oldValue: unknown) {
           evaluated2 = instance.prop;
           newValue2 = $newValue;
           oldValue2 = $oldValue;
@@ -132,12 +130,10 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
           assert.strictEqual(evaluated1, evaluated1, `evaluated #${marker}`);
           assert.strictEqual(newValue1, newValue1, `newValue #${marker}`);
           assert.strictEqual(oldValue1, oldValue1, `oldValue #${marker}`);
-          // assert.strictEqual(flags1, expectedFlags, `flags #${marker}`);
           assert.strictEqual(callCount2, verifiedCount, `callCount #${marker}`);
           assert.strictEqual(evaluated2, evaluated2, `evaluated #${marker}`);
           assert.strictEqual(newValue2, newValue2, `newValue #${marker}`);
           assert.strictEqual(oldValue2, oldValue2, `oldValue #${marker}`);
-          // assert.strictEqual(flags2, expectedFlags, `flags #${marker}`);
         }
       }
 
@@ -281,7 +277,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
     let newValue1: unknown;
     let oldValue1: unknown;
     const subscriber1 = {
-      handleChange($newValue: unknown, $oldValue: unknown, _$flags: LF) {
+      handleChange($newValue: unknown, $oldValue: unknown) {
         evaluated1 = parent['getter'];
         newValue1 = $newValue;
         oldValue1 = $oldValue;

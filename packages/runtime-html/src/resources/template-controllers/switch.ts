@@ -62,7 +62,7 @@ export class Switch implements ICustomAttributeViewModel {
     const $controller = this.$controller;
 
     this.queue(() => view.activate(initiator, $controller, flags, $controller.scope));
-    this.queue(() => this.swap(initiator, flags, this.value));
+    this.queue(() => this.swap(initiator, this.value));
     return this.promise;
   }
 
@@ -79,18 +79,18 @@ export class Switch implements ICustomAttributeViewModel {
     this.view = (void 0)!;
   }
 
-  public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
+  public valueChanged(_newValue: boolean, _oldValue: boolean): void {
     if (!this.$controller.isActive) { return; }
-    this.queue(() => this.swap(null, flags, this.value));
+    this.queue(() => this.swap(null, this.value));
   }
 
-  public caseChanged($case: Case, flags: LifecycleFlags): void {
-    this.queue(() => this._handleCaseChange($case, flags));
+  public caseChanged($case: Case): void {
+    this.queue(() => this._handleCaseChange($case));
   }
 
   /** @internal */
-  private _handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
-    const isMatch = $case.isMatch(this.value, flags);
+  private _handleCaseChange($case: Case): void | Promise<void> {
+    const isMatch = $case.isMatch(this.value);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;
 
@@ -98,7 +98,7 @@ export class Switch implements ICustomAttributeViewModel {
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        return this._clearActiveCases(null, flags);
+        return this._clearActiveCases(null);
       }
       /**
        * There are 2 different scenarios here:
@@ -130,20 +130,20 @@ export class Switch implements ICustomAttributeViewModel {
     }
 
     return onResolve(
-      this._clearActiveCases(null, flags, newActiveCases),
+      this._clearActiveCases(null, newActiveCases),
       () => {
         this.activeCases = newActiveCases;
-        return this._activateCases(null, flags);
+        return this._activateCases(null);
       }
     );
   }
 
-  private swap(initiator: IHydratedController | null, flags: LifecycleFlags, value: unknown): void | Promise<void> {
+  private swap(initiator: IHydratedController | null, value: unknown): void | Promise<void> {
     const newActiveCases: Case[] = [];
 
     let fallThrough: boolean = false;
     for (const $case of this.cases) {
-      if (fallThrough || $case.isMatch(value, flags)) {
+      if (fallThrough || $case.isMatch(value)) {
         newActiveCases.push($case);
         fallThrough = $case.fallThrough;
       }
@@ -156,18 +156,18 @@ export class Switch implements ICustomAttributeViewModel {
 
     return onResolve(
       this.activeCases.length > 0
-        ? this._clearActiveCases(initiator, flags, newActiveCases)
+        ? this._clearActiveCases(initiator, newActiveCases)
         : void 0!,
       () => {
         this.activeCases = newActiveCases;
         if (newActiveCases.length === 0) { return; }
-        return this._activateCases(initiator, flags);
+        return this._activateCases(initiator);
       }
     );
   }
 
   /** @internal */
-  private _activateCases(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
+  private _activateCases(initiator: IHydratedController | null): void | Promise<void> {
     const controller = this.$controller;
     if (!controller.isActive) { return; }
 
@@ -179,14 +179,14 @@ export class Switch implements ICustomAttributeViewModel {
 
     // most common case
     if (length === 1) {
-      return cases[0].activate(initiator, flags, scope);
+      return cases[0].activate(initiator, 0, scope);
     }
 
-    return resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope)));
+    return resolveAll(...cases.map(($case) => $case.activate(initiator, 0, scope)));
   }
 
   /** @internal */
-  private _clearActiveCases(initiator: IHydratedController | null, flags: LifecycleFlags, newActiveCases: Case[] = []): void | Promise<void> {
+  private _clearActiveCases(initiator: IHydratedController | null, newActiveCases: Case[] = []): void | Promise<void> {
     const cases = this.activeCases;
     const numCases = cases.length;
 
@@ -196,7 +196,7 @@ export class Switch implements ICustomAttributeViewModel {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
         cases.length = 0;
-        return firstCase.deactivate(initiator, flags);
+        return firstCase.deactivate(initiator, 0);
       }
       return;
     }
@@ -204,7 +204,7 @@ export class Switch implements ICustomAttributeViewModel {
     return onResolve(
       resolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
         if (!newActiveCases.includes($case)) {
-          acc.push($case.deactivate(initiator, flags));
+          acc.push($case.deactivate(initiator, 0));
         }
         return acc;
       }, [])),
@@ -297,30 +297,30 @@ export class Case implements ICustomAttributeViewModel {
     return this.deactivate(initiator, flags);
   }
 
-  public isMatch(value: unknown, flags: LifecycleFlags): boolean {
+  public isMatch(value: unknown): boolean {
     this._logger.debug('isMatch()');
     const $value = this.value;
     if (Array.isArray($value)) {
       if (this._observer === void 0) {
-        this._observer = this._observeCollection(flags, $value);
+        this._observer = this._observeCollection($value);
       }
       return $value.includes(value);
     }
     return $value === value;
   }
 
-  public valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void {
+  public valueChanged(newValue: unknown, _oldValue: unknown): void {
     if (Array.isArray(newValue)) {
       this._observer?.unsubscribe(this);
-      this._observer = this._observeCollection(flags, newValue);
+      this._observer = this._observeCollection(newValue);
     } else if (this._observer !== void 0) {
       this._observer.unsubscribe(this);
     }
-    this.$switch.caseChanged(this, flags);
+    this.$switch.caseChanged(this);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.$switch.caseChanged(this, flags);
+  public handleCollectionChange(_indexMap: IndexMap): void {
+    this.$switch.caseChanged(this);
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
@@ -348,7 +348,8 @@ export class Case implements ICustomAttributeViewModel {
     auSwitch.cases.push(this);
   }
 
-  private _observeCollection(flags: LifecycleFlags, $value: unknown[]) {
+  /** @internal */
+  private _observeCollection($value: unknown[]) {
     const observer = this._locator.getArrayObserver($value);
     observer.subscribe(this);
     return observer;

@@ -1,4 +1,4 @@
-import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation';
+import { createIndexMap, AccessorType, ICollectionSubscriberCollection } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { def } from '../utilities-objects';
@@ -11,6 +11,7 @@ import { batching, addCollectionBatch } from './subscriber-batch';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
 
 const $add = proto.add;
@@ -155,7 +156,7 @@ export class SetObserver {
     const size = this.collection.size;
 
     this.indexMap = createIndexMap(size);
-    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
+    this.subs.notifyCollection(indexMap);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

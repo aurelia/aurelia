@@ -1,4 +1,4 @@
-import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
 import { hasOwnProperty, isFunction, isString } from '../utilities';
 import type { IAccessor } from '@aurelia/runtime';
@@ -27,12 +27,10 @@ export class StyleAttributeAccessor implements IAccessor {
     return this.obj.style.cssText;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     this.value = newValue;
     this._hasChanges = newValue !== this._oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
-      this._flushChanges();
-    }
+    this._flushChanges();
   }
 
   /** @internal */
@@ -177,7 +175,7 @@ export class StyleAttributeAccessor implements IAccessor {
     this.obj.style.setProperty(style, value, priority);
   }
 
-  public bind(_flags: LifecycleFlags): void {
+  public bind(): void {
     this.value = this._oldValue = this.obj.style.cssText;
   }
 }

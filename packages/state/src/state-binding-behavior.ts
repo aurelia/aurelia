@@ -43,7 +43,7 @@ export class StateBindingBehavior extends BindingInterceptor implements IStoreSu
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    this.binding.handleChange(undefined, undefined, LifecycleFlags.none);
+    this.binding.handleChange(undefined, undefined);
   }
 }
 

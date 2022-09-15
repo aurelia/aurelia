@@ -1,10 +1,8 @@
 import {
   CollectionKind,
-  LifecycleFlags as LF,
   subscriberCollection,
   AccessorType,
   withFlushQueue,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
@@ -19,7 +17,7 @@ import type {
   IFlushable,
   FlushQueue,
 } from '@aurelia/runtime';
-import { hasOwnProperty } from '../utilities';
+import { hasOwnProperty, isArray } from '../utilities';
 
 const childObserverOptions = {
   childList: true,
@@ -96,14 +94,12 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
         : this._obj.value;
   }
 
-  public setValue(newValue: unknown, flags: LF): void {
+  public setValue(newValue: unknown): void {
     this._oldValue = this._value;
     this._value = newValue;
     this._hasChanges = newValue !== this._oldValue;
     this._observeArray(newValue instanceof Array ? newValue : null);
-    if ((flags & LF.noFlush) === 0) {
-      this._flushChanges();
-    }
+    this._flushChanges();
   }
 
   /** @internal */
@@ -123,7 +119,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public syncOptions(): void {
     const value = this._value;
     const obj = this._obj;
-    const isArray = Array.isArray(value);
+    const $isArray = isArray(value);
     const matcher = obj.matcher ?? defaultMatcher;
     const options = obj.options;
     let i = options.length;
@@ -131,8 +127,8 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     while (i-- > 0) {
       const option = options[i];
       const optionValue = hasOwnProperty.call(option, 'model') ? option.model : option.value;
-      if (isArray) {
-        option.selected = (value as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
+      if ($isArray) {
+        option.selected = value.findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
       }
       option.selected = !!matcher(optionValue, value);
@@ -307,7 +303,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, LifecycleFlags.none);
+    this.subs.notify(this._value, oV);
   }
 }
 

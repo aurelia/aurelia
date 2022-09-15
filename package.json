@@ -4,6 +4,7 @@
   "version": "2.0.0-alpha.40",
   "workspaces": [
     "packages/__tests__",
+    "packages/__e2e__/hmr-webpack",
     "packages/__e2e__/router",
     "packages/__e2e__/router-lite",
     "packages/addons",
@@ -40,7 +41,6 @@
     "examples/doc-example",
     "examples/fractals-tree",
     "examples/navigation-skeleton",
-    "examples/hmr-webpack-e2e",
     "examples/rainbow-spiral",
     "examples/realworld",
     "examples/realworld-advanced",

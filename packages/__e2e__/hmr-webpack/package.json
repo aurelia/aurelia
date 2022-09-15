@@ -8,12 +8,12 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "watch": "webpack serve",
-    "build": "rimraf dist && webpack",
-    "serve": "au-http-server au.conf.js",
-    "install-playwright": "playwright install chromium",
-    "playwright": "playwright test",
-    "e2e": "npm run install-playwright && concurrently \"npm run watch\" \"npm run playwright\" --kill-others --success first"
+    "dev": "webpack serve",
+    "test:e2e": "cross-env APP_PORT=9005 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
+    "test:e2e:watch": "cross-env APP_PORT=9005 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9005 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test": "npm run test:e2e",
+    "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-alpha.40",
@@ -26,7 +26,6 @@
     "aurelia": "2.0.0-alpha.40"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-alpha.40",
     "@playwright/test": "^1.24.1",
     "rimraf": "^3.0.0",
     "webpack": "^5.72.0",

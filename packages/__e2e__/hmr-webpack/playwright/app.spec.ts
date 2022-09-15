@@ -4,16 +4,19 @@ import * as path from 'path';
 
 test.describe('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
+  test.beforeEach(async ({ page, baseURL }) => {
+    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
+  });
+
   const appFilePath = path.resolve(__dirname, '../src/app.ts');
   const originalContent = fs.readFileSync(appFilePath, { encoding: 'utf-8' });
 
   test.afterEach(() => {
     fs.writeFileSync(appFilePath, originalContent);
-  })
+  });
 
   test(`rerenders without flushing <input> state`, async function ({ page }) {
     test.setTimeout(15000);
-    await page.goto('http://localhost:9000', { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('app > div')).toHaveText('Hello World!');
     await page.type('input', 'abc');

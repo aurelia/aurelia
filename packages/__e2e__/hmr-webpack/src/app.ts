@@ -4,6 +4,6 @@ export class App {
   public message = 'Hello World!';
 
   public constructor(
-    @IEventAggregator private ea: IEventAggregator,
+    @IEventAggregator private readonly ea: IEventAggregator,
   ) {}
 }

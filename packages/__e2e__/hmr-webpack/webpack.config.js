@@ -1,11 +1,14 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+/**
+ * @return {import('webpack').Configuration}
+ */
 module.exports = function (env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
-    entry: './src/startup.ts',
+    entry: './src/index.ts',
     devtool: false,
     resolve: {
       extensions: ['.ts', '.js'],
@@ -18,12 +21,19 @@ module.exports = function (env, { mode }) {
         'events': require.resolve('events'),
       },
     },
+    experiments: {
+      lazyCompilation: true
+    },
     devServer: {
       hot: true,
-      port: 9000,
+      port: process.env.APP_PORT ?? 9000,
       historyApiFallback: true,
       open: !process.env.CI,
+      
     },
+    ...(process.env.CI
+      ? { stats: 'none' }
+      : { }),
     module: {
       rules: [
         { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },

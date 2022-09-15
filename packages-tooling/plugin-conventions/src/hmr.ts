@@ -19,6 +19,8 @@ export const hmrMetadataModules = ['Metadata'];
 export const getHmrCode = (className: string, moduleText: string = 'module'): string => {
 
   const code = `
+    import { ExpressionKind as $$EK } from '@aurelia/runtime';
+
     // @ts-ignore
     const controllers = [];
 
@@ -77,10 +79,19 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         const hydrationContext = controller.container.get(IHydrationContext)
         const hydrationInst = hydrationContext.instruction;
 
+        const bindableNames = Object.keys(controller.definition.bindables);
         // @ts-ignore
         Object.keys(values).forEach(key => {
+          if (bindableNames.includes(key)) {
+            continue;
+          }
+          // if there' some bindings that target the existing property
           // @ts-ignore
-          if (!controller.bindings?.some(y => y.ast?.name === key && y.targetProperty)) {
+          const isTargettedByBinding = controller.bindings?.some(y =>
+            y.ast?.$kind === $$EK.AccessScope
+              && y.ast.name === key && y.targetProperty
+          );
+          if (!isTargettedByBinding) {
             delete values[key];
           }
         });

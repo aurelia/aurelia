@@ -31,9 +31,7 @@ module.exports = function (env, { mode }) {
       open: !process.env.CI,
       
     },
-    ...(process.env.CI
-      ? { stats: 'none' }
-      : { }),
+    stats: 'errors-only',
     module: {
       rules: [
         { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },

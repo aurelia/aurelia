@@ -5,7 +5,7 @@ import * as path from 'path';
 test.describe('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
   test.beforeEach(async ({ page, baseURL }) => {
-    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
+    await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
   });
 
   const appFilePath = path.resolve(__dirname, '../src/app.ts');

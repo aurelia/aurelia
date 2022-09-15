@@ -1,3 +1,3 @@
 export class IdentityValueConverter {
-  toView(v) { return v }
+  toView(v: unknown) { return v; }
 }

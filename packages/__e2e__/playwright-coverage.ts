@@ -6,7 +6,7 @@ import istanbul from 'istanbul-lib-coverage';
 
 const coverageFileName = 'coverage-final.json';
 
-function getExitingCoverage(cwd) {
+function getExitingCoverage(cwd: string) {
   const coverageFolder = resolve(cwd, 'coverage');
   if (!fs.existsSync(coverageFolder)) {
     fs.mkdirSync(coverageFolder);

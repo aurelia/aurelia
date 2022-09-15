@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "strict": false,
+    "strict": true,
     "target": "es2021",
     "module": "esnext",
     "outDir": "dist",

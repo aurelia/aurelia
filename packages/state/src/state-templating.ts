@@ -94,7 +94,7 @@ export class DispatchBindingInstruction {
   public readonly type = 'sd';
   public constructor(
     public from: string,
-    public expr: string | IsBindingBehavior,
+    public ast: string | IsBindingBehavior,
   ) {}
 }
 
@@ -144,7 +144,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     target: HTMLElement,
     instruction: DispatchBindingInstruction,
   ): void {
-    const expr = ensureExpression(this._exprParser, instruction.expr, ExpressionType.IsProperty);
+    const expr = ensureExpression(this._exprParser, instruction.ast, ExpressionType.IsProperty);
     const binding = new StateDispatchBinding(
       renderingCtrl.container,
       expr,

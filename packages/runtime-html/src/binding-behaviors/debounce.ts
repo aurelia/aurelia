@@ -1,5 +1,4 @@
 import { IPlatform } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../resources/binding-behavior';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
@@ -59,18 +58,18 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     task?.cancel();
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.firstArg !== null) {
       const delay = Number(this.firstArg.evaluate(scope, this, null));
       this.opts.delay = isNaN(delay) ? defaultDelay : delay;
     }
-    this.binding.$bind(flags, scope);
+    this.binding.$bind(scope);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     this.task?.cancel();
     this.task = null;
-    this.binding.$unbind(flags);
+    this.binding.$unbind();
   }
 }
 

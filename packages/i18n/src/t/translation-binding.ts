@@ -3,15 +3,14 @@ import {
   AccessorType,
   CustomExpression,
   ExpressionType,
-  LifecycleFlags,
   Interpolation,
   connectable,
 } from '@aurelia/runtime';
 import {
   CustomElement,
   IPlatform,
-  IAstBasedBinding,
-  IBindingController,
+  type IAstBasedBinding,
+  type IBindingController,
   State,
   astEvaluator,
 } from '@aurelia/runtime-html';
@@ -62,7 +61,7 @@ const taskQueueOpts: QueueTaskOptions = {
 export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public interceptor: this = this;
   public isBound: boolean = false;
-  public expr!: IsExpression;
+  public ast!: IsExpression;
   private readonly i18n: I18N;
   /** @internal */
   private readonly _contentAttributes: readonly string[] = contentAttributes;
@@ -121,7 +120,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
       binding.useParameter(expr);
     } else {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, ExpressionType.Interpolation) : undefined;
-      binding.expr = interpolation || expr;
+      binding.ast = interpolation || expr;
     }
   }
   private static getBinding({
@@ -139,33 +138,33 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!this.expr) { throw new Error('key expression is missing'); }
+    if (!this.ast) { throw new Error('key expression is missing'); }
     this.scope = scope;
-    this._isInterpolation = this.expr instanceof Interpolation;
+    this._isInterpolation = this.ast instanceof Interpolation;
 
-    this._keyExpression = this.expr.evaluate(scope, this, this) as string;
+    this._keyExpression = this.ast.evaluate(scope, this, this) as string;
     this._ensureKeyExpression();
-    this.parameter?.$bind(flags, scope);
+    this.parameter?.$bind(scope);
 
     this._updateTranslations();
     this.isBound = true;
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
 
-    if (this.expr.hasUnbind) {
-      this.expr.unbind(flags, this.scope, this);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(this.scope, this);
     }
 
-    this.parameter?.$unbind(flags);
+    this.parameter?.$unbind();
     this._targetAccessors.clear();
     if (this.task !== null) {
       this.task.cancel();
@@ -179,7 +178,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? this.expr.evaluate(this.scope, this, this) as string
+        ? this.ast.evaluate(this.scope, this, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -373,7 +372,7 @@ class ParameterBinding {
 
   public constructor(
     public readonly owner: TranslationBinding,
-    public readonly expr: IsExpression,
+    public readonly ast: IsExpression,
     public readonly updater: () => void,
   ) {
     this.oL = owner.oL;
@@ -387,32 +386,32 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = this.expr.evaluate(this.scope, this, this) as i18next.TOptions;
+    this.value = this.ast.evaluate(this.scope, this, this) as i18next.TOptions;
     this.obs.clear();
     this.updater();
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
     this.scope = scope;
 
-    if (this.expr.hasBind) {
-      this.expr.bind(flags, scope, this);
+    if (this.ast.hasBind) {
+      this.ast.bind(scope, this);
     }
 
-    this.value = this.expr.evaluate(scope, this, this) as i18next.TOptions;
+    this.value = this.ast.evaluate(scope, this, this) as i18next.TOptions;
     this.isBound = true;
   }
 
-  public $unbind(flags: LifecycleFlags) {
+  public $unbind() {
     if (!this.isBound) {
       return;
     }
 
-    if (this.expr.hasUnbind) {
-      this.expr.unbind(flags, this.scope, this);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(this.scope, this);
     }
 
     this.scope = (void 0)!;

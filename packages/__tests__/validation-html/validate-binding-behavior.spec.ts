@@ -5,7 +5,6 @@ import {
   IBinding,
   IObserverLocator,
   Scope,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 import {
   bindable,
@@ -239,10 +238,10 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
   }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public bind(_scope: Scope, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public unbind(_scope: Scope, _binding: IBinding): void {
       return;
     }
   }

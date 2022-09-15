@@ -36,7 +36,7 @@ export class With implements ICustomAttributeViewModel {
     if ($controller.isActive && bindings != null) {
       scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue as object);
       for (ii = bindings.length; ii > i; ++i) {
-        bindings[i].$bind(LifecycleFlags.fromBind, scope);
+        bindings[i].$bind(scope);
       }
     }
   }

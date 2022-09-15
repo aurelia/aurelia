@@ -2,7 +2,6 @@
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
   type IOverrideContext,
-  LifecycleFlags,
   Scope,
   type IsBindingBehavior,
   connectable
@@ -58,7 +57,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     this.interceptor.callSource(e);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }

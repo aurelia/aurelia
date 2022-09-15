@@ -160,7 +160,7 @@ describe('TranslationBindingRenderer', function () {
       callBindingInstruction,
     );
 
-    assert.equal(binding.expr, from);
+    assert.equal(binding.ast, from);
   });
 });
 
@@ -317,6 +317,6 @@ describe('TranslationBindBindingRenderer', function () {
       callBindingInstruction,
     );
 
-    assert.equal(binding.expr, from);
+    assert.equal(binding.ast, from);
   });
 });

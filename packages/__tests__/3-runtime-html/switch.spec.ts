@@ -14,7 +14,6 @@ import {
   BindingBehaviorInstance,
   IBinding,
   Scope,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 import {
   AuSlot,
@@ -323,10 +322,10 @@ describe('3-runtime-html/switch.spec.ts', function () {
 
   @bindingBehavior('noop')
   class NoopBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public bind(_scope: Scope, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public unbind(_scope: Scope, _binding: IBinding): void {
       return;
     }
   }

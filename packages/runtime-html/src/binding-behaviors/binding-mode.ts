@@ -1,4 +1,4 @@
-import { BindingBehaviorInstance, LifecycleFlags } from '@aurelia/runtime';
+import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { bindingBehavior } from '../resources/binding-behavior';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -13,12 +13,12 @@ export abstract class BindingModeBehavior implements BindingBehaviorInstance {
     private readonly mode: BindingMode,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void {
+  public bind(scope: Scope, binding: PropertyBinding): void {
     originalModesMap.set(binding, binding.mode);
     binding.mode = this.mode;
   }
 
-  public unbind(flags: LifecycleFlags, scope: Scope, binding: PropertyBinding): void {
+  public unbind(scope: Scope, binding: PropertyBinding): void {
     binding.mode = originalModesMap.get(binding)!;
     originalModesMap.delete(binding);
   }

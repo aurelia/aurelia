@@ -1,4 +1,4 @@
-import { AccessorType, connectable, ExpressionKind, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { AccessorType, connectable, ExpressionKind, IndexMap } from '@aurelia/runtime';
 import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 import { BindingMode } from './interfaces-bindings';
@@ -134,19 +134,19 @@ export class PropertyBinding implements IAstBasedBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind();
     }
 
     this.$scope = scope;
 
     let ast = this.ast;
     if (ast.hasBind) {
-      ast.bind(flags, scope, this.interceptor);
+      ast.bind(scope, this.interceptor);
     }
 
     const observerLocator = this.oL;
@@ -183,13 +183,13 @@ export class PropertyBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
 
     if (this.ast.hasUnbind) {
-      this.ast.unbind(flags, this.$scope!, this.interceptor);
+      this.ast.unbind(this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

@@ -2,7 +2,6 @@
 import { IDisposable, IIndexable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable,
-  LifecycleFlags,
   Scope,
   type IConnectableBinding,
   type IOverrideContext,
@@ -75,7 +74,7 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     target[prop] = value;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }

@@ -1092,6 +1092,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         break;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     switch ($currentToken as Token) {
       case Token.Comma:
         nextToken();

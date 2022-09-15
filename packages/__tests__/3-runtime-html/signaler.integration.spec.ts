@@ -1,9 +1,9 @@
 import { ConsoleSink, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
-import { customElement, valueConverter, Aurelia } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
-describe('signaler.integration', function () {
+describe('3-runtime-html/signaler.integration.spec.ts', function () {
   it('1 non-observed input and 2 observed inputs - toView', async function () {
     const ctx = TestContext.create();
     const tq = ctx.platform.domWriteQueue;
@@ -155,5 +155,42 @@ describe('signaler.integration', function () {
         await au.stop();
       });
     }
+  });
+
+  it('takes signal from multiple value converters', function () {
+    let addCount = 0;
+    let minusCount = 0;
+    const { assertText, flush, container } = createFixture
+      .component({ value: 0 })
+      .html`\${value | add | minus}`
+      .deps(
+        ValueConverter.define('add', class {
+          signals = ['add'];
+          toView = v => {
+            addCount++;
+            return v + 2;
+          };
+        }),
+        ValueConverter.define('minus', class {
+          signals = ['minus'];
+          toView = v => {
+            minusCount++;
+            return v - 1;
+          };
+        }),
+      )
+      .build();
+
+    assertText('1');
+    assert.strictEqual(addCount, 1);
+    assert.strictEqual(minusCount, 1);
+    container.get(ISignaler).dispatchSignal('add');
+
+    assert.strictEqual(addCount, 2);
+    assert.strictEqual(minusCount, 2);
+    container.get(ISignaler).dispatchSignal('minus');
+
+    flush();
+    assertText('1');
   });
 });

@@ -492,26 +492,20 @@ export class BindingBehaviorExpression {
   }
 
   public bind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
-    if (this.expression.hasBind) {
-      this.expression.bind(f, s, b);
-    }
     const name = this.name;
     const key = this._key;
     const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
     if (behavior == null) {
-      if (__DEV__)
-        throw new Error(`AUR0101: BindingBehavior '${name}' could not be found. Did you forget to register it as a dependency?`);
-      else
-        throw new Error(`AUR0101:${name}`);
+      throw behaviorNotFoundError(name);
     }
     if ((b as BindingWithBehavior)[key] === void 0) {
       (b as BindingWithBehavior)[key] = behavior;
       behavior.bind?.(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
     } else {
-      if (__DEV__)
-        throw new Error(`AUR0102: BindingBehavior '${name}' already applied.`);
-      else
-        throw new Error(`AUR0102:${name}`);
+      throw duplicateBehaviorAppliedError(name);
+    }
+    if (this.expression.hasBind) {
+      this.expression.bind(f, s, b);
     }
   }
 
@@ -536,15 +530,24 @@ export class BindingBehaviorExpression {
   }
 }
 
+const behaviorNotFoundError = (name: string) =>
+  __DEV__
+    ? new Error(`AUR0101: BindingBehavior '${name}' could not be found. Did you forget to register it as a dependency?`)
+    : new Error(`AUR0101:${name}`);
+const duplicateBehaviorAppliedError = (name: string) =>
+  __DEV__
+    ? new Error(`AUR0102: BindingBehavior '${name}' already applied.`)
+    : new Error(`AUR0102:${name}`);
+
 export type ValueConverterInstance<T extends {} = {}> = {
+  signals?: string[];
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;
 
 export class ValueConverterExpression {
   public get $kind(): ExpressionKind.ValueConverter { return ExpressionKind.ValueConverter; }
-  // public readonly converterKey: string;
-  public get hasBind(): false { return false; }
+  public get hasBind(): true { return true; }
   public get hasUnbind(): true { return true; }
 
   public constructor(
@@ -556,28 +559,9 @@ export class ValueConverterExpression {
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
     const name = this.name;
-    const vc = e?.getConverter?.(name) as ValueConverterInstance & { signals?: string[] };
+    const vc = e?.getConverter?.(name);
     if (vc == null) {
-      if (__DEV__)
-        throw new Error(`AUR0103: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
-      else
-        throw new Error(`AUR0103:${name}`);
-    }
-    // note: the cast is expected. To connect, it just needs to be a IConnectable
-    // though to work with signal, it needs to have `handleChange`
-    // so having `handleChange` as a guard in the connectable as a safe measure is needed
-    // to make sure signaler works
-    if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
-      const signals = vc.signals;
-      if (signals != null) {
-        const signaler = e?.get?.(ISignaler);
-        const ii = signals.length;
-        let i = 0;
-        for (; i < ii; ++i) {
-          // todo: signaler api
-          signaler?.addSignalListener(signals[i], c as unknown as ISubscriber);
-        }
-      }
+      throw converterNotFoundError(name);
     }
     if ('toView' in vc) {
       return vc.toView(this.expression.evaluate(s, e, c), ...this.args.map(a => a.evaluate(s, e, c)));
@@ -589,10 +573,7 @@ export class ValueConverterExpression {
     const name = this.name;
     const vc = e?.getConverter?.<ValueConverterExpression & ValueConverterInstance>(name);
     if (vc == null) {
-      if (__DEV__)
-        throw new Error(`AUR0104: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
-      else
-        throw new Error(`AUR0104:${name}`);
+      throw converterNotFoundError(name);
     }
     if ('fromView' in vc) {
       val = vc.fromView!(val, ...this.args.map(a => a.evaluate(s, e, null)));
@@ -600,8 +581,33 @@ export class ValueConverterExpression {
     return this.expression.assign(s, e, val);
   }
 
+  public bind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+    const name = this.name;
+    const vc = b.getConverter?.(name);
+    if (vc == null) {
+      throw converterNotFoundError(name);
+    }
+    // note: the cast is expected. To connect, it just needs to be a IConnectable
+    // though to work with signal, it needs to have `handleChange`
+    // so having `handleChange` as a guard in the connectable as a safe measure is needed
+    // to make sure signaler works
+    const signals = vc.signals;
+    if (signals != null) {
+      const signaler = b.get?.(ISignaler);
+      const ii = signals.length;
+      let i = 0;
+      for (; i < ii; ++i) {
+        // todo: signaler api
+        signaler?.addSignalListener(signals[i], b);
+      }
+    }
+    if (this.expression.hasBind) {
+      this.expression.bind(f, s, b);
+    }
+  }
+
   public unbind(_f: LF, _s: Scope, b: IAstEvaluator & IConnectableBinding): void {
-    const vc = b.getConverter?.(this.name) as { signals?: string[] } | undefined;
+    const vc = b.getConverter?.(this.name);
     if (vc?.signals === void 0) {
       return;
     }
@@ -622,6 +628,13 @@ export class ValueConverterExpression {
     return Unparser.unparse(this);
   }
 }
+
+const converterNotFoundError = (name: string) => {
+  if (__DEV__)
+    return new Error(`AUR0103: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
+  else
+    return new Error(`AUR0103:${name}`);
+};
 
 export class AssignExpression {
   public get $kind(): ExpressionKind.Assign { return ExpressionKind.Assign; }
@@ -759,7 +772,6 @@ export class AccessScopeExpression {
         return obj[this.name] = val;
       }
     }
-    return void 0;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -901,7 +913,7 @@ export class CallScopeExpression {
 
 const autoObserveArrayMethods =
   'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some'.split(' ');
-// sort,      // not support, self mutation + unclear dependency
+// sort,      // not supported, self mutation + unclear dependency
 
 // push,      // not supported, self mutation + unclear dependency
 // pop,       // not supported, self mutation + unclear dependency

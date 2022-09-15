@@ -83,7 +83,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         // @ts-ignore
         Object.keys(values).forEach(key => {
           if (bindableNames.includes(key)) {
-            continue;
+            return;
           }
           // if there' some bindings that target the existing property
           // @ts-ignore

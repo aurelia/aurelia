@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   DI,
 } from '@aurelia/kernel';
@@ -1065,6 +1066,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         // ()     - only valid if followed directly by an arrow
         nextToken();
         break loop;
+      /* eslint-disable */
       case Token.OpenBrace:
         // ({     - may be a valid parenthesized expression
       case Token.OpenBracket:
@@ -1072,6 +1074,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         nextToken();
         paramsState = ArrowFnParams.Destructuring;
         break;
+      /* eslint-enable */
       case Token.Comma:
         // (,     - never valid
         // (a,,   - never valid

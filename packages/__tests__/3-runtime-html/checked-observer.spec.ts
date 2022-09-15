@@ -3,7 +3,7 @@ import {
 } from '@aurelia/kernel';
 import {
   enableArrayObservation,
-  IObserver, LifecycleFlags,
+  IObserver,
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -375,12 +375,12 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
                 const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
 
-                sut.setValue(propValue, LifecycleFlags.none);
+                sut.setValue(propValue);
                 // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
                 assert.strictEqual(el.checked, checkedBefore, 'el.checked 1');
                 assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
-                sut.setValue(newValue, LifecycleFlags.none);
+                sut.setValue(newValue);
                 assert.strictEqual(el.checked, checkedAfter, 'el.checked 2');
                 assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
                 // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
@@ -388,10 +388,10 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                 if (hasSubscriber) {
                   const allCallArguments = [];
                   if (propValue !== undefined) {
-                    allCallArguments.push([propValue, void 0, /* flags */0]);
+                    allCallArguments.push([propValue, void 0]);
                   }
                   if (newValue !== propValue) {
-                    allCallArguments.push([newValue, propValue, /* flags */0]);
+                    allCallArguments.push([newValue, propValue]);
                   }
                   assert.deepStrictEqual(
                     subscriber.handleChange.calls,
@@ -447,7 +447,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
             assert.deepStrictEqual(
               subscriber.handleChange.calls,
               [
-                [checkedBefore, undefined, LifecycleFlags.none],
+                [checkedBefore, undefined],
               ],
               `subscriber.handleChange (1)`,
             );
@@ -459,8 +459,8 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
             assert.deepStrictEqual(
               subscriber.handleChange.calls,
               [
-                [checkedBefore, undefined, LifecycleFlags.none],
-                [checkedAfter, checkedBefore, LifecycleFlags.none],
+                [checkedBefore, undefined],
+                [checkedAfter, checkedBefore],
               ],
               `subscriber.handleChange (2)`,
             );
@@ -523,9 +523,9 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
             const { ctx, sutA, sutB, sutC, elA, elB, elC, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
 
-            sutA.setValue(checkedBefore, LifecycleFlags.none);
-            sutB.setValue(checkedBefore, LifecycleFlags.none);
-            sutC.setValue(checkedBefore, LifecycleFlags.none);
+            sutA.setValue(checkedBefore);
+            sutB.setValue(checkedBefore);
+            sutC.setValue(checkedBefore);
             // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
 
             assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
@@ -535,9 +535,9 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
             assert.strictEqual(sutB.getValue(), checkedBefore, 'sutB.getValue() 1');
             assert.strictEqual(sutC.getValue(), checkedBefore, 'sutC.getValue() 1');
 
-            sutA.setValue(checkedAfter, LifecycleFlags.none);
-            sutB.setValue(checkedAfter, LifecycleFlags.none);
-            sutC.setValue(checkedAfter, LifecycleFlags.none);
+            sutA.setValue(checkedAfter);
+            sutB.setValue(checkedAfter);
+            sutC.setValue(checkedAfter);
             assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 2');
             assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 2');
             assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 2');
@@ -551,14 +551,14 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
               const allSubBCallArguments = [];
               const allSubCCallArguments = [];
               if (checkedBefore !== undefined) {
-                allSubACallArguments.push([checkedBefore, void 0, 0]);
-                allSubBCallArguments.push([checkedBefore, void 0, 0]);
-                allSubCCallArguments.push([checkedBefore, void 0, 0]);
+                allSubACallArguments.push([checkedBefore, void 0]);
+                allSubBCallArguments.push([checkedBefore, void 0]);
+                allSubCCallArguments.push([checkedBefore, void 0]);
               }
               if (checkedAfter !== checkedBefore) {
-                allSubACallArguments.push([checkedAfter, checkedBefore, 0]);
-                allSubBCallArguments.push([checkedAfter, checkedBefore, 0]);
-                allSubCCallArguments.push([checkedAfter, checkedBefore, 0]);
+                allSubACallArguments.push([checkedAfter, checkedBefore]);
+                allSubBCallArguments.push([checkedAfter, checkedBefore]);
+                allSubCCallArguments.push([checkedAfter, checkedBefore]);
               }
               assert.deepStrictEqual(
                 subscriberA.handleChange.calls,
@@ -706,13 +706,13 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
                     const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, LifecycleFlags.none);
+                    sut.setValue(propValue);
                     // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 1');
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
-                    sut.setValue(newValue, LifecycleFlags.none);
+                    sut.setValue(newValue);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
                     // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
@@ -771,7 +771,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
             const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
 
-            sut.setValue(array, LifecycleFlags.none);
+            sut.setValue(array);
 
             assert.strictEqual(el.checked, false, 'el.checked 1');
             assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
@@ -786,7 +786,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
               assert.deepStrictEqual(
                 subscriber.handleChange.calls,
                 [
-                  [[], undefined, 0],
+                  [[], undefined],
                 ],
                 `subscriber.handleChange`,
               );
@@ -842,12 +842,12 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                     ? ''
                     : String(value);
                 const array = [];
-                sut.setValue(array, LifecycleFlags.none);
+                sut.setValue(array);
                 // 1. at this point, the array is still empty
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [[], undefined, 0],
+                    [[], undefined],
                   ],
                   `subscriber.handleChange (1)`,
                 );
@@ -859,7 +859,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                     // though the array has been mutated with the value of the input
                     subscriber.handleChange.calls,
                     [
-                      [[checkboxValue], undefined, 0],
+                      [[checkboxValue], undefined],
                     ],
                     `subscriber.handleChange (2)`,
                   );
@@ -887,7 +887,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                   assert.deepStrictEqual(
                     subscriber.handleChange.calls,
                     [
-                      [[checkboxValue], undefined, 0],
+                      [[checkboxValue], undefined],
                     ],
                     `subscriber.handleChange (3)`,
                   );
@@ -895,7 +895,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                   assert.deepStrictEqual(
                     subscriber.handleChange.calls,
                     [
-                      [[], undefined, 0],
+                      [[], undefined],
                     ],
                     `subscriber.handleChange (3)`,
                   );
@@ -951,21 +951,21 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
                     const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
 
-                    sut.setValue(propValue, LifecycleFlags.none);
+                    sut.setValue(propValue);
 
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
                     assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
-                    valueOrModelObserver.setValue(value, LifecycleFlags.none);
+                    valueOrModelObserver.setValue(value);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
 
-                    sut.setValue(newValue, LifecycleFlags.none);
+                    sut.setValue(newValue);
 
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
 
-                    valueOrModelObserver.setValue(value, LifecycleFlags.none);
+                    valueOrModelObserver.setValue(newValue);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');

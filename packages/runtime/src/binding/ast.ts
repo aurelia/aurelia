@@ -753,7 +753,7 @@ export class AccessScopeExpression {
     const obj = BindingContext.get(s, this.name, this.ancestor) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers?.[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(val, 0);
+        obj.$observers[this.name].setValue(val);
         return val;
       } else {
         return obj[this.name] = val;
@@ -804,7 +804,7 @@ export class AccessMemberExpression {
     const obj = this.object.evaluate(s, e, null) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(val, 0);
+        obj.$observers[this.name].setValue(val);
       } else {
         obj[this.name] = val;
       }

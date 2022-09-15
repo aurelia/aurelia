@@ -66,14 +66,18 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 };
 
 export class ObserverLocator {
-  protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
-
-  private readonly _adapters: IObjectObservationAdapter[] = [];
+  /** @internal */ protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
+  /** @internal */ private readonly _adapters: IObjectObservationAdapter[] = [];
+  /** @internal */ private readonly _dirtyChecker: IDirtyChecker;
+  /** @internal */ private readonly _nodeObserverLocator: INodeObserverLocator;
 
   public constructor(
-    private readonly _dirtyChecker: IDirtyChecker,
-    private readonly _nodeObserverLocator: INodeObserverLocator,
-  ) {}
+    dirtyChecker: IDirtyChecker,
+    nodeObserverLocator: INodeObserverLocator,
+  ) {
+    this._dirtyChecker = dirtyChecker;
+    this._nodeObserverLocator = nodeObserverLocator;
+  }
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this._adapters.push(adapter);

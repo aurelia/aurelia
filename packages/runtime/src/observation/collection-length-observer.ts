@@ -1,5 +1,5 @@
 import { isArrayIndex } from '@aurelia/kernel';
-import { AccessorType, CollectionKind, LifecycleFlags } from '../observation';
+import { AccessorType, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities-objects';
 import { withFlushQueue } from './flush-queue';
@@ -16,7 +16,7 @@ import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
-export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSubscriber, IFlushable {
+export class CollectionLengthObserver implements IObserver, IWithFlushQueue, ICollectionSubscriber, IFlushable {
   public readonly type: AccessorType = AccessorType.Array;
 
   /** @internal */
@@ -24,9 +24,6 @@ export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSub
 
   /** @internal */
   private _oldvalue: number;
-
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
 
   /** @internal */
   private readonly _obj: unknown[];
@@ -43,28 +40,24 @@ export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSub
     return this._obj.length;
   }
 
-  public setValue(newValue: number, flags: LifecycleFlags): void {
+  public setValue(newValue: number): void {
     const currentValue = this._value;
     // if in the template, length is two-way bound directly
     // then there's a chance that the new value is invalid
     // add a guard so that we don't accidentally broadcast invalid values
     if (newValue !== currentValue && isArrayIndex(newValue)) {
-      if ((flags & LifecycleFlags.noFlush) === 0) {
-        this._obj.length = newValue;
-      }
+      this._obj.length = newValue;
       this._value = newValue;
       this._oldvalue = currentValue;
-      this.f = flags;
       this.queue.add(this);
     }
   }
 
-  public handleCollectionChange(_: IndexMap, flags: LifecycleFlags) {
+  public handleCollectionChange(_: IndexMap) {
     const oldValue = this._value;
     const value = this._obj.length;
     if ((this._value = value) !== oldValue) {
       this._oldvalue = oldValue;
-      this.f = flags;
       this.queue.add(this);
     }
   }
@@ -72,7 +65,7 @@ export class CollectionLengthObserver implements IWithFlushQueue, ICollectionSub
   public flush(): void {
     oV = this._oldvalue;
     this._oldvalue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 }
 
@@ -88,9 +81,6 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
 
   /** @internal */
   private _oldvalue: number;
-
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
 
   /** @internal */
   private readonly _obj: Set<unknown> | Map<unknown, unknown>;
@@ -113,12 +103,11 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
       throw new Error(`AUR02`);
   }
 
-  public handleCollectionChange(_: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(_: IndexMap): void {
     const oldValue = this._value;
     const value = this._obj.size;
     if ((this._value = value) !== oldValue) {
       this._oldvalue = oldValue;
-      this.f = flags;
       this.queue.add(this);
     }
   }
@@ -126,7 +115,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
   public flush(): void {
     oV = this._oldvalue;
     this._oldvalue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 }
 

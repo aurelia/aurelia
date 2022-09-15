@@ -1,4 +1,4 @@
-import { IObserver, LifecycleFlags } from '../observation';
+import { IObserver } from '../observation';
 import { SetterNotifier } from './setter-observer';
 import { def } from '../utilities-objects';
 import { currentConnectable } from './connectable-switcher';
@@ -129,7 +129,7 @@ export function observable(
       return notifier.getValue();
     };
     descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {
-      getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
+      getNotifier(this, key!, callback, initialValue, $set).setValue(newValue);
     };
     (descriptor.get as ObservableGetter).getObserver = function gO(/* @observable */obj: SetterObserverOwningObject) {
       return getNotifier(obj, key!, callback, initialValue, $set);

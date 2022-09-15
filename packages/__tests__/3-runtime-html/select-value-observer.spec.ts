@@ -1,10 +1,8 @@
-import { LifecycleFlags as LF, LifecycleFlags } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
 type Anything = any;
 
-// TODO: need many more tests here, this is just preliminary
 describe('3-runtime-html/select-value-observer.spec.ts', function () {
   describe('[UNIT]', function () {
     function createFixture(initialValue: Anything = '', options = [], multiple = false) {
@@ -15,7 +13,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
       const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
       const el = ctx.createElementFromMarkup(markup) as HTMLSelectElement;
       const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
-      sut.setValue(initialValue, LF.fromBind);
+      sut.setValue(initialValue);
 
       return { ctx, el, sut, platform };
     }
@@ -32,7 +30,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
               assert.strictEqual(el.value, initial, `el.value`);
 
-              sut.setValue(next, LifecycleFlags.none);
+              sut.setValue(next);
 
               assert.strictEqual(el.value, next, `el.value`);
             });
@@ -57,33 +55,14 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
       describe('<select multiple="true" />', function () {
         it('retrieves value freshly when not observing', function () {
           const initialValue = [];
-          const { sut } = createMutiSelectSut(initialValue, [
-            option({ text: 'A', selected: true }),
-            option({ text: 'B', selected: true }),
+          const { sut, el } = createMutiSelectSut(initialValue, [
+            option({ text: 'A' }),
+            option({ text: 'B' }),
             option({ text: 'C' })
           ]);
+          el.options[0].selected = el.options[1].selected = true;
 
           assert.notStrictEqual(initialValue, sut.getValue());
-          assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
-        });
-
-        it('disregards null existing value when not observing', function () {
-          const { sut } = createMutiSelectSut(null, [
-            option({ text: 'A', selected: true }),
-            option({ text: 'B', selected: true }),
-            option({ text: 'C' })
-          ]);
-
-          assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
-        });
-
-        it('disregard existing value when not observing', function () {
-          const { sut } = createMutiSelectSut(undefined, [
-            option({ text: 'A', selected: true }),
-            option({ text: 'B', selected: true }),
-            option({ text: 'C' })
-          ]);
-
           assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
         });
 
@@ -104,12 +83,13 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         });
 
         it('synchronizes with array (3): disregard "value" when there is model', function () {
-          const { sut } = createMutiSelectSut([], [
+          const { sut, el } = createMutiSelectSut([], [
             option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
             option({ text: 'B', value: 'BB', _model: { id: 2, name: 'select 2' }, selected: true }),
             option({ text: 'C', value: 'CC' })
           ]);
 
+          el.options[0].selected = el.options[1].selected = true;
           const currentValue = sut.getValue() as any[];
 
           sut.syncValue();
@@ -127,13 +107,16 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         });
 
         it('synchronize regardless disabled state of <option/>', function () {
-          const { sut } = createMutiSelectSut([], [
+          const { sut, el } = createMutiSelectSut([], [
             option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
             option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
             option({ text: 'C', value: 'CC', disabled: true, selected: true })
           ]);
 
-          const currentValue = sut.getValue() as any[];
+          for (let i = 0; i < el.options.length; i++) {
+            el.options[i].selected = true;
+          }
+          const currentValue = sut.getValue();
 
           sut.syncValue();
 
@@ -155,6 +138,10 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
             option({ text: 'C', value: 'CC', disabled: true, selected: true })
           ]);
+
+          for (let i = 0; i < el.options.length; i++) {
+            el.options[i].selected = true;
+          }
 
           let handleChangeCallCount = 0;
           let currentValue = sut.getValue() as any[];
@@ -206,7 +193,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
         describe('with <optgroup>', function () {
           it('synchronizes with array', function () {
-            const { sut } = createMutiSelectSut([], [
+            const { sut, el } = createMutiSelectSut([], [
               optgroup(
                 {},
                 option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
@@ -214,6 +201,8 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
               ),
               option({ text: 'C', value: 'CC' })
             ]);
+
+            el.options[0].selected = el.options[1].selected = true;
 
             let currentValue = sut.getValue() as any[];
             assert.strictEqual(currentValue.length, 2, `currentValue.length`);
@@ -234,13 +223,13 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
         type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
 
-        function createMutiSelectSut(initialValue: Anything[], optionFactories: ((ctx: TestContext) => SelectValidChild)[]) {
+        function createMutiSelectSut(initialValue: Anything[] | undefined, optionFactories: ((ctx: TestContext) => SelectValidChild)[]) {
           const ctx = TestContext.create();
           const { observerLocator } = ctx;
 
           const el = select(...optionFactories.map(create => create(ctx)))(ctx);
           const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
-          sut.setValue(initialValue, LifecycleFlags.noFlush);
+          sut.setValue(initialValue);
 
           return { ctx, el, sut };
         }

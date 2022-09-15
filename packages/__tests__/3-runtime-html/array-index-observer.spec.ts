@@ -12,7 +12,7 @@ import {
   Aurelia,
   CustomElement,
 } from '@aurelia/runtime-html';
-import { IDirtyChecker, ArrayIndexObserver, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { IDirtyChecker, ArrayIndexObserver, ISubscriber } from '@aurelia/runtime';
 
 describe('simple Computed Observer test case', function () {
 
@@ -230,7 +230,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     assert.strictEqual(indexZeroObserver.value, 4);
     assert.strictEqual(callcount, 1);
 
-    indexZeroObserver.setValue(0, LifecycleFlags.none);
+    indexZeroObserver.setValue(0);
     assert.strictEqual(callcount, 2);
     assert.strictEqual(arr[0], 0);
 

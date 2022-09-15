@@ -1,4 +1,4 @@
-import { AccessorType, LifecycleFlags } from '../observation';
+import { AccessorType } from '../observation';
 import type { IAccessor, IObservable } from '../observation';
 
 export class PropertyAccessor implements IAccessor {
@@ -10,7 +10,7 @@ export class PropertyAccessor implements IAccessor {
     return (obj as IObservable)[key];
   }
 
-  public setValue(value: unknown, flags: LifecycleFlags, obj: object, key: string): void {
+  public setValue(value: unknown, obj: object, key: string): void {
     (obj as IObservable)[key] = value;
   }
 }

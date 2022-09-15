@@ -440,7 +440,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /**
    * @internal
    */
-  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+  public handleCollectionChange(_indexMap: IndexMap): void {
     this.itemsChanged(this.items);
     // const [start, end] = this.range;
     // const itemHeight = this.itemHeight;
@@ -539,8 +539,8 @@ class CollectionObservationMediator {
     public key: 'handleCollectionChange' | 'handleInnerCollectionChange',
   ) {}
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.repeat[this.key](indexMap, flags);
+  public handleCollectionChange(indexMap: IndexMap): void {
+    this.repeat[this.key](indexMap);
   }
 
   public start(c?: Collection | null): void {

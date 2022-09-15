@@ -1,4 +1,4 @@
-import { connectable, IndexMap, LifecycleFlags } from '@aurelia/runtime';
+import { connectable, LifecycleFlags } from '@aurelia/runtime';
 import { astEvaluator } from './binding-utils';
 
 import type { ITask } from '@aurelia/platform';
@@ -40,7 +40,7 @@ export class LetBinding implements IAstBasedBinding {
     this._toBindingContext = toBindingContext;
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown): void {
     if (!this.isBound) {
       return;
     }
@@ -56,7 +56,7 @@ export class LetBinding implements IAstBasedBinding {
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+  public handleCollectionChange(): void {
     if (!this.isBound) {
       return;
     }

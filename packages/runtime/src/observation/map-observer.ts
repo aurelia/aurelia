@@ -1,4 +1,4 @@
-import { createIndexMap, AccessorType, LifecycleFlags } from '../observation';
+import { createIndexMap, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { def } from '../utilities-objects';
@@ -171,7 +171,7 @@ export class MapObserver {
     const size = this.collection.size;
 
     this.indexMap = createIndexMap(size);
-    subs.notifyCollection(indexMap, LifecycleFlags.none);
+    subs.notifyCollection(indexMap);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

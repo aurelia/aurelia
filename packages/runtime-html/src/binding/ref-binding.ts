@@ -64,7 +64,7 @@ export class RefBinding implements IAstBasedBinding {
     return;
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown): void {
     return;
   }
 }

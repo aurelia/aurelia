@@ -14,7 +14,6 @@ import type {
   ICollectionSubscriber,
   IndexMap,
   ICollectionSubscribable,
-  LifecycleFlags,
 } from '../observation';
 import type { IObserverLocator } from '../observation/observer-locator';
 
@@ -101,12 +100,12 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
     this.b = b;
   }
 
-  public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
-    return this.b.interceptor.handleChange(value, oldValue, flags);
+  public handleChange(value: unknown, oldValue: unknown): unknown {
+    return this.b.interceptor.handleChange(value, oldValue);
   }
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.b.interceptor.handleCollectionChange(indexMap, flags);
+  public handleCollectionChange(indexMap: IndexMap): void {
+    this.b.interceptor.handleCollectionChange(indexMap);
   }
 
   /**

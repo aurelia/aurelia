@@ -1,5 +1,5 @@
 import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
-import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
+import { subscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { isString } from '../utilities';
@@ -230,7 +230,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.subs.notify(this.children, undefined, LifecycleFlags.none);
+    this.subs.notify(this.children, undefined);
   }
 
   // freshly retrieve the children everytime

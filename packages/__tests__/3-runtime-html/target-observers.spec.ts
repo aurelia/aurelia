@@ -1,7 +1,4 @@
 import {
-  LifecycleFlags,
-} from '@aurelia/runtime';
-import {
   AttributeNSAccessor,
   ClassAttributeAccessor,
   DataAttributeAccessor,
@@ -63,7 +60,7 @@ describe('AttributeNSAccessor', function () {
       el = createSvgUseElement(ctx, name, value) as HTMLElement;
       sut = new AttributeNSAccessor(ns);
 
-      sut.setValue('foo', LifecycleFlags.none, el, name);
+      sut.setValue('foo', el, name);
 
       assert.strictEqual(el.getAttributeNS(ns, name), 'foo', `el.getAttributeNS(xlink, ${name})`);
     });
@@ -98,7 +95,7 @@ describe('DataAttributeAccessor', function () {
         const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
         sut = new DataAttributeAccessor();
 
-        sut.setValue(value, LifecycleFlags.none, el, name);
+        sut.setValue(value, el, name);
 
         assert.strictEqual(el.outerHTML, expected, `el.outerHTML`);
       });
@@ -130,14 +127,14 @@ describe('StyleAccessor', function () {
       sut = new StyleAttributeAccessor(el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
-      sut.bind(LifecycleFlags.none);
+      sut.bind();
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [],
         `setPropertySpy.calls`,
       );
 
-      sut.setValue(rule, LifecycleFlags.none);
+      sut.setValue(rule);
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [
@@ -158,7 +155,7 @@ describe('StyleAccessor', function () {
       sut = new StyleAttributeAccessor(el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
-      sut.setValue(rule, LifecycleFlags.none);
+      sut.setValue(rule);
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [
@@ -342,7 +339,7 @@ describe('StyleAccessor', function () {
       const ctx = TestContext.create();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
       const sut = new StyleAttributeAccessor(el);
-      sut.setValue(input, LifecycleFlags.none);
+      sut.setValue(input);
 
       const actual = sut.getValue();
       // normalize by removing the space after colon since it differs faily randomly from env
@@ -426,7 +423,7 @@ describe('ClassAccessor', function () {
           tearDown,
         } = createFixture();
 
-        sut.setValue(classList, LifecycleFlags.none);
+        sut.setValue(classList);
 
         const updatedClassList = el.classList.toString();
         for (const cls of initialClassList.split(' ').filter(x => x)) {
@@ -448,8 +445,8 @@ describe('ClassAccessor', function () {
             tearDown,
           } = createFixture();
 
-          sut.setValue(classList, LifecycleFlags.none);
-          sut.setValue(secondClassList, LifecycleFlags.none);
+          sut.setValue(classList);
+          sut.setValue(secondClassList);
 
           const updatedClassList = el.classList.toString();
           assertClassChanges(initialClassList, classList, secondClassList, updatedClassList);

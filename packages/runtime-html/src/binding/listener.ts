@@ -136,7 +136,7 @@ export class Listener implements IAstBasedBinding {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, previousValue: unknown): void {
     return;
   }
 }

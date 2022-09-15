@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, LifecycleFlags, withFlushQueue, ICoercionConfiguration } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, withFlushQueue, ICoercionConfiguration } from '@aurelia/runtime';
 import { isFunction } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
@@ -17,7 +17,7 @@ import type { IController } from '../templating/controller';
 export interface BindableObserver extends IObserver, ISubscriberCollection {}
 
 interface IMayHavePropertyChangedCallback {
-  propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+  propertyChanged?(name: string, newValue: unknown, oldValue: unknown): void;
 }
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
@@ -36,7 +36,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
   private _observing: boolean;
 
   /** @internal */
-  private readonly cb: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+  private readonly cb: (newValue: unknown, oldValue: unknown) => void;
 
   /** @internal */
   private readonly _cbAll: HasPropertyChangedCallback['propertyChanged'];
@@ -49,9 +49,6 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
 
   /** @internal */
   private readonly _hasSetter: boolean;
-
-  /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
 
   /** @internal */
   private readonly _obj: IIndexable;
@@ -100,7 +97,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     return this._value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     if (this._hasSetter) {
       newValue = this.set(newValue, this._coercionConfig);
     }
@@ -112,16 +109,15 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
       }
       this._value = newValue;
       this._oldValue = currentValue;
-      this.f = flags;
       // todo: controller (if any) state should determine the invocation instead
       if (/* either not instantiated via a controller */this.$controller == null
         /* or the controller instantiating this is bound */|| this.$controller.isBound
       ) {
         if (this._hasCb) {
-          this.cb.call(this._obj, newValue, currentValue, flags);
+          this.cb.call(this._obj, newValue, currentValue);
         }
         if (this._hasCbAll) {
-          this._cbAll.call(this._obj, this._key, newValue, currentValue, flags);
+          this._cbAll.call(this._obj, this._key, newValue, currentValue);
         }
       }
       this.queue.add(this);
@@ -147,7 +143,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 
   /** @internal */
@@ -160,7 +156,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
         configurable: true,
         get: (/* Bindable Observer */) => this._value,
         set: (/* Bindable Observer */value: unknown) => {
-          this.setValue(value, LifecycleFlags.none);
+          this.setValue(value);
         }
       }
     );

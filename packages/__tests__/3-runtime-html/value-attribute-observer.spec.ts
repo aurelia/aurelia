@@ -1,4 +1,3 @@
-import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
@@ -57,7 +56,7 @@ describe.skip('ValueAttributeObserver', function () {
               const changeCountAfter = expectedValueBefore !== expectedValueAfter ? 1 : 0;
               let callCount = 0;
 
-              sut.setValue(valueBefore, LF.none);
+              sut.setValue(valueBefore);
               // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
               platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
@@ -67,13 +66,13 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.none],
+                    [expectedValueBefore, ''],
                   ],
                   'subscriber.handleChange.calls',
                 );
               }
 
-              sut.setValue(valueAfter, LF.none);
+              sut.setValue(valueAfter);
               // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
               platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
@@ -83,8 +82,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.none],
-                    [expectedValueAfter, expectedValueBefore, LF.none],
+                    [expectedValueBefore, ''],
+                    [expectedValueAfter, expectedValueBefore],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -141,7 +140,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.none],
+                    [expectedValueBefore, ''],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -156,8 +155,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.none],
-                    [expectedValueAfter, expectedValueBefore, LF.none],
+                    [expectedValueBefore, ''],
+                    [expectedValueAfter, expectedValueBefore],
                   ],
                   'subscriber.handleChange.calls',
                 );

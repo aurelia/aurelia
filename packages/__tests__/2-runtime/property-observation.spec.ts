@@ -1,6 +1,5 @@
 import { noop, Primitive, IIndexable } from '@aurelia/kernel';
 import {
-  LifecycleFlags as LF,
   PrimitiveObserver,
   SetterObserver
 } from '@aurelia/runtime';
@@ -93,14 +92,13 @@ describe('SetterObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
             const { sut } = createFixture(object, propertyName as any);
             sut.subscribe(new SpySubscriber());
-            sut.setValue(value, flags);
+            sut.setValue(value);
             assert.strictEqual(object[propertyName], value, `object[propertyName]`);
           });
         }
@@ -111,7 +109,6 @@ describe('SetterObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
@@ -139,23 +136,23 @@ describe('SetterObserver', function () {
                 sut.subscribe(subscriber);
               }
               const prevValue = object[propertyName];
-              sut.setValue(value, flags);
+              sut.setValue(value);
               for (const subscriber of subscribers) {
                 assert.deepStrictEqual(
                   subscriber.changes,
                   [
-                    new ChangeSet(0, flags, value, prevValue),
+                    new ChangeSet(0, value, prevValue),
                   ],
                 );
               }
               if (calls === 2) {
-                sut.setValue(prevValue, flags);
+                sut.setValue(prevValue);
                 for (const subscriber of subscribers) {
                   assert.deepStrictEqual(
                     subscriber.changes,
                     [
-                      new ChangeSet(0, flags, value, prevValue),
-                      new ChangeSet(1, flags, prevValue, value),
+                      new ChangeSet(0, value, prevValue),
+                      new ChangeSet(1, prevValue, value),
                     ],
                   );
                 }
@@ -172,7 +169,7 @@ describe('SetterObserver', function () {
 });
 
 describe('BindableObserver', function () {
-  function createFixture(_flags: LF, obj: IIndexable, key: string) {
+  function createFixture(obj: IIndexable, key: string) {
     const _ctx = TestContext.create();
     const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { } as any, {enableCoercion: false, coerceNullish: false});
 
@@ -182,7 +179,7 @@ describe('BindableObserver', function () {
   it('initializes the default callback to undefined', function () {
     const values = createObjectArr();
     values.forEach(_value => {
-      const observer = createFixture(LF.none, {}, 'a');
+      const observer = createFixture({}, 'a');
       assert.strictEqual(observer['callback'], void 0, `observer['callback']`);
     });
   });
@@ -193,7 +190,7 @@ describe('BindableObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = createFixture(LF.none, object, propertyName as any);
+          const { sut } = createFixture(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           assert.strictEqual(actual, object[propertyName], `actual`);
@@ -206,14 +203,13 @@ describe('BindableObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-            const { sut } = createFixture(LF.none, object, propertyName as any);
+            const { sut } = createFixture(object, propertyName as any);
             sut.subscribe(new SpySubscriber());
-            sut.setValue(value, flags);
+            sut.setValue(value);
             assert.strictEqual(object[propertyName], value, `object[propertyName]`);
           });
         }
@@ -224,11 +220,10 @@ describe('BindableObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = createFixture(LF.none, object, propertyName as any);
+          const { sut } = createFixture(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -247,28 +242,28 @@ describe('BindableObserver', function () {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-              const { sut } = createFixture(LF.none, object, propertyName as any);
+              const { sut } = createFixture(object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }
               const prevValue = object[propertyName];
-              sut.setValue(value, flags);
+              sut.setValue(value);
               for (const subscriber of subscribers) {
                 assert.deepStrictEqual(
                   subscriber.changes,
                   [
-                    new ChangeSet(0, flags, value, prevValue),
+                    new ChangeSet(0, value, prevValue),
                   ],
                 );
               }
               if (calls === 2) {
-                sut.setValue(prevValue, flags);
+                sut.setValue(prevValue);
                 for (const subscriber of subscribers) {
                   assert.deepStrictEqual(
                     subscriber.changes,
                     [
-                      new ChangeSet(0, flags, value, prevValue),
-                      new ChangeSet(1, flags, prevValue, value),
+                      new ChangeSet(0, value, prevValue),
+                      new ChangeSet(1, prevValue, value),
                     ],
                   );
                 }

@@ -5,7 +5,6 @@ import {
   enableArrayObservation,
   ICollectionSubscriber,
   IndexMap,
-  LifecycleFlags as LF,
   applyMutationsToIndices,
   synchronizeIndices,
   batch,
@@ -29,7 +28,7 @@ public constructor(
     this.newArr = newArr;
   }
 
-  public handleCollectionChange(indexMap: IndexMap, _flags: LF): void {
+  public handleCollectionChange(indexMap: IndexMap): void {
     indexMap = applyMutationsToIndices(indexMap);
 
     const newArr = this.newArr;
@@ -76,7 +75,7 @@ describe(`ArrayObserver`, function () {
 
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.none, copyIndexMap(existing, deletedIndices, deletedItems)),
+        new CollectionChangeSet(0, copyIndexMap(existing, deletedIndices, deletedItems)),
       );
     }
 
@@ -1236,7 +1235,7 @@ describe(`ArrayObserver`, function () {
       arr.push(1);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.none, copyIndexMap([-2]))
+        new CollectionChangeSet(0, copyIndexMap([-2]))
       );
     });
 
@@ -1248,7 +1247,7 @@ describe(`ArrayObserver`, function () {
       arr.push(1, 2);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.none, copyIndexMap([-2, -2]))
+        new CollectionChangeSet(0, copyIndexMap([-2, -2]))
       );
     });
   });

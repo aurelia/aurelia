@@ -1,20 +1,18 @@
 import {
   CollectionKind,
-  LifecycleFlags,
   SetterObserver,
   subscriberCollection,
   AccessorType,
   withFlushQueue,
 } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator';
-import { hasOwnProperty } from '../utilities';
+import { hasOwnProperty, isArray } from '../utilities';
 
 import type { INode } from '../dom';
 import type { EventSubscriber } from './event-delegator';
 import type { ValueAttributeObserver } from './value-attribute-observer';
 import type {
   ICollectionObserver,
-  IndexMap,
   ISubscriber,
   ISubscriberCollection,
   IObserver,
@@ -61,9 +59,6 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   private _valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
 
   /** @internal */
-  private f: LifecycleFlags = LifecycleFlags.none;
-
-  /** @internal */
   private readonly oL: IObserverLocator;
 
   public constructor(
@@ -81,24 +76,23 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     return this._value;
   }
 
-  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown): void {
     const currentValue = this._value;
     if (newValue === currentValue) {
       return;
     }
     this._value = newValue;
     this._oldValue = currentValue;
-    this.f = flags;
     this._observe();
     this._synchronizeElement();
     this.queue.add(this);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+  public handleCollectionChange(): void {
     this._synchronizeElement();
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+  public handleChange(_newValue: unknown, _previousValue: unknown): void {
     this._synchronizeElement();
   }
 
@@ -116,7 +110,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
       obj.checked = true;
     } else {
       let hasMatch = false;
-      if (currentValue instanceof Array) {
+      if (isArray(currentValue)) {
         hasMatch = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
       } else if (currentValue instanceof Set) {
         for (const v of currentValue) {
@@ -149,7 +143,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
     if (obj.type === 'checkbox') {
-      if (currentValue instanceof Array) {
+      if (isArray(currentValue)) {
         // Array binding steps on a change event:
         // 1. find corresponding item INDEX in the Set based on current model/value and matcher
         // 2. is the checkbox checked?
@@ -276,7 +270,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
   public flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
-    this.subs.notify(this._value, oV, this.f);
+    this.subs.notify(this._value, oV);
   }
 
   /** @internal */

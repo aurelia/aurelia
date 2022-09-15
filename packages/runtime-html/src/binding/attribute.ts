@@ -55,8 +55,6 @@ export class AttributeBinding implements IAstBasedBinding {
    */
   public targetObserver!: IObserver;
 
-  public persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   public target: Element;
   public value: unknown = void 0;
 
@@ -65,8 +63,6 @@ export class AttributeBinding implements IAstBasedBinding {
    */
   public oL: IObserverLocator;
 
-  /** @internal */
-  private _isBinding = 0;
   /** @internal */
   private readonly _controller: IBindingController;
 
@@ -91,22 +87,18 @@ export class AttributeBinding implements IAstBasedBinding {
     this.oL = observerLocator;
   }
 
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
+  public updateTarget(value: unknown): void {
+    this.targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
-  public updateSource(value: unknown, _flags: LifecycleFlags): void {
-    // flags |= this.persistentFlags;
+  public updateSource(value: unknown): void {
     this.ast.assign(this.$scope, this, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown): void {
     if (!this.isBound) {
       return;
     }
-
-    flags |= this.persistentFlags;
 
     const mode = this.mode;
     const interceptor = this.interceptor;
@@ -138,11 +130,11 @@ export class AttributeBinding implements IAstBasedBinding {
         task = this.task;
         this.task = this.taskQueue.queueTask(() => {
           this.task = null;
-          interceptor.updateTarget(newValue, flags);
+          interceptor.updateTarget(newValue);
         }, taskOptions);
         task?.cancel();
       } else {
-        interceptor.updateTarget(newValue, flags);
+        interceptor.updateTarget(newValue);
       }
     }
   }
@@ -155,12 +147,7 @@ export class AttributeBinding implements IAstBasedBinding {
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
 
-    // Store flags which we can only receive during $bind and need to pass on
-    // to the AST during evaluate/connect/assign
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
     this.$scope = scope;
-    this._isBinding++;
 
     let ast = this.ast;
     if (ast.hasBind) {
@@ -187,15 +174,13 @@ export class AttributeBinding implements IAstBasedBinding {
     if ($mode & toViewOrOneTime) {
       shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        this.value = ast.evaluate(scope, this, shouldConnect ? interceptor : null),
-        flags
+        this.value = ast.evaluate(scope, this, shouldConnect ? interceptor : null)
       );
     }
     if ($mode & fromView) {
       targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
     }
 
-    this._isBinding++;
     this.isBound = true;
   }
 
@@ -203,9 +188,6 @@ export class AttributeBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
-
-    // clear persistent flags
-    this.persistentFlags = LifecycleFlags.none;
 
     if (this.ast.hasUnbind) {
       this.ast.unbind(flags, this.$scope, this.interceptor);

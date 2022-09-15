@@ -449,6 +449,7 @@ function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> 
 
       return done
         ? { value: void 0, done }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         : { value: [wrap(value[0]), wrap(value[1])], done };
     },
     [Symbol.iterator]() {

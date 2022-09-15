@@ -36,7 +36,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     return void 0;
   }
 
-  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, oldValue: unknown): void {
     // when source has changed before the latest throttled value from target
     // then discard that value, and take latest value from source only
     if (this.task !== null) {
@@ -44,11 +44,11 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
       this.task = null;
       this.lastCall = this._platform.performanceNow();
     }
-    this.binding.handleChange(newValue, oldValue, flags);
+    this.binding.handleChange(newValue, oldValue);
   }
 
-  public updateSource(newValue: unknown, flags: LifecycleFlags): void {
-    this._queueTask(() => this.binding.updateSource!(newValue, flags));
+  public updateSource(newValue: unknown): void {
+    this._queueTask(() => this.binding.updateSource!(newValue));
   }
 
   /** @internal */

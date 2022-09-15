@@ -159,6 +159,7 @@ module.exports =
     },
     client: {
       captureConsole: true,
+      // @ts-ignore
       mocha: {
         bail: config['bail'],
         ui: 'bdd',
@@ -166,7 +167,7 @@ module.exports =
       }
     },
     // enable this and the plugins down below if we want to setup environments in karma tests
-    // beforeMiddleware: ['env-vars'],
+    beforeMiddleware: ['aurelia-karma-loader'],
     logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
     // logLevel: config.LOG_DEBUG,
     plugins: [
@@ -189,17 +190,44 @@ module.exports =
           };
         }]
       },
-      // {'middleware:env-vars': ['factory', function CustomMiddlewareFactory (config) {
-      //   return function (request, response, next) {
-      //     if (request.url.includes('env-variables.js')) {
-      //       response.end(`var process={env:${JSON.stringify({
-      //         BROWSERS: browsers[0],
-      //       })}}`);
-      //       return;
-      //     }
-      //     next();
-      //   }
-      // }]}
+      {'middleware:aurelia-karma-loader': ['factory', function CustomMiddlewareFactory (config) {        /** @type {Record<string, string>} */
+        const resourceCache = {};
+        /**
+         * @param { import('express').Request } request
+         * @param { import('http').ServerResponse } response
+         */
+        return function (request, response, next) {
+          const requestUrl = request.url;
+          if (requestUrl.includes('env-variables.js')) {
+            response.end(`var process={env:${JSON.stringify({
+              BROWSERS: browsers[0],
+            })}}`);
+            return;
+          }
+          // some tests has images and it could cause a lot of noises related image loading errors
+          // just disable it via returning an empty one
+          if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg')) {
+            response.setHeader('Content-Type', mimetypes.jpeg);
+            response.end('');
+            return;
+          }
+          // const cachedCode = resourceCache[requestUrl];
+          // if (cachedCode != null) {
+          //   response.setHeader('Content-Type', mimetypes.js);
+          //   response.end(cachedCode);
+          //   return;
+          // }
+          // const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '') + '.js');
+          // if (fs.existsSync(maybeFilePath)) {
+          //   const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
+          //   response.setHeader('Content-Type', mimetypes.js);
+          //   response.end(jsCode);
+          //   return;
+          // }
+
+          next();
+        }
+      }]}
     ]
   };
 
@@ -215,6 +243,7 @@ module.exports =
       // see https://github.com/monounity/karma-coverage-istanbul-instrumenter/blob/master/test/es6-native/karma.conf.js
       esModules: true,
     };
+    // @ts-ignore
     options.junitReporter = {
       outputDir: 'coverage',
       outputFile: 'test-results.xml',
@@ -281,3 +310,14 @@ const packageNames = [
   'validation-html',
   'validation-i18n',
 ];
+
+const mimetypes = {
+  html: "text/html",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  svg: "image/svg+xml",
+  json: "application/json",
+  js: "text/javascript",
+  css: "text/css"
+};

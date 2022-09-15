@@ -369,6 +369,7 @@ jobs:
           command: |
             cd packages/__tests__
             npm run ::mocha -- $(cat tests.txt)
+          no_output_timeout: "3m"
 
   unit_test_cjs:
     parameters:

@@ -4,7 +4,6 @@ import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
   connectable,
-  LifecycleFlags,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
@@ -92,7 +91,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     targetAccessor.setValue(value, target, prop);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }

@@ -1,5 +1,3 @@
-import { LifecycleFlags } from '@aurelia/runtime';
-
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
@@ -17,19 +15,19 @@ export class RefBinding implements IAstBasedBinding {
     public target: object,
   ) {}
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind();
     }
 
     this.$scope = scope;
 
     if (this.ast.hasBind) {
-      this.ast.bind(flags, scope, this);
+      this.ast.bind(scope, this);
     }
 
     this.ast.assign(this.$scope, this, this.target);
@@ -38,7 +36,7 @@ export class RefBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -52,7 +50,7 @@ export class RefBinding implements IAstBasedBinding {
     // deepscan-disable-next-line
     ast = this.ast;
     if (ast.hasUnbind) {
-      ast.unbind(flags, this.$scope!, this.interceptor);
+      ast.unbind(this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

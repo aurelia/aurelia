@@ -460,8 +460,8 @@ export class CustomExpression {
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
   type?: 'instance' | 'factory';
-  bind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LF, scope: Scope, binding: IBinding, ...args: T[]): void;
+  bind?(scope: Scope, binding: IBinding, ...args: T[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: T[]): void;
 } & T;
 
 export class BindingBehaviorExpression {
@@ -491,7 +491,7 @@ export class BindingBehaviorExpression {
     return this.expression.assign(s, e, val);
   }
 
-  public bind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public bind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     const name = this.name;
     const key = this._key;
     const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
@@ -500,24 +500,24 @@ export class BindingBehaviorExpression {
     }
     if ((b as BindingWithBehavior)[key] === void 0) {
       (b as BindingWithBehavior)[key] = behavior;
-      behavior.bind?.(f, s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
+      behavior.bind?.(s, b, ...this.args.map(a => a.evaluate(s, b, null) as {}[]));
     } else {
       throw duplicateBehaviorAppliedError(name);
     }
     if (this.expression.hasBind) {
-      this.expression.bind(f, s, b);
+      this.expression.bind(s, b);
     }
   }
 
-  public unbind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public unbind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     const internalKey = this._key;
     const $b = b as BindingWithBehavior;
     if ($b[internalKey] !== void 0) {
-      $b[internalKey]!.unbind?.(f, s, b);
+      $b[internalKey]!.unbind?.(s, b);
       $b[internalKey] = void 0;
     }
     if (this.expression.hasUnbind) {
-      this.expression.unbind(f, s, b);
+      this.expression.unbind(s, b);
     }
   }
 
@@ -581,7 +581,7 @@ export class ValueConverterExpression {
     return this.expression.assign(s, e, val);
   }
 
-  public bind(f: LF, s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public bind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     const name = this.name;
     const vc = b.getConverter?.(name);
     if (vc == null) {
@@ -602,11 +602,11 @@ export class ValueConverterExpression {
       }
     }
     if (this.expression.hasBind) {
-      this.expression.bind(f, s, b);
+      this.expression.bind(s, b);
     }
   }
 
-  public unbind(_f: LF, _s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public unbind(_s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     const vc = b.getConverter?.(this.name);
     if (vc?.signals === void 0) {
       return;
@@ -1493,15 +1493,15 @@ export class ForOfStatement {
     }
   }
 
-  public bind(f: LF, s: Scope, b: IConnectableBinding): void {
+  public bind(s: Scope, b: IConnectableBinding): void {
     if (this.iterable.hasBind) {
-      this.iterable.bind(f, s, b);
+      this.iterable.bind(s, b);
     }
   }
 
-  public unbind(f: LF, s: Scope, b: IConnectableBinding): void {
+  public unbind(s: Scope, b: IConnectableBinding): void {
     if (this.iterable.hasUnbind) {
-      this.iterable.unbind(f, s, b);
+      this.iterable.unbind(s, b);
     }
   }
 

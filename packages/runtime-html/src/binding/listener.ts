@@ -1,6 +1,5 @@
 import {
   DelegationStrategy,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 
 import { IEventTarget } from '../dom';
@@ -76,20 +75,20 @@ export class Listener implements IAstBasedBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind();
     }
 
     this.$scope = scope;
 
     const ast = this.ast;
     if (ast.hasBind) {
-      ast.bind(flags, scope, this.interceptor);
+      ast.bind(scope, this.interceptor);
     }
 
     if (this._options.strategy === DelegationStrategy.none) {
@@ -108,14 +107,13 @@ export class Listener implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
 
-    const ast = this.ast;
-    if (ast.hasUnbind) {
-      ast.unbind(flags, this.$scope, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(this.$scope, this.interceptor);
     }
 
     this.$scope = null!;

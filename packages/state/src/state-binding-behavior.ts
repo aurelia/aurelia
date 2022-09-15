@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Writable } from '@aurelia/kernel';
-import { BindingBehaviorExpression, IOverrideContext, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { BindingBehaviorExpression, IOverrideContext, Scope } from '@aurelia/runtime';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding, } from '@aurelia/runtime-html';
 import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
@@ -23,20 +23,20 @@ export class StateBindingBehavior extends BindingInterceptor implements IStoreSu
     this._isStateBinding = binding instanceof StateBinding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     const binding = this.binding;
     const $scope = this._isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
     if (!this._isStateBinding) {
       this._store.subscribe(this);
     }
-    binding.$bind(flags, $scope);
+    binding.$bind($scope);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this._isStateBinding) {
       this._store.unsubscribe(this);
     }
-    this.binding.$unbind(flags);
+    this.binding.$unbind();
   }
 
   public handleStateChange(state: object): void {

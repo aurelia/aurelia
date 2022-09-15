@@ -1,14 +1,14 @@
-import { Writable } from '@aurelia/kernel';
-import { BindingBehaviorExpression, IsValueConverter, LifecycleFlags, ValueConverterExpression } from '@aurelia/runtime';
+import { type Writable } from '@aurelia/kernel';
+import { type BindingBehaviorExpression, type BindingBehaviorInstance, type IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
 import { bindingBehavior } from '@aurelia/runtime-html';
-import { BindingWithBehavior, ValueConverters } from '../utils';
+import { type BindingWithBehavior, ValueConverters } from '../utils';
 
 import type { Scope } from '@aurelia/runtime';
 
 @bindingBehavior(ValueConverters.translationValueConverterName)
-export class TranslationBindingBehavior {
+export class TranslationBindingBehavior implements BindingBehaviorInstance {
 
-  public bind(flags: LifecycleFlags, _scope: Scope, binding: BindingWithBehavior) {
+  public bind(_scope: Scope, binding: BindingWithBehavior) {
     const expression = binding.ast.expression;
 
     if (!(expression instanceof ValueConverterExpression)) {

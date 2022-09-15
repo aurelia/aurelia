@@ -2,7 +2,6 @@ import {
   AccessorOrObserver,
   AccessorType,
   ExpressionKind,
-  LifecycleFlags,
   connectable,
 } from '@aurelia/runtime';
 import { BindingMode } from './interfaces-bindings';
@@ -114,12 +113,12 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.interceptor.$unbind(flags);
+      this.interceptor.$unbind();
     }
     this.isBound = true;
     this.$scope = scope;
@@ -128,12 +127,12 @@ export class InterpolationBinding implements IBinding {
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].$bind(flags, scope);
+      partBindings[i].$bind(scope);
     }
     this.updateTarget(void 0);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -143,7 +142,7 @@ export class InterpolationBinding implements IBinding {
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].interceptor.$unbind(flags);
+      partBindings[i].interceptor.$unbind();
     }
     this.task?.cancel();
     this.task = null;
@@ -215,19 +214,19 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.owner.updateTarget(void 0);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.interceptor.$unbind(flags);
+      this.interceptor.$unbind();
     }
 
     this.isBound = true;
     this.$scope = scope;
 
     if (this.ast.hasBind) {
-      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
+      this.ast.bind(scope, this.interceptor as IIndexable & this);
     }
 
     this.value = this.ast.evaluate(
@@ -240,14 +239,14 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
     this.isBound = false;
 
     if (this.ast.hasUnbind) {
-      this.ast.unbind(flags, this.$scope!, this.interceptor);
+      this.ast.unbind(this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;
@@ -372,19 +371,19 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
+  public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
-      this.interceptor.$unbind(flags);
+      this.interceptor.$unbind();
     }
 
     this.isBound = true;
     this.$scope = scope;
 
     if (this.ast.hasBind) {
-      this.ast.bind(flags, scope, this.interceptor as IIndexable & this);
+      this.ast.bind(scope, this.interceptor);
     }
 
     const v = this.value = this.ast.evaluate(
@@ -398,14 +397,14 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.updateTarget(v);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
+  public $unbind(): void {
     if (!this.isBound) {
       return;
     }
     this.isBound = false;
 
     if (this.ast.hasUnbind) {
-      this.ast.unbind(flags, this.$scope!, this.interceptor);
+      this.ast.unbind(this.$scope!, this.interceptor);
     }
 
     // TODO: should existing value (either connected node, or a string)

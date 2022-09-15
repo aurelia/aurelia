@@ -16,7 +16,7 @@ import {
   optional,
   Class,
 } from '@aurelia/kernel';
-import { BindingBehaviorInstance, LifecycleFlags, Scope, IBinding } from '@aurelia/runtime';
+import { BindingBehaviorInstance, Scope, IBinding } from '@aurelia/runtime';
 import {
   valueConverter,
   bindingBehavior,
@@ -295,10 +295,10 @@ describe('promise template-controller', function () {
 
   @bindingBehavior('noop')
   class NoopBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public bind(_scope: Scope, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _binding: IBinding): void {
+    public unbind(_scope: Scope, _binding: IBinding): void {
       return;
     }
   }

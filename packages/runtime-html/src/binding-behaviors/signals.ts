@@ -1,4 +1,4 @@
-import { ISignaler, LifecycleFlags } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime';
 import { bindingBehavior } from '../resources/binding-behavior';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 
@@ -14,7 +14,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     this._signaler = signaler;
   }
 
-  public bind(flags: LifecycleFlags, scope: Scope, binding: IConnectableBinding, ...names: string[]): void {
+  public bind(scope: Scope, binding: IConnectableBinding, ...names: string[]): void {
     if (!('handleChange' in binding)) {
       if (__DEV__)
         throw new Error(`AUR0817: The signal behavior can only be used with bindings that have a "handleChange" method`);
@@ -35,7 +35,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: Scope, binding: IConnectableBinding): void {
+  public unbind(scope: Scope, binding: IConnectableBinding): void {
     const names = this._lookup.get(binding)!;
     this._lookup.delete(binding);
     let name: string;

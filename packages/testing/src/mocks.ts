@@ -71,12 +71,12 @@ export class MockBinding implements IConnectableBinding {
     this.trace('subscribeTo', subscribable);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
-    this.trace('$bind', flags, scope);
+  public $bind(scope: Scope): void {
+    this.trace('$bind', scope);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
-    this.trace('$unbind', flags);
+  public $unbind(): void {
+    this.trace('$unbind');
   }
 
   public trace(fnName: keyof MockBinding, ...args: any[]): void {
@@ -91,12 +91,12 @@ export class MockBinding implements IConnectableBinding {
 export class MockBindingBehavior {
   public calls: [keyof MockBindingBehavior, ...any[]][] = [];
 
-  public bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
-    this.trace('bind', flags, scope, binding, ...rest);
+  public bind(scope: Scope, binding: IBinding, ...rest: any[]): void {
+    this.trace('bind', scope, binding, ...rest);
   }
 
-  public unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
-    this.trace('unbind', flags, scope, binding, ...rest);
+  public unbind(scope: Scope, binding: IBinding, ...rest: any[]): void {
+    this.trace('unbind', scope, binding, ...rest);
   }
 
   public trace(fnName: keyof MockBindingBehavior, ...args: any[]): void {

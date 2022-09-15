@@ -9,8 +9,8 @@ export interface IBinding {
   readonly locator: IServiceLocator;
   readonly $scope?: Scope;
   readonly isBound: boolean;
-  $bind(flags: LifecycleFlags, scope: Scope): void;
-  $unbind(flags: LifecycleFlags): void;
+  $bind(scope: Scope): void;
+  $unbind(): void;
   get: IServiceLocator['get'];
 }
 

@@ -3,7 +3,6 @@ import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
-  LifecycleFlags,
   BindingBehaviorExpression,
   ExpressionKind,
   IBinding,
@@ -1294,7 +1293,7 @@ class SpreadBinding implements IBinding {
     return this.locator.get(key);
   }
 
-  public $bind(flags: LifecycleFlags, _scope: Scope): void {
+  public $bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -1304,11 +1303,11 @@ class SpreadBinding implements IBinding {
       throw new Error('Invalid spreading. Context scope is null/undefined');
     }
 
-    this._innerBindings.forEach(b => b.$bind(flags, innerScope));
+    this._innerBindings.forEach(b => b.$bind(innerScope));
   }
 
-  public $unbind(flags: LifecycleFlags): void {
-    this._innerBindings.forEach(b => b.$unbind(flags));
+  public $unbind(): void {
+    this._innerBindings.forEach(b => b.$unbind());
     this.isBound = false;
   }
 

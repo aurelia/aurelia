@@ -1,5 +1,5 @@
 import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
-import { BindingBehaviorInstance, Collection, IAstEvaluator, IndexMap, LifecycleFlags, ValueConverterInstance } from '@aurelia/runtime';
+import { BindingBehaviorInstance, Collection, IAstEvaluator, IndexMap, ValueConverterInstance } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { def, isFunction, isString } from '../utilities';
 import { registerAliases } from '../utilities-di';
@@ -186,11 +186,11 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.observeCollection(observer);
   }
 
-  public $bind(flags: LifecycleFlags, scope: Scope): void {
-    this.binding.$bind(flags, scope);
+  public $bind(scope: Scope): void {
+    this.binding.$bind(scope);
   }
-  public $unbind(flags: LifecycleFlags): void {
-    this.binding.$unbind(flags);
+  public $unbind(): void {
+    this.binding.$unbind();
   }
 }
 

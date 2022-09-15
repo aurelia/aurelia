@@ -631,7 +631,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       i = 0;
       ii = this.bindings.length;
       while (ii > i) {
-        this.bindings[i].$bind(this.$flags, this.scope!);
+        this.bindings[i].$bind(this.scope!);
         ++i;
       }
     }
@@ -880,7 +880,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (this.bindings !== null) {
       for (; i < this.bindings.length; ++i) {
-        this.bindings[i].$unbind(flags);
+        this.bindings[i].$unbind();
       }
     }
 

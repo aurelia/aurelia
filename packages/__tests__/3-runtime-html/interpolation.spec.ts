@@ -5,7 +5,7 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression, LifecycleFlags } from '@aurelia/runtime';
+import { Interpolation, ConditionalExpression, AccessScopeExpression } from '@aurelia/runtime';
 import {
   BindingMode,
   CustomElement,
@@ -318,7 +318,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
           return handleChange.apply(this, args);
         };
       })(binding.partBindings[0].handleChange);
-      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source));
+      binding.$bind(createScopeForTest(source));
 
       assert.strictEqual(target.value, 'no');
       assert.deepStrictEqual(
@@ -416,7 +416,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
           return handleChange.apply(this, args);
         };
       })(binding.partBindings[1].handleChange);
-      binding.$bind(LifecycleFlags.fromBind, createScopeForTest(source));
+      binding.$bind(createScopeForTest(source));
 
       assert.strictEqual(target.value, 'no1--no2');
       assert.deepStrictEqual(

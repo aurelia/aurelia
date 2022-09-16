@@ -49,10 +49,10 @@ import {
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode';
-import { DebounceBindingBehavior } from './binding-behaviors/debounce';
-import { SignalBindingBehavior } from './binding-behaviors/signals';
-import { ThrottleBindingBehavior } from './binding-behaviors/throttle';
+} from './resources/binding-behaviors/binding-mode';
+import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
+import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
+import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';

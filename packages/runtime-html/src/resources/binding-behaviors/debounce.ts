@@ -1,5 +1,5 @@
 import { IPlatform } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../resources/binding-behavior';
+import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { BindingBehaviorExpression, IsAssign, Scope } from '@aurelia/runtime';

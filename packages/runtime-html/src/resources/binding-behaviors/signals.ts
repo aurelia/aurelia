@@ -1,5 +1,5 @@
 import { ISignaler } from '@aurelia/runtime';
-import { bindingBehavior } from '../resources/binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {

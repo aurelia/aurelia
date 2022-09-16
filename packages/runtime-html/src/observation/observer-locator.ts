@@ -220,9 +220,18 @@ export class NodeObserverLocator implements INodeObserverLocator {
     switch (key) {
       // class / style / css attribute will be observed using .getObserver() per overrides
       //
-      // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
-      // but for now stick to what vCurrent does
-      case 'src': case 'href': case 'role':
+      // TODO: there are (many) more situation where we want to default to DataAttributeAccessor
+      case 'src':
+      case 'href':
+      case 'role':
+      case 'minLength':
+      case 'maxLength':
+      case 'placeholder':
+      case 'type':
+      case 'size':
+        // assigning null/undefined to size on input is an error
+        // though it may be fine on other elements.
+        // todo: make an effort to distinguish properties based on element name
         // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
         return attrAccessor;
       default: {

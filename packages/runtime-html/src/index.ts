@@ -163,7 +163,6 @@ export {
   RefBindingInstruction,
   SetPropertyInstruction,
   AttributeBindingInstruction,
-  IListenerBehaviorOptions,
   ListenerBindingInstruction,
   PropertyBindingInstruction,
   SetAttributeInstruction,

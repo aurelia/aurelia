@@ -1,4 +1,4 @@
-import { BindingBehavior, ValueConverter, AppTask, CustomAttribute, IListenerBehaviorOptions, INode } from '@aurelia/runtime-html';
+import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
 describe("arrow-fn", function () {
@@ -187,8 +187,6 @@ describe("arrow-fn", function () {
     const { getBy } = createFixture
       .html`<button click.trigger="() => clicked()">`
       .component({ clicked: () => i = 1 })
-      // todo: maybe just make it understand function by default
-      .deps(AppTask.creating(IListenerBehaviorOptions, o => o.expAsHandler = true))
       .build();
 
     getBy('button').click();
@@ -508,6 +506,7 @@ describe("arrow-fn", function () {
 
     // the follow results in a infinite loop,
     // because sort mutate the existing array causing the binding & repeat to update infinitely
+    // eslint-disable-next-line mocha/no-skipped-tests
     it.skip('observes on .sort', function () {
       const { component, flush, assertText } = createFixture
         .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })

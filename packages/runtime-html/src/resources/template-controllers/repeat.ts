@@ -222,12 +222,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       this._normalizedItems = items;
       return;
     }
-    const forOf = this.forOf;
-    if (forOf === void 0) {
-      return;
-    }
     const normalizedItems: unknown[] = [];
-    this.forOf.iterate(0, items, (arr, index, item) => {
+
+    iterate(items, (item, index) => {
       normalizedItems[index] = item;
     });
     this._normalizedItems = normalizedItems;
@@ -245,10 +242,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const { $controller, _factory: factory, local, _location: location, items } = this;
     const parentScope = $controller.scope;
     const forOf = this.forOf;
-    const newLen = forOf.count(0, items);
+    const newLen = getCount(items);
     const views = this.views = Array(newLen);
 
-    forOf.iterate(0, items, (arr, i, item) => {
+    iterate(items, (item, i) => {
       view = views[i] = factory.create().setLocation(location);
       view.nodes.unlink();
       if(this._hasDestructuredLocal) {
@@ -512,7 +509,7 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
-function setContextualProperties(oc: IRepeatOverrideContext, index: number, length: number): void {
+const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;
   const isEven = index % 2 === 0;
@@ -523,4 +520,66 @@ function setContextualProperties(oc: IRepeatOverrideContext, index: number, leng
   oc.$even = isEven;
   oc.$odd = !isEven;
   oc.$length = length;
-}
+};
+
+const toStringTag = Object.prototype.toString as {
+  call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
+};
+type AcceptableCollection = Collection | number | null | undefined;
+const getCount = (result: AcceptableCollection): number => {
+  switch (toStringTag.call(result) as string) {
+    case '[object Array]': return (result as unknown[]).length;
+    case '[object Map]': return (result as Map<unknown, unknown>).size;
+    case '[object Set]': return (result as Set<unknown>).size;
+    case '[object Number]': return result as number;
+    case '[object Null]': return 0;
+    case '[object Undefined]': return 0;
+    // todo: remove this count method
+    default: throw new Error(`Cannot count ${toStringTag.call(result) as string}`);
+  }
+};
+
+const iterate = (result: AcceptableCollection, func: (item: unknown, index: number, arr: AcceptableCollection) => void): void => {
+  switch (toStringTag.call(result) as string) {
+    case '[object Array]': return $array(result as unknown[], func);
+    case '[object Map]': return $map(result as Map<unknown, unknown>, func);
+    case '[object Set]': return $set(result as Set<unknown>, func);
+    case '[object Number]': return $number(result as number, func);
+    case '[object Null]': return;
+    case '[object Undefined]': return;
+    // todo: remove this count method
+    default: throw new Error(`Cannot iterate over ${toStringTag.call(result) as string}`);
+  }
+};
+
+const $array = (result: unknown[], func: (item: unknown, index: number, arr: Collection) => void): void => {
+  const ii = result.length;
+  let i = 0;
+  for (; i < ii; ++i) {
+    func(result[i], i, result);
+  }
+};
+
+const $map = (result: Map<unknown, unknown>, func: (item: unknown, index: number, arr: Collection) => void): void => {
+  let i = -0;
+  let entry: [unknown, unknown];
+  for (entry of result.entries()) {
+    func(entry, i++, result);
+  }
+};
+
+const $set = (result: Set<unknown>, func: (item: unknown, index: number, arr: Collection) => void): void => {
+  let i = 0;
+  let key: unknown;
+  for (key of result.keys()) {
+    func(key, i++, result);
+  }
+};
+
+const $number = (result: number, func: (item: number, index: number, arr: number) => void): void => {
+  let i = 0;
+  for (; i < result; ++i) {
+    func(i, i, result);
+  }
+};
+

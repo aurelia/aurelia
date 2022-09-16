@@ -467,7 +467,7 @@ export class RoutingScope {
       }
 
       // Remove cancelled endpoints from changed endpoints (last instruction is cancelled)
-      allChangedEndpoints = allChangedEndpoints.filter(endpoint => !(earlierMatchedInstructions
+      allChangedEndpoints = allChangedEndpoints.filter(endpoint => !([...earlierMatchedInstructions]
         .reverse()
         .find(instruction => instruction.endpoint.instance === endpoint)
         ?.cancelled ?? false)

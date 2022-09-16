@@ -1832,54 +1832,70 @@ describe('Router', function () {
     const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
 
     const tests = [
-      { load: '/route-two', result: '!zero!', },
-      { load: '/route-one/route-two', result: '!one!!zero!', },
-      { load: '/route-one/route-one/route-two', result: '!one!!one!!zero!', },
+      { load: '/route-two', result: '!zero!', path: '/route-zero', },
+      { load: '/route-one/route-two', result: '!one!!zero!', path: '/route-one/route-zero', },
+      { load: '/route-one/route-one/route-two', result: '!one!!one!!zero!', path: '/route-one/route-one/route-zero', },
 
-      { load: '/route-two/route-one', result: '!zero!', },
-      { load: '/route-one/route-two/route-one', result: '!one!!zero!', },
-      { load: '/route-one/route-one/route-two/route-one', result: '!one!!one!!zero!', },
+      { load: '/route-two/route-one', result: '!zero!', path: '/route-zero', },
+      { load: '/route-one/route-two/route-one', result: '!one!!zero!', path: '/route-one/route-zero', },
+      { load: '/route-one/route-one/route-two/route-one', result: '!one!!one!!zero!', path: '/route-one/route-one/route-zero', },
 
-      { load: '/three', result: '!zero!', },
-      { load: '/route-one/three', result: '!one!!zero!', },
-      { load: '/route-one/route-one/three', result: '!one!!one!!zero!', },
+      { load: '/three', result: '!zero!', path: '/zero', },
+      { load: '/route-one/three', result: '!one!!zero!', path: '/route-one/zero', },
+      { load: '/route-one/route-one/three', result: '!one!!one!!zero!', path: '/route-one/route-one/zero', },
 
-      { load: '/three/route-one', result: '!zero!', },
-      { load: '/route-one/three/route-one', result: '!one!!zero!', },
-      { load: '/route-one/route-one/three/route-one', result: '!one!!one!!zero!', },
+      { load: '/three/route-one', result: '!zero!', path: '/zero', },
+      { load: '/route-one/three/route-one', result: '!one!!zero!', path: '/route-one/zero', },
+      { load: '/route-one/route-one/three/route-one', result: '!one!!one!!zero!', path: '/route-one/route-one/zero', },
 
-      { load: '/route-two', result: '!zero!', },
-      { load: '/one/route-two', result: '!one!!zero!', },
-      { load: '/one/one/route-two', result: '!one!!one!!zero!', },
+      { load: '/route-two', result: '!zero!', path: '/route-zero', },
+      { load: '/one/route-two', result: '!one!!zero!', path: '/one/route-zero', },
+      { load: '/one/one/route-two', result: '!one!!one!!zero!', path: '/one/one/route-zero', },
 
-      { load: '/route-two/one', result: '!zero!', },
-      { load: '/one/route-two/one', result: '!one!!zero!', },
-      { load: '/one/one/route-two/one', result: '!one!!one!!zero!', },
+      { load: '/route-two/one', result: '!zero!', path: '/route-zero', },
+      { load: '/one/route-two/one', result: '!one!!zero!', path: '/one/route-zero', },
+      { load: '/one/one/route-two/one', result: '!one!!one!!zero!', path: '/one/one/route-zero', },
 
-      { load: '/three', result: '!zero!', },
-      { load: '/one/three', result: '!one!!zero!', },
-      { load: '/one/one/three', result: '!one!!one!!zero!', },
+      { load: '/three', result: '!zero!', path: '/zero', },
+      { load: '/one/three', result: '!one!!zero!', path: '/one/zero', },
+      { load: '/one/one/three', result: '!one!!one!!zero!', path: '/one/one/zero', },
 
-      { load: '/three/one', result: '!zero!', },
-      { load: '/one/three/one', result: '!one!!zero!', },
-      { load: '/one/one/three/one', result: '!one!!one!!zero!', },
+      { load: '/three/one', result: '!zero!', path: '/zero', },
+      { load: '/one/three/one', result: '!one!!zero!', path: '/one/zero', },
+      { load: '/one/one/three/one', result: '!one!!one!!zero!', path: '/one/one/zero', },
 
-      { load: '/four', result: '!zero!', },
-      { load: '/route-one/four', result: '!one!!zero!', },
-      { load: '/route-one/one/four', result: '!one!!one!!zero!', },
+      { load: '/four', result: '!zero!', path: '/route-zero-id', },
+      { load: '/route-one/four', result: '!one!!zero!', path: '/route-one/route-zero-id', },
+      { load: '/route-one/one/four', result: '!one!!one!!zero!', path: '/route-one/one/route-zero-id', },
 
-      { load: '/four/one', result: '!zero!', },
-      { load: '/route-one/four/one', result: '!one!!zero!', },
-      { load: '/route-one/one/four/one', result: '!one!!one!!zero!', },
+      { load: '/four/one', result: '!zero!', path: '/route-zero-id', },
+      { load: '/route-one/four/one', result: '!one!!zero!', path: '/route-one/route-zero-id', },
+      { load: '/route-one/one/four/one', result: '!one!!one!!zero!', path: '/route-one/one/route-zero-id', },
     ];
+
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      locationPath = path.replace('#', '');
+    };
 
     for (const test of tests) {
       it(`to route in canLoad (${test.load})`, async function () {
-        const { platform, host, router, $teardown } = await $setup({}, [Zero, One, Two, Three, Four], routes);
+        const { platform, host, router, $teardown } = await $setup({}, [Zero, One, Two, Three, Four], routes, locationCallback);
 
         await $load(test.load, router, platform);
         await platform.domWriteQueue.yield();
         assert.strictEqual(host.textContent, test.result, test.load);
+        assert.strictEqual(locationPath, test.path, `${test.load} path`);
+
+        await $load('-', router, platform);
+        await platform.domWriteQueue.yield();
+        assert.strictEqual(host.textContent, '', `${test.load} -`);
+        assert.strictEqual(locationPath, '/', `${test.load} - path`);
+
+        await $load(test.load, router, platform);
+        await platform.domWriteQueue.yield();
+        assert.strictEqual(host.textContent, test.result, test.load);
+        assert.strictEqual(locationPath, test.path, `${test.load} path`);
 
         await $teardown();
       });

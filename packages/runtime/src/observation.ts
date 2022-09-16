@@ -49,12 +49,6 @@ export const enum SubscriberFlags {
   Any             = 0b1111,
 }
 
-export enum DelegationStrategy {
-  none      = 0,
-  capturing = 1,
-  bubbling  = 2,
-}
-
 export interface IBatchable {
   flushBatch(flags: LifecycleFlags): void;
 }

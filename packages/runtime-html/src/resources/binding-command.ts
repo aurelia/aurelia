@@ -1,5 +1,5 @@
 import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { ExpressionType, DelegationStrategy, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
 import {
@@ -10,6 +10,7 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
+  DelegationStrategy,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';

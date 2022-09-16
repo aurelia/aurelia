@@ -103,6 +103,7 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker';
 export {
+  IFlushQueue,
   type IFlushable,
   type IWithFlushQueue,
   FlushQueue,
@@ -160,7 +161,6 @@ export {
   AccessorType,
   type Collection,
   CollectionKind,
-  DelegationStrategy,
   type IAccessor,
   type IBindingContext,
   type ICollectionChangeTracker,

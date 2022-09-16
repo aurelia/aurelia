@@ -1,10 +1,7 @@
-import {
-  DelegationStrategy,
-} from '@aurelia/runtime';
-
 import { IEventTarget } from '../dom';
 import { isFunction } from '../utilities';
 import { astEvaluator } from './binding-utils';
+import { DelegationStrategy } from '../renderer';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior, Scope } from '@aurelia/runtime';

@@ -38,7 +38,6 @@ import type {
   BindingBehaviorInstance,
   IObservable,
   ForOfStatement,
-  DelegationStrategy,
 } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
@@ -231,6 +230,12 @@ export class TextBindingInstruction {
      */
     public strict: boolean,
   ) {}
+}
+
+export const enum DelegationStrategy {
+  none      = 0,
+  capturing = 1,
+  bubbling  = 2,
 }
 
 export class ListenerBindingInstruction {

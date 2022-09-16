@@ -153,6 +153,7 @@ export {
   type ICompliationInstruction,
   renderer,
   CallBindingInstruction,
+  DelegationStrategy,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,

@@ -841,7 +841,6 @@ export {
   // IInstruction,
   // InstructionType,
   // IAttributeBindingInstruction,
-  // IListenerBindingInstruction,
   // ISetAttributeInstruction,
   // isInstruction,
   // IStylePropertyBindingInstruction,

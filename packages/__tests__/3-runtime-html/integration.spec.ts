@@ -21,7 +21,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('runtime-html.integration', function () {
+describe('3-runtime-html/integration.spec.ts', function () {
 
   async function runTest<TApp>(
     testFunction: TestFunction<IntegrationTestExecutionContext<TApp>>,

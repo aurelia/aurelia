@@ -1,9 +1,9 @@
 import { BindingBehaviorInstance } from '@aurelia/runtime';
-import { bindingBehavior } from '../resources/binding-behavior';
-import { BindingMode } from '../binding/interfaces-bindings';
+import { bindingBehavior } from '../binding-behavior';
+import { BindingMode } from '../../binding/interfaces-bindings';
 
 import type { Scope } from '@aurelia/runtime';
-import type { PropertyBinding } from '../binding/property-binding';
+import type { PropertyBinding } from '../../binding/property-binding';
 
 const originalModesMap = new Map<PropertyBinding, BindingMode>();
 

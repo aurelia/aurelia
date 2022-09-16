@@ -44,16 +44,16 @@ export {
   ToViewBindingBehavior,
   FromViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode';
+} from './resources/binding-behaviors/binding-mode';
 export {
   DebounceBindingBehavior,
-} from './binding-behaviors/debounce';
+} from './resources/binding-behaviors/debounce';
 export {
   SignalBindingBehavior,
-} from './binding-behaviors/signals';
+} from './resources/binding-behaviors/signals';
 export {
   ThrottleBindingBehavior,
-} from './binding-behaviors/throttle';
+} from './resources/binding-behaviors/throttle';
 
 export {
   Aurelia,

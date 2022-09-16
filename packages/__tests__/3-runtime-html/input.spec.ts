@@ -87,4 +87,45 @@ describe('3-runtime-html/input.spec.ts', function () {
 
     await tearDown();
   });
+
+  it('assigns removes attribute to minLength, maxLength on null/undefined', function () {
+    const { assertAttr } = createFixture
+      .html`<input minlength.bind="null" maxlength.bind="undefined">`
+      .build();
+
+    assertAttr('input', 'minlength', null);
+    assertAttr('input', 'maxlength', null);
+  });
+
+  it('removes placeholder attr on null/undefined', function () {
+    const { assertAttr } = createFixture
+      .html`<input placeholder.bind="null">`
+      .build();
+
+    assertAttr('input', 'placeholder', null);
+  });
+
+  it('removes type attr on null/undefined', function () {
+    const { assertAttr } = createFixture
+      .html`<input type.bind="null">`
+      .build();
+
+    assertAttr('input', 'type', null);
+  });
+
+  it('assigns size attr correctly', function () {
+    const { assertAttr } = createFixture
+      .html`<input size.bind="1">`
+      .build();
+
+    assertAttr('input', 'size', '1');
+  });
+
+  it('removes size attr on null/undefined', function () {
+    const { assertAttr } = createFixture
+      .html`<input size.bind="null">`
+      .build();
+
+    assertAttr('input', 'size', null);
+  });
 });

@@ -126,12 +126,26 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     if (arguments.length === 2) {
       const el = queryBy(selector);
       if (el === null) {
-        throw new Error(`No element found for selector "${selector}" to compare innerHTML with "${html}"`);
+        throw new Error(`No element found for selector "${selector}" to compare innerHTML against "${html}"`);
       }
       assert.strictEqual(el.innerHTML, html);
     } else {
       assert.strictEqual(host.innerHTML, selector);
     }
+  }
+  function assertAttr(selector: string, name: string, value: string | null) {
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare attribute against "${value}"`);
+    }
+    assert.strictEqual(el.getAttribute(name), value);
+  }
+  function assertValue(selector: string, value: string | null) {
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare value against "${value}"`);
+    }
+    assert.strictEqual((el as any).value, value);
   }
   function trigger(selector: string, event: string, init?: CustomEventInit): void {
     const el = queryBy(selector);
@@ -216,6 +230,8 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public queryBy = queryBy;
     public assertText = assertText;
     public assertHtml = assertHtml;
+    public assertAttr = assertAttr;
+    public assertValue = assertValue;
     public trigger = trigger as ITrigger;
     public scrollBy = scrollBy;
     public flush = flush;
@@ -283,6 +299,18 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertHtml(selector: string, html: string): void;
+  /**
+   * Assert the attribute value of an element matching the given selector inside the application host equals to a given string.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertAttr(selector: string, name: string, value: string): void;
+  /**
+   * Assert the value of an element matching the given selector inside the application host equals to a given value.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertValue(selector: string, value: unknown): void;
 
   hJsx(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]): HTMLElement;
 

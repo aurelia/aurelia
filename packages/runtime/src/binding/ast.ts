@@ -1,5 +1,5 @@
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
-import { IBinding, LifecycleFlags as LF } from '../observation';
+import { type IBinding } from '../observation';
 import { BindingContext, Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
 import { IConnectableBinding } from './connectable';
@@ -7,7 +7,6 @@ import { isArray, isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
-  Collection,
   IBindingContext,
   IObservable,
   IOverrideContext,
@@ -1442,16 +1441,12 @@ export class BindingIdentifier {
   }
 }
 
-const toStringTag = Object.prototype.toString as {
-  call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
-};
-
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement {
   public get $kind(): ExpressionKind.ForOfStatement { return ExpressionKind.ForOfStatement; }
-  public get hasBind(): false { return false; }
-  public get hasUnbind(): false { return false; }
+  public get hasBind(): true { return true; }
+  public get hasUnbind(): true { return true; }
 
   public constructor(
     public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
@@ -1464,33 +1459,6 @@ export class ForOfStatement {
 
   public assign(_s: Scope, _e: IAstEvaluator | null, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public count(_f: LF, result: Collection | number | null | undefined): number {
-    switch (toStringTag.call(result) as string) {
-      case '[object Array]': return (result as unknown[]).length;
-      case '[object Map]': return (result as Map<unknown, unknown>).size;
-      case '[object Set]': return (result as Set<unknown>).size;
-      case '[object Number]': return result as number;
-      case '[object Null]': return 0;
-      case '[object Undefined]': return 0;
-      // todo: remove this count method
-      default: throw new Error(`Cannot count ${toStringTag.call(result) as string}`);
-    }
-  }
-
-  // deepscan-disable-next-line
-  public iterate(f: LF, result: Collection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    switch (toStringTag.call(result) as string) {
-      case '[object Array]': return $array(result as unknown[], func);
-      case '[object Map]': return $map(result as Map<unknown, unknown>, func);
-      case '[object Set]': return $set(result as Set<unknown>, func);
-      case '[object Number]': return $number(result as number, func);
-      case '[object Null]': return;
-      case '[object Undefined]': return;
-      // todo: remove this count method
-      default: throw new Error(`Cannot iterate over ${toStringTag.call(result) as string}`);
-    }
   }
 
   public bind(s: Scope, b: IConnectableBinding): void {
@@ -1765,36 +1733,4 @@ function getFunction(mustEvaluate: boolean | undefined, obj: object, name: strin
     throw new Error(`AUR0111: Expected '${name}' to be a function`);
   else
     throw new Error(`AUR0111:${name}`);
-}
-
-function $array(result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-  for (let i = 0, ii = result.length; i < ii; ++i) {
-    func(result, i, result[i]);
-  }
-}
-
-function $map(result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-  const arr = Array(result.size);
-  let i = -1;
-  for (const entry of result.entries()) {
-    arr[++i] = entry;
-  }
-  $array(arr, func);
-}
-
-function $set(result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
-  const arr = Array(result.size);
-  let i = -1;
-  for (const key of result.keys()) {
-    arr[++i] = key;
-  }
-  $array(arr, func);
-}
-
-function $number(result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
-  const arr = Array(result);
-  for (let i = 0; i < result; ++i) {
-    arr[i] = i;
-  }
-  $array(arr, func);
 }

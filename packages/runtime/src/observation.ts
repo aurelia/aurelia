@@ -39,16 +39,6 @@ export interface IConnectable {
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
-/** @internal */
-export const enum SubscriberFlags {
-  None            = 0,
-  Subscriber0     = 0b0001,
-  Subscriber1     = 0b0010,
-  Subscriber2     = 0b0100,
-  SubscribersRest = 0b1000,
-  Any             = 0b1111,
-}
-
 export interface IBatchable {
   flushBatch(flags: LifecycleFlags): void;
 }

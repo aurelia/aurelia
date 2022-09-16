@@ -1,6 +1,3 @@
-import {
-  SubscriberFlags as SF,
-} from '../observation';
 import { def, defineHiddenProp, ensureProto } from '../utilities-objects';
 
 import type {
@@ -36,7 +33,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   /**
    * subscriber flags: bits indicating the existence status of the subscribers of this record
    */
-  private sf: SF = SF.None;
+  private sf: SubFlags = SubFlags.None;
   private s0?: T;
   private s1?: T;
   private s2?: T;
@@ -52,18 +49,18 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       return false;
     }
     const subscriberFlags = this.sf;
-    if ((subscriberFlags & SF.Subscriber0) === 0) {
+    if ((subscriberFlags & SubFlags.Sub0) === 0) {
       this.s0 = subscriber;
-      this.sf |= SF.Subscriber0;
-    } else if ((subscriberFlags & SF.Subscriber1) === 0) {
+      this.sf |= SubFlags.Sub0;
+    } else if ((subscriberFlags & SubFlags.Sub1) === 0) {
       this.s1 = subscriber;
-      this.sf |= SF.Subscriber1;
-    } else if ((subscriberFlags & SF.Subscriber2) === 0) {
+      this.sf |= SubFlags.Sub1;
+    } else if ((subscriberFlags & SubFlags.Sub2) === 0) {
       this.s2 = subscriber;
-      this.sf |= SF.Subscriber2;
-    } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
+      this.sf |= SubFlags.Sub2;
+    } else if ((subscriberFlags & SubFlags.SubRest) === 0) {
       this.sr = [subscriber];
-      this.sf |= SF.SubscribersRest;
+      this.sf |= SubFlags.SubRest;
     } else {
       this.sr!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
     }
@@ -76,16 +73,16 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
     // and minor slow-down when it does, and the former is more common than the latter.
     const subscriberFlags = this.sf;
-    if ((subscriberFlags & SF.Subscriber0) > 0 && this.s0 === subscriber) {
+    if ((subscriberFlags & SubFlags.Sub0) > 0 && this.s0 === subscriber) {
       return true;
     }
-    if ((subscriberFlags & SF.Subscriber1) > 0 && this.s1 === subscriber) {
+    if ((subscriberFlags & SubFlags.Sub1) > 0 && this.s1 === subscriber) {
       return true;
     }
-    if ((subscriberFlags & SF.Subscriber2) > 0 && this.s2 === subscriber) {
+    if ((subscriberFlags & SubFlags.Sub2) > 0 && this.s2 === subscriber) {
       return true;
     }
-    if ((subscriberFlags & SF.SubscribersRest) > 0) {
+    if ((subscriberFlags & SubFlags.SubRest) > 0) {
       const subscribers = this.sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       const ii = subscribers.length;
       let i = 0;
@@ -99,27 +96,27 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public any(): boolean {
-    return this.sf !== SF.None;
+    return this.sf !== SubFlags.None;
   }
 
   public remove(subscriber: T): boolean {
     const subscriberFlags = this.sf;
-    if ((subscriberFlags & SF.Subscriber0) > 0 && this.s0 === subscriber) {
+    if ((subscriberFlags & SubFlags.Sub0) > 0 && this.s0 === subscriber) {
       this.s0 = void 0;
-      this.sf = (this.sf | SF.Subscriber0) ^ SF.Subscriber0;
+      this.sf = (this.sf | SubFlags.Sub0) ^ SubFlags.Sub0;
       --this.count;
       return true;
-    } else if ((subscriberFlags & SF.Subscriber1) > 0 && this.s1 === subscriber) {
+    } else if ((subscriberFlags & SubFlags.Sub1) > 0 && this.s1 === subscriber) {
       this.s1 = void 0;
-      this.sf = (this.sf | SF.Subscriber1) ^ SF.Subscriber1;
+      this.sf = (this.sf | SubFlags.Sub1) ^ SubFlags.Sub1;
       --this.count;
       return true;
-    } else if ((subscriberFlags & SF.Subscriber2) > 0 && this.s2 === subscriber) {
+    } else if ((subscriberFlags & SubFlags.Sub2) > 0 && this.s2 === subscriber) {
       this.s2 = void 0;
-      this.sf = (this.sf | SF.Subscriber2) ^ SF.Subscriber2;
+      this.sf = (this.sf | SubFlags.Sub2) ^ SubFlags.Sub2;
       --this.count;
       return true;
-    } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
+    } else if ((subscriberFlags & SubFlags.SubRest) > 0) {
       const subscribers = this.sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       const ii = subscribers.length;
       let i = 0;
@@ -127,7 +124,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
         if (subscribers[i] === subscriber) {
           subscribers.splice(i, 1);
           if (ii === 1) {
-            this.sf = (this.sf | SF.SubscribersRest) ^ SF.SubscribersRest;
+            this.sf = (this.sf | SubFlags.SubRest) ^ SubFlags.SubRest;
           }
           --this.count;
           return true;
@@ -221,4 +218,16 @@ function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber):
 
 function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
   return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
+}
+
+/**
+ * Subscriber flags to indicate subcription on a record
+ */
+const enum SubFlags {
+  None      = 0,
+  Sub0      = 0b0001,
+  Sub1      = 0b0010,
+  Sub2      = 0b0100,
+  SubRest   = 0b1000,
+  Any       = 0b1111,
 }

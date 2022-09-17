@@ -25,10 +25,7 @@ export class Scope {
 
   public static getContext(scope: Scope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null) {
-      if (__DEV__)
-        throw new Error(`AUR0203: Scope is ${scope}.`);
-      else
-        throw new Error(`AUR0203:${scope}`);
+      throw nullScopeError();
     }
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;
@@ -112,21 +109,21 @@ export class Scope {
 
   public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
-      throw nullParentScopeError();
+      throw nullScopeError();
     }
     return new Scope(ps, bc as IBindingContext, new OverrideContext(), false);
   }
 }
 
+const nullScopeError = () => {
+  return __DEV__
+    ? new Error(`AUR0203: scope is null/undefined.`)
+    : new Error(`AUR0203`);
+};
 const nullContextError = () => {
   return __DEV__
     ? new Error('AUR0204: binding context is null/undefined')
     : new Error('AUR0204');
-};
-const nullParentScopeError = () => {
-  return __DEV__
-    ? new Error(`AUR0205: parent scope is null/undefined`)
-    : new Error(`AUR0205`);
 };
 
 class OverrideContext implements IOverrideContext {

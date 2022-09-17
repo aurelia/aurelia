@@ -466,14 +466,12 @@ export class RoutingScope {
         await unresolvedPromise;
       }
 
-      // Remove cancelled endpoints from changed endpoints
-      earlierMatchedInstructions.filter(instruction => instruction.cancelled).forEach(instruction => {
-        const lastIndex = earlierMatchedInstructions.lastIndexOf(instruction);
-        const lastInstruction = earlierMatchedInstructions[lastIndex];
-        if (lastInstruction.cancelled) {
-          allChangedEndpoints = allChangedEndpoints.filter(endpoint => endpoint !== lastInstruction.endpoint.instance);
-        }
-      });
+      // Remove cancelled endpoints from changed endpoints (last instruction is cancelled)
+      allChangedEndpoints = allChangedEndpoints.filter(endpoint => !([...earlierMatchedInstructions]
+        .reverse()
+        .find(instruction => instruction.endpoint.instance === endpoint)
+        ?.cancelled ?? false)
+      );
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 
     return allChangedEndpoints;

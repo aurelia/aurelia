@@ -4,6 +4,7 @@ import {
   ISubscriberCollection,
   ICollectionSubscriberCollection,
   cloneIndexMap,
+  IObserver,
 } from '../observation';
 import {
   CollectionLengthObserver,
@@ -15,7 +16,6 @@ import {
 import type {
   CollectionKind,
   ICollectionObserver,
-  IArrayIndexObserver,
   IndexMap,
   ISubscriber,
 } from '../observation';
@@ -415,6 +415,10 @@ export class ArrayObserver {
     // so just create once, and add/remove instead
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
+}
+
+export interface IArrayIndexObserver extends IObserver {
+  owner: ICollectionObserver<CollectionKind.array>;
 }
 
 export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}

@@ -62,14 +62,14 @@ export class DirtyChecker implements IWithFlushQueue {
     private readonly p: IPlatform,
   ) {}
 
-  public createProperty(obj: object, key: string): DirtyCheckProperty {
+  public createProperty(obj: object, key: PropertyKey): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
       if (__DEV__)
-        throw new Error(`AUR0222: Property '${key}' is being dirty-checked.`);
+        throw new Error(`AUR0222: Property '${String(key)}' is being dirty-checked.`);
       else
-        throw new Error(`AUR0222:${key}`);
+        throw new Error(`AUR0222:${String(key)}`);
     }
-    return new DirtyCheckProperty(this, obj as IIndexable, key);
+    return new DirtyCheckProperty(this, obj as IIndexable, key as string);
   }
 
   public addProperty(property: DirtyCheckProperty): void {
@@ -136,7 +136,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
   public setValue(_v: unknown) {
     // todo: this should be allowed, probably
     // but the construction of dirty checker should throw instead
-    throw new Error(`Trying to set value for property ${this.key} in dirty checker`);
+    throw new Error(`Trying to set value for property ${String(this.key)} in dirty checker`);
   }
 
   public isDirty(): boolean {

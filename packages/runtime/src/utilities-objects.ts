@@ -44,6 +44,8 @@ export function ensureProto<T extends object, K extends keyof T>(
   }
 }
 
+/** @internal */ export const convertToString = String;
+
 /** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
 
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;

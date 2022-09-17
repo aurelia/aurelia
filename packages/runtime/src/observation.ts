@@ -39,10 +39,6 @@ export interface IConnectable {
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
-export interface IBatchable {
-  flushBatch(flags: LifecycleFlags): void;
-}
-
 export interface ISubscriber<TValue = unknown> {
   handleChange(newValue: TValue, previousValue: TValue): void;
 }
@@ -181,7 +177,9 @@ export interface IAccessor<TValue = unknown> {
 /**
  * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
-export interface IObserver extends IAccessor, ISubscribable {}
+export interface IObserver extends IAccessor, ISubscribable {
+  doNotCache?: boolean;
+}
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
@@ -251,11 +249,6 @@ export function cloneIndexMap(indexMap: IndexMap): IndexMap {
 export function isIndexMap(value: unknown): value is IndexMap {
   return isArray(value) && (value as IndexMap).isIndexMap === true;
 }
-
-export interface IArrayIndexObserver extends IObserver {
-  owner: ICollectionObserver<CollectionKind.array>;
-}
-
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
@@ -279,13 +272,12 @@ export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: PropertyKey]: any;
 }
 
 export interface IOverrideContext {
-  [key: string]: unknown;
-
-  readonly bindingContext: IBindingContext;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: PropertyKey]: any;
 }
 
 export type IObservable<T = IIndexable> = T & {

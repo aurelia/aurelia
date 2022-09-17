@@ -74,6 +74,7 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
+  type IArrayIndexObserver,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -125,6 +126,7 @@ export {
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
+  getObserverLookup,
   type ObservableGetter,
   type ObservableSetter,
 } from './observation/observer-locator';
@@ -166,10 +168,8 @@ export {
   type ICollectionChangeTracker,
   type ICollectionObserver,
   type IConnectable,
-  type IArrayIndexObserver,
   type ICollectionSubscriber,
   type IndexMap,
-  type IBatchable,
   type IObserver,
   type IObservable,
   type IOverrideContext,

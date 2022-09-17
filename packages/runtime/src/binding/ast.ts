@@ -3,7 +3,7 @@ import { type IBinding } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
 import { type IConnectableBinding } from './connectable';
-import { isArray, isFunction, isString } from '../utilities-objects';
+import { safeString, isArray, isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import type {
@@ -1286,7 +1286,7 @@ export class TemplateExpression {
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): string {
     let result = this.cooked[0];
     for (let i = 0; i < this.expressions.length; ++i) {
-      result += String(this.expressions[i].evaluate(s, e, c));
+      result += safeString(this.expressions[i].evaluate(s, e, c));
       result += this.cooked[i + 1];
     }
     return result;
@@ -1505,7 +1505,7 @@ export class Interpolation {
       let result = this.parts[0];
       let i = 0;
       for (; i < this.expressions.length; ++i) {
-        result += String(this.expressions[i].evaluate(s, e, c));
+        result += safeString(this.expressions[i].evaluate(s, e, c));
         result += this.parts[i + 1];
       }
       return result;

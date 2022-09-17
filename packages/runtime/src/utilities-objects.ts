@@ -44,7 +44,8 @@ export function ensureProto<T extends object, K extends keyof T>(
   }
 }
 
-/** @internal */ export const convertToString = String;
+// this is used inside template literal, since TS errs without String(...value)
+/** @internal */ export const safeString = String;
 
 /** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
 

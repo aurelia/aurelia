@@ -1,9 +1,10 @@
 import {
-  ISubscriberRecord,
-  ICollectionSubscriber,
-  IndexMap,
-} from '../observation.js';
-import type { IAnySubscriber } from './subscriber-collection.js';
+  type ISubscriberRecord,
+  type ICollectionSubscriber,
+  type IndexMap,
+  type Collection,
+} from '../observation';
+import type { IAnySubscriber } from './subscriber-collection';
 
 type ValueBatchRecord = [
   1,
@@ -12,6 +13,7 @@ type ValueBatchRecord = [
 ];
 type CollectionBatchRecord = [
   2,
+  Collection,
   IndexMap,
 ];
 type BatchRecord = ValueBatchRecord | CollectionBatchRecord;
@@ -34,6 +36,7 @@ export function batch(fn: () => unknown): void {
       let pair: [ISubscriberRecord<IAnySubscriber>, BatchRecord];
       let subs: ISubscriberRecord<IAnySubscriber>;
       let batchRecord: BatchRecord;
+      let col: Collection;
       let indexMap: IndexMap;
       let hasChanges = false;
       let i: number;
@@ -47,7 +50,8 @@ export function batch(fn: () => unknown): void {
         if (batchRecord[0] === 1) {
           subs.notify(batchRecord[1], batchRecord[2]);
         } else {
-          indexMap = batchRecord[1];
+          col = batchRecord[1];
+          indexMap = batchRecord[2];
           hasChanges = false;
           if (indexMap.deletedIndices.length > 0) {
             hasChanges = true;
@@ -60,7 +64,7 @@ export function batch(fn: () => unknown): void {
             }
           }
           if (hasChanges) {
-            subs.notifyCollection(indexMap);
+            subs.notifyCollection(col, indexMap);
           }
         }
       }
@@ -72,10 +76,11 @@ export function batch(fn: () => unknown): void {
 
 export function addCollectionBatch(
   subs: ISubscriberRecord<ICollectionSubscriber>,
+  collection: Collection,
   indexMap: IndexMap,
 ) {
   if (!currBatch!.has(subs)) {
-    currBatch!.set(subs, [2, indexMap]);
+    currBatch!.set(subs, [2, collection, indexMap]);
   }
 }
 

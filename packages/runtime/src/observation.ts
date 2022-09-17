@@ -44,7 +44,7 @@ export interface ISubscriber<TValue = unknown> {
 }
 
 export interface ICollectionSubscriber {
-  handleCollectionChange(indexMap: IndexMap): void;
+  handleCollectionChange(collection: Collection, indexMap: IndexMap): void;
 }
 
 export interface ISubscribable {
@@ -68,7 +68,7 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
   remove(subscriber: T): boolean;
   any(): boolean;
   notify(value: unknown, oldValue: unknown): void;
-  notifyCollection(indexMap: IndexMap): void;
+  notifyCollection(collection: Collection, indexMap: IndexMap): void;
 }
 
 /**

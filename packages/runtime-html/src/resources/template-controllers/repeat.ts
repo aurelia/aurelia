@@ -141,8 +141,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   // called by a CollectionObserver
-  public handleCollectionChange(indexMap: IndexMap | undefined): void {
-    const { $controller } = this;
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
+    const $controller = this.$controller;
     if (!$controller.isActive) {
       return;
     }

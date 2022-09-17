@@ -162,14 +162,15 @@ export class SetObserver {
     const subs = this.subs;
     const indexMap = this.indexMap;
     if (batching) {
-      addCollectionBatch(subs, indexMap);
+      addCollectionBatch(subs, this.collection, indexMap);
       return;
     }
 
-    const size = this.collection.size;
+    const set = this.collection;
+    const size = set.size;
 
     this.indexMap = createIndexMap(size);
-    this.subs.notifyCollection(indexMap);
+    this.subs.notifyCollection(set, indexMap);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

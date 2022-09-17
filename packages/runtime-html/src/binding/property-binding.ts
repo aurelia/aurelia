@@ -1,4 +1,4 @@
-import { AccessorType, connectable, ExpressionKind, IndexMap } from '@aurelia/runtime';
+import { AccessorType, connectable, ExpressionKind } from '@aurelia/runtime';
 import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 import { BindingMode } from './interfaces-bindings';
@@ -112,7 +112,8 @@ export class PropertyBinding implements IAstBasedBinding {
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  // todo: based off collection and handle update accordingly instead off always start
+  public handleCollectionChange(_collection: unknown): void {
     if (!this.isBound) {
       return;
     }

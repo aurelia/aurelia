@@ -409,14 +409,15 @@ export class ArrayObserver {
     const subs = this.subs;
     const indexMap = this.indexMap;
     if (batching) {
-      addCollectionBatch(subs, indexMap);
+      addCollectionBatch(subs, this.collection, indexMap);
       return;
     }
 
-    const length = this.collection.length;
+    const arr = this.collection;
+    const length = arr.length;
 
     this.indexMap = createIndexMap(length);
-    this.subs.notifyCollection(indexMap);
+    this.subs.notifyCollection(arr, indexMap);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
@@ -473,7 +474,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
   /**
    * From interface `ICollectionSubscriber`
    */
-  public handleCollectionChange(indexMap: IndexMap): void {
+  public handleCollectionChange(_arr: unknown[], indexMap: IndexMap): void {
     const index = this.index;
     const noChange = indexMap[index] === index;
     if (noChange) {

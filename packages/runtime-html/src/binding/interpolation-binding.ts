@@ -12,7 +12,6 @@ import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
-  IndexMap,
   Interpolation,
   IObserverLocator,
   IsExpression,
@@ -210,7 +209,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(): void {
     this.owner.updateTarget(void 0);
   }
 

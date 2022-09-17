@@ -55,8 +55,8 @@ export class MockBinding implements IConnectableBinding {
     this.trace('handleChange', newValue, _previousValue);
   }
 
-  public handleCollectionChange(indexMap: IndexMap): void {
-    this.trace('handleCollectionChange', indexMap);
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+    this.trace('handleCollectionChange', collection, indexMap);
   }
 
   public observe(obj: IIndexable, propertyName: string): void {
@@ -498,7 +498,7 @@ export class SpySubscriber implements IDisposable {
     }
   }
 
-  public handleCollectionChange(indexMap: IndexMap): void {
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
     if (this._collectionChanges === void 0) {
       this._collectionChanges = [new CollectionChangeSet(this._callCount++, indexMap)];
     } else {

@@ -438,9 +438,11 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   }
 
   /**
+   * todo: handle update based on collection, rather than always update
+   *
    * @internal
    */
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(_collection: Collection, _indexmap: IndexMap): void {
     this.itemsChanged(this.items);
     // const [start, end] = this.range;
     // const itemHeight = this.itemHeight;
@@ -532,15 +534,15 @@ customAttribute({
 })(VirtualRepeat);
 
 class CollectionObservationMediator {
-  private _collection!: Collection;
+  /** @internal */ private _collection!: Collection;
 
   public constructor(
     public repeat: VirtualRepeat,
     public key: 'handleCollectionChange' | 'handleInnerCollectionChange',
   ) {}
 
-  public handleCollectionChange(indexMap: IndexMap): void {
-    this.repeat[this.key](indexMap);
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+    this.repeat[this.key](collection, indexMap);
   }
 
   public start(c?: Collection | null): void {

@@ -177,14 +177,15 @@ export class MapObserver {
     const subs = this.subs;
     const indexMap = this.indexMap;
     if (batching) {
-      addCollectionBatch(subs, indexMap);
+      addCollectionBatch(subs, this.collection, indexMap);
       return;
     }
 
-    const size = this.collection.size;
+    const map = this.collection;
+    const size = map.size;
 
     this.indexMap = createIndexMap(size);
-    subs.notifyCollection(indexMap);
+    subs.notifyCollection(map, indexMap);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

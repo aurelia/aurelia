@@ -11,7 +11,6 @@ import {
   ICollectionObserver,
   CollectionKind,
   IObserverLocator,
-  IndexMap,
   Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
@@ -319,7 +318,7 @@ export class Case implements ICustomAttributeViewModel {
     this.$switch.caseChanged(this);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(): void {
     this.$switch.caseChanged(this);
   }
 

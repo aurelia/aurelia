@@ -685,6 +685,7 @@ export class ViewportAgent {
       case State.nextLoad:
       case State.nextActivate: {
         this._cancellationPromise = onResolve(this.nextCA?.deactivate(null, this.hostController, LifecycleFlags.none), () => {
+          this.nextCA?.dispose();
           this.$plan = 'replace';
           this.nextState = State.nextIsEmpty;
           this.nextCA = null;

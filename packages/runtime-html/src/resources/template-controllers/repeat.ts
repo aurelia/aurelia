@@ -140,7 +140,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
-  // called by a CollectionObserver
   public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
     const $controller = this.$controller;
     if (!$controller.isActive) {
@@ -354,10 +353,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      if (__DEV__)
-        throw new Error(`AUR0814: viewsLen=${views.length}, mapLen=${mapLen}`);
-      else
-        throw new Error(`AUR0814:${views.length}!=${mapLen}`);
+      throw mismatchedLengthError(views.length, mapLen);
     }
 
     const parentScope = $controller.scope;
@@ -509,6 +505,10 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
+const mismatchedLengthError = (viewCount: number, itemCount: number) =>
+  __DEV__
+    ? new Error(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
+    : new Error(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;

@@ -1,7 +1,7 @@
 import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
-describe("arrow-fn", function () {
+describe("3-runtime-html/arrow-fn.spec.ts", function () {
 
   // leave this test at the top - if any tests below this one fail for unknown reasons, then corrupted parser state may not be properly recovered
   it("corrupt the parser state to ensure it's correctly reset afterwards", function () {
@@ -504,23 +504,60 @@ describe("arrow-fn", function () {
       assertText('false');
     });
 
-    // the follow results in a infinite loop,
-    // because sort mutate the existing array causing the binding & repeat to update infinitely
-    // eslint-disable-next-line mocha/no-skipped-tests
-    it.skip('observes on .sort', function () {
+    it('observes on text + .sort()', function () {
       const { component, flush, assertText } = createFixture
-        .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
-        .html`<div repeat.for="i of items.slice(0).sort((a, b) => a.id - b.id)">\${i.id}`
+        .component({ items: [1, 4, 3] })
+        // this'll result in double evaluation as
+        // text binding auto observes array
+        // though in realworld usage, it'll be normally with a .join() call
+        // so it'll be a single trigger on array mutation
+        .html`\${items.sort((a, b) => a - b)}`
         .build();
-      assertText('1345');
+      assertText('1,3,4');
+
+      component.items.push(2);
+      flush();
+      assertText('1,2,3,4');
+
+      component.items.splice(1);
+      flush();
+      assertText('1');
+    });
+
+    it('observes on repeat + .slice().sort', function () {
+      const { component, assertText } = createFixture
+        .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
+        .html`<div repeat.for="i of items.slice(0).sort((a, b) => a.id - b.id)">\${i.id},`
+        .build();
+      assertText('1,3,4,5,');
 
       component.items.push({ id: 2 });
-      // flush();
-      assertText('1,2,3');
+      assertText('1,2,3,4,5,');
 
       component.items.splice(2);
-      flush();
-      assertText('1,2');
+      assertText('4,5,');
+    });
+
+    // the following results in a error in the repeater
+    // as when items.push() is call,
+    // the repeater'll receive 2 signals at once: push + sort
+    // todo: tweak the flush queue and incorporate it into bindings
+    // so that it'll notify in breath first manner
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip('observes on ..sort', function () {
+      const { component, assertText } = createFixture
+        .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
+        .html`<div repeat.for="i of items.sort((a, b) => a.id - b.id)">\${i.id},`
+        .build();
+      assertText('1,3,4,5,');
+
+      console.log('pushing');
+      component.items.push({ id: 2 });
+      assertText('1,2,3,4,5,');
+
+      console.log('splicing');
+      component.items.splice(2);
+      assertText('4,5,');
     });
   });
 });

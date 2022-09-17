@@ -909,8 +909,8 @@ export class CallScopeExpression {
 }
 
 const autoObserveArrayMethods =
-  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some'.split(' ');
-// sort,      // not supported, self mutation + unclear dependency
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
+// sort,      // bad supported, self mutation + unclear dependency
 
 // push,      // not supported, self mutation + unclear dependency
 // pop,       // not supported, self mutation + unclear dependency
@@ -942,10 +942,13 @@ export class CallMemberExpression {
     const args = this.args.map(a => a.evaluate(s, e, c));
     const func = getFunction(e?.strictFnCall, instance, this.name);
     if (func) {
+      const ret = func.apply(instance, args);
+      // todo(doc): investigate & document in engineering doc the difference
+      //            between observing before/after func.apply
       if (isArray(instance) && autoObserveArrayMethods.includes(this.name)) {
         c?.observeCollection(instance);
       }
-      return func.apply(instance, args);
+      return ret;
     }
     return void 0;
   }

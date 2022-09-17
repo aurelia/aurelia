@@ -48,6 +48,7 @@ export class ViewportAgent {
 
   private currTransition: Transition | null = null;
   private prevTransition: Transition | null = null;
+  private _cancellationPromise: Promise<void> | void | null = null;
 
   public constructor(
     public readonly viewport: IViewport,
@@ -180,43 +181,45 @@ export class ViewportAgent {
 
     b.push();
 
-    // run canUnload bottom-up
-    Batch.start(b1 => {
-      this.logger.trace(`canUnload() - invoking on children at %s`, this);
-      for (const node of this.currNode!.children) {
-        node.context.vpa.canUnload(tr, b1);
-      }
-    }).continueWith(b1 => {
-      switch (this.currState) {
-        case State.currIsActive:
-          this.logger.trace(`canUnload() - invoking on existing component at %s`, this);
-          switch (this.$plan) {
-            case 'none':
-              this.currState = State.currCanUnloadDone;
-              return;
-            case 'invoke-lifecycles':
-            case 'replace':
-              this.currState = State.currCanUnload;
-              b1.push();
-              Batch.start(b2 => {
-                this.logger.trace(`canUnload() - finished invoking on children, now invoking on own component at %s`, this);
-                this.curCA!.canUnload(tr, this.nextNode, b2);
-              }).continueWith(() => {
-                this.logger.trace(`canUnload() - finished at %s`, this);
+    void onResolve(this._cancellationPromise, () => {
+      // run canUnload bottom-up
+      Batch.start(b1 => {
+        this.logger.trace(`canUnload() - invoking on children at %s`, this);
+        for (const node of this.currNode!.children) {
+          node.context.vpa.canUnload(tr, b1);
+        }
+      }).continueWith(b1 => {
+        switch (this.currState) {
+          case State.currIsActive:
+            this.logger.trace(`canUnload() - invoking on existing component at %s`, this);
+            switch (this.$plan) {
+              case 'none':
                 this.currState = State.currCanUnloadDone;
-                b1.pop();
-              }).start();
-              return;
-          }
-        case State.currIsEmpty:
-          this.logger.trace(`canUnload() - nothing to unload at %s`, this);
-          return;
-        default:
-          tr.handleError(new Error(`Unexpected state at canUnload of ${this}`));
-      }
-    }).continueWith(() => {
-      b.pop();
-    }).start();
+                return;
+              case 'invoke-lifecycles':
+              case 'replace':
+                this.currState = State.currCanUnload;
+                b1.push();
+                Batch.start(b2 => {
+                  this.logger.trace(`-------------------------------------------canUnload() - finished invoking on children, now invoking on own component at %s`, this);
+                  this.curCA!.canUnload(tr, this.nextNode, b2);
+                }).continueWith(() => {
+                  this.logger.trace(`canUnload() - finished at %s`, this);
+                  this.currState = State.currCanUnloadDone;
+                  b1.pop();
+                }).start();
+                return;
+            }
+          case State.currIsEmpty:
+            this.logger.trace(`canUnload() - nothing to unload at %s`, this);
+            return;
+          default:
+            tr.handleError(new Error(`Unexpected state at canUnload of ${this}`));
+        }
+      }).continueWith(() => {
+        b.pop();
+      }).start();
+    });
   }
 
   public canLoad(tr: Transition, b: Batch): void {
@@ -665,7 +668,9 @@ export class ViewportAgent {
         break;
       case State.currUnload:
       case State.currDeactivate:
-        // TODO: should schedule an 'undo' action
+        this.currState = State.currIsEmpty;
+        this.curCA = null;
+        this.currTransition = null;
         break;
     }
 
@@ -678,9 +683,18 @@ export class ViewportAgent {
         this.nextState = State.nextIsEmpty;
         break;
       case State.nextLoad:
-      case State.nextActivate:
-        // TODO: should schedule an 'undo' action
+      case State.nextActivate: {
+        this._cancellationPromise = onResolve(this.nextCA?.deactivate(null, this.hostController, LifecycleFlags.none), () => {
+          this.$plan = 'replace';
+          this.nextState = State.nextIsEmpty;
+          this.nextCA = null;
+          this.nextNode = null;
+          this.prevTransition = null;
+          this.currTransition = null;
+          this._cancellationPromise = null;
+        });
         break;
+      }
     }
   }
 
@@ -701,6 +715,7 @@ export class ViewportAgent {
       switch (this.nextState) {
         case State.nextIsEmpty:
           switch (this.currState) {
+            case State.currIsEmpty:
             case State.currDeactivate:
               this.logger.trace(`endTransition() - setting currState to State.nextIsEmpty at %s`, this);
 

@@ -616,7 +616,7 @@ export class Router {
     let reject: Exclude<Transition['reject'], null> = (void 0)!;
     let promise: Exclude<Transition['promise'], null>;
 
-    if (failedTr === null) {
+    if (failedTr === null || failedTr.erredWithUnknownRoute) {
       promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
     } else {
       // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
@@ -873,13 +873,14 @@ export class Router {
     const guardsResult = tr.guardsResult;
     this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
 
-    if (guardsResult === false || tr.erredWithUnknownRoute) {
+    if (guardsResult === false) {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition();
     } else {
-      void onResolve(this.enqueue(guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
+      const instructions = tr.erredWithUnknownRoute ? tr.prevInstructions : guardsResult as ViewportInstructionTree;
+      void onResolve(this.enqueue(instructions, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
       });
     }

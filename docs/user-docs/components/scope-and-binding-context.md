@@ -174,7 +174,7 @@ Now with this information, we also have a new diagram.
 
 ### Motivation
 
-Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](broken-reference) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
+Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](../getting-to-know-aurelia/repeats-and-list-rendering.md) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
 
 Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts.&#x20;
 
@@ -211,64 +211,6 @@ As typically the properties for the `let`-bindings are view-only properties, it 
 {% hint style="info" %}
 Do you know that you can use `to-binding-context` attribute in `let`-binding to target the binding context instead of override context? Why don't you try `<let foo.bind="42" to-binding-context></let>` and inspect the scope contexts by yourself?
 {% endhint %}
-
-### Connection between binding context and override context
-
-Ideally, even with the presence of override context, we do want to use the properties (not the same one of course) defined in the binding context. For that reason, every instance of override context also has a property named `bindingContext` that points to the binding context. This is shown in the example below.
-
-{% code title="App.ts" %}
-```typescript
-import {
-  customElement,
-  ICustomElementController,
-  ICustomElementViewModel,
-} from '@aurelia/runtime-html';
-
-@customElement({
-  name: 'app',
-  template: '<div>${message}</div>'
-})
-export class App implements ICustomElementViewModel {
-  public readonly message: string = 'Hello World!';
-  public readonly $controller: ICustomElementController<this>;
-
-  public created(): void {
-    const scope = this.$controller.scope;
-    console.log(Object.is(scope.overrideContext.bindingContext, scope.bindingContext)); // true
-  }
-}
-```
-{% endcode %}
-
-This makes the binding context readily available, even when we are working with override context, without necessarily traversing via the scope. With this information, we can again change our diagram to the following one.
-
-```
-+---------------------------------+
-|                                 |
-|     Scope                       |
-|                                 |
-|     +----------------+          |
-|     |                |          |
-|  +--> bindingContext |          |
-|  |  |                |          |
-|  |  +----------------+          |
-|  |                              |
-|  +--------------------------+   |
-|                             |   |
-|     +---------------------+ |   |
-|     |                     | |   |
-|     | overrideContext     | |   |
-|     |                     | |   |
-|     | +----------------+  | |   |
-|     | |                |  | |   |
-|     | | bindingContext +----+   |
-|     | |                |  |     |
-|     | +----------------+  |     |
-|     |                     |     |
-|     +---------------------+     |
-|                                 |
-+---------------------------------+
-```
 
 ## Parent scope
 
@@ -314,39 +256,31 @@ In the example above, `App` uses the `FooBar` custom element, and both have prop
 With this information, our diagram changes for one last time.
 
 ```
-    +--------------------------------+    +--------------------------------+
-+-->+                                |    |                                |
-|   |     Scope                      |    |     Scope                      |
-|   |                                |    |                                |
-|   |     +--------------+           |    |     +--------------+           |
-|   |     |              |           |    |     |              |           |
-|   |     | parentScope  |           |    |     | parentScope  +--------------+
-|   |     |              |           |    |     |              |           |  |
-|   |     +--------------+           |    |     +--------------+           |  |
-|   |                                |    |                                |  |
-|   |     +----------------+         |    |     +----------------+         |  |
-|   |     |                |         |    |     |                |         |  |
-|   |  +--> bindingContext |         |    |  +--> bindingContext |         |  |
-|   |  |  |                |         |    |  |  |                |         |  |
-|   |  |  +----------------+         |    |  |  +----------------+         |  |
-|   |  |                             |    |  |                             |  |
-|   |  +--------------------------+  |    |  +--------------------------+  |  |
-|   |                             |  |    |                             |  |  |
-|   |     +---------------------+ |  |    |     +---------------------+ |  |  |
-|   |     |                     | |  |    |     |                     | |  |  |
-|   |     | overrideContext     | |  |    |     | overrideContext     | |  |  |
-|   |     |                     | |  |    |     |                     | |  |  |
-|   |     | +----------------+  | |  |    |     | +----------------+  | |  |  |
-|   |     | |                |  | |  |    |     | |                |  | |  |  |
-|   |     | | bindingContext +----+  |    |     | | bindingContext +----+  |  |
-|   |     | |                |  |    |    |     | |                |  |    |  |
-|   |     | +----------------+  |    |    |     | +----------------+  |    |  |
-|   |     |                     |    |    |     |                     |    |  |
-|   |     +---------------------+    |    |     +---------------------+    |  |
-|   |                                |    |                                |  |
-|   +--------------------------------+    +--------------------------------+  |
-|                                                                             |
-+-----------------------------------------------------------------------------+
+    +----------------------------+    +----------------------------+
++-->+                            |    |                            |
+|   |     Scope                  |    |     Scope                  |
+|   |                            |    |                            |
+|   |     +--------------+       |    |     +--------------+       |
+|   |     |              |       |    |     |              |       |
+|   |     | parentScope  |       |    |     | parentScope  +----------+
+|   |     |              |       |    |     |              |       |  |
+|   |     +--------------+       |    |     +--------------+       |  |
+|   |                            |    |                            |  |
+|   |     +----------------+     |    |     +----------------+     |  |
+|   |     |                |     |    |     |                |     |  |
+|   |     | bindingContext |     |    |     | bindingContext |     |  |
+|   |     |                |     |    |     |                |     |  |
+|   |     +----------------+     |    |     +----------------+     |  |
+|   |                            |    |                            |  |
+|   |     +-----------------+    |    |     +-----------------+    |  |
+|   |     |                 |    |    |     |                 |    |  |
+|   |     | overrideContext |    |    |     | overrideContext |    |  |
+|   |     |                 |    |    |     |                 |    |  |
+|   |     +-----------------+    |    |     +-----------------+    |  |
+|   |                            |    |                            |  |
+|   +----------------------------+    +----------------------------+  |
+|                                                                     |
++---------------------------------------------------------------------+
 ```
 
 Note that the `parentScope` for the scope of the root component is `null`.

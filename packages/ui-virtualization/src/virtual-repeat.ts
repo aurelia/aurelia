@@ -10,7 +10,7 @@ import {
   IndexMap,
   LifecycleFlags,
   BindingContext,
-  OverrideContext,
+  type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   customAttribute,
@@ -258,7 +258,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         view.nodes.insertBefore(prevView.nodes.firstChild.nextSibling!);
         scope = Scope.fromParent(
           controller.scope,
-          BindingContext.create(local, collectionStrategy.item(idx))
+          new BindingContext(local, collectionStrategy.item(idx))
         ) as IRepeaterItemScope;
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = itemCount;
@@ -495,7 +495,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const parentScope = repeatController.scope;
     const itemScope = Scope.fromParent(
       parentScope,
-      BindingContext.create(this.local, collectionStrategy.first())
+      new BindingContext(this.local, collectionStrategy.first())
     ) as IRepeaterItemScope;
     itemScope.overrideContext.$index = 0;
     itemScope.overrideContext.$length = collectionStrategy.count();
@@ -593,7 +593,7 @@ interface IRepeaterItemScope extends Scope {
   readonly overrideContext: IRepeatOverrideContext;
 }
 
-interface IRepeatOverrideContext extends OverrideContext {
+interface IRepeatOverrideContext extends IOverrideContext {
   $index: number;
   $length: number;
   readonly $even: number;
@@ -604,7 +604,7 @@ interface IRepeatOverrideContext extends OverrideContext {
 }
 
 const enhancedContextCached = new WeakSet<IRepeatOverrideContext>();
-function enhanceOverrideContext(context: OverrideContext) {
+function enhanceOverrideContext(context: IOverrideContext) {
   const ctx = context as unknown as IRepeatOverrideContext;
   if (enhancedContextCached.has(ctx)) {
     return;

@@ -162,7 +162,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
         // -- Round 1 --
 
-        const ctx = BindingContext.create({
+        const ctx = Object.assign(new BindingContext(), {
           [ifPropName]: ifText,
           [elsePropName]: elseText
         });

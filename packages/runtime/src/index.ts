@@ -89,7 +89,6 @@ export {
 export {
   BindingContext,
   Scope,
-  OverrideContext,
 } from './observation/binding-context';
 export {
   CollectionLengthObserver,

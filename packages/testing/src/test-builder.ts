@@ -6,7 +6,6 @@ import {
   IDirtyChecker,
   IObserverLocator,
   Scope,
-  OverrideContext,
   INodeObserverLocator,
 } from '@aurelia/runtime';
 import { createContainer } from './test-context';
@@ -468,7 +467,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer): IObser
 export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any, isBoundary?: boolean): Scope {
   return parentBindingContext
     ? Scope.fromParent(Scope.create(parentBindingContext), bindingContext)
-    : Scope.create(bindingContext, OverrideContext.create(bindingContext), isBoundary);
+    : Scope.create(bindingContext, null, isBoundary);
 }
 
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;

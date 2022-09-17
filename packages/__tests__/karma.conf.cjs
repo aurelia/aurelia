@@ -124,6 +124,7 @@ module.exports =
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
+    browserNoActivityTimeout: process.env.CI ? 10000 : 30 * 60 * 1000,
     processKillTimeout: 10000,
     frameworks: [
       'mocha',

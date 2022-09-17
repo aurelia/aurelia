@@ -1,8 +1,8 @@
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
 import { type IBinding } from '../observation';
-import { BindingContext, Scope } from '../observation/binding-context';
+import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { IConnectableBinding } from './connectable';
+import { type IConnectableBinding } from './connectable';
 import { isArray, isFunction, isString } from '../utilities-objects';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
@@ -704,14 +704,12 @@ export class AccessThisExpression {
   ) {}
 
   public evaluate(s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): IBindingContext | undefined {
-    let oc: IOverrideContext | null = s.overrideContext;
     let currentScope: Scope | null = s;
     let i = this.ancestor;
-    while (i-- && oc) {
-      currentScope = currentScope!.parentScope;
-      oc = currentScope?.overrideContext ?? null;
+    while (i-- && currentScope) {
+      currentScope = currentScope.parentScope;
     }
-    return i < 1 && oc ? oc.bindingContext : void 0;
+    return i < 1 && currentScope ? currentScope.bindingContext : void 0;
   }
 
   public assign(_s: Scope, _e: IAstEvaluator | null, _obj: unknown): unknown {
@@ -738,7 +736,7 @@ export class AccessScopeExpression {
   ) {}
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): IBindingContext | IOverrideContext {
-    const obj = BindingContext.get(s, this.name, this.ancestor) as IBindingContext;
+    const obj = Scope.getContext(s, this.name, this.ancestor) as IBindingContext;
     if (c !== null) {
       c.observe(obj, this.name);
     }
@@ -762,7 +760,7 @@ export class AccessScopeExpression {
       else
         throw new Error(`AUR0106`);
     }
-    const obj = BindingContext.get(s, this.name, this.ancestor) as IObservable;
+    const obj = Scope.getContext(s, this.name, this.ancestor) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers?.[this.name] !== void 0) {
         obj.$observers[this.name].setValue(val);
@@ -886,7 +884,7 @@ export class CallScopeExpression {
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
     const args = this.args.map(a => a.evaluate(s, e, c));
-    const context = BindingContext.get(s, this.name, this.ancestor)!;
+    const context = Scope.getContext(s, this.name, this.ancestor)!;
     // ideally, should observe property represents by this.name as well
     // because it could be changed
     // todo: did it ever surprise anyone?

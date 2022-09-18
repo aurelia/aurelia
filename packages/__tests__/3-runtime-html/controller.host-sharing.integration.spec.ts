@@ -1,5 +1,5 @@
-import { LifecycleFlags } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   Aurelia,
   customElement,
   ICustomElementController,

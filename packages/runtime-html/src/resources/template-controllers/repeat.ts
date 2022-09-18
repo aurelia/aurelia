@@ -12,7 +12,6 @@ import {
   IndexMap,
   IOverrideContext,
   IsBindingBehavior,
-  LifecycleFlags as LF,
   Scope,
   synchronizeIndices,
   ValueConverterExpression,
@@ -25,7 +24,7 @@ import { bindable } from '../../bindable';
 import { isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
-import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -70,7 +69,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
@@ -104,7 +103,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public attaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._normalizeToArray();
 
@@ -114,7 +113,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public detaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
 

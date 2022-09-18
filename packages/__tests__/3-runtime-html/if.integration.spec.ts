@@ -1,5 +1,6 @@
-import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
+import { Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   Else,
   If,
   Controller,

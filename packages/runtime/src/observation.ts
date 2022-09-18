@@ -24,15 +24,6 @@ export interface ICoercionConfiguration {
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
 
-export const enum LifecycleFlags {
-  none                          = 0b0_00_00,
-  // Bitmask for flags that need to be stored on a binding during $bind for mutation
-  // callbacks outside of $bind
-  fromBind                      = 0b0_00_01,
-  fromUnbind                    = 0b0_00_10,
-  dispose                       = 0b0_01_00,
-}
-
 export interface IConnectable {
   observe(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
@@ -78,7 +69,6 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
  * The `subscriberCollection` import can be used as either a decorator, or a function call.
  */
 export interface ISubscriberCollection extends ISubscribable {
-  [key: number]: LifecycleFlags;
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
@@ -92,7 +82,6 @@ export interface ISubscriberCollection extends ISubscribable {
  * The `subscriberCollection` import can be used as either a decorator, or a function call.
  */
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
-  [key: number]: LifecycleFlags;
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */

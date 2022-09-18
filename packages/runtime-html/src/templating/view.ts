@@ -6,8 +6,8 @@ import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } fro
 import { isFunction, isString } from '../utilities';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
-import type { LifecycleFlags } from '@aurelia/runtime';
 import type {
+  LifecycleFlags,
   ICustomElementViewModel,
   ISyntheticView,
   IDryCustomElementController,

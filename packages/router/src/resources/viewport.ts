@@ -1,6 +1,6 @@
 import { IContainer, IEventAggregator } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   bindable,
   INode,
   customElement,

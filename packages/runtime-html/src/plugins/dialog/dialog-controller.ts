@@ -1,6 +1,5 @@
 import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
-import { Controller, ICustomElementController } from '../../templating/controller';
+import { LifecycleFlags, Controller, ICustomElementController } from '../../templating/controller';
 import {
   DialogDeactivationStatuses,
   IDialogController,

@@ -1,12 +1,13 @@
 import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
 import { ILogger, nextId, onResolve, resolveAll } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IInstruction } from '../../renderer';
 import { BindingMode } from '../../binding/interfaces-bindings';
 import {
+  LifecycleFlags,
   Controller,
   ICustomAttributeController,
   ICustomAttributeViewModel,

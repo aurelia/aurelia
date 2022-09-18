@@ -1,6 +1,6 @@
 import { Registration, Writable, DI } from '@aurelia/kernel';
-import { LifecycleFlags as LF } from '@aurelia/runtime';
 import {
+  LifecycleFlags as LF,
   Aurelia,
   customElement,
   ICustomElementController,

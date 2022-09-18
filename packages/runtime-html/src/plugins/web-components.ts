@@ -1,10 +1,9 @@
 import { Constructable, DI, IContainer, IIndexable, InstanceProvider } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 
 import { INode, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { Controller, ICustomElementController } from '../templating/controller';
+import { LifecycleFlags, Controller, ICustomElementController } from '../templating/controller';
 import { IRendering } from '../templating/rendering';
 
 export const IWcElementRegistry = DI.createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
@@ -75,6 +74,7 @@ export class WcCustomElementRegistry implements IAuElementRegistry {
     if (elDef.containerless) {
       throw new Error('Containerless custom element is not supported. Consider using buitl-in extends instead');
     }
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     const BaseClass = !options?.extends ? HTMLElement : this.p.document.createElement(options.extends).constructor as unknown as Constructable<HTMLElement>;
     const container = this.ctn;
     const rendering = this.r;

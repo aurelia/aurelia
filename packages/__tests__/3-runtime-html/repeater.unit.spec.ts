@@ -1,5 +1,6 @@
-import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
+import { Scope, Interpolation, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   Repeat,
   Controller,
   CustomElementDefinition,

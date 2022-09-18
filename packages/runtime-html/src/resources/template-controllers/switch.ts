@@ -7,7 +7,6 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
   ICollectionObserver,
   CollectionKind,
   IObserverLocator,
@@ -19,7 +18,7 @@ import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
 
-import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
+import type { LifecycleFlags, Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
 import type { IInstruction } from '../../renderer';
 

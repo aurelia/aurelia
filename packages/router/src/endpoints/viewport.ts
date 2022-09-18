@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
+import { LifecycleFlags, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces';
 import { IRouter } from '../router';
 import { arrayRemove } from '../utilities/utils';
@@ -13,7 +13,6 @@ import { Routes } from '../decorators/routes';
 import { Route } from '../route';
 import { Endpoint, IConnectedCustomElement } from './endpoint';
 import { IViewportOptions, ViewportOptions } from './viewport-options';
-import { LifecycleFlags } from '@aurelia/runtime';
 
 /**
  * The viewport is an endpoint that encapsulates an au-viewport custom element

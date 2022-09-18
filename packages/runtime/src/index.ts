@@ -156,7 +156,6 @@ export {
 } from './observation/connectable-switcher';
 
 export {
-  LifecycleFlags,
   type AccessorOrObserver,
   type IBinding,
   AccessorType,

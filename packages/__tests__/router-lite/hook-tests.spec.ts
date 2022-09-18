@@ -2327,71 +2327,6 @@ describe('router hooks', function () {
     }
 
     // this test sort of asserts the current "incorrect" behavior, until the "undo" (refer ViewportAgent#cancelUpdate) is implemented. TODO(sayan): implement "undo" later and refactor this test.
-    it(`without fallback - parent/child viewport`, async function () {
-      const ticks = 0;
-      const hookSpec = HookSpecs.create(ticks);
-      @customElement({ name: 'c1', template: null })
-      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-      @customElement({ name: 'c2', template: null })
-      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-      @route({
-        routes: [
-          { path: 'c1', component: C1 },
-          { path: 'c2', component: C2 },
-        ],
-      })
-      @customElement({ name: 'p', template: vp(1) })
-      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-      @route({
-        routes: [
-          {
-            path: 'p',
-            component: P
-          }
-        ]
-      })
-      @customElement({ name: 'root', template: vp(1) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
-
-      let phase = 'start';
-      verifyInvocationsEqual(
-        mgr.fullNotifyHistory,
-        [...$(phase, 'root', ticks, 'binding', 'bound', 'attaching', 'attached')],
-      );
-
-      // phase 1: load unconfigured
-      phase = 'phase1';
-      mgr.fullNotifyHistory.length = 0;
-      mgr.setPrefix(phase);
-      await assert.rejects(() => router.load('p/unconfigured'), /Neither the route 'unconfigured' matched any configured route/);
-      verifyInvocationsEqual(
-        mgr.fullNotifyHistory,
-        [...$(phase, 'p', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached')]
-      );
-
-      // phase 2: load configured
-      mgr.fullNotifyHistory.length = 0;
-      phase = 'phase2';
-      mgr.setPrefix(phase);
-      await assert.rejects(() => router.load('p/c1'), /Failed to resolve VR/);
-      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
-      // stop
-      mgr.fullNotifyHistory.length = 0;
-      phase = 'stop';
-      try {
-        await tearDown();
-      } catch (e) {
-        console.error(e);
-      }
-      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
-      mgr.$dispose();
-    });
-
-    // this test sort of asserts the current "incorrect" behavior, until the "undo" (refer ViewportAgent#cancelUpdate) is implemented. TODO(sayan): implement "undo" later and refactor this test.
     it(`without fallback - sibling viewport`, async function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
@@ -3164,7 +3099,7 @@ describe('router hooks', function () {
       await tearDown();
     });
 
-    it.only('parent-child', async function () {
+    it('parent-child', async function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 'gc-11', template: 'gc-11' })
@@ -3182,7 +3117,7 @@ describe('router hooks', function () {
           { path: 'gc-12', component: Gc12 },
         ]
       })
-      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
       class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
       @route({
@@ -3191,7 +3126,7 @@ describe('router hooks', function () {
           { path: 'gc-22', component: Gc22 },
         ]
       })
-      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
       class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
       @route({
@@ -3206,35 +3141,48 @@ describe('router hooks', function () {
       })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11], { resolutionMode: 'dynamic' }, LogLevel.trace);
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const queue = platform.domWriteQueue;
 
+      // load p1/gc-11
       let phase = 'round#1';
-      console.log(`---------------${phase}---------------`);
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       await router.load('p1/gc-11');
-      assert.html.textContent(host, 'gc-11', `${phase} - text`);
+      assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
         ...$(phase, ['p-1', 'gc-11'], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
+      // load unconfigured
       phase = 'round#2';
-      console.log(`---------------${phase}---------------`);
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       try {
-        await router.load('p3');
+        await router.load('unconfigured');
         assert.fail(`${phase} - expected error`);
       } catch { /* noop */ }
-      assert.html.textContent(host, 'gc-11', `${phase} - text`);
-      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+      assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+      /**
+       * Justification:
+       * This is a single segment unrecognized path.
+       * After the failure with recognition, the previous instruction tree is queued again.
+       * As the previous path is a multi-segment path, in bottom up fashion, canUnload will be invoked,
+       * because at this point the knowledge about child node is not available, as it is the case for non-eager recognition.
+       * This explains the canUnload invocation.
+       * On the other hand, as this is a reentry without any mismatch of parameters, the reentry behavior is set to `none`,
+       * which avoids invoking further hooks.
+       */
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'gc-11', ticks, 'canUnload'),
+      ]);
 
+      // load p1/gc-12
       phase = 'round#3';
-      console.log(`---------------${phase}---------------`);
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       await router.load('p1/gc-12');
-      assert.html.textContent(host, 'gc-12', `${phase} - text`);
+      assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
         ...$(phase, 'gc-11', ticks, 'canUnload'),
         ...$(phase, 'gc-12', ticks, 'canLoad'),
@@ -3244,65 +3192,88 @@ describe('router hooks', function () {
         ...$(phase, 'gc-12', ticks, 'binding', 'bound', 'attaching', 'attached'),
       ]);
 
+      // load p1/unconfigured
       phase = 'round#4';
-      console.log(`---------------${phase}---------------`);
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       try {
-        await router.load('p1/gc-13');
+        await router.load('p1/unconfigured');
         assert.fail(`${phase} - expected error`);
       } catch { /* noop */ }
-      assert.html.textContent(host, 'gc-12', `${phase} - text`);
+      assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
+      /**
+       * Justification:
+       * This is a multi-segment path where the first segment is recognized (and the same one with the current route) but the next one is unrecognized.
+       * Thus, the after the first recognition, the `canUnload` hook is called on the previous child (gc-12).
+       * This explains the first `canUnload` invocation.
+       *
+       * Next, the error is thrown due to the unconfigured 2nd segment of the path.
+       * The rest is exactly same as the case explained for round#2, which explains the 2nd `canUnload` invocation as well as absence of other hook invocations.
+       */
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'gc-12', ticks, 'canUnload'),
         ...$(phase, 'gc-12', ticks, 'canUnload'),
       ]);
 
-      // phase = 'round#2';
-      // mgr.fullNotifyHistory.length = 0;
-      // mgr.setPrefix(phase);
-      // await router.load('p2');
-      // assert.html.textContent(host, 'gc-21', `${phase} - text`);
-      // verifyInvocationsEqual(mgr.fullNotifyHistory, [
-      //   ...$(phase, ['gc-11', 'p-1'], ticks, 'canUnload'),
-      //   ...$(phase, 'p-2', ticks, 'canLoad'),
-      //   ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
-      //   ...$(phase, 'p-2', ticks, 'loading'),
-      //   ...$(phase, 'gc-11', ticks, 'detaching'),
-      //   ...$(phase, 'p-1', ticks, 'detaching'),
-      //   ...$(phase, 'gc-11', ticks, 'unbinding'),
-      //   ...$(phase, 'p-1', ticks, 'unbinding'),
-      //   ...$(phase, 'p-1', ticks, 'dispose'),
-      //   ...$(phase, 'gc-11', ticks, 'dispose'),
-      //   ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
-      //   ...$(phase, 'gc-21', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
-      // ]);
+      // load p1/gc-11
+      phase = 'round#5';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('p1/gc-11');
+      assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 'gc-12', ticks, 'canUnload'),
+        ...$(phase, 'gc-11', ticks, 'canLoad'),
+        ...$(phase, 'gc-12', ticks, 'unloading'),
+        ...$(phase, 'gc-11', ticks, 'loading'),
+        ...$(phase, 'gc-12', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'gc-11', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
 
-      // phase = 'round#3';
-      // mgr.fullNotifyHistory.length = 0;
-      // mgr.setPrefix(phase);
-      // try {
-      //   await router.load('p2/gc-23');
-      //   assert.fail(`${phase} - expected error`);
-      // } catch {/* noop */ }
-      // assert.html.textContent(host, 'gc-21', `${phase} - text`);
-      // verifyInvocationsEqual(mgr.fullNotifyHistory, [
-      //   ...$(phase, /* [ */'gc-21'/* , 'p-1'] */, ticks, 'canUnload'),
-      //   // ...$(phase, 'p-2', ticks, 'canLoad'),
-      //   // ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
-      //   // ...$(phase, 'p-2', ticks, 'loading'),
-      //   // ...$(phase, 'gc-11', ticks, 'detaching'),
-      //   // ...$(phase, 'p-1', ticks, 'detaching'),
-      //   // ...$(phase, 'gc-11', ticks, 'unbinding'),
-      //   // ...$(phase, 'p-1', ticks, 'unbinding'),
-      //   // ...$(phase, 'p-1', ticks, 'dispose'),
-      //   // ...$(phase, 'gc-11', ticks, 'dispose'),
-      //   // ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
-      //   // ...$(phase, 'gc-21', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
-      // ]);
+      // load p2/unconfigured
+      phase = 'round#6';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('p2/unconfigured');
+        assert.fail(`${phase} - expected error`);
+      } catch { /* noop */ }
+      await queue.yield(); // wait a frame for the new transition as it is not the same promise
+      assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'canUnload'),
+        ...$(phase, 'p-2', ticks, 'canLoad'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
+        ...$(phase, 'p-2', ticks, 'loading'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'detaching'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'unbinding'),
+        ...$(phase, ['p-1', 'gc-11'], ticks, 'dispose'),
+        ...$(phase, 'p-2', ticks, /* activation -> */'binding', 'bound', 'attaching', 'attached', /* deactivation -> */'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 'p-1', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc-11', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
 
-      // phase = 'stop';
-      // mgr.fullNotifyHistory.length = 0;
-      // mgr.setPrefix(phase);
+      // load p2/gc-21
+      phase = 'round#7';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('p2/gc-21');
+        assert.fail(`${phase} - expected error`);
+      } catch { /* noop */ }
+      assert.html.textContent(host, 'p2 gc-21', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'canUnload'),
+        ...$(phase, 'p-2', ticks, 'canLoad'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'unloading'),
+        ...$(phase, 'p-2', ticks, 'loading'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'detaching'),
+        ...$(phase, ['gc-11', 'p-1'], ticks, 'unbinding'),
+        ...$(phase, ['p-1', 'gc-11'], ticks, 'dispose'),
+        ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 'gc-21', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
       await tearDown();
     });
   });

@@ -1,7 +1,7 @@
 import { createIndexMap, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def } from '../utilities-objects';
+import { def, defineMetadata, getOwnMetadata } from '../utilities-objects';
 
 import type {
   CollectionKind,
@@ -10,7 +10,15 @@ import type {
 } from '../observation';
 import { batching, addCollectionBatch } from './subscriber-batch';
 
-const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
+// multiple applications of Aurelia wouldn't have different observers for the same Map object
+const lookupMetadataKey = '__au_map_obs__';
+const observerLookup = (() => {
+  let lookup: WeakMap<Map<unknown, unknown>, MapObserver> = getOwnMetadata(lookupMetadataKey, Map);
+  if (lookup == null) {
+    defineMetadata(lookupMetadataKey, lookup = new WeakMap<Map<unknown, unknown>, MapObserver>(), Map);
+  }
+  return lookup;
+})();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
@@ -124,10 +132,15 @@ for (const method of methods) {
 
 let enableMapObservationCalled = false;
 
+const observationEnabledKey = '__au_map_on__';
 export function enableMapObservation(): void {
-  for (const method of methods) {
-    if (proto[method].observing !== true) {
-      def(proto, method, { ...descriptorProps, value: observe[method] });
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if (!(getOwnMetadata(observationEnabledKey, Map) ?? false)) {
+    defineMetadata(observationEnabledKey, true, Map);
+    for (const method of methods) {
+      if (proto[method].observing !== true) {
+        def(proto, method, { ...descriptorProps, value: observe[method] });
+      }
     }
   }
 }
@@ -164,14 +177,15 @@ export class MapObserver {
     const subs = this.subs;
     const indexMap = this.indexMap;
     if (batching) {
-      addCollectionBatch(subs, indexMap);
+      addCollectionBatch(subs, this.collection, indexMap);
       return;
     }
 
-    const size = this.collection.size;
+    const map = this.collection;
+    const size = map.size;
 
     this.indexMap = createIndexMap(size);
-    subs.notifyCollection(indexMap);
+    subs.notifyCollection(map, indexMap);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { def, hasOwnProp, isArray } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray } from '../utilities-objects';
 
 import type {
   Collection,
@@ -23,7 +23,7 @@ import type {
 export const propertyAccessor = new PropertyAccessor();
 
 export interface IObjectObservationAdapter {
-  getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): AccessorOrObserver | null;
+  getObserver(object: unknown, key: PropertyKey, descriptor: PropertyDescriptor, requestor: IObserverLocator): IObserver | null;
 }
 
 export interface IObserverLocator extends ObserverLocator {}
@@ -83,9 +83,22 @@ export class ObserverLocator {
     this._adapters.push(adapter);
   }
 
-  public getObserver(obj: object, key: PropertyKey): IObserver {
-    return (obj as IObservable).$observers?.[key as string] as IObserver | undefined
-      ?? this._cache((obj as IObservable), key as string, this.createObserver((obj as IObservable), key as string)) as IObserver;
+  public getObserver(obj: unknown, key: PropertyKey): IObserver {
+    if (obj == null) {
+      throw nullObjectError(key);
+    }
+    if (!(obj instanceof Object)) {
+      return new PrimitiveObserver(obj as Primitive, key);
+    }
+    const lookup = getObserverLookup(obj);
+    let observer = lookup[key];
+    if (observer === void 0) {
+      observer = this.createObserver((obj as IObservable), key);
+      if (!observer.doNotCache) {
+        lookup[key] = observer;
+      }
+    }
+    return observer;
   }
 
   public getAccessor(obj: object, key: PropertyKey): AccessorOrObserver {
@@ -112,13 +125,9 @@ export class ObserverLocator {
     return getSetObserver(observedSet);
   }
 
-  private createObserver(obj: IObservable, key: string): AccessorOrObserver {
-    if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj as unknown as Primitive, key);
-    }
-
+  private createObserver(obj: IObservable, key: PropertyKey): IObserver {
     if (this._nodeObserverLocator.handles(obj, key, this)) {
-      return this._nodeObserverLocator.getObserver(obj, key, this) as AccessorOrObserver;
+      return this._nodeObserverLocator.getObserver(obj, key, this) as IObserver;
     }
 
     switch (key) {
@@ -157,9 +166,9 @@ export class ObserverLocator {
 
     // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
     if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
-      let obs: AccessorOrObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
+      let obs: IObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
-        obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this) as AccessorOrObserver;
+        obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this);
       }
 
       return obs == null
@@ -175,10 +184,10 @@ export class ObserverLocator {
   }
 
   /** @internal */
-  private _getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
+  private _getAdapterObserver(obj: IObservable, key: PropertyKey, pd: PropertyDescriptor): IObserver | null {
     if (this._adapters.length > 0) {
       for (const adapter of this._adapters) {
-        const observer = adapter.getObserver(obj, propertyName, pd, this);
+        const observer = adapter.getObserver(obj, key, pd, this);
         if (observer != null) {
           return observer;
         }
@@ -186,22 +195,11 @@ export class ObserverLocator {
     }
     return null;
   }
-
-  private _cache(obj: IObservable, key: string, observer: AccessorOrObserver): AccessorOrObserver {
-    if (observer.doNotCache === true) {
-      return observer;
-    }
-    if (obj.$observers === void 0) {
-      def(obj, '$observers', { value: { [key]: observer } });
-      return observer;
-    }
-    return obj.$observers[key] = observer;
-  }
 }
 
 export type RepeatableCollection = Collection | null | undefined | number;
 
-export function getCollectionObserver(collection: RepeatableCollection): CollectionObserver | undefined {
+export const getCollectionObserver = (collection: RepeatableCollection): CollectionObserver | undefined => {
   let obs: CollectionObserver | undefined;
   if (isArray(collection)) {
     obs = getArrayObserver(collection);
@@ -211,7 +209,23 @@ export function getCollectionObserver(collection: RepeatableCollection): Collect
     obs = getSetObserver(collection);
   }
   return obs;
-}
+};
 
 const getProto = Object.getPrototypeOf;
 const getOwnPropDesc = Object.getOwnPropertyDescriptor;
+
+export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
+  let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
+  if (lookup === void 0) {
+    def(instance, '$observers', {
+      enumerable: false,
+      value: lookup = createLookup(),
+    });
+  }
+  return lookup;
+};
+
+const nullObjectError = (key: PropertyKey) =>
+  __DEV__
+    ? new Error(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
+    : new Error(`AUR0199:${safeString(key)}`);

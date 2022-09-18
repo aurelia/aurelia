@@ -13,7 +13,6 @@ import {
   AccessScopeExpression,
   ExpressionType,
   Scope,
-  LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
   ICoercionConfiguration,
@@ -55,6 +54,15 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import { isObject } from '@aurelia/metadata';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
+
+export const enum LifecycleFlags {
+  none                          = 0b0_00_00,
+  // Bitmask for flags that need to be stored on a binding during $bind for mutation
+  // callbacks outside of $bind
+  fromBind                      = 0b0_00_01,
+  fromUnbind                    = 0b0_00_10,
+  dispose                       = 0b0_01_00,
+}
 
 export const enum MountTarget {
   none = 0,

@@ -261,7 +261,6 @@ export {
   // BinaryExpression,
   // UnaryExpression,
   // PrimitiveLiteralExpression,
-  // HtmlLiteralExpression,
   // ArrayLiteralExpression,
   // ObjectLiteralExpression,
   // TemplateExpression,
@@ -309,7 +308,6 @@ export {
   // ICallScopeExpression,
   // IConditionalExpression,
   // ForOfStatement,
-  // IHtmlLiteralExpression,
   // Interpolation,
   // IObjectBindingPattern,
   // IObjectLiteralExpression,
@@ -414,7 +412,6 @@ export {
 
   // ExpressionKind,
   // Hooks,
-  LifecycleFlags,
   // State,
 
   // CallBindingInstruction,
@@ -458,6 +455,7 @@ export {
 } from '@aurelia/runtime';
 
 export {
+  LifecycleFlags,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
@@ -635,7 +633,6 @@ export {
 
   // Access,
   // Precedence,
-  // Char,
   // These exports are temporary until we have a proper way to unit test them
 
   // parseExpression,

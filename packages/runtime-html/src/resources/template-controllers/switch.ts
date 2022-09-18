@@ -7,11 +7,9 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
   ICollectionObserver,
   CollectionKind,
   IObserverLocator,
-  IndexMap,
   Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
@@ -20,7 +18,7 @@ import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
 
-import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
+import type { LifecycleFlags, Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
 import type { IInstruction } from '../../renderer';
 
@@ -319,7 +317,7 @@ export class Case implements ICustomAttributeViewModel {
     this.$switch.caseChanged(this);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(): void {
     this.$switch.caseChanged(this);
   }
 

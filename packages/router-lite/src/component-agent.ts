@@ -1,6 +1,5 @@
 import { Constructable, ILogger } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
-import { ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { LifecycleFlags, ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';

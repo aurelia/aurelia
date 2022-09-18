@@ -1,11 +1,11 @@
 import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
 import { type IBinding } from '../observation';
-import { BindingContext, Scope } from '../observation/binding-context';
+import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { IConnectableBinding } from './connectable';
-import { isArray, isFunction, isString } from '../utilities-objects';
+import { type IConnectableBinding } from './connectable';
+import { safeString, isArray, isFunction, isString } from '../utilities-objects';
 
-import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   IBindingContext,
   IObservable,
@@ -15,46 +15,33 @@ import type {
 } from '../observation';
 
 export const enum ExpressionKind {
-  CallsFunction                 = 0b0000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
-  HasAncestor                   = 0b0000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
-  IsPrimary                     = 0b0000000010000_00000, // Is a primary expression according to ES parsing rules
-  IsLeftHandSide                = 0b0000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
-  HasBind                       = 0b0000001000000_00000, // Has a bind() method (currently only BindingBehavior)
-  HasUnbind                     = 0b0000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
-  IsAssignable                  = 0b0000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
-  IsLiteral                     = 0b0001000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
-  IsResource                    = 0b0010000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
-  IsForDeclaration              = 0b0100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
-  Type                          = 0b0000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
-  // ---------------------------------------------------------------------------------------------------------------------------
-  AccessThis                    = 0b0000000111000_00001, //               HasAncestor
-  AccessScope                   = 0b0000100111011_00010, // IsAssignable  HasAncestor
-  ArrayLiteral                  = 0b0001000110001_00011, //
-  ObjectLiteral                 = 0b0001000110001_00100, //
-  PrimitiveLiteral              = 0b0001000110000_00101, //
-  Template                      = 0b0001000110001_00110, //
-  Unary                         = 0b0000000000001_00111, //
-  CallScope                     = 0b0000000101101_01000, //               HasAncestor  CallsFunction
-  CallMember                    = 0b0000000100100_01001, //                            CallsFunction
-  CallFunction                  = 0b0000000100100_01010, //                            CallsFunction
-  AccessMember                  = 0b0000100100011_01011, // IsAssignable
-  AccessKeyed                   = 0b0000100100011_01100, // IsAssignable
-  TaggedTemplate                = 0b0000000100101_01101, //                            CallsFunction
-  Binary                        = 0b0000000000001_01110, //
-  Conditional                   = 0b0000000000001_11111, //
-  Assign                        = 0b0000100000000_10000, // IsAssignable
-  ArrowFunction                 = 0b0000000000000_10001, //
-  ValueConverter                = 0b0010010000001_10010, //
-  BindingBehavior               = 0b0010011000001_10011, //
-  HtmlLiteral                   = 0b0000000000001_10100, //
-  ArrayBindingPattern           = 0b0100000000000_10101, //
-  ObjectBindingPattern          = 0b0100000000000_10110, //
-  BindingIdentifier             = 0b0100000000000_10111, //
-  ForOfStatement                = 0b0000011000001_11000, //
-  Interpolation                 = 0b0000000000000_11001, //
-  ArrayDestructuring            = 0b0101100000000_11010, // IsAssignable
-  ObjectDestructuring           = 0b0110100000000_11011, // IsAssignable
-  DestructuringAssignmentLeaf   = 0b1000100000000_11100, // IsAssignable
+  AccessThis,
+  AccessScope,
+  ArrayLiteral,
+  ObjectLiteral,
+  PrimitiveLiteral,
+  Template,
+  Unary,
+  CallScope,
+  CallMember,
+  CallFunction,
+  AccessMember,
+  AccessKeyed,
+  TaggedTemplate,
+  Binary,
+  Conditional,
+  Assign,
+  ArrowFunction,
+  ValueConverter,
+  BindingBehavior,
+  ArrayBindingPattern,
+  ObjectBindingPattern,
+  BindingIdentifier,
+  ForOfStatement,
+  Interpolation,
+  ArrayDestructuring,
+  ObjectDestructuring,
+  DestructuringAssignmentLeaf,
 }
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -73,7 +60,7 @@ export type IsBindingBehavior = IsValueConverter | BindingBehaviorExpression;
 export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
-export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
+export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
 export interface IExpressionHydrator {
@@ -98,7 +85,6 @@ export interface IVisitor<T = unknown> {
   visitCallScope(expr: CallScopeExpression): T;
   visitConditional(expr: ConditionalExpression): T;
   visitForOfStatement(expr: ForOfStatement): T;
-  visitHtmlLiteral(expr: HtmlLiteralExpression): T;
   visitInterpolation(expr: Interpolation): T;
   visitObjectBindingPattern(expr: ObjectBindingPattern): T;
   visitObjectLiteral(expr: ObjectLiteralExpression): T;
@@ -351,8 +337,6 @@ export class Unparser implements IVisitor<void> {
   public visitBindingIdentifier(expr: BindingIdentifier): void {
     this.text += expr.name;
   }
-
-  public visitHtmlLiteral(_expr: HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: ForOfStatement): void {
     expr.declaration.accept(this);
@@ -704,14 +688,12 @@ export class AccessThisExpression {
   ) {}
 
   public evaluate(s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): IBindingContext | undefined {
-    let oc: IOverrideContext | null = s.overrideContext;
     let currentScope: Scope | null = s;
     let i = this.ancestor;
-    while (i-- && oc) {
-      currentScope = currentScope!.parentScope;
-      oc = currentScope?.overrideContext ?? null;
+    while (i-- && currentScope) {
+      currentScope = currentScope.parentScope;
     }
-    return i < 1 && oc ? oc.bindingContext : void 0;
+    return i < 1 && currentScope ? currentScope.bindingContext : void 0;
   }
 
   public assign(_s: Scope, _e: IAstEvaluator | null, _obj: unknown): unknown {
@@ -738,7 +720,7 @@ export class AccessScopeExpression {
   ) {}
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): IBindingContext | IOverrideContext {
-    const obj = BindingContext.get(s, this.name, this.ancestor) as IBindingContext;
+    const obj = Scope.getContext(s, this.name, this.ancestor) as IBindingContext;
     if (c !== null) {
       c.observe(obj, this.name);
     }
@@ -762,7 +744,7 @@ export class AccessScopeExpression {
       else
         throw new Error(`AUR0106`);
     }
-    const obj = BindingContext.get(s, this.name, this.ancestor) as IObservable;
+    const obj = Scope.getContext(s, this.name, this.ancestor) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers?.[this.name] !== void 0) {
         obj.$observers[this.name].setValue(val);
@@ -886,7 +868,7 @@ export class CallScopeExpression {
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
     const args = this.args.map(a => a.evaluate(s, e, c));
-    const context = BindingContext.get(s, this.name, this.ancestor)!;
+    const context = Scope.getContext(s, this.name, this.ancestor)!;
     // ideally, should observe property represents by this.name as well
     // because it could be changed
     // todo: did it ever surprise anyone?
@@ -911,8 +893,8 @@ export class CallScopeExpression {
 }
 
 const autoObserveArrayMethods =
-  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some'.split(' ');
-// sort,      // not supported, self mutation + unclear dependency
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
+// sort,      // bad supported, self mutation + unclear dependency
 
 // push,      // not supported, self mutation + unclear dependency
 // pop,       // not supported, self mutation + unclear dependency
@@ -944,10 +926,13 @@ export class CallMemberExpression {
     const args = this.args.map(a => a.evaluate(s, e, c));
     const func = getFunction(e?.strictFnCall, instance, this.name);
     if (func) {
+      const ret = func.apply(instance, args);
+      // todo(doc): investigate & document in engineering doc the difference
+      //            between observing before/after func.apply
       if (isArray(instance) && autoObserveArrayMethods.includes(this.name)) {
         c?.observeCollection(instance);
       }
-      return func.apply(instance, args);
+      return ret;
     }
     return void 0;
   }
@@ -1181,40 +1166,6 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
   }
 }
 
-export class HtmlLiteralExpression {
-  public get $kind(): ExpressionKind.HtmlLiteral { return ExpressionKind.HtmlLiteral; }
-  public get hasBind(): false { return false; }
-  public get hasUnbind(): false { return false; }
-
-  public constructor(
-    public readonly parts: readonly HtmlLiteralExpression[],
-  ) {}
-
-  public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): string {
-    let result = '';
-    for (let i = 0; i < this.parts.length; ++i) {
-      const v = this.parts[i].evaluate(s, e, c);
-      if (v == null) {
-        continue;
-      }
-      result += v;
-    }
-    return result;
-  }
-
-  public assign(_s: Scope, _e: IAstEvaluator | null, _obj: unknown, _projection?: ResourceDefinition): unknown {
-    return void 0;
-  }
-
-  public accept<T>(visitor: IVisitor<T>): T {
-    return visitor.visitHtmlLiteral(this);
-  }
-
-  public toString(): string {
-    return Unparser.unparse(this);
-  }
-}
-
 export class ArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(emptyArray);
   public get $kind(): ExpressionKind.ArrayLiteral { return ExpressionKind.ArrayLiteral; }
@@ -1288,7 +1239,7 @@ export class TemplateExpression {
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): string {
     let result = this.cooked[0];
     for (let i = 0; i < this.expressions.length; ++i) {
-      result += String(this.expressions[i].evaluate(s, e, c));
+      result += safeString(this.expressions[i].evaluate(s, e, c));
       result += this.cooked[i + 1];
     }
     return result;
@@ -1507,7 +1458,7 @@ export class Interpolation {
       let result = this.parts[0];
       let i = 0;
       for (; i < this.expressions.length; ++i) {
-        result += String(this.expressions[i].evaluate(s, e, c));
+        result += safeString(this.expressions[i].evaluate(s, e, c));
         result += this.parts[i + 1];
       }
       return result;

@@ -109,7 +109,7 @@ export class ExpressionParser {
   }
 }
 
-export const enum Char {
+const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
   Tab            = 0x09,
@@ -1241,7 +1241,11 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
 }
 
 function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement {
-  if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
+  if ((result.$kind & (
+    ExpressionKind.ArrayBindingPattern
+    | ExpressionKind.ObjectBindingPattern
+    | ExpressionKind.BindingIdentifier
+  )) === 0) {
     throw invalidLHSBindingIdentifierInForOf();
   }
   if ($currentToken !== Token.OfKeyword) {

@@ -1,3 +1,4 @@
+import { DI } from '@aurelia/kernel';
 import { def } from '../utilities-objects';
 
 /* eslint-disable @typescript-eslint/ban-types */
@@ -25,7 +26,14 @@ export interface IWithFlushQueue {
   queue: FlushQueue;
 }
 
-export class FlushQueue {
+export const IFlushQueue = DI.createInterface('IFlushQueue', x => x.instance(FlushQueue.instance));
+export interface IFlushQueue {
+  get count(): number;
+  add(flushable: IFlushable): void;
+  clear(): void;
+}
+
+export class FlushQueue implements IFlushQueue {
   public static readonly instance: FlushQueue = new FlushQueue();
 
   /** @internal */

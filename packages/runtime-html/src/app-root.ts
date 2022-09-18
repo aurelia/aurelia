@@ -1,9 +1,8 @@
 import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
-import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { LifecycleFlags, Controller, IControllerElementHydrationInstruction } from './templating/controller';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';

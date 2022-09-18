@@ -12,7 +12,6 @@ import {
   IndexMap,
   IOverrideContext,
   IsBindingBehavior,
-  LifecycleFlags as LF,
   Scope,
   synchronizeIndices,
   ValueConverterExpression,
@@ -25,7 +24,7 @@ import { bindable } from '../../bindable';
 import { isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
-import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -70,7 +69,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
@@ -104,7 +103,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public attaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._normalizeToArray();
 
@@ -114,7 +113,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public detaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LF,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
 
@@ -140,9 +139,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
-  // called by a CollectionObserver
-  public handleCollectionChange(indexMap: IndexMap | undefined): void {
-    const { $controller } = this;
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
+    const $controller = this.$controller;
     if (!$controller.isActive) {
       return;
     }
@@ -249,9 +247,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i] = factory.create().setLocation(location);
       view.nodes.unlink();
       if(this._hasDestructuredLocal) {
-        (forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding, item);
+        (forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
       } else {
-        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
+        viewScope = Scope.fromParent(parentScope, new BindingContext(local, item));
       }
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
@@ -354,10 +352,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      if (__DEV__)
-        throw new Error(`AUR0814: viewsLen=${views.length}, mapLen=${mapLen}`);
-      else
-        throw new Error(`AUR0814:${views.length}!=${mapLen}`);
+      throw mismatchedLengthError(views.length, mapLen);
     }
 
     const parentScope = $controller.scope;
@@ -380,9 +375,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (indexMap[i] === -2) {
         if(this._hasDestructuredLocal) {
-          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, BindingContext.create()), this._forOfBinding, normalizedItems![i]);
+          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
         } else {
-          viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
+          viewScope = Scope.fromParent(parentScope, new BindingContext(local, normalizedItems![i]));
         }
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
@@ -509,6 +504,10 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
+const mismatchedLengthError = (viewCount: number, itemCount: number) =>
+  __DEV__
+    ? new Error(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
+    : new Error(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;

@@ -8,6 +8,7 @@ import {
   applyMutationsToIndices,
   synchronizeIndices,
   batch,
+  Collection,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -28,7 +29,7 @@ public constructor(
     this.newArr = newArr;
   }
 
-  public handleCollectionChange(indexMap: IndexMap): void {
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
     indexMap = applyMutationsToIndices(indexMap);
 
     const newArr = this.newArr;
@@ -395,7 +396,7 @@ describe(`ArrayObserver`, function () {
       let map: IndexMap;
       let callCount = 0;
       o.subscribe({
-        handleCollectionChange(indexMap) {
+        handleCollectionChange(_collection, indexMap) {
           map = indexMap;
           callCount++;
         },

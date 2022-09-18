@@ -24,39 +24,10 @@ export interface ICoercionConfiguration {
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
 
-export const enum LifecycleFlags {
-  none                          = 0b0_00_00,
-  // Bitmask for flags that need to be stored on a binding during $bind for mutation
-  // callbacks outside of $bind
-  fromBind                      = 0b0_00_01,
-  fromUnbind                    = 0b0_00_10,
-  dispose                       = 0b0_01_00,
-}
-
 export interface IConnectable {
   observe(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
-}
-
-/** @internal */
-export const enum SubscriberFlags {
-  None            = 0,
-  Subscriber0     = 0b0001,
-  Subscriber1     = 0b0010,
-  Subscriber2     = 0b0100,
-  SubscribersRest = 0b1000,
-  Any             = 0b1111,
-}
-
-export enum DelegationStrategy {
-  none      = 0,
-  capturing = 1,
-  bubbling  = 2,
-}
-
-export interface IBatchable {
-  flushBatch(flags: LifecycleFlags): void;
 }
 
 export interface ISubscriber<TValue = unknown> {
@@ -64,7 +35,7 @@ export interface ISubscriber<TValue = unknown> {
 }
 
 export interface ICollectionSubscriber {
-  handleCollectionChange(indexMap: IndexMap): void;
+  handleCollectionChange(collection: Collection, indexMap: IndexMap): void;
 }
 
 export interface ISubscribable {
@@ -88,7 +59,7 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
   remove(subscriber: T): boolean;
   any(): boolean;
   notify(value: unknown, oldValue: unknown): void;
-  notifyCollection(indexMap: IndexMap): void;
+  notifyCollection(collection: Collection, indexMap: IndexMap): void;
 }
 
 /**
@@ -98,7 +69,6 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
  * The `subscriberCollection` import can be used as either a decorator, or a function call.
  */
 export interface ISubscriberCollection extends ISubscribable {
-  [key: number]: LifecycleFlags;
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
@@ -112,7 +82,6 @@ export interface ISubscriberCollection extends ISubscribable {
  * The `subscriberCollection` import can be used as either a decorator, or a function call.
  */
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
-  [key: number]: LifecycleFlags;
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
@@ -197,7 +166,9 @@ export interface IAccessor<TValue = unknown> {
 /**
  * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
-export interface IObserver extends IAccessor, ISubscribable {}
+export interface IObserver extends IAccessor, ISubscribable {
+  doNotCache?: boolean;
+}
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
@@ -267,11 +238,6 @@ export function cloneIndexMap(indexMap: IndexMap): IndexMap {
 export function isIndexMap(value: unknown): value is IndexMap {
   return isArray(value) && (value as IndexMap).isIndexMap === true;
 }
-
-export interface IArrayIndexObserver extends IObserver {
-  owner: ICollectionObserver<CollectionKind.array>;
-}
-
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
@@ -295,13 +261,12 @@ export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  [key: PropertyKey]: any;
 }
 
 export interface IOverrideContext {
-  [key: string]: unknown;
-
-  readonly bindingContext: IBindingContext;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: PropertyKey]: any;
 }
 
 export type IObservable<T = IIndexable> = T & {

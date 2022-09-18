@@ -104,8 +104,8 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
     return this.b.interceptor.handleChange(value, oldValue);
   }
 
-  public handleCollectionChange(indexMap: IndexMap): void {
-    this.b.interceptor.handleCollectionChange(indexMap);
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+    this.b.interceptor.handleCollectionChange(collection, indexMap);
   }
 
   /**

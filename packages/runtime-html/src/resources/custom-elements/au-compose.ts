@@ -1,10 +1,10 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
-import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
+import { LifecycleFlags, Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';

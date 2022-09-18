@@ -1,6 +1,6 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   CustomAttribute,
   CustomElement,
   INode,

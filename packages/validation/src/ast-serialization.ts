@@ -240,7 +240,6 @@ export class Serializer implements AST.IVisitor<string> {
   public visitBindingIdentifier(expr: AST.BindingIdentifier): string {
     return `{"$TYPE":"${ASTExpressionTypes.BindingIdentifier}","name":"${expr.name}"}`;
   }
-  public visitHtmlLiteral(_expr: AST.HtmlLiteralExpression): string { throw new Error('visitHtmlLiteral'); }
   public visitForOfStatement(expr: AST.ForOfStatement): string {
     return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
   }

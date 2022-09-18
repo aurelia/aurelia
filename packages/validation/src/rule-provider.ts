@@ -5,7 +5,6 @@ import {
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
-  LifecycleFlags,
   PrimitiveLiteralExpression,
   AccessScopeExpression,
   Scope,
@@ -13,7 +12,8 @@ import {
   IAstEvaluator,
 } from '@aurelia/runtime';
 import {
-  astEvaluator
+  astEvaluator,
+  LifecycleFlags,
 } from '@aurelia/runtime-html';
 import {
   ValidationRuleAlias,

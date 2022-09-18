@@ -1,5 +1,6 @@
-import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
+import { Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   Else,
   If,
   Controller,
@@ -162,7 +163,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
         // -- Round 1 --
 
-        const ctx = BindingContext.create({
+        const ctx = Object.assign(new BindingContext(), {
           [ifPropName]: ifText,
           [elsePropName]: elseText
         });

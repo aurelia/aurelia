@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { DI, emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
-import { ExpressionType, Char, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
@@ -1947,3 +1947,43 @@ export const templateCompilerHooks = (target?: Function) => {
 
 const DEFAULT_SLOT_NAME = 'default';
 const AU_SLOT = 'au-slot';
+
+const enum Char {
+  // Null           = 0x00,
+  // Backspace      = 0x08,
+  // Tab            = 0x09,
+  // LineFeed       = 0x0A,
+  // VerticalTab    = 0x0B,
+  // FormFeed       = 0x0C,
+  // CarriageReturn = 0x0D,
+  Space          = 0x20,
+  // Exclamation    = 0x21,
+  // DoubleQuote    = 0x22,
+  Dollar         = 0x24,
+  // Percent        = 0x25,
+  // Ampersand      = 0x26,
+  // SingleQuote    = 0x27,
+  // OpenParen      = 0x28,
+  // CloseParen     = 0x29,
+  // Asterisk       = 0x2A,
+  // Plus           = 0x2B,
+  // Comma          = 0x2C,
+  // Minus          = 0x2D,
+  // Dot            = 0x2E,
+  // Slash          = 0x2F,
+  Semicolon      = 0x3B,
+  // Backtick       = 0x60,
+  // OpenBracket    = 0x5B,
+  Backslash      = 0x5C,
+  // CloseBracket   = 0x5D,
+  // Caret          = 0x5E,
+  // Underscore     = 0x5F,
+  OpenBrace      = 0x7B,
+  // Bar            = 0x7C,
+  // CloseBrace     = 0x7D,
+  Colon          = 0x3A,
+  // LessThan       = 0x3C,
+  // Equals         = 0x3D,
+  // GreaterThan    = 0x3E,
+  // Question       = 0x3F,
+}

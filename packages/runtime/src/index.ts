@@ -64,7 +64,6 @@ export {
   IExpressionParser,
   ExpressionType,
   parseExpression,
-  Char,
 } from './binding/expression-parser';
 
 export {

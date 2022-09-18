@@ -109,7 +109,7 @@ export class ExpressionParser {
   }
 }
 
-export const enum Char {
+const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
   Tab            = 0x09,

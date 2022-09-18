@@ -5,7 +5,7 @@ import {
 } from '@aurelia/kernel';
 import {
   Char,
-} from '@aurelia/runtime';
+} from '../char';
 import {
   IFileSystem,
   IFile,

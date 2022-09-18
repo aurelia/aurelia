@@ -1,19 +1,23 @@
 import {
   DI,
-  IContainer,
-  IFactory,
-  Constructable,
-  Transformer,
-  Key,
   IServiceLocator,
+  type IContainer,
+  type IFactory,
+  type Constructable,
+  type Transformer,
+  type Key,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  LifecycleFlags,
   ExpressionKind,
   // IsBindingBehavior
 } from '@aurelia/runtime';
+import {
+  LifecycleFlags,
+  IPlatform,
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 import {
   parsePropertyName,
   PropertyAccessor,
@@ -21,15 +25,11 @@ import {
   ValidationResult,
   IValidator,
   ValidateInstruction,
-  IValidationRule,
-  IValidateable
+  type IValidationRule,
+  type IValidateable,
 } from '@aurelia/validation';
 
 import type { Scope } from '@aurelia/runtime';
-import {
-  IPlatform,
-  PropertyBinding,
-} from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
   ast: BindingBehaviorExpression;

@@ -3,8 +3,10 @@ import {
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
-  LifecycleFlags,
 } from '@aurelia/runtime';
+import {
+  LifecycleFlags,
+} from '@aurelia/runtime-html';
 
 import type {
   IContainer,
@@ -154,7 +156,9 @@ export class MockPropertySubscriber {
 }
 
 export class MockTracingExpression {
-  public $kind: ExpressionKind = ExpressionKind.HasBind | ExpressionKind.HasUnbind;
+  public $kind: ExpressionKind = ExpressionKind.BindingBehavior;
+  public hasBind: true = true;
+  public hasUnbind: true = true;
   public calls: [keyof MockTracingExpression, ...any[]][] = [];
 
   public constructor(public inner: any) {}

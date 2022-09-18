@@ -8,7 +8,6 @@ import {
   Collection,
   getCollectionObserver,
   IndexMap,
-  LifecycleFlags,
   BindingContext,
   type IOverrideContext,
 } from '@aurelia/runtime';
@@ -17,6 +16,7 @@ import {
   IInstruction,
   IController,
   IViewFactory,
+  LifecycleFlags,
   HydrateTemplateController,
   IHydratedComponentController,
   IteratorBindingInstruction,

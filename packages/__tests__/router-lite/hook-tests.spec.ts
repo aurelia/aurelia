@@ -1,8 +1,6 @@
 import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
-} from '@aurelia/runtime';
-import {
   CustomElement,
   customElement,
   ICustomElementController,

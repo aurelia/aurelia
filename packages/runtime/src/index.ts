@@ -16,7 +16,6 @@ export {
   BinaryExpression,
   UnaryExpression,
   PrimitiveLiteralExpression,
-  HtmlLiteralExpression,
   ArrayLiteralExpression,
   ObjectLiteralExpression,
   TemplateExpression,

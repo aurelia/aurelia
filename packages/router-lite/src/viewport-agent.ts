@@ -201,7 +201,7 @@ export class ViewportAgent {
                 this.currState = State.currCanUnload;
                 b1.push();
                 Batch.start(b2 => {
-                  this.logger.trace(`-------------------------------------------canUnload() - finished invoking on children, now invoking on own component at %s`, this);
+                  this.logger.trace(`canUnload() - finished invoking on children, now invoking on own component at %s`, this);
                   this.curCA!.canUnload(tr, this.nextNode, b2);
                 }).continueWith(() => {
                   this.logger.trace(`canUnload() - finished at %s`, this);

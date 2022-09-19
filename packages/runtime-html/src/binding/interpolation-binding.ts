@@ -21,7 +21,6 @@ import type {
 import type { IPlatform } from '../platform';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
-const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
@@ -189,7 +188,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
-      shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & BindingMode.toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -231,7 +230,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.value = this.ast.evaluate(
       scope,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     if (this.value instanceof Array) {
       this.observeCollection(this.value);
@@ -319,7 +318,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
-      shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & BindingMode.toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -356,7 +355,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const v = this.value = this.ast.evaluate(
       this.$scope!,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     this.obs.clear();
     if (v instanceof Array) {
@@ -388,7 +387,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const v = this.value = this.ast.evaluate(
       scope,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {
       this.observeCollection(v);

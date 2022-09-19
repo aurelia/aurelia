@@ -15,8 +15,6 @@ import {
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
 
-const { toView, oneTime } = BindingMode;
-
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
@@ -40,7 +38,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   /** @internal */ private _updateCount = 0;
   /** @internal */ private readonly _controller: IBindingController;
 
-  public mode: BindingMode = toView;
+  public mode: BindingMode = BindingMode.toView;
 
   public constructor(
     controller: IBindingController,
@@ -102,7 +100,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.updateTarget(this._value = this.ast.evaluate(
       this.$scope,
       this,
-      this.mode > oneTime ? this : null),
+      this.mode > BindingMode.oneTime ? this : null),
     );
   }
 
@@ -157,7 +155,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const value = this.ast.evaluate(
       $scope,
       this,
-      this.mode > oneTime ? this : null
+      this.mode > BindingMode.oneTime ? this : null
     );
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
 

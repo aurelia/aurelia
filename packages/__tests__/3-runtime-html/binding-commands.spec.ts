@@ -1,3 +1,4 @@
+import { IExpressionParser } from '@aurelia/runtime';
 import {
   alias,
   CommandType,
@@ -6,6 +7,7 @@ import {
   OneTimeBindingCommand,
   PropertyBindingInstruction,
   ICommandBuildInfo,
+  IAttrMapper,
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -26,8 +28,8 @@ describe('binding-commands', function () {
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
 
-      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
-        return this.oneTimeCmd.build(info);
+      public build(info: ICommandBuildInfo, parser: IExpressionParser, mapper: IAttrMapper): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info, parser, mapper);
       }
     }
 
@@ -40,8 +42,8 @@ describe('binding-commands', function () {
       public static inject = [OneTimeBindingCommand];
       public constructor(private readonly oneTimeCmd: OneTimeBindingCommand) {}
 
-      public build(info: ICommandBuildInfo): PropertyBindingInstruction {
-        return this.oneTimeCmd.build(info);
+      public build(info: ICommandBuildInfo, parser: IExpressionParser, mapper: IAttrMapper): PropertyBindingInstruction {
+        return this.oneTimeCmd.build(info, parser, mapper);
       }
     }
 

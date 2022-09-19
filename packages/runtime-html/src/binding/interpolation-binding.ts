@@ -94,7 +94,7 @@ export class InterpolationBinding implements IBinding {
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
@@ -338,7 +338,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue);

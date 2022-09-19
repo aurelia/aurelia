@@ -1,17 +1,17 @@
-import { nextId, IDisposable, onResolve } from '@aurelia/kernel';
+import { type IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
   BindingBehaviorExpression,
   BindingContext,
-  Collection,
+  type Collection,
   CollectionObserver,
   DestructuringAssignmentExpression,
   ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
-  IndexMap,
-  IOverrideContext,
-  IsBindingBehavior,
+  type IndexMap,
+  type IOverrideContext,
+  type IsBindingBehavior,
   Scope,
   synchronizeIndices,
   ValueConverterExpression,
@@ -21,7 +21,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { isPromise, rethrow } from '../../utilities';
+import { isArray, isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -39,7 +39,6 @@ const wrappedExprs = [
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IRenderLocation, IController, IViewFactory];
-  public readonly id: number = nextId('au$component');
 
   public views: ISyntheticView[] = [];
   public key?: string = void 0;
@@ -60,11 +59,19 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _hasDestructuredLocal: boolean = false;
 
+  /** @internal */ private readonly _location: IRenderLocation;
+  /** @internal */ private readonly _parent: IHydratableController;
+  /** @internal */ private readonly _factory: IViewFactory;
+
   public constructor(
-    /** @internal */ private readonly _location: IRenderLocation,
-    /** @internal */ private readonly _parent: IHydratableController,
-    /** @internal */ private readonly _factory: IViewFactory
-  ) {}
+    location: IRenderLocation,
+    parent: IHydratableController,
+    factory: IViewFactory,
+  ) {
+    this._location = location;
+    this._parent = parent;
+    this._factory = factory;
+  }
 
   public binding(
     _initiator: IHydratedController,
@@ -216,7 +223,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _normalizeToArray(): void {
     const items: Items<C> = this.items;
-    if (items instanceof Array) {
+    if (isArray(items)) {
       this._normalizedItems = items;
       return;
     }

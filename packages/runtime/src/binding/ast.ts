@@ -1,4 +1,4 @@
-import { emptyArray, isArrayIndex, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
+import { emptyArray, isArrayIndex } from '@aurelia/kernel';
 import { type IBinding } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
@@ -1684,4 +1684,35 @@ function getFunction(mustEvaluate: boolean | undefined, obj: object, name: strin
     throw new Error(`AUR0111: Expected '${name}' to be a function`);
   else
     throw new Error(`AUR0111:${name}`);
+}
+
+/**
+ * Determines if the value passed is a number or bigint for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+function isNumberOrBigInt(value: unknown): value is number | bigint {
+  switch (typeof value) {
+    case 'number':
+    case 'bigint':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Determines if the value passed is a string or Date for parsing purposes
+ *
+ * @param value - Value to evaluate
+ */
+function isStringOrDate(value: unknown): value is string | Date {
+  switch (typeof value) {
+    case 'string':
+      return true;
+    case 'object':
+      return value instanceof Date;
+    default:
+      return false;
+  }
 }

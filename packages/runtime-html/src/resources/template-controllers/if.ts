@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { nextId, onResolve } from '@aurelia/kernel';
+import { onResolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
@@ -12,8 +12,6 @@ import type { INode } from '../../dom';
 
 export class If implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IRenderLocation, IWorkTracker];
-
-  public readonly id: number = nextId('au$component');
 
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
@@ -178,12 +176,13 @@ export class If implements ICustomAttributeViewModel {
 templateController('if')(If);
 
 export class Else implements ICustomAttributeViewModel {
-  public static inject = [IViewFactory];
-  public readonly id: number = nextId('au$component');
+  /** @internal */ public static inject = [IViewFactory];
 
-  public constructor(
-    private readonly factory: IViewFactory,
-  ) {}
+  /** @internal */ private readonly _factory: IViewFactory;
+
+  public constructor(factory: IViewFactory) {
+    this._factory = factory;
+  }
 
   public link(
     controller: IHydratableController,
@@ -194,12 +193,12 @@ export class Else implements ICustomAttributeViewModel {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;
     if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this.factory;
+      ifBehavior.elseFactory = this._factory;
     } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this.factory;
+      ifBehavior.viewModel.elseFactory = this._factory;
     } else {
       if (__DEV__)
-        throw new Error(`AUR0810: Unsupported If behavior`); // TODO: create error code
+        throw new Error(`AUR0810: Unsupported If behavior`);
       else
         throw new Error(`AUR0810`);
     }

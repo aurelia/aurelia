@@ -1,7 +1,6 @@
 import {
   ILogger,
   LogLevel,
-  nextId,
   onResolve,
   resolveAll,
   Writable,
@@ -24,7 +23,6 @@ import type { IInstruction } from '../../renderer';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView;
 
@@ -235,11 +233,12 @@ export class Switch implements ICustomAttributeViewModel {
   }
 }
 
+let caseId = 0;
 @templateController('case')
 export class Case implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IObserverLocator, IRenderLocation, ILogger];
 
-  public readonly id: number = nextId('au$component');
+  /** @internal */ public readonly id: number = ++caseId;
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public value: unknown;

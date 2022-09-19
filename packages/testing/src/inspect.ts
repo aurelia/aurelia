@@ -1385,7 +1385,7 @@ export function formatProperty(
   switch (key) {
     // Aurelia-specific:
     case '$controller':
-      return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
+      return `$controller: { id: ${value.$controller.name} } (omitted for brevity)`;
     case 'overrideContext':
       return 'overrideContext: (omitted for brevity)';
   }
@@ -1481,6 +1481,7 @@ export function formatRaw(
   let keys: PropertyKey[] = (void 0)!;
 
   const constructor = getConstructorName(value, ctx);
+  /* eslint-disable no-fallthrough */
   switch (constructor) {
     // Aurelia-specific:
     // Skip some standard components as their difference will not matter in assertions, but they will
@@ -1496,6 +1497,7 @@ export function formatRaw(
         return ctx.stylize('Node constructor (omitted for brevity)', 'special');
       }
   }
+  /* eslint-enable no-fallthrough */
   let tag = value[Symbol.toStringTag];
   if (!isString(tag)) {
     tag = '';

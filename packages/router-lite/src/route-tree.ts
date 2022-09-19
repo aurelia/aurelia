@@ -416,7 +416,7 @@ export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[
   });
 }
 
-export function createAndAppendNodes(
+function createAndAppendNodes(
   log: ILogger,
   node: RouteNode,
   vi: ViewportInstruction,

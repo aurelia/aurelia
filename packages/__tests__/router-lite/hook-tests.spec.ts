@@ -3276,5 +3276,127 @@ describe('router hooks', function () {
 
       await tearDown();
     });
+
+    it('siblings', async function () {
+      const ticks = 0;
+      const hookSpec = HookSpecs.create(ticks);
+      @customElement({ name: 's1', template: 's1' })
+      class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 's2', template: 's2' })
+      class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      @customElement({ name: 's3', template: 's3' })
+      class S3 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 's1', component: S1 },
+          { path: 's2', component: S2 },
+          { path: 's3', component: S3 },
+        ]
+      })
+      @customElement({ name: 'root', template: 'root <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
+      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+      const { router, mgr, host, tearDown } = await createFixture(Root, [S1, S2, S3], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+
+      // load s1@$1+s2@$2
+      let phase = 'round#1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s1@$1+s2@$2');
+      assert.html.textContent(host, 'root s1s2', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s1', 's2'], ticks, 'canLoad'),
+        ...$(phase, ['s1', 's2'], ticks, 'loading'),
+        ...$(phase, ['s1', 's2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // load s1@$1+unconfigured@$2
+      phase = 'round#2';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('s1@$1+unconfigured@$2');
+        assert.fail('expected error');
+      } catch (e) { /* noop */ }
+      assert.html.textContent(host, 'root s1s2', `${phase} - text`);
+      /**
+       * Justification: Because of the reentry behavior set to none (due to the fact the previous instruction tree is queued again), the hooks invocations are skipped.
+       */
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      // load s1@$1+s3@$2
+      phase = 'round#3';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s1@$1+s3@$2');
+      assert.html.textContent(host, 'root s1s3', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, 's2', ticks, 'canUnload'),
+        ...$(phase, 's3', ticks, 'canLoad'),
+        ...$(phase, 's2', ticks, 'unloading'),
+        ...$(phase, 's3', ticks, 'loading'),
+        ...$(phase, 's2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's3', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // load unconfigured@$1+s2@$2
+      phase = 'round#4';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('unconfigured@$1+s2@$2');
+        assert.fail('expected error');
+      } catch (e) { /* noop */ }
+      assert.html.textContent(host, 'root s1s3', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      // load s3@$1+s2@$2
+      phase = 'round#5';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s3@$1+s2@$2');
+      assert.html.textContent(host, 'root s3s2', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s1', 's3'], ticks, 'canUnload'),
+        ...$(phase, ['s3', 's2'], ticks, 'canLoad'),
+        ...$(phase, ['s1', 's3'], ticks, 'unloading'),
+        ...$(phase, ['s3', 's2'], ticks, 'loading'),
+        ...$(phase, 's1', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's3', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 's3', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      // load unconfigured
+      phase = 'round#6';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('unconfigured');
+        assert.fail('expected error');
+      } catch (e) { /* noop */ }
+      assert.html.textContent(host, 'root s3s2', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, []);
+
+      // load s2@$1+s1@$2
+      phase = 'round#7';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('s2@$1+s1@$2');
+      assert.html.textContent(host, 'root s2s1', `${phase} - text`);
+      verifyInvocationsEqual(mgr.fullNotifyHistory, [
+        ...$(phase, ['s3', 's2'], ticks, 'canUnload'),
+        ...$(phase, ['s2', 's1'], ticks, 'canLoad'),
+        ...$(phase, ['s3', 's2'], ticks, 'unloading'),
+        ...$(phase, ['s2', 's1'], ticks, 'loading'),
+        ...$(phase, 's3', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+        ...$(phase, 's2', ticks, 'detaching', 'unbinding', 'dispose'),
+        ...$(phase, 's1', ticks, 'binding', 'bound', 'attaching', 'attached'),
+      ]);
+
+      await tearDown();
+    });
   });
 });

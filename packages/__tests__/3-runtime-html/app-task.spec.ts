@@ -59,9 +59,9 @@ describe('3-runtime-html/app-task.spec.ts', function () {
     ]);
   });
 
-  it('retrieves the right injection when theres a token', async function () {
+  it('retrieves the right injection when theres a token', function () {
     let val = 1;
-    await createFixture(
+    createFixture(
       '${message}',
       {},
       [
@@ -71,7 +71,7 @@ describe('3-runtime-html/app-task.spec.ts', function () {
           val = 2;
         })
       ]
-    ).started;
+    );
     assert.strictEqual(val, 2);
   });
 });

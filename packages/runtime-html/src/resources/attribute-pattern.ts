@@ -216,14 +216,13 @@ export class AttrParsingState {
   }
 }
 
-/** @internal */
 export interface ISegment {
   text: string;
   eachChar(callback: (spec: CharSpec) => void): void;
 }
 
 /** @internal */
-export class StaticSegment implements ISegment {
+class StaticSegment implements ISegment {
   private readonly len: number;
   private readonly specs: CharSpec[];
 
@@ -249,7 +248,7 @@ export class StaticSegment implements ISegment {
 }
 
 /** @internal */
-export class DynamicSegment implements ISegment {
+class DynamicSegment implements ISegment {
   public text: string = 'PART';
   private readonly spec: CharSpec;
 
@@ -263,7 +262,7 @@ export class DynamicSegment implements ISegment {
 }
 
 /** @internal */
-export class SymbolSegment implements ISegment {
+class SymbolSegment implements ISegment {
   private readonly spec: CharSpec;
 
   public constructor(
@@ -440,10 +439,12 @@ export interface IAttributePattern {
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern');
 
-export interface IAttributeParser extends AttributeParser {}
+export interface IAttributeParser {
+  parse(name: string, value: string): AttrSyntax;
+}
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
-export class AttributeParser {
+export class AttributeParser implements IAttributeParser {
   /** @internal */
   protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
 

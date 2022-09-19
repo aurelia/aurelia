@@ -16,9 +16,10 @@ export class Rendering {
   protected static inject: unknown[] = [IContainer];
   /** @internal */
   private readonly _ctn: IContainer;
-  private rs: Record<string, IRenderer> | undefined;
   /** @internal */
-  private readonly _p: IPlatform;
+  private _renderers: Record<string, IRenderer> | undefined;
+  /** @internal */
+  private readonly _platform: IPlatform;
   /** @internal */
   private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
   /** @internal */
@@ -27,17 +28,17 @@ export class Rendering {
   private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {
-    return this.rs == null
-      ? (this.rs = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
+    return this._renderers == null
+      ? (this._renderers = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
           all[r.target] = r;
           return all;
         }, createLookup<IRenderer>()))
-      : this.rs;
+      : this._renderers;
   }
 
   public constructor(container: IContainer) {
-    this._p = (this._ctn = container.root).get(IPlatform);
-    this._empty = new FragmentNodeSequence(this._p, this._p.document.createDocumentFragment());
+    this._platform = (this._ctn = container.root).get(IPlatform);
+    this._empty = new FragmentNodeSequence(this._platform, this._platform.document.createDocumentFragment());
   }
 
   public compile(
@@ -69,14 +70,14 @@ export class Rendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._p, definition.template as DocumentFragment);
+      return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
     const cache = this._fragmentCache;
     if (cache.has(definition)) {
       fragment = cache.get(definition);
     } else {
-      const p = this._p;
+      const p = this._platform;
       const doc = p.document;
       const template = definition.template;
       let tpl: HTMLTemplateElement;
@@ -99,7 +100,7 @@ export class Rendering {
     }
     return fragment == null
       ? this._empty
-      : new FragmentNodeSequence(this._p, fragment.cloneNode(true) as DocumentFragment);
+      : new FragmentNodeSequence(this._platform, fragment.cloneNode(true) as DocumentFragment);
   }
 
   public render(
@@ -140,7 +141,7 @@ export class Rendering {
       }
     }
 
-    if (host !== void 0 && host !== null) {
+    if (host != null) {
       row = definition.surrogates;
       if ((jj = row.length) > 0) {
         j = 0;

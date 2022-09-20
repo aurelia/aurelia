@@ -2,21 +2,21 @@ import { ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/listener.spec.ts', function () {
-  it('invokes expression', async function () {
+  it('invokes expression', function () {
     let log = 0;
-    const { getBy } = await createFixture(
+    const { getBy } = createFixture(
       '<button click.trigger="onClick()">',
       { onClick() { log++; } },
-    ).started;
+    );
 
     getBy('button').click();
     assert.strictEqual(log, 1);
   });
 
-  it('works with value converter', async function () {
+  it('works with value converter', function () {
     let log = 0;
     let vcLog = 0;
-    const { trigger } = await createFixture(
+    const { trigger } = createFixture(
       '<button click.trigger="onClick() | identity">',
       { onClick() { log++; } },
       [ValueConverter.define('identity', class {
@@ -25,19 +25,30 @@ describe('3-runtime-html/listener.spec.ts', function () {
           return a;
         }
       })]
-    ).started;
+    );
 
     trigger.click('button');
     assert.strictEqual(log, 1);
     assert.strictEqual(vcLog, 1);
   });
 
-  it('invoke handler after evaluating expression', async function () {
+  it('invoke handler after evaluating expression', function () {
     let log = 0;
-    const { trigger } = await createFixture(
+    const { trigger } = createFixture(
       '<button click.trigger="onClick">',
       { onClick() { log++; } },
-    ).started;
+    );
+
+    trigger.click('button');
+    assert.strictEqual(log, 1);
+  });
+
+  it('invoke lambda handler', function () {
+    let log = 0;
+    const { trigger } = createFixture(
+      '<button click.trigger="() => onClick()">',
+      { onClick() { log++; } },
+    );
 
     trigger.click('button');
     assert.strictEqual(log, 1);

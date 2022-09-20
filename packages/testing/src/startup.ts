@@ -26,8 +26,13 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
 ): IFixture<ICustomElementViewModel & K> {
-  const { container, platform, observerLocator } = ctx;
+  const { container } = ctx;
   container.register(...registrations);
+
+  // platform and observer locator have side effect when accessed on ctx
+  // they will trigger default registration of interfaces if there's been no registration before it
+  // hence evaluate platform + observer locator only after we have registered all the dependencies
+  const { platform, observerLocator } = ctx;
   const root = ctx.doc.body.appendChild(ctx.createElement('div'));
   const host = root.appendChild(ctx.createElement('app'));
   const au = new Aurelia(container);
@@ -136,9 +141,16 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
   function assertAttr(selector: string, name: string, value: string | null) {
     const el = queryBy(selector);
     if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to compare attribute against "${value}"`);
+      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
     }
     assert.strictEqual(el.getAttribute(name), value);
+  }
+  function assertAttrNS(selector: string, namespace: string, name: string, value: string | null) {
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
+    }
+    assert.strictEqual(el.getAttributeNS(namespace, name), value);
   }
   function assertValue(selector: string, value: string | null) {
     const el = queryBy(selector);
@@ -231,6 +243,7 @@ export function createFixture<T, K = (T extends Constructable<infer U> ? U : T)>
     public assertText = assertText;
     public assertHtml = assertHtml;
     public assertAttr = assertAttr;
+    public assertAttrNS = assertAttrNS;
     public assertValue = assertValue;
     public trigger = trigger as ITrigger;
     public scrollBy = scrollBy;
@@ -305,6 +318,12 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertAttr(selector: string, name: string, value: string): void;
+  /**
+   * Assert the attribute value of an element matching the given selector inside the application host equals to a given string.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertAttrNS(selector: string, namespace: string, name: string, value: string): void;
   /**
    * Assert the value of an element matching the given selector inside the application host equals to a given value.
    *

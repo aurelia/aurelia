@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime-html';
 import { _, TestContext, assert, PLATFORM } from '@aurelia/testing';
 
-describe('ObserverLocator', function () {
+describe('3-runtime-html/observer-locator.spec.ts', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const sut = ctx.observerLocator;

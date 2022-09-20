@@ -2,7 +2,7 @@ import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
 import { PLATFORM, assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 
-describe('focus.spec.ts', function () {
+describe('3-runtime-html/focus.spec.ts', function () {
   // there are focus/blur API that won't work with JSDOM
   // example of error thrown:
   // Error: Not implemented: window.blur

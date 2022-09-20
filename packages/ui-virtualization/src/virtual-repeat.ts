@@ -8,15 +8,15 @@ import {
   Collection,
   getCollectionObserver,
   IndexMap,
-  LifecycleFlags,
   BindingContext,
-  OverrideContext,
+  type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   customAttribute,
   IInstruction,
   IController,
   IViewFactory,
+  LifecycleFlags,
   HydrateTemplateController,
   IHydratedComponentController,
   IteratorBindingInstruction,
@@ -258,7 +258,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         view.nodes.insertBefore(prevView.nodes.firstChild.nextSibling!);
         scope = Scope.fromParent(
           controller.scope,
-          BindingContext.create(local, collectionStrategy.item(idx))
+          new BindingContext(local, collectionStrategy.item(idx))
         ) as IRepeaterItemScope;
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = itemCount;
@@ -438,9 +438,11 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   }
 
   /**
+   * todo: handle update based on collection, rather than always update
+   *
    * @internal
    */
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(_collection: Collection, _indexmap: IndexMap): void {
     this.itemsChanged(this.items);
     // const [start, end] = this.range;
     // const itemHeight = this.itemHeight;
@@ -495,7 +497,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const parentScope = repeatController.scope;
     const itemScope = Scope.fromParent(
       parentScope,
-      BindingContext.create(this.local, collectionStrategy.first())
+      new BindingContext(this.local, collectionStrategy.first())
     ) as IRepeaterItemScope;
     itemScope.overrideContext.$index = 0;
     itemScope.overrideContext.$length = collectionStrategy.count();
@@ -532,15 +534,15 @@ customAttribute({
 })(VirtualRepeat);
 
 class CollectionObservationMediator {
-  private _collection!: Collection;
+  /** @internal */ private _collection!: Collection;
 
   public constructor(
     public repeat: VirtualRepeat,
     public key: 'handleCollectionChange' | 'handleInnerCollectionChange',
   ) {}
 
-  public handleCollectionChange(indexMap: IndexMap): void {
-    this.repeat[this.key](indexMap);
+  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+    this.repeat[this.key](collection, indexMap);
   }
 
   public start(c?: Collection | null): void {
@@ -593,7 +595,7 @@ interface IRepeaterItemScope extends Scope {
   readonly overrideContext: IRepeatOverrideContext;
 }
 
-interface IRepeatOverrideContext extends OverrideContext {
+interface IRepeatOverrideContext extends IOverrideContext {
   $index: number;
   $length: number;
   readonly $even: number;
@@ -604,7 +606,7 @@ interface IRepeatOverrideContext extends OverrideContext {
 }
 
 const enhancedContextCached = new WeakSet<IRepeatOverrideContext>();
-function enhanceOverrideContext(context: OverrideContext) {
+function enhanceOverrideContext(context: IOverrideContext) {
   const ctx = context as unknown as IRepeatOverrideContext;
   if (enhancedContextCached.has(ctx)) {
     return;

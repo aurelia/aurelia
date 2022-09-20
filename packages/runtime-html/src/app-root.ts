@@ -1,9 +1,8 @@
-import { DI, InstanceProvider, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { DI, InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
-import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { LifecycleFlags, Controller, IControllerElementHydrationInstruction } from './templating/controller';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
@@ -18,54 +17,10 @@ export interface ISinglePageApp {
 export interface IAppRoot extends AppRoot {}
 export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 
-export interface IWorkTracker extends WorkTracker {}
-export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker', x => x.singleton(WorkTracker));
-export class WorkTracker {
-  /** @internal */ protected static inject = [ILogger];
-  /** @internal */ private _stack: number = 0;
-  /** @internal */ private _promise: Promise<void> | null = null;
-  /** @internal */ private _resolve: (() => void) | null = null;
-  /** @internal */ private readonly _logger: ILogger;
-
-  public constructor(logger: ILogger) {
-    this._logger = logger.scopeTo('WorkTracker');
-  }
-
-  public start(): void {
-    this._logger.trace(`start(stack:${this._stack})`);
-    ++this._stack;
-  }
-
-  public finish(): void {
-    this._logger.trace(`finish(stack:${this._stack})`);
-    if (--this._stack === 0) {
-      const resolve = this._resolve;
-      if (resolve !== null) {
-        this._resolve  = this._promise = null;
-        resolve();
-      }
-    }
-  }
-
-  public wait(): Promise<void> {
-    this._logger.trace(`wait(stack:${this._stack})`);
-    if (this._promise === null) {
-      if (this._stack === 0) {
-        return Promise.resolve();
-      }
-      this._promise = new Promise(resolve => {
-        this._resolve = resolve;
-      });
-    }
-    return this._promise;
-  }
-}
-
 export class AppRoot implements IDisposable {
   public readonly host: HTMLElement;
 
   public controller: ICustomElementController = (void 0)!;
-  public work: IWorkTracker;
 
   /** @internal */
   private _hydratePromise: Promise<void> | void = void 0;
@@ -77,7 +32,6 @@ export class AppRoot implements IDisposable {
     rootProvider: InstanceProvider<IAppRoot>,
   ) {
     this.host = config.host;
-    this.work = container.get(IWorkTracker);
     rootProvider.prepare(this);
 
     container.registerResolver(

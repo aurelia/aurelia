@@ -7,8 +7,7 @@ import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 
 import type { Writable } from '@aurelia/kernel';
-import type { LifecycleFlags } from '@aurelia/runtime';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import type { LifecycleFlags, ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
 

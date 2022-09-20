@@ -1,12 +1,11 @@
-import { Constructable, nextId, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { Constructable, onResolve } from '@aurelia/kernel';
 import { createElement, RenderPlan } from '../../create-element';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 import { bindable } from '../../bindable';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
+import { LifecycleFlags, ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isPromise, isString } from '../../utilities';
 import { BindingMode } from '../../binding/interfaces-bindings';
@@ -28,7 +27,6 @@ function toLookup(
 
 export class AuRender implements ICustomElementViewModel {
   /** @internal */ protected static inject = [IPlatform, IInstruction, IHydrationContext, IRendering];
-  public readonly id: number = nextId('au$component');
 
   @bindable
   public component?: MaybeSubjectPromise = void 0;

@@ -12,7 +12,6 @@ import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
-  IndexMap,
   Interpolation,
   IObserverLocator,
   IsExpression,
@@ -22,7 +21,6 @@ import type {
 import type { IPlatform } from '../platform';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
-const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
@@ -96,7 +94,7 @@ export class InterpolationBinding implements IBinding {
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
@@ -190,7 +188,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
-      shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & BindingMode.toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -210,7 +208,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  public handleCollectionChange(): void {
     this.owner.updateTarget(void 0);
   }
 
@@ -232,7 +230,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.value = this.ast.evaluate(
       scope,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     if (this.value instanceof Array) {
       this.observeCollection(this.value);
@@ -320,7 +318,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
     if (!canOptimize) {
-      shouldConnect = (this.mode & toView) > 0;
+      shouldConnect = (this.mode & BindingMode.toView) > 0;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -340,7 +338,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue);
@@ -357,7 +355,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const v = this.value = this.ast.evaluate(
       this.$scope!,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     this.obs.clear();
     if (v instanceof Array) {
@@ -389,7 +387,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     const v = this.value = this.ast.evaluate(
       scope,
       this,
-      (this.mode & toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {
       this.observeCollection(v);

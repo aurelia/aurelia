@@ -1,4 +1,4 @@
-import { AccessorType, connectable, ExpressionKind, IndexMap } from '@aurelia/runtime';
+import { AccessorType, connectable, ExpressionKind } from '@aurelia/runtime';
 import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 import { BindingMode } from './interfaces-bindings';
@@ -15,11 +15,6 @@ import type {
 } from '@aurelia/runtime';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
-// BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-const { oneTime, toView, fromView } = BindingMode;
-
-// pre-combining flags for bitwise checks is a minor perf tweak
-const toViewOrOneTime = toView | oneTime;
 const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
   preempt: true,
@@ -88,7 +83,7 @@ export class PropertyBinding implements IAstBasedBinding {
     // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
     if (this.ast.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
       // todo: in VC expressions, from view also requires connect
-      shouldConnect = this.mode > oneTime;
+      shouldConnect = this.mode > BindingMode.oneTime;
       if (shouldConnect) {
         obsRecord.version++;
       }
@@ -112,7 +107,8 @@ export class PropertyBinding implements IAstBasedBinding {
     }
   }
 
-  public handleCollectionChange(_indexMap: IndexMap): void {
+  // todo: based off collection and handle update accordingly instead off always start
+  public handleCollectionChange(_collection: unknown): void {
     if (!this.isBound) {
       return;
     }
@@ -153,7 +149,7 @@ export class PropertyBinding implements IAstBasedBinding {
     const $mode = this.mode;
     let targetObserver = this.targetObserver;
     if (!targetObserver) {
-      if ($mode & fromView) {
+      if ($mode & BindingMode.fromView) {
         targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
       } else {
         targetObserver = observerLocator.getAccessor(this.target, this.targetProperty);
@@ -165,15 +161,15 @@ export class PropertyBinding implements IAstBasedBinding {
     // deepscan-disable-next-line
     ast = this.ast;
     const interceptor = this.interceptor;
-    const shouldConnect = ($mode & toView) > 0;
+    const shouldConnect = ($mode & BindingMode.toView) > 0;
 
-    if ($mode & toViewOrOneTime) {
+    if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       interceptor.updateTarget(
         ast.evaluate(scope, this, shouldConnect ? interceptor : null),
       );
     }
 
-    if ($mode & fromView) {
+    if ($mode & BindingMode.fromView) {
       (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty));

@@ -11,7 +11,6 @@ import {
   parseExpression,
   AccessScopeExpression,
   BindingIdentifier,
-  DelegationStrategy,
   PrimitiveLiteralExpression,
   IExpressionParser,
 } from '@aurelia/runtime';
@@ -19,6 +18,7 @@ import {
   bindable,
   BindingMode,
   BindableDefinition,
+  DelegationStrategy,
   customAttribute,
   CustomAttribute,
   customElement,

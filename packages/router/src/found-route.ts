@@ -8,7 +8,9 @@ import { Route } from './route';
 import { RoutingInstruction } from './instructions/routing-instruction';
 
 /**
- * @internal - Used when founding route/instructions
+ * Used when founding route/instructions
+ *
+ * @internal
  */
 export class FoundRoute {
   public constructor(

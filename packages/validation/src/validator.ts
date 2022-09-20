@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { LifecycleFlags, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime-html';
 import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
 import { IValidateable } from './rule-interfaces';
 
@@ -8,6 +9,7 @@ import { IValidateable } from './rule-interfaces';
  */
 export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
   /**
+   * @template TObject
    * @param {TObject} [object=(void 0)!] - The object to validate.
    * @param {(keyof TObject | string)} [propertyName=(void 0)!] - The property name to validate.
    * @param {PropertyRule[]} [rules=(void 0)!] - The rules to validate.

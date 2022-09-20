@@ -4,8 +4,8 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { LifecycleFlags } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   bindable,
   INode,
   customElement,

@@ -1,20 +1,16 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { nextId, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { onResolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { IWorkTracker } from '../../app-root';
 
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
+import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
 
 export class If implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IViewFactory, IRenderLocation, IWorkTracker];
-
-  public readonly id: number = nextId('au$component');
+  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
 
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
@@ -34,12 +30,16 @@ export class If implements ICustomAttributeViewModel {
   private pending: void | Promise<void> = void 0;
   /** @internal */ private _wantsDeactivate: boolean = false;
   /** @internal */ private _swapId: number = 0;
+  /** @internal */ private readonly _ifFactory: IViewFactory;
+  /** @internal */ private readonly _location: IRenderLocation;
 
   public constructor(
-    private readonly ifFactory: IViewFactory,
-    private readonly location: IRenderLocation,
-    private readonly work: IWorkTracker,
-  ) {}
+    ifFactory: IViewFactory,
+    location: IRenderLocation,
+  ) {
+    this._ifFactory = ifFactory;
+    this._location = location;
+  }
 
   public attaching(initiator: IHydratedController, parent: IHydratedController, f: LifecycleFlags): void | Promise<void> {
     let view: ISyntheticView | undefined;
@@ -59,7 +59,7 @@ export class If implements ICustomAttributeViewModel {
       if (this.value) {
         view = (this.view = this.ifView = this.cache && this.ifView != null
           ? this.ifView
-          : this.ifFactory.create()
+          : this._ifFactory.create()
         );
       } else {
         // truthy -> falsy
@@ -72,7 +72,7 @@ export class If implements ICustomAttributeViewModel {
         return;
       }
       // todo: else view should set else location
-      view.setLocation(this.location);
+      view.setLocation(this._location);
 
       // Promise return values from user VM hooks are awaited by the initiator
       this.pending = onResolve(
@@ -111,7 +111,6 @@ export class If implements ICustomAttributeViewModel {
     if (newValue === oldValue) {
       return;
     }
-    this.work.start();
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -122,7 +121,7 @@ export class If implements ICustomAttributeViewModel {
      */
     const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
     let view: ISyntheticView | undefined;
-    return onResolve(onResolve(this.pending,
+    return onResolve(this.pending,
       () => this.pending = onResolve(
         currView?.deactivate(currView, ctrl, f),
         () => {
@@ -133,7 +132,7 @@ export class If implements ICustomAttributeViewModel {
           if (newValue) {
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
-              : this.ifFactory.create()
+              : this._ifFactory.create()
             );
           } else {
             // truthy -> falsy
@@ -147,7 +146,7 @@ export class If implements ICustomAttributeViewModel {
           }
           // todo: location should be based on either the [if]/[else] attribute
           //       instead of always the if
-          view.setLocation(this.location);
+          view.setLocation(this._location);
           return onResolve(
             view.activate(view, ctrl, f, ctrl.scope),
             () => {
@@ -158,7 +157,7 @@ export class If implements ICustomAttributeViewModel {
           );
         }
       )
-    ), () => this.work.finish());
+    );
   }
 
   public dispose(): void {
@@ -179,12 +178,13 @@ export class If implements ICustomAttributeViewModel {
 templateController('if')(If);
 
 export class Else implements ICustomAttributeViewModel {
-  public static inject = [IViewFactory];
-  public readonly id: number = nextId('au$component');
+  /** @internal */ public static inject = [IViewFactory];
 
-  public constructor(
-    private readonly factory: IViewFactory,
-  ) {}
+  /** @internal */ private readonly _factory: IViewFactory;
+
+  public constructor(factory: IViewFactory) {
+    this._factory = factory;
+  }
 
   public link(
     controller: IHydratableController,
@@ -195,12 +195,12 @@ export class Else implements ICustomAttributeViewModel {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;
     if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this.factory;
+      ifBehavior.elseFactory = this._factory;
     } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this.factory;
+      ifBehavior.viewModel.elseFactory = this._factory;
     } else {
       if (__DEV__)
-        throw new Error(`AUR0810: Unsupported If behavior`); // TODO: create error code
+        throw new Error(`AUR0810: Unsupported If behavior`);
       else
         throw new Error(`AUR0810`);
     }

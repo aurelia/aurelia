@@ -1,8 +1,4 @@
 export {
-  // todo: only exception for now for hmr, remove
-  LifecycleFlags,
-} from '@aurelia/runtime';
-export {
   bindable,
   Bindable,
   BindableDefinition,
@@ -64,7 +60,6 @@ export {
   type ISinglePageApp,
   AppRoot,
   IAppRoot,
-  IWorkTracker,
 } from './app-root';
 export {
   type TaskSlot,
@@ -153,6 +148,7 @@ export {
   type ICompliationInstruction,
   renderer,
   CallBindingInstruction,
+  DelegationStrategy,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -428,6 +424,7 @@ export {
   ViewModelKind,
   HooksDefinition,
   State,
+  LifecycleFlags,
   type ControllerVisitor,
   type IViewModel,
   IController,

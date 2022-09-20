@@ -1,12 +1,11 @@
-import { nextId, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { onResolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
 import { isPromise, isString } from '../../utilities';
-import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import type { LifecycleFlags, ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;
@@ -17,8 +16,6 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
-
-  public readonly id: number = nextId('au$component');
 
   @bindable({ primary: true })
   public target: PortalTarget;

@@ -13,14 +13,13 @@ export type TaskSlot =
   | 'deactivated';
 
 export const IAppTask = DI.createInterface<IAppTask>('IAppTask');
-export interface IAppTask extends Pick<
-  $AppTask,
-  'slot' |
-  'run' |
-  'register'
-> {}
+export interface IAppTask {
+  readonly slot: TaskSlot;
+  register(c: IContainer): IContainer;
+  run(): void | Promise<void>;
+}
 
-class $AppTask<K extends Key = Key> {
+class $AppTask<K extends Key = Key> implements IAppTask {
   public readonly slot: TaskSlot;
   /** @internal */
   private c: IContainer = (void 0)!;

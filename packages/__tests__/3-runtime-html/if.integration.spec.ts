@@ -1,5 +1,6 @@
-import { LifecycleFlags, Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
+import { Scope, Interpolation, AccessScopeExpression, BindingContext } from '@aurelia/runtime';
 import {
+  LifecycleFlags,
   Else,
   If,
   Controller,
@@ -9,7 +10,6 @@ import {
   PropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
   TextBindingInstruction,
-  IWorkTracker,
   INodeObserverLocatorRegistration,
   CustomAttribute,
   IRendering,
@@ -141,11 +141,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           needsCompile: false,
         });
 
-        const work = container.get(IWorkTracker);
         const rendering = container.get(IRendering);
         const ifFactory = rendering.getViewFactory(ifDef, container);
         const elseFactory = rendering.getViewFactory(elseDef, container);
-        const sut = new If(ifFactory, ifLoc, work);
+        const sut = new If(ifFactory, ifLoc);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.$attr(container, sut, (void 0)!);
         elseSut.link({ children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);
@@ -162,7 +161,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
         // -- Round 1 --
 
-        const ctx = BindingContext.create({
+        const ctx = Object.assign(new BindingContext(), {
           [ifPropName]: ifText,
           [elsePropName]: elseText
         });

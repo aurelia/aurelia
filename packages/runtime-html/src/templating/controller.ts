@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  nextId,
   ILogger,
   LogLevel,
   DI,
@@ -13,7 +12,6 @@ import {
   AccessScopeExpression,
   ExpressionType,
   Scope,
-  LifecycleFlags,
   IObserverLocator,
   IExpressionParser,
   ICoercionConfiguration,
@@ -56,6 +54,15 @@ import { isObject } from '@aurelia/metadata';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
+export const enum LifecycleFlags {
+  none                          = 0b0_00_00,
+  // Bitmask for flags that need to be stored on a binding during $bind for mutation
+  // callbacks outside of $bind
+  fromBind                      = 0b0_00_01,
+  fromUnbind                    = 0b0_00_10,
+  dispose                       = 0b0_01_00,
+}
+
 export const enum MountTarget {
   none = 0,
   host = 1,
@@ -67,7 +74,6 @@ const optionalCeFind = { optional: true } as const;
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
-  public readonly id: number = nextId('au$component');
 
   public head: IHydratedController | null = null;
   public tail: IHydratedController | null = null;
@@ -1463,7 +1469,6 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
-  /** @internal */readonly id: number;
   /**
    * The container associated with this controller.
    * By default, CE should have their own container while custom attribute & synthetic view

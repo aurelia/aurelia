@@ -123,7 +123,8 @@ module.exports =
   /** @type {import('karma').ConfigOptions} */
   const options = {
     basePath,
-    browserDisconnectTimeout: 10000,
+    browserDisconnectTimeout: 30 * 60 * 10000,
+    browserNoActivityTimeout: process.env.CI ? 10000 : 30 * 60 * 1000,
     processKillTimeout: 10000,
     frameworks: [
       'mocha',
@@ -206,7 +207,7 @@ module.exports =
           }
           // some tests has images and it could cause a lot of noises related image loading errors
           // just disable it via returning an empty one
-          if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg')) {
+          if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg') || requestUrl.endsWith('.svg')) {
             response.setHeader('Content-Type', mimetypes.jpeg);
             response.end('');
             return;

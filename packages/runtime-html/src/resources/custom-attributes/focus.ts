@@ -22,11 +22,16 @@ export class Focus implements ICustomAttributeViewModel {
    * @internal
    */
   private _needsApply: boolean = false;
+  /** @internal */ private readonly _element: INode<HTMLElement>;
+  /** @internal */ private readonly _platform: IPlatform;
 
   public constructor(
-    private readonly _element: INode<HTMLElement>,
-    private readonly _platform: IPlatform,
-  ) {}
+    element: INode<HTMLElement>,
+    platform: IPlatform,
+  ) {
+    this._element = element;
+    this._platform = platform;
+  }
 
   public binding(): void {
     this.valueChanged();

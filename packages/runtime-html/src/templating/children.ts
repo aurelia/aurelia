@@ -2,7 +2,7 @@ import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { subscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
-import { isString } from '../utilities';
+import { isArray, isString } from '../utilities';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
@@ -84,10 +84,8 @@ const baseName = getAnnotationKeyFor('children-observer');
 export const Children = Object.freeze({
   name: baseName,
   keyFrom: (name: string): string =>`${baseName}:${name}`,
-  from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
+  from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | string[] | undefined)[]): Record<string, ChildrenDefinition> {
     const childrenObservers: Record<string, ChildrenDefinition> = {};
-
-    const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
       childrenObservers[name] = ChildrenDefinition.create(name);
@@ -97,7 +95,7 @@ export const Children = Object.freeze({
       childrenObservers[name] = ChildrenDefinition.create(name, def);
     }
 
-    function addList(maybeList: ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined): void {
+    function addList(maybeList: ChildrenDefinition | Record<string, PartialChildrenDefinition> | string[] | undefined): void {
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof ChildrenDefinition) {

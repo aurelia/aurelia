@@ -1,5 +1,5 @@
 import { isArrayIndex } from '@aurelia/kernel';
-import { AccessorType, CollectionKind, IObserver } from '../observation';
+import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities-objects';
 import { withFlushQueue } from './flush-queue';
@@ -53,7 +53,7 @@ export class CollectionLengthObserver implements IObserver, IWithFlushQueue, ICo
     }
   }
 
-  public handleCollectionChange(_: IndexMap) {
+  public handleCollectionChange(_arr: unknown[], _: IndexMap) {
     const oldValue = this._value;
     const value = this._obj.length;
     if ((this._value = value) !== oldValue) {
@@ -103,7 +103,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber, IFlushable
       throw new Error(`AUR02`);
   }
 
-  public handleCollectionChange(_: IndexMap): void {
+  public handleCollectionChange(_collection: Collection,  _: IndexMap): void {
     const oldValue = this._value;
     const value = this._obj.size;
     if ((this._value = value) !== oldValue) {

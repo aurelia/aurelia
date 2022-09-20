@@ -63,13 +63,9 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
   for (const testCase of testCases) {
     const { title, template, App, registrations = [], assertFn } = testCase;
     it(title, async function () {
-      const { appHost, ctx, component, startPromise, tearDown } = createFixture(template, App, registrations);
-
-      await startPromise;
+      const { appHost, ctx, component } = createFixture(template, App, registrations);
 
       await assertFn({ ctx, component, appHost });
-
-      await tearDown();
     });
   }
 

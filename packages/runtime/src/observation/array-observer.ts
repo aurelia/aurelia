@@ -1,9 +1,10 @@
 import {
   createIndexMap,
   AccessorType,
-  ISubscriberCollection,
-  ICollectionSubscriberCollection,
+  type ISubscriberCollection,
+  type ICollectionSubscriberCollection,
   cloneIndexMap,
+  type IObserver,
 } from '../observation';
 import {
   CollectionLengthObserver,
@@ -11,18 +12,25 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
+import { addCollectionBatch, batching } from './subscriber-batch';
 
 import type {
   CollectionKind,
   ICollectionObserver,
-  IArrayIndexObserver,
   IndexMap,
   ISubscriber,
 } from '../observation';
-import { def, defineHiddenProp, isFunction } from '../utilities-objects';
-import { addCollectionBatch, batching } from './subscriber-batch';
 
-const observerLookup = new WeakMap<unknown[], ArrayObserver>();
+// multiple applications of Aurelia wouldn't have different observers for the same Array object
+const lookupMetadataKey = '__au_array_obs__';
+const observerLookup = (() => {
+  let lookup: WeakMap<unknown[], ArrayObserver> = getOwnMetadata(lookupMetadataKey, Array);
+  if (lookup == null) {
+    defineMetadata(lookupMetadataKey, lookup = new WeakMap<unknown[], ArrayObserver>(), Array);
+  }
+  return lookup;
+})();
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -352,10 +360,15 @@ for (const method of methods) {
 
 let enableArrayObservationCalled = false;
 
+const observationEnabledKey = '__au_arr_on__';
 export function enableArrayObservation(): void {
-  for (const method of methods) {
-    if (proto[method].observing !== true) {
-      defineHiddenProp(proto, method, observe[method]);
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  if (!(getOwnMetadata(observationEnabledKey, Array) ?? false)) {
+    defineMetadata(observationEnabledKey, true, Array);
+    for (const method of methods) {
+      if (proto[method].observing !== true) {
+        defineHiddenProp(proto, method, observe[method]);
+      }
     }
   }
 }
@@ -396,14 +409,15 @@ export class ArrayObserver {
     const subs = this.subs;
     const indexMap = this.indexMap;
     if (batching) {
-      addCollectionBatch(subs, indexMap);
+      addCollectionBatch(subs, this.collection, indexMap);
       return;
     }
 
-    const length = this.collection.length;
+    const arr = this.collection;
+    const length = arr.length;
 
     this.indexMap = createIndexMap(length);
-    this.subs.notifyCollection(indexMap);
+    this.subs.notifyCollection(arr, indexMap);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
@@ -415,6 +429,10 @@ export class ArrayObserver {
     // so just create once, and add/remove instead
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
+}
+
+export interface IArrayIndexObserver extends IObserver {
+  owner: ICollectionObserver<CollectionKind.array>;
 }
 
 export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
@@ -456,7 +474,7 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
   /**
    * From interface `ICollectionSubscriber`
    */
-  public handleCollectionChange(indexMap: IndexMap): void {
+  public handleCollectionChange(_arr: unknown[], indexMap: IndexMap): void {
     const index = this.index;
     const noChange = indexMap[index] === index;
     if (noChange) {

@@ -16,7 +16,6 @@ export {
   BinaryExpression,
   UnaryExpression,
   PrimitiveLiteralExpression,
-  HtmlLiteralExpression,
   ArrayLiteralExpression,
   ObjectLiteralExpression,
   TemplateExpression,
@@ -64,7 +63,6 @@ export {
   IExpressionParser,
   ExpressionType,
   parseExpression,
-  Char,
 } from './binding/expression-parser';
 
 export {
@@ -74,6 +72,7 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
+  type IArrayIndexObserver,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -88,7 +87,6 @@ export {
 export {
   BindingContext,
   Scope,
-  OverrideContext,
 } from './observation/binding-context';
 export {
   CollectionLengthObserver,
@@ -103,6 +101,7 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker';
 export {
+  IFlushQueue,
   type IFlushable,
   type IWithFlushQueue,
   FlushQueue,
@@ -124,6 +123,7 @@ export {
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
+  getObserverLookup,
   type ObservableGetter,
   type ObservableSetter,
 } from './observation/observer-locator';
@@ -154,22 +154,18 @@ export {
 } from './observation/connectable-switcher';
 
 export {
-  LifecycleFlags,
   type AccessorOrObserver,
   type IBinding,
   AccessorType,
   type Collection,
   CollectionKind,
-  DelegationStrategy,
   type IAccessor,
   type IBindingContext,
   type ICollectionChangeTracker,
   type ICollectionObserver,
   type IConnectable,
-  type IArrayIndexObserver,
   type ICollectionSubscriber,
   type IndexMap,
-  type IBatchable,
   type IObserver,
   type IObservable,
   type IOverrideContext,

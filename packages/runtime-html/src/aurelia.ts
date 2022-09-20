@@ -1,11 +1,10 @@
 import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { LifecycleFlags } from '@aurelia/runtime';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
 import { IEventTarget, INode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
-import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
+import { LifecycleFlags, Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { isFunction, isPromise } from './utilities';
 import { instanceRegistration } from './utilities-di';
 

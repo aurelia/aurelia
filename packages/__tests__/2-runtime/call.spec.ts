@@ -2,7 +2,6 @@ import {
   AccessScopeExpression,
   BindingBehaviorExpression,
   CallScopeExpression,
-  ExpressionKind,
   IsBindingBehavior,
   Scope,
   SetterObserver
@@ -73,7 +72,6 @@ describe.skip('CallBinding', function () {
         // massSpy(sut, 'callSource');
         // massSpy(targetObserver, 'setValue', 'getValue');
         // massSpy(expr, 'evaluate', 'assign', 'connect');
-        (expr as any).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
         // expr['bind'] = spy();
         // expr['unbind'] = spy();
 
@@ -168,7 +166,6 @@ describe.skip('CallBinding', function () {
         // massSpy(sut, 'callSource');
         // massSpy(targetObserver, 'setValue', 'getValue');
         // massSpy(expr, 'evaluate', 'assign', 'connect');
-        (expr as any).$kind |= ExpressionKind.HasBind | ExpressionKind.HasUnbind;
         // expr['bind'] = spy();
         // expr['unbind'] = spy();
 

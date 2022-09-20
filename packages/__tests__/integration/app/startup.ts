@@ -1,5 +1,4 @@
-import { LifecycleFlags } from '@aurelia/runtime';
-import { Aurelia, CustomElement, CustomElementType } from '@aurelia/runtime-html';
+import { LifecycleFlags, Aurelia, CustomElement, CustomElementType } from '@aurelia/runtime-html';
 import { CallCollection, TestContext } from '@aurelia/testing';
 import { App } from './app.js';
 import { appTemplate as template } from './app-template.js';

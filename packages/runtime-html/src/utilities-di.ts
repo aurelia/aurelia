@@ -1,5 +1,5 @@
 import {
-  DI, Registration,
+  DI, Injectable, Registration,
   type IResolver,
   type Key,
   type Resolved
@@ -8,25 +8,23 @@ import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities
 
 import type { Constructable, IContainer, IResourceKind, ResourceDefinition } from '@aurelia/kernel';
 
-// todo: replace existing resource code with this resolver
-// ===================
-// export const resource = function <T extends Key>(key: T) {
-//   function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
-//     DI.inject(Resolver)(target, property, descriptor);
-//   }
-//   Resolver.$isResolver = true;
-//   Resolver.resolve = function (handler: IContainer, requestor: IContainer) {
-//     if (/* is root? */requestor.root === requestor) {
-//       return requestor.get(key);
-//     }
+export const resource = function <T extends Key>(key: T) {
+  function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
+    DI.inject(Resolver)(target, property, descriptor);
+  }
+  Resolver.$isResolver = true;
+  Resolver.resolve = function (handler: IContainer, requestor: IContainer) {
+    if (/* is root? */requestor.root === requestor) {
+      return requestor.get(key);
+    }
 
-//     return requestor.has(key, false)
-//       ? requestor.get(key)
-//       : requestor.root.get(key);
-//   };
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   return Resolver as IResolver<T> & ((...args: unknown[]) => any);
-// };
+    return requestor.has(key, false)
+      ? requestor.get(key)
+      : requestor.root.get(key);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Resolver as IResolver<T> & ((...args: unknown[]) => any);
+};
 
 /**
  * A resolver builder for resolving all registrations of a key

@@ -42,20 +42,15 @@ export class DispatchAttributePattern {
 
 @bindingCommand('state')
 export class StateBindingCommand implements BindingCommandInstance {
-  /** @internal */ protected static inject = [IAttrMapper];
-  public readonly type: CommandType = CommandType.None;
+  public get type(): CommandType { return CommandType.None; }
   public get name(): string { return 'state'; }
 
-  public constructor(
-    /** @internal */ private readonly _attrMapper: IAttrMapper,
-  ) {}
-
-  public build(info: ICommandBuildInfo): IInstruction {
+  public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): IInstruction {
     const attr = info.attr;
     let target = attr.target;
     let value = attr.rawValue;
     if (info.bindable == null) {
-      target = this._attrMapper.map(info.node, target)
+      target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
@@ -73,7 +68,7 @@ export class StateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  public readonly type: CommandType = CommandType.IgnoreAttr;
+  public get type(): CommandType { return CommandType.IgnoreAttr; }
   public get name(): string { return 'dispatch'; }
 
   public build(info: ICommandBuildInfo): IInstruction {

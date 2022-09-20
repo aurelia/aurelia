@@ -1565,7 +1565,7 @@ describe('controller.hook-timings.integration', function () {
 
       mgr.setPrefix('swap');
       app.n = 2;
-      await au.root.work.wait();
+      await waitForTick(6);
 
       mgr.setPrefix('stop');
       await au.stop(true);
@@ -1673,6 +1673,12 @@ describe('controller.hook-timings.integration', function () {
     });
   });
 });
+
+async function waitForTick(count: number) {
+  while (count-- > 0) {
+    await Promise.resolve();
+  }
+}
 
 const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding'] as const;
 type HookName = typeof hookNames[number] | 'dispose';

@@ -36,9 +36,11 @@ export interface INodeObserverLocator {
 }
 export const INodeObserverLocator = DI
   .createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
-    handler.getAll(ILogger).forEach(logger => {
-      logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
-    });
+    if (__DEV__) {
+      handler.getAll(ILogger).forEach(logger => {
+        logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
+      });
+    }
     return new DefaultNodeObserverLocator();
   }));
 

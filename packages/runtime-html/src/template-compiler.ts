@@ -151,7 +151,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo));
+        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
 
         // to next attribute
         continue;
@@ -201,7 +201,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
           }
         }
 
@@ -274,7 +274,11 @@ export class TemplateCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.bindable = bindable;
             commandBuildInfo.def = elDef;
-            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(commandBuildInfo)));
+            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
+              commandBuildInfo,
+              context._exprParser,
+              context._attrMapper
+            )));
             continue;
           }
         }
@@ -283,7 +287,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo));
+        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
       }
     }
 
@@ -347,7 +351,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo));
+        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
 
         // to next attribute
         continue;
@@ -397,7 +401,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
           }
         }
 
@@ -450,7 +454,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo));
+        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
       }
     }
 
@@ -760,7 +764,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
-        (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
+        (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
 
         removeAttr();
         // to next attribute
@@ -809,7 +813,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.bindable = primaryBindable;
             commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo)];
+            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
           }
         }
 
@@ -897,7 +901,11 @@ export class TemplateCompiler implements ITemplateCompiler {
           commandBuildInfo.attr = attrSyntax;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = elDef;
-          (elBindableInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
+          (elBindableInstructions ??= []).push(bindingCommand.build(
+            commandBuildInfo,
+            context._exprParser,
+            context._attrMapper
+          ));
           continue;
         }
       }
@@ -910,7 +918,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       commandBuildInfo.attr = attrSyntax;
       commandBuildInfo.bindable = null;
       commandBuildInfo.def = null;
-      (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo));
+      (plainAttrInstructions ??= []).push(bindingCommand.build(
+        commandBuildInfo,
+        context._exprParser,
+        context._attrMapper
+      ));
     }
 
     resetCommandBuildInfo();
@@ -1429,7 +1441,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           commandBuildInfo.attr = attrSyntax;
           commandBuildInfo.bindable = bindable;
           commandBuildInfo.def = attrDef;
-          instructions.push(command.build(commandBuildInfo));
+          instructions.push(command.build(commandBuildInfo, context._exprParser, context._attrMapper));
         }
 
         // Skip whitespace after semicolon

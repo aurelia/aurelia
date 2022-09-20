@@ -1,9 +1,10 @@
 import { Constructable, type Key } from '@aurelia/kernel';
 import { def, defineHiddenProp } from '../utilities';
-import { IAstEvaluator, ISubscriber } from '@aurelia/runtime';
+import { BindingBehaviorInstance, IAstEvaluator, ISubscriber, ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import type { IAstBasedBinding } from './interfaces-bindings';
+import { resource } from '../utilities-di';
 
 interface ITwoWayBindingImpl extends IAstBasedBinding {
   updateSource(value: unknown): void;
@@ -27,7 +28,7 @@ export class BindingTargetSubscriber implements ISubscriber {
 }
 
 /**
- * Turns a class into AST evaluator, and optionally connectable
+ * Turns a class into AST evaluator
  *
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
@@ -44,10 +45,25 @@ export function astEvaluator(strict?: boolean | undefined, strictFnCall = true) 
       return this.locator.get(key);
     });
     defineHiddenProp(proto, 'getConverter', function (this: IAstBasedBinding, name: string) {
-      return this.locator.get(ValueConverter.keyFrom(name));
+      const key = ValueConverter.keyFrom(name);
+      let resourceLookup = resourceLookupCache.get(this);
+      if (resourceLookup == null) {
+        resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+      }
+      return resourceLookup[key] ??= this.locator.get<ValueConverterInstance>(resource(key));
     });
     defineHiddenProp(proto, 'getBehavior', function (this: IAstBasedBinding, name: string) {
-      return this.locator.get(BindingBehavior.keyFrom(name));
+      const key = BindingBehavior.keyFrom(name);
+      let resourceLookup = resourceLookupCache.get(this);
+      if (resourceLookup == null) {
+        resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+      }
+      return resourceLookup[key] ??= this.locator.get<BindingBehaviorInstance>(resource(key));
     });
   };
+}
+
+const resourceLookupCache = new WeakMap<IAstBasedBinding, ResourceLookup>();
+class ResourceLookup {
+  [key: string]: ValueConverterInstance | BindingBehaviorInstance;
 }

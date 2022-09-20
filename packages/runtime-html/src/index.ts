@@ -60,7 +60,6 @@ export {
   type ISinglePageApp,
   AppRoot,
   IAppRoot,
-  IWorkTracker,
 } from './app-root';
 export {
   type TaskSlot,

@@ -1,4 +1,4 @@
-import { nextId, onResolve } from '@aurelia/kernel';
+import { onResolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
@@ -16,8 +16,6 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
-
-  public readonly id: number = nextId('au$component');
 
   @bindable({ primary: true })
   public target: PortalTarget;

@@ -194,7 +194,13 @@ export class NavigationOptions extends RouterOptions {
   }
 }
 
+/** @internal */
+export class UnknownRouteError extends Error { }
+
 export class Transition {
+  private _erredWithUnknownRoute: boolean = false;
+  public get erredWithUnknownRoute(): boolean { return this._erredWithUnknownRoute; }
+
   private constructor(
     public readonly id: number,
     public readonly prevInstructions: ViewportInstructionTree,
@@ -213,7 +219,7 @@ export class Transition {
     public error: unknown,
   ) { }
 
-  public static create(input: Omit<Transition, 'run' | 'handleError'>): Transition {
+  public static create(input: Omit<Transition, 'run' | 'handleError' | 'erredWithUnknownRoute'>): Transition {
     return new Transition(
       input.id,
       input.prevInstructions,
@@ -252,6 +258,7 @@ export class Transition {
   }
 
   public handleError(err: unknown): void {
+    this._erredWithUnknownRoute = err instanceof UnknownRouteError;
     this.reject!(this.error = err);
   }
 
@@ -573,7 +580,7 @@ export class Router {
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
-    if(instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
+    if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
     if (typeof instructionOrInstructions === 'string') {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
@@ -609,7 +616,7 @@ export class Router {
     let reject: Exclude<Transition['reject'], null> = (void 0)!;
     let promise: Exclude<Transition['promise'], null>;
 
-    if (failedTr === null) {
+    if (failedTr === null || failedTr.erredWithUnknownRoute) {
       promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
     } else {
       // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
@@ -656,14 +663,18 @@ export class Router {
       logger.debug(`Transition succeeded: %s`, nextTr);
       return ret;
     }).catch(err => {
-      logger.error(`Navigation failed: %s`, nextTr, err);
-      this._isNavigating = false;
-      const $nextTr = this.nextTr;
-      // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
-      if($nextTr !== null) {
-        ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+      logger.error(`Transition %s failed: %s`, nextTr, err);
+      if(nextTr.erredWithUnknownRoute) {
+        this.cancelNavigation(nextTr);
       } else {
-        this._routeTree = nextTr.previousRouteTree;
+        this._isNavigating = false;
+        const $nextTr = this.nextTr;
+        // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
+        if ($nextTr !== null) {
+          ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+        } else {
+          this._routeTree = nextTr.previousRouteTree;
+        }
       }
       throw err;
     });
@@ -730,7 +741,7 @@ export class Router {
       // From a routing perspective it's simply a "marker": it does not need to be loaded,
       // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
       // other than by reading (deps, optional route config, owned viewports) from it.
-      const rootCtx = this.ctx;// navigationContext.root;
+      const rootCtx = this.ctx;
       const rt = tr.routeTree;
 
       (rt as Writable<RouteTree>).options = vit.options;
@@ -859,15 +870,17 @@ export class Router {
     this.instructions = tr.prevInstructions;
     this._routeTree = tr.previousRouteTree;
     this._isNavigating = false;
-    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${tr.guardsResult}`));
+    const guardsResult = tr.guardsResult;
+    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
 
-    if (tr.guardsResult === false) {
+    if (guardsResult === false) {
       tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition();
     } else {
-      void onResolve(this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
+      const instructions = tr.erredWithUnknownRoute ? tr.prevInstructions : guardsResult as ViewportInstructionTree;
+      void onResolve(this.enqueue(instructions, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
       });
     }

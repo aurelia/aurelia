@@ -8,7 +8,7 @@ import { tryStringify } from './util';
 /**
  * @returns `true` if the given `value` is an non-null, non-undefined, and non-CustomElement object.
  */
-export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
+function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -151,7 +151,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
   }
 }
 
-export function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig> | null | undefined, parentPath: string): void {
+function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig> | null | undefined, parentPath: string): void {
   if (config === null || config === void 0) {
     throw new Error(`Invalid route config: expected an object or string, but got: ${String(config)}.`);
   }
@@ -184,7 +184,7 @@ export function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig
   }
 }
 
-export function validateComponent(component: Routeable | null | undefined, parentPath: string): void {
+function validateComponent(component: Routeable | null | undefined, parentPath: string): void {
   switch (typeof component) {
     case 'function':
       break;

@@ -1,4 +1,3 @@
-import { nextId } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
@@ -8,7 +7,6 @@ import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewMo
 
 export class With implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
-  public readonly id: number = nextId('au$component');
 
   public view: ISyntheticView;
 
@@ -20,7 +18,6 @@ export class With implements ICustomAttributeViewModel {
     factory: IViewFactory,
     location: IRenderLocation
   ) {
-    this.id = nextId('au$component');
     this.view = factory.create().setLocation(location);
   }
 

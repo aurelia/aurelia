@@ -91,9 +91,13 @@ export class ExpressionParser {
     }
   }
 
+  /** @internal */
   private $parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
+  /** @internal */
   private $parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
+  /** @internal */
   private $parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+  /** @internal */
   private $parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
     $input = expression;
     $index = 0;

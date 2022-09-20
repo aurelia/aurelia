@@ -199,14 +199,8 @@ export {
   kebabCase,
   pascalCase,
   toArray,
-  // nextId,
-  // resetId,
-  // mergeDistinct,
-  // isNumberOrBigInt,
-  // isStringOrDate,
   bound,
   // mergeArrays,
-  // mergeObjects,
   // firstDefined,
   // getPrototypeChain,
 } from '@aurelia/kernel';
@@ -544,7 +538,6 @@ export {
   // IDOMInitializer,
   // ISinglePageApp,
   IAppRoot,
-  IWorkTracker,
 
   // IfRegistration,
   // ElseRegistration,

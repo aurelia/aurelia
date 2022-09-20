@@ -2,7 +2,6 @@ import {
   AccessScopeExpression,
   BindingBehaviorExpression,
   CallScopeExpression,
-  ExpressionKind,
   IsBindingBehavior,
   Scope,
   SetterObserver

@@ -28,7 +28,7 @@ function createFixture() {
   return { ctx, container, observerLocator };
 }
 
-describe('AttributeNSAccessor', function () {
+describe('[UNIT] AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
 

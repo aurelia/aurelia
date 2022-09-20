@@ -1,4 +1,4 @@
-import { Constructable, nextId, onResolve } from '@aurelia/kernel';
+import { Constructable, onResolve } from '@aurelia/kernel';
 import { createElement, RenderPlan } from '../../create-element';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { IPlatform } from '../../platform';
@@ -27,7 +27,6 @@ function toLookup(
 
 export class AuRender implements ICustomElementViewModel {
   /** @internal */ protected static inject = [IPlatform, IInstruction, IHydrationContext, IRendering];
-  public readonly id: number = nextId('au$component');
 
   @bindable
   public component?: MaybeSubjectPromise = void 0;

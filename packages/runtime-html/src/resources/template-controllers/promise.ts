@@ -1,5 +1,5 @@
 import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
-import { ILogger, nextId, onResolve, resolveAll } from '@aurelia/kernel';
+import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
@@ -23,7 +23,6 @@ import { isPromise } from '../../utilities';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView;
 
@@ -166,7 +165,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
 @templateController('pending')
 export class PendingTemplateController implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
@@ -214,7 +212,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
 @templateController('then')
 export class FulfilledTemplateController implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;
@@ -263,7 +260,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
 @templateController('catch')
 export class RejectedTemplateController implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable({ mode: BindingMode.fromView }) public value!: unknown;

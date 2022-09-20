@@ -1,7 +1,6 @@
 import {
   ILogger,
   LogLevel,
-  nextId,
   onResolve,
   resolveAll,
   Writable,
@@ -17,6 +16,7 @@ import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
+import { isArray } from '../../utilities';
 
 import type { LifecycleFlags, Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
@@ -24,7 +24,6 @@ import type { IInstruction } from '../../renderer';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
-  public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView;
 
@@ -235,11 +234,12 @@ export class Switch implements ICustomAttributeViewModel {
   }
 }
 
+let caseId = 0;
 @templateController('case')
 export class Case implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IObserverLocator, IRenderLocation, ILogger];
 
-  public readonly id: number = nextId('au$component');
+  /** @internal */ public readonly id: number = ++caseId;
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public value: unknown;
@@ -298,7 +298,7 @@ export class Case implements ICustomAttributeViewModel {
   public isMatch(value: unknown): boolean {
     this._logger.debug('isMatch()');
     const $value = this.value;
-    if (Array.isArray($value)) {
+    if (isArray($value)) {
       if (this._observer === void 0) {
         this._observer = this._observeCollection($value);
       }
@@ -308,7 +308,7 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public valueChanged(newValue: unknown, _oldValue: unknown): void {
-    if (Array.isArray(newValue)) {
+    if (isArray(newValue)) {
       this._observer?.unsubscribe(this);
       this._observer = this._observeCollection(newValue);
     } else if (this._observer !== void 0) {

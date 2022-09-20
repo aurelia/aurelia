@@ -51,17 +51,10 @@ export class TranslationBindingCommand implements BindingCommandInstance {
   public readonly type: CommandType.None = CommandType.None;
   public get name() { return 't'; }
 
-  /** @internal */ protected static inject = [IAttrMapper];
-  /** @internal */ private readonly _attrMapper: IAttrMapper;
-
-  public constructor(m: IAttrMapper) {
-    this._attrMapper = m;
-  }
-
-  public build(info: ICommandBuildInfo): TranslationBindingInstruction {
+  public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this._attrMapper.map(info.node, info.attr.target)
+      target = attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
@@ -134,26 +127,17 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   public readonly type: CommandType.None = CommandType.None;
   public get name() { return 't-bind'; }
 
-  /** @internal */ protected static inject = [IAttrMapper, IExpressionParser];
-  /** @internal */ private readonly _attrMapper: IAttrMapper;
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-
-  public constructor(attrMapper: IAttrMapper, exprParser: IExpressionParser) {
-    this._attrMapper = attrMapper;
-    this._exprParser = exprParser;
-  }
-
-  public build(info: ICommandBuildInfo): TranslationBindingInstruction {
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {
     let target: string;
     if (info.bindable == null) {
-      target = this._attrMapper.map(info.node, info.attr.target)
+      target = attrMapper.map(info.node, info.attr.target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
       target = info.bindable.property;
     }
-    return new TranslationBindBindingInstruction(this._exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
+    return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
   }
 }
 

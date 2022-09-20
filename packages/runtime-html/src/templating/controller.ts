@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  nextId,
   ILogger,
   LogLevel,
   DI,
@@ -75,7 +74,6 @@ const optionalCeFind = { optional: true } as const;
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
-  public readonly id: number = nextId('au$component');
 
   public head: IHydratedController | null = null;
   public tail: IHydratedController | null = null;
@@ -1471,7 +1469,6 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
-  /** @internal */readonly id: number;
   /**
    * The container associated with this controller.
    * By default, CE should have their own container while custom attribute & synthetic view

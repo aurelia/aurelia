@@ -25,12 +25,6 @@ import type {
 import type { INode } from '../dom';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
-// BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-const { oneTime, toView, fromView } = BindingMode;
-
-// pre-combining flags for bitwise checks is a minor perf tweak
-const toViewOrOneTime = toView | oneTime;
-
 const taskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
@@ -112,7 +106,7 @@ export class AttributeBinding implements IAstBasedBinding {
     let shouldConnect: boolean = false;
     let task: ITask | null;
     if (ast.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
-      shouldConnect = (mode & oneTime) === 0;
+      shouldConnect = (mode & BindingMode.oneTime) === 0;
       if (shouldConnect) {
         this.obs.version++;
       }
@@ -170,13 +164,13 @@ export class AttributeBinding implements IAstBasedBinding {
     const interceptor = this.interceptor;
     let shouldConnect: boolean = false;
 
-    if ($mode & toViewOrOneTime) {
-      shouldConnect = ($mode & toView) > 0;
+    if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
+      shouldConnect = ($mode & BindingMode.toView) > 0;
       interceptor.updateTarget(
         this.value = ast.evaluate(scope, this, shouldConnect ? interceptor : null)
       );
     }
-    if ($mode & fromView) {
+    if ($mode & BindingMode.fromView) {
       targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
     }
 

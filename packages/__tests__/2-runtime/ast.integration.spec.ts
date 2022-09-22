@@ -156,7 +156,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           observerLocator,
           conditionalExpr,
           'value',
-          true
+          true,
         );
 
         let handleChangeCallCount = 0;

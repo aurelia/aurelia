@@ -2,7 +2,6 @@ import {
   CollectionKind,
   subscriberCollection,
   AccessorType,
-  withFlushQueue,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
@@ -13,9 +12,6 @@ import type {
   IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
-  IWithFlushQueue,
-  IFlushable,
-  FlushQueue,
 } from '@aurelia/runtime';
 import { hasOwnProperty, isArray } from '../utilities';
 
@@ -40,12 +36,10 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQueue {
+export class SelectValueObserver implements IObserver {
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-
-  public readonly queue!: FlushQueue;
 
   public readonly handler: EventSubscriber;
 
@@ -264,8 +258,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
   public handleEvent(): void {
     const shouldNotify = this.syncValue();
     if (shouldNotify) {
-      this.queue.add(this);
-      // this.subs.notify(this.currentValue, this.oldValue, LF.none);
+      this._flush();
     }
   }
 
@@ -282,7 +275,7 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     this.syncOptions();
     const shouldNotify = this.syncValue();
     if (shouldNotify) {
-      this.queue.add(this);
+      this._flush();
     }
   }
 
@@ -300,7 +293,8 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
     }
   }
 
-  public flush(): void {
+  /** @internal */
+  private _flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
@@ -308,7 +302,6 @@ export class SelectValueObserver implements IObserver, IFlushable, IWithFlushQue
 }
 
 subscriberCollection(SelectValueObserver);
-withFlushQueue(SelectValueObserver);
 
 function getSelectedOptions(options: ArrayLike<IOptionElement>): unknown[] {
   const selection: unknown[] = [];

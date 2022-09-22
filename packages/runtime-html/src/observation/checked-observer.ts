@@ -3,7 +3,6 @@ import {
   SetterObserver,
   subscriberCollection,
   AccessorType,
-  withFlushQueue,
 } from '@aurelia/runtime';
 import { getCollectionObserver } from './observer-locator';
 import { hasOwnProperty, isArray } from '../utilities';
@@ -17,9 +16,6 @@ import type {
   ISubscriberCollection,
   IObserver,
   IObserverLocator,
-  IFlushable,
-  IWithFlushQueue,
-  FlushQueue,
 } from '@aurelia/runtime';
 
 export interface IInputElement extends HTMLInputElement {
@@ -38,10 +34,8 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 export interface CheckedObserver extends
   ISubscriberCollection { }
 
-export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
+export class CheckedObserver implements IObserver {
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-
-  public readonly queue!: FlushQueue;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -85,7 +79,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     this._oldValue = currentValue;
     this._observe();
     this._synchronizeElement();
-    this.queue.add(this);
+    this._flush();
   }
 
   public handleCollectionChange(): void {
@@ -239,7 +233,7 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
       return;
     }
     this._value = currentValue;
-    this.queue.add(this);
+    this._flush();
   }
 
   public start() {
@@ -267,7 +261,8 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
     }
   }
 
-  public flush(): void {
+  /** @internal */
+  private _flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
@@ -289,7 +284,6 @@ export class CheckedObserver implements IObserver, IFlushable, IWithFlushQueue {
 }
 
 subscriberCollection(CheckedObserver);
-withFlushQueue(CheckedObserver);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

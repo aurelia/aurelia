@@ -1,27 +1,18 @@
-import { subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
+import { AccessorType, subscriberCollection } from '@aurelia/runtime';
 
-import type { EventSubscriber } from './event-delegator';
-import type { INode } from '../dom';
 import type { IIndexable } from '@aurelia/kernel';
-import type {
-  ISubscriberCollection,
-  ISubscriber,
-  IObserver,
-  IFlushable,
-  IWithFlushQueue,
-  FlushQueue,
-} from '@aurelia/runtime';
+import type { IObserver, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
 
 export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
-export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlushable {
+export class ValueAttributeObserver implements IObserver {
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-
-  public readonly queue!: FlushQueue;
 
   /** @internal */
   private readonly _obj: INode & IIndexable;
@@ -70,7 +61,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     if (this._hasChanges) {
       this._hasChanges = false;
       this._obj[this._key as string] = this._value ?? this.handler.config.default;
-      this.queue.add(this);
+      this._flush();
     }
   }
 
@@ -79,7 +70,7 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     this._value = this._obj[this._key as string];
     if (this._oldValue !== this._value) {
       this._hasChanges = false;
-      this.queue.add(this);
+      this._flush();
     }
   }
 
@@ -96,7 +87,8 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
     }
   }
 
-  public flush(): void {
+  /** @internal */
+  private _flush() {
     oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
@@ -104,7 +96,6 @@ export class ValueAttributeObserver implements IObserver, IWithFlushQueue, IFlus
 }
 
 subscriberCollection(ValueAttributeObserver);
-withFlushQueue(ValueAttributeObserver);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

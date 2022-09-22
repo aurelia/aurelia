@@ -629,7 +629,7 @@ describe('AccessMemberExpression', function () {
       }
     });
 
-    it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
+    it(`${t1}.${t2}.evaluate() + connect() -> assign`, function () {
       const scope = createScopeForTest({ foo: obj });
       const evaluator = { strict: false } as unknown as IAstEvaluator;
       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);

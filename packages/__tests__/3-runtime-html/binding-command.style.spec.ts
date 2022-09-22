@@ -1,6 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IPlatform, Aurelia, IEventDelegator, StandardConfiguration } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, PLATFORM, TestContext } from '@aurelia/testing';
+import { assert, createFixture, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { isNode } from '../util.js';
 import { StyleAttributePattern } from './attribute-pattern.js';
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
@@ -16,7 +17,20 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 }
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.style', function () {
+describe('3-runtime-html/binding-commands.style.spec.ts', function () {
+  it('updates style on collection change', function () {
+    const { component, flush, assertAttr } = createFixture
+      .component({ paddings: ['20px', '15px', '10px', '5px'] })
+      .html`<div padding.style="paddings.join(' ')">`
+      .build();
+
+    assertAttr('div', 'style', 'padding: 20px 15px 10px 5px;');
+
+    component.paddings.splice(2);
+    flush();
+    assertAttr('div', 'style', 'padding: 20px 15px;');
+  });
+
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
     ['background', 'red', ''],
@@ -26,7 +40,7 @@ describe('template-compiler.binding-commands.style', function () {
     ['font-family', 'Arial', ''],
     ...(
       // For tests that only work in the browser, only run them in the browser
-      !PLATFORM.navigator.userAgent.includes('jsdom')
+      !isNode()
         ? [
           ['-webkit-user-select', 'none', ''],
         ] as [string, string, string][]
@@ -139,7 +153,7 @@ describe('template-compiler.binding-commands.style', function () {
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
       it(testCase.title(ruleName, ruleValue, callIndex), async function () {
-        const { ctx, au, platform, host, component, tearDown } = createFixture(
+        const { ctx, au, platform, host, component, tearDown } = $createFixture(
           testCase.template(ruleName),
           class App {
             public value: string = ruleValue;
@@ -263,7 +277,7 @@ describe('template-compiler.binding-commands.style', function () {
     assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
   }
 
-  function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
+  function $createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
     const { container, observerLocator, platform } = ctx;
     container.register(...registrations);

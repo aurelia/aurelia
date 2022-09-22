@@ -34,6 +34,14 @@ export class Listener implements IAstBasedBinding {
   /** @internal */
   private readonly _options: ListenerOptions;
 
+  /**
+   * Indicates if this binding evaluates an ast and get a function, that function should be bound
+   * to the instance it is on
+   *
+   * @internal
+   */
+  public readonly boundFn = true;
+
   public constructor(
     public locator: IServiceLocator,
     public ast: IsBindingBehavior,

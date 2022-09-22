@@ -115,6 +115,9 @@ export {
   IBindingController,
 } from './binding/interfaces-bindings';
 export {
+  IFlushQueue,
+  FlushQueue,
+  IFlushable,
   astEvaluator,
 } from './binding/binding-utils';
 export {

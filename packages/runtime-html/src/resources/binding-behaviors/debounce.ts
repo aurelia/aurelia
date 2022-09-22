@@ -13,19 +13,23 @@ const defaultDelay = 200;
 // until a specified interval has passed without any changes
 //
 export class DebounceBindingBehavior extends BindingInterceptor {
-  private readonly taskQueue: TaskQueue;
-  private readonly opts: QueueTaskOptions = { delay: defaultDelay };
-  private readonly firstArg: IsAssign | null = null;
-  private task: ITask | null = null;
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
+  /** @internal */
+  private readonly _opts: QueueTaskOptions = { delay: defaultDelay };
+  /** @internal */
+  private readonly _firstArg: IsAssign | null = null;
+  /** @internal */
+  private _task: ITask | null = null;
 
   public constructor(
     binding: IInterceptableBinding,
     expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.taskQueue = binding.get(IPlatform).taskQueue;
+    this._taskQueue = binding.get(IPlatform).taskQueue;
     if (expr.args.length > 0) {
-      this.firstArg = expr.args[0];
+      this._firstArg = expr.args[0];
     }
   }
 
@@ -37,9 +41,9 @@ export class DebounceBindingBehavior extends BindingInterceptor {
   public handleChange(newValue: unknown, oldValue: unknown): void {
     // when source has changed before the latest debounced value from target
     // then discard that value, and take latest value from source only
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
+    if (this._task !== null) {
+      this._task.cancel();
+      this._task = null;
     }
     this.binding.handleChange(newValue, oldValue);
   }
@@ -50,25 +54,25 @@ export class DebounceBindingBehavior extends BindingInterceptor {
 
   private queueTask(callback: () => void): void {
     // Queue the new one before canceling the old one, to prevent early yield
-    const task = this.task;
-    this.task = this.taskQueue.queueTask(() => {
-      this.task = null;
+    const task = this._task;
+    this._task = this._taskQueue.queueTask(() => {
+      this._task = null;
       return callback();
-    }, this.opts);
+    }, this._opts);
     task?.cancel();
   }
 
   public $bind(scope: Scope): void {
-    if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(scope, this, null));
-      this.opts.delay = isNaN(delay) ? defaultDelay : delay;
+    if (this._firstArg !== null) {
+      const delay = Number(this._firstArg.evaluate(scope, this, null));
+      this._opts.delay = isNaN(delay) ? defaultDelay : delay;
     }
     this.binding.$bind(scope);
   }
 
   public $unbind(): void {
-    this.task?.cancel();
-    this.task = null;
+    this._task?.cancel();
+    this._task = null;
     this.binding.$unbind();
   }
 }

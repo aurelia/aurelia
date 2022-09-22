@@ -15,6 +15,10 @@ export class CallBinding implements IAstBasedBinding {
 
   public targetObserver: IAccessor;
 
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
+
   public constructor(
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,

@@ -618,6 +618,10 @@ export {
   // ICollectionObserver,
   // ICollectionSubscriber,
 
+  IFlushQueue,
+  FlushQueue,
+  IFlushable,
+
   renderer,
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,

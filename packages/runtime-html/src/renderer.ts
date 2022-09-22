@@ -737,7 +737,13 @@ export class LetElementRenderer implements IRenderer {
     while (ii > i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this._exprParser, childInstruction.from, ExpressionType.IsProperty);
-      binding = new LetBinding(container, this._observerLocator, expr, childInstruction.to, toBindingContext);
+      binding = new LetBinding(
+        container,
+        this._observerLocator,
+        expr,
+        childInstruction.to,
+        toBindingContext,
+      );
       renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
         ? applyBindingBehavior(binding, expr, container)
         : binding
@@ -931,7 +937,7 @@ export class IteratorBindingRenderer implements IRenderer {
       expr,
       getTarget(target),
       instruction.to,
-      BindingMode.toView
+      BindingMode.toView,
     );
     renderingCtrl.addBinding(expr.iterable.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr.iterable, renderingCtrl.container)
@@ -1015,7 +1021,7 @@ export class TextBindingRenderer implements IRenderer {
         // support seamless transition between a html node, or a text
         // reduce the noise in the template, caused by html comment
         parent.insertBefore(doc.createTextNode(''), next),
-        instruction.strict
+        instruction.strict,
       );
       renderingCtrl.addBinding(part.$kind === ExpressionKind.BindingBehavior
         // each of the dynamic expression of an interpolation
@@ -1116,12 +1122,20 @@ export class SetStyleAttributeRenderer implements IRenderer {
 export class StylePropertyBindingRenderer implements IRenderer {
   /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
 
+  /** @internal */ private readonly _exprParser: IExpressionParser;
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
+  /** @internal */ private readonly _platform: IPlatform;
+
   public target!: InstructionType.stylePropertyBinding;
   public constructor(
-    /** @internal */ private readonly _exprParser: IExpressionParser,
-    /** @internal */ private readonly _observerLocator: IObserverLocator,
-    /** @internal */ private readonly _platform: IPlatform,
-  ) {}
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+    platform: IPlatform,
+  ) {
+    this._exprParser = exprParser;
+    this._observerLocator = observerLocator;
+    this._platform = platform;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1137,7 +1151,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
       expr,
       target.style,
       instruction.to,
-      BindingMode.toView
+      BindingMode.toView,
     );
     renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
       ? applyBindingBehavior(binding, expr, renderingCtrl.container)

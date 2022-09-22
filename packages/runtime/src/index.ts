@@ -101,13 +101,6 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker';
 export {
-  IFlushQueue,
-  type IFlushable,
-  type IWithFlushQueue,
-  FlushQueue,
-  withFlushQueue,
-} from './observation/flush-queue';
-export {
   type IEffect,
   IObservation,
   Observation,

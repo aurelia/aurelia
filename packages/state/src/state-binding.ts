@@ -38,6 +38,10 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   /** @internal */ private _updateCount = 0;
   /** @internal */ private readonly _controller: IBindingController;
 
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
+
   public mode: BindingMode = BindingMode.toView;
 
   public constructor(
@@ -148,7 +152,11 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     }
   }
 
-  public handleStateChange(state: object): void {
+  public handleStateChange(): void {
+    if (!this.isBound) {
+      return;
+    }
+    const state = this._store.getState();
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;

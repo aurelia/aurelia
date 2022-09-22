@@ -117,6 +117,10 @@ export class ExpressionWatcher implements IConnectableBinding {
   public value: unknown;
   public isBound: boolean = false;
 
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
+
   public constructor(
     public scope: Scope,
     public locator: IServiceLocator,

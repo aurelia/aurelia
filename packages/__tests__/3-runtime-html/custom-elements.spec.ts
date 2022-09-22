@@ -1,9 +1,9 @@
-import { BindingMode, CustomElement, ValueConverter } from '@aurelia/runtime-html';
+import { BindingMode, customElement, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
-  it('works with multiple layers of change propagation & <input/>', async function () {
-    const { ctx, appHost } = await createFixture(
+  it('works with multiple layers of change propagation & <input/>', function () {
+    const { ctx, appHost } = createFixture(
       `<input value.bind="first_name | properCase">
       <form-input value.two-way="first_name | properCase"></form-input>`,
       class App {
@@ -30,7 +30,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
           }
         }),
       ],
-    ).started;
+    );
 
     const [, nestedInputEl] = Array.from(appHost.querySelectorAll('input'));
     nestedInputEl.value = 'aa bb';
@@ -40,8 +40,8 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
   });
 
-  it('renders containerless per element via "containerless" attribute', async function () {
-    const { appHost } = await createFixture(
+  it('renders containerless per element via "containerless" attribute', function () {
+    const { appHost } = createFixture(
       `<my-el containerless message="hello world">`,
       class App {},
       [CustomElement.define({
@@ -49,24 +49,28 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
         template: '${message}',
         bindables: ['message']
       })]
-    ).started;
+    );
 
     assert.visibleTextEqual(appHost, 'hello world');
   });
 
-  it('renders element with @customElement({ containerness: true })', async function () {
-    const { assertText } = await createFixture(`<my-el message="hello world">`, class App {}, [CustomElement.define({
-      name: 'my-el',
-      template: '${message}',
-      bindables: ['message'],
-      containerless: true
-    })]).started;
+  it('renders element with @customElement({ containerness: true })', function () {
+    const { assertText } = createFixture(
+      `<my-el message="hello world">`,
+      class App {},
+      [CustomElement.define({
+        name: 'my-el',
+        template: '${message}',
+        bindables: ['message'],
+        containerless: true
+      })
+    ]);
 
     assertText('hello world');
   });
 
-  it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', async function () {
-    const { assertText } = await createFixture(
+  it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', function () {
+    const { assertText } = createFixture(
       `<my-el containerless message="hello world">`,
       class App {},
       [CustomElement.define({
@@ -75,13 +79,13 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
         bindables: ['message'],
         containerless: true,
       })]
-    ).started;
+    );
 
     assertText('hello world');
   });
 
-  it('renders elements with template controller and containerless attribute on it', async function () {
-    const { assertText } = await createFixture(
+  it('renders elements with template controller and containerless attribute on it', function () {
+    const { assertText } = createFixture(
       `<my-el if.bind="true" containerless message="hello world">`,
       class App {},
       [CustomElement.define({
@@ -89,9 +93,40 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
         template: '${message}',
         bindables: ['message']
       })]
-    ).started;
+    );
 
     assertText('hello world');
+  });
+
+  it('works with multi layer reactive changes', function () {
+    @customElement({
+      name: 'text-toggler',
+      template: '<textarea value.bind="value">',
+      bindables: ['range']
+    })
+    class TextToggler {
+      rangeStart = 0;
+      rangeEnd = 0;
+      range: [number, number] = [0, 0];
+
+      rangeChanged(v: [number, number]) {
+        this.rangeStart = v[0];
+        this.rangeEnd = v[1];
+      }
+    }
+
+    const { trigger } = createFixture(
+      '<button click.trigger="random()">rando</button> <text-toggler range.bind="range">',
+      class {
+        range = [0, 0];
+        random() {
+          this.range = [Math.round(Math.random() * 10), 10 + Math.round(Math.random() * 20)];
+        }
+      },
+      [TextToggler]
+    );
+
+    trigger('button', 'click');
   });
 });
 // import {

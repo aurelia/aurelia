@@ -1,7 +1,6 @@
 import {
   AccessorOrObserver,
   AccessorType,
-  ExpressionKind,
   connectable,
 } from '@aurelia/runtime';
 import { BindingMode } from './interfaces-bindings';
@@ -20,6 +19,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
+import { isArray } from '../utilities';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
@@ -73,7 +73,12 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public updateTarget(_value: unknown): void {
+  /** @internal */
+  public _handlePartChange() {
+    this.updateTarget();
+  }
+
+  public updateTarget(): void {
     const partBindings = this.partBindings;
     const staticParts = this.ast.parts;
     const ii = partBindings.length;
@@ -127,7 +132,7 @@ export class InterpolationBinding implements IBinding {
     for (; ii > i; ++i) {
       partBindings[i].$bind(scope);
     }
-    this.updateTarget(void 0);
+    this.updateTarget();
   }
 
   public $unbind(): void {
@@ -167,6 +172,9 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     public readonly ast: IsExpression,
@@ -179,23 +187,20 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.oL = observerLocator;
   }
 
-  public handleChange(newValue: unknown): void {
+  public handleChange(): void {
     if (!this.isBound) {
       return;
     }
     const ast = this.ast;
     const obsRecord = this.obs;
-    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     let shouldConnect: boolean = false;
-    if (!canOptimize) {
-      shouldConnect = (this.mode & BindingMode.toView) > 0;
-      if (shouldConnect) {
-        obsRecord.version++;
-      }
-      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
-      if (shouldConnect) {
-        obsRecord.clear();
-      }
+    shouldConnect = (this.mode & BindingMode.toView) > 0;
+    if (shouldConnect) {
+      obsRecord.version++;
+    }
+    const newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
+    if (shouldConnect) {
+      obsRecord.clear();
     }
     // todo(!=): maybe should do strict comparison?
     // eslint-disable-next-line eqeqeq
@@ -204,12 +209,12 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
       if (newValue instanceof Array) {
         this.observeCollection(newValue);
       }
-      this.owner.updateTarget(newValue);
+      this.owner._handlePartChange();
     }
   }
 
   public handleCollectionChange(): void {
-    this.owner.updateTarget(void 0);
+    this.handleChange();
   }
 
   public $bind(scope: Scope): void {
@@ -278,6 +283,9 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
   /** @internal */
   private readonly _controller: IBindingController;
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     controller: IBindingController,
@@ -309,23 +317,17 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
   }
 
-  public handleChange(newValue: unknown): void {
+  public handleChange(): void {
     if (!this.isBound) {
       return;
     }
-    const ast = this.ast;
-    const obsRecord = this.obs;
-    const canOptimize = ast.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
-    let shouldConnect: boolean = false;
-    if (!canOptimize) {
-      shouldConnect = (this.mode & BindingMode.toView) > 0;
-      if (shouldConnect) {
-        obsRecord.version++;
-      }
-      newValue = ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
-      if (shouldConnect) {
-        obsRecord.clear();
-      }
+    const shouldConnect = (this.mode & BindingMode.toView) > 0;
+    if (shouldConnect) {
+      this.obs.version++;
+    }
+    const newValue = this.ast.evaluate(this.$scope!, this, shouldConnect ? this.interceptor : null);
+    if (shouldConnect) {
+      this.obs.clear();
     }
     if (newValue === this.value) {
       // in a frequent update, e.g collection mutation in a loop
@@ -335,10 +337,6 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       this.task = null;
       return;
     }
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
       this.queueUpdate(newValue);
@@ -358,7 +356,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     this.obs.clear();
-    if (v instanceof Array) {
+    if (isArray(v)) {
       this.observeCollection(v);
     }
     const shouldQueueFlush = this._controller.state !== State.activating;
@@ -389,7 +387,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       this,
       (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
-    if (v instanceof Array) {
+    if (isArray(v)) {
       this.observeCollection(v);
     }
     this.updateTarget(v);

@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { PropertyBinding, IPlatform, SelfBindingBehavior } from '@aurelia/runtime-html';
+import { PropertyBinding, IPlatform, SelfBindingBehavior, FlushQueue } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/self-binding-behavior.spec.ts', function () {

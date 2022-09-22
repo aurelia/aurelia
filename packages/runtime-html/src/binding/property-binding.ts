@@ -1,5 +1,5 @@
-import { AccessorType, connectable, ExpressionKind } from '@aurelia/runtime';
-import { astEvaluator, BindingTargetSubscriber } from './binding-utils';
+import { AccessorType, connectable } from '@aurelia/runtime';
+import { IFlushQueue, astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 import { BindingMode } from './interfaces-bindings';
 
@@ -39,10 +39,16 @@ export class PropertyBinding implements IAstBasedBinding {
    * @internal
    */
   public readonly oL: IObserverLocator;
+
   /** @internal */
   private readonly _controller: IBindingController;
+
   /** @internal */
   private readonly _taskQueue: TaskQueue;
+
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     controller: IBindingController,
@@ -67,30 +73,22 @@ export class PropertyBinding implements IAstBasedBinding {
     this.ast.assign(this.$scope!, this, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown): void {
+  public handleChange(): void {
     if (!this.isBound) {
       return;
     }
 
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     let shouldConnect: boolean = false;
 
-    // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-    if (this.ast.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
-      // todo: in VC expressions, from view also requires connect
-      shouldConnect = this.mode > BindingMode.oneTime;
-      if (shouldConnect) {
-        obsRecord.version++;
-      }
-      newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
-      if (shouldConnect) {
-        obsRecord.clear();
-      }
+    shouldConnect = this.mode > BindingMode.oneTime;
+    if (shouldConnect) {
+      obsRecord.version++;
+    }
+    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
+    if (shouldConnect) {
+      obsRecord.clear();
     }
 
     if (shouldQueueFlush) {
@@ -108,26 +106,8 @@ export class PropertyBinding implements IAstBasedBinding {
   }
 
   // todo: based off collection and handle update accordingly instead off always start
-  public handleCollectionChange(_collection: unknown): void {
-    if (!this.isBound) {
-      return;
-    }
-    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
-    this.obs.version++;
-    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
-    this.obs.clear();
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this._taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(newValue);
-        this.task = null;
-      }, updateTaskOpts);
-      task?.cancel();
-      task = null;
-    } else {
-      this.interceptor.updateTarget(newValue);
-    }
+  public handleCollectionChange(): void {
+    this.handleChange();
   }
 
   public $bind(scope: Scope): void {
@@ -170,7 +150,7 @@ export class PropertyBinding implements IAstBasedBinding {
     }
 
     if ($mode & BindingMode.fromView) {
-      (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
+      (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }

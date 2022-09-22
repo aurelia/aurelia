@@ -1,7 +1,6 @@
 import { DI, IPlatform } from '@aurelia/kernel';
 import { AccessorType, type IObserver, type ISubscriberCollection } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { FlushQueue, type IFlushable, type IWithFlushQueue, withFlushQueue } from './flush-queue';
 import { safeString } from '../utilities-objects';
 
 import type { ITask, QueueTaskOptions } from '@aurelia/platform';
@@ -48,12 +47,11 @@ const queueTaskOpts: QueueTaskOptions = {
   persistent: true,
 };
 
-export class DirtyChecker implements IWithFlushQueue {
+export class DirtyChecker {
   /**
    * @internal
    */
   public static inject = [IPlatform];
-  public readonly queue!: FlushQueue;
   private readonly tracked: DirtyCheckProperty[] = [];
 
   private _task: ITask | null = null;
@@ -104,17 +102,15 @@ export class DirtyChecker implements IWithFlushQueue {
     for (; i < len; ++i) {
       current = tracked[i];
       if (current.isDirty()) {
-        this.queue.add(current);
+        current.flush();
       }
     }
   };
 }
 
-withFlushQueue(DirtyChecker);
-
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
-export class DirtyCheckProperty implements DirtyCheckProperty, IFlushable {
+export class DirtyCheckProperty implements DirtyCheckProperty {
   public type: AccessorType = AccessorType.None;
 
   /** @internal */

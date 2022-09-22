@@ -195,7 +195,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 }
 
 /* eslint-disable */
-const interceptableProperties = ['isBound', '$scope', 'obs', 'ast', 'locator', 'oL'];
+const interceptableProperties = ['isBound', '$scope', 'obs', 'ast', 'locator', 'oL', 'boundFn'];
 interceptableProperties.forEach(prop => {
   def(BindingInterceptor.prototype, prop, {
     enumerable: false,

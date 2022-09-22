@@ -1,6 +1,6 @@
-import { Primitive } from '@aurelia/kernel';
 import { AccessorType } from '../observation';
 
+import type { Primitive } from '@aurelia/kernel';
 import type { IAccessor, ISubscribable } from '../observation';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {

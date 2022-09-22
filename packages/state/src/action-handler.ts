@@ -1,7 +1,7 @@
 import { IContainer, Registration } from '@aurelia/kernel';
 import { IActionHandler, IRegistrableReducer } from './interfaces';
 
-const actionHandlerSymbol = '__reducer__';
+const actionHandlerSymbol = '__au_ah__';
 export const ActionHandler = Object.freeze({
   define<T extends IActionHandler>(reducer: T): IRegistrableReducer {
     function registry(state: any, action: unknown, ...params: any[]): unknown {

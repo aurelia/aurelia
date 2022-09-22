@@ -1,13 +1,10 @@
-import { subscriberCollection, AccessorType, withFlushQueue } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { isString } from '../utilities';
 
 import type {
   IObserver,
   ISubscriber,
   ISubscriberCollection,
-  IFlushable,
-  IWithFlushQueue,
-  FlushQueue,
 } from '@aurelia/runtime';
 
 export interface AttributeObserver extends
@@ -20,11 +17,10 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-export class AttributeObserver implements AttributeObserver, ElementMutationSubscriber, IWithFlushQueue, IFlushable {
+export class AttributeObserver implements AttributeObserver, ElementMutationSubscriber {
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-  public readonly queue!: FlushQueue;
 
   /** @internal */
   private readonly _obj: HTMLElement;
@@ -140,7 +136,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         this._oldValue = this._value;
         this._value = newValue;
         this._hasChanges = false;
-        this.queue.add(this);
+        this._flush();
       }
     }
   }
@@ -158,7 +154,8 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     }
   }
 
-  public flush(): void {
+  /** @internal */
+  private _flush(): void {
     oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
@@ -166,7 +163,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 }
 
 subscriberCollection(AttributeObserver);
-withFlushQueue(AttributeObserver);
 
 interface IHtmlElement extends HTMLElement {
   $mObs: MutationObserver;

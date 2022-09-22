@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, withFlushQueue, ICoercionConfiguration } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, ICoercionConfiguration } from '@aurelia/runtime';
 import { isFunction } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
@@ -8,9 +8,6 @@ import type {
   IObserver,
   ISubscriber,
   ISubscriberCollection,
-  IFlushable,
-  IWithFlushQueue,
-  FlushQueue,
 } from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
 
@@ -22,15 +19,13 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
-export class BindableObserver implements IFlushable, IWithFlushQueue {
+export class BindableObserver {
   public get type(): AccessorType { return AccessorType.Observer; }
 
   /** @internal */
   private _value: unknown = void 0;
   /** @internal */
   private _oldValue: unknown = void 0;
-
-  public queue!: FlushQueue;
 
   /** @internal */
   private _observing: boolean;
@@ -120,8 +115,7 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
           this._cbAll.call(this._obj, this._key, newValue, currentValue);
         }
       }
-      this.queue.add(this);
-      // this.subs.notify(newValue, currentValue, flags);
+      this.subs.notify(this._value, this._oldValue);
     } else {
       // See SetterObserver.setValue for explanation
       this._obj[this._key] = newValue;
@@ -138,12 +132,6 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
     }
 
     this.subs.add(subscriber);
-  }
-
-  public flush(): void {
-    oV = this._oldValue;
-    this._oldValue = this._value;
-    this.subs.notify(this._value, oV);
   }
 
   /** @internal */
@@ -164,8 +152,3 @@ export class BindableObserver implements IFlushable, IWithFlushQueue {
 }
 
 subscriberCollection(BindableObserver);
-withFlushQueue(BindableObserver);
-
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;

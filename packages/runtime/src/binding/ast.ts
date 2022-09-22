@@ -9,7 +9,6 @@ import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   IBindingContext,
   IObservable,
-  IOverrideContext,
   IConnectable,
   ISubscriber,
 } from '../observation';
@@ -419,6 +418,8 @@ export class Unparser implements IVisitor<void> {
 export interface IAstEvaluator {
   /** describe whether the evaluator wants to evaluate in strict mode */
   strict?: boolean;
+  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
+  boundFn?: boolean;
   /** describe whether the evaluator wants to evaluate the function call in strict mode */
   strictFnCall?: boolean;
   /** Allow an AST to retrieve a service that it needs */
@@ -719,7 +720,7 @@ export class AccessScopeExpression {
     public readonly ancestor: number = 0,
   ) {}
 
-  public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): IBindingContext | IOverrideContext {
+  public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
     const obj = Scope.getContext(s, this.name, this.ancestor) as IBindingContext;
     if (c !== null) {
       c.observe(obj, this.name);
@@ -732,9 +733,16 @@ export class AccessScopeExpression {
         throw new Error(`AUR0105`);
     }
     if (e?.strict) {
-      return evaluatedValue;
+      // return evaluatedValue;
+      return e?.boundFn && isFunction(evaluatedValue)
+        ? evaluatedValue.bind(obj)
+        : evaluatedValue;
     }
-    return evaluatedValue == null ? '' as unknown as ReturnType<AccessScopeExpression['evaluate']> : evaluatedValue;
+    return evaluatedValue == null
+      ? ''
+      : e?.boundFn && isFunction(evaluatedValue)
+        ? evaluatedValue.bind(obj)
+        : evaluatedValue;
   }
 
   public assign(s: Scope, _e: IAstEvaluator | null, val: unknown): unknown {
@@ -777,6 +785,7 @@ export class AccessMemberExpression {
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
     const instance = this.object.evaluate(s, e, c) as IIndexable;
+    let ret: unknown;
     if (e?.strict) {
       if (instance == null) {
         return instance;
@@ -784,13 +793,24 @@ export class AccessMemberExpression {
       if (c !== null) {
         c.observe(instance, this.name);
       }
-      return instance[this.name];
+      ret = instance[this.name];
+      if (e?.boundFn && isFunction(ret)) {
+        return ret.bind(instance);
+      }
+      return ret;
     }
     if (c !== null && instance instanceof Object) {
       c.observe(instance, this.name);
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    return instance ? instance[this.name] : '';
+    if (instance) {
+      ret = instance[this.name];
+      if (e?.boundFn && isFunction(ret)) {
+        return ret.bind(instance);
+      }
+      return ret;
+    }
+    return '';
   }
 
   public assign(s: Scope, e: IAstEvaluator | null, val: unknown): unknown {

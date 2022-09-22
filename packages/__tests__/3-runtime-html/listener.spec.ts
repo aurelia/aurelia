@@ -43,6 +43,16 @@ describe('3-runtime-html/listener.spec.ts', function () {
     assert.strictEqual(log, 1);
   });
 
+  it('invokes handler after evaluating expression with correct context', function () {
+    const { component, trigger } = createFixture(
+      '<button click.trigger="onClick">',
+      { log: 0, onClick() { this.log++; } },
+    );
+
+    trigger.click('button');
+    assert.strictEqual(component.log, 1);
+  });
+
   it('invoke lambda handler', function () {
     let log = 0;
     const { trigger } = createFixture(

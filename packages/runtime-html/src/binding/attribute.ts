@@ -1,6 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
-  ExpressionKind,
   AccessorType,
   IObserver,
   connectable,
@@ -8,7 +7,7 @@ import {
 
 import { BindingMode } from './interfaces-bindings';
 import { AttributeObserver } from '../observation/element-attribute-observer';
-import { BindingTargetSubscriber, astEvaluator } from './binding-utils';
+import { IFlushQueue, BindingTargetSubscriber, astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';
 
 import type {
@@ -58,6 +57,9 @@ export class AttributeBinding implements IAstBasedBinding {
 
   /** @internal */
   private readonly _controller: IBindingController;
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     controller: IBindingController,
@@ -88,7 +90,7 @@ export class AttributeBinding implements IAstBasedBinding {
     this.ast.assign(this.$scope, this, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown): void {
+  public handleChange(): void {
     if (!this.isBound) {
       return;
     }
@@ -105,15 +107,13 @@ export class AttributeBinding implements IAstBasedBinding {
     const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
     let shouldConnect: boolean = false;
     let task: ITask | null;
-    if (ast.$kind !== ExpressionKind.AccessScope || this.obs.count > 1) {
-      shouldConnect = (mode & BindingMode.oneTime) === 0;
-      if (shouldConnect) {
-        this.obs.version++;
-      }
-      newValue = ast.evaluate($scope, this, interceptor);
-      if (shouldConnect) {
-        this.obs.clear();
-      }
+    shouldConnect = (mode & BindingMode.oneTime) === 0;
+    if (shouldConnect) {
+      this.obs.version++;
+    }
+    const newValue = ast.evaluate($scope, this, interceptor);
+    if (shouldConnect) {
+      this.obs.clear();
     }
 
     if (newValue !== this.value) {
@@ -130,6 +130,11 @@ export class AttributeBinding implements IAstBasedBinding {
         interceptor.updateTarget(newValue);
       }
     }
+  }
+
+  // todo: based off collection and handle update accordingly instead off always start
+  public handleCollectionChange(): void {
+    this.handleChange();
   }
 
   public $bind(scope: Scope): void {
@@ -171,7 +176,7 @@ export class AttributeBinding implements IAstBasedBinding {
       );
     }
     if ($mode & BindingMode.fromView) {
-      targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor));
+      targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
     }
 
     this.isBound = true;

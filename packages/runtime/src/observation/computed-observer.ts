@@ -7,7 +7,6 @@ import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
 import { def, isFunction } from '../utilities-objects';
-import { withFlushQueue } from './flush-queue';
 
 import type {
   ISubscriber,
@@ -17,7 +16,6 @@ import type {
 } from '../observation';
 import type { IConnectableBinding } from '../binding/connectable';
 import type { IObserverLocator, ObservableGetter } from './observer-locator';
-import type { FlushQueue, IFlushable, IWithFlushQueue } from './flush-queue';
 
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
@@ -26,9 +24,7 @@ export class ComputedObserver implements
   IConnectableBinding,
   ISubscriber,
   ICollectionSubscriber,
-  ISubscriberCollection,
-  IWithFlushQueue,
-  IFlushable {
+  ISubscriberCollection {
 
   public static create(
     obj: object,
@@ -57,7 +53,6 @@ export class ComputedObserver implements
   public interceptor = this;
 
   public type: AccessorType = AccessorType.Observer;
-  public readonly queue!: FlushQueue;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -167,12 +162,6 @@ export class ComputedObserver implements
     }
   }
 
-  public flush(): void {
-    oV = this._oldValue;
-    this._oldValue = this._value;
-    this.subs.notify(this._value, oV);
-  }
-
   private run(): void {
     if (this._isRunning) {
       return;
@@ -184,7 +173,9 @@ export class ComputedObserver implements
 
     if (!Object.is(newValue, oldValue)) {
       this._oldValue = oldValue;
-      this.queue.add(this);
+      oV = this._oldValue;
+      this._oldValue = this._value;
+      this.subs.notify(this._value, oV);
     }
   }
 
@@ -204,7 +195,6 @@ export class ComputedObserver implements
 
 connectable(ComputedObserver);
 subscriberCollection(ComputedObserver);
-withFlushQueue(ComputedObserver);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

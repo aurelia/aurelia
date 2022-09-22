@@ -9,29 +9,21 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from '../observation';
-import { FlushQueue, IFlushable, IWithFlushQueue, withFlushQueue } from './flush-queue';
 
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;
-
-export interface SetterObserver extends IAccessor, ISubscriberCollection {}
+export interface SetterObserver extends ISubscriberCollection {}
 
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-export class SetterObserver implements IWithFlushQueue, IFlushable {
+export class SetterObserver implements IAccessor, ISubscriberCollection {
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Observer;
 
   /** @internal */
   private _value: unknown = void 0;
   /** @internal */
-  private _oldValue: unknown = void 0;
-  /** @internal */
   private _observing: boolean = false;
-  public readonly queue!: FlushQueue;
 
   /** @internal */ private readonly _obj: IIndexable;
   /** @internal */ private readonly _key: PropertyKey;
@@ -53,9 +45,9 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
       if (Object.is(newValue, this._value)) {
         return;
       }
-      this._oldValue = this._value;
+      oV = this._value;
       this._value = newValue;
-      this.queue.add(this);
+      this.subs.notify(newValue, oV);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.value.
@@ -73,12 +65,6 @@ export class SetterObserver implements IWithFlushQueue, IFlushable {
     }
 
     this.subs.add(subscriber);
-  }
-
-  public flush(): void {
-    oV = this._oldValue;
-    this._oldValue = this._value;
-    this.subs.notify(this._value, oV);
   }
 
   public start(): this {
@@ -120,9 +106,8 @@ type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown) =
 
 export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
-export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
+export class SetterNotifier implements IAccessor {
   public readonly type: AccessorType = AccessorType.Observer;
-  public readonly queue!: FlushQueue;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -163,18 +148,18 @@ export class SetterNotifier implements IAccessor, IWithFlushQueue, IFlushable {
       this._oldValue = this._value;
       this._value = value;
       this.cb?.call(this._obj, this._value, this._oldValue);
-      this.queue.add(this);
+      // this._value might have been updated during the callback
+      // we only want to notify subscribers with the latest values
+      oV = this._oldValue;
+      this._oldValue = this._value;
+      this.subs.notify(this._value, oV);
     }
-  }
-
-  public flush(): void {
-    oV = this._oldValue;
-    this._oldValue = this._value;
-    this.subs.notify(this._value, oV);
   }
 }
 
 subscriberCollection(SetterObserver);
 subscriberCollection(SetterNotifier);
-withFlushQueue(SetterObserver);
-withFlushQueue(SetterNotifier);
+
+// a reusable variable for `.flush()` methods of observers
+// so that there doesn't need to create an env record for every call
+let oV: unknown = void 0;

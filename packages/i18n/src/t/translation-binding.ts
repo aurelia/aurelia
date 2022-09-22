@@ -84,6 +84,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
   /** @internal */
   private readonly _controller: IBindingController;
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     controller: IBindingController,
@@ -369,6 +372,9 @@ class ParameterBinding {
   public isBound: boolean = false;
 
   private scope!: Scope;
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     public readonly owner: TranslationBinding,

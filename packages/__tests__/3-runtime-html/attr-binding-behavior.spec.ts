@@ -24,7 +24,7 @@ describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
       undefined,
       target,
       targetProperty,
-      {} as any
+      {} as any,
     );
     sut.bind(undefined, binding);
   });

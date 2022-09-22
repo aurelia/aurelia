@@ -26,6 +26,9 @@ export class StateDispatchBinding implements IAstBasedBinding {
   private readonly target: HTMLElement;
   private readonly targetProperty: string;
 
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
   /** @internal */ private readonly _store: IStore<object>;
 
   public constructor(

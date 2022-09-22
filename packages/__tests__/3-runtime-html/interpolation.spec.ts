@@ -150,7 +150,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
 
       changeFnc: (val) => {
         val.splice(1, 1);
-        return val;  // Array observation no worky
+        return val;
       }, app: class { public value = [0, 1, 2]; },
       interpolation: `$\{value}`,
       it: 'Array prints comma delimited values and observes splice correctly'

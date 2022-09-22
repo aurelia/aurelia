@@ -22,12 +22,17 @@ export class LetBinding implements IAstBasedBinding {
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
   private readonly _toBindingContext: boolean;
+
   /**
    * A semi-private property used by connectable mixin
    *
    * @internal
    */
   public readonly oL: IObserverLocator;
+
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
 
   public constructor(
     public locator: IServiceLocator,
@@ -40,23 +45,7 @@ export class LetBinding implements IAstBasedBinding {
     this._toBindingContext = toBindingContext;
   }
 
-  public handleChange(newValue: unknown): void {
-    if (!this.isBound) {
-      return;
-    }
-
-    const target = this.target as IIndexable;
-    const targetProperty = this.targetProperty;
-    const previousValue: unknown = target[targetProperty];
-    this.obs.version++;
-    newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
-    this.obs.clear();
-    if (newValue !== previousValue) {
-      target[targetProperty] = newValue;
-    }
-  }
-
-  public handleCollectionChange(): void {
+  public handleChange(): void {
     if (!this.isBound) {
       return;
     }
@@ -72,6 +61,10 @@ export class LetBinding implements IAstBasedBinding {
     }
   }
 
+  public handleCollectionChange(): void {
+    this.handleChange();
+  }
+
   public $bind(scope: Scope): void {
     if (this.isBound) {
       if (this.$scope === scope) {
@@ -83,9 +76,8 @@ export class LetBinding implements IAstBasedBinding {
     this.$scope = scope;
     this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
-    const ast = this.ast;
-    if (ast.hasBind) {
-      ast.bind(scope, this.interceptor);
+    if (this.ast.hasBind) {
+      this.ast.bind(scope, this.interceptor);
     }
     // ast might have been changed during bind
     this.target[this.targetProperty]
@@ -100,9 +92,8 @@ export class LetBinding implements IAstBasedBinding {
       return;
     }
 
-    const ast = this.ast;
-    if (ast.hasUnbind) {
-      ast.unbind(this.$scope!, this.interceptor);
+    if (this.ast.hasUnbind) {
+      this.ast.unbind(this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
     this.obs.clearAll();

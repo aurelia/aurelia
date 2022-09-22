@@ -198,6 +198,7 @@ export class NavigationOptions extends RouterOptions {
 export class UnknownRouteError extends Error { }
 
 export class Transition {
+  /** @internal */
   private _erredWithUnknownRoute: boolean = false;
   public get erredWithUnknownRoute(): boolean { return this._erredWithUnknownRoute; }
 

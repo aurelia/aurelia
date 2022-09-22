@@ -3,6 +3,45 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### Features:
+
+* **collection-observation:** add ability to batch mutation into a single indexmap ([39b3f82](https://github.com/aurelia/aurelia/commit/39b3f82))
+* **router:** multiple bindable props for load attribute (#1554) ([02ca208](https://github.com/aurelia/aurelia/commit/02ca208))
+* **router:** support configured route in canLoad redirect string (#1545) ([a4c7a37](https://github.com/aurelia/aurelia/commit/a4c7a37))
+
+
+### Bug Fixes:
+
+* ***:** call listener with correct scope, move flush queue to binding ([70d1329](https://github.com/aurelia/aurelia/commit/70d1329))
+* **router-lite:** recovery from unconfigured route (#1569) ([e095490](https://github.com/aurelia/aurelia/commit/e095490))
+* **router:** fix path issue when redirecting (#1564) ([e8b5d3f](https://github.com/aurelia/aurelia/commit/e8b5d3f))
+* **html:** remove attrs on null/undefined (#1561) ([2de6f17](https://github.com/aurelia/aurelia/commit/2de6f17))
+* **expression-parser:** throw on invalid template continuations in interpolation ([9abab48](https://github.com/aurelia/aurelia/commit/9abab48))
+* **ast:** dont observe on sort ([beeba4e](https://github.com/aurelia/aurelia/commit/beeba4e))
+
+
+### Refactorings:
+
+* ***:** some tests cleanup ([02c8af6](https://github.com/aurelia/aurelia/commit/02c8af6))
+* ***:** remove work tracker ([96f90c6](https://github.com/aurelia/aurelia/commit/96f90c6))
+* **binding-command:** make expr parser & attr mapper parameters of command build ([0ff9756](https://github.com/aurelia/aurelia/commit/0ff9756))
+* **runtime:** make Char local to expr parser only ([3272fb7](https://github.com/aurelia/aurelia/commit/3272fb7))
+* **runtime:** move LifecycleFlags to runtime-html ([ef35bc7](https://github.com/aurelia/aurelia/commit/ef35bc7))
+* **ast:** observe after eval fn call ([aca7b0f](https://github.com/aurelia/aurelia/commit/aca7b0f))
+* **observation:** also pass collection in change handler ([c382e8a](https://github.com/aurelia/aurelia/commit/c382e8a))
+* ***:** cleanup context & scope ([e806937](https://github.com/aurelia/aurelia/commit/e806937))
+* ***:** move delegation strategy to runtime-html ([f387b2a](https://github.com/aurelia/aurelia/commit/f387b2a))
+* ***:** always handle event handler as fn (#1563) ([6037495](https://github.com/aurelia/aurelia/commit/6037495))
+* **bindings:** remove flags from bind/unbind (#1560) ([eaaf4bb](https://github.com/aurelia/aurelia/commit/eaaf4bb))
+* **ast:** move VC signal to bind (#1558) ([3fffacf](https://github.com/aurelia/aurelia/commit/3fffacf))
+* ***:** remove flags from observers (#1557) ([9f9a8fe](https://github.com/aurelia/aurelia/commit/9f9a8fe))
+* **binding:** move BindingMode to runtime-html (#1555) ([c75618b](https://github.com/aurelia/aurelia/commit/c75618b))
+* **ast:** remove flags from evaluate (#1553) ([dda997b](https://github.com/aurelia/aurelia/commit/dda997b))
+* **router:** rename load, unload to loading, unloading (#1546) ([9cd3f02](https://github.com/aurelia/aurelia/commit/9cd3f02))
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

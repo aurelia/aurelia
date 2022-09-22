@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### Features:
+
+* **collection-observation:** add ability to batch mutation into a single indexmap ([39b3f82](https://github.com/aurelia/aurelia/commit/39b3f82))
+
+
+### Bug Fixes:
+
+* ***:** call listener with correct scope, move flush queue to binding ([70d1329](https://github.com/aurelia/aurelia/commit/70d1329))
+* **html:** remove attrs on null/undefined (#1561) ([2de6f17](https://github.com/aurelia/aurelia/commit/2de6f17))
+
+
+### Refactorings:
+
+* ***:** cleanup unnecessary exports in kernel ([045d80d](https://github.com/aurelia/aurelia/commit/045d80d))
+* **runtime:** make Char local to expr parser only ([3272fb7](https://github.com/aurelia/aurelia/commit/3272fb7))
+* **observation:** also pass collection in change handler ([c382e8a](https://github.com/aurelia/aurelia/commit/c382e8a))
+* ***:** cleanup context & scope ([e806937](https://github.com/aurelia/aurelia/commit/e806937))
+* **bindings:** remove flags from bind/unbind (#1560) ([eaaf4bb](https://github.com/aurelia/aurelia/commit/eaaf4bb))
+* ***:** remove flags from observers (#1557) ([9f9a8fe](https://github.com/aurelia/aurelia/commit/9f9a8fe))
+* **ast:** remove flags from evaluate (#1553) ([dda997b](https://github.com/aurelia/aurelia/commit/dda997b))
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

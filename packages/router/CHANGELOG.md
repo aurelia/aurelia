@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### Features:
+
+* **router:** multiple bindable props for load attribute (#1554) ([02ca208](https://github.com/aurelia/aurelia/commit/02ca208))
+* **router:** support configured route in canLoad redirect string (#1545) ([a4c7a37](https://github.com/aurelia/aurelia/commit/a4c7a37))
+
+
+### Bug Fixes:
+
+* **router:** fix path issue when redirecting (#1564) ([e8b5d3f](https://github.com/aurelia/aurelia/commit/e8b5d3f))
+* **router:** fix default refresh issue (#1547) ([8ddadc6](https://github.com/aurelia/aurelia/commit/8ddadc6))
+
+
+### Refactorings:
+
+* **runtime:** move LifecycleFlags to runtime-html ([ef35bc7](https://github.com/aurelia/aurelia/commit/ef35bc7))
+* **router:** add route compare to active check (#1556) ([f325c1a](https://github.com/aurelia/aurelia/commit/f325c1a))
+* **binding:** move BindingMode to runtime-html (#1555) ([c75618b](https://github.com/aurelia/aurelia/commit/c75618b))
+* **router:** rename load, unload to loading, unloading (#1546) ([9cd3f02](https://github.com/aurelia/aurelia/commit/9cd3f02))
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

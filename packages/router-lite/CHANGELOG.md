@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### Bug Fixes:
+
+* **router-lite:** recovery from unconfigured route (#1569) ([e095490](https://github.com/aurelia/aurelia/commit/e095490))
+
+
+### Refactorings:
+
+* **runtime:** move LifecycleFlags to runtime-html ([ef35bc7](https://github.com/aurelia/aurelia/commit/ef35bc7))
+* **binding:** move BindingMode to runtime-html (#1555) ([c75618b](https://github.com/aurelia/aurelia/commit/c75618b))
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

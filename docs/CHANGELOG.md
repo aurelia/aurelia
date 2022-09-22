@@ -3,6 +3,58 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### BREAKING CHANGES:
+
+* **binding-command:** make expr parser & attr mapper parameters of command build ([0ff9756](https://github.com/aurelia/aurelia/commit/0ff9756))
+* **runtime:** simplify expressionkind enum ([0f480e1](https://github.com/aurelia/aurelia/commit/0f480e1))
+* **runtime:** make Char local to expr parser only ([3272fb7](https://github.com/aurelia/aurelia/commit/3272fb7))
+* **runtime:** move LifecycleFlags to runtime-html ([ef35bc7](https://github.com/aurelia/aurelia/commit/ef35bc7))
+* **runtime:** move delegation strategy to runtime-html ([f387b2a](https://github.com/aurelia/aurelia/commit/f387b2a))
+* **events:** always handle event handler as fn (#1563) ([6037495](https://github.com/aurelia/aurelia/commit/6037495))
+* **bindings:** remove flags from bindings bind/unbind (#1560) ([eaaf4bb](https://github.com/aurelia/aurelia/commit/eaaf4bb))
+* **observers:** remove flags from observers (#1557) ([9f9a8fe](https://github.com/aurelia/aurelia/commit/9f9a8fe))
+* **runtime:** move BindingMode to runtime-html (#1555) ([c75618b](https://github.com/aurelia/aurelia/commit/c75618b))
+* **router:** rename load, unload to loading, unloading (#1546) ([9cd3f02](https://github.com/aurelia/aurelia/commit/9cd3f02))
+* **ast:** remove flags from evaluate (#1553) ([dda997b](https://github.com/aurelia/aurelia/commit/dda997b))
+
+
+### Features:
+
+* **collection-observation:** add ability to batch mutation into a single indexmap ([39b3f82](https://github.com/aurelia/aurelia/commit/39b3f82))
+* **router:** multiple bindable props for load attribute (#1554) ([02ca208](https://github.com/aurelia/aurelia/commit/02ca208))
+* **router:** support configured route in canLoad redirect string (#1545) ([a4c7a37](https://github.com/aurelia/aurelia/commit/a4c7a37))
+
+
+### Bug Fixes:
+
+* **events:** call listener with correct scope ([70d1329](https://github.com/aurelia/aurelia/commit/70d1329))
+* **router-lite:** recovery from unconfigured route (#1569) ([e095490](https://github.com/aurelia/aurelia/commit/e095490))
+* **router:** fix path issue when redirecting (#1564) ([e8b5d3f](https://github.com/aurelia/aurelia/commit/e8b5d3f))
+* **runtime-html:** add more attrs to remove on null/undefined (#1561) ([2de6f17](https://github.com/aurelia/aurelia/commit/2de6f17))
+* **expression-parser:** throw on invalid template continuations in interpolation ([9abab48](https://github.com/aurelia/aurelia/commit/9abab48))
+* **router:** fix default refresh issue (#1547) ([8ddadc6](https://github.com/aurelia/aurelia/commit/8ddadc6))
+* **ast:** dont observe on sort ([beeba4e](https://github.com/aurelia/aurelia/commit/beeba4e))
+
+
+### Refactorings:
+
+* **runtime:** use utils for smaller bundle ([d35e24a](https://github.com/aurelia/aurelia/commit/d35e24a))
+* **runtime:** remove work tracker ([96f90c6](https://github.com/aurelia/aurelia/commit/96f90c6))
+* **kernel:** cleanup unnecessary exports in kernel ([045d80d](https://github.com/aurelia/aurelia/commit/045d80d))
+* **ast:** observe after eval fn call ([aca7b0f](https://github.com/aurelia/aurelia/commit/aca7b0f))
+* **observation:** also pass collection in change handler ([c382e8a](https://github.com/aurelia/aurelia/commit/c382e8a))
+* **runtime:** cleanup context & scope ([e806937](https://github.com/aurelia/aurelia/commit/e806937))
+* **interfaces:** remove/reorg interfaces ([925f50d](https://github.com/aurelia/aurelia/commit/925f50d))
+* **runtime:** move subscriber flags to sub record file ([066457a](https://github.com/aurelia/aurelia/commit/066457a))
+* **ast:** cleanup iterable AST, reorganise e2e tests (#1562) ([3853f2d](https://github.com/aurelia/aurelia/commit/3853f2d))
+* **hmr:** retain bindable state closes #1550 ([e71026a](https://github.com/aurelia/aurelia/commit/e71026a))
+* **ast:** move VC signal to bind (#1558) ([3fffacf](https://github.com/aurelia/aurelia/commit/3fffacf))
+* **router:** add route compare to active check (#1556) ([f325c1a](https://github.com/aurelia/aurelia/commit/f325c1a))
+
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

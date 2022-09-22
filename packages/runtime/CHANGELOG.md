@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-alpha.41"></a>
+# 2.0.0-alpha.41 (2022-09-22)
+
+### Features:
+
+* **collection-observation:** add ability to batch mutation into a single indexmap ([39b3f82](https://github.com/aurelia/aurelia/commit/39b3f82))
+
+
+### Bug Fixes:
+
+* ***:** call listener with correct scope, move flush queue to binding ([70d1329](https://github.com/aurelia/aurelia/commit/70d1329))
+* **expression-parser:** throw on invalid template continuations in interpolation ([9abab48](https://github.com/aurelia/aurelia/commit/9abab48))
+* **ast:** dont observe on sort ([beeba4e](https://github.com/aurelia/aurelia/commit/beeba4e))
+
+
+### Refactorings:
+
+* ***:** cleanup unnecessary exports in kernel ([045d80d](https://github.com/aurelia/aurelia/commit/045d80d))
+* **binding-command:** make expr parser & attr mapper parameters of command build ([0ff9756](https://github.com/aurelia/aurelia/commit/0ff9756))
+* **runtime:** simplify expressionkind enum ([0f480e1](https://github.com/aurelia/aurelia/commit/0f480e1))
+* **runtime:** make Char local to expr parser only ([3272fb7](https://github.com/aurelia/aurelia/commit/3272fb7))
+* **runtime:** move LifecycleFlags to runtime-html ([ef35bc7](https://github.com/aurelia/aurelia/commit/ef35bc7))
+* **ast:** observe after eval fn call ([aca7b0f](https://github.com/aurelia/aurelia/commit/aca7b0f))
+* **observation:** also pass collection in change handler ([c382e8a](https://github.com/aurelia/aurelia/commit/c382e8a))
+* ***:** cleanup context & scope ([e806937](https://github.com/aurelia/aurelia/commit/e806937))
+* ***:** remove/reorg interfaces ([925f50d](https://github.com/aurelia/aurelia/commit/925f50d))
+* ***:** move subscriber flags to sub record file ([066457a](https://github.com/aurelia/aurelia/commit/066457a))
+* ***:** move delegation strategy to runtime-html ([f387b2a](https://github.com/aurelia/aurelia/commit/f387b2a))
+* ***:** cleanup iterable AST, reorganise e2e tests (#1562) ([3853f2d](https://github.com/aurelia/aurelia/commit/3853f2d))
+* **bindings:** remove flags from bind/unbind (#1560) ([eaaf4bb](https://github.com/aurelia/aurelia/commit/eaaf4bb))
+* **ast:** move VC signal to bind (#1558) ([3fffacf](https://github.com/aurelia/aurelia/commit/3fffacf))
+* ***:** remove flags from observers (#1557) ([9f9a8fe](https://github.com/aurelia/aurelia/commit/9f9a8fe))
+* **binding:** move BindingMode to runtime-html (#1555) ([c75618b](https://github.com/aurelia/aurelia/commit/c75618b))
+* **ast:** remove flags from evaluate (#1553) ([dda997b](https://github.com/aurelia/aurelia/commit/dda997b))
+
 <a name="2.0.0-alpha.40"></a>
 # 2.0.0-alpha.40 (2022-09-07)
 

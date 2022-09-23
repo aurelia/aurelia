@@ -10,6 +10,7 @@
     "packages/__e2e__/ui-virtualization",
     "packages/addons",
     "packages/aurelia",
+    "packages/compat-v1",
     "packages/fetch-client",
     "packages/i18n",
     "packages/kernel",

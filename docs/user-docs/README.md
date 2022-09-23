@@ -6,7 +6,7 @@ description: Get acquainted with Aurelia, the documentation, and how to get star
 
 ## What is Aurelia?
 
-Aurelia is an open-source, JavaScript, front-end platform designed to enable you to easily build even the most demanding web, mobile, or desktop applications. Aurelia stands out for its commitment to open web standards and no-nonsense, get-out-of-your-way conventions that enable vanilla JavaScript development. Of course, Aurelia is also packed full of features, performs at the highest standards, is extensible to its core, and supports a fully testable component-oriented design. But you knew all that already, didn't you? :sunglasses:&#x20;
+Aurelia is an open-source, JavaScript, front-end platform designed to enable you to easily build even the most demanding web, mobile, or desktop applications. Aurelia stands out for its commitment to open web standards and no-nonsense, get-out-of-your-way conventions that enable vanilla JavaScript development. Of course, Aurelia is also packed full of features, performs at the highest standards, is extensible to its core, and supports a fully testable component-oriented design. But you knew all that already, didn't you? :sunglasses:
 
 To get started, jump to our Quick Start Guide, or read on to get more of an overview.
 
@@ -39,8 +39,8 @@ If you happen to find anything in the documentation that is incorrect or missing
 
 ## How to Be Part of the Community
 
-As you become more and more familiar with Aurelia, perhaps you will even come up with something that you would like to share with the community. :tada: The Aurelia team welcomes any contributions that you feel would be beneficial to others in the community. If that is the case, check out the "Community Contribution" section. We also welcome any feedback or suggestions that will help improve Aurelia and enrich the community. Check out the "[Contributor Guide](https://app.gitbook.com/@aurelia-1/s/aurelia/\~/edit/drafts/-LqkvcyEElnC\_WdxU2ER/community-contribution/contributor-guide)" for details about the contributing process and how to contact us.&#x20;
+As you become more and more familiar with Aurelia, perhaps you will even come up with something that you would like to share with the community. :tada: The Aurelia team welcomes any contributions that you feel would be beneficial to others in the community. If that is the case, check out the "Community Contribution" section. We also welcome any feedback or suggestions that will help improve Aurelia and enrich the community. Check out the "[Contributor Guide](https://app.gitbook.com/o/-LniaXkrJI4MjF0pFJWN/s/-LndnvRP1t7WKpUte87y/)" for details about the contributing process and how to contact us.
 
 ## Where To Begin
 
-You're in the right place. If you are just getting started with Aurelia, we highly recommend that you read through our  [Quick Start Guide](getting-started/quick-start-guide/). It will show you how to create a project and build your first components using Aurelia's powerful templating system.
+You're in the right place. If you are just getting started with Aurelia, we highly recommend that you read through our [Quick Start Guide](getting-started/quick-start-guide/). It will show you how to create a project and build your first components using Aurelia's powerful templating system.

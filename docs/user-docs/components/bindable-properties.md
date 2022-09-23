@@ -4,6 +4,8 @@ description: How to create components that accept one or more bindable propertie
 
 # Bindable properties
 
+
+
 When creating components, sometimes you will want the ability for data to be passed into them. The `@bindable` decorator allows you to specify one or more bindable properties for a component.
 
 The `@bindable` attribute also can be used with custom attributes as well as custom elements.
@@ -67,7 +69,31 @@ export class NameComponent {
 
 You can then use the component in this way: \``<name-component first-name="John" last-name="Smith"></name-component>`
 
+### Calling a change function when bindable is modified
+
 By default, Aurelia will call a change callback (if it exists) which takes the bindable property name followed by `Changed` added to the end. For example, `firstNameChanged(newVal, previousVal)` would fire every time the `firstName` bindable property is changed.
+
+{% hint style="warning" %}
+Due to the way the Aurelia binding system works, change callbacks will not be fired upon initial component initialization. If you worked with Aurelia 1, this behavior differs from what you might expect.&#x20;
+{% endhint %}
+
+If you would like to call your change handler functions when the component is initially bound (like v1), you can achieve this the following way:
+
+```typescript
+import { bindable } from 'aurelia'; 
+
+export class NameComponent {
+    @bindable firstName = '';
+    @bindable lastName  = '';
+    
+    bound() {
+        this.firstNameChanged(this.firstName, undefined);
+    }
+    
+    firstNameChanged(newVal, oldVal) {
+    }
+}
+```
 
 ## Configuring bindable properties
 

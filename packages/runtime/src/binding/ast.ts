@@ -321,7 +321,7 @@ export class AccessThisExpression {
     let currentScope: Scope | null = s;
     let i = this.ancestor;
     while (i-- && currentScope) {
-      currentScope = currentScope.parentScope;
+      currentScope = currentScope.parent;
     }
     return i < 1 && currentScope ? currentScope.bindingContext : void 0;
   }

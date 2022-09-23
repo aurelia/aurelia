@@ -50,7 +50,7 @@ export class AuSlot implements ICustomElementViewModel {
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
-    this._parentScope = this.$controller.scope.parentScope!;
+    this._parentScope = this.$controller.scope.parent!;
     let outerScope: Scope;
     if (this._hasProjection) {
       // if there is a projection,
@@ -58,7 +58,7 @@ export class AuSlot implements ICustomElementViewModel {
       // via overlaying the outerscope with another scope that has
       // - binding context & override context pointing to the outer scope binding & override context respectively
       // - override context has the $host pointing to inner scope binding context
-      outerScope = this._hdrContext.controller.scope.parentScope!;
+      outerScope = this._hdrContext.controller.scope.parent!;
       (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
         .overrideContext.$host = this.expose ?? this._parentScope.bindingContext;
     }

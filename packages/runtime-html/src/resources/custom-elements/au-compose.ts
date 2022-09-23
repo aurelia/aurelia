@@ -233,7 +233,7 @@ export class AuCompose {
 
         return new CompositionController(
           controller,
-          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, $controller.scope.parentScope!),
+          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, $controller.scope.parent!),
           // todo: call deactivate on the component view model
           (deactachInitiator) => onResolve(
             controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),

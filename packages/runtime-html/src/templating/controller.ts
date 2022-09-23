@@ -558,7 +558,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         // Custom element scope is created and assigned during hydration
-        (this.scope as Writable<Scope>).parentScope = scope ?? null;
+        (this.scope as Writable<Scope>).parent = scope ?? null;
         break;
       case ViewModelKind.customAttribute:
         this.scope = scope ?? null;
@@ -910,7 +910,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
         break;
       case ViewModelKind.customElement:
-        (this.scope as Writable<Scope>).parentScope = null;
+        (this.scope as Writable<Scope>).parent = null;
         break;
     }
 

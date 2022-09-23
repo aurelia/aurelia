@@ -1299,7 +1299,7 @@ class SpreadBinding implements IBinding {
       return;
     }
     this.isBound = true;
-    const innerScope = this.$scope = this._hydrationContext.controller.scope.parentScope ?? void 0;
+    const innerScope = this.$scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
       throw new Error('Invalid spreading. Context scope is null/undefined');
     }

@@ -811,7 +811,7 @@ describe('AccessScopeExpression', function () {
 
   it(`evaluates defined property on first ancestor overrideContext`, function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.parentScope.overrideContext.foo = 'bar';
+    scope.parent.overrideContext.foo = 'bar';
     assert.strictEqual(foo.evaluate(scope, null, null), 'bar', `foo.evaluate(LF.none, scope, null)`);
     assert.strictEqual($parentfoo.evaluate(scope, null, null), 'bar', `$parentfoo.evaluate(LF.none, scope, null)`);
   });
@@ -819,18 +819,18 @@ describe('AccessScopeExpression', function () {
   it(`assigns defined property on first ancestor bindingContext`, function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     foo.assign(scope, null, 'baz');
-    assert.strictEqual(scope.parentScope.bindingContext.foo, 'baz', `scope.parentScope.bindingContext.foo`);
+    assert.strictEqual(scope.parent.bindingContext.foo, 'baz', `scope.parent.bindingContext.foo`);
     $parentfoo.assign(scope, null, 'beep');
-    assert.strictEqual(scope.parentScope.bindingContext.foo, 'beep', `scope.parentScope.bindingContext.foo`);
+    assert.strictEqual(scope.parent.bindingContext.foo, 'beep', `scope.parent.bindingContext.foo`);
   });
 
   it(`assigns defined property on first ancestor overrideContext`, function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.parentScope.overrideContext.foo = 'bar';
+    scope.parent.overrideContext.foo = 'bar';
     foo.assign(scope, null, 'baz');
-    assert.strictEqual(scope.parentScope.overrideContext.foo, 'baz', `scope.parentScope.overrideContext.foo`);
+    assert.strictEqual(scope.parent.overrideContext.foo, 'baz', `scope.parent.overrideContext.foo`);
     $parentfoo.assign(scope, null, 'beep');
-    assert.strictEqual(scope.parentScope.overrideContext.foo, 'beep', `scope.parentScope.overrideContext.foo`);
+    assert.strictEqual(scope.parent.overrideContext.foo, 'beep', `scope.parent.overrideContext.foo`);
   });
 
   it(`connects defined property on first ancestor bindingContext`, function () {
@@ -838,33 +838,33 @@ describe('AccessScopeExpression', function () {
     let binding = new MockBinding();
     foo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.bindingContext, 'foo'], 'binding.calls[0]');
     binding = new MockBinding();
     $parentfoo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.bindingContext, 'foo'], 'binding.calls[0]');
   });
 
   it(`connects defined property on first ancestor overrideContext`, function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.parentScope.overrideContext.foo = 'bar';
+    scope.parent.overrideContext.foo = 'bar';
     let binding = new MockBinding();
     foo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.overrideContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.overrideContext, 'foo'], 'binding.calls[0]');
     binding = new MockBinding();
     $parentfoo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.overrideContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.overrideContext, 'foo'], 'binding.calls[0]');
   });
 
   it(`connects undefined property on first ancestor bindingContext`, function () {
     const scope = createScopeForTest({ abc: 'xyz' }, {});
-    (scope.parentScope as Writable<Scope>).parentScope = Scope.create({}, { foo: 'bar' });
+    (scope.parent as Writable<Scope>).parent = Scope.create({}, { foo: 'bar' });
     const binding = new MockBinding();
     $parentfoo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.bindingContext, 'foo'], 'binding.calls[0]');
   });
 
 });
@@ -1257,9 +1257,9 @@ describe('CallScopeExpression', function () {
 
   it(`evaluates defined property on first ancestor overrideContext`, function () {
     const s1 = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    s1.parentScope.overrideContext.foo = () => 'bar';
-    s1.parentScope.overrideContext.hello = arg => arg;
-    s1.parentScope.overrideContext.arg = 'world';
+    s1.parent.overrideContext.foo = () => 'bar';
+    s1.parent.overrideContext.hello = arg => arg;
+    s1.parent.overrideContext.arg = 'world';
     const [scope] = getScopes(s1);
     assert.strictEqual(foo.evaluate(scope, null, null), 'bar', `foo.evaluate(scope, null, null)`);
     assert.strictEqual(hello.evaluate(scope, null, null), 'world', `hello.evaluate(scope, null, null)`);
@@ -1272,21 +1272,21 @@ describe('CallScopeExpression', function () {
     assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 0, `binding.calls.filter(c => c[0] === 'observe').length`);
     hello.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.bindingContext, 'arg'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.bindingContext, 'arg'], 'binding.calls[0]');
   });
 
   it(`connects defined property on first ancestor overrideContext`, function () {
     const s1 = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    s1.parentScope.overrideContext.foo = () => 'bar';
-    s1.parentScope.overrideContext.hello = arg => arg;
-    s1.parentScope.overrideContext.arg = 'world';
+    s1.parent.overrideContext.foo = () => 'bar';
+    s1.parent.overrideContext.hello = arg => arg;
+    s1.parent.overrideContext.arg = 'world';
     const [scope] = getScopes(s1);
     const binding = new MockBinding();
     foo.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 0, `binding.calls.filter(c => c[0] === 'observe').length`);
     hello.evaluate(scope, dummyLocator, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parentScope.overrideContext, 'arg'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.overrideContext, 'arg'], 'binding.calls[0]');
   });
 });
 

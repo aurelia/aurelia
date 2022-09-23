@@ -17,7 +17,7 @@ export class BindingContext implements IBindingContext {
 
 export class Scope {
   private constructor(
-    public parentScope: Scope | null,
+    public parent: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
     public readonly isBoundary: boolean,
@@ -34,7 +34,7 @@ export class Scope {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor > 0) {
         ancestor--;
-        currentScope = currentScope.parentScope;
+        currentScope = currentScope.parent;
         if (currentScope == null) {
           return void 0;
         }
@@ -60,7 +60,7 @@ export class Scope {
       && !(name in currentScope.overrideContext)
       && !(name in currentScope.bindingContext)
     ) {
-      currentScope = currentScope.parentScope;
+      currentScope = currentScope.parent;
     }
 
     if (currentScope == null) {

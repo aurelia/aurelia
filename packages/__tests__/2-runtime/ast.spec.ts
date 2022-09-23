@@ -40,6 +40,7 @@ import {
   ArrowFunction,
   BindingIdentifier,
   IAstEvaluator,
+  Unparser,
 } from '@aurelia/runtime';
 
 const $false = PrimitiveLiteralExpression.$false;
@@ -2067,28 +2068,28 @@ describe('DestructuringAssignmentExpression', function () {
 describe('arrow function unparsing', function () {
   it('unparses arrow fn', function () {
     assert.strictEqual(
-      new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a')).toString(),
+      Unparser.unparse(new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'))),
       '(a) => a'
     );
   });
 
   it('unparses arrow fn with single rest parameter', function () {
     assert.strictEqual(
-      new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'), true).toString(),
+      Unparser.unparse(new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'), true)),
       '(...a) => a'
     );
   });
 
   it('unparses arrow fn with 2 params', function () {
     assert.strictEqual(
-      new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a')).toString(),
+      Unparser.unparse(new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'))),
       '(a, b) => a'
     );
   });
 
   it('unparses arrow fn with 2 params with rest', function () {
     assert.strictEqual(
-      new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'), true).toString(),
+      Unparser.unparse(new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'), true)),
       '(a, ...b) => a'
     );
   });

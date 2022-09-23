@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { IExpressionHydrator } from '@aurelia/runtime';
 import * as AST from '@aurelia/runtime';
+
+const { visitAst } = AST;
 
 enum ASTExpressionTypes {
   BindingBehaviorExpression = 'BindingBehaviorExpression',
@@ -172,16 +176,16 @@ export class Deserializer implements IExpressionHydrator {
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IsExpressionOrStatement): string {
     const visitor = new Serializer();
-    if (expr == null || typeof expr.accept !== 'function') {
+    if (expr == null) {
       return `${expr}`;
     }
-    return expr.accept(visitor);
+    return visitAst(expr, visitor);
   }
   public visitAccessMember(expr: AST.AccessMemberExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessMemberExpression}","name":"${expr.name}","object":${expr.object.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessMemberExpression}","name":"${expr.name}","object":${visitAst(expr.object, this)}}`;
   }
   public visitAccessKeyed(expr: AST.AccessKeyedExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessKeyedExpression}","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessKeyedExpression}","object":${visitAst(expr.object, this)},"key":${visitAst(expr.key, this)}}`;
   }
   public visitAccessThis(expr: AST.AccessThisExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
@@ -199,10 +203,10 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.PrimitiveLiteralExpression}","value":${serializePrimitive(expr.value)}}`;
   }
   public visitCallFunction(expr: AST.CallFunctionExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallFunctionExpression}","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallFunctionExpression}","func":${visitAst(expr.func, this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
   public visitCallMember(expr: AST.CallMemberExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${visitAst(expr.object, this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
   public visitCallScope(expr: AST.CallScopeExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
@@ -211,25 +215,25 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.TemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
   public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.TaggedTemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"func":${expr.func.accept(this)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.TaggedTemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"func":${visitAst(expr.func, this)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
   public visitUnary(expr: AST.UnaryExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.UnaryExpression}","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.UnaryExpression}","operation":"${expr.operation}","expression":${visitAst(expr.expression, this)}}`;
   }
   public visitBinary(expr: AST.BinaryExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.BinaryExpression}","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.BinaryExpression}","operation":"${expr.operation}","left":${visitAst(expr.left, this)},"right":${visitAst(expr.right, this)}}`;
   }
   public visitConditional(expr: AST.ConditionalExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ConditionalExpression}","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ConditionalExpression}","condition":${visitAst(expr.condition, this)},"yes":${visitAst(expr.yes, this)},"no":${visitAst(expr.no, this)}}`;
   }
   public visitAssign(expr: AST.AssignExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AssignExpression}","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AssignExpression}","target":${visitAst(expr.target, this)},"value":${visitAst(expr.value, this)}}`;
   }
   public visitValueConverter(expr: AST.ValueConverterExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ValueConverterExpression}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ValueConverterExpression}","name":"${expr.name}","expression":${visitAst(expr.expression, this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
   public visitBindingBehavior(expr: AST.BindingBehaviorExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.BindingBehaviorExpression}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.BindingBehaviorExpression}","name":"${expr.name}","expression":${visitAst(expr.expression, this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
   public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string {
     return `{"$TYPE":"${ASTExpressionTypes.ArrayBindingPattern}","elements":${this.serializeExpressions(expr.elements)}}`;
@@ -241,22 +245,22 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.BindingIdentifier}","name":"${expr.name}"}`;
   }
   public visitForOfStatement(expr: AST.ForOfStatement): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${visitAst(expr.declaration, this)},"iterable":${visitAst(expr.iterable, this)}}`;
   }
   public visitInterpolation(expr: AST.Interpolation): string {
     return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
   public visitDestructuringAssignmentExpression(expr: AST.DestructuringAssignmentExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.DestructuringAssignment}","$kind":${serializePrimitive(expr.$kind)},"list":${this.serializeExpressions(expr.list)},"source":${expr.source === void 0 ? serializePrimitive(expr.source) : expr.source.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.DestructuringAssignment}","$kind":${serializePrimitive(expr.$kind)},"list":${this.serializeExpressions(expr.list)},"source":${expr.source === void 0 ? serializePrimitive(expr.source) : visitAst(expr.source, this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : visitAst(expr.initializer, this)}}`;
   }
   public visitDestructuringAssignmentSingleExpression(expr: AST.DestructuringAssignmentSingleExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.DestructuringSingleAssignment}","source":${expr.source.accept(this)},"target":${expr.target.accept(this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : expr.initializer.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.DestructuringSingleAssignment}","source":${visitAst(expr.source, this)},"target":${visitAst(expr.target, this)},"initializer":${expr.initializer === void 0 ? serializePrimitive(expr.initializer) : visitAst(expr.initializer, this)}}`;
   }
   public visitDestructuringAssignmentRestExpression(expr: AST.DestructuringAssignmentRestExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.DestructuringRestAssignment}","target":${expr.target.accept(this)},"indexOrProperties":${Array.isArray(expr.indexOrProperties) ? serializePrimitives(expr.indexOrProperties) : serializePrimitive(expr.indexOrProperties)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.DestructuringRestAssignment}","target":${visitAst(expr.target, this)},"indexOrProperties":${Array.isArray(expr.indexOrProperties) ? serializePrimitives(expr.indexOrProperties) : serializePrimitive(expr.indexOrProperties)}}`;
   }
   public visitArrowFunction(expr: AST.ArrowFunction): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ArrowFunction}","parameters":${this.serializeExpressions(expr.args)},"body":${expr.body.accept(this)},"rest":${serializePrimitive(expr.rest)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ArrowFunction}","parameters":${this.serializeExpressions(expr.args)},"body":${visitAst(expr.body, this)},"rest":${serializePrimitive(expr.rest)}}`;
   }
   private serializeExpressions(args: readonly AST.IsExpressionOrStatement[]): string {
     let text = '[';
@@ -264,7 +268,7 @@ export class Serializer implements AST.IVisitor<string> {
       if (i !== 0) {
         text += ',';
       }
-      text += args[i].accept(this);
+      text += visitAst(args[i], this);
     }
     text += ']';
     return text;

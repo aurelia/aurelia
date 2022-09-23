@@ -30,6 +30,9 @@ export {
   DestructuringAssignmentRestExpression,
   ArrowFunction,
 
+  visitAst,
+  Unparser,
+
   // ast typing helpers
   type AnyBindingExpression,
   type BindingBehaviorInstance,

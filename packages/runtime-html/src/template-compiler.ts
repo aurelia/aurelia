@@ -535,27 +535,18 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       bindingCommand = context._createCommand(attrSyntax);
       if (bindingCommand !== null) {
-        // supporting one time may not be as simple as it appears
-        // as the let expression could compute its value from various expressions,
-        // which means some value could be unavailable by the time it computes.
-        //
-        // Onetime means it will not have appropriate value, but it's also a good thing,
-        // since often one it's just a simple declaration
-        // todo: consider supporting one-time for <let>
-        switch (bindingCommand.name) {
-          case 'to-view':
-          case 'bind':
-            letInstructions.push(new LetBindingInstruction(
-              exprParser.parse(realAttrValue, ExpressionType.IsProperty),
-              camelCase(realAttrTarget)
-            ));
-            continue;
-          default:
-            if (__DEV__)
-              throw new Error(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
-            else
-              throw new Error(`AUR0704:${attrSyntax.command}`);
+        if (attrSyntax.command === 'bind') {
+          letInstructions.push(new LetBindingInstruction(
+            exprParser.parse(realAttrValue, ExpressionType.IsProperty),
+            camelCase(realAttrTarget)
+          ));
+        } else {
+          if (__DEV__)
+            throw new Error(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
+          else
+            throw new Error(`AUR0704:${attrSyntax.command}`);
         }
+        continue;
       }
 
       expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);

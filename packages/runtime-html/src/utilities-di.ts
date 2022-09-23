@@ -63,6 +63,10 @@ export const callbackRegistration = Registration.callback;
 /** @internal */
 export const transientRegistration = Registration.transient;
 
+/** @internal */
+export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver): IResolver =>
+  ctn.registerResolver(key, resolver);
+
 export function alias(...aliases: readonly string[]) {
   return function (target: Constructable) {
     const key = getAnnotationKeyFor('aliases');

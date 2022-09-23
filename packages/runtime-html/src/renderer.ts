@@ -28,7 +28,7 @@ import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
 import { defineProp, isString } from './utilities';
-import { singletonRegistration } from './utilities-di';
+import { registerResolver, singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -517,7 +517,7 @@ export class CustomElementRenderer implements IRenderer {
     );
     Ctor = def.Type;
     component = container.invoke(Ctor);
-    container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
+    registerResolver(container, Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
     childCtrl = Controller.$el(
       /* own container       */container,
       /* viewModel           */component,
@@ -1362,20 +1362,22 @@ function createElementContainer(
   // if there's no value associated, unlike InstanceProvider
   // reason being some custom element can have `containerless` attribute on them
   // causing the host to disappear, and replace by a location instead
-  ctn.registerResolver(
+  registerResolver(
+    ctn,
     p.HTMLElement,
-    ctn.registerResolver(
+    registerResolver(
+      ctn,
       p.Element,
-      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
     )
   );
-  ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
-  ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
-  ctn.registerResolver(IRenderLocation, location == null
+  registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+  registerResolver(ctn, IInstruction, new InstanceProvider(instructionProviderName, instruction));
+  registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new RenderLocationProvider(location));
-  ctn.registerResolver(IViewFactory, noViewFactoryProvider);
-  ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, IViewFactory, noViewFactoryProvider);
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo)
   );
@@ -1426,25 +1428,27 @@ function invokeAttribute(
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
-  ctn.registerResolver(
+  registerResolver(
+    ctn,
     p.HTMLElement,
-    ctn.registerResolver(
+    registerResolver(
+      ctn,
       p.Element,
-      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
     )
   );
   renderingCtrl = renderingCtrl instanceof Controller
     ? renderingCtrl
     : (renderingCtrl as unknown as SpreadBinding).ctrl;
-  ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
-  ctn.registerResolver(IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
-  ctn.registerResolver(IRenderLocation, location == null
+  registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+  registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
+  registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new InstanceProvider(locationProviderName, location));
-  ctn.registerResolver(IViewFactory, viewFactory == null
+  registerResolver(ctn, IViewFactory, viewFactory == null
     ? noViewFactoryProvider
     : new ViewFactoryProvider(viewFactory));
-  ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
 

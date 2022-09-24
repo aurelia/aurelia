@@ -10,6 +10,7 @@ import {
   Scope,
   ExpressionKind,
   IAstEvaluator,
+  astEvaluate,
 } from '@aurelia/runtime';
 import {
   astEvaluator,
@@ -153,7 +154,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (expression === void 0) {
       value = object;
     } else {
-      value = expression.evaluate(scope, this, null);
+      value = astEvaluate(expression, scope, this, null);
     }
 
     let isValid = true;
@@ -176,7 +177,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
               rule,
               object,
             ));
-          message = this.messageProvider.getMessage(rule).evaluate(messageEvaluationScope, this, null) as string;
+          message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };

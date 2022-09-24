@@ -156,7 +156,7 @@ export class MockPropertySubscriber {
 }
 
 export class MockTracingExpression {
-  public $kind: ExpressionKind = ExpressionKind.BindingBehavior;
+  public $kind: ExpressionKind.Custom = ExpressionKind.Custom;
   public hasBind: true = true;
   public hasUnbind: true = true;
   public calls: [keyof MockTracingExpression, ...any[]][] = [];

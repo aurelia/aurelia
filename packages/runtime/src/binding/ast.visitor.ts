@@ -1,5 +1,5 @@
-import { isString } from '../utilities-objects';
-import { ExpressionKind } from './ast';
+import { isString, safeString } from '../utilities-objects';
+import { CustomExpression, ExpressionKind } from './ast';
 
 import type { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, IsExpressionOrStatement, IsBindingBehavior } from './ast';
 
@@ -31,6 +31,7 @@ export interface IVisitor<T = unknown> {
   visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): T;
   visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): T;
   visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): T;
+  visitCustom(expr: CustomExpression): T;
 }
 
 export const visitAst = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) => {
@@ -62,6 +63,7 @@ export const visitAst = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) 
     case ExpressionKind.Template: return visitor.visitTemplate(ast);
     case ExpressionKind.Unary: return visitor.visitUnary(ast);
     case ExpressionKind.ValueConverter: return visitor.visitValueConverter(ast);
+    case ExpressionKind.Custom: return visitor.visitCustom(ast);
     default: {
       throw new Error(`Unknown ast node ${JSON.stringify(ast)}`);
     }
@@ -369,6 +371,10 @@ export class Unparser implements IVisitor<void> {
   public visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): void {
     this.text += '...';
     visitAst(expr.target, this);
+  }
+
+  public visitCustom(expr: CustomExpression): void {
+    this.text += safeString(expr.value);
   }
 
   private writeArgs(args: readonly IsBindingBehavior[]): void {

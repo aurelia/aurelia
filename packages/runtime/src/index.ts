@@ -57,6 +57,12 @@ export {
   type ValueConverterInstance,
 } from './binding/ast';
 export {
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from './binding/ast.eval';
+export {
   type IObserverLocatorBasedConnectable,
   type IConnectableBinding,
   connectable,

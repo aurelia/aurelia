@@ -10,6 +10,7 @@ import {
   IndexMap,
   BindingContext,
   type IOverrideContext,
+  astEvaluate,
 } from '@aurelia/runtime';
 import {
   customAttribute,
@@ -479,7 +480,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public handleInnerCollectionChange(): void {
-    const newItems = this.iterable.evaluate(this.parent.scope, this._container, null) as Collection;
+    const newItems = astEvaluate(this.iterable, this.parent.scope, this._container, null) as Collection;
     const oldItems = this.items;
     this.items = newItems;
     if (newItems === oldItems) {

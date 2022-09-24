@@ -1,6 +1,6 @@
 import { DI, type Constructable, type Key } from '@aurelia/kernel';
 import { def, defineHiddenProp } from '../utilities';
-import { BindingBehaviorInstance, type IAstEvaluator, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
+import { astEvaluate, BindingBehaviorInstance, type IAstEvaluator, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { resource } from '../utilities-di';
@@ -44,7 +44,7 @@ export class BindingTargetSubscriber implements ISubscriber {
   // deepscan-disable-next-line
   public handleChange(value: unknown, _: unknown): void {
     const b = this.b;
-    if (value !== b.ast.evaluate(b.$scope!, b, null)) {
+    if (value !== astEvaluate(b.ast, b.$scope!, b, null)) {
       this._value = value;
       this._flushQueue.add(this);
     }

@@ -5,6 +5,9 @@ import {
   ExpressionType,
   Interpolation,
   connectable,
+  astEvaluate,
+  astUnbind,
+  astBind,
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -150,7 +153,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this.scope = scope;
     this._isInterpolation = this.ast instanceof Interpolation;
 
-    this._keyExpression = this.ast.evaluate(scope, this, this) as string;
+    this._keyExpression = astEvaluate(this.ast, scope, this, this) as string;
     this._ensureKeyExpression();
     this.parameter?.$bind(scope);
 
@@ -163,9 +166,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.scope, this);
-    }
+    astUnbind(this.ast, this.scope, this);
 
     this.parameter?.$unbind();
     this._targetAccessors.clear();
@@ -181,7 +182,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? this.ast.evaluate(this.scope, this, this) as string
+        ? astEvaluate(this.ast, this.scope, this, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -392,7 +393,7 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = this.ast.evaluate(this.scope, this, this) as i18next.TOptions;
+    this.value = astEvaluate(this.ast, this.scope, this, this) as i18next.TOptions;
     this.obs.clear();
     this.updater();
   }
@@ -403,11 +404,9 @@ class ParameterBinding {
     }
     this.scope = scope;
 
-    if (this.ast.hasBind) {
-      this.ast.bind(scope, this);
-    }
+    astBind(this.ast, scope, this);
 
-    this.value = this.ast.evaluate(scope, this, this) as i18next.TOptions;
+    this.value = astEvaluate(this.ast, scope, this, this) as i18next.TOptions;
     this.isBound = true;
   }
 
@@ -416,9 +415,7 @@ class ParameterBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.scope, this);
-    }
+    astUnbind(this.ast, this.scope, this);
 
     this.scope = (void 0)!;
     this.obs.clearAll();

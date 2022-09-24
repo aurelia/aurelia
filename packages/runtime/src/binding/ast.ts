@@ -12,6 +12,7 @@ import type {
   IConnectable,
   ISubscriber,
 } from '../observation';
+import { IVisitor } from './ast.visitor';
 
 export {
   IVisitor,
@@ -47,6 +48,8 @@ export const enum ExpressionKind {
   ArrayDestructuring,
   ObjectDestructuring,
   DestructuringAssignmentLeaf,
+  DestructuringAssignmentRestLeaf,
+  Custom,
 }
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -65,8 +68,8 @@ export type IsBindingBehavior = IsValueConverter | BindingBehaviorExpression;
 export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
-export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
-export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
+export type IsExpressionOrStatement =  CustomExpression | IsExpression | ForOfStatement | BindingIdentifierOrPattern | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
+export type AnyBindingExpression = CustomExpression | Interpolation | ForOfStatement | IsBindingBehavior;
 
 export interface IExpressionHydrator {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,12 +97,34 @@ export interface IAstEvaluator {
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
 
 export class CustomExpression {
+  public get $kind(): ExpressionKind.Custom { return ExpressionKind.Custom; }
+  public get hasBind(): false { return false; }
+  public get hasUnbind(): false { return false; }
+
   public constructor(
-    public readonly value: string,
+    public readonly value: unknown,
   ) {}
 
-  public evaluate(_s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): string {
+  public evaluate(_s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): unknown {
     return this.value;
+  }
+
+  public assign(s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
+    return val;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public bind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+    // empty
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public unbind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+    // empty
+  }
+
+  public accept<T>(_visitor: IVisitor<T>): T {
+    return (void 0)!;
   }
 }
 
@@ -115,17 +140,15 @@ export class BindingBehaviorExpression {
   public get hasUnbind(): true { return true; }
   /**
    * The name of the property to store a binding behavior on the binding when binding
-   *
-   * @internal
    */
-  private readonly _key: string;
+  public readonly key: string;
 
   public constructor(
     public readonly expression: IsBindingBehavior,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
   ) {
-    this._key = `_bb_${name}`;
+    this.key = `_bb_${name}`;
   }
 
   public evaluate(s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
@@ -138,7 +161,7 @@ export class BindingBehaviorExpression {
 
   public bind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
     const name = this.name;
-    const key = this._key;
+    const key = this.key;
     const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
     if (behavior == null) {
       throw behaviorNotFoundError(name);
@@ -155,7 +178,7 @@ export class BindingBehaviorExpression {
   }
 
   public unbind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
-    const internalKey = this._key;
+    const internalKey = this.key;
     const $b = b as BindingWithBehavior;
     if ($b[internalKey] !== void 0) {
       $b[internalKey]!.unbind?.(s, b);
@@ -1002,6 +1025,7 @@ export class DestructuringAssignmentExpression {
       item = list[i];
       switch(item.$kind) {
         case ExpressionKind.DestructuringAssignmentLeaf:
+        // case ExpressionKind.DestructuringAssignmentRestLeaf:
           item.assign(s, l, value);
           break;
         case ExpressionKind.ArrayDestructuring:

@@ -1,5 +1,5 @@
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
 import { astEvaluator } from './binding-utils';
 
@@ -32,7 +32,7 @@ export class CallBinding implements IAstBasedBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     overrideContext.$event = args;
-    const result = this.ast.evaluate(this.$scope!, this, null);
+    const result = astEvaluate(this.ast, this.$scope!, this, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
@@ -49,9 +49,7 @@ export class CallBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    if (this.ast.hasBind) {
-      this.ast.bind(scope, this.interceptor);
-    }
+    astBind(this.ast, scope, this.interceptor);
 
     this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), this.target, this.targetProperty);
 
@@ -64,9 +62,7 @@ export class CallBinding implements IAstBasedBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.$scope!, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
     this.targetObserver.setValue(null, this.target, this.targetProperty);

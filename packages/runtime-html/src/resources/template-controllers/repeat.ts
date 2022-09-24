@@ -15,6 +15,8 @@ import {
   Scope,
   synchronizeIndices,
   ValueConverterExpression,
+  astEvaluate,
+  astAssign,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
@@ -103,7 +105,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._refreshCollectionObserver();
     const dec = forOf.declaration;
     if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
-      this.local = dec.evaluate(this.$controller.scope, binding, null) as string;
+      this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
     }
   }
 
@@ -156,7 +158,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         return;
       }
       this._reevaluating = true;
-      this.items = this.forOf.iterable.evaluate($controller.scope, this._forOfBinding, null) as Items<C>;
+      this.items = astEvaluate(this.forOf.iterable, $controller.scope, this._forOfBinding, null) as Items<C>;
       this._reevaluating = false;
       return;
     }
@@ -203,7 +205,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let newObserver: CollectionObserver | undefined;
 
     if (observingInnerItems) {
-      innerItems = this._innerItems = this._innerItemsExpression!.evaluate(scope, this._forOfBinding, null) as Items<C> ?? null;
+      innerItems = this._innerItems = astEvaluate(this._innerItemsExpression!, scope, this._forOfBinding, null) as Items<C> ?? null;
       observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
 
@@ -254,7 +256,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i] = factory.create().setLocation(location);
       view.nodes.unlink();
       if(this._hasDestructuredLocal) {
-        (forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
+        astAssign(forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
       } else {
         viewScope = Scope.fromParent(parentScope, new BindingContext(local, item));
       }
@@ -382,7 +384,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (indexMap[i] === -2) {
         if(this._hasDestructuredLocal) {
-          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
+          astAssign(this.forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
         } else {
           viewScope = Scope.fromParent(parentScope, new BindingContext(local, normalizedItems![i]));
         }

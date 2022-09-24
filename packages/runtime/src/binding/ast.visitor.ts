@@ -34,7 +34,7 @@ export interface IVisitor<T = unknown> {
   visitCustom(expr: CustomExpression): T;
 }
 
-export const visitAst = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) => {
+export const astVisit = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) => {
   switch (ast.$kind) {
     case ExpressionKind.AccessKeyed: return visitor.visitAccessKeyed(ast);
     case ExpressionKind.AccessMember: return visitor.visitAccessMember(ast);
@@ -75,19 +75,19 @@ export class Unparser implements IVisitor<void> {
 
   public static unparse(expr: IsExpressionOrStatement): string {
     const visitor = new Unparser();
-    visitAst(expr, visitor);
+    astVisit(expr, visitor);
     return visitor.text;
   }
 
   public visitAccessMember(expr: AccessMemberExpression): void {
-    visitAst(expr.object, this);
+    astVisit(expr.object, this);
     this.text += `${expr.optional ? '?' : ''}.${expr.name}`;
   }
 
   public visitAccessKeyed(expr: AccessKeyedExpression): void {
-    visitAst(expr.object, this);
+    astVisit(expr.object, this);
     this.text += `${expr.optional ? '?.' : ''}[`;
-    visitAst(expr.key, this);
+    astVisit(expr.key, this);
     this.text += ']';
   }
 
@@ -118,7 +118,7 @@ export class Unparser implements IVisitor<void> {
       if (i !== 0) {
         this.text += ',';
       }
-      visitAst(elements[i], this);
+      astVisit(elements[i], this);
     }
     this.text += ']';
   }
@@ -141,7 +141,7 @@ export class Unparser implements IVisitor<void> {
       }
     }
     this.text += `${text}) => `;
-    visitAst(expr.body, this);
+    astVisit(expr.body, this);
   }
 
   public visitObjectLiteral(expr: ObjectLiteralExpression): void {
@@ -153,7 +153,7 @@ export class Unparser implements IVisitor<void> {
         this.text += ',';
       }
       this.text += `'${keys[i]}':`;
-      visitAst(values[i], this);
+      astVisit(values[i], this);
     }
     this.text += '}';
   }
@@ -171,7 +171,7 @@ export class Unparser implements IVisitor<void> {
 
   public visitCallFunction(expr: CallFunctionExpression): void {
     this.text += '(';
-    visitAst(expr.func, this);
+    astVisit(expr.func, this);
     this.text += expr.optional ? '?.' : '';
     this.writeArgs(expr.args);
     this.text += ')';
@@ -179,7 +179,7 @@ export class Unparser implements IVisitor<void> {
 
   public visitCallMember(expr: CallMemberExpression): void {
     this.text += '(';
-    visitAst(expr.object, this);
+    astVisit(expr.object, this);
     this.text += `${expr.optionalMember ? '?.' : ''}.${expr.name}${expr.optionalCall ? '?.' : ''}`;
     this.writeArgs(expr.args);
     this.text += ')';
@@ -202,7 +202,7 @@ export class Unparser implements IVisitor<void> {
     this.text += '`';
     this.text += cooked[0];
     for (let i = 0; i < length; i++) {
-      visitAst(expressions[i], this);
+      astVisit(expressions[i], this);
       this.text += cooked[i + 1];
     }
     this.text += '`';
@@ -211,11 +211,11 @@ export class Unparser implements IVisitor<void> {
   public visitTaggedTemplate(expr: TaggedTemplateExpression): void {
     const { cooked, expressions } = expr;
     const length = expressions.length;
-    visitAst(expr.func, this);
+    astVisit(expr.func, this);
     this.text += '`';
     this.text += cooked[0];
     for (let i = 0; i < length; i++) {
-      visitAst(expressions[i], this);
+      astVisit(expressions[i], this);
       this.text += cooked[i + 1];
     }
     this.text += '`';
@@ -226,57 +226,57 @@ export class Unparser implements IVisitor<void> {
     if (expr.operation.charCodeAt(0) >= /* a */97) {
       this.text += ' ';
     }
-    visitAst(expr.expression, this);
+    astVisit(expr.expression, this);
     this.text += ')';
   }
 
   public visitBinary(expr: BinaryExpression): void {
     this.text += '(';
-    visitAst(expr.left, this);
+    astVisit(expr.left, this);
     if (expr.operation.charCodeAt(0) === /* i */105) {
       this.text += ` ${expr.operation} `;
     } else {
       this.text += expr.operation;
     }
-    visitAst(expr.right, this);
+    astVisit(expr.right, this);
     this.text += ')';
   }
 
   public visitConditional(expr: ConditionalExpression): void {
     this.text += '(';
-    visitAst(expr.condition, this);
+    astVisit(expr.condition, this);
     this.text += '?';
-    visitAst(expr.yes, this);
+    astVisit(expr.yes, this);
     this.text += ':';
-    visitAst(expr.no, this);
+    astVisit(expr.no, this);
     this.text += ')';
   }
 
   public visitAssign(expr: AssignExpression): void {
     this.text += '(';
-    visitAst(expr.target, this);
+    astVisit(expr.target, this);
     this.text += '=';
-    visitAst(expr.value, this);
+    astVisit(expr.value, this);
     this.text += ')';
   }
 
   public visitValueConverter(expr: ValueConverterExpression): void {
     const args = expr.args;
-    visitAst(expr.expression, this);
+    astVisit(expr.expression, this);
     this.text += `|${expr.name}`;
     for (let i = 0, length = args.length; i < length; ++i) {
       this.text += ':';
-      visitAst(args[i], this);
+      astVisit(args[i], this);
     }
   }
 
   public visitBindingBehavior(expr: BindingBehaviorExpression): void {
     const args = expr.args;
-    visitAst(expr.expression, this);
+    astVisit(expr.expression, this);
     this.text += `&${expr.name}`;
     for (let i = 0, length = args.length; i < length; ++i) {
       this.text += ':';
-      visitAst(args[i], this);
+      astVisit(args[i], this);
     }
   }
 
@@ -287,7 +287,7 @@ export class Unparser implements IVisitor<void> {
       if (i !== 0) {
         this.text += ',';
       }
-      visitAst(elements[i], this);
+      astVisit(elements[i], this);
     }
     this.text += ']';
   }
@@ -301,7 +301,7 @@ export class Unparser implements IVisitor<void> {
         this.text += ',';
       }
       this.text += `'${keys[i]}':`;
-      visitAst(values[i], this);
+      astVisit(values[i], this);
     }
     this.text += '}';
   }
@@ -311,9 +311,9 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitForOfStatement(expr: ForOfStatement): void {
-    visitAst(expr.declaration, this);
+    astVisit(expr.declaration, this);
     this.text += ' of ';
-    visitAst(expr.iterable, this);
+    astVisit(expr.iterable, this);
   }
 
   public visitInterpolation(expr: Interpolation): void {
@@ -322,7 +322,7 @@ export class Unparser implements IVisitor<void> {
     this.text += '${';
     this.text += parts[0];
     for (let i = 0; i < length; i++) {
-      visitAst(expressions[i], this);
+      astVisit(expressions[i], this);
       this.text += parts[i + 1];
     }
     this.text += '}';
@@ -340,16 +340,16 @@ export class Unparser implements IVisitor<void> {
       item = list[i];
       switch(item.$kind) {
         case ExpressionKind.DestructuringAssignmentLeaf:
-          visitAst(item, this);
+          astVisit(item, this);
           break;
         case ExpressionKind.ArrayDestructuring:
         case ExpressionKind.ObjectDestructuring: {
           const source = item.source;
           if(source) {
-            visitAst(source, this);
+            astVisit(source, this);
             this.text += ':';
           }
-          visitAst(item, this);
+          astVisit(item, this);
           break;
         }
       }
@@ -358,19 +358,19 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): void {
-    visitAst(expr.source, this);
+    astVisit(expr.source, this);
     this.text += ':';
-    visitAst(expr.target, this);
+    astVisit(expr.target, this);
     const initializer = expr.initializer;
     if(initializer !== void 0) {
       this.text +='=';
-      visitAst(initializer, this);
+      astVisit(initializer, this);
     }
   }
 
   public visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): void {
     this.text += '...';
-    visitAst(expr.target, this);
+    astVisit(expr.target, this);
   }
 
   public visitCustom(expr: CustomExpression): void {
@@ -383,7 +383,7 @@ export class Unparser implements IVisitor<void> {
       if (i !== 0) {
         this.text += ',';
       }
-      visitAst(args[i], this);
+      astVisit(args[i], this);
     }
     this.text += ')';
   }

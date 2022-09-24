@@ -17,7 +17,7 @@ import { IVisitor } from './ast.visitor';
 export {
   IVisitor,
   Unparser,
-  visitAst,
+  astVisit,
 } from './ast.visitor';
 
 export const enum ExpressionKind {
@@ -74,24 +74,6 @@ export type AnyBindingExpression = CustomExpression | Interpolation | ForOfState
 export interface IExpressionHydrator {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hydrate(jsonExpr: any): any;
-}
-
-/**
- * An interface describing the object that can evaluate Aurelia AST
- */
-export interface IAstEvaluator {
-  /** describe whether the evaluator wants to evaluate in strict mode */
-  strict?: boolean;
-  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
-  boundFn?: boolean;
-  /** describe whether the evaluator wants to evaluate the function call in strict mode */
-  strictFnCall?: boolean;
-  /** Allow an AST to retrieve a service that it needs */
-  get?: IServiceLocator['get'];
-  /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T>(name: string): ValueConverterInstance<T> | undefined;
-  /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T>(name: string): BindingBehaviorInstance<T> | undefined;
 }
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
@@ -1204,4 +1186,25 @@ function isStringOrDate(value: unknown): value is string | Date {
     default:
       return false;
   }
+}
+
+// -----------------------------------
+// this interface causes issues to sourcemap mapping in devtool
+// chuck it at the bottom to avoid such issue
+/**
+ * An interface describing the object that can evaluate Aurelia AST
+ */
+ export interface IAstEvaluator {
+  /** describe whether the evaluator wants to evaluate in strict mode */
+  strict?: boolean;
+  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
+  boundFn?: boolean;
+  /** describe whether the evaluator wants to evaluate the function call in strict mode */
+  strictFnCall?: boolean;
+  /** Allow an AST to retrieve a service that it needs */
+  get?: IServiceLocator['get'];
+  /** Allow an AST to retrieve a value converter that it needs */
+  getConverter?<T>(name: string): ValueConverterInstance<T> | undefined;
+  /** Allow an AST to retrieve a binding behavior that it needs */
+  getBehavior?<T>(name: string): BindingBehaviorInstance<T> | undefined;
 }

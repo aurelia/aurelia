@@ -30,7 +30,7 @@ export {
   DestructuringAssignmentRestExpression,
   ArrowFunction,
 
-  visitAst,
+  astVisit,
   Unparser,
 
   // ast typing helpers

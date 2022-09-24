@@ -52,7 +52,6 @@ export {
   type BinaryOperator,
   type BindingIdentifierOrPattern,
   type UnaryOperator,
-  type IExpressionHydrator,
   type IAstEvaluator,
   type ValueConverterInstance,
 } from './binding/ast';

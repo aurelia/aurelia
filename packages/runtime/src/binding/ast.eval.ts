@@ -3,7 +3,7 @@ import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { isFunction } from '../utilities-objects';
+import { isArray, isFunction } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -99,10 +99,16 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
 
       const args = ast.args.map(a => astEvaluate(a, s, e, c));
       const func = getFunction(e?.strictFnCall, instance, ast.name);
+      let ret: unknown;
       if (func) {
-        return func.apply(instance, args);
+        ret = func.apply(instance, args);
+        // todo(doc): investigate & document in engineering doc the difference
+        //            between observing before/after func.apply
+        if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
+          c?.observeCollection(instance);
+        }
       }
-      return void 0;
+      return ret;
     }
     case ExpressionKind.CallFunction: {
       const func = astEvaluate(ast.func, s, e, c);
@@ -622,3 +628,18 @@ function isStringOrDate(value: unknown): value is string | Date {
       return false;
   }
 }
+
+const autoObserveArrayMethods =
+  'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
+// sort,      // bad supported, self mutation + unclear dependency
+
+// push,      // not supported, self mutation + unclear dependency
+// pop,       // not supported, self mutation + unclear dependency
+// shift,     // not supported, self mutation + unclear dependency
+// splice,    // not supported, self mutation + unclear dependency
+// unshift,   // not supported, self mutation + unclear dependency
+// reverse,   // not supported, self mutation + unclear dependency
+
+// keys,    // not meaningful in template
+// values,  // not meaningful in template
+// entries, // not meaningful in template

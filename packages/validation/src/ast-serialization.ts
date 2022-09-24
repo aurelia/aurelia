@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { IExpressionHydrator } from '@aurelia/runtime';
 import * as AST from '@aurelia/runtime';
 
 const astVisit = AST.astVisit;
@@ -34,6 +33,10 @@ enum ASTExpressionTypes {
   DestructuringRestAssignment = 'DestructuringRestAssignment',
   ArrowFunction = 'ArrowFunction',
   Custom = 'Custom',
+}
+
+export interface IExpressionHydrator {
+  hydrate(jsonExpr: any): any;
 }
 
 export class Deserializer implements IExpressionHydrator {

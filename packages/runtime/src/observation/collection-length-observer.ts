@@ -1,4 +1,3 @@
-import { isArrayIndex } from '@aurelia/kernel';
 import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities-objects';
@@ -34,15 +33,19 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
   }
 
   public setValue(newValue: number): void {
-    const currentValue = this._value;
     // if in the template, length is two-way bound directly
     // then there's a chance that the new value is invalid
     // add a guard so that we don't accidentally broadcast invalid values
-    if (newValue !== currentValue && isArrayIndex(newValue)) {
-      // todo: maybe use splice so that it'll notify everything properly
-      this._obj.length = newValue;
-      this._value = newValue;
-      this.subs.notify(newValue, currentValue);
+    if (newValue !== this._value) {
+      if (!Number.isNaN(newValue)) {
+        this._obj.splice(newValue);
+        // todo: maybe use splice so that it'll notify everything properly
+        // this._obj.length = newValue;
+        // this.subs.notify(newValue, currentValue);
+      } else if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`Invalid value "${newValue}" for array length`);
+      }
     }
   }
 

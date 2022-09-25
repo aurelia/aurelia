@@ -177,6 +177,14 @@ export function createFixture<T extends object>(
       el.dispatchEvent(new ctx.CustomEvent(event, init));
     } });
   });
+  function type(selector: string, value: string): void {
+    const el = queryBy(selector);
+    if (el === null || !/input|textarea/i.test(el.nodeName)) {
+      throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
+    }
+    (el as HTMLInputElement).value = value;
+    el.dispatchEvent(new platform.window.Event('input'));
+  }
 
   const scrollBy = (selector: string, init: number | ScrollToOptions) => {
     const el = queryBy(selector);
@@ -184,7 +192,7 @@ export function createFixture<T extends object>(
       throw new Error(`No element found for selector "${selector}" to scroll by "${JSON.stringify(init)}"`);
     }
     el.scrollBy(typeof init === 'number' ? { top: init } : init);
-    el.dispatchEvent(new Event('scroll'));
+    el.dispatchEvent(new platform.window.Event('scroll'));
   };
 
   const flush = (time?: number) => {
@@ -247,7 +255,9 @@ export function createFixture<T extends object>(
     public assertAttr = assertAttr;
     public assertAttrNS = assertAttrNS;
     public assertValue = assertValue;
+    public createEvent = (name: string, init?: CustomEventInit) => new platform.CustomEvent(name, init);
     public trigger = trigger as ITrigger;
+    public type = type;
     public scrollBy = scrollBy;
     public flush = flush;
   }();
@@ -332,6 +342,15 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertValue(selector: string, value: unknown): void;
+  /**
+   * Create a custom event by the given name and init for the current platform
+   */
+  createEvent<T>(name: string, init?: CustomEventInit<T>): CustomEvent;
+
+  /**
+   * Find an input or text area by the selector and emulate a keyboard event with the given value
+   */
+  type(selector: string, value: string): void;
 
   hJsx(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]): HTMLElement;
 

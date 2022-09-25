@@ -2,6 +2,10 @@ import {
   Key,
 } from '@aurelia/kernel';
 import {
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
   ExpressionKind,
 } from '@aurelia/runtime';
 import {
@@ -165,31 +169,22 @@ export class MockTracingExpression {
 
   public evaluate(...args: any[]): any {
     this.trace('evaluate', ...args);
-    return this.inner.evaluate(...args);
+    return (astEvaluate as any)(this.inner, ...args);
   }
 
   public assign(...args: any[]): any {
     this.trace('assign', ...args);
-    return this.inner.assign(...args);
-  }
-
-  public connect(...args: any[]): any {
-    this.trace('connect', ...args);
-    this.inner.connect(...args);
+    return (astAssign as any)(this.inner, ...args);
   }
 
   public bind(...args: any[]): any {
     this.trace('bind', ...args);
-    if (this.inner.bind) {
-      this.inner.bind(...args);
-    }
+    (astBind as any)(this.inner, ...args);
   }
 
   public unbind(...args: any[]): any {
     this.trace('unbind', ...args);
-    if (this.inner.unbind) {
-      this.inner.unbind(...args);
-    }
+    (astUnbind as any)(this.inner, ...args);
   }
 
   public accept(...args: any[]): any {

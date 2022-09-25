@@ -1048,6 +1048,66 @@ describe('BinaryExpression', function () {
     assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null) as number), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
   });
 
+  it('handles 1 >= 1', function () {
+    const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), true);
+  });
+
+  it('handles 2 >= 1', function () {
+    const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(2), new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), true);
+  });
+
+  it('handles 1 >= 2', function () {
+    const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), false);
+  });
+
+  it('handles 1 <= 1', function () {
+    const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), true);
+  });
+
+  it('handles 2 <= 1', function () {
+    const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(2), new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), false);
+  });
+
+  it('handles 1 <= 2', function () {
+    const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), true);
+  });
+
+  it('handles undefined ?? 1', function () {
+    const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$undefined, new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
+  });
+
+  it('handles null ?? 1', function () {
+    const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$null, new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
+  });
+
+  it('handles false ?? 1', function () {
+    const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$false, new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), false);
+  });
+
+  it('handles 0 ?? 1', function () {
+    const expression = new BinaryExpression('??', new PrimitiveLiteralExpression(0), new PrimitiveLiteralExpression(1));
+    const scope = createScopeForTest({ });
+    assert.strictEqual(astEvaluate(expression, scope, null, null), 0);
+  });
+
   class TestData {
     public constructor(
       public expr: BinaryExpression,

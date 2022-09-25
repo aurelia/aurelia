@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  DI,
-} from '@aurelia/kernel';
-import {
   AccessKeyedExpression,
   AccessMemberExpression,
   AccessScopeExpression,
@@ -43,10 +40,10 @@ import {
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
 } from './ast';
-import { createLookup } from '../utilities-objects';
+import { createInterface, createLookup } from '../utilities-objects';
 
 export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
+export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
@@ -113,6 +110,7 @@ export class ExpressionParser {
   }
 }
 
+_START_CONST_ENUM();
 const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
@@ -217,6 +215,7 @@ const enum Char {
   LowerY  = 0x79,
   LowerZ  = 0x7A
 }
+_END_CONST_ENUM();
 
 function unescapeCode(code: number): number {
   switch (code) {
@@ -233,7 +232,8 @@ function unescapeCode(code: number): number {
   }
 }
 
-export const enum Precedence {
+_START_CONST_ENUM();
+const enum Precedence {
   Variadic                = 0b0000_111101,
   Assign                  = 0b0000_111110,
   Conditional             = 0b0000_111111,
@@ -249,6 +249,9 @@ export const enum Precedence {
   Primary                 = 0b1000_000011,
   Unary                   = 0b1000_000100,
 }
+_END_CONST_ENUM();
+
+_START_CONST_ENUM();
 const enum Token {
   EOF                     = 0b1100000000000_0000_000000,
   ExpressionTerminal      = 0b1000000000000_0000_000000,
@@ -317,6 +320,7 @@ const enum Token {
   OfKeyword               = 0b1000000001010_0000_110000,
   Arrow                   = 0b0000000000000_0000_110001,
 }
+_END_CONST_ENUM();
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -997,12 +1001,14 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
   }
 }
 
+_START_CONST_ENUM();
 const enum ArrowFnParams {
   Valid         = 1,
   Invalid       = 2,
   Default       = 3,
   Destructuring = 4,
 }
+_END_CONST_ENUM();
 
 /**
  * https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList

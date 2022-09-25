@@ -579,11 +579,13 @@ type AnySegment<T> = (
   StarSegment<T>
 );
 
+_START_CONST_ENUM();
 const enum SegmentKind {
   star    = 1,
   dynamic = 2,
   static  = 3,
 }
+_END_CONST_ENUM();
 
 class StaticSegment<T> {
   public get kind(): SegmentKind.static { return SegmentKind.static; }

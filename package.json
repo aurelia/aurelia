@@ -69,7 +69,7 @@
     "rebuild": "npm run clean && npm run build",
     "build": "lage build --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
     "build:test": "lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
-    "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/u* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
+    "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/c* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/u* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",

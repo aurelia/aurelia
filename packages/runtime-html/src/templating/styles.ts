@@ -1,10 +1,10 @@
-import { IContainer, DI, noop } from '@aurelia/kernel';
+import { IContainer, noop } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { INode } from '../dom';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
 import { IPlatform } from '../platform';
 import { defineAttribute } from '../resources/custom-attribute';
-import { instanceRegistration } from '../utilities-di';
+import { createInterface, instanceRegistration } from '../utilities-di';
 
 import type { IRegistry } from '@aurelia/kernel';
 
@@ -57,7 +57,7 @@ export interface IShadowDOMStyleFactory {
   createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles;
 }
 
-export const IShadowDOMStyleFactory = DI.createInterface<IShadowDOMStyleFactory>('IShadowDOMStyleFactory', x => x.cachedCallback(handler => {
+export const IShadowDOMStyleFactory = createInterface<IShadowDOMStyleFactory>('IShadowDOMStyleFactory', x => x.cachedCallback(handler => {
   if (AdoptedStyleSheetsStyles.supported(handler.get(IPlatform))) {
     return handler.get(AdoptedStyleSheetsStylesFactory);
   }
@@ -104,8 +104,8 @@ export interface IShadowDOMStyles {
   applyTo(shadowRoot: ShadowRoot): void;
 }
 
-export const IShadowDOMStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles');
-export const IShadowDOMGlobalStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles', x => x.instance({ applyTo: noop }));
+export const IShadowDOMStyles = createInterface<IShadowDOMStyles>('IShadowDOMStyles');
+export const IShadowDOMGlobalStyles = createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles', x => x.instance({ applyTo: noop }));
 
 export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];

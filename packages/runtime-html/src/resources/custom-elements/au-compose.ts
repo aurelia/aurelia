@@ -7,6 +7,7 @@ import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { LifecycleFlags, Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
+import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 
 /**
@@ -298,20 +299,23 @@ export class AuCompose {
 
     const p = this._platform;
     const isLocation = isRenderLocation(host);
-    container.registerResolver(
+    registerResolver(
+      container,
       p.Element,
-      container.registerResolver(
+      registerResolver(
+        container,
         INode,
         new InstanceProvider('ElementResolver', isLocation ? null : host)
       )
     );
-    container.registerResolver(
+    registerResolver(
+      container,
       IRenderLocation,
       new InstanceProvider('IRenderLocation', isLocation ? host : null)
     );
 
     const instance = container.invoke(comp);
-    container.registerResolver(comp, new InstanceProvider('au-compose.viewModel', instance));
+    registerResolver(container, comp, new InstanceProvider('au-compose.viewModel', instance));
 
     return instance;
   }

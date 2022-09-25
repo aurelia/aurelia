@@ -223,14 +223,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     return true;
   }
 
-  public has(subscriber: T): boolean {
-    return this._subs.includes(subscriber);
-  }
-
-  public any(): boolean {
-    return this.count > 0;
-  }
-
   public remove(subscriber: T): boolean {
     const idx = this._subs.indexOf(subscriber);
     if (idx !== -1) {

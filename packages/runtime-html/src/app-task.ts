@@ -1,6 +1,5 @@
-import { DI } from '@aurelia/kernel';
 import { isFunction } from './utilities';
-import { instanceRegistration } from './utilities-di';
+import { createInterface, instanceRegistration } from './utilities-di';
 import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 
 export type TaskSlot =
@@ -12,7 +11,7 @@ export type TaskSlot =
   | 'deactivating'
   | 'deactivated';
 
-export const IAppTask = DI.createInterface<IAppTask>('IAppTask');
+export const IAppTask = createInterface<IAppTask>('IAppTask');
 export interface IAppTask {
   readonly slot: TaskSlot;
   register(c: IContainer): IContainer;

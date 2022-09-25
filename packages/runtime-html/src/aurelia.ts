@@ -6,7 +6,7 @@ import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { LifecycleFlags, Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { isFunction, isPromise } from './utilities';
-import { instanceRegistration } from './utilities-di';
+import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
 import type {
   Constructable,
@@ -15,7 +15,7 @@ import type {
 } from '@aurelia/kernel';
 
 export interface IAurelia extends Aurelia {}
-export const IAurelia = DI.createInterface<IAurelia>('IAurelia');
+export const IAurelia = createInterface<IAurelia>('IAurelia');
 
 export class Aurelia implements IDisposable {
   /** @internal */
@@ -63,8 +63,8 @@ export class Aurelia implements IDisposable {
         throw new Error(`AUR0768`);
     }
 
-    container.registerResolver(IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
-    container.registerResolver(IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
+    registerResolver(container, IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
+    registerResolver(container, IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
   public register(...params: unknown[]): this {
@@ -87,18 +87,20 @@ export class Aurelia implements IDisposable {
     const comp = config.component as unknown as K;
     let bc: ICustomElementViewModel & K;
     if (isFunction(comp)) {
-      ctn.registerResolver(
+      registerResolver(
+        ctn,
         p.HTMLElement,
-        ctn.registerResolver(
+        registerResolver(
+          ctn,
           p.Element,
-          ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+          registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
         )
       );
       bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
       bc = comp;
     }
-    ctn.registerResolver(IEventTarget, new InstanceProvider('IEventTarget', host));
+    registerResolver(ctn, IEventTarget, new InstanceProvider('IEventTarget', host));
     parentController = parentController ?? null;
 
     const view = Controller.$el(

@@ -266,17 +266,17 @@ Every component instance has a life-cycle that you can tap into. This makes it e
 | Name        | Aurelia 1   | Asyncable | Description |
 | ----------- | ----------- | --------- | ----------- |
 | constructor | constructor | **✗**     |             |
-| define      | **✗**       | **✓**     |             |
-| hydrating   | **✗**       | **✓**     |             |
-| hydrated    | **✗**       | **✓**     |             |
-| created     | created     | **✓**     |             |
+| define      | **✗**       | **✗**     |             |
+| hydrating   | **✗**       | **✗**     |             |
+| hydrated    | **✗**       | **✗**     |             |
+| created     | created     | **✗**     |             |
 | binding     | bind        | **✓**     |             |
 | bound       | **✗**       | **✓**     |             |
 | attaching   | **✗**       | **✓**     |             |
 | attached    | attached    | **✓**     |             |
 | detaching   | **✗**       | **✓**     |             |
 | unbinding   | unbind      | **✓**     |             |
-| dispose     | detached    | **✓**     |             |
+| dispose     | **✗**       | **✗**     |             |
 
 {% hint style="info" %}
 Aurelia 1 has a restriction and the community made an [afterAttached](https://github.com/aurelia-ui-toolkits/aurelia-after-attached-plugin) plugin that is called after all child components are attached, and after all two-way bindings have completed. The`attached`life-cycle in version 2 covers this scenario.
@@ -507,9 +507,9 @@ export class MyApp {
 | Name      | Aurelia 1     | Asyncable | Description |
 | --------- | ------------- | --------- | ----------- |
 | canLoad   | canActivate   | **✓**     |             |
-| load      | activate      | **✓**     |             |
+| loading   | activate      | **✓**     |             |
 | canUnload | canDeactivate | **✓**     |             |
-| unload    | deactivate    | **✓**     |             |
+| unloading | deactivate    | **✓**     |             |
 {% endtab %}
 {% endtabs %}
 
@@ -537,6 +537,7 @@ export class MyApp {
 | Name | Aurelia 1 & 2 | Description |
 | ---- | ------------- | ----------- |
 | ref  | **✓**         |             |
+| view-model.ref  | **✓**         |             |
 
 ### Passing Function References
 

@@ -100,6 +100,7 @@ import {
 } from './util';
 import { PLATFORM } from './test-context';
 
+_START_CONST_ENUM();
 const enum Char {
   Null           = 0x00,
   Backspace      = 0x08,
@@ -204,6 +205,7 @@ const enum Char {
   LowerY  = 0x79,
   LowerZ  = 0x7A
 }
+_END_CONST_ENUM();
 
 /* eslint-disable max-lines-per-function, @typescript-eslint/ban-types */
 

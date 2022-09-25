@@ -2,7 +2,6 @@
 import {
   ILogger,
   LogLevel,
-  DI,
   emptyArray,
   InstanceProvider,
   optional,
@@ -27,6 +26,8 @@ import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
 import { isFunction, isPromise, isString } from '../utilities';
+import { isObject } from '@aurelia/metadata';
+import { createInterface, registerResolver } from '../utilities-di';
 
 import type {
   IContainer,
@@ -50,7 +51,6 @@ import type { IViewFactory } from './view';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
-import { isObject } from '@aurelia/metadata';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -242,7 +242,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ctn.register(...definition.dependencies);
     }
     // each CE controller provides its own hydration context for its internal template
-    ctn.registerResolver(IHydrationContext, new InstanceProvider(
+    registerResolver(ctn, IHydrationContext, new InstanceProvider(
       'IHydrationContext',
       new HydrationContext(
         controller,
@@ -384,7 +384,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     definition.register(container);
 
     if (definition.injectable !== null) {
-      container.registerResolver(
+      registerResolver(
+        container,
         definition.injectable,
         new InstanceProvider('definition.injectable', instance as ICustomElementViewModel),
       );
@@ -1744,9 +1745,9 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
   ): void | Promise<void>;
 }
 
-export const IController = DI.createInterface<IController>('IController');
+export const IController = createInterface<IController>('IController');
 
-export const IHydrationContext = DI.createInterface<IHydrationContext>('IHydrationContext');
+export const IHydrationContext = createInterface<IHydrationContext>('IHydrationContext');
 export interface IHydrationContext<T = unknown> extends HydrationContext<T> {
 }
 

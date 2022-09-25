@@ -1,4 +1,4 @@
-import { DI, emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
+import { emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
@@ -28,7 +28,7 @@ import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
 import { defineProp, isString } from './utilities';
-import { registerResolver, singletonRegistration } from './utilities-di';
+import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -70,7 +70,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = DI.createInterface<IInstruction>('Instruction');
+export const IInstruction = createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -78,7 +78,7 @@ export function isInstruction(value: unknown): value is IInstruction {
 }
 
 export class InterpolationInstruction {
-  public get type(): InstructionType.interpolation { return InstructionType.interpolation; }
+  public readonly type = InstructionType.interpolation;
 
   public constructor(
     public from: string | Interpolation,
@@ -87,7 +87,7 @@ export class InterpolationInstruction {
 }
 
 export class PropertyBindingInstruction {
-  public get type(): InstructionType.propertyBinding { return InstructionType.propertyBinding; }
+  public readonly type = InstructionType.propertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -97,7 +97,7 @@ export class PropertyBindingInstruction {
 }
 
 export class IteratorBindingInstruction {
-  public get type(): InstructionType.iteratorBinding { return InstructionType.iteratorBinding; }
+  public readonly type = InstructionType.iteratorBinding;
 
   public constructor(
     public from: string | ForOfStatement,
@@ -106,7 +106,7 @@ export class IteratorBindingInstruction {
 }
 
 export class CallBindingInstruction {
-  public get type(): InstructionType.callBinding { return InstructionType.callBinding; }
+  public readonly type = InstructionType.callBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -115,7 +115,7 @@ export class CallBindingInstruction {
 }
 
 export class RefBindingInstruction {
-  public get type(): InstructionType.refBinding { return InstructionType.refBinding; }
+  public readonly type = InstructionType.refBinding;
 
   public constructor(
     public readonly from: string | IsBindingBehavior,
@@ -124,7 +124,7 @@ export class RefBindingInstruction {
 }
 
 export class SetPropertyInstruction {
-  public get type(): InstructionType.setProperty { return InstructionType.setProperty; }
+  public readonly type = InstructionType.setProperty;
 
   public constructor(
     public value: unknown,
@@ -133,7 +133,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
+  public readonly type = InstructionType.hydrateElement;
 
   /**
    * A special property that can be used to store <au-slot/> usage information
@@ -169,7 +169,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public get type(): InstructionType.hydrateAttribute { return InstructionType.hydrateAttribute; }
+  public readonly type = InstructionType.hydrateAttribute;
 
   public constructor(
     // in theory, Constructor of resources should be accepted too
@@ -184,7 +184,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public get type(): InstructionType.hydrateTemplateController { return InstructionType.hydrateTemplateController; }
+  public readonly type = InstructionType.hydrateTemplateController;
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -200,7 +200,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public get type(): InstructionType.hydrateLetElement { return InstructionType.hydrateLetElement; }
+  public readonly type = InstructionType.hydrateLetElement;
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -209,7 +209,7 @@ export class HydrateLetElementInstruction {
 }
 
 export class LetBindingInstruction {
-  public get type(): InstructionType.letBinding { return InstructionType.letBinding; }
+  public readonly type = InstructionType.letBinding;
 
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
@@ -218,7 +218,7 @@ export class LetBindingInstruction {
 }
 
 export class TextBindingInstruction {
-  public get type(): InstructionType.textBinding { return InstructionType.textBinding; }
+  public readonly type = InstructionType.textBinding;
 
   public constructor(
     public from: string | Interpolation,
@@ -239,7 +239,7 @@ export const enum DelegationStrategy {
 }
 
 export class ListenerBindingInstruction {
-  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
+  public readonly type = InstructionType.listenerBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -249,7 +249,7 @@ export class ListenerBindingInstruction {
   ) {}
 }
 export class StylePropertyBindingInstruction {
-  public get type(): InstructionType.stylePropertyBinding { return InstructionType.stylePropertyBinding; }
+  public readonly type = InstructionType.stylePropertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -258,7 +258,7 @@ export class StylePropertyBindingInstruction {
 }
 
 export class SetAttributeInstruction {
-  public get type(): InstructionType.setAttribute { return InstructionType.setAttribute; }
+  public readonly type = InstructionType.setAttribute;
 
   public constructor(
     public value: string,
@@ -283,7 +283,7 @@ export class SetStyleAttributeInstruction {
 }
 
 export class AttributeBindingInstruction {
-  public get type(): InstructionType.attributeBinding { return InstructionType.attributeBinding; }
+  public readonly type = InstructionType.attributeBinding;
 
   public constructor(
     /**
@@ -299,17 +299,17 @@ export class AttributeBindingInstruction {
 }
 
 export class SpreadBindingInstruction {
-  public get type(): InstructionType.spreadBinding { return InstructionType.spreadBinding; }
+  public readonly type = InstructionType.spreadBinding;
 }
 
 export class SpreadElementPropBindingInstruction {
-  public get type(): InstructionType.spreadElementProp { return InstructionType.spreadElementProp; }
+  public readonly type = InstructionType.spreadElementProp;
   public constructor(
     public readonly instructions: IInstruction,
   ) {}
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
+export const ITemplateCompiler = createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
    * Indicates whether this compiler should compile template in debug mode
@@ -371,7 +371,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer');
+export const IRenderer = createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;

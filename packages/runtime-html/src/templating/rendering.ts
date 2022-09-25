@@ -1,4 +1,4 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
@@ -7,8 +7,9 @@ import { CustomElementDefinition, PartialCustomElementDefinition } from '../reso
 import { createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
+import { createInterface } from '../utilities-di';
 
-export const IRendering = DI.createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
+export const IRendering = createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering extends Rendering { }
 
 export class Rendering {

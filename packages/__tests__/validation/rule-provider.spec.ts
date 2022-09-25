@@ -13,7 +13,8 @@ import {
   PrimitiveLiteralExpression,
   IExpressionParser,
   ExpressionType,
-  Scope
+  Scope,
+  astEvaluate
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -692,7 +693,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
       const $rule = getRule();
       sut.setMessage($rule, message);
       const scope = Scope.create({});
-      const actual = sut.getMessage($rule).evaluate(scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
       assert.equal(actual, message);
     });
 
@@ -700,7 +701,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
       const { sut, container } = setup();
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
       assert.equal(actual, messages[i]);
     });
 
@@ -709,7 +710,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
       const $rule = getRule();
       $rule.messageKey = 'foobar';
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
       assert.equal(actual, 'FooBar is invalid.');
     });
   }
@@ -764,10 +765,10 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
     for (const { getRule } of rules) {
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = sut.getMessage($rule).evaluate(scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
-      const expected = sut.parseMessage(template).evaluate(scope, null!, null);
+      const expected = astEvaluate(sut.parseMessage(template), scope, null!, null);
       assert.equal(actual, expected);
     }
     // reset the messages
@@ -799,8 +800,8 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
     const scope1 = Scope.create({ $displayName, $rule: $rule1 });
     const scope2 = Scope.create({ $displayName, $rule: $rule2 });
 
-    const actual1 = sut.getMessage($rule1).evaluate(scope1, container, null);
-    const actual2 = sut.getMessage($rule2).evaluate(scope2, container, null);
+    const actual1 = astEvaluate(sut.getMessage($rule1), scope1, container, null);
+    const actual2 = astEvaluate(sut.getMessage($rule2), scope2, container, null);
 
     assert.equal(actual1, 'FooBar is required.');
     assert.equal(actual2, 'FooBar foobar fizbaz');

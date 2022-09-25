@@ -49,6 +49,9 @@ export const allResources = function <T extends Key>(key: T) {
 };
 
 /** @internal */
+export const createInterface = DI.createInterface;
+
+/** @internal */
 export const singletonRegistration = Registration.singleton;
 
 /** @internal */

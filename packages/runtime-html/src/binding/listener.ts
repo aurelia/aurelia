@@ -53,7 +53,7 @@ export class Listener implements IAstBasedBinding {
     this._options = options;
   }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(event: Event): unknown {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 

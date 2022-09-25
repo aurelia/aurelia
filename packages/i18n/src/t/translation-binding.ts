@@ -125,7 +125,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, ExpressionType.Interpolation) : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, ExpressionType.Interpolation) : undefined;
       binding.ast = interpolation || expr;
     }
   }

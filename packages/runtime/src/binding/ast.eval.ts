@@ -3,7 +3,7 @@ import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { isArray, isFunction } from '../utilities-objects';
+import { isArray, isFunction, safeString } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -301,8 +301,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     case ExpressionKind.Interpolation:
       if (ast.isMulti) {
         let result = ast.parts[0];
-        for (let i = 0; i < ast.expressions.length; ++i) {
-          result += String(astEvaluate(ast.expressions[i], s, e, c));
+        let i = 0;
+        for (; i < ast.expressions.length; ++i) {
+          result += safeString(astEvaluate(ast.expressions[i], s, e, c));
           result += ast.parts[i + 1];
         }
         return result;
@@ -527,7 +528,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       break;
     }
     case ExpressionKind.Custom: {
-      ast.unbind(s, b);
+      ast.bind?.(s, b);
     }
   }
 }
@@ -564,7 +565,7 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
       break;
     }
     case ExpressionKind.Custom: {
-      ast.unbind(s, b);
+      ast.unbind?.(s, b);
     }
   }
 }
@@ -584,7 +585,7 @@ const converterNotFoundError = (name: string) => {
     return new Error(`AUR0103:${name}`);
 };
 
-function getFunction(mustEvaluate: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null {
+const getFunction = (mustEvaluate: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
   const func = obj == null ? null : (obj as IIndexable)[name];
   if (isFunction(func)) {
     return func as (...args: unknown[]) => unknown;
@@ -596,14 +597,14 @@ function getFunction(mustEvaluate: boolean | undefined, obj: object, name: strin
     throw new Error(`AUR0111: Expected '${name}' to be a function`);
   else
     throw new Error(`AUR0111:${name}`);
-}
+};
 
 /**
  * Determines if the value passed is a number or bigint for parsing purposes
  *
  * @param value - Value to evaluate
  */
-function isNumberOrBigInt(value: unknown): value is number | bigint {
+const isNumberOrBigInt = (value: unknown): value is number | bigint => {
   switch (typeof value) {
     case 'number':
     case 'bigint':
@@ -611,14 +612,14 @@ function isNumberOrBigInt(value: unknown): value is number | bigint {
     default:
       return false;
   }
-}
+};
 
 /**
  * Determines if the value passed is a string or Date for parsing purposes
  *
  * @param value - Value to evaluate
  */
-function isStringOrDate(value: unknown): value is string | Date {
+const isStringOrDate = (value: unknown): value is string | Date => {
   switch (typeof value) {
     case 'string':
       return true;
@@ -627,7 +628,7 @@ function isStringOrDate(value: unknown): value is string | Date {
     default:
       return false;
   }
-}
+};
 
 const autoObserveArrayMethods =
   'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');

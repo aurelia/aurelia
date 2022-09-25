@@ -1,6 +1,6 @@
-import { DI, emptyArray, Protocol, all } from '@aurelia/kernel';
+import { emptyArray, Protocol, all } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { singletonRegistration } from '../utilities-di';
+import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 
 export interface AttributePatternDefinition {
@@ -283,7 +283,7 @@ export class SegmentTypes {
 }
 
 export interface ISyntaxInterpreter extends SyntaxInterpreter {}
-export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
 export class SyntaxInterpreter {
   public rootState: AttrParsingState = new AttrParsingState(null!);
@@ -437,12 +437,12 @@ export interface IAttributePattern {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
-export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern');
+export const IAttributePattern = createInterface<IAttributePattern>('IAttributePattern');
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
 }
-export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
+export const IAttributeParser = createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 export class AttributeParser implements IAttributeParser {
   /** @internal */

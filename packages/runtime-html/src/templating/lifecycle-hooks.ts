@@ -1,6 +1,5 @@
-import { DI } from '@aurelia/kernel';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
-import { singletonRegistration } from '../utilities-di';
+import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 
 export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
@@ -9,7 +8,7 @@ export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
     : never;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel> = { [K in TKey]-?: LifecycleHook<TViewModel, K>; };
-export const ILifecycleHooks = DI.createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
+export const ILifecycleHooks = createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
 
 export type LifecycleHooksLookup<TViewModel = {}> = {
   [K in FunctionPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];

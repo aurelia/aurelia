@@ -262,6 +262,7 @@ jobs:
           paths:
             - packages/__tests__/dist
             - packages/aurelia/dist
+            - packages/compat-v1/dist
             - packages/addons/dist
             - packages/fetch-client/dist
             - packages/i18n/dist

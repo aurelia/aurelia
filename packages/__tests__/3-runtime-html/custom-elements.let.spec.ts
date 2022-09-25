@@ -9,7 +9,8 @@ describe('3-runtime-html/let.spec.ts', function () {
     'delegate',
     'one-time',
     'capture',
-    'attr'
+    'attr',
+    'to-view',
   ]) {
     it(`throws on non .bind/.to-view: "${command}"`, async function () {
       const { tearDown, start } = createFixture(`<let a.${command}="bc">`, class { }, [], /* no start */false);
@@ -31,7 +32,7 @@ describe('3-runtime-html/let.spec.ts', function () {
     });
   }
 
-  for (const command of ['bind', 'to-view']) {
+  for (const command of ['bind']) {
     it(`camel-cases the target with binding command [${command}]`, async function () {
       const { tearDown, appHost, startPromise } = createFixture(`<let my-prop.${command}="1"></let>\${myProp}`);
 
@@ -50,7 +51,12 @@ describe('3-runtime-html/let.spec.ts', function () {
   });
 
   it('works with, and warns when encountering literal', async function () {
-    const { ctx, tearDown, appHost, start } = createFixture(`<let my-prop="1"></let>\${myProp}`, class { }, [], false);
+    const { ctx, tearDown, appHost, start } = createFixture(
+      `<let my-prop="1"></let>\${myProp}`,
+      class { myProp = 0; },
+      [],
+      false
+    );
 
     const logger = ctx.container.get(ILogger);
     const callArgs = [];
@@ -61,13 +67,16 @@ describe('3-runtime-html/let.spec.ts', function () {
 
     await start();
     assert.visibleTextEqual(appHost, '1');
-    if (__DEV__) {
-      assert.strictEqual(callArgs.length, 1);
-      assert.deepStrictEqual(callArgs[0], [
-        `Property my-prop is declared with literal string 1. ` +
-        `Did you mean my-prop.bind="1"?`
-      ]);
-    }
     await tearDown();
+  });
+
+  // //<let [to-binding-context] />
+  it('assigns to vm with <let to-binding-context>', async function () {
+    const { component } = createFixture(
+      `<let to-binding-context full-name.bind="firstName + \` \` + lastName"></let>
+      <div>\${fullName}</div></template>`,
+      { firstName: 'a', lastName: 'b', fullName: '' }
+    );
+    assert.strictEqual(component.fullName, 'a b');
   });
 });

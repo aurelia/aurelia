@@ -55,9 +55,7 @@ export interface ICollectionSubscribable {
 export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
   readonly count: number;
   add(subscriber: T): boolean;
-  has(subscriber: T): boolean;
   remove(subscriber: T): boolean;
-  any(): boolean;
   notify(value: unknown, oldValue: unknown): void;
   notifyCollection(collection: Collection, indexMap: IndexMap): void;
 }

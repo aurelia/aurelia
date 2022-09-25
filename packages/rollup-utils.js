@@ -132,6 +132,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     __DEV__: process.env.__DEV__,
     NO_MINIFIED: process.env.NO_MINIFIED
   };
+  // @ts-ignore
   const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
   const esmDevDist = 'dist/esm/index.dev.mjs';
@@ -141,13 +142,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
-    if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+    if (warning.code === 'CIRCULAR_DEPENDENCY' || warning.code === 'MIXED_EXPORTS') return;
     if (warning.message.includes('Mixing named and default exports')) return;
     warn(warning);
   };
 
   const devConfig = configure({
     input: inputFile,
+    // @ts-ignore
     external: Object.keys(pkg.dependencies),
     output: [
       {
@@ -180,12 +182,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           rollupTypeScript({}, isDevMode),
         ]
       ),
+      stripInternalConstEnum(),
     ],
     onwarn: onWarn
   }, true, envVars);
 
   const prodConfig = configure({
     input: inputFile,
+    // @ts-ignore
     external: Object.keys(pkg.dependencies),
     output: [
       {
@@ -227,9 +231,12 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
-          rollupTypeScript({}, isDevMode),
+          rollupTypeScript({
+            removeComments: false
+          }, isDevMode),
         ]
       ),
+      stripInternalConstEnum(),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,
@@ -245,4 +252,52 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
  */
 function identity(a) {
   return a;
+}
+
+import { createFilter } from '@rollup/pluginutils';
+import MagicString from 'magic-string';
+
+/** @return {import('rollup').Plugin} */
+function stripInternalConstEnum (options = {}) {
+  const { include, exclude } = options
+
+  const filter = createFilter(include, exclude)
+
+  return {
+    name: 'stripCode',
+
+    transform (source, id) {
+      if (!filter(id)) return
+
+      const s = new MagicString(source);
+      const indexPairs = [];
+
+      let startIndex = 0;
+      let endIndex = 0;
+      while (true) {
+        startIndex = source.indexOf('_START_CONST_ENUM();', endIndex);
+        if (startIndex === -1) {
+          break;
+        }
+
+        endIndex = source.indexOf('_END_CONST_ENUM();', startIndex);
+        if (endIndex === -1) {
+          break;
+        }
+        indexPairs.push([startIndex, endIndex]);
+      }
+
+      if (indexPairs.length === 0) {
+        return;
+      }
+
+      indexPairs.forEach(([startIndex, endIndex]) => {
+        s.overwrite(startIndex, endIndex + '_END_CONST_ENUM();'.length, '');
+      })
+      
+      const map = s.generateMap({ hires: true })
+
+      return { code: s.toString(), map };
+    }
+  }
 }

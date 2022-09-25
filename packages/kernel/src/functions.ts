@@ -45,12 +45,14 @@ export function isArrayIndex(value: unknown): value is number | string {
  * Base implementation of camel and kebab cases
  */
 const baseCase = (function () {
+  _START_CONST_ENUM();
   const enum CharKind {
     none  = 0,
     digit = 1,
     upper = 2,
     lower = 3,
   }
+  _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const isDigit = Object.assign(createObject(), {

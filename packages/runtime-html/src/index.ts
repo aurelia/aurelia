@@ -479,7 +479,6 @@ export {
   IEventTarget,
   IRenderLocation,
   type INodeSequence,
-  NodeType,
   FragmentNodeSequence,
   IHistory,
   IWindow,

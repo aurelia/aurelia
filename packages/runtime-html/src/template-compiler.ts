@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { DI, emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { ExpressionType, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -28,7 +28,7 @@ import { CustomAttribute } from './resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from './resources/custom-element';
 import { BindingCommand, CommandType } from './resources/binding-command';
 import { createLookup, isString } from './utilities';
-import { allResources, singletonRegistration } from './utilities-di';
+import { allResources, createInterface, singletonRegistration } from './utilities-di';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
 import { BindingMode } from './binding/interfaces-bindings';
 
@@ -535,27 +535,18 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       bindingCommand = context._createCommand(attrSyntax);
       if (bindingCommand !== null) {
-        // supporting one time may not be as simple as it appears
-        // as the let expression could compute its value from various expressions,
-        // which means some value could be unavailable by the time it computes.
-        //
-        // Onetime means it will not have appropriate value, but it's also a good thing,
-        // since often one it's just a simple declaration
-        // todo: consider supporting one-time for <let>
-        switch (bindingCommand.name) {
-          case 'to-view':
-          case 'bind':
-            letInstructions.push(new LetBindingInstruction(
-              exprParser.parse(realAttrValue, ExpressionType.IsProperty),
-              camelCase(realAttrTarget)
-            ));
-            continue;
-          default:
-            if (__DEV__)
-              throw new Error(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
-            else
-              throw new Error(`AUR0704:${attrSyntax.command}`);
+        if (attrSyntax.command === 'bind') {
+          letInstructions.push(new LetBindingInstruction(
+            exprParser.parse(realAttrValue, ExpressionType.IsProperty),
+            camelCase(realAttrTarget)
+          ));
+        } else {
+          if (__DEV__)
+            throw new Error(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
+          else
+            throw new Error(`AUR0704:${attrSyntax.command}`);
         }
+        continue;
       }
 
       expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);
@@ -1852,11 +1843,13 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
   ) {}
 }
 
+_START_CONST_ENUM();
 const enum LocalTemplateBindableAttributes {
   property = "property",
   attribute = "attribute",
   mode = "mode",
 }
+_END_CONST_ENUM();
 const allowedLocalTemplateBindableAttributes: readonly string[] = Object.freeze([
   LocalTemplateBindableAttributes.property,
   LocalTemplateBindableAttributes.attribute,
@@ -1905,7 +1898,7 @@ function getBindingMode(bindable: Element): BindingMode {
  *
  * A feature available to the default template compiler.
  */
-export const ITemplateCompilerHooks = DI.createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+export const ITemplateCompilerHooks = createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
 export interface ITemplateCompilerHooks {
   /**
    * Should be invoked immediately before a template gets compiled
@@ -1960,6 +1953,7 @@ export const templateCompilerHooks = (target?: Function) => {
 const DEFAULT_SLOT_NAME = 'default';
 const AU_SLOT = 'au-slot';
 
+_START_CONST_ENUM();
 const enum Char {
   // Null           = 0x00,
   // Backspace      = 0x08,
@@ -1999,3 +1993,4 @@ const enum Char {
   // GreaterThan    = 0x3E,
   // Question       = 0x3F,
 }
+_END_CONST_ENUM();

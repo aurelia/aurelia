@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Protocol } from '@aurelia/kernel';
+import { DI, Protocol } from '@aurelia/kernel';
 
 /**
  * A shortcut to Object.prototype.hasOwnProperty
@@ -46,6 +46,7 @@ export function ensureProto<T extends object, K extends keyof T>(
 
 // this is used inside template literal, since TS errs without String(...value)
 /** @internal */ export const safeString = String;
+/** @internal */ export const createInterface = DI.createInterface;
 
 /** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
 

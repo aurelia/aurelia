@@ -1,12 +1,13 @@
-import { Constructable, DI, IContainer, IIndexable, InstanceProvider } from '@aurelia/kernel';
+import { type Constructable, IContainer, type IIndexable, InstanceProvider } from '@aurelia/kernel';
 
 import { INode, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { LifecycleFlags, Controller, ICustomElementController } from '../templating/controller';
 import { IRendering } from '../templating/rendering';
+import { createInterface } from '../utilities-di';
 
-export const IWcElementRegistry = DI.createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
+export const IWcElementRegistry = createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
 export interface IAuElementRegistry {
   /**
    * Define a web-component custom element for a set of given parameters

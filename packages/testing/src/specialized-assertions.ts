@@ -1,4 +1,4 @@
-import { InstructionType, NodeType, CustomElement } from '@aurelia/runtime-html';
+import { InstructionType, CustomElement } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -187,3 +187,20 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     throw new Error(`Failed assertion: binding instruction mismatch\n  - ${errors.join('\n  - ')}`);
   }
 }
+
+_START_CONST_ENUM();
+const enum NodeType {
+  Element = 1,
+  Attr = 2,
+  Text = 3,
+  CDATASection = 4,
+  EntityReference = 5,
+  Entity = 6,
+  ProcessingInstruction = 7,
+  Comment = 8,
+  Document = 9,
+  DocumentType = 10,
+  DocumentFragment = 11,
+  Notation = 12
+}
+_END_CONST_ENUM();

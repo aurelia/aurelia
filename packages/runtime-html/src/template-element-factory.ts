@@ -1,6 +1,6 @@
-import { DI } from '@aurelia/kernel';
 import { IPlatform } from './platform';
 import { isString } from './utilities';
+import { createInterface } from './utilities-di';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -9,7 +9,7 @@ import { isString } from './utilities';
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
 export interface ITemplateElementFactory extends TemplateElementFactory {}
-export const ITemplateElementFactory = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
+export const ITemplateElementFactory = createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 

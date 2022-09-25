@@ -4,7 +4,7 @@ import { astEvaluator } from './binding-utils';
 import { DelegationStrategy } from '../renderer';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
@@ -53,11 +53,11 @@ export class Listener implements IAstBasedBinding {
     this._options = options;
   }
 
-  public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
+  public callSource(event: Event): unknown {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    let result = this.ast.evaluate(this.$scope, this, null);
+    let result = astEvaluate(this.ast, this.$scope, this, null);
 
     delete overrideContext.$event;
 
@@ -87,10 +87,7 @@ export class Listener implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    const ast = this.ast;
-    if (ast.hasBind) {
-      ast.bind(scope, this.interceptor);
-    }
+    astBind(this.ast, scope, this.interceptor);
 
     if (this._options.strategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
@@ -113,9 +110,7 @@ export class Listener implements IAstBasedBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.$scope, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope, this.interceptor);
 
     this.$scope = null!;
     if (this._options.strategy === DelegationStrategy.none) {

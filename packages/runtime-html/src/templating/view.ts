@@ -1,9 +1,9 @@
-import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { CustomElementDefinition, defineElement, getElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { defineMetadata, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString } from '../utilities';
+import { createInterface } from '../utilities-di';
 
 import type { Constructable, ConstructableClass, IContainer } from '@aurelia/kernel';
 import type {
@@ -22,7 +22,7 @@ import type {
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 
 export interface IViewFactory extends ViewFactory {}
-export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');
+export const IViewFactory = createInterface<IViewFactory>('IViewFactory');
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
@@ -153,7 +153,7 @@ export type ViewSelector = (object: ICustomElementViewModel, views: readonly Par
 export type ComposableObjectComponentType<T extends ICustomElementViewModel>
   = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
-export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator', x => x.singleton(ViewLocator));
+export const IViewLocator = createInterface<IViewLocator>('IViewLocator', x => x.singleton(ViewLocator));
 export interface IViewLocator extends ViewLocator {}
 
 export class ViewLocator {

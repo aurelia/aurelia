@@ -3,6 +3,10 @@ import {
   AccessorType,
   IObserver,
   connectable,
+  astEvaluate,
+  astBind,
+  astUnbind,
+  astAssign,
 } from '@aurelia/runtime';
 
 import { BindingMode } from './interfaces-bindings';
@@ -87,7 +91,7 @@ export class AttributeBinding implements IAstBasedBinding {
   }
 
   public updateSource(value: unknown): void {
-    this.ast.assign(this.$scope, this, value);
+    astAssign(this.ast, this.$scope, this, value);
   }
 
   public handleChange(): void {
@@ -97,7 +101,6 @@ export class AttributeBinding implements IAstBasedBinding {
 
     const mode = this.mode;
     const interceptor = this.interceptor;
-    const ast = this.ast;
     const $scope = this.$scope;
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
@@ -111,7 +114,7 @@ export class AttributeBinding implements IAstBasedBinding {
     if (shouldConnect) {
       this.obs.version++;
     }
-    const newValue = ast.evaluate($scope, this, interceptor);
+    const newValue = astEvaluate(this.ast, $scope, this, interceptor);
     if (shouldConnect) {
       this.obs.clear();
     }
@@ -147,10 +150,7 @@ export class AttributeBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    let ast = this.ast;
-    if (ast.hasBind) {
-      ast.bind(scope, this.interceptor);
-    }
+    astBind(this.ast, scope, this.interceptor);
 
     let targetObserver = this.targetObserver;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -162,9 +162,6 @@ export class AttributeBinding implements IAstBasedBinding {
       );
     }
 
-    // during bind, binding behavior might have changed ast
-    // deepscan-disable-next-line
-    ast = this.ast;
     const $mode = this.mode;
     const interceptor = this.interceptor;
     let shouldConnect: boolean = false;
@@ -172,7 +169,7 @@ export class AttributeBinding implements IAstBasedBinding {
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       shouldConnect = ($mode & BindingMode.toView) > 0;
       interceptor.updateTarget(
-        this.value = ast.evaluate(scope, this, shouldConnect ? interceptor : null)
+        this.value = astEvaluate(this.ast, scope, this, shouldConnect ? interceptor : null)
       );
     }
     if ($mode & BindingMode.fromView) {
@@ -187,9 +184,8 @@ export class AttributeBinding implements IAstBasedBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.$scope, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope, this.interceptor);
+
     this.$scope = null!;
     this.value = void 0;
 

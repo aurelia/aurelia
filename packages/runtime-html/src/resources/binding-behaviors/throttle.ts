@@ -1,8 +1,8 @@
 import { IPlatform } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
+import { bindingBehavior, BindingInterceptor, type IInterceptableBinding } from '../binding-behavior';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
-import type { BindingBehaviorExpression, IsAssign, Scope } from '@aurelia/runtime';
+import { astEvaluate, type BindingBehaviorExpression, type IsAssign, type Scope } from '@aurelia/runtime';
 
 const defaultDelay = 200;
 
@@ -83,7 +83,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
   public $bind(scope: Scope): void {
     if (this._firstArg !== null) {
-      const delay = Number(this._firstArg.evaluate(scope, this, null));
+      const delay = Number(astEvaluate(this._firstArg, scope, this, null));
       this._opts.delay = this._delay = isNaN(delay) ? defaultDelay : delay;
     }
     super.$bind(scope);

@@ -11,6 +11,7 @@ import {
   BindingBehaviorExpression,
   IExpressionParser,
   ExpressionKind,
+  astEvaluate,
   // IsBindingBehavior
 } from '@aurelia/runtime';
 import {
@@ -147,7 +148,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
         // eslint-disable-next-line
-        memberName = `[${(keyExpr.evaluate(scope, binding, null) as any).toString()}]`;
+        memberName = `[${(astEvaluate(keyExpr, scope, binding, null) as any).toString()}]`;
         break;
       }
       default:
@@ -166,7 +167,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     propertyName = expression.name;
     object = scope.bindingContext;
   } else {
-    object = expression.evaluate(scope, binding, null);
+    object = astEvaluate(expression, scope, binding, null);
   }
   if (object === null || object === void 0) {
     return (void 0);

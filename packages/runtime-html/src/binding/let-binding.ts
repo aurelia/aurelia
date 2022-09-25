@@ -1,4 +1,4 @@
-import { connectable } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
 import { astEvaluator } from './binding-utils';
 
 import type { ITask } from '@aurelia/platform';
@@ -54,7 +54,7 @@ export class LetBinding implements IAstBasedBinding {
     const targetProperty = this.targetProperty;
     const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
+    const newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
     this.obs.clear();
     if (newValue !== previousValue) {
       target[targetProperty] = newValue;
@@ -76,12 +76,10 @@ export class LetBinding implements IAstBasedBinding {
     this.$scope = scope;
     this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
-    if (this.ast.hasBind) {
-      this.ast.bind(scope, this.interceptor);
-    }
-    // ast might have been changed during bind
+    astBind(this.ast, scope, this.interceptor);
+
     this.target[this.targetProperty]
-      = this.ast.evaluate(scope, this, this.interceptor);
+      = astEvaluate(this.ast, scope, this, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -92,9 +90,8 @@ export class LetBinding implements IAstBasedBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.$scope!, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope!, this.interceptor);
+
     this.$scope = void 0;
     this.obs.clearAll();
 

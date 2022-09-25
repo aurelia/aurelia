@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { createInterface } from '../../utilities-di';
 import { valueConverter } from '../value-converter';
 
 export interface ISanitizer {
@@ -10,7 +10,7 @@ export interface ISanitizer {
   sanitize(input: string): string;
 }
 
-export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
+export const ISanitizer = createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(): string {
     throw new Error('"sanitize" method not implemented');
   }

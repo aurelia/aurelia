@@ -12,6 +12,10 @@ In v2, when trying to bind with a non-existent property, the closest boundary sc
 
 In v1, if you happen to use `.observeProperty` method from bindings in your application/library, then change it to `observe` instead. The parameters of the signature remain the same.
 
+### Internal binding property `sourceExpression` has been renamed to `ast`
+
+In v1, if you happen to use `.sourceExpression` property from bindings in your application/library, then change it to `ast` instead. The type of the property remains the same.
+
 ### Enhance API changes:
 
 In v1, `enhance` method on an `Aurelia` instance has the signature:

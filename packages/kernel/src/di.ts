@@ -715,8 +715,8 @@ function createNewInstance(key: any, handler: IContainer, requestor: IContainer)
   return handler.getFactory(key).construct(requestor);
 }
 
-/** @internal */
-export const enum ResolverStrategy {
+_START_CONST_ENUM();
+const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
   transient = 2,
@@ -724,6 +724,7 @@ export const enum ResolverStrategy {
   array = 4,
   alias = 5
 }
+_END_CONST_ENUM();
 
 class Resolver implements IResolver, IRegistration {
   public constructor(

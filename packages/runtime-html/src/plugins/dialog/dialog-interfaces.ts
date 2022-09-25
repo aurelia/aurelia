@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { createInterface } from '../../utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { ICustomElementViewModel } from '../../templating/controller';
@@ -6,7 +6,7 @@ import type { ICustomElementViewModel } from '../../templating/controller';
 /**
  * The dialog service for composing view & view model into a dialog
  */
-export const IDialogService = DI.createInterface<IDialogService>('IDialogService');
+export const IDialogService = createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
   readonly controllers: IDialogController[];
   /**
@@ -28,7 +28,7 @@ export interface IDialogService {
 /**
  * The controller asscociated with every dialog view model
  */
-export const IDialogController = DI.createInterface<IDialogController>('IDialogController');
+export const IDialogController = createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
   readonly settings: IDialogLoadedSettings;
   /**
@@ -44,7 +44,7 @@ export interface IDialogController {
 /**
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
-export const IDialogDomRenderer = DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer');
+export const IDialogDomRenderer = createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer {
   render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
 }
@@ -52,7 +52,7 @@ export interface IDialogDomRenderer {
 /**
  * An interface describing the DOM structure of a dialog
  */
-export const IDialogDom = DI.createInterface<IDialogDom>('IDialogDom');
+export const IDialogDom = createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
   readonly overlay: HTMLElement;
   readonly contentHost: HTMLElement;
@@ -160,7 +160,7 @@ export type IDialogGlobalSettings = Pick<
   IDialogSettings,
   'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
-export const IDialogGlobalSettings = DI.createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
+export const IDialogGlobalSettings = createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
 
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;

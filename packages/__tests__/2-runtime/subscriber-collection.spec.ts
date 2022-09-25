@@ -124,12 +124,11 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
 
     let removalCount = 0;
     for (let i = 4, ii = subscribers.length; ii > i; i += 5) {
-      const result = observer.subs.remove(subscribers[i]);
-      if (result) {
-        removalCount++;
-      }
+      observer.subs.remove(subscribers[i]);
+      removalCount++;
     }
-    assert.strictEqual(observer['subs']['sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
+    assert.strictEqual(removalCount, 20);
+    assert.strictEqual(observer.subs.count, subscribers.length - removalCount, `observer.subs.count`);
 
     assert.strictEqual(observer.subs.remove({} as any), false, `observer.subs.remove({} as any)`);
   });

@@ -4,7 +4,8 @@ import {
   type IOverrideContext,
   Scope,
   type IsBindingBehavior,
-  connectable
+  connectable,
+  astEvaluate
 } from '@aurelia/runtime';
 import { astEvaluator, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
@@ -48,7 +49,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
   public callSource(e: Event) {
     const $scope = this.$scope!;
     $scope.overrideContext.$event = e;
-    const value = this.ast.evaluate($scope, this, null);
+    const value = astEvaluate(this.ast, $scope, this, null);
     delete $scope.overrideContext.$event;
     if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);

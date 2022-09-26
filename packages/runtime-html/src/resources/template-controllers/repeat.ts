@@ -1,4 +1,4 @@
-import { type IDisposable, onResolve } from '@aurelia/kernel';
+import { type IDisposable, onResolve, IIndexable } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
   BindingBehaviorExpression,
@@ -17,6 +17,7 @@ import {
   ValueConverterExpression,
   astEvaluate,
   astAssign,
+  createIndexMap,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
@@ -43,7 +44,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ protected static inject = [IRenderLocation, IController, IViewFactory];
 
   public views: ISyntheticView[] = [];
-  public key?: string = void 0;
 
   public forOf!: ForOfStatement;
   public local!: string;
@@ -51,6 +51,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
+  @bindable public key?: string = void 0;
 
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
@@ -131,6 +132,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // called by SetterObserver
   public itemsChanged(): void {
+    if (typeof this.key === 'string') {
+      this.handleCollectionChange(this.items!, void 0);
+      return;
+    }
+
     const { $controller } = this;
     if (!$controller.isActive) {
       return;
@@ -165,6 +171,45 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._normalizeToArray();
 
+    const oldViews = this.views;
+    const oldLen = oldViews.length;
+    const key = this.key;
+    if (typeof key === 'string') {
+      const local = this.local;
+      const newItems = this._normalizedItems!;
+      const newLen = newItems.length;
+      const existingItems = new Set();
+      indexMap = createIndexMap(oldLen);
+
+      for (let iOld = 0; iOld < oldLen; ++iOld) {
+        const view = oldViews[iOld];
+        const oldItem = view.scope.bindingContext[local] as IIndexable;
+        let found = false;
+
+        for (let iNew = 0; iNew < newLen; ++iNew) {
+          const newItem = newItems[iNew] as IIndexable;
+          if (oldItem[key] === newItem[key]) {
+            indexMap[iOld] = iNew;
+            found = true;
+            existingItems.add(newItem);
+            break;
+          }
+        }
+
+        if (!found) {
+          indexMap.deletedIndices.push(iOld);
+          indexMap.deletedItems.push(oldItem);
+        }
+      }
+
+      for (let iNew = 0; iNew < newLen; ++iNew) {
+        const newItem = newItems[iNew] as IIndexable;
+        if (!existingItems.has(newItem)) {
+          indexMap[iNew] = -2;
+        }
+      }
+    }
+
     if (indexMap === void 0) {
       const ret = onResolve(
         this._deactivateAllViews(null),
@@ -175,7 +220,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
-      const oldLength = this.views.length;
       const $indexMap = applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
       if ($indexMap.deletedIndices.length > 0) {
@@ -183,14 +227,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this._deactivateAndRemoveViewsByKey($indexMap),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLength, $indexMap);
+            return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
           },
         );
         if (isPromise(ret)) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLength, $indexMap);
+        this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
       }
     }
   }

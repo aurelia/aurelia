@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, InterfaceSymbol, IRegistry, Registration } from '@aurelia/kernel';
-import { AppTask, AppTaskCallback, IWindow } from '@aurelia/runtime-html';
+import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
 import { IRouterOptions, IRouter } from './router';

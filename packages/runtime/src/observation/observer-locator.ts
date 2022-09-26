@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError } from '../utilities-objects';
 
 import type {
   Collection,
@@ -228,5 +228,5 @@ export const getObserverLookup = <T extends IObserver>(instance: object): Record
 
 const nullObjectError = (key: PropertyKey) =>
   __DEV__
-    ? new Error(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
-    : new Error(`AUR0199:${safeString(key)}`);
+    ? createError(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
+    : createError(`AUR0199:${safeString(key)}`);

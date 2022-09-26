@@ -55,5 +55,12 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     await expect(page.locator('app p')).toHaveText('Hello 2!');
     await expect(page.locator('textarea')).toHaveValue('Hello 2!');
   });
+
+  test.skip('invokes binding lifecycle', function () {/* empty */});
+  test.skip('invokes bound lifecycle', function () {/* empty */});
+  test.skip('invokes attaching lifecycle', function () {/* empty */});
+  test.skip('invokes attached lifecycle', function () {/* empty */});
+  test.skip('invokes detaching lifecycle', function () {/* empty */});
+  test.skip('invokes unbinding lifecycle', function () {/* empty */});
 });
 

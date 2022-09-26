@@ -1,7 +1,7 @@
 import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance, Collection, IAstEvaluator, IndexMap, ValueConverterInstance } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
-import { def, isFunction, isString } from '../utilities';
+import { createError, def, isFunction, isString } from '../utilities';
 import { registerAliases } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
@@ -233,9 +233,9 @@ export const BindingBehavior = Object.freeze<BindingBehaviorKind>({
     const def = getOwnMetadata(bbBaseName, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
       if (__DEV__)
-        throw new Error(`AUR0151: No definition found for type ${Type.name}`);
+        throw createError(`AUR0151: No definition found for type ${Type.name}`);
       else
-        throw new Error(`AUR0151:${Type.name}`);
+        throw createError(`AUR0151:${Type.name}`);
     }
 
     return def;

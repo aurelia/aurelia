@@ -13,7 +13,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from '@aurelia/runtime';
-import { hasOwnProperty, isArray } from '../utilities';
+import { createError, hasOwnProperty, isArray } from '../utilities';
 
 const childObserverOptions = {
   childList: true,
@@ -247,9 +247,9 @@ export class SelectValueObserver implements IObserver {
     if (array != null) {
       if (!this._obj.multiple) {
         if (__DEV__)
-          throw new Error(`AUR0654: Only null or Array instances can be bound to a multi-select.`);
+          throw createError(`AUR0654: Only null or Array instances can be bound to a multi-select.`);
         else
-          throw new Error(`AUR0654`);
+          throw createError(`AUR0654`);
       }
       (this._arrayObserver = this._observerLocator.getArrayObserver(array)).subscribe(this);
     }

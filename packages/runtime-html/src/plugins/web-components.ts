@@ -5,6 +5,7 @@ import { IPlatform } from '../platform';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { LifecycleFlags, Controller, ICustomElementController } from '../templating/controller';
 import { IRendering } from '../templating/rendering';
+import { createError } from '../utilities';
 import { createInterface } from '../utilities-di';
 
 export const IWcElementRegistry = createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
@@ -56,11 +57,11 @@ export class WcCustomElementRegistry implements IAuElementRegistry {
 
   public define(name: string, def: Constructable | Omit<PartialCustomElementDefinition, 'name'>, options?: ElementDefinitionOptions): Constructable<HTMLElement> {
     if (!name.includes('-')) {
-      throw new Error('Invalid web-components custom element name. It must include a "-"');
+      throw createError('Invalid web-components custom element name. It must include a "-"');
     }
     let elDef: CustomElementDefinition;
     if (def == null) {
-      throw new Error('Invalid custom element definition');
+      throw createError('Invalid custom element definition');
     }
     switch (typeof def) {
       case 'function':
@@ -73,7 +74,7 @@ export class WcCustomElementRegistry implements IAuElementRegistry {
         break;
     }
     if (elDef.containerless) {
-      throw new Error('Containerless custom element is not supported. Consider using buitl-in extends instead');
+      throw createError('Containerless custom element is not supported. Consider using buitl-in extends instead');
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     const BaseClass = !options?.extends ? HTMLElement : this.p.document.createElement(options.extends).constructor as unknown as Constructable<HTMLElement>;

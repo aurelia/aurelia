@@ -23,7 +23,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { isArray, isPromise, rethrow } from '../../utilities';
+import { createError, isArray, isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -515,8 +515,8 @@ interface IRepeatOverrideContext extends IOverrideContext {
 
 const mismatchedLengthError = (viewCount: number, itemCount: number) =>
   __DEV__
-    ? new Error(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
-    : new Error(`AUR0814:${viewCount}!=${itemCount}`);
+    ? createError(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
+    : createError(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;
@@ -543,7 +543,7 @@ const getCount = (result: AcceptableCollection): number => {
     case '[object Null]': return 0;
     case '[object Undefined]': return 0;
     // todo: remove this count method
-    default: throw new Error(`Cannot count ${toStringTag.call(result) as string}`);
+    default: throw createError(`Cannot count ${toStringTag.call(result) as string}`);
   }
 };
 
@@ -556,7 +556,7 @@ const iterate = (result: AcceptableCollection, func: (item: unknown, index: numb
     case '[object Null]': return;
     case '[object Undefined]': return;
     // todo: remove this count method
-    default: throw new Error(`Cannot iterate over ${toStringTag.call(result) as string}`);
+    default: throw createError(`Cannot iterate over ${toStringTag.call(result) as string}`);
   }
 };
 

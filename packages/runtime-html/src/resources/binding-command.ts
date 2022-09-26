@@ -156,9 +156,9 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
   //   const def = getOwnMetadata(cmdBaseName, Type);
   //   if (def === void 0) {
   //     if (__DEV__)
-  //       throw new Error(`AUR0758: No definition found for type ${Type.name}`);
+  //       throw createError(`AUR0758: No definition found for type ${Type.name}`);
   //     else
-  //       throw new Error(`AUR0758:${Type.name}`);
+  //       throw createError(`AUR0758:${Type.name}`);
   //   }
 
   //   return def;

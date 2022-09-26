@@ -179,7 +179,7 @@ describe('promise template-controller', function () {
       public controller: Controller,
       public error: Error | null,
     ) {
-      this._log = (container.get(ILogger)['debugSinks'] as ISink[]).find((s) => s instanceof DebugLog) as DebugLog;
+      this._log = container.get(ILogger).sinks.find((s) => s instanceof DebugLog) as DebugLog;
     }
     public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
     public get log() {

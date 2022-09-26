@@ -278,19 +278,19 @@ const getLogLevelString = (function () {
   };
 })();
 
-function getScopeString(scope: readonly string[], colorOptions: ColorOptions): string {
+const getScopeString = (scope: readonly string[], colorOptions: ColorOptions): string => {
   if (colorOptions === ColorOptions.noColors) {
     return scope.join('.');
   }
   return scope.map(format.cyan).join('.');
-}
+};
 
-function getIsoString(timestamp: number, colorOptions: ColorOptions): string {
+const getIsoString = (timestamp: number, colorOptions: ColorOptions): string => {
   if (colorOptions === ColorOptions.noColors) {
     return new Date(timestamp).toISOString();
   }
   return format.grey(new Date(timestamp).toISOString());
-}
+};
 
 export class DefaultLogEvent implements ILogEvent {
   public constructor(
@@ -385,34 +385,42 @@ export class DefaultLogger {
    * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `root` property set to the global (non-scoped) logger.
    */
   public readonly root: ILogger;
+
+  public readonly config: ILogConfig;
+
+  public readonly sinks: readonly ISink[];
   /**
    * The parent `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
    *
    * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `parent` property set to the logger that it was created from.
    */
-  public readonly parent: ILogger;
+  private readonly parent: ILogger;
   /** @internal */
-  public readonly traceSinks: ISink[];
+  private readonly _traceSinks: ISink[];
   /** @internal */
-  public readonly debugSinks: ISink[];
+  private readonly _debugSinks: ISink[];
   /** @internal */
-  public readonly infoSinks: ISink[];
+  private readonly _infoSinks: ISink[];
   /** @internal */
-  public readonly warnSinks: ISink[];
+  private readonly _warnSinks: ISink[];
   /** @internal */
-  public readonly errorSinks: ISink[];
+  private readonly _errorSinks: ISink[];
   /** @internal */
-  public readonly fatalSinks: ISink[];
+  private readonly _fatalSinks: ISink[];
 
-  private readonly scopedLoggers: { [key: string]: ILogger | undefined } = createObject();
+  /** @internal */
+  private readonly _scopedLoggers: { [key: string]: ILogger | undefined } = createObject();
+
+  /** @internal */
+  private readonly _factory: ILogEventFactory;
 
   public constructor(
     /**
      * The global logger configuration.
      */
-    @ILogConfig public readonly config: ILogConfig,
-    @ILogEventFactory private readonly factory: ILogEventFactory,
-    @all(ISink) sinks: readonly ISink[],
+    @ILogConfig config: ILogConfig,
+    @ILogEventFactory factory: ILogEventFactory,
+    @all(ISink) sinks: ISink[],
     /**
      * The scopes that this logger was created for, if any.
      */
@@ -425,16 +433,19 @@ export class DefaultLogger {
     let warnSinks: ISink[];
     let errorSinks: ISink[];
     let fatalSinks: ISink[];
+    this.config = config;
+    this._factory = factory;
+    this.sinks = sinks;
     if (parent === null) {
       this.root = this;
       this.parent = this;
 
-      traceSinks = this.traceSinks = [];
-      debugSinks = this.debugSinks = [];
-      infoSinks = this.infoSinks = [];
-      warnSinks = this.warnSinks = [];
-      errorSinks = this.errorSinks = [];
-      fatalSinks = this.fatalSinks = [];
+      traceSinks = this._traceSinks = [];
+      debugSinks = this._debugSinks = [];
+      infoSinks = this._infoSinks = [];
+      warnSinks = this._warnSinks = [];
+      errorSinks = this._errorSinks = [];
+      fatalSinks = this._fatalSinks = [];
       for (const $sink of sinks) {
         const handles = LoggerSink.getHandles($sink);
         if (handles?.includes(LogLevel.trace) ?? true) {
@@ -460,12 +471,12 @@ export class DefaultLogger {
       this.root = parent.root;
       this.parent = parent;
 
-      traceSinks = this.traceSinks = parent.traceSinks;
-      debugSinks = this.debugSinks = parent.debugSinks;
-      infoSinks = this.infoSinks = parent.infoSinks;
-      warnSinks = this.warnSinks = parent.warnSinks;
-      errorSinks = this.errorSinks = parent.errorSinks;
-      fatalSinks = this.fatalSinks = parent.fatalSinks;
+      traceSinks = this._traceSinks = parent._traceSinks;
+      debugSinks = this._debugSinks = parent._debugSinks;
+      infoSinks = this._infoSinks = parent._infoSinks;
+      warnSinks = this._warnSinks = parent._warnSinks;
+      errorSinks = this._errorSinks = parent._errorSinks;
+      fatalSinks = this._fatalSinks = parent._fatalSinks;
     }
   }
 
@@ -492,7 +503,7 @@ export class DefaultLogger {
   @bound
   public trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.trace) {
-      this.emit(this.traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
+      this.emit(this._traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -519,7 +530,7 @@ export class DefaultLogger {
   @bound
   public debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.debug) {
-      this.emit(this.debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
+      this.emit(this._debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -546,7 +557,7 @@ export class DefaultLogger {
   @bound
   public info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.info) {
-      this.emit(this.infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
+      this.emit(this._infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -573,7 +584,7 @@ export class DefaultLogger {
   @bound
   public warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.warn) {
-      this.emit(this.warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
+      this.emit(this._warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -600,7 +611,7 @@ export class DefaultLogger {
   @bound
   public error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.error) {
-      this.emit(this.errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
+      this.emit(this._errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -627,7 +638,7 @@ export class DefaultLogger {
   @bound
   public fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.fatal) {
-      this.emit(this.fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
+      this.emit(this._fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -658,17 +669,17 @@ export class DefaultLogger {
    * ```
    */
   public scopeTo(name: string): ILogger {
-    const scopedLoggers = this.scopedLoggers;
+    const scopedLoggers = this._scopedLoggers;
     let scopedLogger = scopedLoggers[name];
     if (scopedLogger === void 0) {
-      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0)!, this.scope.concat(name), this);
+      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this._factory, (void 0)!, this.scope.concat(name), this);
     }
     return scopedLogger;
   }
 
   private emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
     const message = (isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg) as string;
-    const event = this.factory.createLogEvent(this, level, message, optionalParams);
+    const event = this._factory.createLogEvent(this, level, message, optionalParams);
     for (let i = 0, ii = sinks.length; i < ii; ++i) {
       sinks[i].handleEvent(event);
     }

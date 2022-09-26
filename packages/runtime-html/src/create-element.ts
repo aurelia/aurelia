@@ -10,7 +10,7 @@ import { IPlatform } from './platform';
 import { CustomElementDefinition, CustomElementType, generateElementName, getElementDefinition, isElementType } from './resources/custom-element';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
-import { isString } from './utilities';
+import { createError, isString } from './utilities';
 
 import type { ISyntheticView } from './templating/controller';
 
@@ -26,7 +26,7 @@ export function createElement<C extends Constructable = Constructable>(
   if (isElementType(tagOrType)) {
     return createElementForType(p, tagOrType, props, children);
   }
-  throw new Error(`Invalid Tag or Type.`);
+  throw createError(`Invalid Tag or Type.`);
 }
 
 /**

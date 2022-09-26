@@ -100,7 +100,6 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         controller.viewModel = controller.container.invoke(currentClassType);
         controller.definition = newDefinition;
         Object.assign(controller.viewModel, values);
-        controller.hooks = new controller.hooks.constructor(controller.viewModel);
         if (controller._hydrateCustomElement) {
           controller._hydrateCustomElement(hydrationInst, hydrationContext);
         } else {

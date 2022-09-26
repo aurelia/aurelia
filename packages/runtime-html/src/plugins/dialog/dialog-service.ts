@@ -13,7 +13,7 @@ import {
 import { DialogController } from './dialog-controller';
 import { AppTask } from '../../app-task';
 import { IPlatform } from '../../platform';
-import { isFunction, isPromise } from '../../utilities';
+import { createError, isFunction, isPromise } from '../../utilities';
 import { callbackRegistration, instanceRegistration, singletonRegistration } from '../../utilities-di';
 
 import type {
@@ -58,9 +58,9 @@ export class DialogService implements IDialogService {
           if (openDialogController.length > 0) {
             // todo: what to do?
             if (__DEV__)
-              throw new Error(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
+              throw createError(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
             else
-              throw new Error(`AUR0901:${openDialogController.length}`);
+              throw createError(`AUR0901:${openDialogController.length}`);
           }
         }
       ))
@@ -96,9 +96,9 @@ export class DialogService implements IDialogService {
           container.register(instanceRegistration(IDialogController, dialogController));
           container.register(callbackRegistration(DialogController, () => {
             if (__DEV__)
-              throw new Error(`AUR0902: Invalid injection of DialogController. Use IDialogController instead.`);
+              throw createError(`AUR0902: Invalid injection of DialogController. Use IDialogController instead.`);
             else
-              throw new Error(`AUR0902`);
+              throw createError(`AUR0902`);
           }));
 
           return onResolve(
@@ -208,9 +208,9 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   private _validate(): this {
     if (this.component == null && this.template == null) {
       if (__DEV__)
-        throw new Error(`AUR0903: Invalid Dialog Settings. You must provide "component", "template" or both.`);
+        throw createError(`AUR0903: Invalid Dialog Settings. You must provide "component", "template" or both.`);
       else
-        throw new Error(`AUR0903`);
+        throw createError(`AUR0903`);
     }
     return this;
   }

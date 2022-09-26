@@ -1,7 +1,7 @@
 import { IPlatform } from '@aurelia/kernel';
 import { AccessorType, type IObserver, type ISubscriberCollection } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { createInterface, safeString } from '../utilities-objects';
+import { createError, createInterface, safeString } from '../utilities-objects';
 
 import type { ITask, QueueTaskOptions } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';
@@ -64,9 +64,9 @@ export class DirtyChecker {
   public createProperty(obj: object, key: PropertyKey): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
       if (__DEV__)
-        throw new Error(`AUR0222: Property '${safeString(key)}' is being dirty-checked.`);
+        throw createError(`AUR0222: Property '${safeString(key)}' is being dirty-checked.`);
       else
-        throw new Error(`AUR0222:${safeString(key)}`);
+        throw createError(`AUR0222:${safeString(key)}`);
     }
     return new DirtyCheckProperty(this, obj as IIndexable, key as string);
   }
@@ -133,7 +133,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   public setValue(_v: unknown) {
     // todo: this should be allowed, probably
     // but the construction of dirty checker should throw instead
-    throw new Error(`Trying to set value for property ${safeString(this.key)} in dirty checker`);
+    throw createError(`Trying to set value for property ${safeString(this.key)} in dirty checker`);
   }
 
   public isDirty(): boolean {

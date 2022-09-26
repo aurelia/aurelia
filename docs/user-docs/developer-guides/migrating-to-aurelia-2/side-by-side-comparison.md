@@ -291,8 +291,8 @@ Such cases can be summarized.
 | binding   | Fetch data (working with API services & Ajax calls), initialize data/subscriptions.               |
 | bound     | Any work that relies on fromView/twoWay binding data coming from children, Defining router hooks. |
 | attached  | Use anything (like third-party libraries) that touches the DOM.                                   |
-| unbinding | Persisting data.                                                                                  |
-| dispose   | Cleanup data/subscriptions.                                                                       |
+| unbinding | Cleanup data/subscriptions, maybe persist some data for the next activation.                      |
+| dispose   | One way cleanup all the references/resources. This is invoked only once and is irreversible       |
 
 ## Dependency injection
 

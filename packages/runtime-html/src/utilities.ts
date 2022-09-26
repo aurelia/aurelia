@@ -2,6 +2,8 @@ import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
 /** @internal */ export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
 
+/** @internal */ export const createError = (message: string) => new Error(message);
+
 /** @internal */ export const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 const IsDataAttribute: Record<string, boolean> = createLookup();

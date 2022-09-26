@@ -16,7 +16,7 @@ import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
-import { isArray } from '../../utilities';
+import { createError, isArray } from '../../utilities';
 
 import type { LifecycleFlags, Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
@@ -285,9 +285,9 @@ export class Case implements ICustomAttributeViewModel {
       this.linkToSwitch($switch);
     } else {
       if (__DEV__)
-        throw new Error(`AUR0815: The parent switch not found; only "*[switch] > *[case|default-case]" relation is supported.`);
+        throw createError(`AUR0815: The parent switch not found; only "*[switch] > *[case|default-case]" relation is supported.`);
       else
-        throw new Error(`AUR0815`);
+        throw createError(`AUR0815`);
     }
   }
 
@@ -367,9 +367,9 @@ export class DefaultCase extends Case {
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {
       if (__DEV__)
-        throw new Error(`AUR0816: Multiple 'default-case's are not allowed.`);
+        throw createError(`AUR0816: Multiple 'default-case's are not allowed.`);
       else
-        throw new Error(`AUR0816`);
+        throw createError(`AUR0816`);
     }
     $switch.defaultCase = this;
   }

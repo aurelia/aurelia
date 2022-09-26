@@ -1,7 +1,7 @@
 import { DI } from './di';
 import { emptyArray } from './platform';
 import { Protocol } from './resource';
-import { isFunction } from './utilities';
+import { createError, isFunction } from './utilities';
 
 import type { IRegistry } from './di';
 import type { Constructable, IDisposable, IIndexable } from './interfaces';
@@ -15,19 +15,20 @@ export interface IModule {
 export interface IModuleLoader extends ModuleLoader {}
 export const IModuleLoader = DI.createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
 
-function noTransform<TRet = AnalyzedModule>(m: AnalyzedModule): TRet {
-  return m as unknown as TRet;
-}
+const noTransform = <TRet = AnalyzedModule>(m: AnalyzedModule): TRet => m as unknown as TRet;
 
 type TransformFn<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> = (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>;
 
 class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> {
   private readonly _promiseCache: Map<Promise<IModule>, unknown> = new Map<Promise<IModule>, unknown>();
   private readonly _objectCache: Map<IModule, unknown> = new Map<IModule, unknown>();
+  private readonly _transform: TransformFn<TMod, TRet>;
 
   public constructor(
-    private readonly $transform: TransformFn<TMod, TRet>,
-  ) {}
+    transform: TransformFn<TMod, TRet>,
+  ) {
+    this._transform = transform;
+  }
 
   public transform(objOrPromise: TMod | Promise<TMod>): Promise<TRet> | TRet {
     if (objOrPromise instanceof Promise) {
@@ -35,7 +36,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     } else if (typeof objOrPromise === 'object' && objOrPromise !== null) {
       return this._transformObject(objOrPromise);
     } else {
-      throw new Error(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
+      throw createError(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
     }
   }
 
@@ -62,7 +63,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
       return this._objectCache.get(obj) as TRet | Promise<TRet>;
     }
 
-    const ret = this.$transform(this._analyze(obj));
+    const ret = this._transform(this._analyze(obj));
     this._objectCache.set(obj, ret);
     if (ret instanceof Promise) {
       void ret.then(value => {

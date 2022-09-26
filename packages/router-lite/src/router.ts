@@ -382,8 +382,17 @@ export class Router {
     return RouteContext.resolve(this.ctx, context);
   }
 
-  public start(routerOptions: IRouterOptions, performInitialNavigation: boolean): void | Promise<boolean> {
+  /**
+   * Only for internal usage as the options are supposed to be set only once at the beginning.
+   * At present no use-case for dynamic routing configuration can be imagined; hence it is limited to as a bootstrapping activity.
+   *
+   * @internal
+   */
+  public _setOptions(routerOptions: IRouterOptions) {
     this.options = RouterOptions.create(routerOptions);
+  }
+
+  public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
     this.locationMgr.startListening();

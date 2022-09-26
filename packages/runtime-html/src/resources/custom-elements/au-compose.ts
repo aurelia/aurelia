@@ -6,7 +6,7 @@ import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { LifecycleFlags, Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { isFunction, isPromise } from '../../utilities';
+import { createError, isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 
@@ -53,9 +53,9 @@ export class AuCompose {
         return v;
       }
       if (__DEV__)
-        throw new Error(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
+        throw createError(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
       else
-        throw new Error(`AUR0805`);
+        throw createError(`AUR0805`);
     }
   })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
@@ -197,9 +197,9 @@ export class AuCompose {
     if (vmDef !== null) {
       if (vmDef.containerless) {
         if (__DEV__)
-          throw new Error(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
+          throw createError(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
         else
-          throw new Error(`AUR0806`);
+          throw createError(`AUR0806`);
       }
       if (loc == null) {
         compositionHost = host;
@@ -418,9 +418,9 @@ class CompositionController implements ICompositionController {
   public activate(initiator?: IHydratedController) {
     if (this.state !== 0) {
       if (__DEV__)
-        throw new Error(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
+        throw createError(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
       else
-        throw new Error(`AUR0807:${this.controller.name}`);
+        throw createError(`AUR0807:${this.controller.name}`);
     }
     this.state = 1;
     return this.start(initiator);
@@ -433,9 +433,9 @@ class CompositionController implements ICompositionController {
         return this.stop(detachInitator);
       case -1:
         if (__DEV__)
-          throw new Error(`AUR0808: Composition has already been deactivated.`);
+          throw createError(`AUR0808: Composition has already been deactivated.`);
         else
-          throw new Error(`AUR0808`);
+          throw createError(`AUR0808`);
       default:
         this.state = -1;
     }

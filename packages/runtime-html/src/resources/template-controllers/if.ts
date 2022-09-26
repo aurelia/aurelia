@@ -8,6 +8,7 @@ import { bindable } from '../../bindable';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
+import { createError } from '../../utilities';
 
 export class If implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
@@ -200,9 +201,9 @@ export class Else implements ICustomAttributeViewModel {
       ifBehavior.viewModel.elseFactory = this._factory;
     } else {
       if (__DEV__)
-        throw new Error(`AUR0810: Unsupported If behavior`);
+        throw createError(`AUR0810: Unsupported If behavior`);
       else
-        throw new Error(`AUR0810`);
+        throw createError(`AUR0810`);
     }
   }
 }

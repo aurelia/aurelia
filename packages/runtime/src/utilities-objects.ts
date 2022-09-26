@@ -13,6 +13,9 @@ export const hasOwnProp = Object.prototype.hasOwnProperty;
 export const def = Reflect.defineProperty;
 
 /** @internal */
+export const createError = (message: string) => new Error(message);
+
+/** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 

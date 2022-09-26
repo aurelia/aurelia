@@ -232,7 +232,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
           rollupTypeScript({
-            removeComments: false
           }, isDevMode),
         ]
       ),

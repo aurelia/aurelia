@@ -1,4 +1,4 @@
-import { createLookup, isDataAttribute } from './utilities';
+import { createError, createLookup, isDataAttribute } from './utilities';
 import { ISVGAnalyzer } from './observation/svg-analyzer';
 import { createInterface } from './utilities-di';
 
@@ -142,5 +142,5 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
 }
 
 function createMappedError(attr: string, tagName: string) {
-  return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
+  return createError(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
 }

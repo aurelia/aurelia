@@ -265,8 +265,8 @@ const observe = {
     const indexMap = o.indexMap;
     const argCount = args.length;
     const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
+    let i = actualStart;
     if (actualDeleteCount > 0) {
-      let i = actualStart;
       const to = i + actualDeleteCount;
       while (i < to) {
         // only mark indices as deleted if they actually existed in the original array
@@ -277,10 +277,10 @@ const observe = {
         i++;
       }
     }
+    i = 0;
     if (argCount > 2) {
       const itemCount = argCount - 2;
       const inserts = new Array(itemCount);
-      let i = 0;
       while (i < itemCount) {
         inserts[i++] = - 2;
       }
@@ -289,7 +289,10 @@ const observe = {
       $splice.apply(indexMap, args);
     }
     const deleted = $splice.apply(this, args);
-    o.notify();
+    // only notify when there's deletion, or addition
+    if (actualDeleteCount > 0 || i > 0) {
+      o.notify();
+    }
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse

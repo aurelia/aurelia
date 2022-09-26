@@ -17,7 +17,7 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createLookup, isDataAttribute, isString } from '../utilities';
+import { createError, createLookup, isDataAttribute, isString } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
@@ -309,9 +309,9 @@ export class NodeObserverLocator implements INodeObserverLocator {
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo
       if (__DEV__)
-        throw new Error(`AUR0652: Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
+        throw createError(`AUR0652: Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
       else
-        throw new Error(`AUR0652:${String(key)}`);
+        throw createError(`AUR0652:${String(key)}`);
     } else {
       // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
       // but let's start with simplest scenario
@@ -334,7 +334,7 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
   if (__DEV__)
-    throw new Error(`AUR0653: Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+    throw createError(`AUR0653: Mapping for property ${String(key)} of <${nodeName} /> already exists`);
   else
-    throw new Error(`AUR0653:${String(key)}@${nodeName}`);
+    throw createError(`AUR0653:${String(key)}@${nodeName}`);
 }

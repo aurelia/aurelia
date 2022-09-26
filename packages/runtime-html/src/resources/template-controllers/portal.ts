@@ -4,7 +4,7 @@ import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { isPromise, isString } from '../../utilities';
+import { createError, isPromise, isString } from '../../utilities';
 import type { LifecycleFlags, ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
@@ -213,9 +213,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (target === '') {
       if (this.strict) {
         if (__DEV__)
-          throw new Error(`AUR0811: Empty querySelector`);
+          throw createError(`AUR0811: Empty querySelector`);
         else
-          throw new Error(`AUR0811`);
+          throw createError(`AUR0811`);
       }
       return $document.body as unknown as T;
     }
@@ -238,9 +238,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (target == null) {
       if (this.strict) {
         if (__DEV__)
-          throw new Error(`AUR0812: Portal target not found`);
+          throw createError(`AUR0812: Portal target not found`);
         else
-          throw new Error(`AUR0812`);
+          throw createError(`AUR0812`);
       }
       return $document.body as unknown as T;
     }

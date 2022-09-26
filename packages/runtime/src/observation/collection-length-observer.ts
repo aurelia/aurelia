@@ -1,7 +1,6 @@
-import { isArrayIndex } from '@aurelia/kernel';
 import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { ensureProto } from '../utilities-objects';
+import { createError, ensureProto } from '../utilities-objects';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -34,15 +33,20 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
   }
 
   public setValue(newValue: number): void {
-    const currentValue = this._value;
     // if in the template, length is two-way bound directly
     // then there's a chance that the new value is invalid
     // add a guard so that we don't accidentally broadcast invalid values
-    if (newValue !== currentValue && isArrayIndex(newValue)) {
-      // todo: maybe use splice so that it'll notify everything properly
-      this._obj.length = newValue;
-      this._value = newValue;
-      this.subs.notify(newValue, currentValue);
+    if (newValue !== this._value) {
+      if (!Number.isNaN(newValue)) {
+        this._obj.splice(newValue);
+        this._value = this._obj.length;
+        // todo: maybe use splice so that it'll notify everything properly
+        // this._obj.length = newValue;
+        // this.subs.notify(newValue, currentValue);
+      } else if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`Invalid value "${newValue}" for array length`);
+      }
     }
   }
 
@@ -79,9 +83,9 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
 
   public setValue(): void {
     if (__DEV__)
-      throw new Error(`AUR02: Map/Set "size" is a readonly property`);
+      throw createError(`AUR02: Map/Set "size" is a readonly property`);
     else
-      throw new Error(`AUR02`);
+      throw createError(`AUR02`);
   }
 
   public handleCollectionChange(_collection: Collection,  _: IndexMap): void {

@@ -3,7 +3,7 @@ import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { isArray, isFunction, safeString } from '../utilities-objects';
+import { createError, isArray, isFunction, safeString } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -29,9 +29,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const evaluatedValue: unknown = obj[ast.name];
       if (evaluatedValue == null && ast.name === '$host') {
         if (__DEV__)
-          throw new Error(`AUR0105: Unable to find $host context. Did you forget [au-slot] attribute?`);
+          throw createError(`AUR0105: Unable to find $host context. Did you forget [au-slot] attribute?`);
         else
-          throw new Error(`AUR0105`);
+          throw createError(`AUR0105`);
       }
       if (e?.strict) {
         // return evaluatedValue;
@@ -78,9 +78,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           return +(astEvaluate(ast.expression, s, e, c) as number);
         default:
           if (__DEV__)
-            throw new Error(`AUR0109: Unknown unary operator: '${ast.operation}'`);
+            throw createError(`AUR0109: Unknown unary operator: '${ast.operation}'`);
           else
-            throw new Error(`AUR0109:${ast.operation}`);
+            throw createError(`AUR0109:${ast.operation}`);
       }
     case ExpressionKind.CallScope: {
       const args = ast.args.map(a => astEvaluate(a, s, e, c));
@@ -119,9 +119,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         return void 0;
       }
       if (__DEV__)
-        throw new Error(`AUR0107: Expression is not a function.`);
+        throw createError(`AUR0107: Expression is not a function.`);
       else
-        throw new Error(`AUR0107`);
+        throw createError(`AUR0107`);
     }
     case ExpressionKind.ArrowFunction: {
       const func = (...args: unknown[]) => {
@@ -186,9 +186,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const func = astEvaluate(ast.func, s, e, c);
       if (!isFunction(func)) {
         if (__DEV__)
-          throw new Error(`AUR0110: Left-hand side of tagged template expression is not a function.`);
+          throw createError(`AUR0110: Left-hand side of tagged template expression is not a function.`);
         else
-          throw new Error(`AUR0110`);
+          throw createError(`AUR0110`);
       }
       return func(ast.cooked, ...results);
     }
@@ -269,9 +269,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           return (astEvaluate(left, s, e, c) as number) >= (astEvaluate(right, s, e, c) as number);
         default:
           if (__DEV__)
-            throw new Error(`AUR0108: Unknown binary operator: '${ast.operation}'`);
+            throw createError(`AUR0108: Unknown binary operator: '${ast.operation}'`);
           else
-            throw new Error(`AUR0108:${ast.operation}`);
+            throw createError(`AUR0108:${ast.operation}`);
       }
     }
     case ExpressionKind.Conditional:
@@ -283,9 +283,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const vc = e?.getConverter?.(ast.name);
       if (vc == null) {
         if (__DEV__)
-          throw new Error(`AUR0103: ValueConverter named '${ast.name}' could not be found. Did you forget to register it as a dependency?`);
+          throw createError(`AUR0103: ValueConverter named '${ast.name}' could not be found. Did you forget to register it as a dependency?`);
         else
-          throw new Error(`AUR0103:${ast.name}`);
+          throw createError(`AUR0103:${ast.name}`);
       }
       if ('toView' in vc) {
         return vc.toView(astEvaluate(ast.expression, s, e, c), ...ast.args.map(a => astEvaluate(a, s, e, c)));
@@ -343,9 +343,9 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
     case ExpressionKind.AccessScope: {
       if (ast.name === '$host') {
         if (__DEV__)
-          throw new Error(`AUR0106: Invalid assignment. $host is a reserved keyword.`);
+          throw createError(`AUR0106: Invalid assignment. $host is a reserved keyword.`);
         else
-          throw new Error(`AUR0106`);
+          throw createError(`AUR0106`);
       }
       const obj = getContext(s, ast.name, ast.ancestor) as IObservable;
       if (obj instanceof Object) {
@@ -407,9 +407,9 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
           case ExpressionKind.ObjectDestructuring: {
             if (typeof val !== 'object' || val === null) {
               if (__DEV__) {
-                throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
+                throw createError(`AUR0112: Cannot use non-object value for destructuring assignment.`);
               } else {
-                throw new Error(`AUR0112`);
+                throw createError(`AUR0112`);
               }
             }
             let source = astEvaluate(item.source!, Scope.create(val), e, null);
@@ -428,9 +428,9 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
         if (val == null) { return; }
         if (typeof val !== 'object') {
           if (__DEV__) {
-            throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
+            throw createError(`AUR0112: Cannot use non-object value for destructuring assignment.`);
           } else {
-            throw new Error(`AUR0112`);
+            throw createError(`AUR0112`);
           }
         }
         let source = astEvaluate(ast.source, Scope.create(val), e, null);
@@ -442,9 +442,9 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
         if (val == null) { return; }
         if (typeof val !== 'object') {
           if (__DEV__) {
-            throw new Error(`AUR0112: Cannot use non-object value for destructuring assignment.`);
+            throw createError(`AUR0112: Cannot use non-object value for destructuring assignment.`);
           } else {
-            throw new Error(`AUR0112`);
+            throw createError(`AUR0112`);
           }
         }
 
@@ -454,9 +454,9 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
         if (isArrayIndex(indexOrProperties)) {
           if (!Array.isArray(val)) {
             if (__DEV__) {
-              throw new Error(`AUR0112: Cannot use non-array value for array-destructuring assignment.`);
+              throw createError(`AUR0112: Cannot use non-array value for array-destructuring assignment.`);
             } else {
-              throw new Error(`AUR0112`);
+              throw createError(`AUR0112`);
             }
           }
           restValue = val.slice(indexOrProperties);
@@ -572,17 +572,17 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
 
 const behaviorNotFoundError = (name: string) =>
   __DEV__
-    ? new Error(`AUR0101: BindingBehavior '${name}' could not be found. Did you forget to register it as a dependency?`)
-    : new Error(`AUR0101:${name}`);
+    ? createError(`AUR0101: BindingBehavior '${name}' could not be found. Did you forget to register it as a dependency?`)
+    : createError(`AUR0101:${name}`);
 const duplicateBehaviorAppliedError = (name: string) =>
   __DEV__
-    ? new Error(`AUR0102: BindingBehavior '${name}' already applied.`)
-    : new Error(`AUR0102:${name}`);
+    ? createError(`AUR0102: BindingBehavior '${name}' already applied.`)
+    : createError(`AUR0102:${name}`);
 const converterNotFoundError = (name: string) => {
   if (__DEV__)
-    return new Error(`AUR0103: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
+    return createError(`AUR0103: ValueConverter '${name}' could not be found. Did you forget to register it as a dependency?`);
   else
-    return new Error(`AUR0103:${name}`);
+    return createError(`AUR0103:${name}`);
 };
 
 const getFunction = (mustEvaluate: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
@@ -594,9 +594,9 @@ const getFunction = (mustEvaluate: boolean | undefined, obj: object, name: strin
     return null;
   }
   if (__DEV__)
-    throw new Error(`AUR0111: Expected '${name}' to be a function`);
+    throw createError(`AUR0111: Expected '${name}' to be a function`);
   else
-    throw new Error(`AUR0111:${name}`);
+    throw createError(`AUR0111:${name}`);
 };
 
 /**

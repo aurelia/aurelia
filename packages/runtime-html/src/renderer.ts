@@ -27,7 +27,7 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
-import { defineProp, isString } from './utilities';
+import { createError, defineProp, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
@@ -416,9 +416,9 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
     case 'view':
       // todo: returns node sequences for fun?
       if (__DEV__)
-        throw new Error(`AUR0750: Not supported API`);
+        throw createError(`AUR0750: Not supported API`);
       else
-        throw new Error(`AUR0750`);
+        throw createError(`AUR0750`);
     case 'view-model':
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
@@ -430,9 +430,9 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
         if (__DEV__)
-          throw new Error(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+          throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
         else
-          throw new Error(`AUR0751:${refTargetName}`);
+          throw createError(`AUR0751:${refTargetName}`);
       }
       return ceController.viewModel;
     }
@@ -490,9 +490,9 @@ export class CustomElementRenderer implements IRenderer {
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -575,9 +575,9 @@ export class CustomAttributeRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -650,9 +650,9 @@ export class TemplateControllerRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -1222,7 +1222,7 @@ export class SpreadRenderer implements IRenderer {
         --currentLevel;
       }
       if (currentContext == null) {
-        throw new Error('No scope context for spread binding.');
+        throw createError('No scope context for spread binding.');
       }
       return currentContext as IHydrationContext<object>;
     };
@@ -1301,7 +1301,7 @@ class SpreadBinding implements IBinding {
     this.isBound = true;
     const innerScope = this.$scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
-      throw new Error('Invalid spreading. Context scope is null/undefined');
+      throw createError('Invalid spreading. Context scope is null/undefined');
     }
 
     this._innerBindings.forEach(b => b.$bind(innerScope));
@@ -1318,7 +1318,7 @@ class SpreadBinding implements IBinding {
 
   public addChild(controller: IController) {
     if (controller.vmKind !== ViewModelKind.customAttribute) {
-      throw new Error('Spread binding does not support spreading custom attributes/template controllers');
+      throw createError('Spread binding does not support spreading custom attributes/template controllers');
     }
     this.ctrl.addChild(controller);
   }
@@ -1403,15 +1403,15 @@ class ViewFactoryProvider implements IResolver {
     const f = this.f;
     if (f === null) {
       if (__DEV__)
-        throw new Error(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
+        throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
       else
-        throw new Error(`AUR7055`);
+        throw createError(`AUR7055`);
     }
     if (!isString(f.name) || f.name.length === 0) {
       if (__DEV__)
-        throw new Error(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
+        throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
       else
-        throw new Error(`AUR0756`);
+        throw createError(`AUR0756`);
     }
     return f;
   }

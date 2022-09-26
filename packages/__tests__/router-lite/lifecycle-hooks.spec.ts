@@ -10,7 +10,7 @@
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
 
-import { DefaultLogEvent, DefaultLogger, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
+import { DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -52,8 +52,7 @@ describe('lifecycle hooks', function () {
     }
 
     public static getInstance(container: IContainer): EventLog {
-      const logger = container.get<DefaultLogger>(ILogger);
-      const eventLog = (logger['traceSinks'] as ISink[]).find(x => x instanceof this);
+      const eventLog = container.getAll(ISink).find(x => x instanceof this);
       if (eventLog === undefined) throw new Error('Event log is not found');
       return eventLog as EventLog;
     }

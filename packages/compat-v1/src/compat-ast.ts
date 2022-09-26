@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Constructable } from '@aurelia/kernel';
 import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, astAssign, astBind, astEvaluate, astUnbind, astVisit, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression } from '@aurelia/runtime';
@@ -41,7 +42,7 @@ export function defineAstMethods() {
     DestructuringAssignmentExpression,
     DestructuringAssignmentSingleExpression,
     DestructuringAssignmentRestExpression,
-    ArrowFunction
+    ArrowFunction,
   ].forEach(ast => {
     def(ast, 'evaluate', function (this: typeof ast, ...args: unknown[]) {
       return (astEvaluate as any)(this, ...args);
@@ -58,5 +59,8 @@ export function defineAstMethods() {
     def(ast, 'unbind', function (this: typeof ast, ...args: unknown[]) {
       return (astUnbind as any)(this, ...args);
     });
+    console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with $kind Custom.'
+      + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.'
+    );
   });
 }

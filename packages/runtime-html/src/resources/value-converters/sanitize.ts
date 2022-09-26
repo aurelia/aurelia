@@ -1,3 +1,4 @@
+import { createError } from '../../utilities';
 import { createInterface } from '../../utilities-di';
 import { valueConverter } from '../value-converter';
 
@@ -12,7 +13,7 @@ export interface ISanitizer {
 
 export const ISanitizer = createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(): string {
-    throw new Error('"sanitize" method not implemented');
+    throw createError('"sanitize" method not implemented');
   }
 }));
 

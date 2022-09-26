@@ -1008,7 +1008,9 @@ function def(
     configurable,
     value,
   })) {
-    throw new Error(`Unable to apply metadata polyfill: could not add property '${key}' to the global Reflect object`);
+    throw __DEV__
+      ? createError(`AUR1000: Unable to apply metadata polyfill: could not add property '${key}' to the global Reflect object`)
+      : createError(`AUR1000`);
   }
 }
 
@@ -1053,7 +1055,9 @@ export function applyMetadataPolyfill(
       // todo: log something
       return;
     }
-    throw new Error(`Conflicting @aurelia/metadata module import detected. Please make sure you have the same version of all Aurelia packages in your dependency tree.`);
+    throw __DEV__
+      ? createError(`AUR1001: Conflicting @aurelia/metadata module import detected. Please make sure you have the same version of all Aurelia packages in your dependency tree.`)
+      : createError(`AUR1001`);
   }
 
   const presentProps = [
@@ -1077,7 +1081,9 @@ export function applyMetadataPolyfill(
         const impl = `${(Reflect as { [k: string]: Function })[p].toString().slice(0, 100)}...`;
         return `${p}:\n${impl}`;
       }).join('\n\n');
-      throw new Error(`Conflicting reflect.metadata polyfill found. If you have 'reflect-metadata' or any other reflect polyfill imported, please remove it, if not (or if you must use a specific polyfill) please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario. Implementation summary:\n\n${implementationSummary}`);
+      throw __DEV__
+        ? createError(`AUR1002: Conflicting reflect.metadata polyfill found. If you have 'reflect-metadata' or any other reflect polyfill imported, please remove it, if not (or if you must use a specific polyfill) please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario. Implementation summary:\n\n${implementationSummary}`)
+        : createError(`AUR1002:${implementationSummary}`);
     } else if (forceOverwrite) {
       $applyMetadataPolyfill(reflect, writable, configurable);
     }
@@ -1085,3 +1091,5 @@ export function applyMetadataPolyfill(
     $applyMetadataPolyfill(reflect, writable, configurable);
   }
 }
+
+const createError = (message: string) => new Error(message);

@@ -4,7 +4,7 @@ import { IObserverLocator } from './observer-locator';
 
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
 import type { BindingObserverRecord } from '../binding/connectable';
-import { createInterface } from '../utilities-objects';
+import { createError, createInterface } from '../utilities-objects';
 
 export interface IObservation extends Observation {}
 export const IObservation = createInterface<IObservation>('IObservation', x => x.singleton(Observation));
@@ -66,9 +66,9 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
   public run(): void {
     if (this.stopped) {
       if (__DEV__)
-        throw new Error(`AUR0225: Effect has already been stopped`);
+        throw createError(`AUR0225: Effect has already been stopped`);
       else
-        throw new Error(`AUR0225`);
+        throw createError(`AUR0225`);
     }
     if (this.running) {
       return;
@@ -93,9 +93,9 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
       if (this.runCount > this.maxRunCount) {
         this.runCount = 0;
         if (__DEV__)
-          throw new Error(`AUR0226: Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`);
+          throw createError(`AUR0226: Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`);
         else
-          throw new Error(`AUR0226`);
+          throw createError(`AUR0226`);
       }
       this.run();
     } else {

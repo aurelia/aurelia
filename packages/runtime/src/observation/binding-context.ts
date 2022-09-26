@@ -1,4 +1,5 @@
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
+import { createError } from '../utilities-objects';
 
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small
@@ -117,13 +118,13 @@ export class Scope {
 
 const nullScopeError = () => {
   return __DEV__
-    ? new Error(`AUR0203: scope is null/undefined.`)
-    : new Error(`AUR0203`);
+    ? createError(`AUR0203: scope is null/undefined.`)
+    : createError(`AUR0203`);
 };
 const nullContextError = () => {
   return __DEV__
-    ? new Error('AUR0204: binding context is null/undefined')
-    : new Error('AUR0204');
+    ? createError('AUR0204: binding context is null/undefined')
+    : createError('AUR0204');
 };
 
 class OverrideContext implements IOverrideContext {

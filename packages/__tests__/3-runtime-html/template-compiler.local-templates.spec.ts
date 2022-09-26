@@ -436,7 +436,7 @@ describe('[UNIT] 3-runtime-html/template-compiler.local-templates.spec.ts', func
 
     sut.compile({ name: 'lorem-ipsum', template }, container, null);
     if (__DEV__) {
-      const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
+      const sinks = container.get(DefaultLogger).sinks;
       const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
       assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
       const event = eventLog.log[0];

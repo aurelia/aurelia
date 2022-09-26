@@ -4,7 +4,7 @@ import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
 import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { createLookup, isString } from '../utilities';
+import { createError, createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
@@ -115,9 +115,9 @@ export class Rendering {
     const ii = targets.length;
     if (targets.length !== rows.length) {
       if (__DEV__)
-        throw new Error(`AUR0757: The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
+        throw createError(`AUR0757: The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
       else
-        throw new Error(`AUR0757:${ii}<>${rows.length}`);
+        throw createError(`AUR0757:${ii}<>${rows.length}`);
     }
 
     let i = 0;

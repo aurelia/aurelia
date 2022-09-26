@@ -1,6 +1,6 @@
 import { DI } from './di';
 import { Constructable, IDisposable } from './interfaces';
-import { isString } from './utilities';
+import { createError, isString } from './utilities';
 
 /**
  * Represents a handler for an EventAggregator event.
@@ -54,7 +54,7 @@ export class EventAggregator {
   ): void {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrInstance) {
-      throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
+      throw createError(`Invalid channel name or instance: ${channelOrInstance}.`);
     }
 
     if (isString(channelOrInstance)) {
@@ -103,7 +103,7 @@ export class EventAggregator {
   ): IDisposable {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!channelOrType) {
-      throw new Error(`Invalid channel name or type: ${channelOrType}.`);
+      throw createError(`Invalid channel name or type: ${channelOrType}.`);
     }
 
     let handler: unknown;

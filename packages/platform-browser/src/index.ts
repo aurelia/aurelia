@@ -2,13 +2,6 @@ import { Platform, TaskQueue } from '@aurelia/platform';
 
 const lookup = new Map<object, BrowserPlatform>();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function notImplemented(name: string): (...args: any[]) => any {
-  return function notImplemented() {
-    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
-  };
-}
-
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
   public readonly Node!: TGlobal['Node'];
   public readonly Element!: TGlobal['Element'];
@@ -42,16 +35,16 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
 
-    ('Node,Element,HTMLElement,CustomEvent,CSSStyleSheet,ShadowRoot,MutationObserver,'
-    + 'window,document,location,history,navigator,customElements')
-      .split(',')
-      .forEach(prop => {
-        (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop];
-      });
+    ('Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver '
+    + 'window document location history navigator customElements')
+      .split(' ')
+      // eslint-disable-next-line
+      .forEach(prop => (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop]);
 
-    'fetch,requestAnimationFrame,cancelAnimationFrame'.split(',').forEach(prop => {
-      (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop));
-    });
+    'fetch requestAnimationFrame cancelAnimationFrame'.split(' ').forEach(prop =>
+      // eslint-disable-next-line
+      (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
+    );
 
     this.flushDomRead = this.flushDomRead.bind(this);
     this.flushDomWrite = this.flushDomWrite.bind(this);
@@ -136,3 +129,10 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     }
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const notImplemented = (name: string): (...args: any[]) => any => {
+  return () => {
+    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+  };
+};

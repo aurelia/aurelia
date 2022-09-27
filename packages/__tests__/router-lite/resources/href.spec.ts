@@ -203,12 +203,27 @@ describe('href custom-attribute', function () {
     @customElement({ name: 'ce-two', template: `ce2` })
     class CeTwo { }
 
+    @customElement({ name: 'ce-three-child', template: `ce3child` })
+    class CeThreeChild { }
+
+    @customElement({ name: 'ce-three', template: `ce3 <a id="ce3a1" href="../ce-one"></a> <a id="ce3a2" href="ce-three-child"></a> <au-viewport></au-viewport>` })
+    @route({
+      routes: [
+        {
+          path: 'ce-three-child',
+          component: CeThreeChild,
+        },
+      ]
+    })
+    class CeThree { }
+
     @customElement({
       name: 'ro-ot',
       template: `
       <a href="#ce-one"></a>
       <a href="#ce-two"></a>
       <a href="ce-two"></a>
+      <a href="./ce-three"></a>
       <au-viewport></au-viewport>
       `
     })
@@ -222,16 +237,20 @@ describe('href custom-attribute', function () {
           path: 'ce-two',
           component: CeTwo,
         },
+        {
+          path: 'ce-three',
+          component: CeThree,
+        },
       ]
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, true, CeOne, CeTwo);
+    const { au, host, container } = await start(Root, true, CeOne, CeTwo, CeThree);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));
-    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['#ce-one', '#ce-two', '#ce-two']);
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['#ce-one', '#ce-two', '#ce-two', './ce-three']);
 
     anchors[1].click();
     await queue.yield();
@@ -244,6 +263,26 @@ describe('href custom-attribute', function () {
     anchors[2].click();
     await queue.yield();
     assert.html.textContent(host, 'ce2');
+
+    anchors[3].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3');
+
+    let anchor = host.querySelector<HTMLAnchorElement>('a#ce3a1');
+    assert.strictEqual(anchor.getAttribute('href'), '../ce-one');
+    anchor.click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce1');
+
+    anchors[3].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3');
+
+    anchor = host.querySelector<HTMLAnchorElement>('a#ce3a2');
+    assert.strictEqual(anchor.getAttribute('href'), 'ce-three-child');
+    anchor.click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3 ce3child');
 
     await au.stop();
   });

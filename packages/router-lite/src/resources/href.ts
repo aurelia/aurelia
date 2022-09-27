@@ -78,7 +78,10 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     if (newValue == null) {
       this.el.removeAttribute('href');
     } else {
-      if (this.router.options.useUrlFragmentHash && !(newValue as string).startsWith('#')) {
+      if (this.router.options.useUrlFragmentHash
+        && this.ctx.isRoot
+        && !/^[.#]/.test(newValue as string)
+      ) {
         newValue = `#${newValue}`;
       }
       this.el.setAttribute('href', newValue as string);

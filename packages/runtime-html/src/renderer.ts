@@ -450,7 +450,7 @@ export class SetPropertyRenderer implements IRenderer {
     instruction: SetPropertyInstruction,
   ): void {
     const obj = getTarget(target) as IObservable;
-    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+    if (obj.$observers?.[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value);
     } else {
       obj[instruction.to] = instruction.value;

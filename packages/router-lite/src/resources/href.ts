@@ -67,11 +67,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this.isInitialized = true;
       this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
-    if (this.value == null) {
-      this.el.removeAttribute('href');
-    } else {
-      this.el.setAttribute('href', this.value as string);
-    }
+    this.valueChanged(this.value);
     this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
@@ -82,6 +78,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     if (newValue == null) {
       this.el.removeAttribute('href');
     } else {
+      if (this.router.options.useUrlFragmentHash
+        && this.ctx.isRoot
+        && !/^[.#]/.test(newValue as string)
+      ) {
+        newValue = `#${newValue}`;
+      }
       this.el.setAttribute('href', newValue as string);
     }
   }

@@ -47,7 +47,7 @@ export class ViewportAgent {
   private nextNode: RouteNode | null = null;
 
   private currTransition: Transition | null = null;
-  private prevTransition: Transition | null = null;
+  /** @internal */
   private _cancellationPromise: Promise<void> | void | null = null;
 
   public constructor(
@@ -690,7 +690,6 @@ export class ViewportAgent {
           this.nextState = State.nextIsEmpty;
           this.nextCA = null;
           this.nextNode = null;
-          this.prevTransition = null;
           this.currTransition = null;
           this._cancellationPromise = null;
         });
@@ -759,7 +758,6 @@ export class ViewportAgent {
       this.nextState = State.nextIsEmpty;
       this.nextNode = null;
       this.nextCA = null;
-      this.prevTransition = this.currTransition;
       this.currTransition = null;
     }
   }

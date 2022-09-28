@@ -358,13 +358,11 @@ export class ViewportInstructionTree {
     let search = this.queryParams.toString();
     search = search === '' ? '' : `?${search}`;
 
-    const url = `${pathname}${hash}${search}`;
-    return url;
+    return `${pathname}${hash}${search}`;
   }
 
   public toPath(): string {
-    const path = this.children.map(x => x.toUrlComponent()).join('+');
-    return path;
+    return this.children.map(x => x.toUrlComponent()).join('+');
   }
 
   public toString(): string {

@@ -138,10 +138,9 @@ This process of updating a given route node with a given viewport instruction tr
 ## Compiling viewport instruction and appending to node
 
 This process starts with a route node and a viewport instruction.
-Quite evidently, in this step the viewport instruction is compiled to a route node, and later down the line the new route node is added as a children to the given route node.
+In this step the viewport instruction is compiled to a route node, and later down the line the new route node is added as a children to the given route node.
 
-Once the child node is created, the process of **appending** the node is very straight-forward.
-It involves appending the child node as one of the children of the given route node, and scheduling update for the viewport-agent associated to the routing context of the child node.
+Once the child node is created, the node (child-node) is appended as one of the children of the given route node, and scheduling update for the viewport-agent associated to the routing context of the child node.
 
 Depending on the type of the viewport instruction, the route node can be **compiled** differently.
 In this phase the viewport instruction can be categorized broadly into string instruction and routed view-model or custom element definition instruction.
@@ -152,7 +151,7 @@ It involves
 - generating the viewport instruction using the routing context, from the route definition; [details](#generating-viewport-instruction)
 - creating a configured node from the viewport instruction; the details can be found [here](#creating-configured-route-node).
 
-Compiling **from the sting instruction** is inherently bit more involved.
+Compiling **from the string instruction** is inherently bit more involved.
 When dealing with string instructions, there are couple special case that needs to be handled, namely the `../` prefix in the route that handles navigating to the ancestor/parent routing context.
 Whenever, `../` prefix is encountered, the parent node is selected and [this process](#compiling-viewport-instruction-and-appending-to-node) is restarted with the child viewport instruction coming from the given view port instruction.
 The default/non-special case is to create a node by using the [create node](#create-a-node-from-viewport-instruction) routine.

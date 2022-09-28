@@ -135,7 +135,7 @@ export class RouteExpression {
 
   private static $parse(path: string, fragmentIsRoute: boolean): RouteExpression {
     // First strip off the fragment (and if fragment should be used as route, set it as the path)
-    let fragment: string | null;
+    let fragment: string | null = null;
     const fragmentStart = path.indexOf('#');
     if (fragmentStart >= 0) {
       const rawFragment = path.slice(fragmentStart + 1);
@@ -145,11 +145,6 @@ export class RouteExpression {
       } else {
         path = path.slice(0, fragmentStart);
       }
-    } else {
-      if (fragmentIsRoute) {
-        path = '';
-      }
-      fragment = null;
     }
 
     // Strip off and parse the query string using built-in URLSearchParams.

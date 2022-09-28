@@ -27,7 +27,7 @@ describe('href custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, Products, Product);
+    const { au, host, container } = await start(Root, false,  Products, Product);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -90,7 +90,7 @@ describe('href custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, L11, L12, L21, L22);
+    const { au, host, container } = await start(Root, false, L11, L12, L21, L22);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
@@ -168,7 +168,7 @@ describe('href custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, L11, L12, L21, L22, L23, L24);
+    const { au, host, container } = await start(Root, false, L11, L12, L21, L22, L23, L24);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', 'init');
@@ -192,6 +192,97 @@ describe('href custom-attribute', function () {
     host.querySelector('a').click();
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
+
+    await au.stop();
+  });
+
+  it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
+    @customElement({ name: 'ce-one', template: `ce1` })
+    class CeOne { }
+
+    @customElement({ name: 'ce-two', template: `ce2` })
+    class CeTwo { }
+
+    @customElement({ name: 'ce-three-child', template: `ce3child` })
+    class CeThreeChild { }
+
+    @customElement({ name: 'ce-three', template: `ce3 <a id="ce3a1" href="../ce-one"></a> <a id="ce3a2" href="ce-three-child"></a> <au-viewport></au-viewport>` })
+    @route({
+      routes: [
+        {
+          path: 'ce-three-child',
+          component: CeThreeChild,
+        },
+      ]
+    })
+    class CeThree { }
+
+    @customElement({
+      name: 'ro-ot',
+      template: `
+      <a href="#ce-one"></a>
+      <a href="#ce-two"></a>
+      <a href="ce-two"></a>
+      <a href="./ce-three"></a>
+      <au-viewport></au-viewport>
+      `
+    })
+    @route({
+      routes: [
+        {
+          path: 'ce-one',
+          component: CeOne,
+        },
+        {
+          path: 'ce-two',
+          component: CeTwo,
+        },
+        {
+          path: 'ce-three',
+          component: CeThree,
+        },
+      ]
+    })
+    class Root { }
+
+    const { au, host, container } = await start(Root, true, CeOne, CeTwo, CeThree);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['#ce-one', '#ce-two', '#ce-two', './ce-three']);
+
+    anchors[1].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce2');
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce1');
+
+    anchors[2].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce2');
+
+    anchors[3].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3');
+
+    let anchor = host.querySelector<HTMLAnchorElement>('a#ce3a1');
+    assert.strictEqual(anchor.getAttribute('href'), '../ce-one');
+    anchor.click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce1');
+
+    anchors[3].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3');
+
+    anchor = host.querySelector<HTMLAnchorElement>('a#ce3a2');
+    assert.strictEqual(anchor.getAttribute('href'), 'ce-three-child');
+    anchor.click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce3 ce3child');
 
     await au.stop();
   });

@@ -408,7 +408,7 @@ jobs:
           command: |
             cd packages-tooling/__tests__
             npm run << parameters.npm_command >>
-          no_output_timeout: "3m"
+          no_output_timeout: "1m"
 
   lint_packages:
     executor: docker_circleci
@@ -724,14 +724,14 @@ workflows:
           install_chrome: true
           requires:
             - build_dev
-      - unit_test_esm:
-          <<: *filter_ignore_develop_release
-          name: test_firefox
-          npm_command: "test-firefox"
-          install_firefox: true
-          coverage: false
-          requires:
-            - build_dev
+      # - unit_test_esm:
+      #     <<: *filter_ignore_develop_release
+      #     name: test_firefox
+      #     npm_command: "test-firefox"
+      #     install_firefox: true
+      #     coverage: false
+      #     requires:
+      #       - build_dev
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           name: test_node
@@ -801,7 +801,7 @@ workflows:
           requires:
             - build_release
             - test_chrome
-            - test_firefox
+            # - test_firefox
             - test_node
             - test_toolings
             #- test_test262
@@ -859,14 +859,14 @@ workflows:
           install_chrome: true
           requires:
             - build_dev
-      - unit_test_esm:
-          <<: *filter_only_tag
-          name: test_firefox
-          npm_command: "test-firefox"
-          install_firefox: true
-          coverage: false
-          requires:
-            - build_dev
+      # - unit_test_esm:
+      #     <<: *filter_only_tag
+      #     name: test_firefox
+      #     npm_command: "test-firefox"
+      #     install_firefox: true
+      #     coverage: false
+      #     requires:
+      #       - build_dev
       - unit_test_esm_node:
           <<: *filter_only_tag
           name: test_node
@@ -917,7 +917,7 @@ workflows:
             - build_release
             # and the rest for testings
             - test_chrome
-            - test_firefox
+            # - test_firefox
             - test_node
             - test_toolings
             - e2e_hmr_webpack

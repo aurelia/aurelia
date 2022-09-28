@@ -29,7 +29,7 @@ const args = yargs
     type: 'string',
     array: true,
   })
-  .argv;
+  .parseSync();
 
 const envVars = { DEV_MODE: true };
 const testPatterns = (args.t ?? []).join(' ');

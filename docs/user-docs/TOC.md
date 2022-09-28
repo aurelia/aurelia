@@ -64,6 +64,8 @@
   * [Route Events](developer-guides/routing/route-events.md)
   * [Router Configuration](developer-guides/routing/router-configuration.md)
   * [Router Recipes](developer-guides/routing/router-recipes.md)
+* [Router lite](developer-guides/router-lite/README.md)
+  * [Getting Started](developer-guides/router-lite/getting-started.md)
 * [Validation](developer-guides/validation/README.md)
   * [Validation Tutorial](developer-guides/validation/validation-tutorial.md)
   * [Plugin Configuration](developer-guides/validation/registering-the-plugin.md)

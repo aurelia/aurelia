@@ -65,7 +65,6 @@ export type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
 
 export type BindingCommandInstance<T extends {} = {}> = {
   type: CommandType;
-  name: string;
   build(info: ICommandBuildInfo, parser: IExpressionParser, mapper: IAttrMapper): IInstruction;
 } & T;
 
@@ -157,9 +156,9 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
   //   const def = getOwnMetadata(cmdBaseName, Type);
   //   if (def === void 0) {
   //     if (__DEV__)
-  //       throw new Error(`AUR0758: No definition found for type ${Type.name}`);
+  //       throw createError(`AUR0758: No definition found for type ${Type.name}`);
   //     else
-  //       throw new Error(`AUR0758:${Type.name}`);
+  //       throw createError(`AUR0758:${Type.name}`);
   //   }
 
   //   return def;
@@ -173,7 +172,6 @@ export const BindingCommand = Object.freeze<BindingCommandKind>({
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'one-time'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -199,7 +197,6 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'to-view'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -225,7 +222,6 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'from-view'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -251,7 +247,6 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'two-way'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -277,7 +272,6 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 @bindingCommand('bind')
 export class DefaultBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'bind'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     type CA = CustomAttributeDefinition;
@@ -314,7 +308,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'call'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
@@ -327,7 +320,6 @@ export class CallBindingCommand implements BindingCommandInstance {
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
-  public get name() { return 'for'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
@@ -340,7 +332,6 @@ export class ForBindingCommand implements BindingCommandInstance {
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'trigger'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, DelegationStrategy.none);
@@ -350,7 +341,6 @@ export class TriggerBindingCommand implements BindingCommandInstance {
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'delegate'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.bubbling);
@@ -360,7 +350,6 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'capture'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.capturing);
@@ -373,7 +362,6 @@ export class CaptureBindingCommand implements BindingCommandInstance {
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'attr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
@@ -386,7 +374,6 @@ export class AttrBindingCommand implements BindingCommandInstance {
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'style'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
@@ -399,7 +386,6 @@ export class StyleBindingCommand implements BindingCommandInstance {
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'class'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
@@ -412,7 +398,6 @@ export class ClassBindingCommand implements BindingCommandInstance {
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name() { return 'ref'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
@@ -422,7 +407,6 @@ export class RefBindingCommand implements BindingCommandInstance {
 @bindingCommand('...$attrs')
 export class SpreadBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-  public get name(): string { return '...$attrs'; }
 
   public build(_info: ICommandBuildInfo): IInstruction {
     return new SpreadBindingInstruction();

@@ -1,4 +1,5 @@
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
+import { createError } from '../utilities-objects';
 
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small
@@ -17,7 +18,7 @@ export class BindingContext implements IBindingContext {
 
 export class Scope {
   private constructor(
-    public parentScope: Scope | null,
+    public parent: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
     public readonly isBoundary: boolean,
@@ -34,7 +35,7 @@ export class Scope {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor > 0) {
         ancestor--;
-        currentScope = currentScope.parentScope;
+        currentScope = currentScope.parent;
         if (currentScope == null) {
           return void 0;
         }
@@ -60,7 +61,7 @@ export class Scope {
       && !(name in currentScope.overrideContext)
       && !(name in currentScope.bindingContext)
     ) {
-      currentScope = currentScope.parentScope;
+      currentScope = currentScope.parent;
     }
 
     if (currentScope == null) {
@@ -117,13 +118,13 @@ export class Scope {
 
 const nullScopeError = () => {
   return __DEV__
-    ? new Error(`AUR0203: scope is null/undefined.`)
-    : new Error(`AUR0203`);
+    ? createError(`AUR0203: scope is null/undefined.`)
+    : createError(`AUR0203`);
 };
 const nullContextError = () => {
   return __DEV__
-    ? new Error('AUR0204: binding context is null/undefined')
-    : new Error('AUR0204');
+    ? createError('AUR0204: binding context is null/undefined')
+    : createError('AUR0204');
 };
 
 class OverrideContext implements IOverrideContext {

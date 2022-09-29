@@ -15,13 +15,15 @@ import {
   Scope,
   synchronizeIndices,
   ValueConverterExpression,
+  astEvaluate,
+  astAssign,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { isArray, isPromise, rethrow } from '../../utilities';
+import { createError, isArray, isPromise, rethrow } from '../../utilities';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -103,7 +105,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._refreshCollectionObserver();
     const dec = forOf.declaration;
     if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
-      this.local = dec.evaluate(this.$controller.scope, binding, null) as string;
+      this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
     }
   }
 
@@ -156,7 +158,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         return;
       }
       this._reevaluating = true;
-      this.items = this.forOf.iterable.evaluate($controller.scope, this._forOfBinding, null) as Items<C>;
+      this.items = astEvaluate(this.forOf.iterable, $controller.scope, this._forOfBinding, null) as Items<C>;
       this._reevaluating = false;
       return;
     }
@@ -203,7 +205,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let newObserver: CollectionObserver | undefined;
 
     if (observingInnerItems) {
-      innerItems = this._innerItems = this._innerItemsExpression!.evaluate(scope, this._forOfBinding, null) as Items<C> ?? null;
+      innerItems = this._innerItems = astEvaluate(this._innerItemsExpression!, scope, this._forOfBinding, null) as Items<C> ?? null;
       observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
     }
 
@@ -254,7 +256,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i] = factory.create().setLocation(location);
       view.nodes.unlink();
       if(this._hasDestructuredLocal) {
-        (forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
+        astAssign(forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
       } else {
         viewScope = Scope.fromParent(parentScope, new BindingContext(local, item));
       }
@@ -382,7 +384,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (indexMap[i] === -2) {
         if(this._hasDestructuredLocal) {
-          (this.forOf.declaration as DestructuringAssignmentExpression)!.assign(viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
+          astAssign(this.forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
         } else {
           viewScope = Scope.fromParent(parentScope, new BindingContext(local, normalizedItems![i]));
         }
@@ -513,8 +515,8 @@ interface IRepeatOverrideContext extends IOverrideContext {
 
 const mismatchedLengthError = (viewCount: number, itemCount: number) =>
   __DEV__
-    ? new Error(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
-    : new Error(`AUR0814:${viewCount}!=${itemCount}`);
+    ? createError(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
+    : createError(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;
@@ -541,7 +543,7 @@ const getCount = (result: AcceptableCollection): number => {
     case '[object Null]': return 0;
     case '[object Undefined]': return 0;
     // todo: remove this count method
-    default: throw new Error(`Cannot count ${toStringTag.call(result) as string}`);
+    default: throw createError(`Cannot count ${toStringTag.call(result) as string}`);
   }
 };
 
@@ -554,7 +556,7 @@ const iterate = (result: AcceptableCollection, func: (item: unknown, index: numb
     case '[object Null]': return;
     case '[object Undefined]': return;
     // todo: remove this count method
-    default: throw new Error(`Cannot iterate over ${toStringTag.call(result) as string}`);
+    default: throw createError(`Cannot iterate over ${toStringTag.call(result) as string}`);
   }
 };
 

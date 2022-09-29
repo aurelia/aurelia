@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, InterfaceSymbol, IRegistry, Registration } from '@aurelia/kernel';
-import { AppTask, AppTaskCallback, IWindow } from '@aurelia/runtime-html';
+import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
 import { IRouterOptions, IRouter } from './router';
@@ -41,19 +41,12 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRouter['start']>);
-function configure(container: IContainer, config?: RouterConfig): IContainer {
-  let activation: AppTaskCallback<InterfaceSymbol<IRouter>>;
+function configure(container: IContainer, options?: IRouterOptions): IContainer {
   let basePath: string | null = null;
-  if (isObject(config)) {
-    if (typeof config === 'function') {
-      activation = router => config(router) as void | Promise<void>;
-    } else {
-      basePath = (config as IRouterOptions).basePath ?? null;
-      activation = router => router.start(config, true) as void | Promise<void>;
-    }
+  if (isObject(options)) {
+    basePath = (options as IRouterOptions).basePath ?? null;
   } else {
-    activation = router => router.start({}, true) as void | Promise<void>;
+    options = {};
   }
   return container.register(
     Registration.cachedCallback(IBaseHref, (handler, _, __) => {
@@ -62,8 +55,9 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
       url.pathname = normalizePath(basePath ?? url.pathname);
       return url;
     }),
+    AppTask.hydrated(IRouter, router => router._setOptions(options!)),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
-    AppTask.activated(IRouter, activation),
+    AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {
       router.stop();
     }),
@@ -81,10 +75,10 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(config?: RouterConfig): IRegistry {
+  customize(options?: IRouterOptions): IRegistry {
     return {
       register(container: IContainer): IContainer {
-        return configure(container, config);
+        return configure(container, options);
       },
     };
   },

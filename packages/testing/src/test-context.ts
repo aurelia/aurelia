@@ -25,6 +25,7 @@ export class TestContext {
   public get Comment() { return this.platform.globalThis.Comment; }
   public get DOMParser() { return this.platform.globalThis.DOMParser; }
 
+  /** @internal */
   private _container: IContainer | undefined = void 0;
   public get container(): IContainer {
     if (this._container === void 0) {
@@ -39,6 +40,7 @@ export class TestContext {
     }
     return this._container;
   }
+  /** @internal */
   private _platform: IPlatform | undefined = void 0;
   public get platform(): IPlatform {
     if (this._platform === void 0) {
@@ -46,6 +48,7 @@ export class TestContext {
     }
     return this._platform;
   }
+  /** @internal */
   private _templateCompiler: ITemplateCompiler | undefined = void 0;
   public get templateCompiler(): ITemplateCompiler {
     if (this._templateCompiler === void 0) {
@@ -60,6 +63,7 @@ export class TestContext {
     }
     return this.oL;
   }
+  /** @internal */
   private _domParser: HTMLDivElement | undefined = void 0;
   public get domParser(): HTMLDivElement {
     if (this._domParser === void 0) {

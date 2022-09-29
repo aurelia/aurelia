@@ -5,6 +5,7 @@ import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-
 import { AppTask } from '../../app-task';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from '../../utilities-di';
+import { createError } from '../../utilities';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
@@ -37,13 +38,13 @@ DialogConfiguration.customize(settings => {
  */
 export const DialogConfiguration = createDialogConfiguration(() => {
   if (__DEV__)
-    throw new Error(`AUR0904: Invalid dialog configuration. ` +
+    throw createError(`AUR0904: Invalid dialog configuration. ` +
       'Specify the implementations for ' +
       '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
       'or use the DialogDefaultConfiguration export.'
     );
   else
-    throw new Error(`AUR0904`);
+    throw createError(`AUR0904`);
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {
     container.register(singletonRegistration(IDialogGlobalSettings, this));

@@ -10,6 +10,7 @@
     "packages/__e2e__/ui-virtualization",
     "packages/addons",
     "packages/aurelia",
+    "packages/compat-v1",
     "packages/fetch-client",
     "packages/i18n",
     "packages/kernel",
@@ -68,7 +69,7 @@
     "rebuild": "npm run clean && npm run build",
     "build": "lage build --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
     "build:test": "lage run rollup --scope @aurelia/* --scope aurelia --scope au --no-cache --verbose --no-deps",
-    "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/u* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
+    "build:release": "lage run rollup --scope aurelia --scope au --scope @aurelia/a* --scope @aurelia/b* --scope @aurelia/c* --scope @aurelia/f* --scope @aurelia/h* --scope @aurelia/i* --scope @aurelia/k* --scope @aurelia/m* --scope @aurelia/p* --scope @aurelia/r* --scope @aurelia/s* --scope @aurelia/t* --scope @aurelia/u* --scope @aurelia/v* --scope @aurelia/w* --no-cache --verbose --no-deps",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",
@@ -116,6 +117,7 @@
     "concurrently": "^7.1.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.14.38",
+    "esbuild-register": "3.3.3",
     "eslint": "^8.14.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsdoc": "^39.2.8",
@@ -131,8 +133,8 @@
     "ts-node": "^10.7.0",
     "tsconfig-paths": "^3.14.1",
     "typescript": "4.7.3",
-    "vite": "^3.0.8",
-    "v8-to-istanbul": "9.0.1"
+    "v8-to-istanbul": "9.0.1",
+    "vite": "^3.0.8"
   },
   "commitlint": {
     "rules": {
@@ -209,6 +211,6 @@
   },
   "volta": {
     "node": "16.14.2",
-    "npm": "8.12.1"
+    "npm": "8.19.2"
   }
 }

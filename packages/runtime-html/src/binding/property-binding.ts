@@ -1,4 +1,4 @@
-import { AccessorType, connectable } from '@aurelia/runtime';
+import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
 import { IFlushQueue, astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
 import { BindingMode } from './interfaces-bindings';
@@ -70,7 +70,7 @@ export class PropertyBinding implements IAstBasedBinding {
   }
 
   public updateSource(value: unknown): void {
-    this.ast.assign(this.$scope!, this, value);
+    astAssign(this.ast, this.$scope!, this, value);
   }
 
   public handleChange(): void {
@@ -86,7 +86,7 @@ export class PropertyBinding implements IAstBasedBinding {
     if (shouldConnect) {
       obsRecord.version++;
     }
-    const newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
+    const newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
     if (shouldConnect) {
       obsRecord.clear();
     }
@@ -120,10 +120,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    let ast = this.ast;
-    if (ast.hasBind) {
-      ast.bind(scope, this.interceptor);
-    }
+    astBind(this.ast, scope, this.interceptor);
 
     const observerLocator = this.oL;
     const $mode = this.mode;
@@ -137,15 +134,12 @@ export class PropertyBinding implements IAstBasedBinding {
       this.targetObserver = targetObserver;
     }
 
-    // during bind, binding behavior might have changed ast
-    // deepscan-disable-next-line
-    ast = this.ast;
     const interceptor = this.interceptor;
     const shouldConnect = ($mode & BindingMode.toView) > 0;
 
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       interceptor.updateTarget(
-        ast.evaluate(scope, this, shouldConnect ? interceptor : null),
+        astEvaluate(this.ast, scope, this, shouldConnect ? interceptor : null),
       );
     }
 
@@ -164,9 +158,7 @@ export class PropertyBinding implements IAstBasedBinding {
       return;
     }
 
-    if (this.ast.hasUnbind) {
-      this.ast.unbind(this.$scope!, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
 

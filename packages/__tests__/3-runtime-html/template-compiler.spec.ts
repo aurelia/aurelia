@@ -13,6 +13,7 @@ import {
   BindingIdentifier,
   PrimitiveLiteralExpression,
   IExpressionParser,
+  ExpressionKind,
 } from '@aurelia/runtime';
 import {
   bindable,
@@ -41,6 +42,7 @@ import {
   attributePattern,
   PropertyBindingInstruction,
   InterpolationInstruction,
+  InstructionType,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -1070,13 +1072,15 @@ describe(`TemplateCompiler - combinations`, function () {
           ),
           instructions: [[
             {
+              "type": InstructionType.interpolation,
               "from": {
+                '$kind': ExpressionKind.Interpolation,
                 "parts": ["abc-",""],
                 "expressions": [
-                  {"name":"value","ancestor":0}
+                  {"$kind":ExpressionKind.AccessScope,"name":"value","ancestor":0}
                 ],
                 "isMulti": false,
-                "firstExpression": {"name":"value","ancestor":0}
+                "firstExpression": { "$kind": ExpressionKind.AccessScope, "name":"value","ancestor":0}
               },
               "to":"class"
             }

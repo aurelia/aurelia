@@ -23,7 +23,7 @@ const args = yargs
     describe: 'add extra example apps to development',
     array: true,
   })
-  .argv;
+  .parseSync();
 
 const envVars = { DEV_MODE: true };
 const testPatterns = (args.t ?? []).join(' ');

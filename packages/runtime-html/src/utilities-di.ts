@@ -49,6 +49,9 @@ export const allResources = function <T extends Key>(key: T) {
 };
 
 /** @internal */
+export const createInterface = DI.createInterface;
+
+/** @internal */
 export const singletonRegistration = Registration.singleton;
 
 /** @internal */
@@ -62,6 +65,10 @@ export const callbackRegistration = Registration.callback;
 
 /** @internal */
 export const transientRegistration = Registration.transient;
+
+/** @internal */
+export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver): IResolver =>
+  ctn.registerResolver(key, resolver);
 
 export function alias(...aliases: readonly string[]) {
   return function (target: Constructable) {

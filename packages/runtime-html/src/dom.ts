@@ -1,9 +1,10 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { type Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
+import { createInterface } from './utilities-di';
 
 export class Refs {
   [key: string]: IHydratedController | undefined;
@@ -20,17 +21,17 @@ export function setRef(node: INode, name: string, controller: IHydratedControlle
 export type INode<T extends Node = Node> = T & {
   readonly $au?: Refs;
 };
-export const INode = DI.createInterface<INode>('INode');
+export const INode = createInterface<INode>('INode');
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
-export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
+export const IEventTarget = createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
   if (handler.has(IAppRoot, true)) {
     return handler.get(IAppRoot).host;
   }
   return handler.get(IPlatform).document;
 }));
 
-export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation');
+export const IRenderLocation = createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
 };
@@ -81,7 +82,8 @@ export interface INodeSequence<T extends INode = INode> {
   link(next: INodeSequence<T> | IRenderLocation | undefined): void;
 }
 
-export const enum NodeType {
+_START_CONST_ENUM();
+const enum NodeType {
   Element = 1,
   Attr = 2,
   Text = 3,
@@ -95,6 +97,7 @@ export const enum NodeType {
   DocumentFragment = 11,
   Notation = 12
 }
+_END_CONST_ENUM();
 
 const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
 
@@ -387,13 +390,13 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export const IWindow = DI.createInterface<IWindow>('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
+export const IWindow = createInterface<IWindow>('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
 export interface IWindow extends Window { }
 
-export const ILocation = DI.createInterface<ILocation>('ILocation', x => x.callback(handler => handler.get(IWindow).location));
+export const ILocation = createInterface<ILocation>('ILocation', x => x.callback(handler => handler.get(IWindow).location));
 export interface ILocation extends Location { }
 
-export const IHistory = DI.createInterface<IHistory>('IHistory', x => x.callback(handler => handler.get(IWindow).history));
+export const IHistory = createInterface<IHistory>('IHistory', x => x.callback(handler => handler.get(IWindow).history));
 // NOTE: `IHistory` is documented
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/History

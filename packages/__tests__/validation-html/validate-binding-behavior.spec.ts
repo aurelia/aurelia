@@ -5,6 +5,7 @@ import {
   IBinding,
   IObserverLocator,
   Scope,
+  Unparser,
 } from '@aurelia/runtime';
 import {
   bindable,
@@ -324,7 +325,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(binding.ast.expression.toString(), rawExpression);
+    assert.equal(Unparser.unparse(binding.ast.expression), rawExpression);
   }
 
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur' | 'focusout', callCount: number, platform: IPlatform, validateBindingSpy: ISpy, validateSpy: ISpy, ctx: TestContext) {
@@ -1121,7 +1122,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
       assert.equal(bindings.length, 1);
 
       const binding = bindings[0];
-      assert.equal(binding.ast.expression.toString(), 'org.employees');
+      assert.equal(Unparser.unparse(binding.ast.expression), 'org.employees');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error1');
       await controller.validate();
@@ -1155,7 +1156,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
       assert.equal(bindings.length, 1);
 
       const binding = bindings[0];
-      assert.equal(binding.ast.expression.toString(), 'org.employees');
+      assert.equal(Unparser.unparse(binding.ast.expression), 'org.employees');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error1');
       await controller.validate();
@@ -1188,9 +1189,9 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 2);
       assert.equal(bindings[0].target, target1);
-      assert.equal(bindings[0].ast.expression.toString(), 'obj.coll[(0)].a|toNumber');
+      assert.equal(Unparser.unparse(bindings[0].ast.expression), 'obj.coll[(0)].a|toNumber');
       assert.equal(bindings[1].target, target2);
-      assert.equal(bindings[1].ast.expression.toString(), 'obj.coll[(1)].a|toNumber');
+      assert.equal(Unparser.unparse(bindings[1].ast.expression), 'obj.coll[(1)].a|toNumber');
 
       assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 0, 'error1');
       await controller.validate();

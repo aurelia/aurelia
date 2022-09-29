@@ -19,7 +19,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
 import { templateController } from '../custom-attribute';
-import { isPromise } from '../../utilities';
+import { createError, isPromise } from '../../utilities';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
@@ -313,9 +313,9 @@ function getPromiseController(controller: IHydratableController) {
     return $promise;
   }
   if (__DEV__)
-    throw new Error(`AUR0813: The parent promise.resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`);
+    throw createError(`AUR0813: The parent promise.resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`);
   else
-    throw new Error(`AUR0813`);
+    throw createError(`AUR0813`);
 }
 
 @attributePattern({ pattern: 'promise.resolve', symbols: '' })

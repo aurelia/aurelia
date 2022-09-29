@@ -7,7 +7,7 @@ import { CustomElement, customElement, CustomElementDefinition } from '../custom
 import { bindable } from '../../bindable';
 import { LifecycleFlags, ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { isPromise, isString } from '../../utilities';
+import { createError, isPromise, isString } from '../../utilities';
 import { BindingMode } from '../../binding/interfaces-bindings';
 
 export type Subject = string | IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
@@ -182,9 +182,9 @@ export class AuRender implements ICustomElementViewModel {
       const def = ctxContainer.find(CustomElement, comp);
       if (def == null) {
         if (__DEV__)
-          throw new Error(`AUR0809: Unable to find custom element ${comp} for <au-render>.`);
+          throw createError(`AUR0809: Unable to find custom element ${comp} for <au-render>.`);
         else
-          throw new Error(`AUR0809:${comp}`);
+          throw createError(`AUR0809:${comp}`);
       }
       comp = def.Type;
     }

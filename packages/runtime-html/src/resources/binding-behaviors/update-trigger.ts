@@ -10,6 +10,7 @@ import type { PropertyBinding } from '../../binding/property-binding';
 import type { CheckedObserver } from '../../observation/checked-observer';
 import type { SelectValueObserver } from '../../observation/select-value-observer';
 import type { ValueAttributeObserver } from '../../observation/value-attribute-observer';
+import { createError } from '../../utilities';
 
 export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
@@ -35,16 +36,16 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
       if (__DEV__)
-        throw new Error(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);
+        throw createError(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);
       else
-        throw new Error(`AUR0802`);
+        throw createError(`AUR0802`);
     }
 
     if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
       if (__DEV__)
-        throw new Error(`AUR0803: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.`);
+        throw createError(`AUR0803: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.`);
       else
-        throw new Error(`AUR0803`);
+        throw createError(`AUR0803`);
     }
 
     // ensure the binding's target observer has been set.
@@ -52,9 +53,9 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!targetObserver.handler) {
       if (__DEV__)
-        throw new Error(`AUR0804: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.`);
+        throw createError(`AUR0804: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.`);
       else
-        throw new Error(`AUR0804`);
+        throw createError(`AUR0804`);
     }
 
     binding.targetObserver = targetObserver;

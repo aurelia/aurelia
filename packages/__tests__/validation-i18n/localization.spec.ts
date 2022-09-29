@@ -8,7 +8,7 @@ import {
   StandardValidator,
   ValidationMessageProvider,
 } from '@aurelia/validation';
-import { IBinding } from '@aurelia/runtime';
+import { IBinding, Unparser } from '@aurelia/runtime';
 import { CustomElement, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
@@ -181,7 +181,7 @@ describe('validation-i18n/localization.spec.ts/validation-i18n', function () {
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(binding.ast.expression.toString(), rawExpression);
+    assert.equal(Unparser.unparse(binding.ast.expression), rawExpression);
   }
 
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {

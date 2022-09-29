@@ -13,7 +13,7 @@ import {
 import { IEventTarget, INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { CustomElement, CustomElementDefinition } from '../../resources/custom-element';
-import { isFunction } from '../../utilities';
+import { createError, isFunction } from '../../utilities';
 import { instanceRegistration } from '../../utilities-di';
 
 import type {
@@ -272,14 +272,14 @@ export class DialogController implements IDialogController {
 class EmptyComponent {}
 
 function createDialogCancelError<T>(output: T | undefined, msg: string): DialogCancelError<T> {
-  const error = new Error(msg) as DialogCancelError<T>;
+  const error = createError(msg) as DialogCancelError<T>;
   error.wasCancelled = true;
   error.value = output;
   return error;
 }
 
 function createDialogCloseError<T = unknown>(output: T): DialogCloseError<T> {
-  const error = new Error() as DialogCloseError<T>;
+  const error = createError('') as DialogCloseError<T>;
   error.wasCancelled = false;
   error.value = output;
   return error;

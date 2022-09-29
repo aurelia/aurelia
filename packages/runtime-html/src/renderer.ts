@@ -1,4 +1,4 @@
-import { DI, emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
+import { emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
@@ -27,8 +27,8 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import { AttrSyntax } from './resources/attribute-pattern';
-import { defineProp, isString } from './utilities';
-import { singletonRegistration } from './utilities-di';
+import { createError, defineProp, isString } from './utilities';
+import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 
 import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
 import type {
@@ -70,7 +70,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = DI.createInterface<IInstruction>('Instruction');
+export const IInstruction = createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -78,7 +78,7 @@ export function isInstruction(value: unknown): value is IInstruction {
 }
 
 export class InterpolationInstruction {
-  public get type(): InstructionType.interpolation { return InstructionType.interpolation; }
+  public readonly type = InstructionType.interpolation;
 
   public constructor(
     public from: string | Interpolation,
@@ -87,7 +87,7 @@ export class InterpolationInstruction {
 }
 
 export class PropertyBindingInstruction {
-  public get type(): InstructionType.propertyBinding { return InstructionType.propertyBinding; }
+  public readonly type = InstructionType.propertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -97,7 +97,7 @@ export class PropertyBindingInstruction {
 }
 
 export class IteratorBindingInstruction {
-  public get type(): InstructionType.iteratorBinding { return InstructionType.iteratorBinding; }
+  public readonly type = InstructionType.iteratorBinding;
 
   public constructor(
     public from: string | ForOfStatement,
@@ -106,7 +106,7 @@ export class IteratorBindingInstruction {
 }
 
 export class CallBindingInstruction {
-  public get type(): InstructionType.callBinding { return InstructionType.callBinding; }
+  public readonly type = InstructionType.callBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -115,7 +115,7 @@ export class CallBindingInstruction {
 }
 
 export class RefBindingInstruction {
-  public get type(): InstructionType.refBinding { return InstructionType.refBinding; }
+  public readonly type = InstructionType.refBinding;
 
   public constructor(
     public readonly from: string | IsBindingBehavior,
@@ -124,7 +124,7 @@ export class RefBindingInstruction {
 }
 
 export class SetPropertyInstruction {
-  public get type(): InstructionType.setProperty { return InstructionType.setProperty; }
+  public readonly type = InstructionType.setProperty;
 
   public constructor(
     public value: unknown,
@@ -133,7 +133,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
+  public readonly type = InstructionType.hydrateElement;
 
   /**
    * A special property that can be used to store <au-slot/> usage information
@@ -169,7 +169,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public get type(): InstructionType.hydrateAttribute { return InstructionType.hydrateAttribute; }
+  public readonly type = InstructionType.hydrateAttribute;
 
   public constructor(
     // in theory, Constructor of resources should be accepted too
@@ -184,7 +184,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public get type(): InstructionType.hydrateTemplateController { return InstructionType.hydrateTemplateController; }
+  public readonly type = InstructionType.hydrateTemplateController;
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -200,7 +200,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public get type(): InstructionType.hydrateLetElement { return InstructionType.hydrateLetElement; }
+  public readonly type = InstructionType.hydrateLetElement;
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -209,7 +209,7 @@ export class HydrateLetElementInstruction {
 }
 
 export class LetBindingInstruction {
-  public get type(): InstructionType.letBinding { return InstructionType.letBinding; }
+  public readonly type = InstructionType.letBinding;
 
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
@@ -218,7 +218,7 @@ export class LetBindingInstruction {
 }
 
 export class TextBindingInstruction {
-  public get type(): InstructionType.textBinding { return InstructionType.textBinding; }
+  public readonly type = InstructionType.textBinding;
 
   public constructor(
     public from: string | Interpolation,
@@ -239,7 +239,7 @@ export const enum DelegationStrategy {
 }
 
 export class ListenerBindingInstruction {
-  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
+  public readonly type = InstructionType.listenerBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -249,7 +249,7 @@ export class ListenerBindingInstruction {
   ) {}
 }
 export class StylePropertyBindingInstruction {
-  public get type(): InstructionType.stylePropertyBinding { return InstructionType.stylePropertyBinding; }
+  public readonly type = InstructionType.stylePropertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -258,7 +258,7 @@ export class StylePropertyBindingInstruction {
 }
 
 export class SetAttributeInstruction {
-  public get type(): InstructionType.setAttribute { return InstructionType.setAttribute; }
+  public readonly type = InstructionType.setAttribute;
 
   public constructor(
     public value: string,
@@ -283,7 +283,7 @@ export class SetStyleAttributeInstruction {
 }
 
 export class AttributeBindingInstruction {
-  public get type(): InstructionType.attributeBinding { return InstructionType.attributeBinding; }
+  public readonly type = InstructionType.attributeBinding;
 
   public constructor(
     /**
@@ -299,17 +299,17 @@ export class AttributeBindingInstruction {
 }
 
 export class SpreadBindingInstruction {
-  public get type(): InstructionType.spreadBinding { return InstructionType.spreadBinding; }
+  public readonly type = InstructionType.spreadBinding;
 }
 
 export class SpreadElementPropBindingInstruction {
-  public get type(): InstructionType.spreadElementProp { return InstructionType.spreadElementProp; }
+  public readonly type = InstructionType.spreadElementProp;
   public constructor(
     public readonly instructions: IInstruction,
   ) {}
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
+export const ITemplateCompiler = createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
    * Indicates whether this compiler should compile template in debug mode
@@ -371,7 +371,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer');
+export const IRenderer = createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
@@ -416,9 +416,9 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
     case 'view':
       // todo: returns node sequences for fun?
       if (__DEV__)
-        throw new Error(`AUR0750: Not supported API`);
+        throw createError(`AUR0750: Not supported API`);
       else
-        throw new Error(`AUR0750`);
+        throw createError(`AUR0750`);
     case 'view-model':
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
@@ -430,9 +430,9 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
         if (__DEV__)
-          throw new Error(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+          throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
         else
-          throw new Error(`AUR0751:${refTargetName}`);
+          throw createError(`AUR0751:${refTargetName}`);
       }
       return ceController.viewModel;
     }
@@ -450,7 +450,7 @@ export class SetPropertyRenderer implements IRenderer {
     instruction: SetPropertyInstruction,
   ): void {
     const obj = getTarget(target) as IObservable;
-    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+    if (obj.$observers?.[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value);
     } else {
       obj[instruction.to] = instruction.value;
@@ -490,9 +490,9 @@ export class CustomElementRenderer implements IRenderer {
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -517,7 +517,7 @@ export class CustomElementRenderer implements IRenderer {
     );
     Ctor = def.Type;
     component = container.invoke(Ctor);
-    container.registerResolver(Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
+    registerResolver(container, Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
     childCtrl = Controller.$el(
       /* own container       */container,
       /* viewModel           */component,
@@ -575,9 +575,9 @@ export class CustomAttributeRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -650,9 +650,9 @@ export class TemplateControllerRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
-            throw new Error(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+            throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
-            throw new Error(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+            throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -1222,7 +1222,7 @@ export class SpreadRenderer implements IRenderer {
         --currentLevel;
       }
       if (currentContext == null) {
-        throw new Error('No scope context for spread binding.');
+        throw createError('No scope context for spread binding.');
       }
       return currentContext as IHydrationContext<object>;
     };
@@ -1299,9 +1299,9 @@ class SpreadBinding implements IBinding {
       return;
     }
     this.isBound = true;
-    const innerScope = this.$scope = this._hydrationContext.controller.scope.parentScope ?? void 0;
+    const innerScope = this.$scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
-      throw new Error('Invalid spreading. Context scope is null/undefined');
+      throw createError('Invalid spreading. Context scope is null/undefined');
     }
 
     this._innerBindings.forEach(b => b.$bind(innerScope));
@@ -1318,7 +1318,7 @@ class SpreadBinding implements IBinding {
 
   public addChild(controller: IController) {
     if (controller.vmKind !== ViewModelKind.customAttribute) {
-      throw new Error('Spread binding does not support spreading custom attributes/template controllers');
+      throw createError('Spread binding does not support spreading custom attributes/template controllers');
     }
     this.ctrl.addChild(controller);
   }
@@ -1362,20 +1362,22 @@ function createElementContainer(
   // if there's no value associated, unlike InstanceProvider
   // reason being some custom element can have `containerless` attribute on them
   // causing the host to disappear, and replace by a location instead
-  ctn.registerResolver(
+  registerResolver(
+    ctn,
     p.HTMLElement,
-    ctn.registerResolver(
+    registerResolver(
+      ctn,
       p.Element,
-      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
     )
   );
-  ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
-  ctn.registerResolver(IInstruction, new InstanceProvider(instructionProviderName, instruction));
-  ctn.registerResolver(IRenderLocation, location == null
+  registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+  registerResolver(ctn, IInstruction, new InstanceProvider(instructionProviderName, instruction));
+  registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new RenderLocationProvider(location));
-  ctn.registerResolver(IViewFactory, noViewFactoryProvider);
-  ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, IViewFactory, noViewFactoryProvider);
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo)
   );
@@ -1401,15 +1403,15 @@ class ViewFactoryProvider implements IResolver {
     const f = this.f;
     if (f === null) {
       if (__DEV__)
-        throw new Error(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
+        throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
       else
-        throw new Error(`AUR7055`);
+        throw createError(`AUR7055`);
     }
     if (!isString(f.name) || f.name.length === 0) {
       if (__DEV__)
-        throw new Error(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
+        throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
       else
-        throw new Error(`AUR0756`);
+        throw createError(`AUR0756`);
     }
     return f;
   }
@@ -1426,25 +1428,27 @@ function invokeAttribute(
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
-  ctn.registerResolver(
+  registerResolver(
+    ctn,
     p.HTMLElement,
-    ctn.registerResolver(
+    registerResolver(
+      ctn,
       p.Element,
-      ctn.registerResolver(INode, new InstanceProvider('ElementResolver', host))
+      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
     )
   );
   renderingCtrl = renderingCtrl instanceof Controller
     ? renderingCtrl
     : (renderingCtrl as unknown as SpreadBinding).ctrl;
-  ctn.registerResolver(IController, new InstanceProvider(controllerProviderName, renderingCtrl));
-  ctn.registerResolver(IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
-  ctn.registerResolver(IRenderLocation, location == null
+  registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
+  registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
+  registerResolver(ctn, IRenderLocation, location == null
     ? noLocationProvider
     : new InstanceProvider(locationProviderName, location));
-  ctn.registerResolver(IViewFactory, viewFactory == null
+  registerResolver(ctn, IViewFactory, viewFactory == null
     ? noViewFactoryProvider
     : new ViewFactoryProvider(viewFactory));
-  ctn.registerResolver(IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
 

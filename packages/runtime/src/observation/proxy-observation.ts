@@ -1,6 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
+import { Collection, IConnectable } from '../observation';
 import { isArray } from '../utilities-objects';
-import { connecting, currentConnectable } from './connectable-switcher';
+import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
@@ -90,15 +91,13 @@ const arrayHandler: ProxyHandler<unknown[]> = {
       return target;
     }
 
-    const connectable = currentConnectable();
-
-    if (!connecting || doNotCollect(key) || connectable == null) {
+    if (!connecting || doNotCollect(key) || _connectable == null) {
       return R$get(target, key, receiver);
     }
 
     switch (key) {
       case 'length':
-        connectable.observe(target, 'length');
+        _connectable.observe(target, 'length');
         return target.length;
       case 'map':
         return wrappedArrayMap;
@@ -153,7 +152,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedEntries;
     }
 
-    connectable.observe(target, key);
+    _connectable.observe(target, key);
 
     return wrap(R$get(target, key, receiver));
   },
@@ -170,14 +169,14 @@ function wrappedArrayMap(this: unknown[], cb: (v: unknown, i: number, arr: unkno
     // do we wrap `thisArg`?
     unwrap(cb.call(thisArg, wrap(v), i, this))
   );
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedArrayEvery(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): boolean {
   const raw = getRaw(this);
   const res = raw.every((v, i) => cb.call(thisArg, wrap(v), i, this));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 
@@ -187,58 +186,58 @@ function wrappedArrayFilter(this: unknown[], cb: (v: unknown, i: number, arr: un
     // do we wrap `thisArg`?
     unwrap(cb.call(thisArg, wrap(v), i, this))
   );
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedArrayIncludes(this: unknown[], v: unknown): boolean {
   const raw = getRaw(this);
   const res = raw.includes(unwrap(v));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 
 function wrappedArrayIndexOf(this: unknown[], v: unknown): number {
   const raw = getRaw(this);
   const res = raw.indexOf(unwrap(v));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 function wrappedArrayLastIndexOf(this: unknown[], v: unknown): number {
   const raw = getRaw(this);
   const res = raw.lastIndexOf(unwrap(v));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 function wrappedArrayFindIndex(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): number {
   const raw = getRaw(this);
   const res = raw.findIndex((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 
 function wrappedArrayFind(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): unknown {
   const raw = getRaw(this);
   const res = raw.find((v, i) => cb(wrap(v), i, this), thisArg);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedArrayFlat(this: unknown[]): unknown[] {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(raw.flat());
 }
 function wrappedArrayFlatMap(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): unknown[] {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return getProxy(raw.flatMap((v, i) =>
     wrap(cb.call(thisArg, wrap(v), i, this)))
   );
 }
 function wrappedArrayJoin(this: unknown[], separator?: string): string {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return raw.join(separator);
 }
 
@@ -260,41 +259,41 @@ function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknow
 function wrappedArrayReverse(this: unknown[], ..._args: unknown[]): unknown[] {
   const raw = getRaw(this);
   const res = raw.reverse();
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): boolean {
   const raw = getRaw(this);
   const res = raw.some((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return res;
 }
 
 function wrappedArraySort(this: unknown[], cb?: (a: unknown, b: unknown) => number): unknown[] {
   const raw = getRaw(this);
   const res = raw.sort(cb);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedArraySlice(this: unknown[], start?: number, end?: number): unknown[] {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return getProxy(raw.slice(start, end));
 }
 
 function wrappedReduce(this: unknown[], cb: (curr: unknown, v: unknown, i: number, arr: unknown[]) => unknown, initValue: unknown): unknown {
   const raw = getRaw(this);
   const res = raw.reduce((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
 function wrappedReduceRight(this: unknown[], cb: (curr: unknown, v: unknown, i: number, arr: unknown[]) => unknown, initValue: unknown): unknown {
   const raw = getRaw(this);
   const res = raw.reduceRight((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(res);
 }
 
@@ -359,7 +358,7 @@ type CollectionMethod = (this: unknown, ...args: unknown[]) => unknown;
 
 function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown): void {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return raw.forEach((v: unknown, key: unknown) => {
     cb.call(/* should wrap or not?? */thisArg, wrap(v), wrap(key), this);
   });
@@ -367,13 +366,13 @@ function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown
 
 function wrappedHas(this: $MapOrSet, v: unknown): boolean {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return raw.has(unwrap(v));
 }
 
 function wrappedGet(this: Map<unknown, unknown>, k: unknown): unknown {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   return wrap(raw.get(unwrap(k)));
 }
 function wrappedSet(this: Map<unknown, unknown>, k: unknown, v: unknown): Map<unknown, unknown> {
@@ -394,7 +393,7 @@ function wrappedDelete(this: $MapOrSet, k: unknown): boolean {
 
 function wrappedKeys(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   const iterator = raw.keys();
 
   return {
@@ -415,7 +414,7 @@ function wrappedKeys(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
 
 function wrappedValues(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   const iterator = raw.values();
 
   return {
@@ -436,7 +435,7 @@ function wrappedValues(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
 
 function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentConnectable()?.observeCollection(raw);
+  observeCollection(_connectable, raw);
   const iterator = raw.entries();
 
   // return a wrapped iterator which returns observed versions of the
@@ -458,6 +457,7 @@ function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> 
   };
 }
 
+const observeCollection = (connectable: IConnectable | null, collection: Collection) => connectable?.observeCollection(collection);
 export const ProxyObservable = Object.freeze({
   getProxy,
   getRaw,

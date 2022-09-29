@@ -34,7 +34,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, Foo);
+    const { au, host, container } = await start(Root, false, Foo);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -72,7 +72,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, Foo);
+    const { au, host, container } = await start(Root, false, Foo);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -96,7 +96,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, Foo);
+    const { au, host, container } = await start(Root, false, Foo);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -135,7 +135,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, Products, Product);
+    const { au, host, container } = await start(Root, false, Products, Product);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -197,7 +197,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, Products, Product);
+    const { au, host, container } = await start(Root, false, Products, Product);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -260,7 +260,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, L11, L12, L21, L22);
+    const { au, host, container } = await start(Root, false, L11, L12, L21, L22);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
@@ -319,7 +319,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, L11, L12, L21, L22);
+    const { au, host, container } = await start(Root, false, L11, L12, L21, L22);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
@@ -396,7 +396,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, L11, L12, L21, L22, L23, L24);
+    const { au, host, container } = await start(Root, false, L11, L12, L21, L22, L23, L24);
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', 'init');
@@ -420,6 +420,58 @@ describe('load custom-attribute', function () {
     host.querySelector('a').click();
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
+
+    await au.stop();
+  });
+
+  it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
+    @customElement({ name: 'ce-one', template: `ce1` })
+    class CeOne { }
+
+    @customElement({ name: 'ce-two', template: `ce2` })
+    class CeTwo { }
+
+    @customElement({
+      name: 'ro-ot',
+      template: `
+      <a load="#ce-one"></a>
+      <a load="#ce-two"></a>
+      <a load="ce-two"></a>
+      <au-viewport></au-viewport>
+      `
+    })
+    @route({
+      routes: [
+        {
+          path: 'ce-one',
+          component: CeOne,
+        },
+        {
+          path: 'ce-two',
+          component: CeTwo,
+        },
+      ]
+    })
+    class Root { }
+
+    const { au, host, container } = await start(Root, true, CeOne, CeTwo);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['#ce-one', '#ce-two', '#ce-two']);
+
+    anchors[1].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce2');
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce1');
+
+    anchors[2].click();
+    await queue.yield();
+    assert.html.textContent(host, 'ce2');
 
     await au.stop();
   });

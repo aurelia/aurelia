@@ -207,7 +207,7 @@ describe('Logger', function () {
   it('additional sink registration works', function () {
     const { sut } = createFixture(LogLevel.error, ColorOptions.noColors, []);
 
-    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
     assert.notStrictEqual(eventLog, void 0);
 
@@ -222,7 +222,7 @@ describe('Logger', function () {
   it('respects the handling capabilities of sinks', function () {
     const { sut } = createFixture(LogLevel.trace, ColorOptions.noColors, []);
 
-    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
     assert.strictEqual(eventLog !== void 0, true);
 
@@ -240,7 +240,7 @@ describe('Logger', function () {
   it('console logging can be deactivated', function () {
     const { sut, mock } = createFixture(LogLevel.trace, ColorOptions.noColors, [], true);
 
-    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
 
     sut.error('foo');

@@ -1,5 +1,5 @@
+import { astAssign, astBind, astEvaluate, astUnbind, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
 export interface RefBinding extends IAstBasedBinding {}
@@ -26,11 +26,9 @@ export class RefBinding implements IAstBasedBinding {
 
     this.$scope = scope;
 
-    if (this.ast.hasBind) {
-      this.ast.bind(scope, this);
-    }
+    astBind(this.ast, scope, this);
 
-    this.ast.assign(this.$scope, this, this.target);
+    astAssign(this.ast, this.$scope, this, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -41,17 +39,11 @@ export class RefBinding implements IAstBasedBinding {
       return;
     }
 
-    let ast = this.ast;
-    if (ast.evaluate(this.$scope!, this, null) === this.target) {
-      ast.assign(this.$scope!, this, null);
+    if (astEvaluate(this.ast, this.$scope!, this, null) === this.target) {
+      astAssign(this.ast, this.$scope!, this, null);
     }
 
-    // source expression might have been modified durring assign, via a BB
-    // deepscan-disable-next-line
-    ast = this.ast;
-    if (ast.hasUnbind) {
-      ast.unbind(this.$scope!, this.interceptor);
-    }
+    astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
 

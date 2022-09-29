@@ -1,5 +1,5 @@
-import { DI } from '@aurelia/kernel';
 import { createLookup, isFunction } from '../utilities';
+import { createInterface } from '../utilities-di';
 import type { NodeObserverConfig } from './observer-locator';
 import type { IDisposable } from '@aurelia/kernel';
 
@@ -126,7 +126,7 @@ export class EventSubscriber {
 }
 
 export interface IEventDelegator extends EventDelegator {}
-export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.singleton(EventDelegator));
+export const IEventDelegator = createInterface<IEventDelegator>('IEventDelegator', x => x.singleton(EventDelegator));
 
 export class EventDelegator implements IDisposable {
   /** @internal */

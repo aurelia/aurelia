@@ -2,6 +2,25 @@
 
 Aurelia 2 is a complete rewrite of Aurelia that shares many of the same loved and familiar features of Aurelia 1. Understandably, in the spirit of progress, not everything is the same. In this section, we are going to guide you through what has changed and how you can migrate over your Aurelia 1 applications to Aurelia 2.
 
+## COMPAT PACKAGE
+
+An quickest way to get an application in v1 up an running in v2 is to include the compat package. It can be done via 2 steps:
+
+1. installing the compat package via
+  ```
+  npm install @aurelia/compat-v1
+  ```
+2. include the compat package into your app:
+  ```ts
+  import { compatRegistration } from '@aurelia/compat-v1';
+
+  ...
+  Aurelia
+    .register(compatRegistration, ...)
+    .app(...)
+    .start()
+  ```
+
 ## BREAKING CHANGES
 
 ### Scope selection
@@ -11,6 +30,10 @@ In v2, when trying to bind with a non-existent property, the closest boundary sc
 ### Internal binding property `observeProperty` has been renamed to `observe`
 
 In v1, if you happen to use `.observeProperty` method from bindings in your application/library, then change it to `observe` instead. The parameters of the signature remain the same.
+
+### Internal binding property `sourceExpression` has been renamed to `ast`
+
+In v1, if you happen to use `.sourceExpression` property from bindings in your application/library, then change it to `ast` instead. The type of the property remains the same.
 
 ### Enhance API changes:
 

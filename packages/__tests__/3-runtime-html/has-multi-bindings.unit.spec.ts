@@ -1,4 +1,4 @@
-import { Char } from '../util';
+import { Char } from '../util.js';
 import { assert } from '@aurelia/testing';
 
 describe('[UNIT]3-runtime-html/has-multi-bindings.unit.spec.ts', function () {

@@ -1,38 +1,40 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const lookup = new Map<object, Platform>();
 
-function notImplemented(name: string): (...args: any[]) => any {
-  return function notImplemented() {
-    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+const notImplemented = (name: string): (...args: any[]) => any => {
+  return () => {
+    throw __DEV__
+      ? createError(`AUR1005: The PLATFORM did not receive a valid reference to the global function '${name}'.`) // TODO: link to docs describing how to fix this issue
+      : createError(`AUR1005:${name}`);
   };
-}
+};
 
 export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
   public readonly globalThis: TGlobal;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-properties-of-the-global-object
-  public readonly decodeURI: TGlobal['decodeURI'];
-  public readonly decodeURIComponent: TGlobal['decodeURIComponent'];
-  public readonly encodeURI: TGlobal['encodeURI'];
-  public readonly encodeURIComponent: TGlobal['encodeURIComponent'];
+  public readonly decodeURI!: TGlobal['decodeURI'];
+  public readonly decodeURIComponent!: TGlobal['decodeURIComponent'];
+  public readonly encodeURI!: TGlobal['encodeURI'];
+  public readonly encodeURIComponent!: TGlobal['encodeURIComponent'];
 
   // http://www.ecma-international.org/ecma-262/#sec-constructor-properties-of-the-global-object
-  public readonly Date: TGlobal['Date'];
+  public readonly Date!: TGlobal['Date'];
 
   // http://www.ecma-international.org/ecma-262/#sec-other-properties-of-the-global-object
-  public readonly Reflect: TGlobal['Reflect'];
+  public readonly Reflect!: TGlobal['Reflect'];
 
   // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope
   // Note: we're essentially assuming that all of these are available, even if we aren't even
   // in a browser environment. They are available in major envs as well (NodeJS, NativeScript, etc),
   // or can otherwise be mocked fairly easily. If not, things probably won't work anyway.
-  public readonly clearInterval: TGlobal['clearInterval'];
-  public readonly clearTimeout: TGlobal['clearTimeout'];
-  public readonly queueMicrotask: TGlobal['queueMicrotask'];
-  public readonly setInterval: TGlobal['setInterval'];
-  public readonly setTimeout: TGlobal['setTimeout'];
-  public readonly console: TGlobal['console'];
+  public readonly clearInterval!: TGlobal['clearInterval'];
+  public readonly clearTimeout!: TGlobal['clearTimeout'];
+  public readonly queueMicrotask!: TGlobal['queueMicrotask'];
+  public readonly setInterval!: TGlobal['setInterval'];
+  public readonly setTimeout!: TGlobal['setTimeout'];
+  public readonly console!: TGlobal['console'];
 
   public readonly performanceNow: () => number;
 
@@ -40,21 +42,15 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<Platform, 'globalThis'>> = {}) {
     this.globalThis = g;
-    this.decodeURI = 'decodeURI' in overrides ? overrides.decodeURI! : g.decodeURI;
-    this.decodeURIComponent = 'decodeURIComponent' in overrides ? overrides.decodeURIComponent! : g.decodeURIComponent;
-    this.encodeURI = 'encodeURI' in overrides ? overrides.encodeURI! : g.encodeURI;
-    this.encodeURIComponent = 'encodeURIComponent' in overrides ? overrides.encodeURIComponent! : g.encodeURIComponent;
+    'decodeURI decodeURIComponent encodeURI encodeURIComponent Date Reflect console'.split(' ').forEach(prop => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (this as any)[prop] = prop in overrides ? overrides[prop as keyof typeof overrides] : g[prop as keyof typeof g];
+    });
 
-    this.Date = 'Date' in overrides ? overrides.Date! : g.Date;
-
-    this.Reflect = 'Reflect' in overrides ? overrides.Reflect! : g.Reflect;
-
-    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval?.bind(g) ?? notImplemented('clearInterval');
-    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout?.bind(g) ?? notImplemented('clearTimeout');
-    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask?.bind(g) ?? notImplemented('queueMicrotask');
-    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval?.bind(g) ?? notImplemented('setInterval');
-    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout?.bind(g) ?? notImplemented('setTimeout');
-    this.console = 'console' in overrides ? overrides.console! : g.console;
+    'clearInterval clearTimeout queueMicrotask setInterval setTimeout'.split(' ').forEach(method => {
+      // eslint-disable-next-line
+      (this as any)[method] = method in overrides ? overrides[method as keyof typeof overrides] : (g as any)[method]?.bind(g) ?? notImplemented(method);
+    });
 
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
@@ -103,32 +99,51 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
 type TaskCallback<T = any> = (delta: number) => T;
 
-function isPersistent(task: Task): boolean {
-  return task.persistent;
-}
 export class TaskQueue {
 
   /** @internal */ public _suspenderTask: Task | undefined = void 0;
   /** @internal */ public _pendingAsyncCount: number = 0;
 
-  private processing: Task[] = [];
-  private pending: Task[] = [];
-  private delayed: Task[] = [];
+  /** @internal */
+  private _processing: Task[] = [];
+  public get processing(): Task[] {
+    return this._processing;
+  }
+
+  /** @internal */
+  private _pending: Task[] = [];
+  public get pending(): Task[] {
+    return this._pending;
+  }
+
+  /** @internal */
+  private _delayed: Task[] = [];
+  public get delayed(): Task[] {
+    return this._delayed;
+  }
 
   private flushRequested: boolean = false;
+  /** @internal */
   private _yieldPromise: ExposedPromise | undefined = void 0;
 
-  private readonly taskPool: Task[] = [];
+  /** @internal */
+  private readonly _taskPool: Task[] = [];
+
+  /** @internal */
   private _taskPoolSize: number = 0;
+
+  /** @internal */
   private _lastRequest: number = 0;
+
+  /** @internal */
   private _lastFlush: number = 0;
 
   public get isEmpty(): boolean {
     return (
       this._pendingAsyncCount === 0 &&
-      this.processing.length === 0 &&
-      this.pending.length === 0 &&
-      this.delayed.length === 0
+      this._processing.length === 0 &&
+      this._pending.length === 0 &&
+      this._delayed.length === 0
     );
   }
 
@@ -145,9 +160,9 @@ export class TaskQueue {
   private get _hasNoMoreFiniteWork(): boolean {
     return (
       this._pendingAsyncCount === 0 &&
-      this.processing.every(isPersistent) &&
-      this.pending.every(isPersistent) &&
-      this.delayed.every(isPersistent)
+      this._processing.every(isPersistent) &&
+      this._pending.every(isPersistent) &&
+      this._delayed.every(isPersistent)
     );
   }
 
@@ -168,19 +183,19 @@ export class TaskQueue {
 
     // Only process normally if we are *not* currently waiting for an async task to finish
     if (this._suspenderTask === void 0) {
-      if (this.pending.length > 0) {
-        this.processing.push(...this.pending);
-        this.pending.length = 0;
+      if (this._pending.length > 0) {
+        this._processing.push(...this._pending);
+        this._pending.length = 0;
       }
-      if (this.delayed.length > 0) {
+      if (this._delayed.length > 0) {
         let i = -1;
-        while (++i < this.delayed.length && this.delayed[i].queueTime <= time) { /* do nothing */ }
-        this.processing.push(...this.delayed.splice(0, i));
+        while (++i < this._delayed.length && this._delayed[i].queueTime <= time) { /* do nothing */ }
+        this._processing.push(...this._delayed.splice(0, i));
       }
 
       let cur: Task;
-      while (this.processing.length > 0) {
-        (cur = this.processing.shift()!).run();
+      while (this._processing.length > 0) {
+        (cur = this._processing.shift()!).run();
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {
           if (cur.suspend === true) {
@@ -196,17 +211,17 @@ export class TaskQueue {
         }
       }
 
-      if (this.pending.length > 0) {
-        this.processing.push(...this.pending);
-        this.pending.length = 0;
+      if (this._pending.length > 0) {
+        this._processing.push(...this._pending);
+        this._pending.length = 0;
       }
-      if (this.delayed.length > 0) {
+      if (this._delayed.length > 0) {
         let i = -1;
-        while (++i < this.delayed.length && this.delayed[i].queueTime <= time) { /* do nothing */ }
-        this.processing.push(...this.delayed.splice(0, i));
+        while (++i < this._delayed.length && this._delayed[i].queueTime <= time) { /* do nothing */ }
+        this._processing.push(...this._delayed.splice(0, i));
       }
 
-      if (this.processing.length > 0 || this.delayed.length > 0 || this._pendingAsyncCount > 0) {
+      if (this._processing.length > 0 || this._delayed.length > 0 || this._pendingAsyncCount > 0) {
         this._requestFlush();
       }
 
@@ -277,14 +292,14 @@ export class TaskQueue {
 
     if (preempt) {
       if (delay > 0) {
-        throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
+        throw preemptDelayComboError();
       }
       if (persistent) {
-        throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
+        throw preemptyPersistentComboError();
       }
     }
 
-    if (this.processing.length === 0) {
+    if (this._processing.length === 0) {
       this._requestFlush();
     }
 
@@ -292,7 +307,7 @@ export class TaskQueue {
 
     let task: Task<T>;
     if (reusable) {
-      const taskPool = this.taskPool;
+      const taskPool = this._taskPool;
       const index = this._taskPoolSize - 1;
       if (index >= 0) {
         task = taskPool[index] as Task<T>;
@@ -308,11 +323,11 @@ export class TaskQueue {
     }
 
     if (preempt) {
-      this.processing[this.processing.length] = task;
+      this._processing[this._processing.length] = task;
     } else if (delay === 0) {
-      this.pending[this.pending.length] = task;
+      this._pending[this._pending.length] = task;
     } else {
-      this.delayed[this.delayed.length] = task;
+      this._delayed[this._delayed.length] = task;
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'queueTask'); }
@@ -326,52 +341,56 @@ export class TaskQueue {
   public remove<T = any>(task: Task<T>): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'remove'); }
 
-    let idx = this.processing.indexOf(task);
+    let idx = this._processing.indexOf(task);
     if (idx > -1) {
-      this.processing.splice(idx, 1);
+      this._processing.splice(idx, 1);
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove processing'); }
       return;
     }
-    idx = this.pending.indexOf(task);
+    idx = this._pending.indexOf(task);
     if (idx > -1) {
-      this.pending.splice(idx, 1);
+      this._pending.splice(idx, 1);
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove pending'); }
       return;
     }
-    idx = this.delayed.indexOf(task);
+    idx = this._delayed.indexOf(task);
     if (idx > -1) {
-      this.delayed.splice(idx, 1);
+      this._delayed.splice(idx, 1);
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove delayed'); }
       return;
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove error'); }
 
-    throw new Error(`Task #${task.id} could not be found`);
+    throw createError(`Task #${task.id} could not be found`);
   }
 
   /**
    * Return a reusable task to the shared task pool.
    * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
+   *
+   * @internal
    */
-  private returnToPool(task: Task): void {
+  public _returnToPool(task: Task): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'returnToPool'); }
 
-    this.taskPool[this._taskPoolSize++] = task;
+    this._taskPool[this._taskPoolSize++] = task;
   }
 
   /**
    * Reset the persistent task back to its pending state, preparing it for being invoked again on the next flush.
+   *
+   * @internal
    */
-  private resetPersistentTask(task: Task): void {
+  public _resetPersistentTask(task: Task): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'resetPersistentTask'); }
 
     task.reset(this.platform.performanceNow());
 
     if (task.createdTime === task.queueTime) {
-      this.pending[this.pending.length] = task;
+      this._pending[this._pending.length] = task;
     } else {
-      this.delayed[this.delayed.length] = task;
+      this._delayed[this._delayed.length] = task;
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'resetPersistentTask'); }
@@ -379,15 +398,17 @@ export class TaskQueue {
 
   /**
    * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
+   *
+   * @internal
    */
-  private completeAsyncTask(task: Task): void {
+  public _completeAsyncTask(task: Task): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'completeAsyncTask'); }
 
     if (task.suspend === true) {
       if (this._suspenderTask !== task) {
         if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'completeAsyncTask error'); }
 
-        throw new Error(`Async task completion mismatch: suspenderTask=${this._suspenderTask?.id}, task=${task.id}`);
+        throw createError(`Async task completion mismatch: suspenderTask=${this._suspenderTask?.id}, task=${task.id}`);
       }
 
       this._suspenderTask = void 0;
@@ -411,6 +432,7 @@ export class TaskQueue {
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'completeAsyncTask'); }
   }
 
+  /** @internal */
   private readonly _requestFlush: () => void = () => {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'requestFlush'); }
 
@@ -467,7 +489,7 @@ export class Task<T = any> implements ITask {
           return promise;
         }
         case TaskStatus.running:
-          throw new Error('Trying to await task from within task will cause a deadlock.');
+          throw createError('Trying to await task from within task will cause a deadlock.');
         case TaskStatus.completed:
           return this._result = Promise.resolve() as unknown as Promise<UnwrapPromise<T>>;
         case TaskStatus.canceled:
@@ -506,7 +528,7 @@ export class Task<T = any> implements ITask {
     if (this._status !== TaskStatus.pending) {
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run error'); }
 
-      throw new Error(`Cannot run task in ${this._status} state`);
+      throw createError(`Cannot run task in ${this._status} state`);
     }
 
     // this.persistent could be changed while the task is running (this can only be done by the task itself if canceled, and is a valid way of stopping a loop)
@@ -530,7 +552,7 @@ export class Task<T = any> implements ITask {
       if (ret instanceof Promise) {
         ret.then($ret => {
           if (this.persistent) {
-            taskQueue['resetPersistentTask'](this);
+            taskQueue._resetPersistentTask(this);
           } else {
             if (persistent) {
               // Persistent tasks never reach completed status. They're either pending, running, or canceled.
@@ -542,7 +564,7 @@ export class Task<T = any> implements ITask {
             this.dispose();
           }
 
-          taskQueue['completeAsyncTask'](this);
+          taskQueue._completeAsyncTask(this);
 
           if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run async then'); }
 
@@ -551,7 +573,7 @@ export class Task<T = any> implements ITask {
           }
 
           if (!this.persistent && reusable) {
-            taskQueue['returnToPool'](this);
+            taskQueue._returnToPool(this);
           }
         })
         .catch((err: TaskAbortError<T>) => {
@@ -559,7 +581,7 @@ export class Task<T = any> implements ITask {
             this.dispose();
           }
 
-          taskQueue['completeAsyncTask'](this);
+          taskQueue._completeAsyncTask(this);
 
           if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run async catch'); }
 
@@ -571,7 +593,7 @@ export class Task<T = any> implements ITask {
         });
       } else {
         if (this.persistent) {
-          taskQueue['resetPersistentTask'](this);
+          taskQueue._resetPersistentTask(this);
         } else {
           if (persistent) {
             // Persistent tasks never reach completed status. They're either pending, running, or canceled.
@@ -590,7 +612,7 @@ export class Task<T = any> implements ITask {
         }
 
         if (!this.persistent && reusable) {
-          taskQueue['returnToPool'](this);
+          taskQueue._returnToPool(this);
         }
       }
     } catch (err) {
@@ -627,7 +649,7 @@ export class Task<T = any> implements ITask {
       this.dispose();
 
       if (reusable) {
-        taskQueue['returnToPool'](this);
+        taskQueue._returnToPool(this);
       }
 
       if (reject !== void 0) {
@@ -696,55 +718,6 @@ export class Task<T = any> implements ITask {
   }
 }
 
-function taskStatus(status: TaskStatus): 'pending' | 'running' | 'canceled' | 'completed' {
-  switch (status) {
-    case TaskStatus.pending: return 'pending';
-    case TaskStatus.running: return 'running';
-    case TaskStatus.canceled: return 'canceled';
-    case TaskStatus.completed: return 'completed';
-  }
-}
-
-class Tracer {
-  public enabled: boolean = false;
-  private depth: number = 0;
-  public constructor(private readonly console: Platform['console']) {}
-
-  public enter(obj: TaskQueue | Task, method: string): void {
-    this.log(`${'  '.repeat(this.depth++)}> `, obj, method);
-  }
-  public leave(obj: TaskQueue | Task, method: string): void {
-    this.log(`${'  '.repeat(--this.depth)}< `, obj, method);
-  }
-  public trace(obj: TaskQueue | Task, method: string): void {
-    this.log(`${'  '.repeat(this.depth)}- `, obj, method);
-  }
-
-  private log(prefix: string, obj: TaskQueue | Task, method: string): void {
-    if (obj instanceof TaskQueue) {
-      const processing = obj['processing'].length;
-      const pending = obj['pending'].length;
-      const delayed = obj['delayed'].length;
-      const flushReq = obj['flushRequested'];
-      const susTask = !!obj._suspenderTask;
-
-      const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} susTask=${susTask}`;
-      this.console.log(`${prefix}[Q.${method}] ${info}`);
-    } else {
-      const id = obj['id'];
-      const created = Math.round(obj['createdTime'] * 10) / 10;
-      const queue = Math.round(obj['queueTime'] * 10) / 10;
-      const preempt = obj['preempt'];
-      const reusable = obj['reusable'];
-      const persistent = obj['persistent'];
-      const suspend = obj['suspend'];
-      const status = taskStatus(obj['_status']);
-
-      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
-      this.console.log(`${prefix}[T.${method}] ${info}`);
-    }
-  }
-}
 export const enum TaskQueuePriority {
   render     = 0,
   macroTask  = 1,
@@ -788,6 +761,56 @@ export type QueueTaskOptions = {
   suspend?: boolean;
 };
 
+class Tracer {
+  public enabled: boolean = false;
+  private depth: number = 0;
+  public constructor(private readonly console: Platform['console']) {}
+
+  public enter(obj: TaskQueue | Task, method: string): void {
+    this.log(`${'  '.repeat(this.depth++)}> `, obj, method);
+  }
+  public leave(obj: TaskQueue | Task, method: string): void {
+    this.log(`${'  '.repeat(--this.depth)}< `, obj, method);
+  }
+  public trace(obj: TaskQueue | Task, method: string): void {
+    this.log(`${'  '.repeat(this.depth)}- `, obj, method);
+  }
+
+  private log(prefix: string, obj: TaskQueue | Task, method: string): void {
+    if (obj instanceof TaskQueue) {
+      const processing = obj['processing'].length;
+      const pending = obj['pending'].length;
+      const delayed = obj['delayed'].length;
+      const flushReq = obj['flushRequested'];
+      const susTask = !!obj._suspenderTask;
+
+      const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} susTask=${susTask}`;
+      this.console.log(`${prefix}[Q.${method}] ${info}`);
+    } else {
+      const id = obj['id'];
+      const created = Math.round(obj['createdTime'] * 10) / 10;
+      const queue = Math.round(obj['queueTime'] * 10) / 10;
+      const preempt = obj['preempt'];
+      const reusable = obj['reusable'];
+      const persistent = obj['persistent'];
+      const suspend = obj['suspend'];
+      const status = taskStatus(obj['_status']);
+
+      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
+      this.console.log(`${prefix}[T.${method}] ${info}`);
+    }
+  }
+}
+
+const taskStatus = (status: TaskStatus): 'pending' | 'running' | 'canceled' | 'completed' => {
+  switch (status) {
+    case TaskStatus.pending: return 'pending';
+    case TaskStatus.running: return 'running';
+    case TaskStatus.canceled: return 'canceled';
+    case TaskStatus.completed: return 'completed';
+  }
+};
+
 const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,
   preempt: false,
@@ -800,10 +823,10 @@ type PResolve<T> = (value: T | PromiseLike<T>) => void;
 type PReject<T = any> = (reason?: T) => void;
 let $resolve: PResolve<any>;
 let $reject: PReject;
-function executor<T>(resolve: PResolve<T>, reject: PReject): void {
+const executor = <T>(resolve: PResolve<T>, reject: PReject): void => {
   $resolve = resolve;
   $reject = reject;
-}
+};
 
 type ExposedPromise<T = void> = Promise<T> & {
   resolve: PResolve<T>;
@@ -813,9 +836,22 @@ type ExposedPromise<T = void> = Promise<T> & {
 /**
  * Efficiently create a promise where the `resolve` and `reject` functions are stored as properties on the prommise itself.
  */
-function createExposedPromise<T>(): ExposedPromise<T> {
+const createExposedPromise = <T>(): ExposedPromise<T> => {
   const p = new Promise<T>(executor) as ExposedPromise<T>;
   p.resolve = $resolve;
   p.reject = $reject;
   return p;
-}
+};
+
+const isPersistent = (task: Task): boolean => task.persistent;
+
+const preemptDelayComboError = () =>
+  __DEV__
+    ? createError(`AUR1006: Invalid arguments: preempt cannot be combined with a greater-than-zero delay`)
+    : createError(`AUR1006`);
+const preemptyPersistentComboError = () =>
+  __DEV__
+    ? createError(`AUR1007: Invalid arguments: preempt cannot be combined with persistent`)
+    : createError(`AUR1007`);
+
+const createError = (msg: string) => new Error(msg);

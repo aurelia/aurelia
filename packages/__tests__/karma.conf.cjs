@@ -27,6 +27,8 @@ module.exports =
   if (browsers.length !== 1) {
     browsers = ['Chrome'];
   }
+  const isFirefox = /firefox/i.test(browsers.toString());
+
   const baseUrl = 'packages/__tests__/dist/esm/__tests__';
 
   const testFilePatterns = cliArgs.length > 0
@@ -93,8 +95,8 @@ module.exports =
       { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
-      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
+      { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
+      { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
       { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
     // for i18n tests 
@@ -114,7 +116,12 @@ module.exports =
       if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
-        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
+        p[file.pattern] = process.env.CI || isFirefox
+          ? ['aurelia', 'karma-coverage-istanbul-instrumenter']
+          : [
+            ...(/packages\/[a-z]+\/dist\/esm\/index\.mjs(\.map)?$/.test(file.pattern) ? [] : ['aurelia']),
+            'karma-coverage-istanbul-instrumenter'
+          ];
       }
     }
     return p;
@@ -123,7 +130,7 @@ module.exports =
   /** @type {import('karma').ConfigOptions} */
   const options = {
     basePath,
-    browserDisconnectTimeout: 30 * 60 * 10000,
+    browserDisconnectTimeout: 10000,
     browserNoActivityTimeout: process.env.CI ? 10000 : 30 * 60 * 1000,
     processKillTimeout: 10000,
     frameworks: [
@@ -212,19 +219,24 @@ module.exports =
             response.end('');
             return;
           }
-          // const cachedCode = resourceCache[requestUrl];
-          // if (cachedCode != null) {
-          //   response.setHeader('Content-Type', mimetypes.js);
-          //   response.end(cachedCode);
-          //   return;
-          // }
-          // const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '') + '.js');
-          // if (fs.existsSync(maybeFilePath)) {
-          //   const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
-          //   response.setHeader('Content-Type', mimetypes.js);
-          //   response.end(jsCode);
-          //   return;
-          // }
+
+          if (process.env.CI || isFirefox) {
+            next();
+            return;
+          }
+          const cachedCode = resourceCache[requestUrl];
+          if (cachedCode != null) {
+            response.setHeader('Content-Type', mimetypes.js);
+            response.end(cachedCode);
+            return;
+          }
+          const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace(/(\.js)?$/, '.js'));
+          if (fs.existsSync(maybeFilePath)) {
+            const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
+            response.setHeader('Content-Type', mimetypes.js);
+            response.end(jsCode);
+            return;
+          }
 
           next();
         }

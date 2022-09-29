@@ -262,6 +262,7 @@ jobs:
           paths:
             - packages/__tests__/dist
             - packages/aurelia/dist
+            - packages/compat-v1/dist
             - packages/addons/dist
             - packages/fetch-client/dist
             - packages/i18n/dist
@@ -370,7 +371,7 @@ jobs:
           command: |
             cd packages/__tests__
             npm run ::mocha -- $(cat tests.txt)
-          no_output_timeout: "3m"
+          no_output_timeout: "1m"
 
   unit_test_cjs:
     parameters:
@@ -407,7 +408,7 @@ jobs:
           command: |
             cd packages-tooling/__tests__
             npm run << parameters.npm_command >>
-          no_output_timeout: "3m"
+          no_output_timeout: "1m"
 
   lint_packages:
     executor: docker_circleci
@@ -517,7 +518,7 @@ jobs:
           command: |
             npx playwright install chromium
             npm run test
-          no_output_timeout: "3m"
+          no_output_timeout: "1m"
 
   # Standalone playwright test jobs
   e2e_playwright:
@@ -723,14 +724,14 @@ workflows:
           install_chrome: true
           requires:
             - build_dev
-      - unit_test_esm:
-          <<: *filter_ignore_develop_release
-          name: test_firefox
-          npm_command: "test-firefox"
-          install_firefox: true
-          coverage: false
-          requires:
-            - build_dev
+      # - unit_test_esm:
+      #     <<: *filter_ignore_develop_release
+      #     name: test_firefox
+      #     npm_command: "test-firefox"
+      #     install_firefox: true
+      #     coverage: false
+      #     requires:
+      #       - build_dev
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           name: test_node
@@ -800,13 +801,15 @@ workflows:
           requires:
             - build_release
             - test_chrome
-            - test_firefox
+            # - test_firefox
             - test_node
             - test_toolings
             #- test_test262
             # - lint_packages
             - webpack_conventions_ts
-            # - webpack_vanilla_ts
+            - e2e_hmr_webpack
+            - e2e_router_lite
+            - e2e_router
           from: master
           to: develop
           channel: dev
@@ -856,14 +859,14 @@ workflows:
           install_chrome: true
           requires:
             - build_dev
-      - unit_test_esm:
-          <<: *filter_only_tag
-          name: test_firefox
-          npm_command: "test-firefox"
-          install_firefox: true
-          coverage: false
-          requires:
-            - build_dev
+      # - unit_test_esm:
+      #     <<: *filter_only_tag
+      #     name: test_firefox
+      #     npm_command: "test-firefox"
+      #     install_firefox: true
+      #     coverage: false
+      #     requires:
+      #       - build_dev
       - unit_test_esm_node:
           <<: *filter_only_tag
           name: test_node
@@ -878,7 +881,13 @@ workflows:
 
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_lite_configured
+          name: e2e_hmr_webpack
+          path: "packages/__e2e__/hmr-webpack"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_lite
           path: "packages/__e2e__/router-lite"
           requires:
             - build_release
@@ -908,10 +917,11 @@ workflows:
             - build_release
             # and the rest for testings
             - test_chrome
-            - test_firefox
+            # - test_firefox
             - test_node
             - test_toolings
-            - e2e_router_lite_configured
+            - e2e_hmr_webpack
+            - e2e_router_lite
             - e2e_router
             #- test_test262
             # - lint_packages

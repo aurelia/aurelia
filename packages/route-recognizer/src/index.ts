@@ -77,11 +77,11 @@ class Candidate<T> {
 
       if (state.segment === null && nextState.isOptional && nextState.nextStates !== null) {
         if (nextState.nextStates.length > 1) {
-          throw new Error(`${nextState.nextStates.length} nextStates`);
+          throw createError(`${nextState.nextStates.length} nextStates`);
         }
         const separator = nextState.nextStates[0];
         if (!separator.isSeparator) {
-          throw new Error(`Not a separator`);
+          throw createError(`Not a separator`);
         }
         if (separator.nextStates !== null) {
           for (const $nextState of separator.nextStates) {
@@ -156,6 +156,7 @@ class Candidate<T> {
         if (params[name] === void 0) {
           params[name] = chars[i];
         } else {
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           params[name] += chars[i];
         }
       }
@@ -334,7 +335,7 @@ export class RouteRecognizer<T> {
         this.$add(route);
       }
     } else {
-      this.$add(routeOrRoutes as IConfigurableRoute<T>);
+      this.$add(routeOrRoutes);
     }
 
     // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
@@ -344,7 +345,7 @@ export class RouteRecognizer<T> {
   private $add(route: IConfigurableRoute<T>): void {
     const path = route.path;
     const lookup = this.endpointLookup;
-    if(lookup.has(path)) throw new Error(`Cannot add duplicate path '${path}'.`);
+    if(lookup.has(path)) throw createError(`Cannot add duplicate path '${path}'.`);
     const $route = new ConfigurableRoute(path, route.caseSensitive === true, route.handler);
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
@@ -531,7 +532,7 @@ class State<T> {
     } else if (segment === null) {
       state = nextStates.find(s => s.value === value);
     } else {
-      state = nextStates.find(s => s.segment?.equals(segment!));
+      state = nextStates.find(s => s.segment?.equals(segment));
     }
 
     if (state === void 0) {
@@ -543,7 +544,7 @@ class State<T> {
 
   public setEndpoint(this: AnyState<T>, endpoint: Endpoint<T>): void {
     if (this.endpoint !== null) {
-      throw new Error(`Cannot add ambiguous route. The pattern '${endpoint.route.path}' clashes with '${this.endpoint.route.path}'`);
+      throw createError(`Cannot add ambiguous route. The pattern '${endpoint.route.path}' clashes with '${this.endpoint.route.path}'`);
     }
     this.endpoint = endpoint;
     if (this.isOptional) {
@@ -579,11 +580,13 @@ type AnySegment<T> = (
   StarSegment<T>
 );
 
+_START_CONST_ENUM();
 const enum SegmentKind {
   star    = 1,
   dynamic = 2,
   static  = 3,
 }
+_END_CONST_ENUM();
 
 class StaticSegment<T> {
   public get kind(): SegmentKind.static { return SegmentKind.static; }
@@ -674,3 +677,5 @@ class StarSegment<T> {
     );
   }
 }
+
+const createError = (msg: string) => new Error(msg);

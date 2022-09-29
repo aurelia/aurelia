@@ -3,6 +3,7 @@ import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kerne
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   AccessorType,
+  astEvaluate,
   connectable,
   Scope,
   type IAccessor,
@@ -101,7 +102,8 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
-    this.updateTarget(this._value = this.ast.evaluate(
+    this.updateTarget(this._value = astEvaluate(
+      this.ast,
       this.$scope,
       this,
       this.mode > BindingMode.oneTime ? this : null),
@@ -134,7 +136,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = this.ast.evaluate(this.$scope!, this, this.interceptor);
+    newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
     obsRecord.clear();
 
     let task: ITask | null;
@@ -160,7 +162,8 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     const $scope = this.$scope!;
     const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
     $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    const value = this.ast.evaluate(
+    const value = astEvaluate(
+      this.ast,
       $scope,
       this,
       this.mode > BindingMode.oneTime ? this : null

@@ -30,6 +30,9 @@ export {
   DestructuringAssignmentRestExpression,
   ArrowFunction,
 
+  astVisit,
+  Unparser,
+
   // ast typing helpers
   type AnyBindingExpression,
   type BindingBehaviorInstance,
@@ -49,10 +52,15 @@ export {
   type BinaryOperator,
   type BindingIdentifierOrPattern,
   type UnaryOperator,
-  type IExpressionHydrator,
   type IAstEvaluator,
   type ValueConverterInstance,
 } from './binding/ast';
+export {
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from './binding/ast.eval';
 export {
   type IObserverLocatorBasedConnectable,
   type IConnectableBinding,

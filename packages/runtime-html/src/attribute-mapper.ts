@@ -1,10 +1,9 @@
-import { DI } from '@aurelia/kernel';
-import { createLookup, isDataAttribute } from './utilities';
+import { createError, createLookup, isDataAttribute } from './utilities';
 import { ISVGAnalyzer } from './observation/svg-analyzer';
+import { createInterface } from './utilities-di';
 
 export interface IAttrMapper extends AttrMapper {}
-export const IAttrMapper = DI
-  .createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
+export const IAttrMapper = createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
 
 export type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
@@ -143,5 +142,5 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
 }
 
 function createMappedError(attr: string, tagName: string) {
-  return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
+  return createError(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
 }

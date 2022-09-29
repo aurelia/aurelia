@@ -1,6 +1,6 @@
 import { IObserver } from '../observation';
 import { SetterNotifier } from './setter-observer';
-import { safeString, def } from '../utilities-objects';
+import { safeString, def, createError } from '../utilities-objects';
 import { currentConnectable } from './connectable-switcher';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
@@ -96,9 +96,9 @@ export function observable(
 
     if (key == null || key === '') {
       if (__DEV__)
-        throw new Error(`AUR0224: Invalid usage, cannot determine property name for @observable`);
+        throw createError(`AUR0224: Invalid usage, cannot determine property name for @observable`);
       else
-        throw new Error(`AUR0224`);
+        throw createError(`AUR0224`);
     }
 
     // determine callback name based on config or convention.

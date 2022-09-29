@@ -1,5 +1,5 @@
 import { Constructable, Overwrite } from './interfaces';
-import { createObject } from './utilities';
+import { createError, createObject } from './utilities';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -13,7 +13,7 @@ const isNumericLookup: Record<string, boolean> = {};
  *
  * Results are cached.
  */
-export function isArrayIndex(value: unknown): value is number | string {
+export const isArrayIndex = (value: unknown): value is number | string => {
   switch (typeof value) {
     case 'number':
       return value >= 0 && (value | 0) === value;
@@ -29,7 +29,7 @@ export function isArrayIndex(value: unknown): value is number | string {
       let ch = 0;
       let i = 0;
       for (; i < length; ++i) {
-        ch = value.charCodeAt(i);
+        ch = charCodeAt(value, i);
         if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
           return isNumericLookup[value] = false;
         }
@@ -39,18 +39,20 @@ export function isArrayIndex(value: unknown): value is number | string {
     default:
       return false;
   }
-}
+};
 
 /**
  * Base implementation of camel and kebab cases
  */
 const baseCase = (function () {
+  _START_CONST_ENUM();
   const enum CharKind {
     none  = 0,
     digit = 1,
     upper = 2,
     lower = 3,
   }
+  _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const isDigit = Object.assign(createObject(), {
@@ -66,7 +68,7 @@ const baseCase = (function () {
     '9': true,
   } as Record<string, true | undefined>);
 
-  function charToKind(char: string): CharKind {
+  const charToKind = (char: string): CharKind => {
     if (char === '') {
       // We get this if we do charAt() with an index out of range
       return CharKind.none;
@@ -85,9 +87,9 @@ const baseCase = (function () {
     }
 
     return CharKind.none;
-  }
+  };
 
-  return function (input: string, cb: (char: string, sep: boolean) => string): string {
+  return (input: string, cb: (char: string, sep: boolean) => string): string => {
     const len = input.length;
     if (len === 0) {
       return input;
@@ -147,11 +149,11 @@ const baseCase = (function () {
 export const camelCase = (function () {
   const cache: Record<string, string | undefined> = createObject();
 
-  function callback(char: string, sep: boolean): string {
+  const callback = (char: string, sep: boolean): string => {
     return sep ? char.toUpperCase() : char.toLowerCase();
-  }
+  };
 
-  return function (input: string): string {
+  return (input: string): string => {
     let output = cache[input];
     if (output === void 0) {
       output = cache[input] = baseCase(input, callback);
@@ -173,7 +175,7 @@ export const camelCase = (function () {
 export const pascalCase = (function () {
   const cache: Record<string, string | undefined> = createObject();
 
-  return function (input: string): string {
+  return (input: string): string => {
     let output = cache[input];
     if (output === void 0) {
       output = camelCase(input);
@@ -199,11 +201,11 @@ export const pascalCase = (function () {
 export const kebabCase = (function () {
   const cache: Record<string, string | undefined> = createObject();
 
-  function callback(char: string, sep: boolean): string {
+  const callback = (char: string, sep: boolean): string => {
     return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
-  }
+  };
 
-  return function (input: string): string {
+  return (input: string): string => {
     let output = cache[input];
     if (output === void 0) {
       output = cache[input] = baseCase(input, callback);
@@ -218,7 +220,7 @@ export const kebabCase = (function () {
  *
  * Primarily used by Aurelia to convert DOM node lists to arrays.
  */
-export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
+export const toArray = <T = unknown>(input: ArrayLike<T>): T[] => {
   // benchmark: http://jsben.ch/xjsyF
   const length = input.length;
   const arr = Array(length) as T[];
@@ -227,13 +229,13 @@ export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
     arr[i] = input[i];
   }
   return arr;
-}
+};
 
 /**
  * Decorator. (lazily) bind the method to the class instance on first call.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function bound<T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> {
+export const bound = <T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> => {
   return {
     configurable: true,
     enumerable: descriptor.enumerable,
@@ -248,9 +250,9 @@ export function bound<T extends Function>(target: Object, key: string | symbol, 
       return boundFn as T;
     },
   };
-}
+};
 
-export function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]): T[] {
+export const mergeArrays = <T>(...arrays: (readonly T[] | undefined)[]): T[] => {
   const result: T[] = [];
   let k = 0;
   const arraysLen = arrays.length;
@@ -268,9 +270,9 @@ export function mergeArrays<T>(...arrays: (readonly T[] | undefined)[]): T[] {
     }
   }
   return result;
-}
+};
 
-export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
+export const firstDefined = <T>(...values: readonly (T | undefined)[]): T => {
   const len = values.length;
   let value: T | undefined;
   let i = 0;
@@ -280,8 +282,8 @@ export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
       return value;
     }
   }
-  throw new Error(`No default value found`);
-}
+  throw createError(`No default value found`);
+};
 
 export const getPrototypeChain = (function () {
   const functionPrototype = Function.prototype;
@@ -363,7 +365,6 @@ export function toLookup(...objs: {}[]): Readonly<{}> {
 export const isNativeFunction = (function () {
   // eslint-disable-next-line @typescript-eslint/ban-types
   const lookup: WeakMap<Function, boolean> = new WeakMap();
-
   let isNative = false as boolean | undefined;
   let sourceText = '';
   let i = 0;
@@ -382,22 +383,22 @@ export const isNativeFunction = (function () {
         // 100 seems to be a safe upper bound of the max length of a native function. In Chrome and FF it's 56, in Edge it's 61.
         i <= 100 &&
         // This whole heuristic *could* be tricked by a comment. Do we need to care about that?
-        sourceText.charCodeAt(i -  1) === 0x7D && // }
+        charCodeAt(sourceText, i -  1) === 0x7D && // }
         // TODO: the spec is a little vague about the precise constraints, so we do need to test this across various browsers to make sure just one whitespace is a safe assumption.
-        sourceText.charCodeAt(i -  2)  <= 0x20 && // whitespace
-        sourceText.charCodeAt(i -  3) === 0x5D && // ]
-        sourceText.charCodeAt(i -  4) === 0x65 && // e
-        sourceText.charCodeAt(i -  5) === 0x64 && // d
-        sourceText.charCodeAt(i -  6) === 0x6F && // o
-        sourceText.charCodeAt(i -  7) === 0x63 && // c
-        sourceText.charCodeAt(i -  8) === 0x20 && //
-        sourceText.charCodeAt(i -  9) === 0x65 && // e
-        sourceText.charCodeAt(i - 10) === 0x76 && // v
-        sourceText.charCodeAt(i - 11) === 0x69 && // i
-        sourceText.charCodeAt(i - 12) === 0x74 && // t
-        sourceText.charCodeAt(i - 13) === 0x61 && // a
-        sourceText.charCodeAt(i - 14) === 0x6E && // n
-        sourceText.charCodeAt(i - 15) === 0x58    // [
+        charCodeAt(sourceText, i -  2)  <= 0x20 && // whitespace
+        charCodeAt(sourceText, i -  3) === 0x5D && // ]
+        charCodeAt(sourceText, i -  4) === 0x65 && // e
+        charCodeAt(sourceText, i -  5) === 0x64 && // d
+        charCodeAt(sourceText, i -  6) === 0x6F && // o
+        charCodeAt(sourceText, i -  7) === 0x63 && // c
+        charCodeAt(sourceText, i -  8) === 0x20 && //
+        charCodeAt(sourceText, i -  9) === 0x65 && // e
+        charCodeAt(sourceText, i - 10) === 0x76 && // v
+        charCodeAt(sourceText, i - 11) === 0x69 && // i
+        charCodeAt(sourceText, i - 12) === 0x74 && // t
+        charCodeAt(sourceText, i - 13) === 0x61 && // a
+        charCodeAt(sourceText, i - 14) === 0x6E && // n
+        charCodeAt(sourceText, i - 15) === 0x58    // [
       );
 
       lookup.set(fn, isNative);
@@ -414,15 +415,15 @@ type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
  *
  * If the value is a promise, it is `then`ed before the callback is invoked. Otherwise the callback is invoked synchronously.
  */
-export function onResolve<TValue, TRet>(
+export const onResolve = <TValue, TRet>(
   maybePromise: TValue,
   resolveCallback: (value: UnwrapPromise<TValue>) => TRet,
-): MaybePromise<TRet> {
+): MaybePromise<TRet> => {
   if (maybePromise instanceof Promise) {
     return maybePromise.then(resolveCallback) as MaybePromise<TRet>;
   }
   return resolveCallback(maybePromise as UnwrapPromise<TValue>) as MaybePromise<TRet>;
-}
+};
 
 /**
  * Normalize an array of potential promises, to ensure things stay synchronous when they can.
@@ -433,9 +434,9 @@ export function onResolve<TValue, TRet>(
  *
  * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
  */
-export function resolveAll(
+export const resolveAll = (
   ...maybePromises: (void | Promise<void>)[]
-): void | Promise<void> {
+): void | Promise<void> => {
   let maybePromise: Promise<void> | void = void 0;
   let firstPromise: Promise<void> | void = void 0;
   let promises: Promise<void>[] | undefined = void 0;
@@ -459,4 +460,6 @@ export function resolveAll(
     return firstPromise;
   }
   return Promise.all(promises) as unknown as Promise<void>;
-}
+};
+
+const charCodeAt = (str: string, index: number) => str.charCodeAt(index);

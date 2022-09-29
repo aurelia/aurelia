@@ -1,13 +1,12 @@
-import { DI } from '@aurelia/kernel';
 import { IPlatform } from '../platform';
 import { createLookup, isString } from '../utilities';
+import { createInterface, singletonRegistration } from '../utilities-di';
 
 import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { INode } from '../dom';
-import { singletonRegistration } from '../utilities-di';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
-export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
+export const ISVGAnalyzer = createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
 
 const o = (keys: string | string[]): Record<string, true | undefined> => {
   const lookup = createLookup<true | undefined>();

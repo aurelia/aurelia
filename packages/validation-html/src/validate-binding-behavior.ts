@@ -1,6 +1,7 @@
 import { DI, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
+  astEvaluate,
   BindingBehaviorExpression,
   connectable,
   IBinding,
@@ -179,16 +180,16 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this._ensureTrigger(arg.evaluate(scope, this, this.triggerMediator));
+          trigger = this._ensureTrigger(astEvaluate(arg, scope, this, this.triggerMediator));
           break;
         case 1:
-          controller = this._ensureController(arg.evaluate(scope, this, this.controllerMediator));
+          controller = this._ensureController(astEvaluate(arg, scope, this, this.controllerMediator));
           break;
         case 2:
-          rules = this._ensureRules(arg.evaluate(scope, this, this.rulesMediator));
+          rules = this._ensureRules(astEvaluate(arg, scope, this, this.rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(scope, this, null)}`);
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${astEvaluate(arg, scope, this, null)}`);
       }
     }
 

@@ -1,4 +1,4 @@
-import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
 import { getArrayObserver } from './array-observer';
 import { ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError } from '../utilities-objects';
 
 import type {
   Collection,
@@ -27,22 +27,21 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
+export const IObserverLocator = createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
-export const INodeObserverLocator = DI
-  .createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
-    if (__DEV__) {
-      handler.getAll(ILogger).forEach(logger => {
-        logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
-      });
-    }
-    return new DefaultNodeObserverLocator();
-  }));
+export const INodeObserverLocator = createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
+  if (__DEV__) {
+    handler.getAll(ILogger).forEach(logger => {
+      logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
+    });
+  }
+  return new DefaultNodeObserverLocator();
+}));
 
 class DefaultNodeObserverLocator implements INodeObserverLocator {
   public handles(): boolean {
@@ -229,5 +228,5 @@ export const getObserverLookup = <T extends IObserver>(instance: object): Record
 
 const nullObjectError = (key: PropertyKey) =>
   __DEV__
-    ? new Error(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
-    : new Error(`AUR0199:${safeString(key)}`);
+    ? createError(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
+    : createError(`AUR0199:${safeString(key)}`);

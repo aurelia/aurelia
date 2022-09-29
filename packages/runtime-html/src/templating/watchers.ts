@@ -1,4 +1,5 @@
 import {
+  astEvaluate,
   connectable,
   ConnectableSwitcher,
   ExpressionKind,
@@ -138,7 +139,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
-      value = expr.evaluate(this.scope, this, this);
+      value = astEvaluate(expr, this.scope, this, this);
       this.obs.clear();
     }
     if (!Object.is(value, oldValue)) {
@@ -154,7 +155,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
     this.isBound = true;
     this.obs.version++;
-    this.value = this.expression.evaluate(this.scope, this, this);
+    this.value = astEvaluate(this.expression, this.scope, this, this);
     this.obs.clear();
   }
 

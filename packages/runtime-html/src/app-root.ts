@@ -1,8 +1,9 @@
-import { DI, InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
+import { InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
 import { LifecycleFlags, Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { createInterface, registerResolver } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
@@ -15,7 +16,7 @@ export interface ISinglePageApp {
 }
 
 export interface IAppRoot extends AppRoot {}
-export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
+export const IAppRoot = createInterface<IAppRoot>('IAppRoot');
 
 export class AppRoot implements IDisposable {
   public readonly host: HTMLElement;
@@ -34,11 +35,13 @@ export class AppRoot implements IDisposable {
     this.host = config.host;
     rootProvider.prepare(this);
 
-    container.registerResolver(
+    registerResolver(
+      container,
       platform.HTMLElement,
-      container.registerResolver(
+      registerResolver(
+        container,
         platform.Element,
-        container.registerResolver(INode, new InstanceProvider('ElementResolver', config.host))
+        registerResolver(container, INode, new InstanceProvider('ElementResolver', config.host))
       )
     );
 

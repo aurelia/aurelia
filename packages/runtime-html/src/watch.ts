@@ -3,7 +3,7 @@ import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { isFunction } from './utilities';
+import { createError, isFunction } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
@@ -61,9 +61,9 @@ export function watch<T extends object = object>(
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
   if (expressionOrPropertyAccessFn == null) {
     if (__DEV__)
-      throw new Error(`AUR0772: Invalid watch config. Expected an expression or a fn`);
+      throw createError(`AUR0772: Invalid watch config. Expected an expression or a fn`);
     else
-      throw new Error(`AUR0772`);
+      throw createError(`AUR0772`);
   }
 
   return function decorator(
@@ -84,15 +84,15 @@ export function watch<T extends object = object>(
         && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
       ) {
         if (__DEV__)
-          throw new Error(`AUR0773: Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
+          throw createError(`AUR0773: Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
         else
-          throw new Error(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
+          throw createError(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
       }
     } else if (!isFunction(descriptor?.value)) {
       if (__DEV__)
-        throw new Error(`AUR0774: decorated target ${String(key)} is not a class method.`);
+        throw createError(`AUR0774: decorated target ${String(key)} is not a class method.`);
       else
-        throw new Error(`AUR0774:${String(key)}`);
+        throw createError(`AUR0774:${String(key)}`);
     }
 
     Watch.add(Type, watchDef as IWatchDefinition);

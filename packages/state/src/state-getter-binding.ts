@@ -79,20 +79,20 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
       return;
     }
     const state = this._store.getState();
-    this.isBound = true;
     this.$scope = createStateBindingScope(state, scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = this.$get(state));
+    this.isBound = true;
   }
 
   public $unbind(): void {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
-    this.isBound = false;
     this.$scope = void 0;
     this._store.unsubscribe(this);
   }

@@ -9,7 +9,7 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, implementAstEvaluator } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, type IAstBasedBinding, State, implementAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -98,26 +98,25 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
     this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this.$scope = createStateBindingScope(this._store.getState(), scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = astEvaluate(
       this.ast,
-      this.$scope,
+      this.$scope = createStateBindingScope(this._store.getState(), scope),
       this,
       this.mode > BindingMode.oneTime ? this : null),
     );
+    this.isBound = true;
   }
 
   public $unbind(): void {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
-    this.isBound = false;
     this.$scope = void 0;
     this.task?.cancel();
     this.task = null;
@@ -219,3 +218,4 @@ const updateTaskOpts: QueueTaskOptions = {
 
 connectable(StateBinding);
 implementAstEvaluator(true)(StateBinding);
+mixingBindingLimited(StateBinding, () => 'updateTarget');

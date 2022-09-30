@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Writable } from '@aurelia/kernel';
 import { IBinding, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
 import { bindingBehavior } from '@aurelia/runtime-html';

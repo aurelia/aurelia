@@ -5,9 +5,11 @@ import {
   Scope,
   type IsBindingBehavior,
   connectable,
-  astEvaluate
+  astEvaluate,
+  astBind,
+  astUnbind
 } from '@aurelia/runtime';
-import { astEvaluator, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { implementAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -65,10 +67,11 @@ export class StateDispatchBinding implements IAstBasedBinding {
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
+    astBind(this.ast, scope, this);
     this.$scope = createStateBindingScope(this._store.getState(), scope);
     this.target.addEventListener(this.targetProperty, this);
     this._store.subscribe(this);
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -76,6 +79,8 @@ export class StateDispatchBinding implements IAstBasedBinding {
       return;
     }
     this.isBound = false;
+
+    astUnbind(this.ast, this.$scope!, this);
     this.$scope = void 0;
     this.target.removeEventListener(this.targetProperty, this);
     this._store.unsubscribe(this);
@@ -96,4 +101,5 @@ export class StateDispatchBinding implements IAstBasedBinding {
 }
 
 connectable(StateDispatchBinding);
-astEvaluator(true)(StateDispatchBinding);
+implementAstEvaluator(true)(StateDispatchBinding);
+mixingBindingLimited(StateDispatchBinding, () => 'callSource');

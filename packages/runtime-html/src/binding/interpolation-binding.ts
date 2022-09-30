@@ -4,25 +4,23 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  connectable,
+  connectable
 } from '@aurelia/runtime';
-import { BindingMode } from './interfaces-bindings';
-import { astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';
+import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { BindingMode } from './interfaces-bindings';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
-  ICollectionSubscriber,
+  IBinding, ICollectionSubscriber,
   Interpolation,
   IObserverLocator,
-  IsExpression,
-  IBinding,
-  Scope,
+  IsExpression, Scope
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
-import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 import { isArray } from '../utilities';
+import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
@@ -126,7 +124,6 @@ export class InterpolationBinding implements IBinding {
       }
       this.interceptor.$unbind();
     }
-    this.isBound = true;
     this.$scope = scope;
 
     const partBindings = this.partBindings;
@@ -136,6 +133,7 @@ export class InterpolationBinding implements IBinding {
       partBindings[i].$bind(scope);
     }
     this.updateTarget();
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -154,7 +152,7 @@ export class InterpolationBinding implements IBinding {
     this.task = null;
   }
 }
-astEvaluator(true)(InterpolationBinding);
+implementAstEvaluator(true)(InterpolationBinding);
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
@@ -191,6 +189,10 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.oL = observerLocator;
   }
 
+  public updateTarget() {
+    this.owner._handlePartChange();
+  }
+
   public handleChange(): void {
     if (!this.isBound) {
       return;
@@ -212,7 +214,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
       if (isArray(newValue)) {
         this.observeCollection(newValue);
       }
-      this.owner._handlePartChange();
+      this.updateTarget();
     }
   }
 
@@ -227,21 +229,21 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
       }
       this.interceptor.$unbind();
     }
-
-    this.isBound = true;
     this.$scope = scope;
 
     astBind(this.ast, scope, this.interceptor as IIndexable & this);
 
     this._value = astEvaluate(
       this.ast,
-      scope,
+      this.$scope,
       this,
       (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
     if (isArray(this._value)) {
       this.observeCollection(this._value);
     }
+
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -257,8 +259,10 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   }
 }
 
+mixinBindingUseScope(InterpolationPartBinding);
+mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
 connectable(InterpolationPartBinding);
-astEvaluator(true)(InterpolationPartBinding);
+implementAstEvaluator(true)(InterpolationPartBinding);
 
 export interface ContentBinding extends IAstBasedBinding {}
 
@@ -340,7 +344,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
-      this.queueUpdate(newValue);
+      this._queueUpdate(newValue);
     } else {
       this.updateTarget(newValue);
     }
@@ -363,7 +367,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     const shouldQueueFlush = this._controller.state !== State.activating;
     if (shouldQueueFlush) {
-      this.queueUpdate(v);
+      this._queueUpdate(v);
     } else {
       this.updateTarget(v);
     }
@@ -376,15 +380,13 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       }
       this.interceptor.$unbind();
     }
-
-    this.isBound = true;
     this.$scope = scope;
 
     astBind(this.ast, scope, this.interceptor);
 
     const v = this._value = astEvaluate(
       this.ast,
-      scope,
+      this.$scope,
       this,
       (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
     );
@@ -392,6 +394,8 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
       this.observeCollection(v);
     }
     this.updateTarget(v);
+
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -412,7 +416,8 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 
   // queue a force update
-  private queueUpdate(newValue: unknown): void {
+  /** @internal */
+  private _queueUpdate(newValue: unknown): void {
     const task = this.task;
     this.task = this.taskQueue.queueTask(() => {
       this.task = null;
@@ -422,5 +427,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
   }
 }
 
+mixinBindingUseScope(ContentBinding);
+mixingBindingLimited(ContentBinding, () => 'updateTarget');
 connectable()(ContentBinding);
-astEvaluator(void 0, false)(ContentBinding);
+implementAstEvaluator(void 0, false)(ContentBinding);

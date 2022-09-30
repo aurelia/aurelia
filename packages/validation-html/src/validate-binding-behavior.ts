@@ -10,8 +10,8 @@ import {
   Scope
 } from '@aurelia/runtime';
 import {
-  astEvaluator,
-  bindingBehavior, BindingInterceptor, IPlatform, PropertyBinding, type ICustomElementViewModel
+  implementAstEvaluator,
+  bindingBehavior, BindingInterceptor, IPlatform, PropertyBinding, type ICustomElementViewModel, mixingBindingLimited
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
@@ -229,7 +229,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
         || trigger === ValidationTrigger.changeOrBlur
         || trigger === ValidationTrigger.changeOrFocusout;
 
-      event = this.setTriggerEvent(this.trigger);
+      event = this.triggerEvent = this._getTriggerEvent(this.trigger);
       if (event !== null) {
         this.target.addEventListener(event, this);
       }
@@ -239,7 +239,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       this.controller?.unregisterBinding(this.propertyBinding);
 
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, this.setBindingInfo(rules));
+      controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules));
       controller.addSubscriber(this);
     }
   }
@@ -297,7 +297,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  private setTriggerEvent(trigger: ValidationTrigger) {
+  /** @internal */
+  private _getTriggerEvent(trigger: ValidationTrigger) {
     let triggerEvent: 'blur' | 'focusout' | null = null;
     switch (trigger) {
       case ValidationTrigger.blur:
@@ -309,16 +310,17 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
         triggerEvent = 'focusout';
         break;
     }
-    return this.triggerEvent = triggerEvent;
+    return triggerEvent;
   }
 
-  private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
+  /** @internal */
+  private _setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
     return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
   }
 }
 
 connectable()(ValidateBindingBehavior);
-astEvaluator(true)(ValidateBindingBehavior);
+implementAstEvaluator(true)(ValidateBindingBehavior);
 
 class ValidateArgumentsDelta {
   public constructor(
@@ -365,4 +367,4 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
 }
 
 connectable()(BindingMediator);
-astEvaluator(true)(BindingMediator);
+implementAstEvaluator(true)(BindingMediator);

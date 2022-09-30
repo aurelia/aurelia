@@ -1,17 +1,17 @@
 import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
-import { IFlushQueue, astEvaluator, BindingTargetSubscriber } from './binding-utils';
 import { State } from '../templating/controller';
+import { implementAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
   ForOfStatement,
   IObserver,
   IObserverLocator,
   IsBindingBehavior,
-  Scope,
+  Scope
 } from '@aurelia/runtime';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 
@@ -31,7 +31,8 @@ export class PropertyBinding implements IAstBasedBinding {
   public targetObserver?: AccessorOrObserver = void 0;
 
   private task: ITask | null = null;
-  private targetSubscriber: BindingTargetSubscriber | null = null;
+  /** @internal */
+  private _targetSubscriber: BindingTargetSubscriber | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -80,9 +81,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
-    let shouldConnect: boolean = false;
-
-    shouldConnect = this.mode > BindingMode.oneTime;
+    const shouldConnect = this.mode > BindingMode.oneTime;
     if (shouldConnect) {
       obsRecord.version++;
     }
@@ -117,7 +116,6 @@ export class PropertyBinding implements IAstBasedBinding {
       }
       this.interceptor.$unbind();
     }
-
     this.$scope = scope;
 
     astBind(this.ast, scope, this.interceptor);
@@ -139,12 +137,12 @@ export class PropertyBinding implements IAstBasedBinding {
 
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       interceptor.updateTarget(
-        astEvaluate(this.ast, scope, this, shouldConnect ? interceptor : null),
+        astEvaluate(this.ast, this.$scope, this, shouldConnect ? interceptor : null),
       );
     }
 
     if ($mode & BindingMode.fromView) {
-      (targetObserver as IObserver).subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
+      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }
@@ -157,26 +155,26 @@ export class PropertyBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
     astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
 
-    task = this.task;
-    if (this.targetSubscriber) {
-      (this.targetObserver as IObserver).unsubscribe(this.targetSubscriber);
+    if (this._targetSubscriber) {
+      (this.targetObserver as IObserver).unsubscribe(this._targetSubscriber);
     }
     if (task != null) {
       task.cancel();
       task = this.task = null;
     }
     this.obs.clearAll();
-
-    this.isBound = false;
   }
 }
 
+mixinBindingUseScope(PropertyBinding);
+mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & BindingMode.fromView) ? 'updateSource' : 'updateTarget');
 connectable(PropertyBinding);
-astEvaluator(true, false)(PropertyBinding);
+implementAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

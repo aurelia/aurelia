@@ -9,7 +9,7 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, type IAstBasedBinding, State, implementAstEvaluator } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -218,4 +218,4 @@ const updateTaskOpts: QueueTaskOptions = {
 };
 
 connectable(StateBinding);
-astEvaluator(true)(StateBinding);
+implementAstEvaluator(true)(StateBinding);

@@ -1,12 +1,12 @@
 import type { IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import type { IAstBasedBinding } from './interfaces-bindings';
-import { astEvaluator } from './binding-utils';
 
 /**
  * A binding for handling .call syntax
  */
-export interface CallBinding extends IAstBasedBinding {}
+export interface CallBinding extends IAstBasedBinding { }
 export class CallBinding implements IAstBasedBinding {
   public interceptor: this = this;
 
@@ -46,14 +46,11 @@ export class CallBinding implements IAstBasedBinding {
 
       this.interceptor.$unbind();
     }
-
     this.$scope = scope;
 
     astBind(this.ast, scope, this.interceptor);
 
     this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), this.target, this.targetProperty);
-
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -61,22 +58,15 @@ export class CallBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
     astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
     this.targetObserver.setValue(null, this.target, this.targetProperty);
-
-    this.isBound = false;
-  }
-
-  public observe(_obj: object, _propertyName: string): void {
-    return;
-  }
-
-  public handleChange(_newValue: unknown, _previousValue: unknown): void {
-    return;
   }
 }
 
-astEvaluator(true)(CallBinding);
+mixinBindingUseScope(CallBinding);
+mixingBindingLimited(CallBinding, () => 'callSource');
+implementAstEvaluator(true)(CallBinding);

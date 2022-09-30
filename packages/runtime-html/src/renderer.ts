@@ -1,4 +1,4 @@
-import { emptyArray, InstanceProvider, Key } from '@aurelia/kernel';
+import { emptyArray, IDisposable, InstanceProvider, Key } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
@@ -1321,6 +1321,14 @@ class SpreadBinding implements IBinding {
       throw createError('Spread binding does not support spreading custom attributes/template controllers');
     }
     this.ctrl.addChild(controller);
+  }
+
+  public limit(): IDisposable {
+    throw createError('not implemented');
+  }
+
+  public useScope(): void {
+    throw createError('not implemented');
   }
 }
 

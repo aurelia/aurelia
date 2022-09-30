@@ -493,7 +493,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       }
       if ((b as BindingWithBehavior)[key] === void 0) {
         (b as BindingWithBehavior)[key] = behavior;
-        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null) as {}[]));
+        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null)));
       } else {
         throw duplicateBehaviorAppliedError(name);
       }

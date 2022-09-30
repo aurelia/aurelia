@@ -76,14 +76,8 @@ export function $setup(platform: BrowserPlatform): void {
         promises.push(fixture.tearDown());
       }
     }
-    fixtures = [];
-    if (promises.some(p => p instanceof Promise)) {
-      return Promise.all(promises).then(cleanup);
-    }
 
-    cleanup();
-
-    function cleanup() {
+    const cleanup = () => {
       const elapsed = platform.performanceNow() - start;
       let suite = currentSuite;
       do {
@@ -91,17 +85,34 @@ export function $setup(platform: BrowserPlatform): void {
         suite = suite.parent;
       } while (suite);
       try {
-        assert.areTaskQueuesEmpty();
+        const shouldThrow = this.test?.isFailed();
+        if (shouldThrow) {
+          assert.areTaskQueuesEmpty();
+        } else {
+          try {
+            assert.areTaskQueuesEmpty();
+          } catch {
+            console.log(`Failed test ${this.test?.title} with task queue not empted. Cleaning up.`);
+            ensureTaskQueuesEmpty();
+          }
+        }
       } catch (ex) {
         ensureTaskQueuesEmpty();
         assertNoWatcher(false);
-        throw ex;
       }
+
       assertNoWatcher(true);
+    };
+
+    fixtures = [];
+    if (promises.some(p => p instanceof Promise)) {
+      return Promise.all(promises).then(cleanup);
     }
+
+    cleanup();
   });
 
-  function assertNoWatcher(shouldThrow: boolean) {
+  const assertNoWatcher = (shouldThrow: boolean) => {
     let hasWatcher = false;
     let currentWatcher = ConnectableSwitcher.current;
     while (currentWatcher != null) {
@@ -116,5 +127,5 @@ export function $setup(platform: BrowserPlatform): void {
         console.error('There is still some watcher not removed.');
       }
     }
-  }
+  };
 }

@@ -97,8 +97,8 @@ export class CustomExpression {
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
   type?: 'instance' | 'factory';
-  bind?(scope: Scope, binding: IBinding, ...args: T[]): void;
-  unbind?(scope: Scope, binding: IBinding, ...args: T[]): void;
+  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
 } & T;
 
 export class BindingBehaviorExpression {

@@ -7,6 +7,7 @@ import {
   astEvaluate,
   astUnbind,
   ExpressionKind,
+  IRateLimitOptions,
 } from '@aurelia/runtime';
 import {
   LifecycleFlags,
@@ -91,6 +92,11 @@ export class MockBinding implements IConnectableBinding {
 
   public dispose(): void {
     this.trace('dispose');
+  }
+
+  public limit(opts: IRateLimitOptions) {
+    this.trace('limit', opts);
+    return { dispose: () => {/*  */} };
   }
 }
 

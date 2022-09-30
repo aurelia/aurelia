@@ -1,12 +1,12 @@
 import { IEventTarget } from '../dom';
-import { isFunction } from '../utilities';
-import { astEvaluator } from './binding-utils';
 import { DelegationStrategy } from '../renderer';
+import { isFunction } from '../utilities';
+import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import type { IEventDelegator } from '../observation/event-delegator';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { astBind, astEvaluate, astUnbind, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { type IEventDelegator } from '../observation/event-delegator';
+import { type IAstBasedBinding } from './interfaces-bindings';
 
 const addListenerOptions = {
   [DelegationStrategy.capturing]: { capture: true },
@@ -81,10 +81,8 @@ export class Listener implements IAstBasedBinding {
       if (this.$scope === scope) {
         return;
       }
-
       this.interceptor.$unbind();
     }
-
     this.$scope = scope;
 
     astBind(this.ast, scope, this.interceptor);
@@ -101,7 +99,6 @@ export class Listener implements IAstBasedBinding {
       );
     }
 
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -109,6 +106,7 @@ export class Listener implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
     astUnbind(this.ast, this.$scope, this.interceptor);
 
@@ -119,20 +117,9 @@ export class Listener implements IAstBasedBinding {
       this.handler.dispose();
       this.handler = null!;
     }
-
-    // remove isBound and isUnbinding flags
-    this.isBound = false;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public observe(obj: IIndexable, propertyName: string): void {
-    return;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public handleChange(newValue: unknown, previousValue: unknown): void {
-    return;
   }
 }
 
-astEvaluator(true, true)(Listener);
+mixinBindingUseScope(Listener);
+mixingBindingLimited(Listener, () => 'callSource');
+implementAstEvaluator(true, true)(Listener);

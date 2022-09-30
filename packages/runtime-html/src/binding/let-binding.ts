@@ -1,13 +1,13 @@
 import { astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
-import { astEvaluator } from './binding-utils';
+import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { ITask } from '@aurelia/platform';
 import type {
   IObservable,
   IObserverLocator,
   IsExpression,
-  Scope,
+  Scope
 } from '@aurelia/runtime';
 import type { IAstBasedBinding } from './interfaces-bindings';
 export interface LetBinding extends IAstBasedBinding {}
@@ -30,6 +30,9 @@ export class LetBinding implements IAstBasedBinding {
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private _value: unknown;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -45,20 +48,20 @@ export class LetBinding implements IAstBasedBinding {
     this._toBindingContext = toBindingContext;
   }
 
+  public updateTarget() {
+    (this.target as IIndexable)[this.targetProperty] = this._value;
+  }
+
   public handleChange(): void {
     if (!this.isBound) {
       return;
     }
-
-    const target = this.target as IIndexable;
-    const targetProperty = this.targetProperty;
-    const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
-    this.obs.clear();
-    if (newValue !== previousValue) {
-      target[targetProperty] = newValue;
+    if ((nV = astEvaluate(this.ast, this.$scope!, this, this.interceptor)) !== this._value) {
+      this._value = nV;
     }
+    this.obs.clear();
+    this.updateTarget();
   }
 
   public handleCollectionChange(): void {
@@ -72,16 +75,14 @@ export class LetBinding implements IAstBasedBinding {
       }
       this.interceptor.$unbind();
     }
-
     this.$scope = scope;
     this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     astBind(this.ast, scope, this.interceptor);
 
     this.target[this.targetProperty]
-      = astEvaluate(this.ast, scope, this, this.interceptor);
+      = astEvaluate(this.ast, this.$scope, this, this.interceptor);
 
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -89,16 +90,18 @@ export class LetBinding implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
     astUnbind(this.ast, this.$scope!, this.interceptor);
 
     this.$scope = void 0;
     this.obs.clearAll();
-
-    // remove isBound and isUnbinding flags
-    this.isBound = false;
   }
 }
 
+mixinBindingUseScope(LetBinding);
+mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
-astEvaluator(true)(LetBinding);
+implementAstEvaluator(true)(LetBinding);
+
+let nV: unknown;

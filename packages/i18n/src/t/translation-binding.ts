@@ -15,7 +15,8 @@ import {
   type IAstBasedBinding,
   type IBindingController,
   State,
-  astEvaluator,
+  implementAstEvaluator,
+  mixingBindingLimited,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -118,7 +119,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     platform,
     isParameterContext,
   }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, controller, target, platform });
+    const binding = this._getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
       ? parser.parse(instruction.from, ExpressionType.IsProperty)
       : instruction.from;
@@ -129,7 +130,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
       binding.ast = interpolation || expr;
     }
   }
-  private static getBinding({
+
+  /** @internal */
+  private static _getBinding({
     observerLocator,
     context,
     controller,
@@ -157,7 +160,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._ensureKeyExpression();
     this.parameter?.$bind(scope);
 
-    this._updateTranslations();
+    this.updateTranslations();
     this.isBound = true;
   }
 
@@ -186,25 +189,24 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
-    this._updateTranslations();
+    this.updateTranslations();
   }
 
   public handleLocaleChange() {
     // todo:
     // no flag passed, so if a locale is updated during binding of a component
     // and the author wants to signal that locale change fromBind, then it's a bug
-    this._updateTranslations();
+    this.updateTranslations();
   }
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, () => this._updateTranslations());
+    this.parameter = new ParameterBinding(this, expr, () => this.updateTranslations());
   }
 
-  /** @internal */
-  private _updateTranslations() {
+  public updateTranslations() {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
     const accessorUpdateTasks: AccessorUpdateTask[] = [];
@@ -342,6 +344,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
   }
 }
+connectable(TranslationBinding);
+implementAstEvaluator(true)(TranslationBinding);
+mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
 class AccessorUpdateTask {
   public constructor(
@@ -422,8 +427,5 @@ class ParameterBinding {
   }
 }
 
-connectable(TranslationBinding);
-astEvaluator(true)(TranslationBinding);
-
 connectable(ParameterBinding);
-astEvaluator(true)(ParameterBinding);
+implementAstEvaluator(true)(ParameterBinding);

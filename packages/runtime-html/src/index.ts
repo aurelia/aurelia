@@ -118,7 +118,9 @@ export {
   IFlushQueue,
   FlushQueue,
   IFlushable,
-  astEvaluator,
+  implementAstEvaluator,
+  mixingBindingLimited,
+  mixinBindingUseScope as mixinUseScope,
 } from './binding/binding-utils';
 export {
   Listener,

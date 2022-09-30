@@ -6,7 +6,7 @@ import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { createError, def, isFunction } from '../utilities-objects';
+import { areEqual, createError, def, isFunction } from '../utilities-objects';
 
 import type {
   ISubscriber,
@@ -169,7 +169,7 @@ export class ComputedObserver implements
 
     this._isDirty = false;
 
-    if (!Object.is(newValue, oldValue)) {
+    if (!areEqual(newValue, oldValue)) {
       this._oldValue = oldValue;
       oV = this._oldValue;
       this._oldValue = this._value;

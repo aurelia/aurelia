@@ -1,6 +1,6 @@
 import { AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { def, isFunction } from '../utilities-objects';
+import { areEqual, def, isFunction } from '../utilities-objects';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -42,7 +42,7 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
 
   public setValue(newValue: unknown): void {
     if (this._observing) {
-      if (Object.is(newValue, this._value)) {
+      if (areEqual(newValue, this._value)) {
         return;
       }
       oV = this._value;
@@ -144,7 +144,7 @@ export class SetterNotifier implements IAccessor {
     if (this._hasSetter) {
       value = this._setter!(value, null);
     }
-    if (!Object.is(value, this._value)) {
+    if (!areEqual(value, this._value)) {
       this._oldValue = this._value;
       this._value = value;
       this.cb?.call(this._obj, this._value, this._oldValue);

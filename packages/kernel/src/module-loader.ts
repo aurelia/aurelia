@@ -1,4 +1,4 @@
-import { DI } from './di';
+import { createInterface } from './di';
 import { emptyArray } from './platform';
 import { Protocol } from './resource';
 import { createError, isFunction } from './utilities';
@@ -13,7 +13,7 @@ export interface IModule {
 }
 
 export interface IModuleLoader extends ModuleLoader {}
-export const IModuleLoader = DI.createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
+export const IModuleLoader = createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
 
 const noTransform = <TRet = AnalyzedModule>(m: AnalyzedModule): TRet => m as unknown as TRet;
 

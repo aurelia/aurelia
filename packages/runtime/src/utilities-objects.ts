@@ -26,6 +26,9 @@ export const isString = (v: unknown): v is string => typeof v === 'string';
 export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
 
 /** @internal */
+export const areEqual = Object.is;
+
+/** @internal */
 export function defineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
   def(obj, key, {
     enumerable: false,

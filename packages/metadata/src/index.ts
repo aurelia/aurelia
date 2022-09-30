@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-returns-check */
 /**
  * Determine whether a value is an object.
  *

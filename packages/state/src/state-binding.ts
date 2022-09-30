@@ -29,7 +29,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
-  private readonly taskQueue: TaskQueue;
+  /** @internal */ private readonly _taskQueue: TaskQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private targetObserver!: IAccessor;
@@ -56,7 +56,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   ) {
     this._controller = controller;
     this.locator = locator;
-    this.taskQueue = taskQueue;
+    this._taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
     this.ast = ast;
@@ -141,7 +141,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
+      this.task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
         this.task = null;
       }, updateTaskOpts);
@@ -176,7 +176,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
+      this.task = this._taskQueue.queueTask(() => {
         this.updateTarget(value);
         this.task = null;
       }, updateTaskOpts);

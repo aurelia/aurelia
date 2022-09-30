@@ -474,7 +474,6 @@ describe(`The inject decorator`, function () {
   // });
 
   it(`can decorate constructor parameters explicitly`, function () {
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     class Foo { public constructor(@inject(Dep1)_dep1, @inject(Dep2)_dep2, @inject(Dep3)_dep3) { /* empty */ } }
 
     assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);

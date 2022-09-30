@@ -503,7 +503,7 @@ export class DefaultLogger {
   @bound
   public trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.trace) {
-      this.emit(this._traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
+      this._emit(this._traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -530,7 +530,7 @@ export class DefaultLogger {
   @bound
   public debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.debug) {
-      this.emit(this._debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
+      this._emit(this._debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -557,7 +557,7 @@ export class DefaultLogger {
   @bound
   public info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.info) {
-      this.emit(this._infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
+      this._emit(this._infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -584,7 +584,7 @@ export class DefaultLogger {
   @bound
   public warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.warn) {
-      this.emit(this._warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
+      this._emit(this._warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -611,7 +611,7 @@ export class DefaultLogger {
   @bound
   public error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.error) {
-      this.emit(this._errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
+      this._emit(this._errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -638,7 +638,7 @@ export class DefaultLogger {
   @bound
   public fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
     if (this.config.level <= LogLevel.fatal) {
-      this.emit(this._fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
+      this._emit(this._fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -677,7 +677,8 @@ export class DefaultLogger {
     return scopedLogger;
   }
 
-  private emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
+  /** @internal */
+  private _emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
     const message = (isFunction(msgOrGetMsg) ? msgOrGetMsg() : msgOrGetMsg) as string;
     const event = this._factory.createLogEvent(this, level, message, optionalParams);
     for (let i = 0, ii = sinks.length; i < ii; ++i) {

@@ -135,23 +135,15 @@ export class AttributeBinding implements IAstBasedBinding {
 
     astBind(this.ast, scope, this);
 
-    let targetObserver = this.targetObserver;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!targetObserver) {
-      targetObserver = this.targetObserver = new AttributeObserver(
-        this.target as HTMLElement,
-        this.targetProperty,
-        this.targetAttribute,
-      );
-    }
+    this.targetObserver ??= new AttributeObserver(
+      this.target as HTMLElement,
+      this.targetProperty,
+      this.targetAttribute,
+    );
 
-    const $mode = this.mode;
-    let shouldConnect: boolean = false;
-
-    if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
-      shouldConnect = ($mode & BindingMode.toView) > 0;
+    if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {
       this.updateTarget(
-        this._value = astEvaluate(this.ast, scope, this, shouldConnect ? this : null)
+        this._value = astEvaluate(this.ast, scope, this, /* should connect? */(this.mode & BindingMode.toView) > 0 ? this : null)
       );
     }
 

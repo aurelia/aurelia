@@ -1,4 +1,4 @@
-import { type BindingBehaviorInstance, IObserverLocator } from '@aurelia/runtime';
+import { type BindingBehaviorInstance, IObserverLocator, IBinding } from '@aurelia/runtime';
 import { BindingMode } from '../../binding/interfaces-bindings';
 import { EventSubscriber } from '../../observation/event-delegator';
 import { NodeObserverConfig } from '../../observation/observer-locator';
@@ -6,7 +6,7 @@ import { bindingBehavior } from '../binding-behavior';
 
 import type { Writable } from '@aurelia/kernel';
 import type { Scope } from '@aurelia/runtime';
-import type { PropertyBinding } from '../../binding/property-binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import type { CheckedObserver } from '../../observation/checked-observer';
 import type { SelectValueObserver } from '../../observation/select-value-observer';
 import type { ValueAttributeObserver } from '../../observation/value-attribute-observer';
@@ -19,21 +19,20 @@ export type UpdateTriggerableObserver = (
 ) & {
   originalHandler?: EventSubscriber;
 };
-
-export type UpdateTriggerableBinding = PropertyBinding & {
+type UpdateTriggerableBinding = PropertyBinding & {
   targetObserver: UpdateTriggerableObserver;
 };
 
 export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
-  public static inject = [IObserverLocator];
-  private readonly oL: IObserverLocator;
+  /** @internal */ protected static inject = [IObserverLocator];
+  /** @internal */ private readonly _observerLocator: IObserverLocator;
   public constructor(
     observerLocator: IObserverLocator,
   ) {
-    this.oL = observerLocator;
+    this._observerLocator = observerLocator;
   }
 
-  public bind(_scope: Scope, binding: UpdateTriggerableBinding, ...events: string[]): void {
+  public bind(_scope: Scope, binding: IBinding, ...events: string[]): void {
     if (events.length === 0) {
       if (__DEV__)
         throw createError(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);
@@ -41,7 +40,7 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
         throw createError(`AUR0802`);
     }
 
-    if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
+    if (!(binding instanceof PropertyBinding) || !(binding.mode & BindingMode.fromView)) {
       if (__DEV__)
         throw createError(`AUR0803: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.`);
       else
@@ -49,7 +48,7 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
     }
 
     // ensure the binding's target observer has been set.
-    const targetObserver = this.oL.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this._observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!targetObserver.handler) {
       if (__DEV__)
@@ -72,11 +71,12 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
     }));
   }
 
-  public unbind(_scope: Scope, binding: UpdateTriggerableBinding): void {
+  public unbind(_scope: Scope, binding: IBinding): void {
+    const $binding = binding as UpdateTriggerableBinding;
     // restore the state of the binding.
-    binding.targetObserver.handler.dispose();
-    (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;
-    binding.targetObserver.originalHandler = null!;
+    $binding.targetObserver.handler.dispose();
+    ($binding.targetObserver as Writable<typeof $binding.targetObserver>).handler = $binding.targetObserver.originalHandler!;
+    $binding.targetObserver.originalHandler = null!;
   }
 }
 

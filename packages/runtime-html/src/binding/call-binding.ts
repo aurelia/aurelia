@@ -1,6 +1,6 @@
 import type { IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
 /**
@@ -13,17 +13,21 @@ export class CallBinding implements IAstBasedBinding {
 
   public targetObserver: IAccessor;
 
+  /** @internal */
+  public l: IServiceLocator;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsBindingBehavior,
     public readonly target: object,
     public readonly targetProperty: string,
   ) {
+    this.l = locator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }
 
@@ -67,4 +71,4 @@ export class CallBinding implements IAstBasedBinding {
 
 mixinBindingUseScope(CallBinding);
 mixingBindingLimited(CallBinding, () => 'callSource');
-implementAstEvaluator(true)(CallBinding);
+mixinAstEvaluator(true)(CallBinding);

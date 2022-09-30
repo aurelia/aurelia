@@ -11,7 +11,7 @@ import {
 } from '@aurelia/runtime';
 import {
   bindingBehavior, IAstBasedBinding,
-  IFlushQueue, implementAstEvaluator, IPlatform, PropertyBinding, type ICustomElementViewModel, BindingTargetSubscriber } from '@aurelia/runtime-html';
+  IFlushQueue, mixinAstEvaluator, IPlatform, PropertyBinding, type ICustomElementViewModel, BindingTargetSubscriber } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
 
@@ -357,7 +357,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
 }
 
 connectable()(ValidatitionConnector);
-implementAstEvaluator(true)(ValidatitionConnector);
+mixinAstEvaluator(true)(ValidatitionConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
   public constructor(
@@ -403,4 +403,4 @@ export class BindingMediator<K extends string> {
 }
 
 connectable()(BindingMediator);
-implementAstEvaluator(true)(BindingMediator);
+mixinAstEvaluator(true)(BindingMediator);

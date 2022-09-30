@@ -60,7 +60,6 @@ class HydratingLifecycleHooks {
   public hydrating(vm: object, controller: IHydratedComponentController) {
     const container = controller.container;
     controller.addBinding(new StateGetterBinding(
-      container,
       vm,
       this.key,
       container.get(IStore),
@@ -83,7 +82,6 @@ class CreatedLifecycleHooks {
   public created(vm: object, controller: IHydratedComponentController) {
     const container = controller.container;
     controller.addBinding(new StateGetterBinding(
-      container,
       vm,
       this.key,
       container.get(IStore),

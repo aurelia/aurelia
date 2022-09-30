@@ -1,6 +1,6 @@
 import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { implementAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
+import { mixinAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -42,6 +42,9 @@ export class PropertyBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
   private readonly _controller: IBindingController;
 
   /** @internal */
@@ -53,7 +56,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
@@ -61,6 +64,7 @@ export class PropertyBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this.l = locator;
     this._controller = controller;
     this._taskQueue = taskQueue;
     this.oL = observerLocator;
@@ -187,6 +191,6 @@ export class PropertyBinding implements IAstBasedBinding {
 mixinBindingUseScope(PropertyBinding);
 mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & BindingMode.fromView) ? 'updateSource' : 'updateTarget');
 connectable(PropertyBinding);
-implementAstEvaluator(true, false)(PropertyBinding);
+mixinAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

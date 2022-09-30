@@ -1,5 +1,5 @@
 import { astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -27,6 +27,9 @@ export class LetBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
   private _value: unknown;
 
   // see Listener binding for explanation
@@ -34,12 +37,13 @@ export class LetBinding implements IAstBasedBinding {
   public readonly boundFn = false;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
     toBindingContext: boolean = false,
   ) {
+    this.l = locator;
     this.oL = observerLocator;
     this._toBindingContext = toBindingContext;
   }
@@ -98,6 +102,6 @@ export class LetBinding implements IAstBasedBinding {
 mixinBindingUseScope(LetBinding);
 mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
-implementAstEvaluator(true)(LetBinding);
+mixinAstEvaluator(true)(LetBinding);
 
 let nV: unknown;

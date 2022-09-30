@@ -9,7 +9,7 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, implementAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, type IAstBasedBinding, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -21,8 +21,11 @@ import { createStateBindingScope } from './state-utilities';
  */
 export interface StateBinding extends IAstBasedBinding { }
 export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
+  /** @internal */
   public readonly oL: IObserverLocator;
-  public locator: IServiceLocator;
+  /** @internal */
+  public l: IServiceLocator;
+
   public scope?: Scope | undefined;
   public isBound: boolean = false;
   public ast: IsBindingBehavior;
@@ -55,7 +58,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     store: IStore<object>,
   ) {
     this._controller = controller;
-    this.locator = locator;
+    this.l = locator;
     this._taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
@@ -216,5 +219,5 @@ const updateTaskOpts: QueueTaskOptions = {
 };
 
 connectable(StateBinding);
-implementAstEvaluator(true)(StateBinding);
+mixinAstEvaluator(true)(StateBinding);
 mixingBindingLimited(StateBinding, () => 'updateTarget');

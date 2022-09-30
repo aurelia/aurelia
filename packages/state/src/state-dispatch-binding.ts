@@ -9,7 +9,7 @@ import {
   astBind,
   astUnbind
 } from '@aurelia/runtime';
-import { implementAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { mixinAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -21,10 +21,13 @@ import { createStateBindingScope } from './state-utilities';
  */
 export interface StateDispatchBinding extends IAstBasedBinding { }
 export class StateDispatchBinding implements IAstBasedBinding {
-  public locator: IServiceLocator;
+  /** @internal */
+  public readonly l: IServiceLocator;
+
   public scope?: Scope | undefined;
   public isBound: boolean = false;
   public ast: IsBindingBehavior;
+
   private readonly target: HTMLElement;
   private readonly targetProperty: string;
 
@@ -40,7 +43,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     prop: string,
     store: IStore<object>,
   ) {
-    this.locator = locator;
+    this.l = locator;
     this._store = store;
     this.ast = expr;
     this.target = target;
@@ -100,5 +103,5 @@ export class StateDispatchBinding implements IAstBasedBinding {
 }
 
 connectable(StateDispatchBinding);
-implementAstEvaluator(true)(StateDispatchBinding);
+mixinAstEvaluator(true)(StateDispatchBinding);
 mixingBindingLimited(StateDispatchBinding, () => 'callSource');

@@ -1,7 +1,7 @@
 import { IEventTarget } from '../dom';
 import { DelegationStrategy } from '../renderer';
 import { isFunction } from '../utilities';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, Scope, type IsBindingBehavior } from '@aurelia/runtime';
@@ -32,6 +32,9 @@ export class Listener implements IAstBasedBinding {
   /** @internal */
   private readonly _options: ListenerOptions;
 
+  /** @internal */
+  public l: IServiceLocator;
+
   /**
    * Indicates if this binding evaluates an ast and get a function, that function should be bound
    * to the instance it is on
@@ -41,13 +44,14 @@ export class Listener implements IAstBasedBinding {
   public readonly boundFn = true;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: Node,
     public targetEvent: string,
     public eventDelegator: IEventDelegator,
     options: ListenerOptions,
   ) {
+    this.l = locator;
     this._options = options;
   }
 
@@ -89,7 +93,7 @@ export class Listener implements IAstBasedBinding {
       this.target.addEventListener(this.targetEvent, this);
     } else {
       this.handler = this.eventDelegator.addEventListener(
-        this.locator.get(IEventTarget),
+        this.l.get(IEventTarget),
         this.target,
         this.targetEvent,
         this,
@@ -120,4 +124,4 @@ export class Listener implements IAstBasedBinding {
 
 mixinBindingUseScope(Listener);
 mixingBindingLimited(Listener, () => 'callSource');
-implementAstEvaluator(true, true)(Listener);
+mixinAstEvaluator(true, true)(Listener);

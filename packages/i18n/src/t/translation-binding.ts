@@ -15,7 +15,7 @@ import {
   type IAstBasedBinding,
   type IBindingController,
   State,
-  implementAstEvaluator,
+  mixinAstEvaluator,
   mixingBindingLimited,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
@@ -344,7 +344,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   }
 }
 connectable(TranslationBinding);
-implementAstEvaluator(true)(TranslationBinding);
+mixinAstEvaluator(true)(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
 class AccessorUpdateTask {
@@ -424,4 +424,4 @@ class ParameterBinding {
 }
 
 connectable(ParameterBinding);
-implementAstEvaluator(true)(ParameterBinding);
+mixinAstEvaluator(true)(ParameterBinding);

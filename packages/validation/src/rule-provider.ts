@@ -13,7 +13,7 @@ import {
   astEvaluate,
 } from '@aurelia/runtime';
 import {
-  implementAstEvaluator,
+  mixinAstEvaluator,
   LifecycleFlags,
 } from '@aurelia/runtime-html';
 import {
@@ -423,7 +423,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
   // #endregion
 }
-implementAstEvaluator()(PropertyRule);
+mixinAstEvaluator()(PropertyRule);
 
 export class ModelBasedRule {
   public constructor(

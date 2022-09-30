@@ -1,6 +1,6 @@
-import { IDisposable, Writable, type Constructable, type Key } from '@aurelia/kernel';
+import { IDisposable, IServiceLocator, Writable, type Constructable, type Key } from '@aurelia/kernel';
 import { createError, def, defineHiddenProp } from '../utilities';
-import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, Scope, type IAstEvaluator, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
+import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { createInterface, resource } from '../utilities-di';
@@ -66,8 +66,8 @@ export const mixinBindingUseScope = <T extends IBinding>(target: Constructable<T
  *
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
-export const implementAstEvaluator = (strict?: boolean | undefined, strictFnCall = true) => {
-  return (target: Constructable<IAstEvaluator>) => {
+export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = true) => {
+  return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
     const proto = target.prototype;
     // some evaluator may have their strict configurable in some way
     // undefined to leave the property alone
@@ -75,29 +75,29 @@ export const implementAstEvaluator = (strict?: boolean | undefined, strictFnCall
       def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
     }
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-    defineHiddenProp(proto, 'get', function (this: IAstBasedBinding, key: Key) {
-      return this.locator.get(key);
+    defineHiddenProp(proto, 'get', function (this: T, key: Key) {
+      return this.l.get(key);
     });
-    defineHiddenProp(proto, 'getConverter', function (this: IAstBasedBinding, name: string) {
+    defineHiddenProp(proto, 'getConverter', function (this: T, name: string) {
       const key = ValueConverter.keyFrom(name);
       let resourceLookup = resourceLookupCache.get(this);
       if (resourceLookup == null) {
         resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
       }
-      return resourceLookup[key] ??= this.locator.get<ValueConverterInstance>(resource(key));
+      return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
     });
-    defineHiddenProp(proto, 'getBehavior', function (this: IAstBasedBinding, name: string) {
+    defineHiddenProp(proto, 'getBehavior', function (this: T, name: string) {
       const key = BindingBehavior.keyFrom(name);
       let resourceLookup = resourceLookupCache.get(this);
       if (resourceLookup == null) {
         resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
       }
-      return resourceLookup[key] ??= this.locator.get<BindingBehaviorInstance>(resource(key));
+      return resourceLookup[key] ??= this.l.get<BindingBehaviorInstance>(resource(key));
     });
   };
 };
 
-const resourceLookupCache = new WeakMap<IAstBasedBinding, ResourceLookup>();
+const resourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
 class ResourceLookup {
   [key: string]: ValueConverterInstance | BindingBehaviorInstance;
 }

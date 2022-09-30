@@ -1,4 +1,4 @@
-import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
+import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
 import { implementAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
@@ -14,6 +14,7 @@ import type {
   Scope
 } from '@aurelia/runtime';
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
+import { createError } from '../utilities';
 
 const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
@@ -31,8 +32,9 @@ export class PropertyBinding implements IAstBasedBinding {
   public targetObserver?: AccessorOrObserver = void 0;
 
   private task: ITask | null = null;
+
   /** @internal */
-  private _targetSubscriber: BindingTargetSubscriber | null = null;
+  private _targetSubscriber: ISubscriber | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -163,12 +165,26 @@ export class PropertyBinding implements IAstBasedBinding {
 
     if (this._targetSubscriber) {
       (this.targetObserver as IObserver).unsubscribe(this._targetSubscriber);
+      this._targetSubscriber = null;
     }
     if (task != null) {
       task.cancel();
       task = this.task = null;
     }
     this.obs.clearAll();
+  }
+
+  /**
+   * Provide a subscriber for target change observation.
+   *
+   * Binding behaviors can use this to setup custom observation handling during bind lifecycle
+   * to alter the update source behavior during bind phase of this binding.
+   */
+  public useTargetSubscriber(subscriber: ISubscriber) {
+    if (this._targetSubscriber != null) {
+      throw createError(`AURxxxx: binding already has a target subscriber`);
+    }
+    this._targetSubscriber = subscriber;
   }
 }
 

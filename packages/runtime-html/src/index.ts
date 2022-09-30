@@ -28,10 +28,6 @@ export {
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
   type BindingBehaviorType,
-  BindingInterceptor,
-  BindingBehaviorFactory,
-  BindingBehaviorStrategy,
-  type IInterceptableBinding,
 } from './resources/binding-behavior';
 
 export {
@@ -118,6 +114,7 @@ export {
   IFlushQueue,
   FlushQueue,
   IFlushable,
+  BindingTargetSubscriber,
   implementAstEvaluator,
   mixingBindingLimited,
   mixinBindingUseScope as mixinUseScope,
@@ -146,7 +143,6 @@ export {
 } from './binding/ref-binding';
 
 export {
-  applyBindingBehavior,
   IRenderer,
   type IInstructionTypeClassifier,
   ITemplateCompiler,

@@ -98,6 +98,10 @@ export class MockBinding implements IConnectableBinding {
     this.trace('limit', opts);
     return { dispose: () => {/*  */} };
   }
+
+  public useScope(scope: Scope): void {
+    this.trace('useScope', scope);
+  }
 }
 
 export class MockBindingBehavior {

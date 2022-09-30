@@ -1,6 +1,6 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, ExpressionType, Scope, IAstEvaluator, astEvaluate } from '@aurelia/runtime';
-import { astEvaluator } from '@aurelia/runtime-html';
+import { implementAstEvaluator } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
   IPropertyRule,
@@ -316,4 +316,4 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
   }
 }
 
-astEvaluator()(ModelValidationExpressionHydrator);
+implementAstEvaluator()(ModelValidationExpressionHydrator);

@@ -5,9 +5,11 @@ import {
   Scope,
   type IsBindingBehavior,
   connectable,
-  astEvaluate
+  astEvaluate,
+  astBind,
+  astUnbind
 } from '@aurelia/runtime';
-import { astEvaluator, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { implementAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -19,9 +21,8 @@ import { createStateBindingScope } from './state-utilities';
  */
 export interface StateDispatchBinding extends IAstBasedBinding { }
 export class StateDispatchBinding implements IAstBasedBinding {
-  public interceptor: this = this;
   public locator: IServiceLocator;
-  public $scope?: Scope | undefined;
+  public scope?: Scope | undefined;
   public isBound: boolean = false;
   public ast: IsBindingBehavior;
   private readonly target: HTMLElement;
@@ -47,10 +48,10 @@ export class StateDispatchBinding implements IAstBasedBinding {
   }
 
   public callSource(e: Event) {
-    const $scope = this.$scope!;
-    $scope.overrideContext.$event = e;
-    const value = astEvaluate(this.ast, $scope, this, null);
-    delete $scope.overrideContext.$event;
+    const scope = this.scope!;
+    scope.overrideContext.$event = e;
+    const value = astEvaluate(this.ast, scope, this, null);
+    delete scope.overrideContext.$event;
     if (!this.isAction(value)) {
       throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);
     }
@@ -58,17 +59,18 @@ export class StateDispatchBinding implements IAstBasedBinding {
   }
 
   public handleEvent(e: Event) {
-    this.interceptor.callSource(e);
+    this.callSource(e);
   }
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
-    this.$scope = createStateBindingScope(this._store.getState(), scope);
+    astBind(this.ast, scope, this);
+    this.scope = createStateBindingScope(this._store.getState(), scope);
     this.target.addEventListener(this.targetProperty, this);
     this._store.subscribe(this);
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -76,15 +78,17 @@ export class StateDispatchBinding implements IAstBasedBinding {
       return;
     }
     this.isBound = false;
-    this.$scope = void 0;
+
+    astUnbind(this.ast, this.scope!, this);
+    this.scope = void 0;
     this.target.removeEventListener(this.targetProperty, this);
     this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
-    const $scope = this.$scope!;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = state;
+    const scope = this.scope!;
+    const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
+    scope.bindingContext = overrideContext.bindingContext = state;
   }
 
   /** @internal */
@@ -96,4 +100,5 @@ export class StateDispatchBinding implements IAstBasedBinding {
 }
 
 connectable(StateDispatchBinding);
-astEvaluator(true)(StateDispatchBinding);
+implementAstEvaluator(true)(StateDispatchBinding);
+mixingBindingLimited(StateDispatchBinding, () => 'callSource');

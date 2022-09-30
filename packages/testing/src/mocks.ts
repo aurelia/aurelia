@@ -7,6 +7,7 @@ import {
   astEvaluate,
   astUnbind,
   ExpressionKind,
+  IRateLimitOptions,
 } from '@aurelia/runtime';
 import {
   LifecycleFlags,
@@ -32,12 +33,11 @@ import type {
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
-  public interceptor: this = this;
   public observerSlots!: number;
   public version!: number;
   public oL!: IObserverLocator;
   public locator!: IServiceLocator;
-  public $scope?: Scope | undefined;
+  public scope?: Scope | undefined;
   public isBound!: boolean;
   public value: unknown;
   public obs!: BindingObserverRecord;
@@ -91,6 +91,15 @@ export class MockBinding implements IConnectableBinding {
 
   public dispose(): void {
     this.trace('dispose');
+  }
+
+  public limit(opts: IRateLimitOptions) {
+    this.trace('limit', opts);
+    return { dispose: () => {/*  */} };
+  }
+
+  public useScope(scope: Scope): void {
+    this.trace('useScope', scope);
   }
 }
 
@@ -161,8 +170,8 @@ export class MockPropertySubscriber {
 
 export class MockTracingExpression {
   public $kind: ExpressionKind.Custom = ExpressionKind.Custom;
-  public hasBind: true = true;
-  public hasUnbind: true = true;
+  public hasBind = true as const;
+  public hasUnbind = true as const;
   public calls: [keyof MockTracingExpression, ...any[]][] = [];
 
   public constructor(public inner: any) {}

@@ -1,12 +1,12 @@
 import { IEventTarget } from '../dom';
-import { isFunction } from '../utilities';
-import { astEvaluator } from './binding-utils';
 import { DelegationStrategy } from '../renderer';
+import { isFunction } from '../utilities';
+import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import type { IEventDelegator } from '../observation/event-delegator';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { astBind, astEvaluate, astUnbind, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { type IEventDelegator } from '../observation/event-delegator';
+import { type IAstBasedBinding } from './interfaces-bindings';
 
 const addListenerOptions = {
   [DelegationStrategy.capturing]: { capture: true },
@@ -25,10 +25,8 @@ export interface Listener extends IAstBasedBinding {}
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener implements IAstBasedBinding {
-  public interceptor: this = this;
-
   public isBound: boolean = false;
-  public $scope!: Scope;
+  public scope?: Scope;
 
   private handler: IDisposable = null!;
   /** @internal */
@@ -54,10 +52,10 @@ export class Listener implements IAstBasedBinding {
   }
 
   public callSource(event: Event): unknown {
-    const overrideContext = this.$scope.overrideContext;
+    const overrideContext = this.scope!.overrideContext;
     overrideContext.$event = event;
 
-    let result = astEvaluate(this.ast, this.$scope, this, null);
+    let result = astEvaluate(this.ast, this.scope!, this, null);
 
     delete overrideContext.$event;
 
@@ -73,21 +71,19 @@ export class Listener implements IAstBasedBinding {
   }
 
   public handleEvent(event: Event): void {
-    this.interceptor.callSource(event);
+    this.callSource(event);
   }
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-
-      this.interceptor.$unbind();
+      this.$unbind();
     }
+    this.scope = scope;
 
-    this.$scope = scope;
-
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
     if (this._options.strategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
@@ -101,7 +97,6 @@ export class Listener implements IAstBasedBinding {
       );
     }
 
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -109,30 +104,20 @@ export class Listener implements IAstBasedBinding {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
-    astUnbind(this.ast, this.$scope, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = null!;
+    this.scope = void 0;
     if (this._options.strategy === DelegationStrategy.none) {
       this.target.removeEventListener(this.targetEvent, this);
     } else {
       this.handler.dispose();
       this.handler = null!;
     }
-
-    // remove isBound and isUnbinding flags
-    this.isBound = false;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public observe(obj: IIndexable, propertyName: string): void {
-    return;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public handleChange(newValue: unknown, previousValue: unknown): void {
-    return;
   }
 }
 
-astEvaluator(true, true)(Listener);
+mixinBindingUseScope(Listener);
+mixingBindingLimited(Listener, () => 'callSource');
+implementAstEvaluator(true, true)(Listener);

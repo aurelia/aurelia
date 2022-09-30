@@ -50,8 +50,6 @@ export class ComputedObserver implements
     return observer;
   }
 
-  public interceptor = this;
-
   public type: AccessorType = AccessorType.Observer;
 
   /** @internal */

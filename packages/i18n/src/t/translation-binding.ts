@@ -15,7 +15,8 @@ import {
   type IAstBasedBinding,
   type IBindingController,
   State,
-  astEvaluator,
+  implementAstEvaluator,
+  mixingBindingLimited,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -62,7 +63,6 @@ const taskQueueOpts: QueueTaskOptions = {
 };
 
 export class TranslationBinding implements IObserverLocatorBasedConnectable {
-  public interceptor: this = this;
   public isBound: boolean = false;
   public ast!: IsExpression;
   private readonly i18n: I18N;
@@ -70,7 +70,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   private readonly _contentAttributes: readonly string[] = contentAttributes;
   /** @internal */
   private _keyExpression: string | undefined | null;
-  private scope!: Scope;
+  public scope!: Scope;
   private task: ITask | null = null;
   /** @internal */
   private _isInterpolation!: boolean;
@@ -118,7 +118,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     platform,
     isParameterContext,
   }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, controller, target, platform });
+    const binding = this._getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
       ? parser.parse(instruction.from, ExpressionType.IsProperty)
       : instruction.from;
@@ -129,7 +129,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
       binding.ast = interpolation || expr;
     }
   }
-  private static getBinding({
+
+  /** @internal */
+  private static _getBinding({
     observerLocator,
     context,
     controller,
@@ -157,7 +159,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     this._ensureKeyExpression();
     this.parameter?.$bind(scope);
 
-    this._updateTranslations();
+    this.updateTranslations();
     this.isBound = true;
   }
 
@@ -186,25 +188,24 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
-    this._updateTranslations();
+    this.updateTranslations();
   }
 
   public handleLocaleChange() {
     // todo:
     // no flag passed, so if a locale is updated during binding of a component
     // and the author wants to signal that locale change fromBind, then it's a bug
-    this._updateTranslations();
+    this.updateTranslations();
   }
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, () => this._updateTranslations());
+    this.parameter = new ParameterBinding(this, expr, () => this.updateTranslations());
   }
 
-  /** @internal */
-  private _updateTranslations() {
+  public updateTranslations() {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
     const accessorUpdateTasks: AccessorUpdateTask[] = [];
@@ -342,6 +343,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     }
   }
 }
+connectable(TranslationBinding);
+implementAstEvaluator(true)(TranslationBinding);
+mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
 class AccessorUpdateTask {
   public constructor(
@@ -359,9 +363,6 @@ class AccessorUpdateTask {
 interface ParameterBinding extends IAstBasedBinding {}
 
 class ParameterBinding {
-
-  public interceptor = this;
-
   public value!: i18next.TOptions;
   /**
    * A semi-private property used by connectable mixin
@@ -372,7 +373,7 @@ class ParameterBinding {
   public readonly locator: IServiceLocator;
   public isBound: boolean = false;
 
-  private scope!: Scope;
+  public scope!: Scope;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -422,8 +423,5 @@ class ParameterBinding {
   }
 }
 
-connectable(TranslationBinding);
-astEvaluator(true)(TranslationBinding);
-
 connectable(ParameterBinding);
-astEvaluator(true)(ParameterBinding);
+implementAstEvaluator(true)(ParameterBinding);

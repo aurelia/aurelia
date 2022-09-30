@@ -5,7 +5,7 @@ import {
   ExpressionKind,
   ProxyObservable,
 } from '@aurelia/runtime';
-import { astEvaluator } from '../binding/binding-utils';
+import { implementAstEvaluator } from '../binding/binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -29,8 +29,6 @@ const { wrap, unwrap } = ProxyObservable;
 export interface ComputedWatcher extends IConnectableBinding { }
 
 export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
-  public interceptor = this;
-
   public value: unknown = void 0;
   public isBound: boolean = false;
 
@@ -66,8 +64,8 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
     this.compute();
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -109,7 +107,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 export class ExpressionWatcher implements IConnectableBinding {
-  public interceptor = this;
   /**
    * @internal
    */
@@ -153,10 +150,10 @@ export class ExpressionWatcher implements IConnectableBinding {
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
     this.obs.version++;
     this.value = astEvaluate(this.expression, this.scope, this, this);
     this.obs.clear();
+    this.isBound = true;
   }
 
   public $unbind(): void {
@@ -170,7 +167,7 @@ export class ExpressionWatcher implements IConnectableBinding {
 }
 
 connectable(ComputedWatcher);
-astEvaluator(true)(ComputedWatcher);
+implementAstEvaluator(true)(ComputedWatcher);
 
 connectable(ExpressionWatcher);
-astEvaluator(true)(ExpressionWatcher);
+implementAstEvaluator(true)(ExpressionWatcher);

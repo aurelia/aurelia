@@ -25,10 +25,8 @@ export interface Listener extends IAstBasedBinding {}
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener implements IAstBasedBinding {
-  public interceptor: this = this;
-
   public isBound: boolean = false;
-  public $scope!: Scope;
+  public scope?: Scope;
 
   private handler: IDisposable = null!;
   /** @internal */
@@ -54,10 +52,10 @@ export class Listener implements IAstBasedBinding {
   }
 
   public callSource(event: Event): unknown {
-    const overrideContext = this.$scope.overrideContext;
+    const overrideContext = this.scope!.overrideContext;
     overrideContext.$event = event;
 
-    let result = astEvaluate(this.ast, this.$scope, this, null);
+    let result = astEvaluate(this.ast, this.scope!, this, null);
 
     delete overrideContext.$event;
 
@@ -73,19 +71,19 @@ export class Listener implements IAstBasedBinding {
   }
 
   public handleEvent(event: Event): void {
-    this.interceptor.callSource(event);
+    this.callSource(event);
   }
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
     if (this._options.strategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
@@ -108,9 +106,9 @@ export class Listener implements IAstBasedBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = null!;
+    this.scope = void 0;
     if (this._options.strategy === DelegationStrategy.none) {
       this.target.removeEventListener(this.targetEvent, this);
     } else {

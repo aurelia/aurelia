@@ -33,12 +33,11 @@ import type {
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
-  public interceptor: this = this;
   public observerSlots!: number;
   public version!: number;
   public oL!: IObserverLocator;
   public locator!: IServiceLocator;
-  public $scope?: Scope | undefined;
+  public scope?: Scope | undefined;
   public isBound!: boolean;
   public value: unknown;
   public obs!: BindingObserverRecord;

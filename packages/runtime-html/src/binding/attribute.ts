@@ -33,10 +33,8 @@ export interface AttributeBinding extends IAstBasedBinding {}
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export class AttributeBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
   public isBound: boolean = false;
-  public $scope: Scope = null!;
+  public scope?: Scope = void 0;
   public task: ITask | null = null;
 
   /**
@@ -55,6 +53,10 @@ export class AttributeBinding implements IAstBasedBinding {
 
   /** @internal */
   private readonly _controller: IBindingController;
+
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -63,7 +65,7 @@ export class AttributeBinding implements IAstBasedBinding {
     controller: IBindingController,
     public locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public taskQueue: TaskQueue,
+    taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -78,6 +80,7 @@ export class AttributeBinding implements IAstBasedBinding {
     this._controller = controller;
     this.target = target as Element;
     this.oL = observerLocator;
+    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
@@ -89,17 +92,13 @@ export class AttributeBinding implements IAstBasedBinding {
       return;
     }
 
-    const mode = this.mode;
-    const interceptor = this.interceptor;
-    const $scope = this.$scope;
-    const targetObserver = this.targetObserver;
-    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (mode & BindingMode.oneTime) === 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldConnect = (this.mode & BindingMode.oneTime) === 0;
     let task: ITask | null;
     if (shouldConnect) {
       this.obs.version++;
     }
-    const newValue = astEvaluate(this.ast, $scope, this, interceptor);
+    const newValue = astEvaluate(this.ast, this.scope!, this, this);
     if (shouldConnect) {
       this.obs.clear();
     }
@@ -109,13 +108,13 @@ export class AttributeBinding implements IAstBasedBinding {
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
         task = this.task;
-        this.task = this.taskQueue.queueTask(() => {
+        this.task = this._taskQueue.queueTask(() => {
           this.task = null;
-          interceptor.updateTarget(newValue);
+          this.updateTarget(newValue);
         }, taskOptions);
         task?.cancel();
       } else {
-        interceptor.updateTarget(newValue);
+        this.updateTarget(newValue);
       }
     }
   }
@@ -127,14 +126,14 @@ export class AttributeBinding implements IAstBasedBinding {
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
     let targetObserver = this.targetObserver;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -147,13 +146,12 @@ export class AttributeBinding implements IAstBasedBinding {
     }
 
     const $mode = this.mode;
-    const interceptor = this.interceptor;
     let shouldConnect: boolean = false;
 
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       shouldConnect = ($mode & BindingMode.toView) > 0;
-      interceptor.updateTarget(
-        this._value = astEvaluate(this.ast, scope, this, shouldConnect ? interceptor : null)
+      this.updateTarget(
+        this._value = astEvaluate(this.ast, scope, this, shouldConnect ? this : null)
       );
     }
 
@@ -166,9 +164,9 @@ export class AttributeBinding implements IAstBasedBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = null!;
+    this.scope = void 0;
     this._value = void 0;
 
     this.task?.cancel();

@@ -45,7 +45,7 @@ export class BindingTargetSubscriber implements ISubscriber {
   // deepscan-disable-next-line
   public handleChange(value: unknown, _: unknown): void {
     const b = this.b;
-    if (value !== astEvaluate(b.ast, b.$scope!, b, null)) {
+    if (value !== astEvaluate(b.ast, b.scope!, b, null)) {
       this._value = value;
       this._flushQueue.add(this);
     }
@@ -57,7 +57,7 @@ export class BindingTargetSubscriber implements ISubscriber {
  */
 export const mixinBindingUseScope = <T extends IBinding>(target: Constructable<T>) => {
   defineHiddenProp(target.prototype, 'useScope', function (this: IBinding, scope: Scope) {
-    (this as Writable<T>).$scope = scope;
+    (this as Writable<T>).scope = scope;
   });
 };
 

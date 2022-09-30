@@ -29,8 +29,6 @@ const { wrap, unwrap } = ProxyObservable;
 export interface ComputedWatcher extends IConnectableBinding { }
 
 export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
-  public interceptor = this;
-
   public value: unknown = void 0;
   public isBound: boolean = false;
 
@@ -109,7 +107,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 export class ExpressionWatcher implements IConnectableBinding {
-  public interceptor = this;
   /**
    * @internal
    */

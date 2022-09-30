@@ -24,10 +24,8 @@ const updateTaskOpts: QueueTaskOptions = {
 export interface PropertyBinding extends IAstBasedBinding {}
 
 export class PropertyBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
   public isBound: boolean = false;
-  public $scope?: Scope = void 0;
+  public scope?: Scope = void 0;
 
   public targetObserver?: AccessorOrObserver = void 0;
 
@@ -73,7 +71,7 @@ export class PropertyBinding implements IAstBasedBinding {
   }
 
   public updateSource(value: unknown): void {
-    astAssign(this.ast, this.$scope!, this, value);
+    astAssign(this.ast, this.scope!, this, value);
   }
 
   public handleChange(): void {
@@ -82,27 +80,26 @@ export class PropertyBinding implements IAstBasedBinding {
     }
 
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
-    const obsRecord = this.obs;
     const shouldConnect = this.mode > BindingMode.oneTime;
     if (shouldConnect) {
-      obsRecord.version++;
+      this.obs.version++;
     }
-    const newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
+    const newValue = astEvaluate(this.ast, this.scope!, this, this);
     if (shouldConnect) {
-      obsRecord.clear();
+      this.obs.clear();
     }
 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
       this.task = this._taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(newValue);
+        this.updateTarget(newValue);
         this.task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
     } else {
-      this.interceptor.updateTarget(newValue);
+      this.updateTarget(newValue);
     }
   }
 
@@ -113,14 +110,14 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
     const observerLocator = this.oL;
     const $mode = this.mode;
@@ -134,19 +131,18 @@ export class PropertyBinding implements IAstBasedBinding {
       this.targetObserver = targetObserver;
     }
 
-    const interceptor = this.interceptor;
     const shouldConnect = ($mode & BindingMode.toView) > 0;
 
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
-      interceptor.updateTarget(
-        astEvaluate(this.ast, this.$scope, this, shouldConnect ? interceptor : null),
+      this.updateTarget(
+        astEvaluate(this.ast, this.scope, this, shouldConnect ? this : null),
       );
     }
 
     if ($mode & BindingMode.fromView) {
-      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
+      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.locator.get(IFlushQueue)));
       if (!shouldConnect) {
-        interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty));
+        this.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }
     }
 
@@ -159,9 +155,9 @@ export class PropertyBinding implements IAstBasedBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope!, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = void 0;
+    this.scope = void 0;
 
     if (this._targetSubscriber) {
       (this.targetObserver as IObserver).unsubscribe(this._targetSubscriber);

@@ -280,7 +280,6 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
         FooBar,
         ToNumberValueConverter,
         B64ToPlainTextValueConverter,
-        // InterceptorBindingBehavior,
         VanillaBindingBehavior,
         Editor,
         Editor1,

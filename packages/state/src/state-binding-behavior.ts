@@ -21,17 +21,17 @@ export class StateBindingBehavior {
 
   public bind(scope: Scope, binding: IBinding): void {
     const isStateBinding = binding instanceof StateBinding;
-    const $scope = isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
+    scope = isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
     let subscriber: StateSubscriber | undefined;
     if (!isStateBinding) {
       subscriber = bindingStateSubscriberMap.get(binding);
       if (subscriber == null) {
-        bindingStateSubscriberMap.set(binding, subscriber = new StateSubscriber(binding, $scope));
+        bindingStateSubscriberMap.set(binding, subscriber = new StateSubscriber(binding, scope));
       } else {
-        subscriber._wrappedScope = $scope;
+        subscriber._wrappedScope = scope;
       }
       this._store.subscribe(subscriber);
-      binding.useScope($scope);
+      binding.useScope(scope);
     }
   }
 
@@ -51,9 +51,9 @@ class StateSubscriber implements IStoreSubscriber<object> {
   ) {}
 
   public handleStateChange(state: object): void {
-    const $scope = this._wrappedScope;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    const scope = this._wrappedScope;
+    const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
+    scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     (this._binding as unknown as ISubscriber).handleChange?.(undefined, undefined);
   }
 }

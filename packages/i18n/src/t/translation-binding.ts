@@ -63,7 +63,6 @@ const taskQueueOpts: QueueTaskOptions = {
 };
 
 export class TranslationBinding implements IObserverLocatorBasedConnectable {
-  public interceptor: this = this;
   public isBound: boolean = false;
   public ast!: IsExpression;
   private readonly i18n: I18N;
@@ -71,7 +70,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   private readonly _contentAttributes: readonly string[] = contentAttributes;
   /** @internal */
   private _keyExpression: string | undefined | null;
-  private scope!: Scope;
+  public scope!: Scope;
   private task: ITask | null = null;
   /** @internal */
   private _isInterpolation!: boolean;
@@ -364,9 +363,6 @@ class AccessorUpdateTask {
 interface ParameterBinding extends IAstBasedBinding {}
 
 class ParameterBinding {
-
-  public interceptor = this;
-
   public value!: i18next.TOptions;
   /**
    * A semi-private property used by connectable mixin
@@ -377,7 +373,7 @@ class ParameterBinding {
   public readonly locator: IServiceLocator;
   public isBound: boolean = false;
 
-  private scope!: Scope;
+  public scope!: Scope;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;

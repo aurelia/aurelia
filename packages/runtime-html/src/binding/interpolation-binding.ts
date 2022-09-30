@@ -10,7 +10,7 @@ import { State } from '../templating/controller';
 import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
-import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   IBinding, ICollectionSubscriber,
@@ -35,10 +35,9 @@ const queueTaskOptions: QueueTaskOptions = {
 // in which case the renderer will create the TextBinding directly
 export interface InterpolationBinding extends IBinding {}
 export class InterpolationBinding implements IBinding {
-  public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope?: Scope = void 0;
+  public scope?: Scope = void 0;
 
   public partBindings: InterpolationPartBinding[];
 
@@ -119,12 +118,12 @@ export class InterpolationBinding implements IBinding {
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
     const partBindings = this.partBindings;
     const ii = partBindings.length;
@@ -141,12 +140,12 @@ export class InterpolationBinding implements IBinding {
       return;
     }
     this.isBound = false;
-    this.$scope = void 0;
+    this.scope = void 0;
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].interceptor.$unbind();
+      partBindings[i].$unbind();
     }
     this.task?.cancel();
     this.task = null;
@@ -159,12 +158,11 @@ implementAstEvaluator(true)(InterpolationBinding);
 export interface InterpolationPartBinding extends IAstBasedBinding {}
 
 export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSubscriber {
-  public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
-  public $scope?: Scope;
+  public scope?: Scope;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -203,7 +201,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     if (shouldConnect) {
       obsRecord.version++;
     }
-    const newValue = astEvaluate(this.ast, this.$scope!, this, shouldConnect ? this.interceptor : null);
+    const newValue = astEvaluate(this.ast, this.scope!, this, shouldConnect ? this : null);
     if (shouldConnect) {
       obsRecord.clear();
     }
@@ -224,20 +222,20 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor as IIndexable & this);
+    astBind(this.ast, scope, this);
 
     this._value = astEvaluate(
       this.ast,
-      this.$scope,
+      this.scope,
       this,
-      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
     if (isArray(this._value)) {
       this.observeCollection(this._value);
@@ -252,9 +250,9 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope!, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = void 0;
+    this.scope = void 0;
     this.obs.clearAll();
   }
 }
@@ -270,12 +268,10 @@ export interface ContentBinding extends IAstBasedBinding {}
  * A binding for handling the element content interpolation
  */
 export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
-  public interceptor: this = this;
-
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
-  public $scope?: Scope;
+  public scope?: Scope;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -330,7 +326,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     if (shouldConnect) {
       this.obs.version++;
     }
-    const newValue = astEvaluate(this.ast, this.$scope!, this, shouldConnect ? this.interceptor : null);
+    const newValue = astEvaluate(this.ast, this.scope!, this, shouldConnect ? this : null);
     if (shouldConnect) {
       this.obs.clear();
     }
@@ -357,9 +353,9 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.obs.version++;
     const v = this._value = astEvaluate(
       this.ast,
-      this.$scope!,
+      this.scope!,
       this,
-      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
     this.obs.clear();
     if (isArray(v)) {
@@ -375,20 +371,20 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
     const v = this._value = astEvaluate(
       this.ast,
-      this.$scope,
+      this.scope,
       this,
-      (this.mode & BindingMode.toView) > 0 ?  this.interceptor : null,
+      (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
     if (isArray(v)) {
       this.observeCollection(v);
@@ -404,12 +400,12 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope!, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
     // TODO: should existing value (either connected node, or a string)
     // be removed when this binding is unbound?
     // this.updateTarget('', flags);
-    this.$scope = void 0;
+    this.scope = void 0;
     this.obs.clearAll();
     this.task?.cancel();
     this.task = null;

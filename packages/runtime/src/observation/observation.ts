@@ -37,8 +37,6 @@ export interface IEffect extends IConnectable {
 
 interface Effect extends IConnectable {}
 class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
-
-  public readonly interceptor: this = this;
   public readonly obs!: BindingObserverRecord;
   // to configure this, potentially a 2nd parameter is needed for run
   public maxRunCount: number = 10;

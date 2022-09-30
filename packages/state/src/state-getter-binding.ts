@@ -19,9 +19,8 @@ import { createStateBindingScope, isSubscribable } from './state-utilities';
 export interface StateGetterBinding extends IConnectableBinding { }
 @connectable()
 export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber<object> {
-  public interceptor: this = this;
   public locator: IServiceLocator;
-  public $scope?: Scope | undefined;
+  public scope?: Scope | undefined;
   public isBound: boolean = false;
   private readonly $get: (s: unknown) => unknown;
   private readonly target: IIndexable;
@@ -79,7 +78,7 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
       return;
     }
     const state = this._store.getState();
-    this.$scope = createStateBindingScope(state, scope);
+    this.scope = createStateBindingScope(state, scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = this.$get(state));
     this.isBound = true;
@@ -93,14 +92,14 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
-    this.$scope = void 0;
+    this.scope = void 0;
     this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
-    const $scope = this.$scope!;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    const scope = this.scope!;
+    const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
+    scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     const value = this.$get(this._store.getState());
 
     if (value === this._value) {

@@ -123,7 +123,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly defaultTrigger: ValidationTrigger;
-  private scope?: Scope | null;
+  public scope?: Scope;
   private isDirty: boolean = false;
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
@@ -178,7 +178,8 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
 
   public stop() {
     this.task?.cancel();
-    this.scope = this.task = null;
+    this.scope = void 0;
+    this.task = null;
 
     const triggerEventName = this.triggerEvent;
     if (triggerEventName !== null) {
@@ -388,8 +389,6 @@ type MediatedBinding<K extends string> = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface BindingMediator<K extends string> extends IConnectable, IAstEvaluator { }
 export class BindingMediator<K extends string> {
-  public interceptor = this;
-
   public constructor(
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,

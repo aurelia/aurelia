@@ -8,10 +8,8 @@ import type { IAstBasedBinding } from './interfaces-bindings';
  */
 export interface CallBinding extends IAstBasedBinding { }
 export class CallBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
   public isBound: boolean = false;
-  public $scope?: Scope;
+  public scope?: Scope;
 
   public targetObserver: IAccessor;
 
@@ -30,9 +28,9 @@ export class CallBinding implements IAstBasedBinding {
   }
 
   public callSource(args: object): unknown {
-    const overrideContext = this.$scope!.overrideContext;
+    const overrideContext = this.scope!.overrideContext;
     overrideContext.$event = args;
-    const result = astEvaluate(this.ast, this.$scope!, this, null);
+    const result = astEvaluate(this.ast, this.scope!, this, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
@@ -40,17 +38,17 @@ export class CallBinding implements IAstBasedBinding {
 
   public $bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
 
-      this.interceptor.$unbind();
+      this.$unbind();
     }
-    this.$scope = scope;
+    this.scope = scope;
 
-    astBind(this.ast, scope, this.interceptor);
+    astBind(this.ast, scope, this);
 
-    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), this.target, this.targetProperty);
+    this.targetObserver.setValue(($args: object) => this.callSource($args), this.target, this.targetProperty);
     this.isBound = true;
   }
 
@@ -60,9 +58,9 @@ export class CallBinding implements IAstBasedBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.$scope!, this.interceptor);
+    astUnbind(this.ast, this.scope!, this);
 
-    this.$scope = void 0;
+    this.scope = void 0;
     this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 }

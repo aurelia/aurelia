@@ -1178,8 +1178,7 @@ export class SpreadRenderer implements IRenderer {
 }
 
 class SpreadBinding implements IBinding {
-  public interceptor = this;
-  public $scope?: Scope | undefined;
+  public scope?: Scope | undefined;
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
 
@@ -1218,7 +1217,7 @@ class SpreadBinding implements IBinding {
       return;
     }
     this.isBound = true;
-    const innerScope = this.$scope = this._hydrationContext.controller.scope.parent ?? void 0;
+    const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
       throw createError('Invalid spreading. Context scope is null/undefined');
     }

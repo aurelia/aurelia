@@ -65,9 +65,89 @@ In this case, you might want the URLs look like `https://example.com/tenant-foo/
 You cannot set the `document.baseURI` every time you start the app for a different tenant, as that value is static can readonly, read from the `base#href` value.
 
 With `router-lite` you can support this by setting the `basePath` value to differently for each tenant, while customizing the router configuration, at bootstrapping phase.
+Following is an example that implements the aforementioned URL convention.
+To better understand, open the the example in a new tab and check the URL in address bar when you switch tenants as well as the links in the `a` tags.
 
-TODO: continue
+{% embed url="https://stackblitz.com/edit/router-lite-getting-started-vwu6fy?ctl=1&embed=1&file=src/main.ts" %}
 
+The actual configuration takes place in the `main.ts` while customizing the router configuration in the following lines of code.
+
+```typescript
+  // this can either be '/', '/app[/+]', or '/TENANT_NAME/app[/+]'
+  let basePath = location.pathname;
+  const tenant =
+    (!basePath.startsWith('/app') && basePath != '/'
+      ? basePath.split('/')[1]
+      : null) ?? 'none';
+  if (tenant === 'none') {
+    basePath = '/app';
+  }
+  const host = document.querySelector<HTMLElement>('app');
+  const au = new Aurelia();
+  au.register(
+    StandardConfiguration,
+    RouterConfiguration.customize({
+      basePath,
+    }),
+    Registration.instance(ITenant, tenant) // <-- this is just to inject the tenant name in the `my-app.ts`
+  );
+```
+
+There are also the following links, included in the `my-app.html`, to simulate tenant switch/selection.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```html
+tenant: ${tenant}
+<nav>
+  <a href="${baseUrl}/foo/app" external>Switch to tenant foo</a>
+  <a href="${baseUrl}/bar/app" external>Switch to tenant bar</a>
+</nav>
+<nav>
+  <a load="home">Home</a>
+  <a load="about">About</a>
+</nav>
+
+<au-viewport></au-viewport>
+
+```
+{% endtab %}
+{% tab title="my-app.ts" %}
+```typescript
+import { customElement } from '@aurelia/runtime-html';
+import { route } from '@aurelia/router-lite';
+import template from './my-app.html';
+import { Home } from './home';
+import { About } from './about';
+import { DI } from '@aurelia/kernel';
+
+export const ITenant = DI.createInterface<string>('tenant');
+
+@route({
+  routes: [
+    {
+      path: ['', 'home'],
+      component: Home,
+      title: 'Home',
+    },
+    {
+      path: 'about',
+      component: About,
+      title: 'About',
+    },
+  ],
+})
+@customElement({ name: 'my-app', template })
+export class MyApp {
+  private baseUrl = location.origin;
+  public constructor(@ITenant private readonly tenant: string) {}
+}
+```
+{% endtab %}
+{% endtabs %}
+
+Note the `a` tags with [`external` attribute](TODO(Sayan): link docs).
+Note that when you switch to a tenant, the links in the `a` tags also now includes the tenant name; for example when we switch to tenant 'foo' the 'Home' link is changed to `/foo/app/home` from `/app/home`.
 
 ## Customizing title
 

@@ -1,4 +1,4 @@
-import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, ISubscriber } from '@aurelia/runtime';
+import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IBinding, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
 import { mixinAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
@@ -23,7 +23,7 @@ const updateTaskOpts: QueueTaskOptions = {
 
 export interface PropertyBinding extends IAstBasedBinding {}
 
-export class PropertyBinding implements IAstBasedBinding {
+export class PropertyBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope = void 0;
 
@@ -112,12 +112,12 @@ export class PropertyBinding implements IAstBasedBinding {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -153,7 +153,7 @@ export class PropertyBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

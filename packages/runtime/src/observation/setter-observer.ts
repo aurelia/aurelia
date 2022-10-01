@@ -53,8 +53,8 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
       // so calling obj[propertyKey] will actually return this.value.
       // However, if subscribe() was not yet called (indicated by !this.observing), the target descriptor
       // is unmodified and we need to explicitly set the property value.
-      // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
-      // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
+      // This will happen in one-time, to-view and two-way bindings during bind, meaning that the bind will not actually update the target value.
+      // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether bind updated the target or not.
       this._obj[this._key] = newValue;
     }
   }

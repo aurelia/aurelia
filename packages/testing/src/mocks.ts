@@ -77,12 +77,12 @@ export class MockBinding implements IConnectableBinding {
     this.trace('subscribeTo', subscribable);
   }
 
-  public $bind(scope: Scope): void {
-    this.trace('$bind', scope);
+  public bind(scope: Scope): void {
+    this.trace('bind', scope);
   }
 
-  public $unbind(): void {
-    this.trace('$unbind');
+  public unbind(): void {
+    this.trace('unbind');
   }
 
   public trace(fnName: keyof MockBinding, ...args: any[]): void {

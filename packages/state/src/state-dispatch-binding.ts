@@ -7,7 +7,8 @@ import {
   connectable,
   astEvaluate,
   astBind,
-  astUnbind
+  astUnbind,
+  IBinding
 } from '@aurelia/runtime';
 import { mixinAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
@@ -20,7 +21,7 @@ import { createStateBindingScope } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateDispatchBinding extends IAstBasedBinding { }
-export class StateDispatchBinding implements IAstBasedBinding {
+export class StateDispatchBinding implements IBinding {
   /** @internal */
   public readonly l: IServiceLocator;
 
@@ -65,7 +66,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     this.callSource(e);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -76,7 +77,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

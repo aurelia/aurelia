@@ -1,5 +1,5 @@
 import type { IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAccessor, IBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import type { IAstBasedBinding } from './interfaces-bindings';
 
@@ -7,7 +7,7 @@ import type { IAstBasedBinding } from './interfaces-bindings';
  * A binding for handling .call syntax
  */
 export interface CallBinding extends IAstBasedBinding { }
-export class CallBinding implements IAstBasedBinding {
+export class CallBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope;
 
@@ -40,13 +40,13 @@ export class CallBinding implements IAstBasedBinding {
     return result;
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -56,7 +56,7 @@ export class CallBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

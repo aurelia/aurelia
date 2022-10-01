@@ -5,6 +5,7 @@ import {
   AccessorType,
   astEvaluate,
   connectable,
+  IBinding,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
@@ -20,7 +21,7 @@ import { createStateBindingScope } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateBinding extends IAstBasedBinding { }
-export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
+export class StateBinding implements IBinding, IStoreSubscriber<object> {
   /** @internal */
   public readonly oL: IObserverLocator;
   /** @internal */
@@ -96,7 +97,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     targetAccessor.setValue(value, target, prop);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -111,7 +112,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

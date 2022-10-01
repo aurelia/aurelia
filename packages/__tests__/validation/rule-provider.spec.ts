@@ -38,7 +38,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe('validation/validation.spec.ts/ValidationRules', function () {
+describe('validation/rule-provider.spec.ts/ValidationRules', function () {
 
   function setup() {
     const container = DI.createContainer();
@@ -545,7 +545,7 @@ describe('validation/validation.spec.ts/ValidationRules', function () {
   });
 });
 
-describe('validation/validation.spec.ts/ValidationMessageProvider', function () {
+describe('validation/rule-provider.spec.ts/ValidationMessageProvider', function () {
   class EventLog implements ISink {
     public log: ILogEvent[] = [];
     public handleEvent(event: ILogEvent): void {
@@ -830,7 +830,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
   }
 });
 
-describe('validation/validation.spec.ts/parsePropertyName', function () {
+describe('validation/rule-provider.spec.ts/parsePropertyName', function () {
 
   function setup() {
     const container = TestContext.create().container;
@@ -976,7 +976,7 @@ describe('validation/validation.spec.ts/parsePropertyName', function () {
   }
 });
 
-describe('validation/validation.spec.ts/PropertyRule', function () {
+describe('validation/rule-provider.spec.ts/PropertyRule', function () {
 
   function setup() {
     const container = TestContext.create().container;

@@ -70,7 +70,7 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     target[prop] = value;
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -81,7 +81,7 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

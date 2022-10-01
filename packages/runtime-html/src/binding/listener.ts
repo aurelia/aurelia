@@ -4,7 +4,7 @@ import { isFunction } from '../utilities';
 import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
 import { type IEventDelegator } from '../observation/event-delegator';
 import { type IAstBasedBinding } from './interfaces-bindings';
 
@@ -24,7 +24,7 @@ export interface Listener extends IAstBasedBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export class Listener implements IAstBasedBinding {
+export class Listener implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope;
 
@@ -78,12 +78,12 @@ export class Listener implements IAstBasedBinding {
     this.callSource(event);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -104,7 +104,7 @@ export class Listener implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

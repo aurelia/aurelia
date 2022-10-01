@@ -60,7 +60,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.run();
   }
 
-  public $bind(): void {
+  public bind(): void {
     if (this.isBound) {
       return;
     }
@@ -68,7 +68,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -146,7 +146,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
   }
 
-  public $bind(): void {
+  public bind(): void {
     if (this.isBound) {
       return;
     }
@@ -156,7 +156,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }

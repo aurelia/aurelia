@@ -150,7 +150,7 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
     return binding;
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -161,20 +161,20 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
     this._keyExpression = astEvaluate(this.ast, scope, this, this) as string;
     this._ensureKeyExpression();
-    this.parameter?.$bind(scope);
+    this.parameter?.bind(scope);
 
     this.updateTranslations();
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
 
     astUnbind(this.ast, this.scope, this);
 
-    this.parameter?.$unbind();
+    this.parameter?.unbind();
     this._targetAccessors.clear();
     if (this.task !== null) {
       this.task.cancel();
@@ -403,7 +403,7 @@ class ParameterBinding {
     this.updater();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -415,7 +415,7 @@ class ParameterBinding {
     this.isBound = true;
   }
 
-  public $unbind() {
+  public unbind() {
     if (!this.isBound) {
       return;
     }

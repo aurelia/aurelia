@@ -180,6 +180,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       const newLen = newItems.length;
       indexMap = createIndexMap(newLen);
+      const isMap = Object.prototype.toString.call(this.items) === '[object Map]';
 
       if (oldLen === 0) {
         // Only add new views
@@ -188,14 +189,33 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
       } else if (newLen === 0) {
         // Only remove old views
-        for (let i = 0; i < oldLen; ++i) {
-          indexMap.deletedIndices.push(i);
-          indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
+        if (isMap && this._hasDestructuredLocal) {
+          const dec = this.forOf.declaration;
+          const binding = this._forOfBinding;
+          for (let i = 0; i < oldLen; ++i) {
+            indexMap.deletedIndices.push(i);
+            indexMap.deletedItems.push(astEvaluate(dec, oldViews[i].scope, binding, null) as unknown as IIndexable);
+          }
+        } else {
+          for (let i = 0; i < oldLen; ++i) {
+            indexMap.deletedIndices.push(i);
+            indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
+          }
         }
       } else {
         const oldItems = Array<IIndexable>(oldLen);
-        for (let i = 0; i < oldLen; ++i) {
-          oldItems[i] = oldViews[i].scope.bindingContext[local];
+
+        if (isMap && this._hasDestructuredLocal) {
+          const dec = this.forOf.declaration;
+          const binding = this._forOfBinding;
+          for (let i = 0; i < oldLen; ++i) {
+            // TODO: should be array with 2 items.. should we throw if it isn't?
+            oldItems[i] = astEvaluate(dec, oldViews[i].scope, binding, null) as unknown as IIndexable;
+          }
+        } else {
+          for (let i = 0; i < oldLen; ++i) {
+            oldItems[i] = oldViews[i].scope.bindingContext[local];
+          }
         }
 
         let oldItem: IIndexable;
@@ -215,8 +235,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         outer: {
           // views with same key at start
           while (true) {
-            oldKey = (oldItem = oldItems[i])[key];
-            newKey = (newItem = newItems[i])[key];
+            oldKey = (oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])[key];
+            newKey = (newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])[key];
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -237,8 +257,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at end
           let j = newEnd;
           while (true) {
-            oldKey = (oldItem = oldItems[j])[key];
-            newKey = (newItem = newItems[j])[key];
+            oldKey = (oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j])[key];
+            newKey = (newItem = isMap ? newItems[j][1] as IIndexable : newItems[j])[key];
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -257,7 +277,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         let newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (keyMap.has(newItem = newItems[i])) {
+          if (keyMap.has(newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])) {
             newKey = keyMap.get(newItem);
           } else {
             keyMap.set(newItem, newKey = newItem[key]);
@@ -266,7 +286,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = oldStart; i <= oldEnd; ++i) {
-          if (keyMap.has(oldItem = oldItems[i])) {
+          if (keyMap.has(oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])) {
             oldKey = keyMap.get(oldItem);
           } else {
             keyMap.set(oldItem, oldKey = oldItem[key]);
@@ -282,7 +302,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (!oldIndices.has(keyMap.get(newItems[i]))) {
+          if (!oldIndices.has(keyMap.get(isMap ? newItems[i][1] as IIndexable : newItems[i]))) {
             indexMap[i] = -2;
           }
         }

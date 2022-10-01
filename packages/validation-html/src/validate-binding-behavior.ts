@@ -1,4 +1,4 @@
-import { DI, IContainer, IServiceLocator, Writable } from '@aurelia/kernel';
+import { DI, IContainer, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   astEvaluate,
@@ -10,8 +10,9 @@ import {
   IConnectable, IObserverLocator, Scope
 } from '@aurelia/runtime';
 import {
-  bindingBehavior, IAstBasedBinding,
-  IFlushQueue, implementAstEvaluator, IPlatform, PropertyBinding, type ICustomElementViewModel, BindingTargetSubscriber } from '@aurelia/runtime-html';
+  bindingBehavior, BindingTargetSubscriber, IAstBasedBinding,
+  IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
+} from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
 
@@ -128,6 +129,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
   private bindingInfo!: BindingInfo;
+  /** @internal */ public readonly l: IServiceLocator;
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _triggerMediator: BindingMediator<'handleTriggerChange'>;
   /** @internal */ private readonly _controllerMediator: BindingMediator<'handleControllerChange'>;
@@ -145,7 +147,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     this.defaultTrigger = defaultTrigger;
     this._platform = platform;
     this.oL = observerLocator;
-    (this as Writable<typeof this>).locator = locator;
+    this.l = locator;
     this._triggerMediator = new BindingMediator('handleTriggerChange', this, observerLocator, locator);
     this._controllerMediator = new BindingMediator('handleControllerChange', this, observerLocator, locator);
     this._rulesMediator = new BindingMediator('handleRulesChange', this, observerLocator, locator);
@@ -357,7 +359,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
 }
 
 connectable()(ValidatitionConnector);
-implementAstEvaluator(true)(ValidatitionConnector);
+mixinAstEvaluator(true)(ValidatitionConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
   public constructor(
@@ -393,7 +395,7 @@ export class BindingMediator<K extends string> {
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,
     public oL: IObserverLocator,
-    public locator: IServiceLocator,
+    public readonly l: IServiceLocator,
   ) {
   }
 
@@ -403,4 +405,4 @@ export class BindingMediator<K extends string> {
 }
 
 connectable()(BindingMediator);
-implementAstEvaluator(true)(BindingMediator);
+mixinAstEvaluator(true)(BindingMediator);

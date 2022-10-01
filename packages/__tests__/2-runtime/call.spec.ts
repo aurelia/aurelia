@@ -33,7 +33,7 @@ describe.skip('CallBinding', function () {
     return { sut, container, observerLocator };
   }
 
-  describe('$bind -> $bind', function () {
+  describe('bind -> bind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -63,7 +63,7 @@ describe.skip('CallBinding', function () {
        = [targetVariations, propVariations, exprVariations, scopeVariations, renewScopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
-      it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
+      it(`bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
         // - Arrange -
         const { sut, observerLocator } = createFixture(expr, target, prop);
         const targetObserver = observerLocator.getObserver(target, prop);
@@ -76,7 +76,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(scope);
+        sut.bind(scope);
 
         // - Assert -
         // double check we have the correct target observer
@@ -106,13 +106,13 @@ describe.skip('CallBinding', function () {
         // massReset(expr);
 
         // - Act -
-        sut.$bind(scope);
+        sut.bind(scope);
 
         // - Assert -
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
         assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
         if (renewScope) {
-          // called during $bind, then during $unbind, then during $bind again
+          // called during bind, then during unbind, then during bind again
           // expect(targetObserver.setValue).to.have.been.calledThrice;
 
           // expect(expr.unbind).to.have.been.calledOnce;
@@ -132,7 +132,7 @@ describe.skip('CallBinding', function () {
     );
   });
 
-  describe('$bind -> $unbind -> $unbind', function () {
+  describe('bind -> unbind -> unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -157,7 +157,7 @@ describe.skip('CallBinding', function () {
        = [targetVariations, propVariations, exprVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
-      it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
+      it(`bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
         // - Arrange -
         const { sut, observerLocator } = createFixture(expr, target, prop);
         const targetObserver = observerLocator.getObserver(target, prop);
@@ -170,7 +170,7 @@ describe.skip('CallBinding', function () {
         // expr['unbind'] = spy();
 
         // - Act -
-        sut.$bind(scope);
+        sut.bind(scope);
 
         // - Assert -
         // double check we have the correct target observer
@@ -196,7 +196,7 @@ describe.skip('CallBinding', function () {
         // massReset(expr);
 
         // - Act -
-        sut.$unbind();
+        sut.unbind();
 
         // - Assert -
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
@@ -214,7 +214,7 @@ describe.skip('CallBinding', function () {
         // massReset(expr);
 
         // - Act -
-        sut.$unbind();
+        sut.unbind();
 
         // - Assert -
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
@@ -227,7 +227,7 @@ describe.skip('CallBinding', function () {
     );
   });
 
-  describe('$bind -> call -> $unbind', function () {
+  describe('bind -> call -> unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -259,7 +259,7 @@ describe.skip('CallBinding', function () {
        = [targetVariations, propVariations, argsVariations, exprVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
-      it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
+      it(`bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, observerLocator } = createFixture(expr, target, prop);
         const targetObserver = observerLocator.getObserver(target, prop);
@@ -270,7 +270,7 @@ describe.skip('CallBinding', function () {
         // massSpy(expr, 'evaluate', 'assign', 'connect');
 
         // - Act -
-        sut.$bind(scope);
+        sut.bind(scope);
 
         // - Assert -
         // double check we have the correct target observer
@@ -307,7 +307,7 @@ describe.skip('CallBinding', function () {
         // massRestore(expr);
 
         // - Act -
-        sut.$unbind();
+        sut.unbind();
 
         // - Assert -
         assert.strictEqual(target[prop], null, `target[prop]`);

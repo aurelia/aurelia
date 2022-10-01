@@ -5,11 +5,12 @@ import {
   AccessorType,
   astEvaluate,
   connectable,
+  IBinding,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, implementAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, type IAstBasedBinding, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -20,16 +21,19 @@ import { createStateBindingScope } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateBinding extends IAstBasedBinding { }
-export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
+export class StateBinding implements IBinding, IStoreSubscriber<object> {
+  /** @internal */
   public readonly oL: IObserverLocator;
-  public locator: IServiceLocator;
+  /** @internal */
+  public l: IServiceLocator;
+
   public scope?: Scope | undefined;
   public isBound: boolean = false;
   public ast: IsBindingBehavior;
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
   private task: ITask | null = null;
-  private readonly taskQueue: TaskQueue;
+  /** @internal */ private readonly _taskQueue: TaskQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private targetObserver!: IAccessor;
@@ -55,8 +59,8 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     store: IStore<object>,
   ) {
     this._controller = controller;
-    this.locator = locator;
-    this.taskQueue = taskQueue;
+    this.l = locator;
+    this._taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
     this.ast = ast;
@@ -93,7 +97,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     targetAccessor.setValue(value, target, prop);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -108,7 +112,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -141,7 +145,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
+      this.task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
         this.task = null;
       }, updateTaskOpts);
@@ -176,7 +180,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
+      this.task = this._taskQueue.queueTask(() => {
         this.updateTarget(value);
         this.task = null;
       }, updateTaskOpts);
@@ -216,5 +220,5 @@ const updateTaskOpts: QueueTaskOptions = {
 };
 
 connectable(StateBinding);
-implementAstEvaluator(true)(StateBinding);
+mixinAstEvaluator(true)(StateBinding);
 mixingBindingLimited(StateBinding, () => 'updateTarget');

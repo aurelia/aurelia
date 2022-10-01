@@ -7,9 +7,10 @@ import {
   connectable,
   astEvaluate,
   astBind,
-  astUnbind
+  astUnbind,
+  IBinding
 } from '@aurelia/runtime';
-import { implementAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { mixinAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -20,11 +21,14 @@ import { createStateBindingScope } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateDispatchBinding extends IAstBasedBinding { }
-export class StateDispatchBinding implements IAstBasedBinding {
-  public locator: IServiceLocator;
+export class StateDispatchBinding implements IBinding {
+  /** @internal */
+  public readonly l: IServiceLocator;
+
   public scope?: Scope | undefined;
   public isBound: boolean = false;
   public ast: IsBindingBehavior;
+
   private readonly target: HTMLElement;
   private readonly targetProperty: string;
 
@@ -40,7 +44,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     prop: string,
     store: IStore<object>,
   ) {
-    this.locator = locator;
+    this.l = locator;
     this._store = store;
     this.ast = expr;
     this.target = target;
@@ -62,7 +66,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     this.callSource(e);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -73,7 +77,7 @@ export class StateDispatchBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -100,5 +104,5 @@ export class StateDispatchBinding implements IAstBasedBinding {
 }
 
 connectable(StateDispatchBinding);
-implementAstEvaluator(true)(StateDispatchBinding);
+mixinAstEvaluator(true)(StateDispatchBinding);
 mixingBindingLimited(StateDispatchBinding, () => 'callSource');

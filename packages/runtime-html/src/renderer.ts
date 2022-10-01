@@ -1212,7 +1212,7 @@ class SpreadBinding implements IBinding {
     return this.locator.get(key);
   }
 
-  public $bind(_scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
@@ -1222,11 +1222,11 @@ class SpreadBinding implements IBinding {
       throw createError('Invalid spreading. Context scope is null/undefined');
     }
 
-    this._innerBindings.forEach(b => b.$bind(innerScope));
+    this._innerBindings.forEach(b => b.bind(innerScope));
   }
 
-  public $unbind(): void {
-    this._innerBindings.forEach(b => b.$unbind());
+  public unbind(): void {
+    this._innerBindings.forEach(b => b.unbind());
     this.isBound = false;
   }
 

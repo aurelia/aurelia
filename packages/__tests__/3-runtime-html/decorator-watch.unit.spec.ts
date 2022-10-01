@@ -24,7 +24,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         true,
       );
 
-      watcher.$bind();
+      watcher.bind();
       assert.strictEqual(watcher['value'], undefined);
       assert.strictEqual(getCallCount, 1);
       assert.deepStrictEqual(callbackValues, []);
@@ -105,7 +105,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         false,
       );
 
-      watcher.$bind();
+      watcher.bind();
       assert.strictEqual(watcher['value'], undefined);
       assert.strictEqual(getCallCount, 1);
       assert.deepStrictEqual(callbackValues, []);
@@ -165,7 +165,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, []);
 
-      watcher.$bind();
+      watcher.bind();
       assert.strictEqual(evaluateCallCount, 1);
       assert.strictEqual(watcher['value'], 1);
       assert.deepStrictEqual(callbackValues, []);
@@ -175,7 +175,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.strictEqual(watcher['value'], 2);
       assert.deepStrictEqual(callbackValues, [2]);
 
-      watcher.$unbind();
+      watcher.unbind();
       assert.strictEqual(evaluateCallCount, 2);
       assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, [2]);

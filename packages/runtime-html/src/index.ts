@@ -115,7 +115,7 @@ export {
   FlushQueue,
   IFlushable,
   BindingTargetSubscriber,
-  implementAstEvaluator,
+  mixinAstEvaluator,
   mixingBindingLimited,
   mixinBindingUseScope as mixinUseScope,
 } from './binding/binding-utils';
@@ -223,7 +223,6 @@ export {
 } from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
-  type UpdateTriggerableBinding,
   type UpdateTriggerableObserver,
 } from './resources/binding-behaviors/update-trigger';
 

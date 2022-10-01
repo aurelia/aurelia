@@ -1,10 +1,10 @@
 import { IEventTarget } from '../dom';
 import { DelegationStrategy } from '../renderer';
 import { isFunction } from '../utilities';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
 import { type IEventDelegator } from '../observation/event-delegator';
 import { type IAstBasedBinding } from './interfaces-bindings';
 
@@ -24,13 +24,16 @@ export interface Listener extends IAstBasedBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export class Listener implements IAstBasedBinding {
+export class Listener implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope;
 
   private handler: IDisposable = null!;
   /** @internal */
   private readonly _options: ListenerOptions;
+
+  /** @internal */
+  public l: IServiceLocator;
 
   /**
    * Indicates if this binding evaluates an ast and get a function, that function should be bound
@@ -41,13 +44,14 @@ export class Listener implements IAstBasedBinding {
   public readonly boundFn = true;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: Node,
     public targetEvent: string,
     public eventDelegator: IEventDelegator,
     options: ListenerOptions,
   ) {
+    this.l = locator;
     this._options = options;
   }
 
@@ -74,12 +78,12 @@ export class Listener implements IAstBasedBinding {
     this.callSource(event);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -89,7 +93,7 @@ export class Listener implements IAstBasedBinding {
       this.target.addEventListener(this.targetEvent, this);
     } else {
       this.handler = this.eventDelegator.addEventListener(
-        this.locator.get(IEventTarget),
+        this.l.get(IEventTarget),
         this.target,
         this.targetEvent,
         this,
@@ -100,7 +104,7 @@ export class Listener implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -120,4 +124,4 @@ export class Listener implements IAstBasedBinding {
 
 mixinBindingUseScope(Listener);
 mixingBindingLimited(Listener, () => 'callSource');
-implementAstEvaluator(true, true)(Listener);
+mixinAstEvaluator(true, true)(Listener);

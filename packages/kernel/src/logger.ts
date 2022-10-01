@@ -1,9 +1,10 @@
-import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
+import { Metadata } from '@aurelia/metadata';
+import { all, createInterface, IContainer, ignore, IRegistry, optional } from './di';
+import { instanceRegistration, singletonRegistration } from './di.registration';
 import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
-import { getAnnotationKeyFor } from './resource';
-import { Metadata } from '@aurelia/metadata';
 import { IPlatform } from './platform';
+import { getAnnotationKeyFor } from './resource';
 import { createObject, defineMetadata, isFunction } from './utilities';
 
 export const enum LogLevel {
@@ -159,11 +160,11 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
-export const ISink = DI.createInterface<ISink>('ISink');
-export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
-export const ILogger = DI.createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
-export const ILogScopes = DI.createInterface<string[]>('ILogScope');
+export const ILogConfig = createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
+export const ISink = createInterface<ISink>('ISink');
+export const ILogEventFactory = createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+export const ILogger = createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
+export const ILogScopes = createInterface<string[]>('ILogScope');
 
 interface SinkDefinition {
   handles: Exclude<LogLevel, LogLevel.none>[];
@@ -179,11 +180,11 @@ export const LoggerSink = Object.freeze({
     return Metadata.get(this.key, target) as LogLevel[] | undefined;
   },
 });
-export function sink(definition: SinkDefinition) {
-  return function <TSink extends ISink>(target: Constructable<TSink>): Constructable<TSink> {
-    return LoggerSink.define(target, definition);
-  };
-}
+
+export const sink = (definition: SinkDefinition) => {
+  return <TSink extends ISink>(target: Constructable<TSink>): Constructable<TSink> =>
+    LoggerSink.define(target, definition);
+};
 
 export interface IConsoleLike {
   debug(message: string, ...optionalParams: unknown[]): void;
@@ -255,7 +256,7 @@ const getLogLevelString = (function () {
     } as const),
   ] as const;
 
-  return function (level: LogLevel, colorOptions: ColorOptions): string {
+  return (level: LogLevel, colorOptions: ColorOptions): string => {
     if (level <= LogLevel.trace) {
       return logLevelString[colorOptions].TRC;
     }
@@ -324,7 +325,7 @@ export class DefaultLogEventFactory implements ILogEventFactory {
 
 export class ConsoleSink implements ISink {
   public static register(container: IContainer) {
-    Registration.singleton(ISink, ConsoleSink).register(container);
+    singletonRegistration(ISink, ConsoleSink).register(container);
   }
 
   public readonly handleEvent: (event: ILogEvent) => void;
@@ -718,11 +719,11 @@ export const LoggerConfiguration = toLookup({
     return toLookup({
       register(container: IContainer): IContainer {
         container.register(
-          Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
+          instanceRegistration(ILogConfig, new LogConfig(colorOptions, level)),
         );
         for (const $sink of sinks) {
           if (isFunction($sink)) {
-            container.register(Registration.singleton(ISink, $sink));
+            container.register(singletonRegistration(ISink, $sink));
           } else {
             container.register($sink);
           }

@@ -5,7 +5,7 @@ import {
   ExpressionKind,
   ProxyObservable,
 } from '@aurelia/runtime';
-import { implementAstEvaluator } from '../binding/binding-utils';
+import { mixinAstEvaluator } from '../binding/binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -60,7 +60,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.run();
   }
 
-  public $bind(): void {
+  public bind(): void {
     if (this.isBound) {
       return;
     }
@@ -68,7 +68,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -121,7 +121,7 @@ export class ExpressionWatcher implements IConnectableBinding {
 
   public constructor(
     public scope: Scope,
-    public locator: IServiceLocator,
+    public l: IServiceLocator,
     public oL: IObserverLocator,
     private readonly expression: IsBindingBehavior,
     private readonly callback: IWatcherCallback<object>,
@@ -146,7 +146,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
   }
 
-  public $bind(): void {
+  public bind(): void {
     if (this.isBound) {
       return;
     }
@@ -156,7 +156,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -167,7 +167,6 @@ export class ExpressionWatcher implements IConnectableBinding {
 }
 
 connectable(ComputedWatcher);
-implementAstEvaluator(true)(ComputedWatcher);
 
 connectable(ExpressionWatcher);
-implementAstEvaluator(true)(ExpressionWatcher);
+mixinAstEvaluator(true)(ExpressionWatcher);

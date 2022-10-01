@@ -1,4 +1,4 @@
-import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr';
+import { getHmrCode } from './hmr';
 import * as path from 'path';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
@@ -78,12 +78,7 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   const m = modifyCode('', unit.path);
   const hmrEnabled = !hasViewModel && options.hmr && process.env.NODE_ENV !== 'production';
-  if (hmrEnabled) {
-    m.append(`import { ${hmrRuntimeModules.join(', ')} } from '@aurelia/runtime-html';\n`);
-    m.append(`import { ${hmrMetadataModules.join(', ')} } from '@aurelia/metadata';\n`);
-  } else {
-    m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
-  }
+  m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
   if (cssDeps.length > 0) {
     if (shadowMode !== null) {
       m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);

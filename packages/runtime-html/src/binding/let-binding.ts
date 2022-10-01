@@ -1,5 +1,5 @@
-import { astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { astBind, astEvaluate, astUnbind, connectable, IBinding } from '@aurelia/runtime';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -11,7 +11,7 @@ import type {
 import type { IAstBasedBinding } from './interfaces-bindings';
 export interface LetBinding extends IAstBasedBinding {}
 
-export class LetBinding implements IAstBasedBinding {
+export class LetBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope = void 0;
 
@@ -27,6 +27,9 @@ export class LetBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
   private _value: unknown;
 
   // see Listener binding for explanation
@@ -34,12 +37,13 @@ export class LetBinding implements IAstBasedBinding {
   public readonly boundFn = false;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
     toBindingContext: boolean = false,
   ) {
+    this.l = locator;
     this.oL = observerLocator;
     this._toBindingContext = toBindingContext;
   }
@@ -64,12 +68,12 @@ export class LetBinding implements IAstBasedBinding {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
     this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
@@ -82,7 +86,7 @@ export class LetBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -98,6 +102,6 @@ export class LetBinding implements IAstBasedBinding {
 mixinBindingUseScope(LetBinding);
 mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
-implementAstEvaluator(true)(LetBinding);
+mixinAstEvaluator(true)(LetBinding);
 
 let nV: unknown;

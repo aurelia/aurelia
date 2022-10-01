@@ -358,7 +358,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }
       ) => {
         assert.strictEqual(comp.divGetterCount, 10, 'shoulda called getter 10 times');
-        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
+        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from unbind */);
       }
     },
     {
@@ -385,7 +385,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         host,
         comp: { div: HTMLDivElement; divSetterCount: number; divGetterCount: number }
       ) => {
-        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
+        assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from unbind */);
       }
     },
     // #endregion ref-binding order

@@ -7,7 +7,7 @@ import {
   connectable
 } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -48,12 +48,13 @@ export class InterpolationBinding implements IBinding {
    * A semi-private property used by connectable mixin
    */
   public readonly oL: IObserverLocator;
+
   /** @internal */
   private readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly taskQueue: TaskQueue,
     public ast: Interpolation,
@@ -116,12 +117,12 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -129,13 +130,13 @@ export class InterpolationBinding implements IBinding {
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].$bind(scope);
+      partBindings[i].bind(scope);
     }
     this.updateTarget();
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -145,19 +146,18 @@ export class InterpolationBinding implements IBinding {
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].$unbind();
+      partBindings[i].unbind();
     }
     this.task?.cancel();
     this.task = null;
   }
 }
-implementAstEvaluator(true)(InterpolationBinding);
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
 export interface InterpolationPartBinding extends IAstBasedBinding {}
 
-export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSubscriber {
+export class InterpolationPartBinding implements IBinding, ICollectionSubscriber {
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
@@ -170,8 +170,13 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
   public _value: unknown = '';
   /**
    * A semi-private property used by connectable mixin
+   *
+   * @internal
    */
   public readonly oL: IObserverLocator;
+
+  /** @internal */
+  public readonly l: IServiceLocator;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -180,10 +185,11 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     public readonly ast: IsExpression,
     public readonly target: object,
     public readonly targetProperty: string,
-    public readonly locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public readonly owner: InterpolationBinding,
   ) {
+    this.l = locator;
     this.oL = observerLocator;
   }
 
@@ -220,12 +226,12 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -244,7 +250,7 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -260,14 +266,14 @@ export class InterpolationPartBinding implements IAstBasedBinding, ICollectionSu
 mixinBindingUseScope(InterpolationPartBinding);
 mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
 connectable(InterpolationPartBinding);
-implementAstEvaluator(true)(InterpolationPartBinding);
+mixinAstEvaluator(true)(InterpolationPartBinding);
 
 export interface ContentBinding extends IAstBasedBinding {}
 
 /**
  * A binding for handling the element content interpolation
  */
-export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
+export class ContentBinding implements IBinding, ICollectionSubscriber {
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
@@ -277,8 +283,13 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
   /**
    * A semi-private property used by connectable mixin
+   *
+   * @internal
    */
   public readonly oL: IObserverLocator;
+
+  /** @internal */
+  public readonly l: IServiceLocator;
 
   /** @internal */
   private _value: unknown = '';
@@ -290,7 +301,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 
   public constructor(
     controller: IBindingController,
-    public readonly locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     private readonly taskQueue: TaskQueue,
     private readonly p: IPlatform,
@@ -298,6 +309,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     public readonly target: Text,
     public readonly strict: boolean,
   ) {
+    this.l = locator;
     this._controller = controller;
     this.oL = observerLocator;
   }
@@ -369,12 +381,12 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     }
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -394,7 +406,7 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -426,4 +438,4 @@ export class ContentBinding implements IAstBasedBinding, ICollectionSubscriber {
 mixinBindingUseScope(ContentBinding);
 mixingBindingLimited(ContentBinding, () => 'updateTarget');
 connectable()(ContentBinding);
-implementAstEvaluator(void 0, false)(ContentBinding);
+mixinAstEvaluator(void 0, false)(ContentBinding);

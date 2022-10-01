@@ -1,25 +1,30 @@
-import { astAssign, astBind, astEvaluate, astUnbind, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
+import { astAssign, astBind, astEvaluate, astUnbind, IBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { IAstBasedBinding } from './interfaces-bindings';
+import { mixinAstEvaluator } from './binding-utils';
 
 export interface RefBinding extends IAstBasedBinding {}
-export class RefBinding implements IAstBasedBinding {
+export class RefBinding implements IBinding {
+  /** @internal */
+  public l: IServiceLocator;
   public isBound: boolean = false;
   public scope?: Scope = void 0;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: object,
-  ) {}
+  ) {
+    this.l = locator;
+  }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
 
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -31,7 +36,7 @@ export class RefBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -46,3 +51,5 @@ export class RefBinding implements IAstBasedBinding {
     this.scope = void 0;
   }
 }
+
+mixinAstEvaluator(false)(RefBinding);

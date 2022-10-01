@@ -1,6 +1,6 @@
-import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, ISubscriber } from '@aurelia/runtime';
+import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IBinding, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { implementAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
+import { mixinAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -23,7 +23,7 @@ const updateTaskOpts: QueueTaskOptions = {
 
 export interface PropertyBinding extends IAstBasedBinding {}
 
-export class PropertyBinding implements IAstBasedBinding {
+export class PropertyBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope = void 0;
 
@@ -42,6 +42,9 @@ export class PropertyBinding implements IAstBasedBinding {
   public readonly oL: IObserverLocator;
 
   /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
   private readonly _controller: IBindingController;
 
   /** @internal */
@@ -53,7 +56,7 @@ export class PropertyBinding implements IAstBasedBinding {
 
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
@@ -61,6 +64,7 @@ export class PropertyBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this.l = locator;
     this._controller = controller;
     this._taskQueue = taskQueue;
     this.oL = observerLocator;
@@ -108,12 +112,12 @@ export class PropertyBinding implements IAstBasedBinding {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -140,7 +144,7 @@ export class PropertyBinding implements IAstBasedBinding {
     }
 
     if ($mode & BindingMode.fromView) {
-      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.locator.get(IFlushQueue)));
+      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.l.get(IFlushQueue)));
       if (!shouldConnect) {
         this.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }
@@ -149,7 +153,7 @@ export class PropertyBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -187,6 +191,6 @@ export class PropertyBinding implements IAstBasedBinding {
 mixinBindingUseScope(PropertyBinding);
 mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & BindingMode.fromView) ? 'updateSource' : 'updateTarget');
 connectable(PropertyBinding);
-implementAstEvaluator(true, false)(PropertyBinding);
+mixinAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

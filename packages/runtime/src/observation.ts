@@ -6,11 +6,10 @@ import type { CollectionLengthObserver, CollectionSizeObserver } from './observa
 import { TaskQueue } from '@aurelia/platform';
 
 export interface IBinding {
-  readonly locator: IServiceLocator;
   readonly scope?: Scope;
   readonly isBound: boolean;
-  $bind(scope: Scope): void;
-  $unbind(): void;
+  bind(scope: Scope): void;
+  unbind(): void;
   get: IServiceLocator['get'];
   useScope(scope: Scope): void;
   limit(opts: IRateLimitOptions): IDisposable;

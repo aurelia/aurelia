@@ -1,11 +1,11 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
-  AccessorType, astBind, astEvaluate, astUnbind, connectable, IObserver
+  AccessorType, astBind, astEvaluate, astUnbind, connectable, IBinding, IObserver
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
 import { State } from '../templating/controller';
-import { implementAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type {
@@ -32,7 +32,7 @@ export interface AttributeBinding extends IAstBasedBinding {}
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export class AttributeBinding implements IAstBasedBinding {
+export class AttributeBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope = void 0;
   public task: ITask | null = null;
@@ -48,8 +48,10 @@ export class AttributeBinding implements IAstBasedBinding {
 
   /**
    * A semi-private property used by connectable mixin
+   *
+   * @internal
    */
-  public oL: IObserverLocator;
+  public readonly oL: IObserverLocator;
 
   /** @internal */
   private readonly _controller: IBindingController;
@@ -57,16 +59,21 @@ export class AttributeBinding implements IAstBasedBinding {
   /** @internal */
   private readonly _taskQueue: TaskQueue;
 
+  /** @internal */
+  public readonly l: IServiceLocator;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
+  public ast: IsBindingBehavior | ForOfStatement;
+
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     taskQueue: TaskQueue,
-    public ast: IsBindingBehavior | ForOfStatement,
+    ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -77,6 +84,8 @@ export class AttributeBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this.l = locator;
+    this.ast = ast;
     this._controller = controller;
     this.target = target as Element;
     this.oL = observerLocator;
@@ -124,12 +133,12 @@ export class AttributeBinding implements IAstBasedBinding {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
       if (this.scope === scope) {
         return;
       }
-      this.$unbind();
+      this.unbind();
     }
     this.scope = scope;
 
@@ -150,7 +159,7 @@ export class AttributeBinding implements IAstBasedBinding {
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
@@ -170,4 +179,4 @@ export class AttributeBinding implements IAstBasedBinding {
 mixinBindingUseScope(AttributeBinding);
 mixingBindingLimited(AttributeBinding, () => 'updateTarget');
 connectable(AttributeBinding);
-implementAstEvaluator(true)(AttributeBinding);
+mixinAstEvaluator(true)(AttributeBinding);

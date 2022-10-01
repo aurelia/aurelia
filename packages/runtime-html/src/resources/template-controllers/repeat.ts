@@ -220,8 +220,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
         let oldItem: IIndexable;
         let newItem: IIndexable;
-        let oldEnd = oldLen - 1;
-        let newEnd = newLen - 1;
+        const oldEnd = oldLen - 1;
+        const newEnd = newLen - 1;
         let oldKey: unknown;
         let newKey: unknown;
         let i = 0;
@@ -234,6 +234,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         // Step 1: narrow down the loop range as much as possible by checking the start and end for key equality
         outer: {
           // views with same key at start
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             oldKey = (oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])[key];
             newKey = (newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])[key];
@@ -256,6 +257,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
           // views with same key at end
           let j = newEnd;
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             oldKey = (oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j])[key];
             newKey = (newItem = isMap ? newItems[j][1] as IIndexable : newItems[j])[key];
@@ -273,8 +275,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         // Step 2: map keys to indices and adjust the indexMap
-        let oldStart = i;
-        let newStart = i;
+        const oldStart = i;
+        const newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
           if (keyMap.has(newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])) {

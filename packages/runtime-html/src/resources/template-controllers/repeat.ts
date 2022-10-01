@@ -176,36 +176,118 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const key = this.key;
     if (typeof key === 'string') {
       const local = this.local;
-      const newItems = this._normalizedItems!;
+      const newItems = this._normalizedItems as IIndexable[];
       const newLen = newItems.length;
-      const existingItems = new Set();
       indexMap = createIndexMap(oldLen);
 
-      for (let iOld = 0; iOld < oldLen; ++iOld) {
-        const view = oldViews[iOld];
-        const oldItem = view.scope.bindingContext[local] as IIndexable;
-        let found = false;
+      if (oldLen === 0) {
+        // Only add new views
+        for (let i = 0; i < newLen; ++i) {
+          indexMap[i] = -2;
+        }
+      } else if (newLen === 0) {
+        // Only remove old views
+        indexMap.length = 0;
+        for (let i = 0; i < oldLen; ++i) {
+          indexMap.deletedIndices.push(i);
+          indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
+        }
+      } else {
+        let oldItem: IIndexable;
+        let newItem: IIndexable;
+        let oldEnd = oldLen - 1;
+        let newEnd = newLen - 1;
+        let i = 0;
 
-        for (let iNew = 0; iNew < newLen; ++iNew) {
-          const newItem = newItems[iNew] as IIndexable;
-          if (oldItem[key] === newItem[key]) {
-            indexMap[iOld] = iNew;
-            found = true;
-            existingItems.add(newItem);
-            break;
+        outer: {
+          // views with same key at start
+          while (true) {
+            oldItem = oldViews[i].scope.bindingContext[local];
+            newItem = newItems[i];
+            if (oldItem[key] !== newItem[key]) {
+              break;
+            }
+
+            ++i;
+            if (i > oldEnd || i > newEnd) {
+              break outer;
+            }
+          }
+
+          // views with same key at end
+          while (true) {
+            oldItem = oldViews[oldEnd].scope.bindingContext[local];
+            newItem = newItems[newEnd];
+            if (oldItem[key] !== newItem[key]) {
+              break;
+            }
+
+            --oldEnd;
+            --newEnd;
+            if (i > oldEnd || i > newEnd) {
+              break outer;
+            }
           }
         }
 
-        if (!found) {
-          indexMap.deletedIndices.push(iOld);
-          indexMap.deletedItems.push(oldItem);
-        }
-      }
+        if (i > oldEnd) {
+          // only add new views at the end
+          while (i <= newEnd) {
+            indexMap[i] = -2;
+            ++i;
+          }
+        } else if (i > newEnd) {
+          // only remove old views at the end
+          while (i <= oldEnd) {
+            indexMap.deletedIndices.push(i);
+            indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
+            ++i;
+          }
+        } else {
+          let oldStart = i;
+          let newStart = i;
+          let oldKey: unknown;
+          let newKey: unknown;
+          let iNew: number;
+          let iOld: number;
 
-      for (let iNew = 0; iNew < newLen; ++iNew) {
-        const newItem = newItems[iNew] as IIndexable;
-        if (!existingItems.has(newItem)) {
-          indexMap[iNew] = -2;
+          // cache keys to prevent double eval of computed keys on the same item references (TODO: store itemsToKeys on repeater in a WeakMap?)
+          const itemsToKeys = new Map<IIndexable, unknown>();
+          const oldKeysToIndices = new Map<unknown, number>();
+          const newKeysToIndices = new Map<unknown, number>();
+          for (iNew = newStart; iNew < newLen; ++iNew) {
+            newItem = newItems[iNew];
+            newKey = newItem[key];
+            itemsToKeys.set(newItem, newKey);
+            newKeysToIndices.set(newKey, iNew);
+          }
+
+          for (iOld = oldStart; iOld < oldLen; ++iOld) {
+            oldItem = oldViews[iOld].scope.bindingContext[local];
+            if (itemsToKeys.has(oldItem)) {
+              oldKey = itemsToKeys.get(oldItem);
+            } else {
+              itemsToKeys.set(oldItem, oldKey = oldItem[key]);
+            }
+            oldKeysToIndices.set(oldKey, iOld);
+
+            if (newKeysToIndices.has(oldKey)) {
+              iNew = newKeysToIndices.get(oldKey)!;
+              indexMap[iOld] = iNew;
+            } else {
+              indexMap.deletedIndices.push(iOld);
+              indexMap.deletedItems.push(oldItem);
+            }
+          }
+
+          for (iNew = newStart; iNew < newLen; ++iNew) {
+            newItem = newItems[iNew];
+            newKey = itemsToKeys.get(newItem);
+
+            if (!oldKeysToIndices.has(newKey)) {
+              indexMap[iNew] = -2;
+            }
+          }
         }
       }
     }
@@ -635,3 +717,4 @@ const $number = (result: number, func: (item: number, index: number, arr: number
   }
 };
 
+const compareNumber = (a: number, b: number): number => a - b;

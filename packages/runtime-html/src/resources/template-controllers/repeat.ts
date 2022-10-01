@@ -177,8 +177,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     if (typeof key === 'string') {
       const local = this.local;
       const newItems = this._normalizedItems as IIndexable[];
+
       const newLen = newItems.length;
-      indexMap = createIndexMap(oldLen);
+      indexMap = createIndexMap(newLen);
 
       if (oldLen === 0) {
         // Only add new views
@@ -187,24 +188,38 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
       } else if (newLen === 0) {
         // Only remove old views
-        indexMap.length = 0;
         for (let i = 0; i < oldLen; ++i) {
           indexMap.deletedIndices.push(i);
           indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
         }
       } else {
+        const oldItems = Array<IIndexable>(oldLen);
+        for (let i = 0; i < oldLen; ++i) {
+          oldItems[i] = oldViews[i].scope.bindingContext[local];
+        }
+
         let oldItem: IIndexable;
         let newItem: IIndexable;
         let oldEnd = oldLen - 1;
         let newEnd = newLen - 1;
+        let oldKey: unknown;
+        let newKey: unknown;
         let i = 0;
 
+        // cache keys to prevent double eval of computed keys on the same item references (TODO: store itemsToKeys on repeater in a WeakMap?)
+        const keyMap = new Map<IIndexable, unknown>();
+        const oldIndices = new Map<unknown, number>();
+        const newIndices = new Map<unknown, number>();
+
+        // Step 1: narrow down the loop range as much as possible by checking the start and end for key equality
         outer: {
           // views with same key at start
           while (true) {
-            oldItem = oldViews[i].scope.bindingContext[local];
-            newItem = newItems[i];
-            if (oldItem[key] !== newItem[key]) {
+            oldKey = (oldItem = oldItems[i])[key];
+            newKey = (newItem = newItems[i])[key];
+            if (oldKey !== newKey) {
+              keyMap.set(oldItem, oldKey);
+              keyMap.set(newItem, newKey);
               break;
             }
 
@@ -212,83 +227,69 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             if (i > oldEnd || i > newEnd) {
               break outer;
             }
+          }
+
+          // TODO(perf): might be able to remove this condition with some offset magic?
+          if (oldEnd !== newEnd) {
+            break outer;
           }
 
           // views with same key at end
+          let j = newEnd;
           while (true) {
-            oldItem = oldViews[oldEnd].scope.bindingContext[local];
-            newItem = newItems[newEnd];
-            if (oldItem[key] !== newItem[key]) {
+            oldKey = (oldItem = oldItems[j])[key];
+            newKey = (newItem = newItems[j])[key];
+            if (oldKey !== newKey) {
+              keyMap.set(oldItem, oldKey);
+              keyMap.set(newItem, newKey);
               break;
             }
 
-            --oldEnd;
-            --newEnd;
-            if (i > oldEnd || i > newEnd) {
+            --j;
+            if (i > j) {
               break outer;
             }
           }
         }
 
-        if (i > oldEnd) {
-          // only add new views at the end
-          while (i <= newEnd) {
-            indexMap[i] = -2;
-            ++i;
+        // Step 2: map keys to indices and adjust the indexMap
+        let oldStart = i;
+        let newStart = i;
+
+        for (i = newStart; i <= newEnd; ++i) {
+          if (keyMap.has(newItem = newItems[i])) {
+            newKey = keyMap.get(newItem);
+          } else {
+            keyMap.set(newItem, newKey = newItem[key]);
           }
-        } else if (i > newEnd) {
-          // only remove old views at the end
-          while (i <= oldEnd) {
+          newIndices.set(newKey, i);
+        }
+
+        for (i = oldStart; i <= oldEnd; ++i) {
+          if (keyMap.has(oldItem = oldItems[i])) {
+            oldKey = keyMap.get(oldItem);
+          } else {
+            keyMap.set(oldItem, oldKey = oldItem[key]);
+          }
+          oldIndices.set(oldKey, i);
+
+          if (newIndices.has(oldKey)) {
+            indexMap[newIndices.get(oldKey)!] = i;
+          } else {
             indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
-            ++i;
-          }
-        } else {
-          let oldStart = i;
-          let newStart = i;
-          let oldKey: unknown;
-          let newKey: unknown;
-          let iNew: number;
-          let iOld: number;
-
-          // cache keys to prevent double eval of computed keys on the same item references (TODO: store itemsToKeys on repeater in a WeakMap?)
-          const itemsToKeys = new Map<IIndexable, unknown>();
-          const oldKeysToIndices = new Map<unknown, number>();
-          const newKeysToIndices = new Map<unknown, number>();
-          for (iNew = newStart; iNew < newLen; ++iNew) {
-            newItem = newItems[iNew];
-            newKey = newItem[key];
-            itemsToKeys.set(newItem, newKey);
-            newKeysToIndices.set(newKey, iNew);
-          }
-
-          for (iOld = oldStart; iOld < oldLen; ++iOld) {
-            oldItem = oldViews[iOld].scope.bindingContext[local];
-            if (itemsToKeys.has(oldItem)) {
-              oldKey = itemsToKeys.get(oldItem);
-            } else {
-              itemsToKeys.set(oldItem, oldKey = oldItem[key]);
-            }
-            oldKeysToIndices.set(oldKey, iOld);
-
-            if (newKeysToIndices.has(oldKey)) {
-              iNew = newKeysToIndices.get(oldKey)!;
-              indexMap[iOld] = iNew;
-            } else {
-              indexMap.deletedIndices.push(iOld);
-              indexMap.deletedItems.push(oldItem);
-            }
-          }
-
-          for (iNew = newStart; iNew < newLen; ++iNew) {
-            newItem = newItems[iNew];
-            newKey = itemsToKeys.get(newItem);
-
-            if (!oldKeysToIndices.has(newKey)) {
-              indexMap[iNew] = -2;
-            }
+            indexMap.deletedItems.push(oldItem);
           }
         }
+
+        for (i = newStart; i <= newEnd; ++i) {
+          if (!oldIndices.has(keyMap.get(newItems[i]))) {
+            indexMap[i] = -2;
+          }
+        }
+
+        keyMap.clear();
+        oldIndices.clear();
+        newIndices.clear();
       }
     }
 

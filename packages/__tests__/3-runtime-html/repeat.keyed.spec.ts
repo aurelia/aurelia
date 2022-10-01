@@ -1,488 +1,584 @@
 import { batch } from '@aurelia/runtime';
-import { Aurelia, Controller, CustomElement } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("repeat.keyed", function () {
-  function createFixture() {
-    const ctx = TestContext.create();
-    const au = new Aurelia(ctx.container);
-    const host = ctx.createElement("div");
-    return { au, host, w: ctx.wnd };
+  function $(k: number) {
+    return new Item(`${k}`);
   }
-
   class Item {
     constructor(
       public k: string,
     ) {}
   }
 
-  it("non-keyed - simple replacement", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+  class Component {
+    constructor(
+      public items: Item[],
+    ) {}
+  }
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items">\${i.k}</div>`
-      },
-      class {
-        items = items;
+  type $ctx = {
+    au: Aurelia;
+    host: HTMLElement;
+    mutations: MutationRecord[];
+    mutate: (cb: () => void) => Promise<void>;
+    component: ICustomElementViewModel & Component;
+  };
+
+  describe('non-keyed', function () {
+    async function testFn(fn: (ctx: $ctx) => Promise<void>) {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const host = ctx.createElement("div");
+
+      const App = CustomElement.define(
+        {
+          name: "app",
+          template: `<div repeat.for="i of items">\${i.k}</div>`
+        },
+        Component,
+      );
+
+      const mutations: MutationRecord[] = [];
+      const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
+
+      const component = new App();
+      au.app({ host, component });
+
+      async function mutate(cb: () => void) {
+        obs.observe(host, { childList: true });
+        cb();
+        await Promise.resolve();
+        obs.disconnect();
       }
-    );
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+      await fn({ au, host, mutations, mutate, component });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+      await au.stop();
+      au.dispose();
+    }
 
-    obs.observe(host, { childList: true });
-    const $$4 = new Item('4');
-    items.splice(4, 1, $$4);
-    await Promise.resolve();
-    obs.disconnect();
+    function $it(title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it(title, async function () { await testFn.bind(this)(fn); });
+    }
+    $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it.only(title, async function () { await testFn.bind(this)(fn); });
+    }
+    $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it.skip(title, async function () { await testFn.bind(this)(fn); });
+    }
 
-    assert.strictEqual(host.textContent, '01234');
-    assert.strictEqual(mutations!.length, 2);
+    $it('simple replacement', async function ({ au, host, mutations, mutate, component }) {
+      component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    await au.stop();
+      await au.start();
+      assert.strictEqual(host.textContent, '01234');
 
-    au.dispose();
-  });
+      await mutate(() => {
+        const $$4 = $(4);
+        component.items.splice(4, 1, $$4);
+      });
 
-  it("non-keyed - simple move", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
-
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
-
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
-
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
-
-    obs.observe(host, { childList: true });
-    batch(() => {
-      items.splice(4, 1, $0);
-      items.splice(0, 1, $4);
+      assert.strictEqual(host.textContent, '01234');
+      assert.strictEqual(mutations!.length, 2);
     });
-    await Promise.resolve();
-    obs.disconnect();
 
-    assert.strictEqual(host.textContent, '41230');
-    assert.strictEqual(mutations!.length, 4);
+    $it('simple move', async function ({ au, host, mutations, mutate, component }) {
+      const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    await au.stop();
+      await au.start();
+      assert.strictEqual(host.textContent, '01234');
 
-    au.dispose();
-  });
+      await mutate(() => {
+        batch(() => {
+          component.items.splice(4, 1, $0);
+          component.items.splice(0, 1, $4);
+        });
+      });
 
-  it("keyed - simple replacement (same key, same pos)", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
-
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
-
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
-
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
-
-    obs.observe(host, { childList: true });
-    const $$4 = new Item('4');
-    items.splice(4, 1, $$4);
-    await Promise.resolve();
-    obs.disconnect();
-
-    assert.strictEqual(host.textContent, '01234');
-    assert.strictEqual(mutations, null);
-
-    await au.stop();
-
-    au.dispose();
-  });
-
-  it("keyed - simple move (same key)", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
-
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
-
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
-
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
-
-    obs.observe(host, { childList: true });
-    batch(() => {
-      items.splice(4, 1, $0);
-      items.splice(0, 1, $4);
+      assert.strictEqual(host.textContent, '41230');
+      assert.strictEqual(mutations!.length, 4);
     });
-    await Promise.resolve();
-    obs.disconnect();
-
-    assert.strictEqual(host.textContent, '41230');
-    assert.strictEqual(mutations!.length, 4);
-
-    await au.stop();
-
-    au.dispose();
   });
 
-  it("keyed - simple mutation (different key)", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+  describe('keyed', function () {
+    async function testFn(fn: (ctx: $ctx) => Promise<void>) {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const host = ctx.createElement("div");
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
+      const App = CustomElement.define(
+        {
+          name: "app",
+          template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
+        },
+        Component,
+      );
+
+      const mutations: MutationRecord[] = [];
+      const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
+
+      const component = new App();
+      au.app({ host, component });
+
+      async function mutate(cb: () => void) {
+        obs.observe(host, { childList: true });
+        cb();
+        await Promise.resolve();
+        obs.disconnect();
       }
-    );
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+      await fn({ au, host, mutations, mutate, component });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+      await au.stop();
+      au.dispose();
+    }
 
-    obs.observe(host, { childList: true });
-    const $5 = new Item('5');
-    items.splice(4, 1, $5);
-    await Promise.resolve();
-    obs.disconnect();
+    function $it(title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it(title, async function () { await testFn.bind(this)(fn); });
+    }
+    $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it.only(title, async function () { await testFn.bind(this)(fn); });
+    }
+    $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
+      it.skip(title, async function () { await testFn.bind(this)(fn); });
+    }
 
-    assert.strictEqual(host.textContent, '01235');
-    assert.strictEqual(mutations!.length, 2);
+    describe('array replacement', function () {
+      $it('no initial items, only additions', async function ({ au, host, mutations, mutate, component }) {
+        await au.start();
+        assert.strictEqual(host.textContent, '');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 5);
+      });
 
-  it("index assignment - same items", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('2 initial items, 3 additions at end', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '01');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-    obs.observe(host, { childList: true });
-    items[1] = $3;
-    items[3] = $1;
-    const $5 = new Item('5');
-    items.push($5);
-    await Promise.resolve();
-    obs.disconnect();
+      $it('2 initial items, 3 additions at start', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(3), $(4)];
 
-    assert.strictEqual(host.textContent, '032145');
-    assert.strictEqual(mutations!.length, 5);
+        await au.start();
+        assert.strictEqual(host.textContent, '34');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-  it("index assignment - new items with same key", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('2 initial items, 3 additions in middle', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(4)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '04');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-    obs.observe(host, { childList: true });
-    items[0] = new Item('0');
-    items[1] = new Item('1');
-    items[2] = new Item('2');
-    items[3] = new Item('3');
-    items[4] = new Item('4');
-    const $$5 = new Item('5');
-    items.push($$5);
-    await Promise.resolve();
-    obs.disconnect();
+      $it('2 initial items, 3 additions interleaved', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(1), $(3)];
 
-    assert.strictEqual(host.textContent, '012345');
-    assert.strictEqual(mutations!.length, 1); // 1x add
+        await au.start();
+        assert.strictEqual(host.textContent, '13');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-  it("array replacement - same items, no moves", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('2 initial items, 1/2 additions interleaved', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(1), $(2)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '12');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-    obs.observe(host, { childList: true });
-    component.items = [$0, $1, $2, $3, $4];
-    await Promise.resolve();
-    obs.disconnect();
+      $it('2 initial items, 2/1 additions interleaved', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(2), $(3)];
 
-    assert.strictEqual(host.textContent, '01234');
-    assert.strictEqual(mutations, null);
+        await au.start();
+        assert.strictEqual(host.textContent, '23');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-  it("array replacement - same items, 2 moves", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('remove all initial items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '');
+        assert.strictEqual(mutations!.length, 5);
+      });
 
-    obs.observe(host, { childList: true });
-    component.items = [$4, $1, $2, $3, $0];
-    await Promise.resolve();
-    obs.disconnect();
+      $it('remove first 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    assert.strictEqual(host.textContent, '41230');
-    assert.strictEqual(mutations!.length, 4); // 2x move
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(3), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '34');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-  it("array replacement - new items with same key, no moves", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('remove last 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [$(0), $(1)];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '01');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-    obs.observe(host, { childList: true });
-    component.items = [
-      new Item('0'),
-      new Item('1'),
-      new Item('2'),
-      new Item('3'),
-      new Item('4'),
-    ];
-    await Promise.resolve();
-    obs.disconnect();
+      $it('remove middle 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    assert.strictEqual(host.textContent, '01234');
-    assert.strictEqual(mutations, null);
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(0), $(4)];
+        });
 
-    au.dispose();
-  });
+        assert.strictEqual(host.textContent, '04');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-  it("array replacement - new items with same key, 2 moves", async function () {
-    const { au, host, w } = createFixture();
-    const $0 = new Item('0');
-    const $1 = new Item('1');
-    const $2 = new Item('2');
-    const $3 = new Item('3');
-    const $4 = new Item('4');
-    const items = [$0, $1, $2, $3, $4];
+      $it('remove 3 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    const App = CustomElement.define(
-      {
-        name: "app",
-        template: `<div repeat.for="i of items" key="k">\${i.k}</div>`
-      },
-      class {
-        items = items;
-      }
-    );
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    let mutations: MutationRecord[] | null = null;
-    const obs = new w.MutationObserver(_mutations => mutations = _mutations);
+        await mutate(() => {
+          component.items = [$(1), $(3)];
+        });
 
-    const component = new App();
-    au.app({ host, component });
-    await au.start();
-    assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(host.textContent, '13');
+        assert.strictEqual(mutations!.length, 3);
+      });
 
-    obs.observe(host, { childList: true });
-    component.items = [
-      new Item('0'),
-      new Item('3'),
-      new Item('2'),
-      new Item('1'),
-      new Item('4'),
-    ];
-    await Promise.resolve();
-    obs.disconnect();
+      $it('remove 1/2 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
 
-    assert.strictEqual(host.textContent, '03214');
-    assert.strictEqual(mutations!.length, 4);
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
 
-    await au.stop();
+        await mutate(() => {
+          component.items = [$(1), $(4)];
+        });
 
-    au.dispose();
+        assert.strictEqual(host.textContent, '14');
+        assert.strictEqual(mutations!.length, 3);
+      });
+
+      $it('remove 2/1 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(3)];
+        });
+
+        assert.strictEqual(host.textContent, '03');
+        assert.strictEqual(mutations!.length, 3);
+      });
+
+      $it('replace all initial items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(5), $(6), $(7), $(8), $(9)];
+        });
+
+        assert.strictEqual(host.textContent, '56789');
+        assert.strictEqual(mutations!.length, 10);
+      });
+
+      $it('replace first 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(5), $(6), $(7), $(3), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '56734');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('replace last 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(1), $(7), $(8), $(9)];
+        });
+
+        assert.strictEqual(host.textContent, '01789');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('replace middle 3 items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(6), $(7), $(8), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '06784');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('replace 3 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(5), $(1), $(7), $(3), $(9)];
+        });
+
+        assert.strictEqual(host.textContent, '51739');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('replace 1/2 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(5), $(1), $(7), $(8), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '51784');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('replace 2/1 interleaved items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(5), $(6), $(2), $(8), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '56284');
+        assert.strictEqual(mutations!.length, 6);
+      });
+
+      $it('same items, no moves', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$0, $1, $2, $3, $4];
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 0);
+      });
+
+      $it('same items, 2 moves', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$4, $1, $2, $3, $0];
+        });
+
+        assert.strictEqual(host.textContent, '41230');
+        assert.strictEqual(mutations!.length, 4); // 2x move
+      });
+
+      $it('new items with same key, no moves', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 0);
+      });
+
+      $it('new items with same key, 2 moves', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(3), $(2), $(1), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '03214');
+        assert.strictEqual(mutations!.length, 4);
+      });
+    });
+
+    describe('item replacement', function () {
+      $it('same key, same pos', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items.splice(4, 1, $(4));
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations!.length, 0);
+      });
+
+      $it('different key', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items.splice(4, 1, $(5));
+        });
+
+        assert.strictEqual(host.textContent, '01235');
+        assert.strictEqual(mutations!.length, 2);
+      });
+    });
+
+    describe('item swap', function () {
+      $it('same key', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          batch(() => {
+            component.items.splice(4, 1, $0);
+            component.items.splice(0, 1, $4);
+          });
+        });
+
+        assert.strictEqual(host.textContent, '41230');
+        assert.strictEqual(mutations!.length, 4);
+      });
+    });
+
+    describe('index assignment', function () {
+      $it('same items', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items[1] = $3;
+          component.items[3] = $1;
+          component.items.push($(5));
+        });
+
+        assert.strictEqual(host.textContent, '032145');
+        assert.strictEqual(mutations!.length, 5);
+      });
+
+      $it('new items with same key', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items[0] = $(0);
+          component.items[1] = $(1);
+          component.items[2] = $(2);
+          component.items[3] = $(3);
+          component.items[4] = $(4);
+          component.items.push($(5));
+        });
+
+        assert.strictEqual(host.textContent, '012345');
+        assert.strictEqual(mutations!.length, 1); // 1x add
+      });
+    });
   });
 });

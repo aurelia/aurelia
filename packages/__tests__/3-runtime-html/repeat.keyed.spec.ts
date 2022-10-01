@@ -65,10 +65,10 @@ describe("repeat.keyed", function () {
       }
       $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.only(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
       $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.skip(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
 
       $it('simple replacement', async function ({ au, host, mutations, mutate, component }) {
         component.items = [$(0), $(1), $(2), $(3), $(4)];
@@ -141,10 +141,10 @@ describe("repeat.keyed", function () {
       }
       $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.only(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
       $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.skip(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
 
       describe('array replacement', function () {
         $it('no initial items, only additions', async function ({ au, host, mutations, mutate, component }) {
@@ -1671,10 +1671,10 @@ describe("repeat.keyed", function () {
       }
       $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.only(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
       $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.skip(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
 
       describe('set replacement', function () {
         $it('no initial items, only additions', async function ({ au, host, mutations, mutate, component }) {
@@ -1977,10 +1977,10 @@ describe("repeat.keyed", function () {
       }
       $it.only = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.only(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
       $it.skip = function (title: string, fn: (ctx: $ctx) => Promise<void>) {
         it.skip(title, async function () { await testFn.bind(this)(fn); });
-      }
+      };
 
       describe('map replacement', function () {
         $it('no initial items, only additions', async function ({ au, host, mutations, mutate, component }) {

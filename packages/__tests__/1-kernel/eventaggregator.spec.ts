@@ -124,8 +124,8 @@ describe('event aggregator', function () {
         ea.subscribe(DinnerEvent, callback);
 
         assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
-        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, `ea.messageHandlers[0].messageType`);
-        assert.strictEqual(ea.messageHandlers[0].callback, callback, `ea.messageHandlers[0].callback`);
+        assert.strictEqual(ea.messageHandlers[0].type, DinnerEvent, `ea.messageHandlers[0].type`);
+        assert.strictEqual(ea.messageHandlers[0].cb, callback, `ea.messageHandlers[0].cb`);
       });
 
       it('removes the handler after execution', function () {
@@ -254,9 +254,9 @@ describe('event aggregator', function () {
         ea.subscribeOnce(DinnerEvent, callback);
 
         assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
-        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, `ea.messageHandlers[0].messageType`);
-        assert.strictEqual(ea.messageHandlers[0].callback === callback, false, `ea.messageHandlers[0].callback === callback`);
-        assert.strictEqual(typeof ea.messageHandlers[0].callback === 'function', true, `typeof ea.messageHandlers[0].callback === 'function'`);
+        assert.strictEqual(ea.messageHandlers[0].type, DinnerEvent, `ea.messageHandlers[0].type`);
+        assert.strictEqual(ea.messageHandlers[0].cb === callback, false, `ea.messageHandlers[0].cb === callback`);
+        assert.strictEqual(typeof ea.messageHandlers[0].cb === 'function', true, `typeof ea.messageHandlers[0].cb === 'function'`);
 
       });
 

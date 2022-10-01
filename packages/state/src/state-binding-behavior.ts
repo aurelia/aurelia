@@ -1,61 +1,59 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Writable } from '@aurelia/kernel';
-import { BindingBehaviorExpression, IOverrideContext, Scope } from '@aurelia/runtime';
-import { bindingBehavior, BindingInterceptor, IInterceptableBinding, } from '@aurelia/runtime-html';
+import { IBinding, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
+import { bindingBehavior } from '@aurelia/runtime-html';
 import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
-import { createStateBindingScope, defProto } from './state-utilities';
+import { createStateBindingScope } from './state-utilities';
+
+const bindingStateSubscriberMap = new WeakMap<IBinding, StateSubscriber>();
 
 @bindingBehavior('state')
-export class StateBindingBehavior extends BindingInterceptor implements IStoreSubscriber<object> {
+export class StateBindingBehavior {
   /** @internal */protected static inject = [IStore];
 
   /** @internal */private readonly _store: IStore<object>;
-  /** @internal */private readonly _isStateBinding: boolean;
 
   public constructor(
     store: IStore<object>,
-    binding: IInterceptableBinding,
-    expr: BindingBehaviorExpression,
   ) {
-    super(binding, expr);
     this._store = store;
-    this._isStateBinding = binding instanceof StateBinding;
   }
 
-  public $bind(scope: Scope): void {
-    const binding = this.binding;
-    const $scope = this._isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
-    if (!this._isStateBinding) {
-      this._store.subscribe(this);
+  public bind(scope: Scope, binding: IBinding): void {
+    const isStateBinding = binding instanceof StateBinding;
+    scope = isStateBinding ? scope : createStateBindingScope(this._store.getState(), scope);
+    let subscriber: StateSubscriber | undefined;
+    if (!isStateBinding) {
+      subscriber = bindingStateSubscriberMap.get(binding);
+      if (subscriber == null) {
+        bindingStateSubscriberMap.set(binding, subscriber = new StateSubscriber(binding, scope));
+      } else {
+        subscriber._wrappedScope = scope;
+      }
+      this._store.subscribe(subscriber);
+      binding.useScope(scope);
     }
-    binding.$bind($scope);
   }
 
-  public $unbind(): void {
-    if (!this._isStateBinding) {
-      this._store.unsubscribe(this);
+  public unbind(scope: Scope, binding: IBinding): void {
+    const isStateBinding = binding instanceof StateBinding;
+    if (!isStateBinding) {
+      this._store.unsubscribe(bindingStateSubscriberMap.get(binding)!);
+      bindingStateSubscriberMap.delete(binding);
     }
-    this.binding.$unbind();
-  }
-
-  public handleStateChange(state: object): void {
-    const $scope = this.$scope!;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
-    this.binding.handleChange(undefined, undefined);
   }
 }
 
-['target', 'targetProperty'].forEach(p => {
-  defProto(StateBindingBehavior, p, {
-    enumerable: false,
-    configurable: true,
-    get(this: BindingInterceptor) {
-      return (this.binding as any)[p];
-    },
-    set(this: BindingInterceptor, v: unknown) {
-      (this.binding as any)[p] = v;
-    }
-  });
-});
+class StateSubscriber implements IStoreSubscriber<object> {
+  public constructor(
+    public _binding: IBinding,
+    public _wrappedScope: Scope,
+  ) {}
+
+  public handleStateChange(state: object): void {
+    const scope = this._wrappedScope;
+    const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
+    scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    (this._binding as unknown as ISubscriber).handleChange?.(undefined, undefined);
+  }
+}

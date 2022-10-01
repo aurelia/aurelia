@@ -2,6 +2,25 @@
 
 Aurelia 2 is a complete rewrite of Aurelia that shares many of the same loved and familiar features of Aurelia 1. Understandably, in the spirit of progress, not everything is the same. In this section, we are going to guide you through what has changed and how you can migrate over your Aurelia 1 applications to Aurelia 2.
 
+## COMPAT PACKAGE
+
+An quickest way to get an application in v1 up an running in v2 is to include the compat package. It can be done via 2 steps:
+
+1. installing the compat package via
+  ```
+  npm install @aurelia/compat-v1
+  ```
+2. include the compat package into your app:
+  ```ts
+  import { compatRegistration } from '@aurelia/compat-v1';
+
+  ...
+  Aurelia
+    .register(compatRegistration, ...)
+    .app(...)
+    .start()
+  ```
+
 ## BREAKING CHANGES
 
 ### Scope selection

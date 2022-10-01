@@ -71,14 +71,14 @@ module.exports =
     // todo: probably will need something else to run the tests in the browser in the future
     { type: 'script', watched: true,            included: true,  nocache: true,   pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
-    { type: 'module', watched: !hasSingleRun,   included: true,  nocache: false,  pattern: `${baseUrl}/setup-browser.js` }, // 1.1
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-shared.js` }, // 1.2
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/setup-shared.js.map` }, // 1.2
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/util.js` }, // 1.3
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/util.js.map` }, // 1.3
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js` }, // 1.4
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: false,  pattern: `${baseUrl}/Spy.js.map` }, // 1.4
+    { type: 'module', watched: true,            included: true,  nocache: true,   pattern: `${baseUrl}/setup-browser.js` }, // 1.1
+    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
+    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js` }, // 1.2
+    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js.map` }, // 1.2
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js` }, // 1.3
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js.map` }, // 1.3
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js` }, // 1.4
+    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js.map` }, // 1.4
     { type: 'none', watched: false, included: false, nocache: true, pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
@@ -90,8 +90,8 @@ module.exports =
     ), // 2.1 (new)
     ...testDirs.flatMap(name => [
       // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
@@ -116,12 +116,13 @@ module.exports =
       if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
-        p[file.pattern] = process.env.CI || isFirefox
-          ? ['aurelia', 'karma-coverage-istanbul-instrumenter']
-          : [
-            ...(/packages\/[a-z]+\/dist\/esm\/index\.mjs(\.map)?$/.test(file.pattern) ? [] : ['aurelia']),
-            'karma-coverage-istanbul-instrumenter'
-          ];
+        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter']
+        // p[file.pattern] = process.env.CI || isFirefox
+        //   ? ['aurelia', 'karma-coverage-istanbul-instrumenter']
+        //   : [
+        //     ...(/packages\/[a-z]+\/dist\/esm\/index\.mjs(\.map)?$/.test(file.pattern) ? [] : ['aurelia']),
+        //     'karma-coverage-istanbul-instrumenter'
+        //   ];
       }
     }
     return p;
@@ -130,7 +131,7 @@ module.exports =
   /** @type {import('karma').ConfigOptions} */
   const options = {
     basePath,
-    browserDisconnectTimeout: 30 * 60 * 10000,
+    browserDisconnectTimeout: 30 * 60 * 1000,
     browserNoActivityTimeout: process.env.CI ? 10000 : 30 * 60 * 1000,
     processKillTimeout: 10000,
     frameworks: [
@@ -187,60 +188,68 @@ module.exports =
       'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-firefox-launcher',
-      // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
-      // for light-weight-ness
-      {
-        'reporter:clear-screen': ['type', function ClearScreenReporter() {
-          let runId = 0;
-          this.onRunStart = function () {
-            console.log("\u001b[2J\u001b[0;0H");
-            console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
-          };
-        }]
-      },
-      {'middleware:aurelia-karma-loader': ['factory', function CustomMiddlewareFactory (config) {        /** @type {Record<string, string>} */
-        const resourceCache = {};
-        /**
-         * @param { import('express').Request } request
-         * @param { import('http').ServerResponse } response
-         */
-        return function (request, response, next) {
-          const requestUrl = request.url;
-          if (requestUrl.includes('env-variables.js')) {
-            response.end(`var process={env:${JSON.stringify({
-              BROWSERS: browsers[0],
-            })}}`);
-            return;
-          }
-          // some tests has images and it could cause a lot of noises related image loading errors
-          // just disable it via returning an empty one
-          if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg') || requestUrl.endsWith('.svg')) {
-            response.setHeader('Content-Type', mimetypes.jpeg);
-            response.end('');
-            return;
-          }
+      // @ts-ignore
+      ...(() => {
+        let runId = 0;
+        /** @type {Record<string, string>} */
+        let resourceCache = {};
 
-          if (process.env.CI || isFirefox) {
-            next();
-            return;
-          }
-          const cachedCode = resourceCache[requestUrl];
-          if (cachedCode != null) {
-            response.setHeader('Content-Type', mimetypes.js);
-            response.end(cachedCode);
-            return;
-          }
-          const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace(/(\.js)?$/, '.js'));
-          if (fs.existsSync(maybeFilePath)) {
-            const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
-            response.setHeader('Content-Type', mimetypes.js);
-            response.end(jsCode);
-            return;
-          }
-
-          next();
-        }
-      }]}
+        return [
+          // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
+          // for light-weight-ness
+          {
+            'reporter:clear-screen': ['type', function ClearScreenReporter() {
+              this.onRunStart = function () {
+                resourceCache = {};
+                console.log("\u001b[2J\u001b[0;0H");
+                console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
+              };
+            }]
+          },
+          {'middleware:aurelia-karma-loader': ['factory', function CustomMiddlewareFactory (config) {
+            /**
+             * @param { import('express').Request } request
+             * @param { import('http').ServerResponse } response
+             */
+            return function (request, response, next) {
+              const requestUrl = request.url;
+              if (requestUrl.includes('env-variables.js')) {
+                response.end(`var process={env:${JSON.stringify({
+                  BROWSERS: browsers[0],
+                })}}`);
+                return;
+              }
+              // some tests has images and it could cause a lot of noises related image loading errors
+              // just disable it via returning an empty one
+              if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg') || requestUrl.endsWith('.svg')) {
+                response.setHeader('Content-Type', mimetypes.jpeg);
+                response.end('');
+                return;
+              }
+    
+              if (process.env.CI || isFirefox) {
+                next();
+                return;
+              }
+              const cachedCode = resourceCache[requestUrl];
+              if (cachedCode != null) {
+                response.setHeader('Content-Type', mimetypes.js);
+                response.end(cachedCode);
+                return;
+              }
+              const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace(/(\.m?js)(\.map)?(\??.+)?$/, '$1$2'));
+              if (fs.existsSync(maybeFilePath)) {
+                const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
+                response.setHeader('Content-Type', mimetypes.js);
+                response.end(jsCode);
+                return;
+              }
+    
+              next();
+            }
+          }]}
+        ]
+      })()
     ]
   };
 

@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-returns-check */
 /**
  * Determine whether a value is an object.
  *
@@ -995,13 +996,13 @@ export const Metadata = {
   delete: $delete,
 };
 
-function def(
+const def = (
   obj: object,
   key: string,
   value: unknown,
   writable: boolean,
   configurable: boolean,
-): void {
+) => {
   if (!Reflect.defineProperty(obj, key, {
     writable,
     enumerable: false,
@@ -1010,41 +1011,40 @@ function def(
   })) {
     throw __DEV__
       ? createError(`AUR1000: Unable to apply metadata polyfill: could not add property '${key}' to the global Reflect object`)
-      : createError(`AUR1000`);
+      : createError(`AUR1000:${key}`);
   }
-}
+};
 
 const internalSlotName = '[[$au]]';
-function hasInternalSlot(reflect: typeof Reflect): reflect is typeof Reflect & { [internalSlotName]: typeof metadataInternalSlot } {
+const hasInternalSlot = (reflect: typeof Reflect): reflect is typeof Reflect & { [internalSlotName]: typeof metadataInternalSlot } => {
   return internalSlotName in reflect;
-}
+};
 
-function $applyMetadataPolyfill(
+const $applyMetadataPolyfill = (
   reflect: typeof Reflect,
   writable: boolean,
   configurable: boolean,
-): void {
-  def(reflect, internalSlotName, metadataInternalSlot, writable, configurable);
+): void => ([
+    [internalSlotName, metadataInternalSlot],
+    ['metadata', metadata],
+    ['decorate', decorate],
+    ['defineMetadata', $define],
+    ['hasMetadata', $has],
+    ['hasOwnMetadata', $hasOwn],
+    ['getMetadata', $get],
+    ['getOwnMetadata', $getOwn],
+    ['getMetadataKeys', $getKeys],
+    ['getOwnMetadataKeys', $getOwnKeys],
+    ['deleteMetadata', $delete],
+  ] as const).forEach(([key, value]) => def(reflect, key, value, writable, configurable));
 
-  def(reflect, 'metadata', metadata, writable, configurable);
-  def(reflect, 'decorate', decorate, writable, configurable);
-  def(reflect, 'defineMetadata', $define, writable, configurable);
-  def(reflect, 'hasMetadata', $has, writable, configurable);
-  def(reflect, 'hasOwnMetadata', $hasOwn, writable, configurable);
-  def(reflect, 'getMetadata', $get, writable, configurable);
-  def(reflect, 'getOwnMetadata', $getOwn, writable, configurable);
-  def(reflect, 'getMetadataKeys', $getKeys, writable, configurable);
-  def(reflect, 'getOwnMetadataKeys', $getOwnKeys, writable, configurable);
-  def(reflect, 'deleteMetadata', $delete, writable, configurable);
-}
-
-export function applyMetadataPolyfill(
+export const applyMetadataPolyfill = (
   reflect: typeof Reflect,
   throwIfConflict: boolean = true,
   forceOverwrite: boolean = false,
   writable: boolean = true,
   configurable: boolean = true,
-): void {
+): void => {
   if (hasInternalSlot(reflect)) {
     if (reflect[internalSlotName] === metadataInternalSlot) {
       return;
@@ -1060,20 +1060,10 @@ export function applyMetadataPolyfill(
       : createError(`AUR1001`);
   }
 
-  const presentProps = [
-    'metadata',
-    'decorate',
-    'defineMetadata',
-    'hasMetadata',
-    'hasOwnMetadata',
-    'getMetadata',
-    'getOwnMetadata',
-    'getMetadataKeys',
-    'getOwnMetadataKeys',
-    'deleteMetadata',
-  ].filter(function (p) {
-    return p in Reflect;
-  });
+  const presentProps =
+    'metadata decorate defineMetadata hasMetadata hasOwnMetadata getMetadata getOwnMetadata getMetadataKeys getOwnMetadataKeys deleteMetadata'
+      .split(' ')
+      .filter(p => p in Reflect);
 
   if (presentProps.length > 0) {
     if (throwIfConflict) {
@@ -1090,6 +1080,6 @@ export function applyMetadataPolyfill(
   } else {
     $applyMetadataPolyfill(reflect, writable, configurable);
   }
-}
+};
 
 const createError = (message: string) => new Error(message);

@@ -93,13 +93,13 @@ export async function createFixture<T extends Constructable>(
 /**
  * Simpler fixture creation.
  */
-export async function start<TAppRoot>(appRoot: Class<TAppRoot>, ...registrations: any[]) {
+export async function start<TAppRoot>(appRoot: Class<TAppRoot>, useHash: boolean = false, ...registrations: any[]) {
   const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(
     TestRouterConfiguration.for(LogLevel.warn),
-    RouterConfiguration,
+    RouterConfiguration.customize({ useUrlFragmentHash: useHash }),
     ...registrations,
   );
 

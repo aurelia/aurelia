@@ -370,7 +370,7 @@ export const isNativeFunction = (function () {
   let i = 0;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (fn: Function) {
+  return (fn: Function) => {
     isNative = lookup.get(fn);
     if (isNative === void 0) {
       sourceText = fn.toString();

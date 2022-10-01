@@ -1,82 +1,74 @@
 import type { IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IAccessor, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAccessor, IBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import type { IAstBasedBinding } from './interfaces-bindings';
-import { astEvaluator } from './binding-utils';
 
 /**
  * A binding for handling .call syntax
  */
-export interface CallBinding extends IAstBasedBinding {}
-export class CallBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
+export interface CallBinding extends IAstBasedBinding { }
+export class CallBinding implements IBinding {
   public isBound: boolean = false;
-  public $scope?: Scope;
+  public scope?: Scope;
 
   public targetObserver: IAccessor;
+
+  /** @internal */
+  public l: IServiceLocator;
 
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsBindingBehavior,
     public readonly target: object,
     public readonly targetProperty: string,
   ) {
+    this.l = locator;
     this.targetObserver = observerLocator.getAccessor(target, targetProperty);
   }
 
   public callSource(args: object): unknown {
-    const overrideContext = this.$scope!.overrideContext;
+    const overrideContext = this.scope!.overrideContext;
     overrideContext.$event = args;
-    const result = astEvaluate(this.ast, this.$scope!, this, null);
+    const result = astEvaluate(this.ast, this.scope!, this, null);
     Reflect.deleteProperty(overrideContext, '$event');
 
     return result;
   }
 
-  public $bind(scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this.scope === scope) {
         return;
       }
 
-      this.interceptor.$unbind();
+      this.unbind();
     }
+    this.scope = scope;
 
-    this.$scope = scope;
+    astBind(this.ast, scope, this);
 
-    astBind(this.ast, scope, this.interceptor);
-
-    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), this.target, this.targetProperty);
-
-    // add isBound flag and remove isBinding flag
+    this.targetObserver.setValue(($args: object) => this.callSource($args), this.target, this.targetProperty);
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
-
-    astUnbind(this.ast, this.$scope!, this.interceptor);
-
-    this.$scope = void 0;
-    this.targetObserver.setValue(null, this.target, this.targetProperty);
-
     this.isBound = false;
-  }
 
-  public observe(_obj: object, _propertyName: string): void {
-    return;
-  }
+    astUnbind(this.ast, this.scope!, this);
 
-  public handleChange(_newValue: unknown, _previousValue: unknown): void {
-    return;
+    this.scope = void 0;
+    this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 }
 
-astEvaluator(true)(CallBinding);
+mixinBindingUseScope(CallBinding);
+mixingBindingLimited(CallBinding, () => 'callSource');
+mixinAstEvaluator(true)(CallBinding);

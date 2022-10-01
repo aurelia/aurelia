@@ -1,6 +1,6 @@
 import { AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { def, isFunction } from '../utilities-objects';
+import { areEqual, def, isFunction } from '../utilities-objects';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -42,7 +42,7 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
 
   public setValue(newValue: unknown): void {
     if (this._observing) {
-      if (Object.is(newValue, this._value)) {
+      if (areEqual(newValue, this._value)) {
         return;
       }
       oV = this._value;
@@ -53,8 +53,8 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
       // so calling obj[propertyKey] will actually return this.value.
       // However, if subscribe() was not yet called (indicated by !this.observing), the target descriptor
       // is unmodified and we need to explicitly set the property value.
-      // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
-      // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
+      // This will happen in one-time, to-view and two-way bindings during bind, meaning that the bind will not actually update the target value.
+      // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether bind updated the target or not.
       this._obj[this._key] = newValue;
     }
   }
@@ -144,7 +144,7 @@ export class SetterNotifier implements IAccessor {
     if (this._hasSetter) {
       value = this._setter!(value, null);
     }
-    if (!Object.is(value, this._value)) {
+    if (!areEqual(value, this._value)) {
       this._oldValue = this._value;
       this._value = value;
       this.cb?.call(this._obj, this._value, this._oldValue);

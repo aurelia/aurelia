@@ -156,6 +156,7 @@ export {
 
 export {
   type AccessorOrObserver,
+  type IRateLimitOptions,
   type IBinding,
   AccessorType,
   type Collection,

@@ -52,6 +52,7 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
+    '@typescript-eslint/prefer-as-const': 'off',
     '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'error',
     '@typescript-eslint/await-thenable': 'error',

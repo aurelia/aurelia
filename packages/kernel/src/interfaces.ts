@@ -3,12 +3,13 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // eslint-disable-next-line @typescript-eslint/prefer-function-type
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
   new(...args: any[]): T;
 };
 
 export type Class<T, C = {}> = C & {
   readonly prototype: T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new(...args: any[]): T;
 };
 
@@ -18,6 +19,7 @@ export type Class<T, C = {}> = C & {
 // So, in lack of a better name.. we probably need to clean this up, but this is how it works for now.
 export type ConstructableClass<T, C = {}> = C & {
   readonly prototype: T & { constructor: C };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new(...args: any[]): T & { constructor: C };
 };
 

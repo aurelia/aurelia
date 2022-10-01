@@ -28,10 +28,6 @@ export {
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
   type BindingBehaviorType,
-  BindingInterceptor,
-  BindingBehaviorFactory,
-  BindingBehaviorStrategy,
-  type IInterceptableBinding,
 } from './resources/binding-behavior';
 
 export {
@@ -118,7 +114,10 @@ export {
   IFlushQueue,
   FlushQueue,
   IFlushable,
-  astEvaluator,
+  BindingTargetSubscriber,
+  mixinAstEvaluator,
+  mixingBindingLimited,
+  mixinBindingUseScope as mixinUseScope,
 } from './binding/binding-utils';
 export {
   Listener,
@@ -144,7 +143,6 @@ export {
 } from './binding/ref-binding';
 
 export {
-  applyBindingBehavior,
   IRenderer,
   type IInstructionTypeClassifier,
   ITemplateCompiler,
@@ -225,7 +223,6 @@ export {
 } from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
-  type UpdateTriggerableBinding,
   type UpdateTriggerableObserver,
 } from './resources/binding-behaviors/update-trigger';
 

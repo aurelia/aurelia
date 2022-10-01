@@ -11,7 +11,6 @@ import {
   bindable,
   bindingBehavior,
   customAttribute,
-  BindingInterceptor,
   valueConverter,
   CustomElement,
   customElement,
@@ -223,20 +222,6 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
   class B64ToPlainTextValueConverter {
     public fromView(b64: string): string { return $atob(b64); }
   }
-  @bindingBehavior('interceptor')
-  class InterceptorBindingBehavior extends BindingInterceptor {
-    public updateSource(value: unknown) {
-      if (this.interceptor !== this) {
-        this.interceptor.updateSource(value);
-      } else {
-        let binding = this as BindingInterceptor;
-        while (binding.binding !== void 0) {
-          binding = binding.binding as BindingInterceptor;
-        }
-        binding.updateSource(value);
-      }
-    }
-  }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
     public bind(_scope: Scope, _binding: IBinding): void {
@@ -295,7 +280,6 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
         FooBar,
         ToNumberValueConverter,
         B64ToPlainTextValueConverter,
-        InterceptorBindingBehavior,
         VanillaBindingBehavior,
         Editor,
         Editor1,
@@ -1064,14 +1048,6 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
   const bindingBehaviorTestData = [
     { expr: `person.name & validate:'change' & vanilla`, rawExpr: 'person.name&validate:(\'change\')' },
     { expr: `person.name & vanilla & validate:'change'`, rawExpr: 'person.name&vanilla' },
-    { expr: `person.name & validate:'change' & interceptor`, rawExpr: 'person.name&validate:(\'change\')' },
-    { expr: `person.name & interceptor & validate:'change'`, rawExpr: 'person.name&interceptor' },
-    { expr: `person.name & validate:'change' & vanilla & interceptor`, rawExpr: 'person.name&validate:(\'change\')&vanilla' },
-    { expr: `person.name & validate:'change' & interceptor & vanilla`, rawExpr: 'person.name&validate:(\'change\')&interceptor' },
-    { expr: `person.name & vanilla & validate:'change' & interceptor`, rawExpr: 'person.name&vanilla&validate:(\'change\')' },
-    { expr: `person.name & interceptor & validate:'change' & vanilla`, rawExpr: 'person.name&interceptor&validate:(\'change\')' },
-    { expr: `person.name & vanilla & interceptor & validate:'change'`, rawExpr: 'person.name&vanilla&interceptor' },
-    { expr: `person.name & interceptor & vanilla & validate:'change'`, rawExpr: 'person.name&interceptor&vanilla' },
   ];
   for (const { expr, rawExpr } of bindingBehaviorTestData) {
     $it(`can be used with other binding behavior - ${expr}`,
@@ -1389,7 +1365,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
           })
           .start();
       } catch (e) {
-        assert.equal(e.message, 'Unable to set property binding');
+        assert.equal(e.message, 'Validate behavior used on non property binding');
       }
       await au.stop();
       ctx.doc.body.removeChild(host);

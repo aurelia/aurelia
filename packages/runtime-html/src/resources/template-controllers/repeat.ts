@@ -739,5 +739,3 @@ const $number = (result: number, func: (item: number, index: number, arr: number
     func(i, i, result);
   }
 };
-
-const compareNumber = (a: number, b: number): number => a - b;

@@ -236,7 +236,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
     const inject = (Type as Injectable).inject;
     if (inject === void 0) {
       // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
-      const designParamtypes = getDesignParamtypes(Type);
+      const designParamtypes = DI.getDesignParamtypes(Type);
       // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
       const annotationParamtypes = getAnnotationParamtypes(Type);
       if (designParamtypes === void 0) {

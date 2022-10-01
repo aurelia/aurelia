@@ -36,7 +36,7 @@ export class MockBinding implements IConnectableBinding {
   public observerSlots!: number;
   public version!: number;
   public oL!: IObserverLocator;
-  public locator!: IServiceLocator;
+  public l!: IServiceLocator;
   public scope?: Scope | undefined;
   public isBound!: boolean;
   public value: unknown;

@@ -144,7 +144,7 @@ export class PropertyBinding implements IAstBasedBinding {
     }
 
     if ($mode & BindingMode.fromView) {
-      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.locator.get(IFlushQueue)));
+      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.l.get(IFlushQueue)));
       if (!shouldConnect) {
         this.updateSource(targetObserver.getValue(this.target, this.targetProperty));
       }

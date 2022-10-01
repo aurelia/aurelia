@@ -108,7 +108,7 @@ export class StateBindingInstructionRenderer implements IRenderer {
     target: object,
     instruction: StateBindingInstruction,
   ): void {
-    const binding = new StateBinding(
+    renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,
       renderingCtrl.container,
       this._observerLocator,
@@ -117,8 +117,7 @@ export class StateBindingInstructionRenderer implements IRenderer {
       target,
       instruction.to,
       this._stateContainer,
-    );
-    renderingCtrl.addBinding(binding);
+    ));
   }
 }
 

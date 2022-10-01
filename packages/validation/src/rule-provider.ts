@@ -116,14 +116,19 @@ export interface PropertyRule extends IAstEvaluator {}
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
+  /** @internal */
+  public readonly l: IServiceLocator;
 
   public constructor(
-    private readonly locator: IServiceLocator,
+    locator: IServiceLocator,
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
     public $rules: IValidationRule[][] = [[]],
-  ) { }
+  ) {
+    this.l = locator;
+  }
+
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitPropertyRule(this);
   }

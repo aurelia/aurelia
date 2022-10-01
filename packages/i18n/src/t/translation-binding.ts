@@ -80,6 +80,9 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
   private readonly platform: IPlatform;
   private readonly taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
+
+  /** @internal */
+  public readonly l: IServiceLocator;
   /**
    * A semi-private property used by connectable mixin
    */
@@ -93,14 +96,15 @@ export class TranslationBinding implements IObserverLocatorBasedConnectable {
 
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     platform: IPlatform,
     target: INode,
   ) {
+    this.l = locator;
     this._controller = controller;
     this.target = target as HTMLElement;
-    this.i18n = this.locator.get(I18N);
+    this.i18n = locator.get(I18N);
     this.platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
@@ -370,7 +374,7 @@ class ParameterBinding {
    * @internal
    */
   public readonly oL: IObserverLocator;
-  public readonly locator: IServiceLocator;
+  public readonly l: IServiceLocator;
   public isBound: boolean = false;
 
   public scope!: Scope;
@@ -384,7 +388,7 @@ class ParameterBinding {
     public readonly updater: () => void,
   ) {
     this.oL = owner.oL;
-    this.locator = owner.locator;
+    this.l = owner.l;
   }
 
   public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {

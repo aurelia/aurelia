@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, ExpressionType, Scope, IAstEvaluator, astEvaluate } from '@aurelia/runtime';
 import { mixinAstEvaluator } from '@aurelia/runtime-html';
@@ -98,6 +99,7 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
   ) { }
 
   public hydrate(raw: any, validationRules: IValidationRules): any {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     switch (raw.$TYPE) {
       case RequiredRule.$TYPE: {
         const $raw: Pick<RequiredRule, 'messageKey' | 'tag'> = raw;
@@ -192,7 +194,8 @@ export interface ModelValidationExpressionHydrator extends IAstEvaluator {}
 export class ModelValidationExpressionHydrator implements IValidationExpressionHydrator {
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
+    /** @internal */
+    @IServiceLocator public readonly l: IServiceLocator,
     @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
     @IExpressionParser public readonly parser: IExpressionParser
   ) { }
@@ -210,7 +213,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
           const rules: IValidationRule[][] = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
           const propertyPrefix = propertyPath.join('.');
           const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-          accRules.push(new PropertyRule(this.locator, validationRules, this.messageProvider, property, rules));
+          accRules.push(new PropertyRule(this.l, validationRules, this.messageProvider, property, rules));
         } else {
           iterate(Object.entries(value), [...propertyPath, key]);
         }
@@ -252,6 +255,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     }
     rule.tag = raw.tag;
     const when = raw.when;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (when) {
       if (typeof when === 'string') {
         const parsed = this.parser.parse(when, ExpressionType.None);
@@ -308,6 +312,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
 
   private hydrateRuleProperty(raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>) {
     const rawName = raw.name;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!rawName || typeof rawName !== 'string') {
       throw new Error('The property name needs to be a non-empty string'); // TODO: use reporter
     }

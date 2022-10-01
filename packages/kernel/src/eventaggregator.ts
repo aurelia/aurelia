@@ -7,13 +7,13 @@ import { createError, isString } from './utilities';
  */
 class Handler<T extends Constructable> {
   public constructor(
-    private readonly _messageType: T,
-    private readonly _callback: (message: InstanceType<T>) => void,
+    private readonly type: T,
+    private readonly cb: (message: InstanceType<T>) => void,
   ) {}
 
   public handle(message: InstanceType<T>): void {
-    if (message instanceof this._messageType) {
-      this._callback.call(null, message);
+    if (message instanceof this.type) {
+      this.cb.call(null, message);
     }
   }
 }

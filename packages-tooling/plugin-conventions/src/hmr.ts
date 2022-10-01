@@ -1,14 +1,4 @@
 /**
- * This is the minimum required runtime modules for HMR
- */
-export const hmrRuntimeModules = ['CustomElement', 'LifecycleFlags', 'IHydrationContext', 'Controller'];
-
-/**
- * This is the minimum required metadata modules for HMR
- */
-export const hmrMetadataModules = ['Metadata'];
-
-/**
  * This gets the generated HMR code for the specified class
  *
  * @param className - The name of the class to generate HMR code for
@@ -19,7 +9,9 @@ export const hmrMetadataModules = ['Metadata'];
 export const getHmrCode = (className: string, moduleText: string = 'module'): string => {
 
   const code = `
+    import { Metadata as $$M } from '@aurelia/metadata';
     import { ExpressionKind as $$EK } from '@aurelia/runtime';
+    import { Controller as $$C, CustomElement as $$CE, IHydrationContext as $$IHC } from '@aurelia/runtime-html';
 
     // @ts-ignore
     const controllers = [];
@@ -62,10 +54,10 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
     });
 
     if (hot.data?.aurelia) {
-      const newDefinition = CustomElement.getDefinition(currentClassType);
-      Metadata.define(newDefinition.name, newDefinition, currentClassType);
-      Metadata.define(newDefinition.name, newDefinition, newDefinition);
-      hot.data.aurelia.container.res[CustomElement.keyFrom(newDefinition.name)] = newDefinition;
+      const newDefinition = $$CE.getDefinition(currentClassType);
+      $$M.define(newDefinition.name, newDefinition, currentClassType);
+      $$M.define(newDefinition.name, newDefinition, newDefinition);
+      hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
       const previousControllers = hot.data.controllers;
       if(previousControllers == null || previousControllers.length === 0) {
@@ -76,7 +68,7 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
       // @ts-ignore
       previousControllers.forEach(controller => {
         const values = { ...controller.viewModel };
-        const hydrationContext = controller.container.get(IHydrationContext)
+        const hydrationContext = controller.container.get($$IHC)
         const hydrationInst = hydrationContext.instruction;
 
         const bindableNames = Object.keys(controller.definition.bindables);
@@ -107,8 +99,8 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
         }
         h.parentNode.replaceChild(controller.host, h);
         controller.hostController = null;
-        controller.deactivate(controller, controller.parent ?? null, LifecycleFlags.none);
-        controller.activate(controller, controller.parent ?? null, LifecycleFlags.none);
+        controller.deactivate(controller, controller.parent ?? null, 0);
+        controller.activate(controller, controller.parent ?? null, 0);
       });
     }
   }`;

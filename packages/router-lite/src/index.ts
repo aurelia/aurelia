@@ -84,7 +84,6 @@ export {
   Transition,
   type ResolutionMode,
   type HistoryStrategy,
-  type SameUrlStrategy,
 } from './router';
 
 export {

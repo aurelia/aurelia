@@ -25,7 +25,6 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 
 export type ResolutionMode = 'static' | 'dynamic';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
-export type SameUrlStrategy = 'ignore' | 'reload';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
 function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
   if (typeof valueOrFunc === 'function') {
@@ -60,17 +59,6 @@ export class RouterOptions {
      */
     public readonly historyStrategy: ValueOrFunc<HistoryStrategy>,
     /**
-     * The strategy to use for when navigating to the same URL.
-     *
-     * - `ignore`: do nothing (default).
-     * - `reload`: reload the current URL, effectively performing a refresh.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `ignore`
-     */
-    public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
-
-    /**
      * An optional handler to build the title.
      * When configured, the work of building the title string is completely handed over to this function.
      * If this function returns `null`, the title is not updated.
@@ -84,7 +72,6 @@ export class RouterOptions {
       input.useHref ?? true,
       input.resolutionMode ?? 'dynamic',
       input.historyStrategy ?? 'push',
-      input.sameUrlStrategy ?? 'ignore',
       input.buildTitle ?? null,
     );
   }
@@ -92,16 +79,11 @@ export class RouterOptions {
   public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
     return valueOrFuncToValue(instructions, this.historyStrategy);
   }
-  /** @internal */
-  public getSameUrlStrategy(instructions: ViewportInstructionTree): SameUrlStrategy {
-    return valueOrFuncToValue(instructions, this.sameUrlStrategy);
-  }
 
   protected stringifyProperties(): string {
     return ([
       ['resolutionMode', 'resolution'],
       ['historyStrategy', 'history'],
-      ['sameUrlStrategy', 'sameUrl'],
     ] as const).map(([key, name]) => {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
@@ -114,7 +96,6 @@ export class RouterOptions {
       this.useHref,
       this.resolutionMode,
       this.historyStrategy,
-      this.sameUrlStrategy,
       this.buildTitle,
     );
   }
@@ -160,7 +141,6 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.useHref,
       routerOptions.resolutionMode,
       routerOptions.historyStrategy,
-      routerOptions.sameUrlStrategy,
       routerOptions.buildTitle,
     );
   }
@@ -701,9 +681,8 @@ export class Router {
     const routeChanged = !this.navigated
       || trChildren.length !== nodeChildren.length
       || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
-    const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
-    if (!shouldProcessRoute) {
+    if (!routeChanged) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;

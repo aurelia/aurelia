@@ -10,7 +10,6 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
-  DelegationStrategy,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
@@ -334,16 +333,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, DelegationStrategy.none);
-  }
-}
-
-@bindingCommand('delegate')
-export class DelegateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.bubbling);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, false);
   }
 }
 
@@ -352,7 +342,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.capturing);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, true);
   }
 }
 

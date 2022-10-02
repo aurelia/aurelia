@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Unparser } from '@aurelia/runtime';
-import { AttributeBinding, CallBinding, InterpolationPartBinding, LetBinding, Listener, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
-import { ContentBinding } from '@aurelia/runtime-html/dist/types/binding/interpolation-binding';
+import { AttributeBinding, CallBinding, ContentBinding, InterpolationPartBinding, LetBinding, ListenerBinding, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
+import { DelegateListenerBinding } from './compat.delegate';
 
 let defined = false;
 export const defineBindingMethods = () => {
@@ -11,12 +11,13 @@ export const defineBindingMethods = () => {
   ([
     [PropertyBinding, 'Property binding'],
     [AttributeBinding, 'Attribute binding'],
-    [Listener, 'Listener binding'],
+    [ListenerBinding, 'Listener binding'],
     [CallBinding, 'Call binding'],
     [LetBinding, 'Let binding'],
     [InterpolationPartBinding, 'Interpolation binding'],
     [ContentBinding, 'Text binding'],
-    [RefBinding, 'Ref binding']
+    [RefBinding, 'Ref binding'],
+    [DelegateListenerBinding, 'Delegate Listener binding']
   ] as const).forEach(([b, name]) => {
     Object.defineProperty(
       b.prototype,

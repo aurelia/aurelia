@@ -313,6 +313,7 @@ const testDirs = [
 
 const packageNames = [
   'addons',
+  'compat-v1',
   'fetch-client',
   'i18n',
   'kernel',

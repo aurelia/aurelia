@@ -17,7 +17,6 @@ import {
   AttrBindingCommand,
   CaptureBindingCommand,
   ClassBindingCommand,
-  DelegateBindingCommand,
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
@@ -143,7 +142,6 @@ export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown 
 export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
 export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
-export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
 export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
 export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
@@ -167,7 +165,6 @@ export const DefaultBindingLanguage = [
   ForBindingCommandRegistration,
   RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
-  DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
   ClassBindingCommandRegistration,
   StyleBindingCommandRegistration,

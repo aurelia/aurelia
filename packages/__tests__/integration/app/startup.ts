@@ -5,6 +5,7 @@ import { appTemplate as template } from './app-template.js';
 import { atoms } from './atoms/index.js';
 import { callCollection } from './debug.js';
 import { MolecularConfiguration, molecules } from './molecules/index.js';
+import { delegateRegistration } from '@aurelia/compat-v1';
 
 export class TestExecutionContext {
   public constructor(
@@ -30,6 +31,7 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
   au
     .register(
       atoms,
+      delegateRegistration,
       molecules.customize((molecularConfig: MolecularConfiguration) => {
         molecularConfig.useCSSModule = config.useCSSModule;
       }),

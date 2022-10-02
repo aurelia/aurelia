@@ -1,7 +1,8 @@
+import { delegateRegistration } from '@aurelia/compat-v1';
 import { ILogger } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/let.spec.ts', function () {
+describe('3-runtime-html/custom-elements.let.spec.ts', function () {
   for (const command of [
     'from-view',
     'two-way',
@@ -13,7 +14,7 @@ describe('3-runtime-html/let.spec.ts', function () {
     'to-view',
   ]) {
     it(`throws on non .bind/.to-view: "${command}"`, async function () {
-      const { tearDown, start } = createFixture(`<let a.${command}="bc">`, class { }, [], /* no start */false);
+      const { tearDown, start } = createFixture(`<let a.${command}="bc">`, class { }, [delegateRegistration], /* no start */false);
 
       let ex: Error;
       try {

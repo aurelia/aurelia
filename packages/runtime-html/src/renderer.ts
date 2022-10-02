@@ -13,8 +13,7 @@ import { InterpolationBinding, ContentBinding } from './binding/interpolation-bi
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { Listener, ListenerOptions } from './binding/listener';
-import { IEventDelegator } from './observation/event-delegator';
+import { ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
@@ -228,12 +227,6 @@ export class TextBindingInstruction {
   ) {}
 }
 
-export const enum DelegationStrategy {
-  none      = 0,
-  capturing = 1,
-  bubbling  = 2,
-}
-
 export class ListenerBindingInstruction {
   public readonly type = InstructionType.listenerBinding;
 
@@ -241,7 +234,7 @@ export class ListenerBindingInstruction {
     public from: string | IsBindingBehavior,
     public to: string,
     public preventDefault: boolean,
-    public strategy: DelegationStrategy,
+    public capture: boolean,
   ) {}
 }
 export class StylePropertyBindingInstruction {
@@ -976,17 +969,14 @@ export class TextBindingRenderer implements IRenderer {
 @renderer(InstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IEventDelegator];
+  /** @internal */ protected static inject = [IExpressionParser];
   /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _eventDelegator: IEventDelegator;
 
   public target!: InstructionType.listenerBinding;
   public constructor(
     parser: IExpressionParser,
-    eventDelegator: IEventDelegator,
   ) {
     this._exprParser = parser;
-    this._eventDelegator = eventDelegator;
   }
 
   public render(
@@ -995,13 +985,12 @@ export class ListenerBindingRenderer implements IRenderer {
     instruction: ListenerBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction);
-    renderingCtrl.addBinding(new Listener(
+    renderingCtrl.addBinding(new ListenerBinding(
       renderingCtrl.container,
       expr,
       target,
       instruction.to,
-      this._eventDelegator,
-      new ListenerOptions(instruction.preventDefault, instruction.strategy),
+      new ListenerBindingOptions(instruction.preventDefault, instruction.capture),
     ));
   }
 }

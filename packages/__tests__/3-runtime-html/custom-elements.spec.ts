@@ -1,5 +1,6 @@
 import { BindingMode, customElement, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
+import { delegateRegistration } from '@aurelia/compat-v1';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('works with multiple layers of change propagation & <input/>', function () {
@@ -127,6 +128,37 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     );
 
     trigger('button', 'click');
+  });
+
+  it('works with multi dot event name for trigger', function () {
+    let clicked = 0;
+    const { trigger } = createFixture(
+      '<button bs.open-modal.trigger="clicked()"></button>',
+      { clicked: () => clicked = 1 }
+    );
+    trigger('button', 'bs.open-modal');
+    assert.strictEqual(clicked, 1);
+  });
+
+  it('works with multi dot event name for delegate', function () {
+    let clicked = 0;
+    const { trigger } = createFixture(
+      '<button bs.open-modal.delegate="clicked()"></button>',
+      { clicked: () => clicked = 1 },
+      [delegateRegistration]
+    );
+    trigger('button', 'bs.open-modal', { bubbles: true });
+    assert.strictEqual(clicked, 1);
+  });
+
+  it('works with multi dot event name for capture', function () {
+    let clicked = 0;
+    const { trigger } = createFixture(
+      '<button bs.open-modal.capture="clicked()"></button>',
+      { clicked: () => clicked = 1 }
+    );
+    trigger('button', 'bs.open-modal');
+    assert.strictEqual(clicked, 1);
   });
 });
 // import {

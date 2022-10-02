@@ -95,7 +95,6 @@ export {
   ToViewBindingCommand,
   TwoWayBindingCommand,
   TriggerBindingCommand,
-  DelegateBindingCommand,
   CaptureBindingCommand,
   AttrBindingCommand,
   ClassBindingCommand,
@@ -117,11 +116,12 @@ export {
   BindingTargetSubscriber,
   mixinAstEvaluator,
   mixingBindingLimited,
-  mixinBindingUseScope as mixinUseScope,
+  mixinBindingUseScope,
 } from './binding/binding-utils';
 export {
-  Listener,
-} from './binding/listener';
+  ListenerBinding,
+  ListenerBindingOptions,
+} from './binding/listener-binding';
 export {
   AttributeBinding,
 } from './binding/attribute';
@@ -131,6 +131,7 @@ export {
 export {
   InterpolationBinding,
   InterpolationPartBinding,
+  ContentBinding,
 } from './binding/interpolation-binding';
 export {
   LetBinding,
@@ -149,7 +150,6 @@ export {
   type ICompliationInstruction,
   renderer,
   CallBindingInstruction,
-  DelegationStrategy,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -349,7 +349,6 @@ export {
   ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
   TriggerBindingCommandRegistration,
-  DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
   AttrBindingCommandRegistration,
   ClassBindingCommandRegistration,

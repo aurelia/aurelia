@@ -132,26 +132,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // called by SetterObserver
   public itemsChanged(): void {
-    if (typeof this.key === 'string') {
-      this.handleCollectionChange(this.items!, void 0);
-      return;
-    }
-
     const { $controller } = this;
     if (!$controller.isActive) {
       return;
     }
     this._refreshCollectionObserver();
     this._normalizeToArray();
-
-    const ret = onResolve(
-      this._deactivateAllViews(null),
-      () => {
-        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-        return this._activateAllViews(null);
-      },
-    );
-    if (isPromise(ret)) { ret.catch(rethrow); }
+    this.handleCollectionChange(this.items!, void 0);
   }
 
   public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
@@ -174,7 +161,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldViews = this.views;
     const oldLen = oldViews.length;
     const key = this.key;
-    if (typeof key === 'string') {
+    const hasKey = typeof key === 'string';
+    if (hasKey || indexMap === void 0) {
       const local = this.local;
       const newItems = this._normalizedItems as IIndexable[];
 
@@ -236,8 +224,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldKey = (oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])[key];
-            newKey = (newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])[key];
+            if (isMap) {}
+            oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i];
+            newItem = isMap ? newItems[i][1] as IIndexable : newItems[i];
+            oldKey = hasKey ? oldItem[key] : oldItem;
+            newKey = hasKey ? newItem[key] : newItem;
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -259,8 +250,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           let j = newEnd;
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldKey = (oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j])[key];
-            newKey = (newItem = isMap ? newItems[j][1] as IIndexable : newItems[j])[key];
+            oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j];
+            newItem = isMap ? newItems[j][1] as IIndexable : newItems[j];
+            oldKey = hasKey ? oldItem[key] : oldItem;
+            newKey = hasKey ? newItem[key] : newItem;
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -282,7 +275,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])) {
             newKey = keyMap.get(newItem);
           } else {
-            keyMap.set(newItem, newKey = newItem[key]);
+            keyMap.set(newItem, newKey = hasKey ? newItem[key] : newItem);
           }
           newIndices.set(newKey, i);
         }
@@ -291,7 +284,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])) {
             oldKey = keyMap.get(oldItem);
           } else {
-            keyMap.set(oldItem, oldKey = oldItem[key]);
+            keyMap.set(oldItem, oldKey = hasKey ? oldItem[key] : oldItem);
           }
           oldIndices.set(oldKey, i);
 

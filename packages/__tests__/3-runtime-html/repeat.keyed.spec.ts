@@ -103,6 +103,8 @@ describe("repeat.keyed", function () {
 
         assert.strictEqual(host.textContent, '01234');
         assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, 4);
+        assertAdd(1, mutations, 4);
       });
 
       $it('simple move', async function ({ au, host, mutations, mutate, component }) {
@@ -120,6 +122,56 @@ describe("repeat.keyed", function () {
 
         assert.strictEqual(host.textContent, '41230');
         assert.strictEqual(mutations.length, 4);
+        assertRem(0, mutations, 0, 4);
+        assertAdd(2, mutations, 0, 4);
+      });
+
+      $it('reassign new array with different items', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$(0), $(1), $(2), $(3), $(4)];
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations.length, 10);
+        assertRem(0, mutations, 0, 1, 2, 3, 4);
+        assertAdd(5, mutations, 4, 3, 2, 1, 0);
+      });
+
+      $it('reassign new array with same items', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$0, $1, $2, $3, $4];
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations.length, 0);
+      });
+
+      $it('reassign new array with same items, 1 swap', async function ({ au, host, mutations, mutate, component }) {
+        const [$0, $1, $2, $3, $4] = component.items = [$(0), $(1), $(2), $(3), $(4)];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items = [$4, $1, $2, $3, $0];
+        });
+
+        assert.strictEqual(host.textContent, '41230');
+        assert.strictEqual(mutations.length, 4);
+        assertRem(0, mutations, 0);
+        assertAdd(1, mutations, 0);
+        assertRem(2, mutations, 4);
+        assertAdd(3, mutations, 4);
       });
     });
 

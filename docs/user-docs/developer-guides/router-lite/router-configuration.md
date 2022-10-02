@@ -68,7 +68,7 @@ With `router-lite` you can support this by setting the `basePath` value to diffe
 Following is an example that implements the aforementioned URL convention.
 To better understand, open the the example in a new tab and check the URL in address bar when you switch tenants as well as the links in the `a` tags.
 
-{% embed url="https://stackblitz.com/edit/router-lite-getting-started-vwu6fy?ctl=1&embed=1&file=src/main.ts" %}
+{% embed url="https://stackblitz.com/edit/router-lite-base-path?ctl=1&embed=1&file=src/main.ts" %}
 
 The actual configuration takes place in the `main.ts` while customizing the router configuration in the following lines of code.
 
@@ -151,7 +151,125 @@ Note that when you switch to a tenant, the links in the `a` tags also now includ
 
 ## Customizing title
 
-TODO
+A `buildTitle` function can be used to customize the [default behavior of building the title](./configuring-routes.md#setting-the-title).
+For this example, we assume that we have the configured the routes as follows:
+
+```typescript
+import { route, IRouteViewModel } from '@aurelia/router-lite';
+@route({
+    title: 'Aurelia', // <-- this is the base title
+    routes: [
+      {
+        path: ['', 'home'],
+        component: import('./components/home-page'),
+        title: 'Home',
+      }
+    ]
+})
+export class MyApp implements IRouteViewModel {}
+```
+
+With this route configuration in place, we can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when user is navigated to `/` or `/home` route.
+
+```typescript
+// main.ts
+import { RouterConfiguration, Transition } from '@aurelia/router';
+import { Aurelia } from '@aurelia/runtime-html';
+const au = new Aurelia();
+au.register(
+  RouterConfiguration.customize({
+    buildTitle(tr: Transition) {
+      const root = tr.routeTree.root;
+      const baseTitle = root.context.definition.config.title;
+      const titlePart = root.children.map(c => c.title).join(' - ');
+      return `${baseTitle} - ${titlePart}`;
+    },
+  }),
+);
+```
+
+Check out the following live example. You might need to open the demo in a nex tab to observe the title changes.
+
+{% embed url="https://stackblitz.com/edit/router-lite-buildtitle?ctl=1&embed=1&file=src/main.ts" %}
+
+**Translating the title**
+
+When localizing your app, you would also like to translate the title.
+Note that the router does not facilitate the translation by itself.
+However, there are enough hooks that can be leveraged to translate the title.
+To this end, we would use the [`data` property](TODO(Sayan): add link) in the route configuration to store the i18n key.
+
+```typescript
+import { IRouteViewModel, Routeable } from "aurelia";
+export class MyApp implements IRouteViewModel {
+  static title: string = 'Aurelia';
+  static routes: Routeable[] = [
+    {
+      path: ['', 'home'],
+      component: import('./components/home-page'),
+      title: 'Home',
+      data: {
+        i18n: 'routes.home'
+      }
+    }
+  ];
+}
+```
+
+As `data` is an object of type `Record<string, unknown>`, you are free to chose the property names inside the `data` object.
+Here we are using the `i18n` property to store the i18n key for individual routes.
+
+In the next step we make use of the `buildTitle` customization as well as a `AppTask` hook to subscribe to the locale change event.
+
+```typescript
+import { I18N, Signals } from '@aurelia/i18n';
+import { IEventAggregator } from '@aurelia/kernel';
+import { IRouter, RouterConfiguration, Transition } from '@aurelia/router';
+import { AppTask, Aurelia } from '@aurelia/runtime-html';
+(async function () {
+  const host = document.querySelector<HTMLElement>('app');
+  const au = new Aurelia();
+  const container = au.container;
+  let i18n: I18N | null = null;
+  let router: IRouter | null = null;
+  au.register(
+    // other registrations such as the StandardRegistration, I18NRegistrations come here
+    RouterConfiguration.customize({
+      buildTitle(tr: Transition) {
+        // Use the I18N to translate the titles using the keys from data.i18n.
+        i18n ??= container.get(I18N);
+        const root = tr.routeTree.root;
+        const baseTitle = root.context.definition.config.title;
+        const child = tr.routeTree.root.children[0];
+        return `${baseTitle} - ${i18n.tr(child.data.i18n as string)}`;
+      },
+    }),
+    AppTask.afterActivate(IEventAggregator, ea => {
+      // Ensure that the title changes whenever the locale is changed.
+      ea.subscribe(Signals.I18N_EA_CHANNEL, () => {
+        (router ??= container.get(IRouter)).updateTitle();
+      });
+    }),
+  );
+  // start aurelia here
+})().catch(console.error);
+```
+
+This customization in conjunction with the previously shown routing configuration will cause the title to be `Aurelia - Startseite` when user is navigated to `/` or `/home` route and the current locale is `de`.
+Here we are assuming that the i18n resource for the `de` locale contains the following.
+
+```json
+{
+  "routes": {
+    "home": "Startseite"
+  }
+}
+```
+
+The following example demonstrate the title translation.
+
+{% embed url="https://stackblitz.com/edit/router-lite-translate-title?ctl=1&embed=1&file=src/main.ts" %}
+
 
 ## Enable or disable the usage of the `href` custom attribute using `useHref`
 

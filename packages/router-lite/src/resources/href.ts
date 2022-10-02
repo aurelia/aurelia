@@ -23,7 +23,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  private eventListener!: IDisposable;
+  // private eventListener!: IDisposable;
   private isInitialized: boolean = false;
   private isEnabled: boolean;
 
@@ -68,10 +68,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
     this.valueChanged(this.value);
-    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
+    this.el.addEventListener('click', this);
+    // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
-    this.eventListener.dispose();
+    // this.eventListener.dispose();
+    this.el.removeEventListener('click', this);
   }
 
   public valueChanged(newValue: unknown): void {

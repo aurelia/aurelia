@@ -270,7 +270,6 @@ The following example demonstrate the title translation.
 
 {% embed url="https://stackblitz.com/edit/router-lite-translate-title?ctl=1&embed=1&file=src/main.ts" %}
 
-
 ## Enable or disable the usage of the `href` custom attribute using `useHref`
 
 The `useHref` configuration setting is something that all developers working with routing in Aurelia need to be aware of. By default, the router will allow you to use both `href` as well as `load` for specifying routes.
@@ -304,9 +303,5 @@ Aurelia
 ```
 
 ## Configure browser history strategy
-
-TODO
-
-## Configure same URL strategy
 
 TODO

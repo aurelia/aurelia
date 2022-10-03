@@ -137,7 +137,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
     this._refreshCollectionObserver();
     this._normalizeToArray();
-    this.handleCollectionChange(this.items!, void 0);
+    this._applyIndexMap(this.items!, void 0);
   }
 
   public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
@@ -156,7 +156,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     this._normalizeToArray();
+    this._applyIndexMap(collection, indexMap);
+  }
 
+  /** @internal */
+  private _applyIndexMap(collection: Collection, indexMap: IndexMap | undefined): void {
     const oldViews = this.views;
     const oldLen = oldViews.length;
     const key = this.key;
@@ -167,25 +171,26 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const newItems = this._normalizedItems as IIndexable[];
 
       const newLen = newItems.length;
-      indexMap = createIndexMap(newLen);
       const isMap = Object.prototype.toString.call(this.items) === '[object Map]';
+      const dec = this.forOf.declaration;
+      const binding = this._forOfBinding;
+      indexMap = createIndexMap(newLen);
+      let i = 0;
 
       if (oldLen === 0) {
         // Only add new views
-        for (let i = 0; i < newLen; ++i) {
+        for (; i < newLen; ++i) {
           indexMap[i] = -2;
         }
       } else if (newLen === 0) {
         // Only remove old views
         if (isMap && this._hasDestructuredLocal) {
-          const dec = this.forOf.declaration;
-          const binding = this._forOfBinding;
-          for (let i = 0; i < oldLen; ++i) {
+          for (i = 0; i < oldLen; ++i) {
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable);
           }
         } else {
-          for (let i = 0; i < oldLen; ++i) {
+          for (i = 0; i < oldLen; ++i) {
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(oldViews[i].scope.bindingContext[local]);
           }
@@ -194,31 +199,30 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const oldItems = Array<IIndexable>(oldLen);
 
         if (isMap && this._hasDestructuredLocal) {
-          const dec = this.forOf.declaration;
-          const binding = this._forOfBinding;
-          for (let i = 0; i < oldLen; ++i) {
+          for (i = 0; i < oldLen; ++i) {
             // TODO: should be array with 2 items.. should we throw if it isn't?
             oldItems[i] = astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable;
           }
         } else {
-          for (let i = 0; i < oldLen; ++i) {
+          for (i = 0; i < oldLen; ++i) {
             oldItems[i] = oldViews[i].scope.bindingContext[local];
           }
         }
 
         let oldItem: IIndexable;
         let newItem: IIndexable;
-        const oldEnd = oldLen - 1;
-        const newEnd = newLen - 1;
         let oldKey: unknown;
         let newKey: unknown;
-        let i = 0;
+        let j = 0;
+        const oldEnd = oldLen - 1;
+        const newEnd = newLen - 1;
 
         // cache keys to prevent double eval of computed keys on the same item references (TODO: store itemsToKeys on repeater in a WeakMap?)
         const keyMap = new Map<IIndexable, unknown>();
         const oldIndices = new Map<unknown, number>();
         const newIndices = new Map<unknown, number>();
 
+        i = 0;
         // Step 1: narrow down the loop range as much as possible by checking the start and end for key equality
         outer: {
           // views with same key at start
@@ -247,7 +251,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           }
 
           // views with same key at end
-          let j = newEnd;
+          j = newEnd;
           // eslint-disable-next-line no-constant-condition
           while (true) {
             oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j];

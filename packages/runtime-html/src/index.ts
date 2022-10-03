@@ -187,15 +187,9 @@ export {
   DataAttributeAccessor,
 } from './observation/data-attribute-accessor';
 export {
-  IEventDelegator,
-  EventSubscriber,
-  EventDelegator,
-} from './observation/event-delegator';
-export {
-  NodeObserverConfig,
   NodeObserverLocator,
   type INodeObserverConfig,
-  type IHtmlObserverConstructor,
+  type INodeObserverConstructor as IHtmlObserverConstructor,
 } from './observation/observer-locator';
 export {
   type ISelectElement,
@@ -223,7 +217,6 @@ export {
 } from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
-  type UpdateTriggerableObserver,
 } from './resources/binding-behaviors/update-trigger';
 
 export {

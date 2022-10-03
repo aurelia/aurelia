@@ -91,8 +91,9 @@ export function $setup(platform: BrowserPlatform): void {
         } else {
           try {
             assert.areTaskQueuesEmpty();
-          } catch {
+          } catch (ex) {
             console.log(`Failed test ${this.test?.title} with task queue not empted. Cleaning up.`);
+            console.log(ex);
             ensureTaskQueuesEmpty();
           }
         }

@@ -863,26 +863,6 @@ const task = PLATFORM.domWriteQueue.queueTask(() => {
 task.cancel();
 ```
 
-### `requestPostAnimationFrame` polyfill
-
-#### From
-
-```typescript
-requestAnimationFrame(() => {
-  setTimeout(() => {
-    performReadsThatRequireLayout();
-  });
-});
-```
-
-#### To
-
-```typescript
-PLATFORM.domReadQueue.queueTask(() => {
-  performReadsThatRequireLayout();
-});
-```
-
 ### Using lifecycle hooks in a non-blocking fashion but keeping things awaitable
 
 #### Example that blocks rendering (but is simplest to develop)

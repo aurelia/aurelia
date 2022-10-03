@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
+import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
 import { IRouteContext } from '../route-context';
@@ -38,7 +38,6 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @IRouterEvents private readonly events: IRouterEvents,
-    @IEventDelegator private readonly delegator: IEventDelegator,
     @IRouteContext private readonly ctx: IRouteContext,
     @ILocationManager private readonly locationMgr: ILocationManager,
   ) {

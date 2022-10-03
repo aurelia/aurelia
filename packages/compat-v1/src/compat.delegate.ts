@@ -1,11 +1,10 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { IExpressionParser, ExpressionType, astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { renderer, InstructionType, IRenderer, IHydratableController, bindingCommand, IEventTarget, type IAstBasedBinding, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, CommandType, ICommandBuildInfo, BindingCommandInstance, IInstruction } from '@aurelia/runtime-html';
+import { renderer, InstructionType, IRenderer, IHydratableController, bindingCommand, IEventTarget, type IAstBasedBinding, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, CommandType, ICommandBuildInfo, BindingCommandInstance, IInstruction, AppTask } from '@aurelia/runtime-html';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 
 import { createLookup, isFunction, isString } from './utilities';
-import type { NodeObserverConfig } from '@aurelia/runtime-html';
 
 const instructionType = 'dl';
 
@@ -269,38 +268,12 @@ class DelegateSubscription implements IDisposable {
   }
 }
 
-export class EventSubscriber {
-  private target: EventTarget | null = null;
-  private handler: EventListenerOrEventListenerObject | null = null;
-
-  public constructor(
-    public readonly config: NodeObserverConfig,
-  ) { }
-
-  public subscribe(node: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void {
-    this.target = node;
-    this.handler = callbackOrListener;
-    let event: string;
-    for (event of this.config.events) {
-      node.addEventListener(event, callbackOrListener);
-    }
-  }
-
-  public dispose(): void {
-    const { target, handler } = this;
-    let event: string;
-    if (target !== null && handler !== null) {
-      for (event of this.config.events) {
-        target.removeEventListener(event, handler);
-      }
-    }
-
-    this.target = this.handler = null!;
-  }
-}
-
 export interface IEventDelegator extends EventDelegator { }
-export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.singleton(EventDelegator));
+export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.cachedCallback((handler) => {
+  const instance = handler.invoke(EventDelegator);
+  handler.register(AppTask.deactivating(() => instance.dispose()));
+  return instance;
+}));
 
 export class EventDelegator implements IDisposable {
   /** @internal */

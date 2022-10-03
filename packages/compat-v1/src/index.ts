@@ -4,7 +4,12 @@ import { defineBindingMethods } from './compat-binding';
 import { PreventFormActionlessSubmit } from './compat-form';
 import { delegateRegistration } from './compat.delegate';
 
-const compatRegistration: IRegistry = {
+/**
+ * Register all services/functionalities necessary for a v1 app to work with Aurelia v2.
+ *
+ * Ideally should only be used for migration as there maybe be perf penalties to application doing it this way.
+ */
+export const compatRegistration: IRegistry = {
   register(container: IContainer) {
     defineAstMethods();
     defineBindingMethods();
@@ -18,6 +23,12 @@ export {
 };
 
 export {
-  compatRegistration,
+  DelegateBindingCommand,
+  DelegateBindingInstruction,
+  DelegateListenerBinding,
+  DelegateListenerOptions,
+  EventDelegator,
+  IEventDelegator,
+  ListenerBindingRenderer,
   delegateRegistration
-};
+} from './compat.delegate';

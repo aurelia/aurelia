@@ -695,7 +695,6 @@ export {
   // SelfBindingBehavior,
 
   // UpdateTriggerBindingBehavior,
-  // UpdateTriggerableObserver,
 
   // Focus,
 

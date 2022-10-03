@@ -182,7 +182,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           const binding = this._forOfBinding;
           for (let i = 0; i < oldLen; ++i) {
             indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(astEvaluate(dec, oldViews[i].scope, binding, null) as unknown as IIndexable);
+            indexMap.deletedItems.push(astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable);
           }
         } else {
           for (let i = 0; i < oldLen; ++i) {
@@ -198,7 +198,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           const binding = this._forOfBinding;
           for (let i = 0; i < oldLen; ++i) {
             // TODO: should be array with 2 items.. should we throw if it isn't?
-            oldItems[i] = astEvaluate(dec, oldViews[i].scope, binding, null) as unknown as IIndexable;
+            oldItems[i] = astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable;
           }
         } else {
           for (let i = 0; i < oldLen; ++i) {
@@ -224,7 +224,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            if (isMap) {}
+            if (isMap) {/* empty */}
             oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i];
             newItem = isMap ? newItems[i][1] as IIndexable : newItems[i];
             oldKey = hasKey ? oldItem[key] : oldItem;
@@ -308,32 +308,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    if (indexMap === void 0) {
+    const $indexMap = applyMutationsToIndices(indexMap);
+    // first detach+unbind+(remove from array) the deleted view indices
+    if ($indexMap.deletedIndices.length > 0) {
       const ret = onResolve(
-        this._deactivateAllViews(null),
+        this._deactivateAndRemoveViewsByKey($indexMap),
         () => {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this._activateAllViews(null);
+          return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
         },
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
-      const $indexMap = applyMutationsToIndices(indexMap);
-      // first detach+unbind+(remove from array) the deleted view indices
-      if ($indexMap.deletedIndices.length > 0) {
-        const ret = onResolve(
-          this._deactivateAndRemoveViewsByKey($indexMap),
-          () => {
-            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
-          },
-        );
-        if (isPromise(ret)) { ret.catch(rethrow); }
-      } else {
-        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
-      }
+      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
     }
   }
 

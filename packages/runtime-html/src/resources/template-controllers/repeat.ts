@@ -132,8 +132,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   // called by SetterObserver
   public itemsChanged(): void {
-    const { $controller } = this;
-    if (!$controller.isActive) {
+    if (!this.$controller.isActive) {
       return;
     }
     this._refreshCollectionObserver();
@@ -162,6 +161,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldLen = oldViews.length;
     const key = this.key;
     const hasKey = typeof key === 'string';
+
     if (hasKey || indexMap === void 0) {
       const local = this.local;
       const newItems = this._normalizedItems as IIndexable[];
@@ -308,21 +308,32 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    const $indexMap = applyMutationsToIndices(indexMap);
-    // first detach+unbind+(remove from array) the deleted view indices
-    if ($indexMap.deletedIndices.length > 0) {
+    if (indexMap === void 0) {
       const ret = onResolve(
-        this._deactivateAndRemoveViewsByKey($indexMap),
+        this._deactivateAllViews(null),
         () => {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+          return this._activateAllViews(null);
         },
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+      const $indexMap = applyMutationsToIndices(indexMap);
+      // first detach+unbind+(remove from array) the deleted view indices
+      if ($indexMap.deletedIndices.length > 0) {
+        const ret = onResolve(
+          this._deactivateAndRemoveViewsByKey($indexMap),
+          () => {
+            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
+            return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+          },
+        );
+        if (isPromise(ret)) { ret.catch(rethrow); }
+      } else {
+        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+      }
     }
   }
 

@@ -4,6 +4,7 @@ import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, Rou
 import { LifecycleFlags, Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { start } from './_shared/create-fixture.js';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);
@@ -2425,6 +2426,49 @@ describe('router (smoke tests)', function () {
       assert.strictEqual(await router.load({ component: CeL23, params: { id: '5', a: '6' } }, { context: ce12 }), true);
       assert.match(location.path, /12\/1\/23\/5\/tt\/6$/);
       BaseRouteViewModel.assertAndClear('params5', ['cel23', [{ id: '5', a: '6' }, new URLSearchParams()]]);
+
+      await au.stop();
+    });
+  });
+
+  describe('transition plan', function () {
+    it('replace', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        public id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan: 'replace',
+        routes: [
+          {
+            id: 'ce1',
+            path: 'ce1',
+            component: CeOne,
+            transitionPlan: 'replace',
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
       await au.stop();
     });

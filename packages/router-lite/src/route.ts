@@ -206,6 +206,11 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.nav ?? this.nav,
     );
   }
+
+  public getTransitionPlan(cur: RouteNode, next: RouteNode) {
+    const plan = this.transitionPlan;
+    return typeof plan === 'function' ? plan(cur, next) : plan;
+  }
 }
 
 export const Route = {

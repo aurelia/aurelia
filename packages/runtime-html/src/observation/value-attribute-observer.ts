@@ -1,10 +1,11 @@
 import { AccessorType, subscriberCollection } from '@aurelia/runtime';
+import { mixinNodeObserverUseConfig } from './observation-utils';
+import { areEqual } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { ISubscriberCollection } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import { mixinNodeObserverUseConfig } from './observation-utils';
-import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
+import type { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 
 export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
@@ -64,7 +65,7 @@ export class ValueAttributeObserver implements INodeObserver {
   }
 
   public setValue(newValue: string | null): void {
-    if (Object.is(newValue, this._value)) {
+    if (areEqual(newValue, this._value)) {
       return;
     }
     this._oldValue = this._value;

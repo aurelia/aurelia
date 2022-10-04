@@ -86,7 +86,6 @@ export {
   BindingCommandDefinition,
   type BindingCommandKind,
   type BindingCommandType,
-  CallBindingCommand,
   CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -126,9 +125,6 @@ export {
   AttributeBinding,
 } from './binding/attribute';
 export {
-  CallBinding,
-} from './binding/call-binding';
-export {
   InterpolationBinding,
   InterpolationPartBinding,
   ContentBinding,
@@ -149,7 +145,6 @@ export {
   ITemplateCompiler,
   type ICompliationInstruction,
   renderer,
-  CallBindingInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -333,7 +328,6 @@ export {
 
   SVGAnalyzerRegistration,
 
-  CallBindingCommandRegistration,
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
   RefBindingCommandRegistration,
@@ -371,7 +365,6 @@ export {
   TextBindingRendererRegistration,
 
   RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
   CustomAttributeRendererRegistration,
   CustomElementRendererRegistration,
   InterpolationBindingRendererRegistration,

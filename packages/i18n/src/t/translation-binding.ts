@@ -31,7 +31,9 @@ import type {
   IObserverLocatorBasedConnectable,
   IAccessor,
 } from '@aurelia/runtime';
-import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
+import type { IHydratableController, INode } from '@aurelia/runtime-html';
+import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
+import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -39,7 +41,7 @@ interface TranslationBindingCreationContext {
   context: IContainer;
   controller: IHydratableController;
   target: HTMLElement;
-  instruction: CallBindingInstruction;
+  instruction: TranslationBindingInstruction | TranslationBindBindingInstruction | TranslationParametersBindingInstruction;
   platform: IPlatform;
   isParameterContext?: boolean;
 }

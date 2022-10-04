@@ -1,4 +1,4 @@
-import { delegateRegistration } from '@aurelia/compat-v1';
+import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -38,7 +38,7 @@ describe('3-runtime-html/au-slot.spec.ts', function () {
     let app: App | null = null;
     try {
       await au
-        .register(...registrations, delegateRegistration)
+        .register(...registrations, delegateSyntax)
         .app({
           host,
           component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)

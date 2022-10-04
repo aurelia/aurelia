@@ -7,7 +7,6 @@ import {
   RefAttributePattern,
 } from './resources/attribute-pattern';
 import {
-  CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -24,7 +23,6 @@ import {
 } from './resources/binding-command';
 import { TemplateCompiler } from './template-compiler';
 import {
-  CallBindingRenderer,
   CustomAttributeRenderer,
   CustomElementRenderer,
   InterpolationBindingRenderer,
@@ -133,7 +131,6 @@ export const ShortHandBindingSyntax = [
   ColonPrefixedBindAttributePatternRegistration
 ];
 
-export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
 export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
 export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
 export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
@@ -161,7 +158,6 @@ export const DefaultBindingLanguage = [
   FromViewBindingCommandRegistration,
   ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
-  CallBindingCommandRegistration,
   ForBindingCommandRegistration,
   RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
@@ -242,7 +238,6 @@ export const DefaultResources = [
   AuSlot,
 ];
 
-export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;
 export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
 export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
 export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
@@ -281,7 +276,6 @@ export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry
 export const DefaultRenderers = [
   PropertyBindingRendererRegistration,
   IteratorBindingRendererRegistration,
-  CallBindingRendererRegistration,
   RefBindingRendererRegistration,
   InterpolationBindingRendererRegistration,
   SetPropertyRendererRegistration,

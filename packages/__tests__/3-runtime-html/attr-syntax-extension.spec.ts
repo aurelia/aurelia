@@ -2,10 +2,10 @@ import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IContainer, IPlatform } from '@aurelia/kernel';
 import { AppTask, CustomElement, IAttrMapper, NodeObserverLocator } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
-  // cant deal with custom elements on nodejs
-  if (typeof process !== 'undefined') {
+  if (isNode()) {
     return;
   }
   it('understands how to transform .bind on web component custom elements', async function () {
@@ -18,7 +18,9 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
       [
         AppTask.creating(IContainer, container => {
           const platform = container.get(IPlatform) as BrowserPlatform;
-          platform.window.customElements.define(elName, class MyElement extends platform.window.HTMLElement {
+          const BaseClass = platform.HTMLElement;
+
+          platform.window.customElements.define(elName, class MyElement extends BaseClass {
 
             public select: HTMLSelectElement;
 

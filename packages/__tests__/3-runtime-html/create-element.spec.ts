@@ -47,7 +47,6 @@ describe(`createElement() creates element based on tag`, function () {
       eachCartesianJoin(
         [
           [
-            InstructionType.callBinding,
             InstructionType.hydrateAttribute,
             InstructionType.hydrateElement,
             InstructionType.hydrateLetElement,
@@ -167,7 +166,6 @@ describe(`createElement() creates element based on type`, function () {
       eachCartesianJoin(
         [
           [
-            InstructionType.callBinding,
             InstructionType.hydrateAttribute,
             InstructionType.hydrateElement,
             InstructionType.hydrateLetElement,

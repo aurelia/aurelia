@@ -1,10 +1,27 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import { DI, IContainer, IIndexable } from '@aurelia/kernel';
 import { IExpressionParser, ExpressionType, astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
 import { renderer, InstructionType, IRenderer, IHydratableController, bindingCommand, IEventTarget, type IAstBasedBinding, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, CommandType, ICommandBuildInfo, BindingCommandInstance, IInstruction, AppTask } from '@aurelia/runtime-html';
+import { createLookup, ensureExpression, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 
-import { createLookup, isFunction, isString } from './utilities';
+const registeredSymbol = Symbol('.delegate');
+
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+export const delegateSyntax = {
+  register(container: IContainer) {
+    /* istanbul ignore next */
+    if (!(container as unknown as IIndexable)[registeredSymbol]) {
+      /* istanbul ignore next */
+      (container as unknown as IIndexable)[registeredSymbol] = true;
+      container.register(
+        IEventDelegator,
+        DelegateBindingCommand,
+        ListenerBindingRenderer
+      );
+    }
+  }
+};
 
 const instructionType = 'dl';
 
@@ -54,13 +71,6 @@ export class ListenerBindingRenderer implements IRenderer {
       new DelegateListenerOptions(instruction.preventDefault),
     ));
   }
-}
-
-function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
-  if (isString(srcOrExpr)) {
-    return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
-  }
-  return srcOrExpr as Exclude<TFrom, string>;
 }
 
 export class DelegateBindingInstruction {
@@ -304,13 +314,3 @@ export class EventDelegator implements IDisposable {
     }
   }
 }
-
-export const delegateRegistration = {
-  register(container: IContainer) {
-    container.register(
-      IEventDelegator,
-      DelegateBindingCommand,
-      ListenerBindingRenderer
-    );
-  }
-};

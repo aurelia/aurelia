@@ -1,11 +1,10 @@
 import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,
-  CallBindingInstruction,
   IteratorBindingInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
@@ -301,18 +300,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
       target = bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, mode);
-  }
-}
-
-@bindingCommand('call')
-export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.None { return CommandType.None; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    const target = info.bindable === null
-      ? camelCase(info.attr.target)
-      : info.bindable.property;
-    return new CallBindingInstruction(exprParser.parse(info.attr.rawValue, (ExpressionType.IsProperty | ExpressionType.IsFunction) as ExpressionType) as IsBindingBehavior, target);
   }
 }
 

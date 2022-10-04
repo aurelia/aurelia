@@ -1,4 +1,4 @@
-import { delegateRegistration } from '@aurelia/compat-v1';
+import { delegateSyntax } from '@aurelia/compat-v1';
 import {
   Constructable,
   IContainer,
@@ -967,7 +967,7 @@ type Bindables = { [pdName: string]: BindableDefinition };
 describe(`TemplateCompiler - combinations`, function () {
   function createFixture(ctx: TestContext, ...globals: any[]) {
     const container = ctx.container;
-    container.register(...globals, delegateRegistration);
+    container.register(...globals, delegateSyntax);
     const sut = ctx.templateCompiler;
     return { container, sut };
   }
@@ -996,7 +996,6 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: true, capture: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false, capture: true }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,      from: new AccessScopeExpression(value), to }]
       ] as ((ctx: TestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} plain data-attr="value" ${n1}="${v1}"></${el}>`;

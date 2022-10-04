@@ -7,7 +7,6 @@ import {
   Scope,
 } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
-import { CallBinding } from './binding/call-binding';
 import { AttributeBinding } from './binding/attribute';
 import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
@@ -45,7 +44,6 @@ export const enum InstructionType {
   setProperty = 're',
   interpolation = 'rf',
   propertyBinding = 'rg',
-  callBinding = 'rh',
   letBinding = 'ri',
   refBinding = 'rj',
   iteratorBinding = 'rk',
@@ -96,15 +94,6 @@ export class IteratorBindingInstruction {
 
   public constructor(
     public from: string | ForOfStatement,
-    public to: string,
-  ) {}
-}
-
-export class CallBindingInstruction {
-  public readonly type = InstructionType.callBinding;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
     public to: string,
   ) {}
 }
@@ -734,32 +723,6 @@ export class LetElementRenderer implements IRenderer {
       ));
       ++i;
     }
-  }
-}
-
-@renderer(InstructionType.callBinding)
-/** @internal */
-export class CallBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator];
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-
-  public target!: InstructionType.callBinding;
-  public constructor(
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-  ) {
-    this._exprParser = exprParser;
-    this._observerLocator = observerLocator;
-  }
-
-  public render(
-    renderingCtrl: IHydratableController,
-    target: IController,
-    instruction: CallBindingInstruction,
-  ): void {
-    const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsProperty | ExpressionType.IsFunction);
-    renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, this._observerLocator, expr, getTarget(target), instruction.to));
   }
 }
 

@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import { Unparser } from '@aurelia/runtime';
-import { AttributeBinding, CallBinding, ContentBinding, InterpolationPartBinding, LetBinding, ListenerBinding, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
-import { DelegateListenerBinding } from './compat.delegate';
+import { AttributeBinding, ContentBinding, InterpolationPartBinding, LetBinding, ListenerBinding, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
+import { CallBinding } from './compat-call';
+import { DelegateListenerBinding } from './compat-delegate';
 
 let defined = false;
 export const defineBindingMethods = () => {

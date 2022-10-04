@@ -2,7 +2,8 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 import { defineAstMethods } from './compat-ast';
 import { defineBindingMethods } from './compat-binding';
 import { PreventFormActionlessSubmit } from './compat-form';
-import { delegateRegistration } from './compat.delegate';
+import { delegateSyntax } from './compat-delegate';
+import { callSyntax } from './compat-call';
 
 /**
  * Register all services/functionalities necessary for a v1 app to work with Aurelia v2.
@@ -14,13 +15,22 @@ export const compatRegistration: IRegistry = {
     defineAstMethods();
     defineBindingMethods();
     container.register(PreventFormActionlessSubmit);
-    delegateRegistration.register(container);
+    delegateSyntax.register(container);
+    callSyntax.register(container);
   }
 };
 
 export {
   PreventFormActionlessSubmit,
 };
+
+export {
+  CallBinding,
+  CallBindingCommand,
+  CallBindingInstruction,
+  CallBindingRenderer,
+  callSyntax,
+} from './compat-call';
 
 export {
   DelegateBindingCommand,
@@ -30,5 +40,5 @@ export {
   EventDelegator,
   IEventDelegator,
   ListenerBindingRenderer,
-  delegateRegistration
-} from './compat.delegate';
+  delegateSyntax,
+} from './compat-delegate';

@@ -1,3 +1,5 @@
+import type { ExpressionType, IExpressionParser } from '@aurelia/runtime';
+
 /** @internal */ export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
 
 /** @internal */ export const createError = (message: string) => new Error(message);
@@ -27,4 +29,11 @@ export const defineHiddenProp = <T>(obj: object, key: PropertyKey, value: T): T 
     value
   });
   return value;
+};
+
+export const ensureExpression = <TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> => {
+  if (isString(srcOrExpr)) {
+    return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
+  }
+  return srcOrExpr as Exclude<TFrom, string>;
 };

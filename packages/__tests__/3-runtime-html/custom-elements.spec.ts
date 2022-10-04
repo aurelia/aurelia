@@ -1,6 +1,6 @@
 import { BindingMode, customElement, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
-import { delegateRegistration } from '@aurelia/compat-v1';
+import { delegateSyntax } from '@aurelia/compat-v1';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('works with multiple layers of change propagation & <input/>', function () {
@@ -145,7 +145,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     const { trigger } = createFixture(
       '<button bs.open-modal.delegate="clicked()"></button>',
       { clicked: () => clicked = 1 },
-      [delegateRegistration]
+      [delegateSyntax]
     );
     trigger('button', 'bs.open-modal', { bubbles: true });
     assert.strictEqual(clicked, 1);

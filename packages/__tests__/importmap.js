@@ -3,6 +3,7 @@ document.write(`<script type="importmap">${JSON.stringify({
   imports: {
     ...([
       'addons',
+      'compat-v1',
       'platform',
       'platform-browser',
       'metadata',

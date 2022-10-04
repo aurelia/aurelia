@@ -20,7 +20,6 @@ import {
 } from '@aurelia/runtime-html';
 
 import type {
-  CallBindingInstruction,
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
 
@@ -86,7 +85,7 @@ export class TranslationBindingRenderer implements IRenderer {
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: CallBindingInstruction,
+    instruction: TranslationBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this._exprParser,
@@ -153,7 +152,7 @@ export class TranslationBindBindingRenderer implements IRenderer {
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: CallBindingInstruction,
+    instruction: TranslationBindBindingInstruction,
   ): void {
     TranslationBinding.create({
       parser: this.parser,

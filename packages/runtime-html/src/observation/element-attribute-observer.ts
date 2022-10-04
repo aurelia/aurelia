@@ -12,6 +12,7 @@ export interface AttributeObserver extends
   ISubscriber,
   ISubscriberCollection { }
 
+// todo(bigopon): add the observation back in again
 /**
  * Observer for handling two-way binding with attributes
  * Has different strategy for class/style and normal attributes

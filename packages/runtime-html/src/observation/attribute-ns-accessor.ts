@@ -2,6 +2,7 @@ import { AccessorType } from '@aurelia/runtime';
 import { createLookup } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
+import { mixinNoopSubscribable } from './observation-utils';
 
 const nsMap: Record<string, AttributeNSAccessor> = createLookup();
 
@@ -39,3 +40,5 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     }
   }
 }
+
+mixinNoopSubscribable(AttributeNSAccessor);

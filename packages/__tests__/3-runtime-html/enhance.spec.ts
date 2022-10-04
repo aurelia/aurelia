@@ -17,6 +17,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, TestContext, createFixture } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
+import { delegateSyntax } from '@aurelia/compat-v1';
 
 describe('3-runtime/enhance.spec.ts', function () {
   interface TestSetupContext {
@@ -136,6 +137,8 @@ describe('3-runtime/enhance.spec.ts', function () {
 
       const container = ctx.container;
       const au = new Aurelia(container);
+
+      container.register(delegateSyntax);
       let component;
       let dispose: () => void | Promise<void>;
       if (initialMethod === 'app') {

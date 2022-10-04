@@ -70,9 +70,9 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
 
 let metadataInternalSlot = new WeakMap<any, Map<string | symbol | undefined, Map<any, any>>>();
 
-function $typeError(operation: string, args: unknown[], paramName: string, actualValue: unknown, expectedType: string): TypeError {
+const $typeError = (operation: string, args: unknown[], paramName: string, actualValue: unknown, expectedType: string): TypeError => {
   return new TypeError(`${operation}(${args.map(String).join(',')}) - Expected '${paramName}' to be of type ${expectedType}, but got: ${Object.prototype.toString.call(actualValue)} (${String(actualValue)})`);
-}
+};
 
 function toPropertyKeyOrUndefined(propertyKey: any): undefined | string | symbol {
   switch (typeof propertyKey) {
@@ -180,7 +180,7 @@ function OrdinaryHasMetadata(MetadataKey: any, O: any, P: string | symbol | unde
   }
 
   // 4. Let parent be ? O.[[GetPrototypeOf]]().
-  const parent = Object.getPrototypeOf(O);
+  const parent = getPrototype(O);
 
   // 5. If parent is not null, Return ? parent.[[HasMetadata]](MetadataKey, P).
   if (parent !== null) {
@@ -220,7 +220,7 @@ function OrdinaryGetMetadata(MetadataKey: any, O: any, P: string | symbol | unde
   }
 
   // 4. Let parent be ? O.[[GetPrototypeOf]]().
-  const parent = Object.getPrototypeOf(O);
+  const parent = getPrototype(O);
 
   // 5. If parent is not null, return ? parent.[[GetMetadata]](MetadataKey, P).
   if (parent !== null) {
@@ -298,7 +298,7 @@ function OrdinaryMetadataKeys(O: any, P: string | symbol | undefined): any[] {
   const ownKeys = OrdinaryOwnMetadataKeys(O, P);
 
   // 3. Let parent be ? O.[[GetPrototypeOf]]().
-  const parent = Object.getPrototypeOf(O);
+  const parent = getPrototype(O);
 
   // 4. If parent is null, then return ownKeys.
   if (parent === null) {
@@ -1083,3 +1083,4 @@ export const applyMetadataPolyfill = (
 };
 
 const createError = (message: string) => new Error(message);
+const getPrototype = Object.getPrototypeOf;

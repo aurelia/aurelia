@@ -7,7 +7,6 @@ import {
   RefAttributePattern,
 } from './resources/attribute-pattern';
 import {
-  CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -17,7 +16,6 @@ import {
   AttrBindingCommand,
   CaptureBindingCommand,
   ClassBindingCommand,
-  DelegateBindingCommand,
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
@@ -25,7 +23,6 @@ import {
 } from './resources/binding-command';
 import { TemplateCompiler } from './template-compiler';
 import {
-  CallBindingRenderer,
   CustomAttributeRenderer,
   CustomElementRenderer,
   InterpolationBindingRenderer,
@@ -134,7 +131,6 @@ export const ShortHandBindingSyntax = [
   ColonPrefixedBindAttributePatternRegistration
 ];
 
-export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
 export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
 export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
 export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
@@ -143,7 +139,6 @@ export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown 
 export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
 export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
-export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
 export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
 export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
@@ -163,11 +158,9 @@ export const DefaultBindingLanguage = [
   FromViewBindingCommandRegistration,
   ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
-  CallBindingCommandRegistration,
   ForBindingCommandRegistration,
   RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
-  DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
   ClassBindingCommandRegistration,
   StyleBindingCommandRegistration,
@@ -245,7 +238,6 @@ export const DefaultResources = [
   AuSlot,
 ];
 
-export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;
 export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
 export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
 export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
@@ -284,7 +276,6 @@ export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry
 export const DefaultRenderers = [
   PropertyBindingRendererRegistration,
   IteratorBindingRendererRegistration,
-  CallBindingRendererRegistration,
   RefBindingRendererRegistration,
   InterpolationBindingRendererRegistration,
   SetPropertyRendererRegistration,

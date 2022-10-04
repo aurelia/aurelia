@@ -1,36 +1,27 @@
-import { IEventTarget } from '../dom';
-import { DelegationStrategy } from '../renderer';
 import { isFunction } from '../utilities';
 import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import type { IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { type IEventDelegator } from '../observation/event-delegator';
 import { type IAstBasedBinding } from './interfaces-bindings';
 
-const addListenerOptions = {
-  [DelegationStrategy.capturing]: { capture: true },
-  [DelegationStrategy.bubbling]: { capture: false },
-} as const;
-
-export class ListenerOptions {
+export class ListenerBindingOptions {
   public constructor(
     public readonly prevent: boolean,
-    public readonly strategy: DelegationStrategy,
+    public readonly capture: boolean = false,
   ) {}
 }
 
-export interface Listener extends IAstBasedBinding {}
+export interface ListenerBinding extends IAstBasedBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export class Listener implements IBinding {
+export class ListenerBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope;
 
-  private handler: IDisposable = null!;
   /** @internal */
-  private readonly _options: ListenerOptions;
+  private readonly _options: ListenerBindingOptions;
 
   /** @internal */
   public l: IServiceLocator;
@@ -48,8 +39,7 @@ export class Listener implements IBinding {
     public ast: IsBindingBehavior,
     public target: Node,
     public targetEvent: string,
-    public eventDelegator: IEventDelegator,
-    options: ListenerOptions,
+    options: ListenerBindingOptions,
   ) {
     this.l = locator;
     this._options = options;
@@ -89,17 +79,7 @@ export class Listener implements IBinding {
 
     astBind(this.ast, scope, this);
 
-    if (this._options.strategy === DelegationStrategy.none) {
-      this.target.addEventListener(this.targetEvent, this);
-    } else {
-      this.handler = this.eventDelegator.addEventListener(
-        this.l.get(IEventTarget),
-        this.target,
-        this.targetEvent,
-        this,
-        addListenerOptions[this._options.strategy],
-      );
-    }
+    this.target.addEventListener(this.targetEvent, this, this._options);
 
     this.isBound = true;
   }
@@ -113,15 +93,10 @@ export class Listener implements IBinding {
     astUnbind(this.ast, this.scope!, this);
 
     this.scope = void 0;
-    if (this._options.strategy === DelegationStrategy.none) {
-      this.target.removeEventListener(this.targetEvent, this);
-    } else {
-      this.handler.dispose();
-      this.handler = null!;
-    }
+    this.target.removeEventListener(this.targetEvent, this, this._options);
   }
 }
 
-mixinBindingUseScope(Listener);
-mixingBindingLimited(Listener, () => 'callSource');
-mixinAstEvaluator(true, true)(Listener);
+mixinBindingUseScope(ListenerBinding);
+mixingBindingLimited(ListenerBinding, () => 'callSource');
+mixinAstEvaluator(true, true)(ListenerBinding);

@@ -10,13 +10,15 @@ import {
   IRenderer,
   StandardConfiguration,
   IHydratableController,
-  CallBindingInstruction,
   AttrSyntax,
   BindingCommand,
   BindingCommandInstance,
   IAttributePattern,
   IPlatform,
   IAttrMapper,
+  PropertyBindingInstruction,
+  InstructionType,
+  BindingMode,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
@@ -89,7 +91,12 @@ describe('TranslationParametersBindingRenderer', function () {
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
-    const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty) } as unknown as CallBindingInstruction;
+    const callBindingInstruction: PropertyBindingInstruction = {
+      type: InstructionType.propertyBinding,
+      from: expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty),
+      to: 'value',
+      mode: BindingMode.oneTime
+    };
 
     sut.render(
       controller,
@@ -108,7 +115,12 @@ describe('TranslationParametersBindingRenderer', function () {
     const binding = new TranslationBinding({ state: 0 }, container, container.get(IObserverLocator), container.get(IPlatform), targetElement);
     const hydratable = ({ container, bindings: [binding] } as unknown as IHydratableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty);
-    const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
+    const callBindingInstruction: PropertyBindingInstruction = {
+      type: InstructionType.propertyBinding,
+      from: expressionParser.parse('{foo: "bar"}', ExpressionType.IsProperty),
+      to: 'value',
+      mode: BindingMode.oneTime
+    };
 
     sut.render(
       hydratable,

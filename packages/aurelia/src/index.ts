@@ -671,18 +671,7 @@ export {
 
   // DataAttributeAccessor,
 
-  // ElementPropertyAccessor,
-
-  // IManagedEvent,
-  // ListenerTracker,
-  // DelegateOrCaptureSubscription,
-  // TriggerSubscription,
-  // IElementConfiguration,
-  // IEventDelegator,
-  // IEventSubscriber,
-  // IEventTargetWithLookups,
   // EventSubscriber,
-  // EventSubscription,
   // EventDelegator,
 
   NodeObserverLocator,
@@ -706,7 +695,6 @@ export {
   // SelfBindingBehavior,
 
   // UpdateTriggerBindingBehavior,
-  // UpdateTriggerableObserver,
 
   // Focus,
 

@@ -581,6 +581,23 @@ jobs:
             npm run e2e:<< parameters.suite >>
           no_output_timeout: "2m"
 
+  tacho_benchmark:
+    executor: docker_circleci_bench
+    steps:
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          # build-true = build + generate native modules
+          key: cache-{{ .Revision }}-build-true
+      - run:
+          name: "bench mark"
+          command: "npm run bench:render"
+          working_directory: "benchmarks"
+          no_output_timeout: "1m"
+
   js_framework_benchmark:
     executor: docker_circleci_bench
     steps:
@@ -786,6 +803,11 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/router"
+          requires:
+            - build_release
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: render_benchmark
           requires:
             - build_release
 

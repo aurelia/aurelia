@@ -581,30 +581,6 @@ jobs:
             npm run e2e:<< parameters.suite >>
           no_output_timeout: "2m"
 
-  tacho_benchmark:
-    executor: docker_circleci_bench
-    steps:
-      - browser-tools/install-browser-tools
-      - checkout
-      - restore_cache:
-          name: "Restore dependencies"
-          key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          # build-true = build + generate native modules
-          key: cache-{{ .Revision }}-build-true
-      - run:
-          name: "bench prep"
-          working_directory: "benchmarks/latest"
-          command: "npm i"
-      - run:
-          name: "bench mark"
-          command: |
-            npm run build
-            npm run bench:render
-          working_directory: "benchmarks"
-          no_output_timeout: "1m"
-
   js_framework_benchmark:
     executor: docker_circleci_bench
     steps:

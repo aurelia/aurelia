@@ -1,11 +1,11 @@
 name: main
 on:
-  push:
+  pull_request:
     # check against refs/heads
     branches-ignore:
-      - *
-      # - develop
-      # - release
+      - master
+      - develop
+      - release
     paths-ignore:
       - 'docs/**'
 
@@ -13,7 +13,74 @@ env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
 
 jobs:
+  # If you'd like a message to appear in existing results comment that the
+  # benchmarks are current running and the shown results are out of date, run a
+  # job before the benchmarks with the initialize option set to true.
+  setup:
+    name: Setup Tachometer Reporting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize tachometer comment
+        uses: andrewiggins/tachometer-reporter-action@v2
+        with:
+          initialize: true
 
+  bench_startup:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+      - run: npm run bench:startup1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmarks/results
+          path: startup-1k.json
+
+  bench_rerender:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+      - run: npm run bench:rerender1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmarks/results
+          path: rerender-1k.json
+
+  bench_update:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+      - run: npm run bench:update1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: benchmarks/results
+          path: update-1k.json
   # Too slow on GH action
   # Disable for now
   #######################
@@ -83,75 +150,60 @@ jobs:
   #     - run: npm run test-node:${{matrix.suite}}
   #       working-directory: packages-tooling/__tests__
 
-  packages:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    container:
-      image: "circleci/node:15.4.0-buster-browsers"
-      options: --user 1001
-    strategy:
-      matrix:
-        browser: ["chrome", "firefox"]
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build:test
-      - run: npm run test-${{matrix.browser}}
-        working-directory: packages/__tests__
 
-  packages-in-node:
-    name: packages (node)
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build:test
-      - run: npm run test-node
-        working-directory: packages/__tests__
+  # packages-in-node:
+  #   name: packages (node)
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run build:test
+  #     - run: npm run test-node
+  #       working-directory: packages/__tests__
 
-  packages-tooling:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- commonjs
-      - run: npm run test-node
-        working-directory: packages-tooling/__tests__
+  # packages-tooling:
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:invert
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:restore
+  #     - run: npm run change-package-refs:release -- commonjs
+  #     - run: npm run test-node
+  #       working-directory: packages-tooling/__tests__
 
-  example-apps:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    container:
-      image: "circleci/node:15.4.0-buster-browsers"
-      options: --user 1001
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build
-      - name: Helloworld size check
-        run: npm run build
-        working-directory: examples/helloworld
-      - name: Inferno 1kcomponents perf + svg build check
-        run: npm run build
-        working-directory: examples/1kcomponents
-      - name: Fractals tree perf + svg build check
-        run: npm run build
-        working-directory: examples/fractals-tree
-      - name: Sierpinski triangle build check
-        run: npm run build
-        working-directory: examples/sierpinski-triangle
+  # example-apps:
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: "circleci/node:15.4.0-buster-browsers"
+  #     options: --user 1001
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - name: Helloworld size check
+  #       run: npm run build
+  #       working-directory: examples/helloworld
+  #     - name: Inferno 1kcomponents perf + svg build check
+  #       run: npm run build
+  #       working-directory: examples/1kcomponents
+  #     - name: Fractals tree perf + svg build check
+  #       run: npm run build
+  #       working-directory: examples/fractals-tree
+  #     - name: Sierpinski triangle build check
+  #       run: npm run build
+  #       working-directory: examples/sierpinski-triangle
 
   # # benchmark using playwright setup
 

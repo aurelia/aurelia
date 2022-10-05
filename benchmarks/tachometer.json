@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "../../",
+  
+  "benchmarks": [
+    {
+      "name": "render latest",
+      "url": "render1k-latest.html",
+      "browser": {
+        "name": "chrome",
+        "headless": true
+      }
+    },
+    {
+      "name": "render local",
+      "url": "render1k-local.html",
+      "browser": {
+        "name": "chrome",
+        "headless": true
+      }
+    }
+  ]
+}

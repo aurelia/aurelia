@@ -1,0 +1,27 @@
+<script type="module">
+import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
+import * as bench from '/bench.js';
+
+const App = CustomElement.define({
+    name: 'app',
+    template: '<div repeat.for="i of items">${i}</div>'
+}, class {
+    items = [1, 2, 3];
+});
+const host = document.body.appendChild(document.createElement('div'));
+
+bench.start();
+for (let i = 0; i < 10; ++i) {
+    const au = new Aurelia().register(StandardConfiguration).app({
+        component: App,
+        host
+    });
+    au.start();
+
+    au.stop();
+
+    host.textContent = '';
+}
+
+bench.stop();
+</script>

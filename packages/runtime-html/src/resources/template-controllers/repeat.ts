@@ -689,10 +689,6 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$length = length;
 };
 
-const updateBindingContext = (): void => {
-
-};
-
 const toStringTag = Object.prototype.toString as {
   call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
 };

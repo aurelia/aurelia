@@ -1,0 +1,14 @@
+<script type="module">
+import { start } from './latest/dist/app.latest.js';
+
+const host = document.body.appendChild(document.createElement('div'));
+performance.mark('1k-start');
+const au = start(host, 1000);
+
+performance.mark('1k-end');
+
+// measure memory in MBs
+window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
+
+performance.measure('startup-1k', '1k-start', '1k-end');
+</script>

@@ -1,0 +1,17 @@
+<script type="module">
+import { start } from './latest/dist/app.latest.js';
+
+const host = document.body.appendChild(document.createElement('div'));
+const au = start(host);
+performance.mark('1k-start');
+
+au.root.controller.viewModel.updateItems();
+
+performance.mark('1k-end');
+
+// measure memory in MBs
+window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
+
+performance.measure('update-1k', '1k-start', '1k-end');
+
+</script>

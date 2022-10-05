@@ -1,3 +1,4 @@
+import { callSyntax } from '@aurelia/compat-v1';
 import { Constructable } from '@aurelia/kernel';
 import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
@@ -61,7 +62,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
   for (const testCase of testCases) {
     const { title, template, App, registrations = [], assertFn } = testCase;
     it(title, async function () {
-      const { appHost, ctx, component, startPromise, tearDown } = createFixture(template, App, registrations);
+      const { appHost, ctx, component, startPromise, tearDown } = createFixture(template, App, [...registrations, callSyntax]);
 
       await startPromise;
 
@@ -90,7 +91,8 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
           bindables: ['onClick']
         }, class El {
           public i = 0;
-        })
+        }),
+        callSyntax
       )
       .build().started;
 
@@ -111,7 +113,8 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
           bindables: ['onBla']
         }, class El {
           public i = 0;
-        })
+        }),
+        callSyntax
       )
       .build().started;
 

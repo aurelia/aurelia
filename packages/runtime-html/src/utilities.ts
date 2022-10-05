@@ -33,6 +33,7 @@ const IsDataAttribute: Record<string, boolean> = createLookup();
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
 /** @internal */ export const defineProp = Object.defineProperty;
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
+/** @internal */ export const areEqual = Object.is;
 
 /** @internal */
 export const def = Reflect.defineProperty;

@@ -580,7 +580,7 @@ describe('processContent', function () {
           // add header
           const header = p.document.createElement('button');
           header.setAttribute('class.bind', `$host.activeTabId=='${i}'?'active':''`);
-          header.setAttribute('click.delegate', `$host.showTab('${i}')`);
+          header.setAttribute('click.trigger', `$host.showTab('${i}')`);
           header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
           headerTemplate.content.appendChild(header);
 
@@ -613,7 +613,7 @@ describe('processContent', function () {
           const header = headers[i];
           assert.html.textContent(header, expectedHeaders[i], `header#${i} content`);
 
-          // assert the bound delegate
+          // assert the bound trigger
           header.click();
           platform.domWriteQueue.flush();
           for (let j = numTabs - 1; j > -1; j--) {

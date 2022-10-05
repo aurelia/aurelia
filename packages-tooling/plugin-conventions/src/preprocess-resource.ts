@@ -1,6 +1,6 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
-import { getHmrCode, hmrMetadataModules, hmrRuntimeModules } from './hmr';
+import { getHmrCode } from './hmr';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
@@ -104,16 +104,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     }
     if (className && options.hmr && process.env.NODE_ENV !== 'production') {
       exportedClassName = className;
-      hmrRuntimeModules.forEach(m => {
-        if (!auImport.names.includes(m)) {
-          ensureTypeIsExported(runtimeImport.names, m);
-        }
-      });
-      hmrMetadataModules.forEach(m => {
-        if (!auImport.names.includes(m)) {
-          ensureTypeIsExported(metadataImport.names, m);
-        }
-      });
     }
     if (customName) customElementName = customName;
   });

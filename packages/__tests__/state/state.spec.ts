@@ -275,14 +275,14 @@ describe('state/state.spec.ts', function () {
 
     it('works with debounce', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger, flush } = createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] } & debounce:1">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, action: unknown, v: string) =>
             action === 'event' ? { text: s.text + v } : s
         ))
-        .build().started;
+        .build();
 
       trigger('input', 'input');
       flush();

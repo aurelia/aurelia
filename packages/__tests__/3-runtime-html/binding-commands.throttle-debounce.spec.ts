@@ -1,5 +1,6 @@
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { BindingMode, customElement, bindable, Aurelia } from '@aurelia/runtime-html';
+import { delegateSyntax } from '@aurelia/compat-v1';
 
 async function wait(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));
@@ -112,7 +113,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       au.dispose();
     });
 
-    it('works with toView bindings to elements', async function () {
+    it('works with toView bindings to [elements]', async function () {
       @customElement({
         name: 'app',
         template: `<input ref="receiver" value.to-view="value & debounce:25">`,
@@ -133,19 +134,22 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       assert.strictEqual(receiver.value, '0', 'target value pre #1');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.value, '1', 'target value #1');
+      assert.strictEqual(receiver.value, '0', 'target value #1');
 
       component.value = '2';
 
-      assert.strictEqual(receiver.value, '1', 'target value pre #2');
+      assert.strictEqual(receiver.value, '0', 'target value pre #2');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.value, '2', 'target value #2');
+      assert.strictEqual(receiver.value, '0', 'target value #2');
+
+      await ctx.platform.taskQueue.yield();
+      assert.strictEqual(receiver.value, '2', 'target value #2 + yield');
 
       component.value = '3';
 
       assert.strictEqual(receiver.value, '2', 'target value pre #3');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.value, '3', 'target value #3');
+      assert.strictEqual(receiver.value, '2', 'target value #3');
 
       await wait(50);
 
@@ -179,11 +183,11 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       assert.strictEqual(receiver.className, 'au', 'target value pre #1');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au selected', 'target value #1');
+      assert.strictEqual(receiver.className, 'au', 'target value #1');
 
       component.value = false;
 
-      assert.strictEqual(receiver.className, 'au selected', 'target value pre #2');
+      assert.strictEqual(receiver.className, 'au', 'target value pre #2');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(receiver.className, 'au', 'target value #2');
 
@@ -191,21 +195,32 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       assert.strictEqual(receiver.className, 'au', 'target value pre #3');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au selected', 'target value #3');
+      assert.strictEqual(receiver.className, 'au', 'target value #3');
+
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.className, 'au', 'target value #4');
 
       await ctx.platform.taskQueue.yield();
-      await ctx.platform.domWriteQueue.yield();
+      assert.strictEqual(receiver.className, 'au selected', 'target value pre #5');
 
-      assert.strictEqual(receiver.className, 'au selected', 'target value pre #4');
+      component.value = false;
+      assert.strictEqual(receiver.className, 'au selected', 'target value pre #5');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au selected', 'target value #4');
+      assert.strictEqual(receiver.className, 'au selected', 'target value #5');
+
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.className, 'au selected', 'target value #6');
+
+      ctx.platform.domWriteQueue.flush();
+      await ctx.platform.taskQueue.yield();
+      assert.strictEqual(receiver.className, 'au', 'target value #6');
 
       await au.stop();
 
       au.dispose();
     });
 
-    it('works with toView bindings to other components', async function () {
+    it('works with toView bindings to other [components]', async function () {
       @customElement({
         name: 'au-receiver',
         template: null,
@@ -232,17 +247,19 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       await au.start();
 
       const receiver = component.receiver;
+
+      // set source value
       component.value = '1';
+      assert.strictEqual(receiver.value, '0');
 
-      assert.strictEqual(receiver.value, '1');
-
+      // set target value
       receiver.value = '1.5';
-
       assert.strictEqual(receiver.value, '1.5');
 
+      // set source value
       component.value = '3';
-
-      assert.strictEqual(receiver.value, '3');
+      assert.strictEqual(component.value, '3');
+      assert.strictEqual(receiver.value, '1.5');
 
       await ctx.platform.taskQueue.yield();
 
@@ -302,9 +319,17 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       await wait(50);
 
+      assert.strictEqual(component.value, '2');
+      assert.strictEqual(receiver.value, '2');
+
+      // old new v2-behavior:
+      //
       // assert that in 2 way binding, after a target update has been debounced
       // any changes from source should override and discard that queue
-      assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+      // assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+      //
+      // -------
+      // not sure whether this should be the case, since in reality, user input normally should wins everything
 
       await au.stop();
 
@@ -330,6 +355,8 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
         const component = new App();
 
+        ctx.container.register(delegateSyntax);
+
         ctx.doc.body.appendChild(host);
         au.app({ component, host });
         await au.start();
@@ -341,21 +368,21 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
         await wait(20);
 
-        assert.strictEqual(component.events.length, 0, `event 1 not yet propagated`);
+        assert.strictEqual(component.events.length, 0, `event 1 propagated`);
 
         const event2 = new ctx.CustomEvent('click', eventInit);
         receiver.dispatchEvent(event2);
 
         await wait(20);
 
-        assert.strictEqual(component.events.length, 0, `event 2 not yet propagated`);
+        assert.strictEqual(component.events.length, 0, `event 2 not yet propagated, event 1 is discarded because of debounce`);
 
         const event3 = new ctx.CustomEvent('click', eventInit);
         receiver.dispatchEvent(event3);
 
         await wait(20);
 
-        assert.strictEqual(component.events.length, 0, `event 3 not yet propagated`);
+        assert.strictEqual(component.events.length, 0, `event 3 not yet propagated, event 2 is discarded because of debounce`);
 
         await ctx.platform.taskQueue.yield();
 
@@ -369,6 +396,38 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         au.dispose();
       });
     }
+
+    it('works with let binding', async function () {
+      let a = void 0;
+      let aCount = 0;
+      const { ctx, component } = createFixture(
+        '<let to-binding-context a.bind="b & debounce: 25">',
+        class {
+          set a(v: unknown) {
+            aCount++;
+            a = v;
+          }
+
+          b = 1;
+        }
+      );
+
+      assert.strictEqual(a, 1);
+      assert.strictEqual(aCount, 1);
+
+      component.b = 2;
+      assert.strictEqual(a, 1, 'debounce holds 2 from propagating');
+      assert.strictEqual(aCount, 1);
+
+      component.b = 3;
+      assert.strictEqual(a, 1, 'debounce holds 3 from propagating');
+      assert.strictEqual(aCount, 1);
+
+      await ctx.platform.taskQueue.yield();
+
+      assert.strictEqual(a, 3);
+      assert.strictEqual(aCount, 2);
+    });
   });
 
   describe('throttle', function () {
@@ -495,6 +554,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(receiver.value, '5', 'receiver keeps change 5');
       assert.strictEqual(component.value, '5', 'change 5 propagated immediately to component');
 
+      // target -> source
       receiver.value = '6';
       assert.strictEqual(receiver.value, '6', `receiver keeps change 6`);
       assert.strictEqual(component.value, '5', 'change 6 throttled');
@@ -503,14 +563,24 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(receiver.value, '6', `receiver keeps change 6`);
       assert.strictEqual(component.value, '5', 'change 6 still throttled after 20ms');
 
+      // source -> target | should discard previously queued value
       component.value = '7';
       assert.strictEqual(receiver.value, '7', 'receiver takes change 7');
       assert.strictEqual(component.value, '7', 'change 7(from source)');
 
       await wait(50);
+
+      // old new v2-behavior:
+      //
       // assert that in 2 way binding, after a target update has been debounced
       // any changes from source should override and discard that queue
-      assert.strictEqual(receiver.value, '7', `change 3 propagated`);
+      //
+      // -------
+      // not sure whether this should be the case, since in reality, user input normally should wins everything
+      // see the test line 222 title
+      // it('works with toView bindings to other [components]',
+      // for similar scenario
+      assert.strictEqual(receiver.value, '6', `change 6 propagated`); // change from line 555 above
 
       await au.stop();
 

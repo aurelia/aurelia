@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
+import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
 import { IRouteContext } from '../route-context';
@@ -29,7 +29,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private href: string | null = null;
   private instructions: ViewportInstructionTree | null = null;
-  private eventListener: IDisposable | null = null;
+  // private eventListener: IDisposable | null = null;
   private navigationEndListener: IDisposable | null = null;
   private readonly isEnabled: boolean;
 
@@ -38,7 +38,6 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @IRouterEvents private readonly events: IRouterEvents,
-    @IEventDelegator private readonly delegator: IEventDelegator,
     @IRouteContext private readonly ctx: IRouteContext,
     @ILocationManager private readonly locationMgr: ILocationManager,
   ) {
@@ -48,7 +47,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public binding(): void {
     if (this.isEnabled) {
-      this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
+      this.el.addEventListener('click', this.onClick as EventListener);
     }
     this.valueChanged();
     this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
@@ -69,7 +68,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public unbinding(): void {
     if (this.isEnabled) {
-      this.eventListener!.dispose();
+      this.el.removeEventListener('click', this.onClick);
     }
     this.navigationEndListener!.dispose();
   }

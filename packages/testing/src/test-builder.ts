@@ -376,7 +376,7 @@ import { createContainer } from './test-context';
 
 //   public bind(flags?: LF): void {
 //     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
-//     this.component.$bind(flags!);
+//     this.component.bind(flags!);
 //   }
 
 //   public attach(flags?: LF): void {
@@ -391,7 +391,7 @@ import { createContainer } from './test-context';
 
 //   public unbind(flags?: LF): void {
 //     flags = arguments.length === 1 ? flags : LF.fromStopTask | LF.fromUnbind;
-//     this.component.$unbind(flags!);
+//     this.component.unbind(flags!);
 //   }
 
 //   public start(): void {

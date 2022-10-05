@@ -361,7 +361,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
     case ExpressionKind.AccessMember: {
       const obj = astEvaluate(ast.object, s, e, null) as IObservable;
       if (obj instanceof Object) {
-        if (obj.$observers !== void 0 && obj.$observers[ast.name] !== void 0) {
+        if (obj.$observers?.[ast.name] !== void 0) {
           obj.$observers[ast.name].setValue(val);
         } else {
           obj[ast.name] = val;
@@ -493,7 +493,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       }
       if ((b as BindingWithBehavior)[key] === void 0) {
         (b as BindingWithBehavior)[key] = behavior;
-        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null) as {}[]));
+        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null)));
       } else {
         throw duplicateBehaviorAppliedError(name);
       }

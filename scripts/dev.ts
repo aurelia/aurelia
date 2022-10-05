@@ -72,6 +72,7 @@ const validPackages = [
   'state',
   'store-v1',
   'ui-virtualization',
+  'compat-v1',
   'aurelia',
   'addons',
   'testing',

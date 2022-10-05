@@ -584,6 +584,7 @@ jobs:
   tacho_benchmark:
     executor: docker_circleci_bench
     steps:
+      - browser-tools/install-browser-tools
       - checkout
       - restore_cache:
           name: "Restore dependencies"

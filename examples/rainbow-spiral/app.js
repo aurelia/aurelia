@@ -42,7 +42,8 @@ try {
                 y.bind='cursor.y'
                 big.bind='cursor.big'
                 color.bind='cursor.color'
-                label.bind='haveFun'></cursor>
+                label.bind='haveFun'
+                key='id'></cursor>
             </div>`,
           bindables: {
             haveFun: { property: 'haveFun', attribute: 'have-fun' },
@@ -80,6 +81,7 @@ try {
                 const m = 20 + i * 2;
                 const hue = (f * 255 + counter * 10) % 255;
                 cursors[i] = {
+                  id: i,
                   big: this.big,
                   color: `hsl(${hue}, 100%, 50%)`,
                   x: (this.x + Math.sin(θ) * m) | 0,
@@ -125,6 +127,7 @@ try {
                 const m = 20 + i * 2;
                 const hue = (f * 255 + counter * 10) % 255;
                 Object.assign(oldCursors[i], {
+                  id: i,
                   big: this.big,
                   color: `hsl(${hue}, 100%, 50%)`,
                   x: (this.x + Math.sin(θ) * m) | 0,

@@ -788,11 +788,6 @@ workflows:
           path: "packages/__e2e__/router"
           requires:
             - build_release
-      - tacho_benchmark:
-          <<: *filter_ignore_develop_release
-          name: render_benchmark
-          requires:
-            - build_release
 
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release

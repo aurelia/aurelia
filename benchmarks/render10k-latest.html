@@ -5,7 +5,7 @@ import * as bench from '/bench.js';
 const host = document.body.appendChild(document.createElement('div'));
 
 bench.start();
-for (let i = 0; i < 1000; ++i) {
+for (let i = 0; i < 10000; ++i) {
     start(host).stop();
     host.textContent = '';
 }

@@ -594,8 +594,14 @@ jobs:
           # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       - run:
+          name: "bench prep"
+          working_directory: "benchmarks/latest"
+          command: "npm i"
+      - run:
           name: "bench mark"
-          command: "npm run bench:render"
+          command: |
+            npm run build
+            npm run bench:render
           working_directory: "benchmarks"
           no_output_timeout: "1m"
 

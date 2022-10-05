@@ -4,20 +4,36 @@
   
   "benchmarks": [
     {
-      "name": "render latest",
-      "url": "render1k-latest.html",
       "browser": {
         "name": "chrome",
         "headless": true
-      }
+      },
+      "expand": [
+        {
+          "name": "render 1k latest",
+          "url": "render1k-latest.html"
+        },
+        {
+          "name": "render 1k local",
+          "url": "render1k-local.html"
+        }
+      ]
     },
     {
-      "name": "render local",
-      "url": "render1k-local.html",
       "browser": {
         "name": "chrome",
         "headless": true
-      }
+      },
+      "expand": [
+        {
+          "name": "render latest 10k",
+          "url": "render10k-latest.html"
+        },
+        {
+          "name": "render local 10k",
+          "url": "render10k-local.html"
+        }
+      ]
     }
   ]
 }

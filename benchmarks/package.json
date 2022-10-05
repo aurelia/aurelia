@@ -4,7 +4,7 @@
         "build:runtime": "cd ../packages/runtime && npm run build",
         "build:runtime-html": "cd ../packages/runtime-html && npm run build",
         "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
-        "bench:render": "tach --config=tachometer.json --browser=chrome-headless --json-file=results/render.json"
+        "bench:render": "tach --config=tachometer.json --json-file=results/render.json"
     },
     "dependencies": {
         "tachometer": "0.7.0"

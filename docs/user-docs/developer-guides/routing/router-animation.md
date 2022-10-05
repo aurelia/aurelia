@@ -41,14 +41,6 @@ export class AnimationHooks {
   public loading(vm, _params, _instruction, navigation) {
     this.backwards = navigation.navigation.back;
   }
-
-  public load(vm, _params, _instruction, navigation) {
-    this.backwards = navigation.navigation.back;
-  }
-  
-  public unload(vm, _instruction, navigation) {
-    this.backwards = navigation.navigation.back;
-  }
   
   public unloading(vm, _instruction, navigation) {
     this.backwards = navigation.navigation.back;

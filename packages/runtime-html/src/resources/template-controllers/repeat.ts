@@ -51,7 +51,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
-  @bindable public key?: string = void 0;
+  public key?: string | IsBindingBehavior = void 0;
 
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;

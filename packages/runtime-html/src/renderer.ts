@@ -93,7 +93,8 @@ export class IteratorBindingInstruction {
   public readonly type = InstructionType.iteratorBinding;
 
   public constructor(
-    public from: string | ForOfStatement,
+    public forOf: string | ForOfStatement,
+    public key: SetPropertyInstruction | PropertyBindingInstruction | null,
     public to: string,
   ) {}
 }
@@ -827,17 +828,20 @@ export class PropertyBindingRenderer implements IRenderer {
 @renderer(InstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
+  /** @internal */ protected static get inject(): unknown[] { return [IRendering, IExpressionParser, IObserverLocator, IPlatform]; }
+  /** @internal */ private readonly _rendering: IRendering;
   /** @internal */ private readonly _exprParser: IExpressionParser;
   /** @internal */ private readonly _observerLocator: IObserverLocator;
   /** @internal */ private readonly _platform: IPlatform;
 
   public target!: InstructionType.iteratorBinding;
   public constructor(
+    rendering: IRendering,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
     p: IPlatform,
   ) {
+    this._rendering = rendering;
     this._exprParser = exprParser;
     this._observerLocator = observerLocator;
     this._platform = p;
@@ -848,17 +852,30 @@ export class IteratorBindingRenderer implements IRenderer {
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
-    const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsIterator);
+    const forOf = ensureExpression(this._exprParser, instruction.forOf, ExpressionType.IsIterator);
+    const resolvedTarget = getTarget(target);
     renderingCtrl.addBinding(new PropertyBinding(
       renderingCtrl,
       renderingCtrl.container,
       this._observerLocator,
       this._platform.domWriteQueue,
-      expr,
-      getTarget(target),
+      forOf,
+      resolvedTarget,
       instruction.to,
       BindingMode.toView,
     ));
+
+    const key = instruction.key;
+    if (key !== null) {
+      switch (key.type) {
+        case InstructionType.setProperty:
+          (resolvedTarget as { key: unknown })['key'] = key.value;
+          break;
+        case InstructionType.propertyBinding:
+          (resolvedTarget as { key: unknown })['key'] = ensureExpression(this._exprParser, key.from, ExpressionType.IsProperty);
+          break;
+      }
+    }
   }
 }
 

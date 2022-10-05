@@ -623,12 +623,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
-    let key: string | null = null;
-    if (el.hasAttribute('repeat.for')) {
-      if ((key = el.getAttribute('key')) !== null) {
-        el.removeAttribute('key');
-      }
-    }
 
     const isCustomElement = elDef !== null;
     const isShadowDom = isCustomElement && elDef.shadowOptions != null;
@@ -818,9 +812,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         removeAttr();
 
         if (attrDef.isTemplateController) {
-          if (key !== null) {
-            attrBindableInstructions.push(new SetPropertyInstruction(key, 'key'));
-          }
           (tcInstructions ??= []).push(new HydrateTemplateController(
             voidDefinition,
             // todo: def/ def.Type or def.name should be configurable

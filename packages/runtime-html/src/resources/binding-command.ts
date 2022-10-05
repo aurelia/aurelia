@@ -9,10 +9,11 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
+  SetPropertyInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { isString } from '../utilities';
+import { createError, isString } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 
 import type {
@@ -24,7 +25,7 @@ import type {
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
-import type { AttrSyntax } from './attribute-pattern';
+import type { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
@@ -307,11 +308,48 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
 
+  /** @internal */
+  private readonly _attrParser: IAttributeParser;
+
+  constructor(attrParser: IAttributeParser) {
+    this._attrParser = attrParser;
+  }
+
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.property;
-    return new IteratorBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator), target);
+    const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
+    let keyInstruction: null | SetPropertyInstruction | PropertyBindingInstruction = null;
+    if (forOf.semiIdx > -1) {
+      const keyAttr = info.attr.rawValue.slice(forOf.semiIdx);
+      let i = keyAttr.indexOf(':');
+      if (i > -1) {
+        const attrName = keyAttr.slice(0, i);
+
+        while (keyAttr.charCodeAt(++i) <= 0x20 /* space */);
+
+        const attrValue = keyAttr.slice(i);
+        const attrSyntax = this._attrParser.parse(attrName, attrValue);
+
+        if (attrSyntax.target === 'key') {
+          if (attrSyntax.command === null) {
+            keyInstruction = new SetPropertyInstruction(attrName, attrValue);
+          } else if (attrSyntax.command === 'bind') {
+            keyInstruction = new PropertyBindingInstruction(attrName, attrValue, BindingMode.default);
+          }
+        }
+      }
+
+      if (keyInstruction === null) {
+        if (__DEV__) {
+          throw createError(`AUR775:invalid key expression '${keyAttr}'`);
+        } else {
+          throw createError(`AUR775:'${keyAttr}'`);
+        }
+      }
+    }
+    return new IteratorBindingInstruction(forOf, keyInstruction, target);
   }
 }
 

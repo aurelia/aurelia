@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { Collection, IConnectable } from '../observation';
-import { isArray } from '../utilities-objects';
+import { isArray, isMap, isSet } from '../utilities-objects';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
@@ -38,6 +38,7 @@ export function getRaw<T extends object>(obj: T): T {
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
 export function unwrap<T>(v: T): T {
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 
@@ -54,7 +55,7 @@ function doNotCollect(key: PropertyKey): boolean {
 function createProxy<T extends object>(obj: T): T {
   const handler: ProxyHandler<object> = isArray(obj)
     ? arrayHandler
-    : obj instanceof Map || obj instanceof Set
+    : isMap(obj) || isSet(obj)
       ? collectionHandler
       : objectHandler;
 
@@ -328,12 +329,12 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
         }
         break;
       case 'get':
-        if (target instanceof Map) {
+        if (isMap(target)) {
           return wrappedGet;
         }
         break;
       case 'set':
-        if (target instanceof Map) {
+        if (isSet(target)) {
           return wrappedSet;
         }
         break;
@@ -346,7 +347,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
       case 'entries':
         return wrappedEntries;
       case Symbol.iterator:
-        return target instanceof Map ? wrappedEntries : wrappedValues;
+        return isMap(target) ? wrappedEntries : wrappedValues;
     }
 
     return wrap(R$get(target, key, receiver));

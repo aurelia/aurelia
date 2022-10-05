@@ -1,9 +1,8 @@
-import { astAssign, astBind, astEvaluate, astUnbind, IBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
 import { mixinAstEvaluator } from './binding-utils';
 
-export interface RefBinding extends IAstBasedBinding {}
+export interface RefBinding extends IAstEvaluator, IConnectableBinding {}
 export class RefBinding implements IBinding {
   /** @internal */
   public l: IServiceLocator;

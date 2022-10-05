@@ -26,6 +26,12 @@ export const isString = (v: unknown): v is string => typeof v === 'string';
 export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
 
 /** @internal */
+export const isSet = <T>(v: unknown): v is Set<T> => v instanceof Set;
+
+/** @internal */
+export const isMap = <T, K>(v: unknown): v is Map<T, K> => v instanceof Map;
+
+/** @internal */
 export const areEqual = Object.is;
 
 /** @internal */

@@ -95,8 +95,6 @@ export function instructionTypeName(type: string): string {
       return 'iteratorBinding';
     case InstructionType.listenerBinding:
       return 'listenerBinding';
-    case InstructionType.callBinding:
-      return 'callBinding';
     case InstructionType.refBinding:
       return 'refBinding';
     case InstructionType.stylePropertyBinding:

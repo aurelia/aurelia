@@ -3,6 +3,7 @@ import { AccessorType } from '@aurelia/runtime';
 import { hasOwnProperty, isString } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
+import { mixinNoopSubscribable } from './observation-utils';
 
 export class ClassAttributeAccessor implements IAccessor {
   public get doNotCache(): true { return true; }
@@ -138,3 +139,5 @@ function splitClassString(classString: string): string[] {
   }
   return matches;
 }
+
+mixinNoopSubscribable(ClassAttributeAccessor);

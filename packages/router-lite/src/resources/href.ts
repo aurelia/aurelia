@@ -1,5 +1,4 @@
-import { IDisposable } from '@aurelia/kernel';
-import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
+import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, ICustomAttributeController, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
@@ -23,7 +22,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  private eventListener!: IDisposable;
+  // private eventListener!: IDisposable;
   private isInitialized: boolean = false;
   private isEnabled: boolean;
 
@@ -37,7 +36,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     @IEventTarget private readonly target: IEventTarget,
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
-    @IEventDelegator private readonly delegator: IEventDelegator,
     @IRouteContext private readonly ctx: IRouteContext,
     @IWindow w: IWindow,
   ) {
@@ -68,10 +66,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
     this.valueChanged(this.value);
-    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
+    this.el.addEventListener('click', this);
+    // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
-    this.eventListener.dispose();
+    // this.eventListener.dispose();
+    this.el.removeEventListener('click', this);
   }
 
   public valueChanged(newValue: unknown): void {

@@ -1,3 +1,4 @@
+import { callSyntax, delegateSyntax } from '@aurelia/compat-v1';
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
   ArrayObserver,
@@ -270,6 +271,7 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
     const au = new Aurelia(container);
     await au
       .register(
+        delegateSyntax,
         customDefaultTrigger
           ? ValidationHtmlConfiguration.customize((options) => {
             options.DefaultTrigger = customDefaultTrigger;
@@ -1354,11 +1356,15 @@ describe('validation-html/validate-binding-behavior.spec.ts/validate-binding-beh
       const container = ctx.container;
       const host = ctx.doc.createElement('app');
       ctx.doc.body.appendChild(host);
+      container.register(delegateSyntax);
       const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 
       try {
         await au
-          .register(Registration.instance(IObserveCollection, false))
+          .register(
+            Registration.instance(IObserveCollection, false),
+            callSyntax,
+          )
           .app({
             host,
             component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)

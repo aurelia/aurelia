@@ -1,16 +1,14 @@
 import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,
-  CallBindingInstruction,
   IteratorBindingInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
-  DelegationStrategy,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
@@ -305,18 +303,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   }
 }
 
-@bindingCommand('call')
-export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.None { return CommandType.None; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    const target = info.bindable === null
-      ? camelCase(info.attr.target)
-      : info.bindable.property;
-    return new CallBindingInstruction(exprParser.parse(info.attr.rawValue, (ExpressionType.IsProperty | ExpressionType.IsFunction) as ExpressionType) as IsBindingBehavior, target);
-  }
-}
-
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
@@ -334,16 +320,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, DelegationStrategy.none);
-  }
-}
-
-@bindingCommand('delegate')
-export class DelegateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.bubbling);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, false);
   }
 }
 
@@ -352,7 +329,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.capturing);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, true);
   }
 }
 

@@ -16,20 +16,17 @@ import type {
 import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 import { createError } from '../utilities';
 
-const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
-};
-
 export interface PropertyBinding extends IAstBasedBinding {}
 
 export class PropertyBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope = void 0;
 
-  public targetObserver?: AccessorOrObserver = void 0;
+  /** @internal */
+  private _targetObserver?: AccessorOrObserver = void 0;
 
-  private task: ITask | null = null;
+  /** @internal */
+  private _task: ITask | null = null;
 
   /** @internal */
   private _targetSubscriber: ISubscriber | null = null;
@@ -71,7 +68,7 @@ export class PropertyBinding implements IBinding {
   }
 
   public updateTarget(value: unknown): void {
-    this.targetObserver!.setValue(value, this.target, this.targetProperty);
+    this._targetObserver!.setValue(value, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown): void {
@@ -83,7 +80,7 @@ export class PropertyBinding implements IBinding {
       return;
     }
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
     const shouldConnect = this.mode > BindingMode.oneTime;
     if (shouldConnect) {
       this.obs.version++;
@@ -95,10 +92,10 @@ export class PropertyBinding implements IBinding {
 
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this._taskQueue.queueTask(() => {
+      task = this._task;
+      this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
-        this.task = null;
+        this._task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
@@ -125,14 +122,14 @@ export class PropertyBinding implements IBinding {
 
     const observerLocator = this.oL;
     const $mode = this.mode;
-    let targetObserver = this.targetObserver;
+    let targetObserver = this._targetObserver;
     if (!targetObserver) {
       if ($mode & BindingMode.fromView) {
         targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
       } else {
         targetObserver = observerLocator.getAccessor(this.target, this.targetProperty);
       }
-      this.targetObserver = targetObserver;
+      this._targetObserver = targetObserver;
     }
 
     const shouldConnect = ($mode & BindingMode.toView) > 0;
@@ -164,14 +161,20 @@ export class PropertyBinding implements IBinding {
     this.scope = void 0;
 
     if (this._targetSubscriber) {
-      (this.targetObserver as IObserver).unsubscribe(this._targetSubscriber);
+      (this._targetObserver as IObserver).unsubscribe(this._targetSubscriber);
       this._targetSubscriber = null;
     }
-    if (task != null) {
-      task.cancel();
-      task = this.task = null;
-    }
+    this._task?.cancel();
+    this._task = null;
     this.obs.clearAll();
+  }
+
+  /**
+   * Start using a given observer to listen to changes on the target of this binding
+   */
+  public useTargetObserver(observer: IObserver): void {
+    (this._targetObserver as IObserver)?.unsubscribe(this);
+    (this._targetObserver = observer).subscribe(this);
   }
 
   /**
@@ -180,7 +183,7 @@ export class PropertyBinding implements IBinding {
    * Binding behaviors can use this to setup custom observation handling during bind lifecycle
    * to alter the update source behavior during bind phase of this binding.
    */
-  public useTargetSubscriber(subscriber: ISubscriber) {
+  public useTargetSubscriber(subscriber: ISubscriber): void {
     if (this._targetSubscriber != null) {
       throw createError(`AURxxxx: binding already has a target subscriber`);
     }
@@ -194,3 +197,8 @@ connectable(PropertyBinding);
 mixinAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;
+
+const updateTaskOpts: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};

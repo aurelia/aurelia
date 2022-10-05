@@ -86,7 +86,6 @@ export {
   BindingCommandDefinition,
   type BindingCommandKind,
   type BindingCommandType,
-  CallBindingCommand,
   CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -95,7 +94,6 @@ export {
   ToViewBindingCommand,
   TwoWayBindingCommand,
   TriggerBindingCommand,
-  DelegateBindingCommand,
   CaptureBindingCommand,
   AttrBindingCommand,
   ClassBindingCommand,
@@ -117,20 +115,19 @@ export {
   BindingTargetSubscriber,
   mixinAstEvaluator,
   mixingBindingLimited,
-  mixinBindingUseScope as mixinUseScope,
+  mixinBindingUseScope,
 } from './binding/binding-utils';
 export {
-  Listener,
-} from './binding/listener';
+  ListenerBinding,
+  ListenerBindingOptions,
+} from './binding/listener-binding';
 export {
   AttributeBinding,
 } from './binding/attribute';
 export {
-  CallBinding,
-} from './binding/call-binding';
-export {
   InterpolationBinding,
   InterpolationPartBinding,
+  ContentBinding,
 } from './binding/interpolation-binding';
 export {
   LetBinding,
@@ -148,8 +145,6 @@ export {
   ITemplateCompiler,
   type ICompliationInstruction,
   renderer,
-  CallBindingInstruction,
-  DelegationStrategy,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -187,15 +182,9 @@ export {
   DataAttributeAccessor,
 } from './observation/data-attribute-accessor';
 export {
-  IEventDelegator,
-  EventSubscriber,
-  EventDelegator,
-} from './observation/event-delegator';
-export {
-  NodeObserverConfig,
   NodeObserverLocator,
   type INodeObserverConfig,
-  type IHtmlObserverConstructor,
+  type INodeObserverConstructor as IHtmlObserverConstructor,
 } from './observation/observer-locator';
 export {
   type ISelectElement,
@@ -223,7 +212,6 @@ export {
 } from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
-  type UpdateTriggerableObserver,
 } from './resources/binding-behaviors/update-trigger';
 
 export {
@@ -340,7 +328,6 @@ export {
 
   SVGAnalyzerRegistration,
 
-  CallBindingCommandRegistration,
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
   RefBindingCommandRegistration,
@@ -349,7 +336,6 @@ export {
   ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
   TriggerBindingCommandRegistration,
-  DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
   AttrBindingCommandRegistration,
   ClassBindingCommandRegistration,
@@ -379,7 +365,6 @@ export {
   TextBindingRendererRegistration,
 
   RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
   CustomAttributeRendererRegistration,
   CustomElementRendererRegistration,
   InterpolationBindingRendererRegistration,

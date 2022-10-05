@@ -1,5 +1,6 @@
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { BindingMode, customElement, bindable, Aurelia } from '@aurelia/runtime-html';
+import { delegateSyntax } from '@aurelia/compat-v1';
 
 async function wait(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));
@@ -353,6 +354,8 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         const { au, host, ctx } = $createFixture();
 
         const component = new App();
+
+        ctx.container.register(delegateSyntax);
 
         ctx.doc.body.appendChild(host);
         au.app({ component, host });

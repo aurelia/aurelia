@@ -1,3 +1,4 @@
+import { delegateSyntax } from '@aurelia/compat-v1';
 import { noop } from '@aurelia/kernel';
 import {
   IDialogService,
@@ -873,7 +874,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
     for (const { title, only, afterStarted, afterTornDown } of testCases) {
       const $it = only ? it.only : it;
       $it(title, async function () {
-        const creationResult = createFixture('', class App { }, [DialogDefaultConfiguration]);
+        const creationResult = createFixture('', class App { }, [delegateSyntax, DialogDefaultConfiguration]);
         const { ctx, tearDown, startPromise } = creationResult;
         await startPromise;
         const dialogService = ctx.container.get(IDialogService);

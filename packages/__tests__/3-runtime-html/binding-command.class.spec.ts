@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { BindingMode, Aurelia, IEventDelegator, StandardConfiguration, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { BindingMode, Aurelia, StandardConfiguration, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
@@ -195,8 +195,6 @@ describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', func
           );
           await testCase.assert(au, platform, host, component, testCase, className);
         } finally {
-          const em = ctx.container.get(IEventDelegator);
-          em.dispose();
           tearDown();
           await au.stop();
 

@@ -519,6 +519,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
 
+    const dec = this.forOf.declaration as DestructuringAssignmentExpression;
+    const hasDestructuredLocal = this._hasDestructuredLocal;
+    const forOfBinding = this._forOfBinding;
     let next: ISyntheticView;
     let j = seqLen - 1;
     i = newLen - 1;
@@ -529,8 +532,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
-        if(this._hasDestructuredLocal) {
-          astAssign(this.forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, normalizedItems![i]);
+        if(hasDestructuredLocal) {
+          astAssign(dec, viewScope = Scope.fromParent(parentScope, new BindingContext()), forOfBinding, normalizedItems![i]);
         } else {
           viewScope = Scope.fromParent(parentScope, new BindingContext(local, normalizedItems![i]));
         }
@@ -542,9 +545,19 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+        if (hasDestructuredLocal) {
+          astAssign(dec, view.scope, forOfBinding, normalizedItems![i]);
+        } else {
+          view.scope.bindingContext[local] = normalizedItems![i];
+        }
         setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
+        if (hasDestructuredLocal) {
+          astAssign(dec, view.scope, forOfBinding, normalizedItems![i]);
+        } else {
+          view.scope.bindingContext[local] = normalizedItems![i];
+        }
         if (oldLength !== newLen) {
           setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         }
@@ -674,6 +687,10 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$even = isEven;
   oc.$odd = !isEven;
   oc.$length = length;
+};
+
+const updateBindingContext = (): void => {
+
 };
 
 const toStringTag = Object.prototype.toString as {

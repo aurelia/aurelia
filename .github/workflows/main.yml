@@ -3,7 +3,6 @@ on:
   pull_request:
     # check against refs/heads
     branches-ignore:
-      - master
       - develop
       - release
     paths:
@@ -37,7 +36,7 @@ jobs:
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name
       - name: Run tachometer startup bench
-      - run: npm run bench:startup1k
+        run: npm run bench:startup1k
         working-directory: benchmarks
 
       # Upload this benchmarks results
@@ -56,7 +55,7 @@ jobs:
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name
       - name: Run tachometer startup bench
-      - run: npm run bench:rerender1k
+        run: npm run bench:rerender1k
         working-directory: benchmarks
 
       # Upload this benchmarks results
@@ -75,7 +74,7 @@ jobs:
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name
       - name: Run tachometer startup bench
-      - run: npm run bench:update1k
+        run: npm run bench:update1k
         working-directory: benchmarks
 
       # Upload this benchmarks results

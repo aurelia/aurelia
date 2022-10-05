@@ -16,8 +16,8 @@ const App = CustomElement.define({
     }
 
     updateItems() {
-        const len = this.items.length;
-        this.items.forEach((i, idx) => i.update(len - idx + 1))
+        const count = this.items.length;
+        this.items.forEach((i, idx) => i.update(count - idx + 1))
     }
 });
 

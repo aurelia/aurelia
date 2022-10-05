@@ -1,4 +1,4 @@
-name: main
+name: benchmark
 on:
   pull_request:
     # check against refs/heads
@@ -6,8 +6,10 @@ on:
       - master
       - develop
       - release
-    paths-ignore:
-      - 'docs/**'
+    paths:
+      - 'packages/kernel/**'
+      - 'packages/runtime/**'
+      - 'packages/runtime-html/**'
 
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property

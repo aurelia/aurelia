@@ -57,12 +57,12 @@ const $tpl = TemplateExpression.$empty;
 const $this = AccessThisExpression.$this;
 const $parent = AccessThisExpression.$parent;
 
-const dummyLocator = { get: () => null } as unknown as IServiceLocator;
+const dummyLocator = { get: () => null } as unknown as IServiceLocator & IAstEvaluator;
 const dummyLocatorThatReturnsNull = {
   get() {
     return null;
   },
-} as unknown as IServiceLocator;
+} as unknown as IServiceLocator & IAstEvaluator;
 const dummyBinding = {
   observe: () => { return; },
   locator: dummyLocator

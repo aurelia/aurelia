@@ -334,7 +334,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
         }
         break;
       case 'set':
-        if (isSet(target)) {
+        if (isMap(target)) {
           return wrappedSet;
         }
         break;

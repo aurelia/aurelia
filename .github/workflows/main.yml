@@ -1,17 +1,17 @@
 name: main
-on:
-  push:
-    # check against refs/heads
-    branches-ignore:
-      - master
-      - develop
-      - release
-    # paths-ignore:
-    #   - 'docs/**'
-    paths:
-      - 'packages/kernel/**'
-      - 'packages/runtime/**'
-      - 'packages/runtime-html/**'
+on: [push, pull_request]
+  # push:
+  #   # check against refs/heads
+  #   branches-ignore:
+  #     - master
+  #     - develop
+  #     - release
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   paths:
+  #     - 'packages/kernel/**'
+  #     - 'packages/runtime/**'
+  #     - 'packages/runtime-html/**'
 
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property

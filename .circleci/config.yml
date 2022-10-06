@@ -584,7 +584,6 @@ jobs:
   tacho_benchmark_prep:
     executor: docker_circleci_bench
     steps:
-      - browser-tools/install-browser-tools
       - checkout
       - restore_cache:
           name: "Restore dependencies"
@@ -613,8 +612,9 @@ jobs:
       command:
         type: string
     steps:
-      - browser-tools/install-browser-tools
-      - checkout
+      - checkout_install:
+          install_chrome: true
+          install: false
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

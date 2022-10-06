@@ -129,8 +129,8 @@ jobs:
       # Upload this benchmarks results
       - uses: actions/upload-artifact@v2
         with:
-          name: benchmarks/results
-          path: startup-1k.json
+          name: results
+          path: results/startup-1k.json
 
   bench_rerender:
     timeout-minutes: 10
@@ -150,8 +150,8 @@ jobs:
       # Upload this benchmarks results
       - uses: actions/upload-artifact@v2
         with:
-          name: benchmarks/results
-          path: rerender-1k.json
+          name: results
+          path: results/rerender-1k.json
 
   bench_update:
     timeout-minutes: 10
@@ -171,8 +171,25 @@ jobs:
       # Upload this benchmarks results
       - uses: actions/upload-artifact@v2
         with:
-          name: benchmarks/results
-          path: update-1k.json
+          name: results
+          path: results/update-1k.json
+
+  report_results:
+    name: Report Results
+    needs: [bench_startup, bench_rerender, bench_update]
+    runs-on: ubuntu-latest
+    steps:
+      # Download the results artifact
+      - uses: actions/download-artifact@v2
+        with:
+          name: results
+          path: results
+
+      # Read all the results and post comment
+      - name: Report Tachometer Result
+        uses: andrewiggins/tachometer-reporter-action@v2
+        with:
+          path: results/*.json
   # Too slow on GH action
   # Disable for now
   #######################

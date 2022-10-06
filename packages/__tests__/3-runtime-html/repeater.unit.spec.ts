@@ -13,7 +13,6 @@ import {
   IRendering,
   PropertyBinding,
   HydrateTemplateController,
-  IteratorBindingInstruction,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,

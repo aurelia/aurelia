@@ -9,7 +9,6 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
-  SetPropertyInstruction,
   MultiAttrInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';

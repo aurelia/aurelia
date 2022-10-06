@@ -386,7 +386,61 @@ describe(spec, function () {
 
       // TODO: find out why this shadow dom mutation observer thing doesn't work correctly in jsdom
       if (typeof window !== 'undefined') {
-        expectedCount += 11 + 11 ** 2 + 11 ** 3;
+        expectedCount = 11 + 11 ** 2 + 11 ** 3;
+        assert.strictEqual(app.$controller.children.length, 1, `app['$children'].length #2`);
+        assert.strictEqual(childrenCount, expectedCount, `childrenCount #2`);
+      }
+    }, setup);
+  }
+  {
+    let childrenCount = 0;
+    @customElement({
+      name: 'foo-el',
+      template: `\${txt}<foo-el if.bind="cur<max" cnt.bind="cnt" max.bind="max" cur.bind="cur+1" txt.bind="txt" repeat.for="i of cnt;key:n"></foo-el>`,
+      shadowOptions: { mode: 'open' }
+    })
+    class FooEl implements ICustomElementViewModel {
+      @bindable public cnt;
+      @bindable public max;
+      @bindable public cur;
+      @bindable public txt;
+      public $controller: ICustomElementController<this>;
+      public attached() {
+        childrenCount += this.$controller.children.length;
+      }
+    }
+    @customElement({
+      name: 'app',
+      shadowOptions: { mode: 'open' }
+    })
+    class App implements ICustomElementViewModel {
+      public cnt = Array(10).fill(null).map((v, i) => ({n:i}));
+      public max = 3;
+      public txt = 'a';
+      public $controller: ICustomElementController<this>;
+    }
+
+    const setup: Partial<TestSetupContext<App>> = {
+      app: App,
+      registrations: [FooEl],
+      template: `<foo-el cnt.bind="cnt" max.bind="max" cur="0" txt.bind="txt" repeat.for="i of cnt;key:n" ref.bind="'foo'+i.n"></foo-el>`,
+    };
+    $it('repeater with custom element and children observer', async function ({ host, app }: TestExecutionContext<App>) {
+      const content = getVisibleText(host, true);
+      let expectedCount = 10 + 10 ** 2 + 10 ** 3;
+      assert.strictEqual(content.length, expectedCount, `getVisibleText(au, host).length`);
+      assert.strictEqual(content, 'a'.repeat(expectedCount), `getVisibleText(au, host)`);
+
+      assert.strictEqual(childrenCount, expectedCount, `childrenCount #1`);
+      assert.strictEqual(app.$controller.children.length, 1, `app['$children'].length #1`);
+
+      app.cnt = Array(11).fill(null).map((v, i) => ({n:i}));
+
+      await Promise.resolve();
+
+      // TODO: find out why this shadow dom mutation observer thing doesn't work correctly in jsdom
+      if (typeof window !== 'undefined') {
+        expectedCount = 11 + 11 ** 2 + 11 ** 3;
         assert.strictEqual(app.$controller.children.length, 1, `app['$children'].length #2`);
         assert.strictEqual(childrenCount, expectedCount, `childrenCount #2`);
       }
@@ -639,7 +693,7 @@ describe(spec, function () {
 
       // TODO: find out why this shadow dom mutation observer thing doesn't work correctly in jsdom
       if (typeof window !== 'undefined') {
-        expectedCount += 11 + 11 ** 2 + 11 ** 3;
+        expectedCount = 11 + 11 ** 2 + 11 ** 3;
         assert.strictEqual(app.$controller.children.length, 1, `app['$children'].length - #2`);
         assert.strictEqual(childrenCount, expectedCount, `childrenCount - #2`);
       }

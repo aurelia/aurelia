@@ -612,6 +612,8 @@ jobs:
       command:
         type: string
     steps:
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
       - checkout
       - restore_cache:
           name: "Restore dependencies"

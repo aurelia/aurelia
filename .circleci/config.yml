@@ -850,24 +850,28 @@ workflows:
           path: "packages/__e2e__/router"
           requires:
             - build_release
+      - tacho_benchmark_prep:
+          <<: *filter_ignore_develop_release
+          requires:
+            - build_release
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_startup
           command: npm run bench:startup1k
           requires:
-            - build_release
+            - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_rerender
           command: npm run bench:rerender1k
           requires:
-            - build_release
+            - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_update
           command: npm run bench:update1k
           requires:
-            - build_release
+            - tacho_benchmark_prep
 
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release

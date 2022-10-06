@@ -56,8 +56,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   @bindable public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
 
-  /** @internal */ private _keyMap: Map<IIndexable, unknown> = new Map();
-  /** @internal */ private _scopeMap: Map<IIndexable, Scope> = new Map();
+  /** @internal */ private readonly _keyMap: Map<IIndexable, unknown> = new Map();
+  /** @internal */ private readonly _scopeMap: Map<IIndexable, Scope> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
   /** @internal */ private _forOfBinding!: PropertyBinding;

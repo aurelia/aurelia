@@ -309,12 +309,12 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
 
-  static get inject(): unknown[] { return [IAttributeParser]; }
+  public static get inject(): unknown[] { return [IAttributeParser]; }
 
   /** @internal */
   private readonly _attrParser: IAttributeParser;
 
-  constructor(attrParser: IAttributeParser) {
+  public constructor(attrParser: IAttributeParser) {
     this._attrParser = attrParser;
   }
 
@@ -326,7 +326,7 @@ export class ForBindingCommand implements BindingCommandInstance {
     let props: IInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
       const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
-      let i = attr.indexOf(':');
+      const i = attr.indexOf(':');
       if (i > -1) {
         const attrName = attr.slice(0, i).trim();
         const attrValue = attr.slice(i + 1).trim();

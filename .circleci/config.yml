@@ -612,9 +612,7 @@ jobs:
       command:
         type: string
     steps:
-      - checkout_install:
-          install_chrome: true
-          install: false
+      - checkout
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

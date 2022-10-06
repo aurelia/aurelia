@@ -7,10 +7,10 @@ import {
   connectable,
   IAstEvaluator,
   IBinding,
-  IConnectable, IObserverLocator, Scope
+  IConnectable, IConnectableBinding, IObserverLocator, Scope
 } from '@aurelia/runtime';
 import {
-  bindingBehavior, BindingTargetSubscriber, IAstBasedBinding,
+  bindingBehavior, BindingTargetSubscriber,
   IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
@@ -110,7 +110,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-interface ValidatitionConnector extends IAstBasedBinding {}
+interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */

@@ -38,10 +38,16 @@ export interface IConnectable {
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
+/**
+ * Interface of a subscriber or property change handler
+ */
 export interface ISubscriber<TValue = unknown> {
   handleChange(newValue: TValue, previousValue: TValue): void;
 }
 
+/**
+ * Interface of a collection subscriber or mutation handler
+ */
 export interface ICollectionSubscriber {
   handleCollectionChange(collection: Collection, indexMap: IndexMap): void;
 }

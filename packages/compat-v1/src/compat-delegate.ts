@@ -1,6 +1,6 @@
 import { DI, IContainer, IIndexable } from '@aurelia/kernel';
-import { IExpressionParser, ExpressionType, astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { renderer, InstructionType, IRenderer, IHydratableController, bindingCommand, IEventTarget, type IAstBasedBinding, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, CommandType, ICommandBuildInfo, BindingCommandInstance, IInstruction, AppTask } from '@aurelia/runtime-html';
+import { astBind, astEvaluate, astUnbind, ExpressionType, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
@@ -89,7 +89,7 @@ export class DelegateListenerOptions {
   ) { }
 }
 
-export interface DelegateListenerBinding extends IAstBasedBinding { }
+export interface DelegateListenerBinding extends IAstEvaluator, IConnectableBinding { }
 /**
  * Listener binding. Handle event binding between view and view model
  */

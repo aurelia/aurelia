@@ -1,6 +1,6 @@
-import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IBinding, ISubscriber } from '@aurelia/runtime';
+import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IAstEvaluator, IBinding, IConnectableBinding, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { mixinAstEvaluator, BindingTargetSubscriber, IFlushQueue, mixingBindingLimited, mixinBindingUseScope } from './binding-utils';
+import { BindingTargetSubscriber, IFlushQueue, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -11,12 +11,12 @@ import type {
   IObserver,
   IObserverLocator,
   IsBindingBehavior,
-  Scope
+  Scope,
 } from '@aurelia/runtime';
-import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
 import { createError } from '../utilities';
+import type { IBindingController } from './interfaces-bindings';
 
-export interface PropertyBinding extends IAstBasedBinding {}
+export interface PropertyBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class PropertyBinding implements IBinding {
   public isBound: boolean = false;
@@ -81,7 +81,7 @@ export class PropertyBinding implements IBinding {
     }
 
     const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
-    const shouldConnect = this.mode > BindingMode.oneTime;
+    const shouldConnect = (this.mode & BindingMode.toView) > 0;
     if (shouldConnect) {
       this.obs.version++;
     }

@@ -5,12 +5,14 @@ import {
   AccessorType,
   astEvaluate,
   connectable,
+  IAstEvaluator,
   IBinding,
+  IConnectableBinding,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -20,7 +22,7 @@ import { createStateBindingScope } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateBinding extends IAstBasedBinding { }
+export interface StateBinding extends IAstEvaluator, IConnectableBinding { }
 export class StateBinding implements IBinding, IStoreSubscriber<object> {
   /** @internal */
   public readonly oL: IObserverLocator;

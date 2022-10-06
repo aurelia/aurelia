@@ -2,7 +2,6 @@
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/binding-context';
-import { ISignaler } from '../observation/signaler';
 import { createError, isArray, isFunction, safeString } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';
@@ -515,7 +514,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       // to make sure signaler works
       const signals = vc.signals;
       if (signals != null) {
-        const signaler = b.get?.(ISignaler);
+        const signaler = b.getSignaler?.();
         const ii = signals.length;
         let i = 0;
         for (; i < ii; ++i) {
@@ -553,12 +552,12 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
       if (vc?.signals === void 0) {
         return;
       }
-      const signaler = b.get(ISignaler);
+      const signaler = b.getSignaler?.();
       let i = 0;
       for (; i < vc.signals.length; ++i) {
         // the cast is correct, as the value converter expression would only add
         // a IConnectable that also implements `ISubscriber` interface to the signaler
-        signaler.removeSignalListener(vc.signals[i], b);
+        signaler?.removeSignalListener(vc.signals[i], b);
       }
       astUnbind(ast.expression, s, b);
       break;

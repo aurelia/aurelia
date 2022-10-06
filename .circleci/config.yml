@@ -581,6 +581,56 @@ jobs:
             npm run e2e:<< parameters.suite >>
           no_output_timeout: "2m"
 
+  tacho_benchmark_prep:
+    executor: docker_circleci_bench
+    steps:
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          # build-true = build + generate native modules
+          key: cache-{{ .Revision }}-build-true
+      - run:
+          name: "bench prep dep"
+          working_directory: "benchmarks/latest"
+          command: npm i
+      - run:
+          name: "bench prep build"
+          working_directory: "benchmarks"
+          command: npm run build
+      - save_cache:
+          key: cache-{{ .Revision }}-benchmark-app
+          paths:
+            - benchmarks/latest/dist/app.latest.js
+            - benchmarks/local/dist/app.local.js
+
+  tacho_benchmark:
+    executor: docker_circleci_bench
+    parameters:
+      command:
+        type: string
+    steps:
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          # build-true = build + generate native modules
+          key: cache-{{ .Revision }}-build-true
+      - restore_cache:
+          name: "Restore benchmark artifacts"
+          key: cache-{{ .Revision }}-benchmark-app
+      - run:
+          name: "benchmark"
+          command: <<parameters.command>>
+          working_directory: "benchmarks"
+          no_output_timeout: "1m"
+
   js_framework_benchmark:
     executor: docker_circleci_bench
     steps:
@@ -788,6 +838,28 @@ workflows:
           path: "packages/__e2e__/router"
           requires:
             - build_release
+      - tacho_benchmark_prep:
+          <<: *filter_ignore_develop_release
+          requires:
+            - build_release
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_startup
+          command: npm run bench:startup1k
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_rerender
+          command: npm run bench:rerender1k
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_update
+          command: npm run bench:update1k
+          requires:
+            - tacho_benchmark_prep
 
       # - e2e_playwright:
       #     <<: *filter_ignore_develop_release

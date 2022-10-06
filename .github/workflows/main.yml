@@ -1,19 +1,201 @@
 name: main
 on:
   push:
-    # check against refs/heads
-    branches-ignore:
-      - *
+  #   # check against refs/heads
+    branches:
+      - master
       # - develop
       # - release
-    paths-ignore:
-      - 'docs/**'
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+    paths:
+      - 'packages/kernel/**'
+      - 'packages/runtime/**'
+      - 'packages/runtime-html/**'
 
 env:
   PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
 
 jobs:
+  # If you'd like a message to appear in existing results comment that the
+  # benchmarks are current running and the shown results are out of date, run a
+  # job before the benchmarks with the initialize option set to true.
+  setup:
+    name: Setup Tachometer Reporting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize tachometer comment
+        uses: andrewiggins/tachometer-reporter-action@v2
+        with:
+          initialize: true
 
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Cache node modules
+  #       id: cache-npm
+  #       uses: actions/cache@v3
+  #       with:
+  #         # npm cache files are stored in `~/.npm` on Linux/macOS
+  #         path: node_modules
+  #         key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-build-deps-
+
+  #     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+  #       name: Missing deps, reinstalling the state of node modules
+  #       run: npm install
+
+  #     - name: Build
+  #       run: npm build
+
+  #     - name: Cache build output
+  #       id: cache-build
+  #       uses: actions/cache@v3
+  #       with:
+  #         key: ${{ runner.os }}-build-dist-${{ github.sha }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-build-dist-
+  #         path: |
+  #           packages/__tests__/dist
+  #           packages/aurelia/dist
+  #           packages/compat-v1/dist
+  #           packages/addons/dist
+  #           packages/fetch-client/dist
+  #           packages/i18n/dist
+  #           packages/kernel/dist
+  #           packages/metadata/dist
+  #           packages/platform/dist
+  #           packages/platform-browser/dist
+  #           packages/route-recognizer/dist
+  #           packages/router/dist
+  #           packages/router-lite/dist
+  #           packages/runtime/dist
+  #           packages/runtime-html/dist
+  #           packages/state/dist
+  #           packages/store-v1/dist
+  #           packages/testing/dist
+  #           packages/ui-virtualization/dist
+  #           packages/validation/dist
+  #           packages/validation-html/dist
+  #           packages/validation-i18n/dist
+  #           packages-tooling/__tests__/dist
+  #           packages-tooling/aot/dist
+  #           packages-tooling/au/dist
+  #           packages-tooling/babel-jest/dist
+  #           packages-tooling/http-server/dist
+  #           packages-tooling/parcel-transformer/dist
+  #           packages-tooling/plugin-conventions/dist
+  #           packages-tooling/plugin-gulp/dist
+  #           packages-tooling/ts-jest/dist
+  #           packages-tooling/webpack-loader/dist
+
+  bench_startup:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      # - name: Restore cached node modules
+      #   id: restore-cache-npm
+      #   uses: actions/cache@v3
+      #   with:
+      #     # npm cache files are stored in `~/.npm` on Linux/macOS
+      #     path: node_modules
+      #     key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-deps-
+      
+      # - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+      #   name: Missing deps, reinstalling the state of node modules
+      #   run: npm install
+
+      #   run: npm list
+      # - name: Build
+      #   run: npm build
+
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+        run: |
+          npm run build
+          npm run bench:startup1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results/startup-1k.json
+
+  bench_rerender:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+        run: |
+          npm run build
+          npm run bench:rerender1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results/rerender-1k.json
+
+  bench_update:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+        run: |
+          npm run build
+          npm run bench:update1k
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results/update-1k.json
+
+  report_results:
+    name: Report Results
+    needs: [bench_startup, bench_rerender, bench_update]
+    runs-on: ubuntu-latest
+    steps:
+      # Download the results artifact
+      - uses: actions/download-artifact@v2
+        with:
+          name: results
+          path: results
+
+      # Read all the results and post comment
+      - name: Report Tachometer Result
+        uses: andrewiggins/tachometer-reporter-action@v2
+        with:
+          path: results/*.json
   # Too slow on GH action
   # Disable for now
   #######################
@@ -83,75 +265,60 @@ jobs:
   #     - run: npm run test-node:${{matrix.suite}}
   #       working-directory: packages-tooling/__tests__
 
-  packages:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    container:
-      image: "circleci/node:15.4.0-buster-browsers"
-      options: --user 1001
-    strategy:
-      matrix:
-        browser: ["chrome", "firefox"]
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build:test
-      - run: npm run test-${{matrix.browser}}
-        working-directory: packages/__tests__
 
-  packages-in-node:
-    name: packages (node)
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build:test
-      - run: npm run test-node
-        working-directory: packages/__tests__
+  # packages-in-node:
+  #   name: packages (node)
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run build:test
+  #     - run: npm run test-node
+  #       working-directory: packages/__tests__
 
-  packages-tooling:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      - run: npm ci
-      - run: npm run build
-      - run: npm run change-tsconfigs:invert
-      - run: npm run build
-      - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- commonjs
-      - run: npm run test-node
-        working-directory: packages-tooling/__tests__
+  # packages-tooling:
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 15
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:invert
+  #     - run: npm run build
+  #     - run: npm run change-tsconfigs:restore
+  #     - run: npm run change-package-refs:release -- commonjs
+  #     - run: npm run test-node
+  #       working-directory: packages-tooling/__tests__
 
-  example-apps:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    container:
-      image: "circleci/node:15.4.0-buster-browsers"
-      options: --user 1001
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build
-      - name: Helloworld size check
-        run: npm run build
-        working-directory: examples/helloworld
-      - name: Inferno 1kcomponents perf + svg build check
-        run: npm run build
-        working-directory: examples/1kcomponents
-      - name: Fractals tree perf + svg build check
-        run: npm run build
-        working-directory: examples/fractals-tree
-      - name: Sierpinski triangle build check
-        run: npm run build
-        working-directory: examples/sierpinski-triangle
+  # example-apps:
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: "circleci/node:15.4.0-buster-browsers"
+  #     options: --user 1001
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: npm ci
+  #     - run: npm run build
+  #     - name: Helloworld size check
+  #       run: npm run build
+  #       working-directory: examples/helloworld
+  #     - name: Inferno 1kcomponents perf + svg build check
+  #       run: npm run build
+  #       working-directory: examples/1kcomponents
+  #     - name: Fractals tree perf + svg build check
+  #       run: npm run build
+  #       working-directory: examples/fractals-tree
+  #     - name: Sierpinski triangle build check
+  #       run: npm run build
+  #       working-directory: examples/sierpinski-triangle
 
   # # benchmark using playwright setup
 

@@ -1,6 +1,5 @@
-import { IServiceLocator } from '@aurelia/kernel';
 import {
-  AccessorType, astBind, astEvaluate, astUnbind, connectable, IBinding, IObserver
+  AccessorType, astBind, astEvaluate, astUnbind, connectable, type IBinding,  IObserver, IAstEvaluator, IConnectableBinding
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
@@ -13,6 +12,7 @@ import type {
   QueueTaskOptions,
   TaskQueue
 } from '@aurelia/platform';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ForOfStatement,
   IObserverLocator,
@@ -20,14 +20,15 @@ import type {
   Scope
 } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
+import type { IBindingController } from './interfaces-bindings';
 
 const taskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
 };
 
-export interface AttributeBinding extends IAstBasedBinding {}
+// the 2 interfaces implemented come from mixin
+export interface AttributeBinding extends IAstEvaluator, IConnectableBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
@@ -102,7 +103,7 @@ export class AttributeBinding implements IBinding {
     }
 
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & BindingMode.oneTime) === 0;
+    const shouldConnect = (this.mode & BindingMode.toView) > 0;
     let task: ITask | null;
     if (shouldConnect) {
       this.obs.version++;

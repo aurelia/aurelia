@@ -105,13 +105,11 @@ Besides the basics of `path` and `component` a route can have additional configu
 By specifying the `redirectTo` property on our route, we can create route aliases. These allow us to redirect to other routes. In the following example, we redirect our default route to the products page.
 
 ```typescript
-@route({
-  routes: [
+@routes([
     { path: '', redirectTo: 'products' },
     { path: 'products', component: import('./products'), title: 'Products' },
     { path: 'product/:id', component: import('./product'), title: 'Product' }
-  ]
-})
+])
 export class MyApp {
 
 }
@@ -165,17 +163,15 @@ If you have more than a few routes, it might be best practice to write them in a
 The syntax for routes stays the same using the decorator, just how they are defined changes slightly.
 
 ```typescript
-import { IRouteableComponent } from "@aurelia/router";
+import { IRouteableComponent, routes } from "@aurelia/router";
 
-@route({
-    routes: [
-      {
+@routes([
+    {
         path: ['', 'home'],
         component: import('./components/home-page'),
         title: 'Home',
-      }
-    ]
-})
+    }
+])
 export class MyApp implements IRouteableComponent {
 
 }
@@ -298,8 +294,7 @@ Inline import statements are a relatively new feature. Inside your tsconfig.json
 We went over creating routes with support for parameters in the creating routes section, but there is an additional property you can specify on a route called `data,` which allows you to associate metadata with a route.
 
 ```typescript
-@route({
-  routes: [
+@routes([
     {
       id: 'home',
       path: '',
@@ -314,8 +309,7 @@ We went over creating routes with support for parameters in the creating routes 
           requiresAuth: false
       }
     }
-  ]
-})
+])
 export class MyApp {
 
 }

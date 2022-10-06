@@ -2,8 +2,7 @@ import { isFunction } from '../utilities';
 import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { type IAstBasedBinding } from './interfaces-bindings';
+import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -12,7 +11,7 @@ export class ListenerBindingOptions {
   ) {}
 }
 
-export interface ListenerBinding extends IAstBasedBinding {}
+export interface ListenerBinding extends IAstEvaluator, IConnectableBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */

@@ -8,11 +8,12 @@ import {
   astEvaluate,
   astUnbind,
   astBind,
+  IConnectableBinding,
+  IAstEvaluator,
 } from '@aurelia/runtime';
 import {
   CustomElement,
   IPlatform,
-  type IAstBasedBinding,
   type IBindingController,
   State,
   mixinAstEvaluator,
@@ -28,7 +29,6 @@ import type {
   IsExpression,
   IExpressionParser,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
   IAccessor,
 } from '@aurelia/runtime';
 import type { IHydratableController, INode } from '@aurelia/runtime-html';
@@ -56,7 +56,7 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IAstBasedBinding { }
+export interface TranslationBinding extends IAstEvaluator, IConnectableBinding { }
 
 const forOpts = { optional: true } as const;
 const taskQueueOpts: QueueTaskOptions = {
@@ -64,7 +64,7 @@ const taskQueueOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-export class TranslationBinding implements IObserverLocatorBasedConnectable {
+export class TranslationBinding implements IConnectableBinding {
   public isBound: boolean = false;
   public ast!: IsExpression;
   private readonly i18n: I18N;
@@ -366,7 +366,7 @@ class AccessorUpdateTask {
   }
 }
 
-interface ParameterBinding extends IAstBasedBinding {}
+interface ParameterBinding extends IAstEvaluator, IConnectableBinding {}
 
 class ParameterBinding {
   public value!: i18next.TOptions;

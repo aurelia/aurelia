@@ -594,13 +594,15 @@ jobs:
           # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       - run:
-          name: "bench prep"
+          name: "bench prep dep"
           working_directory: "benchmarks/latest"
-          command: |
-            npm i
-            npm run build
+          command: npm i
+      - run:
+          name: "bench prep build"
+          working_directory: "benchmarks"
+          command: npm run build
       - save_cache:
-          key: cache-{{ checksum "package-lock.json" }}-{{ .Revision }}-benchmark-app
+          key: cache-{{ .Revision }}-benchmark-app
           paths:
             - benchmarks/latest/dist/app.latest.js
             - benchmarks/local/dist/app.local.js
@@ -622,24 +624,10 @@ jobs:
           key: cache-{{ .Revision }}-build-true
       - restore_cache:
           name: "Restore benchmark artifacts"
-          key: cache-{{ checksum "package-lock.json" }}-{{ .Revision }}-benchmark-app
+          key: cache-{{ .Revision }}-benchmark-app
       - run:
-          name: "bench mark"
+          name: "benchmark"
           command: <<parameters.command>>
-          working_directory: "benchmarks"
-          no_output_timeout: "1m"
-      - run:
-          name: "bench mark"
-          command: |
-            npm run build
-            npm run bench:startup1k
-          working_directory: "benchmarks"
-          no_output_timeout: "1m"
-      - run:
-          name: "bench mark"
-          command: |
-            npm run build
-            npm run bench:update1k
           working_directory: "benchmarks"
           no_output_timeout: "1m"
 

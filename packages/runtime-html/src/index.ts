@@ -105,7 +105,6 @@ export {
 } from './attribute-mapper';
 export {
   BindingMode,
-  IAstBasedBinding,
   IBindingController,
 } from './binding/interfaces-bindings';
 export {

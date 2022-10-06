@@ -103,7 +103,7 @@ export class AttributeBinding implements IBinding {
     }
 
     const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & BindingMode.oneTime) === 0;
+    const shouldConnect = (this.mode & BindingMode.toView) > 0;
     let task: ITask | null;
     if (shouldConnect) {
       this.obs.version++;

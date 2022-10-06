@@ -1,6 +1,6 @@
 import { camelCase, IIndexable, type IContainer } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, IObserverLocator, IsBindingBehavior, astBind, astEvaluate, astUnbind, IAccessor, IBinding, Scope } from '@aurelia/runtime';
-import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, bindingCommand, BindingCommandInstance, CommandType, IAstBasedBinding, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, renderer } from '@aurelia/runtime-html';
+import { astBind, astEvaluate, astUnbind, ExpressionType, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
 import { ensureExpression } from './utilities';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -83,7 +83,7 @@ function getTarget(potentialTarget: object): object {
 /**
  * A binding for handling .call syntax
  */
-export interface CallBinding extends IAstBasedBinding { }
+export interface CallBinding extends IAstEvaluator, IConnectableBinding { }
 export class CallBinding implements IBinding {
   public isBound: boolean = false;
   public scope?: Scope;

@@ -1,4 +1,3 @@
-import { AnyBindingExpression, IAstEvaluator, IConnectableBinding } from '@aurelia/runtime';
 import { State } from '../templating/controller';
 
 // Note: the oneTime binding now has a non-zero value for 2 reasons:
@@ -20,10 +19,6 @@ export const enum BindingMode {
    */
   default  = 0b1000
 }
-
-export type IAstBasedBinding = IAstEvaluator & IConnectableBinding & {
-  ast: AnyBindingExpression;
-};
 
 export interface IBindingController {
   readonly state: State;

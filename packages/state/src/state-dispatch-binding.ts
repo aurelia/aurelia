@@ -8,9 +8,11 @@ import {
   astEvaluate,
   astBind,
   astUnbind,
-  IBinding
+  IBinding,
+  IAstEvaluator,
+  IConnectableBinding
 } from '@aurelia/runtime';
-import { mixinAstEvaluator, mixingBindingLimited, type IAstBasedBinding } from '@aurelia/runtime-html';
+import { mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IAction,
   type IStore
@@ -20,7 +22,7 @@ import { createStateBindingScope } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateDispatchBinding extends IAstBasedBinding { }
+export interface StateDispatchBinding extends IAstEvaluator, IConnectableBinding { }
 export class StateDispatchBinding implements IBinding {
   /** @internal */
   public readonly l: IServiceLocator;

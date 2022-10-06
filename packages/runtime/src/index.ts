@@ -62,7 +62,6 @@ export {
   astUnbind,
 } from './binding/ast.eval';
 export {
-  type IObserverLocatorBasedConnectable,
   type IConnectableBinding,
   connectable,
   BindingObserverRecord,

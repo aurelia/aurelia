@@ -1,22 +1,18 @@
-import { IDisposable, IServiceLocator, Writable, type Constructable, type Key } from '@aurelia/kernel';
-import { createError, def, defineHiddenProp } from '../utilities';
-import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
+import { IDisposable, IServiceLocator, Key, Writable, type Constructable } from '@aurelia/kernel';
+import { ITask } from '@aurelia/platform';
+import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
+import { createError, def, defineHiddenProp } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
-import { type IAstBasedBinding } from './interfaces-bindings';
-import { ITask } from '@aurelia/platform';
-
-interface ITwoWayBindingImpl extends IAstBasedBinding {
-  updateSource(value: unknown): void;
-}
+import { PropertyBinding } from './property-binding';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
  */
 export class BindingTargetSubscriber implements ISubscriber {
   /** @internal */
-  private readonly b: ITwoWayBindingImpl;
+  private readonly b: PropertyBinding;
   // flush queue is a way to handle the notification order in a synchronous change notification system
   // without a flush queue, changes are notified depth first
   // with    a flush queue, changes are notified breadth first
@@ -28,7 +24,7 @@ export class BindingTargetSubscriber implements ISubscriber {
   private _value: unknown = void 0;
 
   public constructor(
-    b: ITwoWayBindingImpl,
+    b: PropertyBinding,
     // flush queue is a way to handle the notification order in a synchronous change notification system
     // without a flush queue, changes are notified depth first
     // with    a flush queue, changes are notified breadth first
@@ -77,6 +73,9 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
     defineHiddenProp(proto, 'get', function (this: T, key: Key) {
       return this.l.get(key);
+    });
+    defineHiddenProp(proto, 'getSignaler', function (this: T) {
+      return this.l.root.get(ISignaler);
     });
     defineHiddenProp(proto, 'getConverter', function (this: T, name: string) {
       const key = ValueConverter.keyFrom(name);

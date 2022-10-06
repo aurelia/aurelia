@@ -19,6 +19,7 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
+import { areEqual } from '../utilities';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;
@@ -42,13 +43,17 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  private readonly _callback: IWatcherCallback<object>;
+
   public constructor(
     public readonly obj: IObservable,
     observerLocator: IObserverLocator,
     public readonly $get: (obj: object, watcher: IConnectable) => unknown,
-    private readonly cb: IWatcherCallback<object>,
+    cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
+    this._callback = cb;
     this.oL = observerLocator;
   }
 
@@ -84,9 +89,9 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     const oldValue = this.value;
     const newValue = this.compute();
 
-    if (!Object.is(newValue, oldValue)) {
+    if (!areEqual(newValue, oldValue)) {
       // should optionally queue
-      this.cb.call(obj, newValue, oldValue, obj);
+      this._callback.call(obj, newValue, oldValue, obj);
     }
   }
 
@@ -139,7 +144,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       value = astEvaluate(expr, this.scope, this, this);
       this.obs.clear();
     }
-    if (!Object.is(value, oldValue)) {
+    if (!areEqual(value, oldValue)) {
       this.value = value;
       // should optionally queue for batch synchronous
       this.callback.call(obj, value, oldValue, obj);

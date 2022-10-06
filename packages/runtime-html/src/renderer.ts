@@ -1,9 +1,9 @@
-import { emptyArray, IDisposable, InstanceProvider, Key } from '@aurelia/kernel';
+import { emptyArray, type IDisposable, InstanceProvider, type Key } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
-  IBinding,
+  type IBinding,
   Scope,
 } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
@@ -21,7 +21,7 @@ import { Controller, ICustomElementController, ICustomElementViewModel, IControl
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
-import { AttrSyntax } from './resources/attribute-pattern';
+import type { AttrSyntax } from './resources/attribute-pattern';
 import { createError, defineProp, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 

@@ -4,7 +4,9 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  connectable
+  connectable,
+  IAstEvaluator,
+  IConnectableBinding
 } from '@aurelia/runtime';
 import { State } from '../templating/controller';
 import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
@@ -20,7 +22,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
 import { isArray } from '../utilities';
-import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
+import type { IBindingController } from './interfaces-bindings';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
@@ -155,7 +157,7 @@ export class InterpolationBinding implements IBinding {
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
-export interface InterpolationPartBinding extends IAstBasedBinding {}
+export interface InterpolationPartBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class InterpolationPartBinding implements IBinding, ICollectionSubscriber {
 
@@ -268,7 +270,7 @@ mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
 connectable(InterpolationPartBinding);
 mixinAstEvaluator(true)(InterpolationPartBinding);
 
-export interface ContentBinding extends IAstBasedBinding {}
+export interface ContentBinding extends IAstEvaluator, IConnectableBinding {}
 
 /**
  * A binding for handling the element content interpolation

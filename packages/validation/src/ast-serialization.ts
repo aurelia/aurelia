@@ -134,8 +134,8 @@ export class Deserializer implements IExpressionHydrator {
         return new AST.BindingIdentifier(expr.name);
       }
       case ASTExpressionTypes.ForOfStatement: {
-        const expr: Pick<AST.ForOfStatement, 'declaration' | 'iterable'> = raw;
-        return new AST.ForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable));
+        const expr: Pick<AST.ForOfStatement, 'declaration' | 'iterable' | 'semiIdx'> = raw;
+        return new AST.ForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable), this.hydrate(expr.semiIdx));
       }
       case ASTExpressionTypes.Interpolation: {
         const expr: {

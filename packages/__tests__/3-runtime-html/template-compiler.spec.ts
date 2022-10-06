@@ -673,10 +673,12 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
       type: TT.iteratorBinding,
-      from: new ForOfStatement(
+      forOf: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
-        new AccessScopeExpression(value.split(' of ')[1])),
-      to: 'items'
+        new AccessScopeExpression(value.split(' of ')[1]),
+        -1),
+      to: 'items',
+      props: [],
     }];
   } else if (attr.includes('.')) {
     return [{

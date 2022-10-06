@@ -55,7 +55,7 @@ describe("3-runtime-html/repeat.keyed.spec.ts", function () {
         const App = CustomElement.define(
           {
             name: "app",
-            template: `<div repeat.for="[$k, $v] of items" key="k">\${$v.k}</div>`
+            template: `<div repeat.for="[$k, $v] of items; key: k">\${$v.k}</div>`
           },
           Component,
         );

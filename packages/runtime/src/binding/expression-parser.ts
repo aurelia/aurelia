@@ -851,7 +851,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       return result as any;
     }
     if ((expressionType & ExpressionType.IsChainable) > 0 && $currentToken === Token.Semicolon) {
-      $semicolonIndex = $index;
+      if ($index === $length) {
+        throw unconsumedToken();
+      }
+      $semicolonIndex = $index - 1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }

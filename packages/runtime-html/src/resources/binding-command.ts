@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
 import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
@@ -10,10 +10,11 @@ import {
   ListenerBindingInstruction,
   SpreadBindingInstruction,
   SetPropertyInstruction,
+  MultiAttrInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { createError, isString } from '../utilities';
+import { isString } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 
 import type {
@@ -25,7 +26,7 @@ import type {
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
-import type { AttrSyntax, IAttributeParser } from './attribute-pattern';
+import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
@@ -308,6 +309,8 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
 
+  static get inject(): unknown[] { return [IAttributeParser]; }
+
   /** @internal */
   private readonly _attrParser: IAttributeParser;
 
@@ -320,36 +323,18 @@ export class ForBindingCommand implements BindingCommandInstance {
       ? camelCase(info.attr.target)
       : info.bindable.property;
     const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
-    let keyInstruction: null | SetPropertyInstruction | PropertyBindingInstruction = null;
+    let props: IInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
-      const keyAttr = info.attr.rawValue.slice(forOf.semiIdx);
-      let i = keyAttr.indexOf(':');
+      const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
+      let i = attr.indexOf(':');
       if (i > -1) {
-        const attrName = keyAttr.slice(0, i);
-
-        while (keyAttr.charCodeAt(++i) <= 0x20 /* space */);
-
-        const attrValue = keyAttr.slice(i);
+        const attrName = attr.slice(0, i).trim();
+        const attrValue = attr.slice(i + 1).trim();
         const attrSyntax = this._attrParser.parse(attrName, attrValue);
-
-        if (attrSyntax.target === 'key') {
-          if (attrSyntax.command === null) {
-            keyInstruction = new SetPropertyInstruction(attrName, attrValue);
-          } else if (attrSyntax.command === 'bind') {
-            keyInstruction = new PropertyBindingInstruction(attrName, attrValue, BindingMode.default);
-          }
-        }
-      }
-
-      if (keyInstruction === null) {
-        if (__DEV__) {
-          throw createError(`AUR775:invalid key expression '${keyAttr}'`);
-        } else {
-          throw createError(`AUR775:'${keyAttr}'`);
-        }
+        props = [new MultiAttrInstruction(attrValue, attrName, attrSyntax.command)];
       }
     }
-    return new IteratorBindingInstruction(forOf, keyInstruction, target);
+    return new IteratorBindingInstruction(forOf, target, props);
   }
 }
 

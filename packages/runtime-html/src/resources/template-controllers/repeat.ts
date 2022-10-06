@@ -18,6 +18,8 @@ import {
   astEvaluate,
   astAssign,
   createIndexMap,
+  IExpressionParser,
+  ExpressionType,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
@@ -25,6 +27,7 @@ import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
 import { createError, isArray, isPromise, rethrow } from '../../utilities';
+import { HydrateTemplateController, IInstruction, IteratorBindingInstruction, MultiAttrInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -41,7 +44,7 @@ const wrappedExprs = [
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IRenderLocation, IController, IViewFactory];
+  /** @internal */ protected static inject = [IInstruction, IExpressionParser, IRenderLocation, IController, IViewFactory];
 
   public views: ISyntheticView[] = [];
 
@@ -51,8 +54,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
-  public key?: string | IsBindingBehavior = void 0;
+  public key: null | string | IsBindingBehavior = null;
 
+  /** @internal */ private _keyMap: Map<IIndexable, unknown> = new Map();
+  /** @internal */ private _scopeMap: Map<IIndexable, Scope> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
   /** @internal */ private _forOfBinding!: PropertyBinding;
@@ -67,10 +72,35 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private readonly _factory: IViewFactory;
 
   public constructor(
+    instruction: HydrateTemplateController,
+    parser: IExpressionParser,
     location: IRenderLocation,
     parent: IHydratableController,
     factory: IViewFactory,
   ) {
+    const keyProp = (instruction.props[0] as IteratorBindingInstruction).props[0] as MultiAttrInstruction | undefined;
+    if (keyProp !== void 0) {
+      const { to, value, command } = keyProp;
+      if (to === 'key') {
+        if (command === null) {
+          this.key = value;
+        } else if (command === 'bind') {
+          this.key = parser.parse(value, ExpressionType.IsProperty);
+        } else {
+          if (__DEV__) {
+            throw createError(`AUR775:invalid command ${command}`);
+          } else {
+            throw createError(`AUR775:${command}`);
+          }
+        }
+      } else {
+        if (__DEV__) {
+          throw createError(`AUR776:invalid target ${to}`);
+        } else {
+          throw createError(`AUR776:${to}`);
+        }
+      }
+    }
     this._location = location;
     this._parent = parent;
     this._factory = factory;
@@ -130,6 +160,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     return this._deactivateAllViews(initiator);
   }
 
+  public unbinding(
+    initiator: IHydratedController,
+    _parent: IHydratedParentController,
+    _flags: LifecycleFlags,
+  ): void | Promise<void> {
+    this._scopeMap.clear();
+    this._keyMap.clear();
+  }
+
   // called by SetterObserver
   public itemsChanged(): void {
     if (!this.$controller.isActive) {
@@ -164,7 +203,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldViews = this.views;
     const oldLen = oldViews.length;
     const key = this.key;
-    const hasKey = typeof key === 'string';
+    const hasKey = key !== null;
 
     if (hasKey || indexMap === void 0) {
       const local = this.local;
@@ -172,8 +211,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       const newLen = newItems.length;
       const isMap = Object.prototype.toString.call(this.items) === '[object Map]';
-      const dec = this.forOf.declaration;
+      const forOf = this.forOf;
+      const dec = forOf.declaration;
       const binding = this._forOfBinding;
+      const hasDestructuredLocal = this._hasDestructuredLocal;
       indexMap = createIndexMap(newLen);
       let i = 0;
 
@@ -184,7 +225,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
       } else if (newLen === 0) {
         // Only remove old views
-        if (isMap && this._hasDestructuredLocal) {
+        if (hasDestructuredLocal) {
           for (i = 0; i < oldLen; ++i) {
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable);
@@ -198,9 +239,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       } else {
         const oldItems = Array<IIndexable>(oldLen);
 
-        if (isMap && this._hasDestructuredLocal) {
+        if (hasDestructuredLocal) {
           for (i = 0; i < oldLen; ++i) {
-            // TODO: should be array with 2 items.. should we throw if it isn't?
             oldItems[i] = astEvaluate(dec, oldViews[i].scope, binding, null) as IIndexable;
           }
         } else {
@@ -217,10 +257,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const oldEnd = oldLen - 1;
         const newEnd = newLen - 1;
 
-        // cache keys to prevent double eval of computed keys on the same item references (TODO: store itemsToKeys on repeater in a WeakMap?)
-        const keyMap = new Map<IIndexable, unknown>();
         const oldIndices = new Map<unknown, number>();
         const newIndices = new Map<unknown, number>();
+        const keyMap = this._keyMap;
+        const scopeMap = this._scopeMap;
+        const parentScope = this.$controller.scope;
 
         i = 0;
         // Step 1: narrow down the loop range as much as possible by checking the start and end for key equality
@@ -228,11 +269,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            if (isMap) {/* empty */}
             oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i];
             newItem = isMap ? newItems[i][1] as IIndexable : newItems[i];
-            oldKey = hasKey ? oldItem[key] : oldItem;
-            newKey = hasKey ? newItem[key] : newItem;
+            oldKey = hasKey
+              ? getKeyValue(keyMap, key, oldItem, oldViews[i].scope, binding)
+              : oldItem;
+            newKey = hasKey
+              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              : newItem;
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -256,8 +300,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           while (true) {
             oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j];
             newItem = isMap ? newItems[j][1] as IIndexable : newItems[j];
-            oldKey = hasKey ? oldItem[key] : oldItem;
-            newKey = hasKey ? newItem[key] : newItem;
+            oldKey = hasKey
+              ? getKeyValue(keyMap, key, oldItem, oldViews[i].scope, binding)
+              : oldItem;
+            newKey = hasKey
+              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              : newItem;
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -279,7 +327,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])) {
             newKey = keyMap.get(newItem);
           } else {
-            keyMap.set(newItem, newKey = hasKey ? newItem[key] : newItem);
+            newKey = hasKey
+              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              : newItem;
+            keyMap.set(newItem, newKey);
           }
           newIndices.set(newKey, i);
         }
@@ -288,7 +339,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])) {
             oldKey = keyMap.get(oldItem);
           } else {
-            keyMap.set(oldItem, oldKey = hasKey ? oldItem[key] : oldItem);
+            oldKey = hasKey
+              ? getKeyValue(keyMap, key, oldItem, oldViews[i].scope, binding)
+              : oldItem;
           }
           oldIndices.set(oldKey, i);
 
@@ -306,7 +359,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           }
         }
 
-        keyMap.clear();
         oldIndices.clear();
         newIndices.clear();
       }
@@ -392,20 +444,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let viewScope: Scope;
 
-    const { $controller, _factory: factory, local, _location: location, items } = this;
+    const { $controller, _factory, local, _location, items, _scopeMap, _forOfBinding, forOf, _hasDestructuredLocal } = this;
     const parentScope = $controller.scope;
-    const forOf = this.forOf;
     const newLen = getCount(items);
     const views = this.views = Array(newLen);
 
     iterate(items, (item, i) => {
-      view = views[i] = factory.create().setLocation(location);
+      view = views[i] = _factory.create().setLocation(_location);
       view.nodes.unlink();
-      if(this._hasDestructuredLocal) {
-        astAssign(forOf.declaration as DestructuringAssignmentExpression, viewScope = Scope.fromParent(parentScope, new BindingContext()), this._forOfBinding, item);
-      } else {
-        viewScope = Scope.fromParent(parentScope, new BindingContext(local, item));
-      }
+      viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
       ret = view.activate(initiator ?? view, $controller, 0, viewScope);
@@ -496,12 +543,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let viewScope: Scope;
     let i = 0;
 
-    const { $controller, _factory: factory, local, _normalizedItems: normalizedItems, _location: location, views } = this;
+    const { $controller, _factory, local, _normalizedItems, _location, views, _hasDestructuredLocal, _forOfBinding, _scopeMap, forOf } = this;
     const mapLen = indexMap.length;
 
     for (; mapLen > i; ++i) {
       if (indexMap[i] === -2) {
-        view = factory.create();
+        view = _factory.create();
         views.splice(i, 0, view);
       }
     }
@@ -519,9 +566,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
 
-    const dec = this.forOf.declaration as DestructuringAssignmentExpression;
-    const hasDestructuredLocal = this._hasDestructuredLocal;
-    const forOfBinding = this._forOfBinding;
+    const dec = forOf.declaration as DestructuringAssignmentExpression;
     let next: ISyntheticView;
     let j = seqLen - 1;
     i = newLen - 1;
@@ -529,34 +574,30 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
-      view.nodes.link(next?.nodes ?? location);
+      view.nodes.link(next?.nodes ?? _location);
 
       if (indexMap[i] === -2) {
-        if(hasDestructuredLocal) {
-          astAssign(dec, viewScope = Scope.fromParent(parentScope, new BindingContext()), forOfBinding, normalizedItems![i]);
-        } else {
-          viewScope = Scope.fromParent(parentScope, new BindingContext(local, normalizedItems![i]));
-        }
+        viewScope = getScope(_scopeMap, _normalizedItems![i] as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.setLocation(location);
+        view.setLocation(_location);
 
         ret = view.activate(view, $controller, 0, viewScope);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        if (hasDestructuredLocal) {
-          astAssign(dec, view.scope, forOfBinding, normalizedItems![i]);
+        if (_hasDestructuredLocal) {
+          astAssign(dec, view.scope, _forOfBinding, _normalizedItems![i]);
         } else {
-          view.scope.bindingContext[local] = normalizedItems![i];
+          view.scope.bindingContext[local] = _normalizedItems![i];
         }
         setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
-        if (hasDestructuredLocal) {
-          astAssign(dec, view.scope, forOfBinding, normalizedItems![i]);
+        if (_hasDestructuredLocal) {
+          astAssign(dec, view.scope, _forOfBinding, _normalizedItems![i]);
         } else {
-          view.scope.bindingContext[local] = normalizedItems![i];
+          view.scope.bindingContext[local] = _normalizedItems![i];
         }
         if (oldLength !== newLen) {
           setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
@@ -748,4 +789,30 @@ const $number = (result: number, func: (item: number, index: number, arr: number
   for (; i < result; ++i) {
     func(i, i, result);
   }
+};
+
+const getKeyValue = (keyMap: WeakMap<IIndexable, unknown>, key: string | IsBindingBehavior, item: IIndexable, scope: Scope, binding: PropertyBinding) => {
+  let value = keyMap.get(item);
+  if (value === void 0) {
+    if (typeof key === 'string') {
+      value = item[key];
+    } else {
+      value = astEvaluate(key, scope, binding, null);
+    }
+    keyMap.set(item, value);
+  }
+  return value;
+};
+
+const getScope = (scopeMap: WeakMap<IIndexable, Scope>, item: IIndexable, forOf: ForOfStatement, parentScope: Scope, binding: PropertyBinding, local: string, hasDestructuredLocal: boolean) => {
+  let scope = scopeMap.get(item);
+  if (scope === void 0) {
+    if (hasDestructuredLocal) {
+      astAssign(forOf.declaration as DestructuringAssignmentExpression, scope = Scope.fromParent(parentScope, new BindingContext()), binding, item);
+    } else {
+      scope = Scope.fromParent(parentScope, new BindingContext(local, item));
+    }
+    scopeMap.set(item, scope);
+  }
+  return scope;
 };

@@ -1355,9 +1355,10 @@ describe('ExpressionParser', function () {
     const PLE = PrimitiveLiteralExpression;
     const AKE = AccessKeyedExpression;
     const aknd = ExpressionKind.ArrayDestructuring;
+    const bi_a = new BindingIdentifier('a');
 
     const SimpleForDeclarations: [string, any][] = [
-      [`a`,           new BindingIdentifier('a')],
+      [`a`,           bi_a],
       [`[]`,          new DAE(aknd, [], void 0, void 0)],
     ];
 
@@ -1392,14 +1393,37 @@ describe('ExpressionParser', function () {
 
     const ForOfStatements: [string, any][] = [
       ...SimpleForDeclarations.map(([decInput, decExpr]) => [
-        ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr)])
+        ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c)),
       ...ForDeclarations.map(([decInput, decExpr]) => [
-        ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr)])
+        ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c))
     ];
 
-    for (const [input, expected] of ForOfStatements) {
+    for (const [input, expected] of [
+      ['a of a;key:id',   new ForOfStatement(bi_a, $a, 6)],
+      ['a of a;key: id',  new ForOfStatement(bi_a, $a, 6)],
+      ['a of a; key:id',  new ForOfStatement(bi_a, $a, 6)],
+      ['a of a; key: id', new ForOfStatement(bi_a, $a, 6)],
+      // not valid but the expression parser doesn't care about the validity of what comes after the first semicolon
+      ['a of a;;',        new ForOfStatement(bi_a, $a, 6)],
+      ['a of a;a',        new ForOfStatement(bi_a, $a, 6)],
+      ['a of a; a',       new ForOfStatement(bi_a, $a, 6)],
+      ['a of a;a;',       new ForOfStatement(bi_a, $a, 6)],
+      ['a of a; a;',      new ForOfStatement(bi_a, $a, 6)],
+      ['a of a ;a',       new ForOfStatement(bi_a, $a, 7)],
+      ['a of a ; a',      new ForOfStatement(bi_a, $a, 7)],
+      ['a of a ;a;',      new ForOfStatement(bi_a, $a, 7)],
+      ['a of a ; a;',     new ForOfStatement(bi_a, $a, 7)],
+    ] as [string, any][]) {
+      it(input, function () {
+        assert.deepStrictEqual(parseExpression(input, ExpressionType.IsIterator), expected);
+      });
+    }
+
+    for (const [input, expected] of SimpleForDeclarations.map(([decInput, decExpr]) => [
+
+    ] as [string, any][]).reduce((a, c) => a.concat(c))) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input, ExpressionType.IsIterator), expected);
       });
@@ -1656,11 +1680,23 @@ describe('ExpressionParser', function () {
       });
     }
 
-    for (const input of ['#', ';', '@', '^', '~', '\\', 'foo;']) {
+    for (const input of ['#', '@', '^', '~', '\\']) {
       it(`throw 'Unexpected character' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0168');
       });
     }
+
+    it(`throw 'Unexpected character' on ";"`, function () {
+      verifyResultOrError(';', null, 'AUR0151');
+    });
+
+    it(`throw 'Unconsumed token' on "foo;"`, function () {
+      verifyResultOrError('foo;', null, 'AUR0156');
+    });
+
+    it(`throw 'Unconsumed token' on "a of a;"`, function () {
+      verifyResultOrError('a of a;', null, 'AUR0156', ExpressionType.IsIterator);
+    });
 
     for (const [input] of SimpleIsAssignList) {
       it(`throw 'Expected identifier to come after ValueConverter operator' on "${input}|"`, function () {

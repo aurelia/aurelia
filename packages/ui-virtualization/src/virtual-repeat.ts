@@ -92,7 +92,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     platform: IPlatform,
   ) {
     const iteratorInstruction = instruction.props[0] as IteratorBindingInstruction;
-    const forOf = iteratorInstruction.from as ForOfStatement;
+    const forOf = iteratorInstruction.forOf as ForOfStatement;
     const iterable = this.iterable = unwrapExpression(forOf.iterable) ?? forOf.iterable;
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, hasWrapExpression ? 'handleInnerCollectionChange' : 'handleCollectionChange');

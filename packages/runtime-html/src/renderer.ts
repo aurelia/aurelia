@@ -47,6 +47,7 @@ export const enum InstructionType {
   letBinding = 'ri',
   refBinding = 'rj',
   iteratorBinding = 'rk',
+  multiAttr = 'rl',
   textBinding = 'ha',
   listenerBinding = 'hb',
   attributeBinding = 'hc',
@@ -94,8 +95,8 @@ export class IteratorBindingInstruction {
 
   public constructor(
     public forOf: string | ForOfStatement,
-    public key: SetPropertyInstruction | PropertyBindingInstruction | null,
     public to: string,
+    public props: IInstruction[],
   ) {}
 }
 
@@ -114,6 +115,16 @@ export class SetPropertyInstruction {
   public constructor(
     public value: unknown,
     public to: string,
+  ) {}
+}
+
+export class MultiAttrInstruction {
+  public readonly type = InstructionType.multiAttr;
+
+  public constructor(
+    public value: string,
+    public to: string,
+    public command: string | null,
   ) {}
 }
 
@@ -852,30 +863,17 @@ export class IteratorBindingRenderer implements IRenderer {
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
-    const forOf = ensureExpression(this._exprParser, instruction.forOf, ExpressionType.IsIterator);
-    const resolvedTarget = getTarget(target);
+    const expr = ensureExpression(this._exprParser, instruction.forOf, ExpressionType.IsIterator);
     renderingCtrl.addBinding(new PropertyBinding(
       renderingCtrl,
       renderingCtrl.container,
       this._observerLocator,
       this._platform.domWriteQueue,
-      forOf,
-      resolvedTarget,
+      expr,
+      getTarget(target),
       instruction.to,
       BindingMode.toView,
     ));
-
-    const key = instruction.key;
-    if (key !== null) {
-      switch (key.type) {
-        case InstructionType.setProperty:
-          (resolvedTarget as { key: unknown })['key'] = key.value;
-          break;
-        case InstructionType.propertyBinding:
-          (resolvedTarget as { key: unknown })['key'] = ensureExpression(this._exprParser, key.from, ExpressionType.IsProperty);
-          break;
-      }
-    }
   }
 }
 

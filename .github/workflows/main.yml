@@ -2,10 +2,10 @@ name: main
 on:
   push:
   #   # check against refs/heads
-    branches-ignore:
-      # - master
-      - develop
-      - release
+    branches:
+      - master
+      # - develop
+      # - release
   #   # paths-ignore:
   #   #   - 'docs/**'
     paths:
@@ -96,8 +96,10 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
       # - name: Restore cached node modules
       #   id: restore-cache-npm
@@ -136,8 +138,10 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - run: npm ci
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name
@@ -157,8 +161,10 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - run: npm ci
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name

@@ -2,12 +2,15 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
 import { mixinAstEvaluator } from './binding-utils';
 
-export interface RefBinding extends IAstEvaluator, IConnectableBinding {}
+export interface RefBinding extends IAstEvaluator, IConnectableBinding { }
 export class RefBinding implements IBinding {
+  public isBound: boolean = false;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
+
   /** @internal */
   public l: IServiceLocator;
-  public isBound: boolean = false;
-  public scope?: Scope = void 0;
 
   public constructor(
     locator: IServiceLocator,
@@ -17,19 +20,19 @@ export class RefBinding implements IBinding {
     this.l = locator;
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
 
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
-    astAssign(this.ast, this.scope, this, this.target);
+    astAssign(this.ast, this._scope, this, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -41,13 +44,13 @@ export class RefBinding implements IBinding {
     }
     this.isBound = false;
 
-    if (astEvaluate(this.ast, this.scope!, this, null) === this.target) {
-      astAssign(this.ast, this.scope!, this, null);
+    if (astEvaluate(this.ast, this._scope!, this, null) === this.target) {
+      astAssign(this.ast, this._scope!, this, null);
     }
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
   }
 }
 

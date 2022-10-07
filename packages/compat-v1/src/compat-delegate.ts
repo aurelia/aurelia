@@ -1,6 +1,6 @@
 import { DI, IContainer, IIndexable } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, ExpressionType, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
+import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
@@ -95,7 +95,9 @@ export interface DelegateListenerBinding extends IAstEvaluator, IConnectableBind
  */
 export class DelegateListenerBinding implements IBinding {
   public isBound: boolean = false;
-  public scope?: Scope;
+
+  /** @internal */
+  public _scope?: Scope;
 
   private handler: IDisposable = null!;
   /** @internal */
@@ -125,10 +127,10 @@ export class DelegateListenerBinding implements IBinding {
   }
 
   public callSource(event: Event): unknown {
-    const overrideContext = this.scope!.overrideContext;
+    const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
-    let result = astEvaluate(this.ast, this.scope!, this, null);
+    let result = astEvaluate(this.ast, this._scope!, this, null);
 
     delete overrideContext.$event;
 
@@ -147,16 +149,16 @@ export class DelegateListenerBinding implements IBinding {
     this.callSource(event);
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
     this.handler = this.eventDelegator.addEventListener(
       this.l.get(IEventTarget),
@@ -174,15 +176,15 @@ export class DelegateListenerBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
     this.handler.dispose();
     this.handler = null!;
   }
 }
 
-mixinBindingUseScope(DelegateListenerBinding);
+mixinUseScope(DelegateListenerBinding);
 mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
 mixinAstEvaluator(true, true)(DelegateListenerBinding);
 

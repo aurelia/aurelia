@@ -114,7 +114,7 @@ export {
   BindingTargetSubscriber,
   mixinAstEvaluator,
   mixingBindingLimited,
-  mixinBindingUseScope,
+  mixinUseScope,
 } from './binding/binding-utils';
 export {
   ListenerBinding,

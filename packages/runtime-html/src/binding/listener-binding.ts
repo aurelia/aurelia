@@ -1,5 +1,5 @@
 import { isFunction } from '../utilities';
-import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
@@ -17,7 +17,9 @@ export interface ListenerBinding extends IAstEvaluator, IConnectableBinding {}
  */
 export class ListenerBinding implements IBinding {
   public isBound: boolean = false;
-  public scope?: Scope;
+
+  /** @internal */
+  public _scope?: Scope;
 
   /** @internal */
   private readonly _options: ListenerBindingOptions;
@@ -45,10 +47,10 @@ export class ListenerBinding implements IBinding {
   }
 
   public callSource(event: Event): unknown {
-    const overrideContext = this.scope!.overrideContext;
+    const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
-    let result = astEvaluate(this.ast, this.scope!, this, null);
+    let result = astEvaluate(this.ast, this._scope!, this, null);
 
     delete overrideContext.$event;
 
@@ -67,16 +69,16 @@ export class ListenerBinding implements IBinding {
     this.callSource(event);
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
     this.target.addEventListener(this.targetEvent, this, this._options);
 
@@ -89,13 +91,13 @@ export class ListenerBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
     this.target.removeEventListener(this.targetEvent, this, this._options);
   }
 }
 
-mixinBindingUseScope(ListenerBinding);
+mixinUseScope(ListenerBinding);
 mixingBindingLimited(ListenerBinding, () => 'callSource');
 mixinAstEvaluator(true, true)(ListenerBinding);

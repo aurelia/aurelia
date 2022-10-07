@@ -9,7 +9,7 @@ import {
   IConnectableBinding
 } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -39,17 +39,27 @@ export interface InterpolationBinding extends IBinding {}
 export class InterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
-  public scope?: Scope = void 0;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
 
   public partBindings: InterpolationPartBinding[];
 
-  private readonly targetObserver: AccessorOrObserver;
-  private task: ITask | null = null;
+  /** @internal */
+  private readonly _targetObserver: AccessorOrObserver;
+
+  /** @internal */
+  private _task: ITask | null = null;
 
   /**
    * A semi-private property used by connectable mixin
+   *
+   * @internal
    */
   public readonly oL: IObserverLocator;
+
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
 
   /** @internal */
   private readonly _controller: IBindingController;
@@ -58,7 +68,7 @@ export class InterpolationBinding implements IBinding {
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    private readonly taskQueue: TaskQueue,
+    taskQueue: TaskQueue,
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -66,7 +76,8 @@ export class InterpolationBinding implements IBinding {
   ) {
     this._controller = controller;
     this.oL = observerLocator;
-    this.targetObserver = observerLocator.getAccessor(target, targetProperty);
+    this._taskQueue = taskQueue;
+    this._targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = ast.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     const ii = expressions.length;
@@ -98,7 +109,7 @@ export class InterpolationBinding implements IBinding {
       }
     }
 
-    const targetObserver = this.targetObserver;
+    const targetObserver = this._targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
@@ -107,9 +118,9 @@ export class InterpolationBinding implements IBinding {
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.task = null;
+      task = this._task;
+      this._task = this._taskQueue.queueTask(() => {
+        this._task = null;
         targetObserver.setValue(result, this.target, this.targetProperty);
       }, queueTaskOptions);
       task?.cancel();
@@ -119,20 +130,20 @@ export class InterpolationBinding implements IBinding {
     }
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].bind(scope);
+      partBindings[i].bind(_scope);
     }
     this.updateTarget();
     this.isBound = true;
@@ -143,15 +154,15 @@ export class InterpolationBinding implements IBinding {
       return;
     }
     this.isBound = false;
-    this.scope = void 0;
+    this._scope = void 0;
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
       partBindings[i].unbind();
     }
-    this.task?.cancel();
-    this.task = null;
+    this._task?.cancel();
+    this._task = null;
   }
 }
 
@@ -164,7 +175,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
-  public scope?: Scope;
+  public _scope?: Scope;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -209,7 +220,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     if (shouldConnect) {
       obsRecord.version++;
     }
-    const newValue = astEvaluate(this.ast, this.scope!, this, shouldConnect ? this : null);
+    const newValue = astEvaluate(this.ast, this._scope!, this, shouldConnect ? this : null);
     if (shouldConnect) {
       obsRecord.clear();
     }
@@ -228,20 +239,20 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     this.handleChange();
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
     this._value = astEvaluate(
       this.ast,
-      this.scope,
+      this._scope,
       this,
       (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
@@ -258,14 +269,14 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
     this.obs.clearAll();
   }
 }
 
-mixinBindingUseScope(InterpolationPartBinding);
+mixinUseScope(InterpolationPartBinding);
 mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
 connectable(InterpolationPartBinding);
 mixinAstEvaluator(true)(InterpolationPartBinding);
@@ -276,12 +287,17 @@ export interface ContentBinding extends IAstEvaluator, IConnectableBinding {}
  * A binding for handling the element content interpolation
  */
 export class ContentBinding implements IBinding, ICollectionSubscriber {
+  public isBound: boolean = false;
+
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
-  public scope?: Scope;
-  public task: ITask | null = null;
-  public isBound: boolean = false;
+
+  /** @internal */
+  public _scope?: Scope;
+
+  /** @internal */
+  public _task: ITask | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -289,6 +305,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
    * @internal
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -305,7 +323,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    private readonly taskQueue: TaskQueue,
+    taskQueue: TaskQueue,
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
@@ -314,6 +332,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     this.l = locator;
     this._controller = controller;
     this.oL = observerLocator;
+    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
@@ -340,7 +359,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     if (shouldConnect) {
       this.obs.version++;
     }
-    const newValue = astEvaluate(this.ast, this.scope!, this, shouldConnect ? this : null);
+    const newValue = astEvaluate(this.ast, this._scope!, this, shouldConnect ? this : null);
     if (shouldConnect) {
       this.obs.clear();
     }
@@ -348,8 +367,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       // in a frequent update, e.g collection mutation in a loop
       // value could be changing frequently and previous update task may be stale at this point
       // cancel if any task going on because the latest value is already the same
-      this.task?.cancel();
-      this.task = null;
+      this._task?.cancel();
+      this._task = null;
       return;
     }
     const shouldQueueFlush = this._controller.state !== State.activating;
@@ -367,7 +386,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     this.obs.version++;
     const v = this._value = astEvaluate(
       this.ast,
-      this.scope!,
+      this._scope!,
       this,
       (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
@@ -383,20 +402,20 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     }
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
     const v = this._value = astEvaluate(
       this.ast,
-      this.scope,
+      this._scope,
       this,
       (this.mode & BindingMode.toView) > 0 ?  this : null,
     );
@@ -414,30 +433,30 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
     // TODO: should existing value (either connected node, or a string)
     // be removed when this binding is unbound?
     // this.updateTarget('', flags);
-    this.scope = void 0;
+    this._scope = void 0;
     this.obs.clearAll();
-    this.task?.cancel();
-    this.task = null;
+    this._task?.cancel();
+    this._task = null;
   }
 
   // queue a force update
   /** @internal */
   private _queueUpdate(newValue: unknown): void {
-    const task = this.task;
-    this.task = this.taskQueue.queueTask(() => {
-      this.task = null;
+    const task = this._task;
+    this._task = this._taskQueue.queueTask(() => {
+      this._task = null;
       this.updateTarget(newValue);
     }, queueTaskOptions);
     task?.cancel();
   }
 }
 
-mixinBindingUseScope(ContentBinding);
+mixinUseScope(ContentBinding);
 mixingBindingLimited(ContentBinding, () => 'updateTarget');
 connectable()(ContentBinding);
 mixinAstEvaluator(void 0, false)(ContentBinding);

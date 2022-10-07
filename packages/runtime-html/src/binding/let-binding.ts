@@ -1,5 +1,5 @@
 import { astBind, astEvaluate, astUnbind, connectable, type IAstEvaluator, type IBinding, type IConnectableBinding } from '@aurelia/runtime';
-import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -12,7 +12,9 @@ export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class LetBinding implements IBinding {
   public isBound: boolean = false;
-  public scope?: Scope = void 0;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
@@ -56,7 +58,7 @@ export class LetBinding implements IBinding {
       return;
     }
     this.obs.version++;
-    if ((nV = astEvaluate(this.ast, this.scope!, this, this)) !== this._value) {
+    if ((nV = astEvaluate(this.ast, this._scope!, this, this)) !== this._value) {
       this._value = nV;
     }
     this.obs.clear();
@@ -67,19 +69,19 @@ export class LetBinding implements IBinding {
     this.handleChange();
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
-    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this._scope = _scope;
+    this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext) as IIndexable;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
-    this._value = astEvaluate(this.ast, this.scope, this, this);
+    this._value = astEvaluate(this.ast, this._scope, this, this);
     this.updateTarget();
 
     this.isBound = true;
@@ -91,14 +93,14 @@ export class LetBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
     this.obs.clearAll();
   }
 }
 
-mixinBindingUseScope(LetBinding);
+mixinUseScope(LetBinding);
 mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
 mixinAstEvaluator(true)(LetBinding);

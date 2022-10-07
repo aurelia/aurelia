@@ -6,7 +6,6 @@ import type { CollectionLengthObserver, CollectionSizeObserver } from './observa
 import { TaskQueue } from '@aurelia/platform';
 
 export interface IBinding {
-  readonly scope?: Scope;
   readonly isBound: boolean;
   bind(scope: Scope): void;
   unbind(): void;

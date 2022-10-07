@@ -106,6 +106,7 @@ export class ExpressionParser {
     $currentChar = $charCodeAt(0);
     $assignable = true;
     $optional = false;
+    $semicolonIndex = -1;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
 }

@@ -1,6 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import type { IBinding, IConnectable } from '../observation';
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/scope';
 import type { IConnectableBinding } from './connectable';
 
 import type { ISignaler } from '../observation/signaler';

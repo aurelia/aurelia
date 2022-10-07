@@ -249,7 +249,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.BindingIdentifier}","name":"${expr.name}"}`;
   }
   public visitForOfStatement(expr: AST.ForOfStatement): string {
-    return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${astVisit(expr.declaration, this)},"iterable":${astVisit(expr.iterable, this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${astVisit(expr.declaration, this)},"iterable":${astVisit(expr.iterable, this)},"semiIdx":${serializePrimitive(expr.semiIdx)}}`;
   }
   public visitInterpolation(expr: AST.Interpolation): string {
     return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;

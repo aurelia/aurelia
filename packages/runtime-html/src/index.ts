@@ -283,10 +283,6 @@ export {
 } from './resources/custom-element';
 
 export {
-  type Subject,
-  AuRender,
-} from './resources/custom-elements/au-render';
-export {
   AuCompose,
   type IDynamicComponentActivate,
 } from './resources/custom-elements/au-compose';
@@ -305,9 +301,6 @@ export {
   ISanitizer,
   SanitizeValueConverter,
 } from './resources/value-converters/sanitize';
-export {
-  ViewValueConverter,
-} from './resources/value-converters/view';
 
 export {
   ITemplateCompilerRegistration,
@@ -342,7 +335,6 @@ export {
 
   DefaultBindingLanguage,
 
-  ViewValueConverterRegistration,
   SanitizeValueConverterRegistration,
   IfRegistration,
   ElseRegistration,
@@ -351,7 +343,6 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  AuRenderRegistration,
 
   DefaultResources,
 
@@ -446,10 +437,6 @@ export {
 export {
   ViewFactory,
   IViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
-  Views,
 } from './templating/view';
 export {
   createElement,

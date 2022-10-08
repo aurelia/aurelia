@@ -3,18 +3,18 @@
 [![CircleCI](https://circleci.com/gh/aurelia/aurelia.svg?style=shield)](https://circleci.com/gh/aurelia/aurelia)
 [![npm](https://img.shields.io/npm/v/@aurelia/metadata.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/metadata)
 
-# @aurelia/addons
+# @aurelia/dialog
 
 ## Installing
 
 For the latest stable version:
 
 ```bash
-npm i @aurelia/addons
+npm i @aurelia/dialog
 ```
 
 For our nightly builds:
 
 ```bash
-npm i @aurelia/addons@dev
+npm i @aurelia/dialog@dev
 ```

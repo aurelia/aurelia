@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@aurelia/compat-v1": "2.0.0-alpha.41",
+    "@aurelia/dialog": "2.0.0-alpha.41",
     "@aurelia/fetch-client": "2.0.0-alpha.41",
     "@aurelia/i18n": "2.0.0-alpha.41",
     "@aurelia/kernel": "2.0.0-alpha.41",

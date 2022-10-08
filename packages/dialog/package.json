@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/addons",
+  "name": "@aurelia/dialog",
   "version": "2.0.0-alpha.41",
   "private": true,
   "main": "dist/cjs/index.cjs",
@@ -20,7 +20,7 @@
   },
   "keywords": [
     "aurelia",
-    "addons"
+    "dialog"
   ],
   "files": [
     "dist",

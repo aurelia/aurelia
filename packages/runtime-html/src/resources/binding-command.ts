@@ -330,7 +330,7 @@ export class ForBindingCommand implements BindingCommandInstance {
         const attrName = attr.slice(0, i).trim();
         const attrValue = attr.slice(i + 1).trim();
         const attrSyntax = this._attrParser.parse(attrName, attrValue);
-        props = [new MultiAttrInstruction(attrValue, attrName, attrSyntax.command)];
+        props = [new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command)];
       }
     }
     return new IteratorBindingInstruction(forOf, target, props);

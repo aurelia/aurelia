@@ -272,7 +272,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i];
             newItem = isMap ? newItems[i][1] as IIndexable : newItems[i];
             oldKey = hasKey
-              ? getKeyValue(keyMap, key, oldItem, oldViews[i].scope, binding)
+              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
               : oldItem;
             newKey = hasKey
               ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
@@ -301,7 +301,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j];
             newItem = isMap ? newItems[j][1] as IIndexable : newItems[j];
             oldKey = hasKey
-              ? getKeyValue(keyMap, key, oldItem, oldViews[i].scope, binding)
+              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
               : oldItem;
             newKey = hasKey
               ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)

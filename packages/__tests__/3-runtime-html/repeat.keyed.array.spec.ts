@@ -171,8 +171,8 @@ describe("3-runtime-html/repeat.keyed.spec.ts", function () {
     });
 
     for (const spec of [
-      { title: 'literal', keyExpr: 'key: k' },
-      { title: 'expression', keyExpr: 'key.bind: i.k' }
+      { title: 'literal', expr: 'i of items; key: k', text: '${i.k}' },
+      { title: 'expression', expr: 'i of items; key.bind: i.k', text: '${i.k}' }
     ]) {
       describe(`keyed - ${spec.title}`, function () {
         async function testFn(fn: (ctx: $ctx) => Promise<void>) {
@@ -183,7 +183,7 @@ describe("3-runtime-html/repeat.keyed.spec.ts", function () {
           const App = CustomElement.define(
             {
               name: "app",
-              template: `<div repeat.for="i of items; ${spec.keyExpr}">\${i.k}</div>`
+              template: `<div repeat.for="${spec.expr}">${spec.text}</div>`
             },
             Component,
           );

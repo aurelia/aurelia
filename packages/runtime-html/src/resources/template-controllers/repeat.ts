@@ -210,7 +210,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const newItems = this._normalizedItems as IIndexable[];
 
       const newLen = newItems.length;
-      const isMap = Object.prototype.toString.call(this.items) === '[object Map]';
       const forOf = this.forOf;
       const dec = forOf.declaration;
       const binding = this._forOfBinding;
@@ -269,13 +268,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i];
-            newItem = isMap ? newItems[i][1] as IIndexable : newItems[i];
+            oldItem = oldItems[i];
+            newItem = newItems[i];
             oldKey = hasKey
-              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItems[i], forOf, parentScope, binding, local, hasDestructuredLocal), binding)
               : oldItem;
             newKey = hasKey
-              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItems[i], forOf, parentScope, binding, local, hasDestructuredLocal), binding)
               : newItem;
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
@@ -298,8 +297,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           j = newEnd;
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldItem = isMap ? oldItems[j][1] as IIndexable : oldItems[j];
-            newItem = isMap ? newItems[j][1] as IIndexable : newItems[j];
+            oldItem = oldItems[j];
+            newItem = newItems[j];
             oldKey = hasKey
               ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
               : oldItem;
@@ -324,7 +323,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (keyMap.has(newItem = isMap ? newItems[i][1] as IIndexable : newItems[i])) {
+          if (keyMap.has(newItem = newItems[i])) {
             newKey = keyMap.get(newItem);
           } else {
             newKey = hasKey
@@ -336,7 +335,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = oldStart; i <= oldEnd; ++i) {
-          if (keyMap.has(oldItem = isMap ? oldItems[i][1] as IIndexable : oldItems[i])) {
+          if (keyMap.has(oldItem = oldItems[i])) {
             oldKey = keyMap.get(oldItem);
           } else {
             oldKey = hasKey
@@ -354,7 +353,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (!oldIndices.has(keyMap.get(isMap ? newItems[i][1] as IIndexable : newItems[i]))) {
+          if (!oldIndices.has(keyMap.get(newItems[i]))) {
             indexMap[i] = -2;
           }
         }
@@ -422,7 +421,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _normalizeToArray(): void {
-    const items: Items<C> = this.items;
+    const { items } = this;
     if (isArray(items)) {
       this._normalizedItems = items;
       return;
@@ -770,7 +769,7 @@ const $array = (result: unknown[], func: (item: unknown, index: number, arr: Col
 
 const $map = (result: Map<unknown, unknown>, func: (item: unknown, index: number, arr: Collection) => void): void => {
   let i = -0;
-  let entry: [unknown, unknown];
+  let entry: [unknown, unknown] | undefined;
   for (entry of result.entries()) {
     func(entry, i++, result);
   }
@@ -791,7 +790,14 @@ const $number = (result: number, func: (item: number, index: number, arr: number
   }
 };
 
-const getKeyValue = (keyMap: WeakMap<IIndexable, unknown>, key: string | IsBindingBehavior, item: IIndexable, scope: Scope, binding: PropertyBinding) => {
+const getKeyValue = (
+  keyMap: WeakMap<IIndexable, unknown>,
+  key: string | IsBindingBehavior,
+  item: IIndexable,
+  scope: Scope,
+  binding: PropertyBinding,
+) => {
+
   let value = keyMap.get(item);
   if (value === void 0) {
     if (typeof key === 'string') {
@@ -804,7 +810,15 @@ const getKeyValue = (keyMap: WeakMap<IIndexable, unknown>, key: string | IsBindi
   return value;
 };
 
-const getScope = (scopeMap: WeakMap<IIndexable, Scope>, item: IIndexable, forOf: ForOfStatement, parentScope: Scope, binding: PropertyBinding, local: string, hasDestructuredLocal: boolean) => {
+const getScope = (
+  scopeMap: WeakMap<IIndexable, Scope>,
+  item: IIndexable,
+  forOf: ForOfStatement,
+  parentScope: Scope,
+  binding: PropertyBinding,
+  local: string,
+  hasDestructuredLocal: boolean,
+) => {
   let scope = scopeMap.get(item);
   if (scope === void 0) {
     if (hasDestructuredLocal) {

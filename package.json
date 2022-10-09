@@ -108,6 +108,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",
+    "@rollup/plugin-alias": "^4.0.0",
     "@rollup/plugin-node-resolve": "14.1.0",
     "@rollup/plugin-replace": "4.0.0",
     "@rollup/plugin-typescript": "8.2.5",

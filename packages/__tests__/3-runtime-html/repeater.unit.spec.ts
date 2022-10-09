@@ -12,6 +12,7 @@ import {
   INodeObserverLocatorRegistration,
   IRendering,
   PropertyBinding,
+  HydrateTemplateController,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -556,12 +557,15 @@ describe(`Repeat`, function () {
         const binding: PropertyBinding = {
           target: null,
           targetProperty: 'items',
-          ast: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
+          ast: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'), -1)
         } as any;
         const hydratable: IHydratableController = {
           bindings: [binding]
         } as any;
-        const sut = new Repeat(loc, hydratable, itemFactory);
+        const instruction: HydrateTemplateController = {
+          props: [{ props: [] }]
+        } as any;
+        const sut = new Repeat(instruction, null!, loc, hydratable, itemFactory);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
         binding.target = sut as any;
 

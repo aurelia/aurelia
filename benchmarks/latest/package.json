@@ -1,13 +1,13 @@
 {
     "scripts": {
-        "build": "webpack"
+        "build": "rollup -c"
     },
     "dependencies": {
-        "@aurelia/kernel": "latest",
-        "@aurelia/metadata": "latest",
-        "@aurelia/platform": "latest",
-        "@aurelia/platform-browser": "latest",
-        "@aurelia/runtime": "latest",
-        "@aurelia/runtime-html": "latest"
+        "@aurelia/kernel": "dev",
+        "@aurelia/metadata": "dev",
+        "@aurelia/platform": "dev",
+        "@aurelia/platform-browser": "dev",
+        "@aurelia/runtime": "dev",
+        "@aurelia/runtime-html": "dev"
     }
 }

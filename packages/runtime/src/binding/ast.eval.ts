@@ -309,6 +309,11 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       } else {
         return `${ast.parts[0]}${astEvaluate(ast.firstExpression, s, e, c)}${ast.parts[1]}`;
       }
+    case ExpressionKind.DestructuringAssignmentLeaf:
+      return astEvaluate(ast.target, s, e, c);
+    case ExpressionKind.ArrayDestructuring: {
+      return ast.list.map(x => astEvaluate(x, s, e, c));
+    }
     // TODO: this should come after batch
     // as a destructuring expression like [x, y] = value
     //
@@ -327,9 +332,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     // for a single notification per destructing,
     // regardless number of property assignments on the scope binding context
     case ExpressionKind.ObjectBindingPattern:
-    case ExpressionKind.ArrayDestructuring:
     case ExpressionKind.ObjectDestructuring:
-    case ExpressionKind.DestructuringAssignmentLeaf:
     default:
       return void 0;
     case ExpressionKind.Custom:

@@ -623,6 +623,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
+
     const isCustomElement = elDef !== null;
     const isShadowDom = isCustomElement && elDef.shadowOptions != null;
     const capture = elDef?.capture;

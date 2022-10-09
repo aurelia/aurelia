@@ -312,6 +312,7 @@ export class ForOfStatement {
   public constructor(
     public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
     public readonly iterable: IsBindingBehavior,
+    public readonly semiIdx: number,
   ) {}
 }
 

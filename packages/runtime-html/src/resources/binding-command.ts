@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
 import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
@@ -9,6 +9,7 @@ import {
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
+  MultiAttrInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
@@ -24,7 +25,7 @@ import type {
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
-import type { AttrSyntax } from './attribute-pattern';
+import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
@@ -307,11 +308,32 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
 
+  public static get inject(): unknown[] { return [IAttributeParser]; }
+
+  /** @internal */
+  private readonly _attrParser: IAttributeParser;
+
+  public constructor(attrParser: IAttributeParser) {
+    this._attrParser = attrParser;
+  }
+
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.property;
-    return new IteratorBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator), target);
+    const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
+    let props: MultiAttrInstruction[] = emptyArray;
+    if (forOf.semiIdx > -1) {
+      const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
+      const i = attr.indexOf(':');
+      if (i > -1) {
+        const attrName = attr.slice(0, i).trim();
+        const attrValue = attr.slice(i + 1).trim();
+        const attrSyntax = this._attrParser.parse(attrName, attrValue);
+        props = [new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command)];
+      }
+    }
+    return new IteratorBindingInstruction(forOf, target, props);
   }
 }
 

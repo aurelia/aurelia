@@ -8,15 +8,18 @@ import { createError, createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
+import { IExpressionParser } from '@aurelia/runtime';
 
 export const IRendering = createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering extends Rendering { }
 
 export class Rendering {
   /** @internal */
-  protected static inject: unknown[] = [IContainer];
+  protected static inject: unknown[] = [IContainer, IExpressionParser];
   /** @internal */
   private readonly _ctn: IContainer;
+  /** @internal */
+  private readonly _exprParser: IExpressionParser;
   /** @internal */
   private _renderers: Record<string, IRenderer> | undefined;
   /** @internal */
@@ -37,7 +40,8 @@ export class Rendering {
       : this._renderers;
   }
 
-  public constructor(container: IContainer) {
+  public constructor(container: IContainer, exprParser: IExpressionParser) {
+    this._exprParser= exprParser;
     this._platform = (this._ctn = container.root).get(IPlatform);
     this._empty = new FragmentNodeSequence(this._platform, this._platform.document.createDocumentFragment());
   }
@@ -135,7 +139,7 @@ export class Rendering {
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, target, instruction);
+          renderers[instruction.type].render(controller, target, instruction, this._exprParser);
           ++j;
         }
         ++i;
@@ -148,7 +152,7 @@ export class Rendering {
         j = 0;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, host, instruction);
+          renderers[instruction.type].render(controller, host, instruction, this._exprParser);
           ++j;
         }
       }

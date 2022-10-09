@@ -813,9 +813,6 @@ export {
 
   // StandardConfiguration,
 
-  createElement,
-  // RenderPlan,
-
   // AttributeInstruction,
   // IInstructionRow,
   // NodeInstruction,

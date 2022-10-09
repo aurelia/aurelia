@@ -17,8 +17,10 @@ export class ViewFactory implements IViewFactory {
   public def: PartialCustomElementDefinition;
   public isCaching: boolean = false;
 
-  private cache: ISyntheticView[] = null!;
-  private cacheSize: number = -1;
+  /** @internal */
+  private _cache: ISyntheticView[] = null!;
+  /** @internal */
+  private _cacheSize: number = -1;
 
   public constructor(
     container: IContainer,
@@ -38,27 +40,27 @@ export class ViewFactory implements IViewFactory {
         size = parseInt(size, 10);
       }
 
-      if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
-        this.cacheSize = size;
+      if (this._cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+        this._cacheSize = size;
       }
     }
 
-    if (this.cacheSize > 0) {
-      this.cache = [];
+    if (this._cacheSize > 0) {
+      this._cache = [];
     } else {
-      this.cache = null!;
+      this._cache = null!;
     }
 
-    this.isCaching = this.cacheSize > 0;
+    this.isCaching = this._cacheSize > 0;
   }
 
   public canReturnToCache(_controller: ISyntheticView): boolean {
-    return this.cache != null && this.cache.length < this.cacheSize;
+    return this._cache != null && this._cache.length < this._cacheSize;
   }
 
   public tryReturnToCache(controller: ISyntheticView): boolean {
     if (this.canReturnToCache(controller)) {
-      this.cache.push(controller);
+      this._cache.push(controller);
       return true;
     }
 
@@ -68,7 +70,7 @@ export class ViewFactory implements IViewFactory {
   public create(
     parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
   ): ISyntheticView {
-    const cache = this.cache;
+    const cache = this._cache;
     let controller: ISyntheticView;
 
     if (cache != null && cache.length > 0) {

@@ -439,10 +439,6 @@ export {
   IViewFactory,
 } from './templating/view';
 export {
-  createElement,
-  RenderPlan
-} from './create-element';
-export {
   INode,
   IEventTarget,
   IRenderLocation,

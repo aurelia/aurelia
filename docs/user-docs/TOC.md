@@ -39,6 +39,7 @@
   * [Using observerLocator](getting-to-know-aurelia/observation/using-observerlocator.md)
 * [Watching data](getting-to-know-aurelia/watching-data.md)
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
+* [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 
 ## Components

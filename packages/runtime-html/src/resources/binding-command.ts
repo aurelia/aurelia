@@ -322,7 +322,7 @@ export class ForBindingCommand implements BindingCommandInstance {
       ? camelCase(info.attr.target)
       : info.bindable.property;
     const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
-    let props: IInstruction[] = emptyArray;
+    let props: MultiAttrInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
       const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
       const i = attr.indexOf(':');

@@ -27,7 +27,7 @@ import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
 import { createError, isArray, isPromise, rethrow } from '../../utilities';
-import { HydrateTemplateController, IInstruction, IteratorBindingInstruction, MultiAttrInstruction } from '../../renderer';
+import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -78,7 +78,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     parent: IHydratableController,
     factory: IViewFactory,
   ) {
-    const keyProp = (instruction.props[0] as IteratorBindingInstruction).props[0] as MultiAttrInstruction | undefined;
+    const keyProp = (instruction.props[0] as IteratorBindingInstruction).props[0];
     if (keyProp !== void 0) {
       const { to, value, command } = keyProp;
       if (to === 'key') {
@@ -161,7 +161,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   public unbinding(
-    initiator: IHydratedController,
+    _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {

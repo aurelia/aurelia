@@ -96,7 +96,7 @@ export class IteratorBindingInstruction {
   public constructor(
     public forOf: string | ForOfStatement,
     public to: string,
-    public props: IInstruction[],
+    public props: MultiAttrInstruction[],
   ) {}
 }
 

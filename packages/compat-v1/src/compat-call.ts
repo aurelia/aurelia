@@ -1,6 +1,6 @@
 import { camelCase, IIndexable, type IContainer } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, ExpressionType, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
+import { bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { ensureExpression } from './utilities';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -50,26 +50,18 @@ export class CallBindingCommand implements BindingCommandInstance {
 
 @renderer(instructionType)
 export class CallBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator];
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-
   public target!: typeof instructionType;
-  public constructor(
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-  ) {
-    this._exprParser = exprParser;
-    this._observerLocator = observerLocator;
-  }
 
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
   ): void {
-    const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsProperty | ExpressionType.IsFunction);
-    renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, this._observerLocator, expr, getTarget(target), instruction.to));
+    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty | ExpressionType.IsFunction);
+    renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
 }
 

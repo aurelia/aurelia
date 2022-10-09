@@ -66,35 +66,23 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 
 @renderer(TranslationInstructionType)
 export class TranslationBindingRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IPlatform];
-  /** @internal */ private readonly _exprParser: IExpressionParser;
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-  /** @internal */ private readonly _platform: IPlatform;
-
   public target!: typeof TranslationInstructionType;
-  public constructor(
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-    p: IPlatform,
-  ) {
-    this._exprParser = exprParser;
-    this._observerLocator = observerLocator;
-    this._platform = p;
-  }
-
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: TranslationBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
   ): void {
     TranslationBinding.create({
-      parser: this._exprParser,
-      observerLocator: this._observerLocator,
+      parser: exprParser,
+      observerLocator,
       context: renderingCtrl.container,
       controller: renderingCtrl,
       target,
       instruction,
-      platform: this._platform,
+      platform,
     });
   }
 }
@@ -143,25 +131,22 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
 @renderer(TranslationBindInstructionType)
 export class TranslationBindBindingRenderer implements IRenderer {
   public target!: typeof TranslationBindInstructionType;
-  public constructor(
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IObserverLocator private readonly oL: IObserverLocator,
-    @IPlatform private readonly p: IPlatform,
-  ) { }
-
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: TranslationBindBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
   ): void {
     TranslationBinding.create({
-      parser: this.parser,
-      observerLocator: this.oL,
+      parser: exprParser,
+      observerLocator,
       context: renderingCtrl.container,
       controller: renderingCtrl,
       target,
       instruction,
-      platform: this.p
+      platform
     });
   }
 }

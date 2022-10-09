@@ -1,6 +1,6 @@
 import { DI, IContainer, IIndexable } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, ExpressionType, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer } from '@aurelia/runtime-html';
+import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
@@ -41,18 +41,15 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 @renderer(instructionType)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
-  /** @internal */ protected static get inject() { return [IExpressionParser, IEventDelegator]; }
-  /** @internal */ private readonly _exprParser: IExpressionParser;
+  /** @internal */ protected static get inject() { return [IEventDelegator]; }
 
   public readonly target!: 'dl';
   /** @internal */
   private readonly _eventDelegator: IEventDelegator;
 
   public constructor(
-    parser: IExpressionParser,
     eventDelegator: IEventDelegator,
   ) {
-    this._exprParser = parser;
     this._eventDelegator = eventDelegator;
   }
 
@@ -60,8 +57,10 @@ export class ListenerBindingRenderer implements IRenderer {
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: DelegateBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction);
+    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction);
     renderingCtrl.addBinding(new DelegateListenerBinding(
       renderingCtrl.container,
       expr,

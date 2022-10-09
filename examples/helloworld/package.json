@@ -8,7 +8,7 @@
   },
   "version": "2.0.0-alpha.15",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "rollup -c",
     "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "build:kernel": "cd ../../packages/kernel && npm run build",
     "build:runtime": "cd ../../packages/runtime && npm run build",

@@ -314,6 +314,7 @@ const testDirs = [
 const packageNames = [
   'addons',
   'compat-v1',
+  'dialog',
   'fetch-client',
   'i18n',
   'kernel',

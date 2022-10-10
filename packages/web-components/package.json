@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/dialog",
+  "name": "@aurelia/web-components",
   "version": "2.0.0-alpha.41",
   "private": true,
   "main": "dist/cjs/index.cjs",
@@ -20,7 +20,7 @@
   },
   "keywords": [
     "aurelia",
-    "dialog"
+    "web-components"
   ],
   "files": [
     "dist",
@@ -47,7 +47,6 @@
   "dependencies": {
     "@aurelia/kernel": "2.0.0-alpha.41",
     "@aurelia/metadata": "2.0.0-alpha.41",
-    "@aurelia/platform-browser": "2.0.0-alpha.41",
     "@aurelia/runtime": "2.0.0-alpha.41",
     "@aurelia/runtime-html": "2.0.0-alpha.41"
   },

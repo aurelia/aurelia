@@ -283,6 +283,7 @@ jobs:
             - packages/validation/dist
             - packages/validation-html/dist
             - packages/validation-i18n/dist
+            - packages/web-components/dist
 
             - packages-tooling/__tests__/dist
             - packages-tooling/aot/dist

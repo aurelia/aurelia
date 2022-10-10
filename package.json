@@ -30,6 +30,7 @@
     "packages/validation",
     "packages/validation-html",
     "packages/validation-i18n",
+    "packages/web-components",
     "packages-tooling/__tests__",
     "packages-tooling/aot",
     "packages-tooling/au",

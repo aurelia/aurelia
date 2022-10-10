@@ -891,10 +891,4 @@ export {
   type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
-
-  // -------- wc plugin -------------
-  IWcElementRegistry,
-  type WebComponentViewModelClass,
-  WcCustomElementRegistry,
-  // -------- wc plugin end -------------
 } from '@aurelia/runtime-html';

@@ -333,6 +333,7 @@ const packageNames = [
   'validation',
   'validation-html',
   'validation-i18n',
+  'web-components',
 ];
 
 const mimetypes = {

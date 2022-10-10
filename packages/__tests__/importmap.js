@@ -23,6 +23,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'validation',
       'validation-html',
       'validation-i18n',
+      'web-components',
     ].reduce((map, pkg) => {
       map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
       return map;

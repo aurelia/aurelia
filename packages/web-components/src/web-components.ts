@@ -1,15 +1,20 @@
-import { type Constructable, IContainer, type IIndexable, InstanceProvider } from '@aurelia/kernel';
+import { DI, IContainer, InstanceProvider, type IResolver, type Key, type Constructable, type IIndexable } from '@aurelia/kernel';
 
-import { INode, setRef } from '../dom';
-import { IPlatform } from '../platform';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { LifecycleFlags, Controller, ICustomElementController } from '../templating/controller';
-import { IRendering } from '../templating/rendering';
-import { createError } from '../utilities';
-import { createInterface } from '../utilities-di';
+import {
+  Controller,
+  CustomElement,
+  CustomElementDefinition,
+  type ICustomElementController,
+  INode,
+  IPlatform,
+  IRendering,
+  LifecycleFlags,
+  type PartialCustomElementDefinition,
+  setRef
+} from '@aurelia/runtime-html';
 
-export const IWcElementRegistry = createInterface<IAuElementRegistry>(x => x.singleton(WcCustomElementRegistry));
-export interface IAuElementRegistry {
+export const IWcElementRegistry = DI.createInterface<IWcElementRegistry>(x => x.singleton(WcCustomElementRegistry));
+export interface IWcElementRegistry {
   /**
    * Define a web-component custom element for a set of given parameters
    *
@@ -36,9 +41,9 @@ export type WebComponentViewModelClass = Constructable
   };
 
 /**
- * A default implementation of `IAuElementRegistry` interface.
+ * A default implementation of `IWcElementRegistry` interface.
  */
-export class WcCustomElementRegistry implements IAuElementRegistry {
+export class WcCustomElementRegistry implements IWcElementRegistry {
   /** @internal */
   protected static inject = [IContainer, IPlatform, IRendering];
 
@@ -96,11 +101,13 @@ export class WcCustomElementRegistry implements IAuElementRegistry {
         }
         this.auInited = true;
         const childCtn = container.createChild();
-        childCtn.registerResolver(
+        registerResolver(
+          childCtn,
           p.HTMLElement,
-          childCtn.registerResolver(
+          registerResolver(
+            childCtn,
             p.Element,
-            childCtn.registerResolver(INode, new InstanceProvider<INode>('ElementProvider', this))
+            registerResolver(childCtn, INode, new InstanceProvider<INode>('ElementProvider', this))
           )
         );
         const compiledDef = rendering.compile(
@@ -157,3 +164,8 @@ export class WcCustomElementRegistry implements IAuElementRegistry {
     return CustomElementClass;
   }
 }
+
+const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver): IResolver =>
+  ctn.registerResolver(key, resolver);
+
+const createError = (message: string) => new Error(message);

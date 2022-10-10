@@ -60,6 +60,7 @@
     "@aurelia/validation": "2.0.0-alpha.41",
     "@aurelia/validation-html": "2.0.0-alpha.41",
     "@aurelia/validation-i18n": "2.0.0-alpha.41",
+    "@aurelia/web-components": "2.0.0-alpha.41",
     "i18next": "^17.0.0",
     "jsdom": "^19.0.0",
     "rxjs": "^6.6.7",

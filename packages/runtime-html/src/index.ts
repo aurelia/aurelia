@@ -488,9 +488,3 @@ export {
   alias,
   registerAliases,
 } from './utilities-di';
-
-export {
-  IWcElementRegistry,
-  type WebComponentViewModelClass,
-  WcCustomElementRegistry,
-} from './plugins/web-components';

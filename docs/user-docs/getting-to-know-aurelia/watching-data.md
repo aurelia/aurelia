@@ -77,9 +77,9 @@ class PostOffice {
 }
 ```
 
-## Using computed functions to react to changes
+## Using computed functions to react to change
 
-Sometimes you want to watch multiple values in a component, for that you need to create an expression. A computed function is a function provided to the `@watch` decorator which allows you to do comparisons on multiple values.
+Sometimes you want to watch multiple values in a component, and for that, you need to create an expression. A computed function is a function provided to the `@watch` decorator which allows you to do comparisons on multiple values.
 
 To illustrate how you can do this, here is an example:
 
@@ -100,7 +100,7 @@ class PostOffice {
 }
 ```
 
-In this example, the `log` method of `PostOffice` will be called whenever there's a new package added to or an existing package removed from the `packages` array. The first argument of our callback function is the viewmodel, allowing us to access class properties and methods.
+In this example, the `log` method of `PostOffice` will be called whenever there's a new package added to or an existing package removed from the `packages` array. The first argument of our callback function is the view-model, allowing us to access class properties and methods.
 
 ## Usage examples
 

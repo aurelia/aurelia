@@ -4,12 +4,6 @@ In this section, we are going to be learning how you can dynamically render comp
 
 The `<au-compose>` element allows us to compose view/view model pairs as well as just views, kind of like a custom element without having to specify a tag name.
 
-Here is a simple example showcasing how to dynamically compose a view/view model pair:
-
-```markup
-<au-compose view-model=""></au-compose>
-```
-
 ## Basic Composition
 
 The `au-compose` element can be used to render any custom element given to its `view-model` property. A basic example is:
@@ -154,7 +148,7 @@ You can disable this behavior using the `scope-behavior` attribute.
   <au-compose scope-behavior="scoped">
 ```
 
-&#x20; **Possible values are:**
+**Possible values are:**
 
 * auto: in view only composition: inherit the parent scope
 * scoped: never inherit parent scope even in view only composition

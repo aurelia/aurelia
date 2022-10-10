@@ -202,7 +202,6 @@ export function createFixture<T extends object>(
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
-    public host = ctx.doc.firstElementChild as HTMLElement;
     public container = container;
     public platform = platform;
     public testHost = root;
@@ -213,8 +212,8 @@ export function createFixture<T extends object>(
     public logger = container.get(ILogger);
     public hJsx = hJsx.bind(ctx.doc);
 
-    public async start() {
-      await au.app({ host: host, component }).start();
+    public start() {
+      return au.app({ host: host, component }).start();
     }
 
     public tearDown() {
@@ -270,7 +269,6 @@ export function createFixture<T extends object>(
 export interface IFixture<T> {
   readonly startPromise: void | Promise<void>;
   readonly ctx: TestContext;
-  readonly host: HTMLElement;
   readonly container: IContainer;
   readonly platform: IPlatform;
   readonly testHost: HTMLElement;
@@ -280,7 +278,7 @@ export interface IFixture<T> {
   readonly observerLocator: IObserverLocator;
   readonly logger: ILogger;
   readonly torn: boolean;
-  start(): Promise<void>;
+  start(): void | Promise<void>;
   tearDown(): void | Promise<void>;
   readonly started: Promise<IFixture<T>>;
 

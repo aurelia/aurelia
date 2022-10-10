@@ -28,6 +28,11 @@ export class ListenerBinding implements IBinding {
   public l: IServiceLocator;
 
   /**
+   * Whether this binding only handles events originate from the target this binding is bound to
+   */
+  public self: boolean = false;
+
+  /**
    * Indicates if this binding evaluates an ast and get a function, that function should be bound
    * to the instance it is on
    *
@@ -66,19 +71,24 @@ export class ListenerBinding implements IBinding {
   }
 
   public handleEvent(event: Event): void {
+    if (this.self) {
+      if (this.target !== event.composedPath()[0]) {
+        return;
+      }
+    }
     this.callSource(event);
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
+      if (this._scope === scope) {
         return;
       }
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     this.target.addEventListener(this.targetEvent, this, this._options);
 

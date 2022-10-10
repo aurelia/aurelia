@@ -37,6 +37,9 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 
   /** @internal */
   private _value: unknown = void 0;
+  public get value(): unknown {
+    return this._value;
+  }
   /**
    * A semi-private property used by connectable mixin
    *
@@ -121,6 +124,9 @@ export class ExpressionWatcher implements IConnectableBinding {
 
   /** @internal */
   private _value: unknown;
+  public get value(): unknown {
+    return this._value;
+  }
 
   // see Listener binding for explanation
   /** @internal */

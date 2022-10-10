@@ -58,9 +58,7 @@ export class LetBinding implements IBinding {
       return;
     }
     this.obs.version++;
-    if ((nV = astEvaluate(this.ast, this._scope!, this, this)) !== this._value) {
-      this._value = nV;
-    }
+    this._value = astEvaluate(this.ast, this._scope!, this, this);
     this.obs.clear();
     this.updateTarget();
   }
@@ -104,5 +102,3 @@ mixinUseScope(LetBinding);
 mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
 mixinAstEvaluator(true)(LetBinding);
-
-let nV: unknown;

@@ -691,7 +691,6 @@ export {
 
   // AttrBindingBehavior,
 
-  // SelfableBinding,
   // SelfBindingBehavior,
 
   // UpdateTriggerBindingBehavior,

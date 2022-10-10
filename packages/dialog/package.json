@@ -45,8 +45,6 @@
   },
   "dependencies": {
     "@aurelia/kernel": "2.0.0-alpha.41",
-    "@aurelia/metadata": "2.0.0-alpha.41",
-    "@aurelia/platform": "2.0.0-alpha.41",
     "@aurelia/platform-browser": "2.0.0-alpha.41",
     "@aurelia/runtime": "2.0.0-alpha.41",
     "@aurelia/runtime-html": "2.0.0-alpha.41"

@@ -206,7 +206,6 @@ export {
   AttrBindingBehavior,
 } from './resources/binding-behaviors/attr';
 export {
-  type SelfableBinding,
   SelfBindingBehavior,
 } from './resources/binding-behaviors/self';
 export {

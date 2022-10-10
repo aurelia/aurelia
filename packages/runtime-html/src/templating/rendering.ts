@@ -34,12 +34,10 @@ export class Rendering {
   private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {
-    return this._renderers == null
-      ? (this._renderers = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
-          all[r.target] = r;
-          return all;
-        }, createLookup<IRenderer>()))
-      : this._renderers;
+    return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
+      all[r.target] = r;
+      return all;
+    }, createLookup<IRenderer>());
   }
 
   public constructor(

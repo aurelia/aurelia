@@ -1,6 +1,8 @@
-# Value converters
+# Value converters (pipes)
 
 Use value converters to transform how values are displayed in your applications. You can use value converters to transform strings, format dates, currency display and other forms of manipulation. They can be used within interpolation as well as with bindings, working with data to and from the view.
+
+If you have worked with other libraries and frameworks, you might know value converters by another name; pipes.
 
 ## Understanding value converter data flow
 

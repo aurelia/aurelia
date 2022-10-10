@@ -12,7 +12,7 @@ String interpolation allows you to display values within your template views. By
 
 ### Displaying values with interpolation
 
-Interpolation can be used to display the value of variables within your HTML templates,  object properties and other forms of valid data.
+Interpolation can be used to display the value of variables within your HTML templates, object properties and other forms of valid data.
 
 To show how interpolation works, here is an example.
 
@@ -30,7 +30,7 @@ export class MyApp {
 ```
 {% endcode %}
 
-Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view-model will be accessible inside of your templates.
+Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view-model will be accessible inside your templates.
 
 ### Template expressions
 
@@ -38,7 +38,7 @@ A template expression allows you to perform code operations inside of `${}` we l
 
 In the following simple example, we are adding two and two together, the value that will be displayed will be `4`.
 
-```
+```html
 <p>Quick maths: ${2 + 2}</p>
 ```
 
@@ -163,7 +163,7 @@ export class MyComponent {
 
 ### Binding to innerhtml and textcontent
 
-The native innerhtml and textcontent properties allow you to set the values of HTML elements. When binding to these properties, the difference between what to choose is `textcontent` will not display HTML tags and `innerhtml` will.
+The native `innerhtml` and `textcontent` properties allow you to set the values of HTML elements. When binding to these properties, the difference between what to choose is `textcontent` will not display HTML tags and `innerhtml` will.
 
 {% code title="my-component.html" %}
 ```html
@@ -199,4 +199,3 @@ Referencing our custom element, if we wanted to bind in a value to our `email` p
 ```
 
 This allows us to pass in data to custom elements in a clean and familiar way.
-

@@ -13,23 +13,38 @@
   * [Running our app](getting-started/quick-start-guide/running-our-app.md)
   * [Next steps](getting-started/quick-start-guide/next-steps.md)
 
+## Fundamentals
+
+* [Custom attributes](fundamentals/custom-attributes.md)
+* [Binding behaviors](fundamentals/binding-behaviors.md)
+* [Value converters (pipes)](fundamentals/value-converters.md)
+
+## Templates
+
+* [Template syntax](templates/template-syntax.md)
+* [Form bindings](templates/forms.md)
+* [Class and style bindings](templates/class-and-style-bindings.md)
+* [Conditional rendering](templates/conditional-rendering.md)
+* [List rendering](templates/repeats-and-list-rendering.md)
+* [Event handling](templates/event-handling.md)
+* [Lambda Expressions](templates/lambda-expressions.md)
+* [Template references](templates/template-references.md)
+* [Template variables](templates/template-variables.md)
+* [Local templates](templates/local-templates.md)
+* [Template promises](templates/template-promises.md)
+
+## Components
+
+* [Component basics](components/components.md)
+* [Component lifecycles](components/component-lifecycles.md)
+* [Bindable properties](components/bindable-properties.md)
+* [Styling components](components/class-and-style-binding.md)
+* [Attributes transferring](components/attributes-transferring.md)
+* [Slotted content](components/shadow-dom-and-slots.md)
+* [Scope and context](components/scope-and-binding-context.md)
+
 ## Getting to know Aurelia
 
-* [Template syntax](getting-to-know-aurelia/template-syntax.md)
-* [Component basics](getting-to-know-aurelia/components.md)
-* [Custom attributes](getting-to-know-aurelia/custom-attributes.md)
-* [Binding behaviors](getting-to-know-aurelia/binding-behaviors.md)
-* [Value converters](getting-to-know-aurelia/templates/value-converters.md)
-* [Form bindings](getting-to-know-aurelia/forms.md)
-* [Class and style bindings](getting-to-know-aurelia/class-and-style-bindings.md)
-* [Conditional rendering](getting-to-know-aurelia/conditional-rendering.md)
-* [List rendering](getting-to-know-aurelia/repeats-and-list-rendering.md)
-* [Event handling](getting-to-know-aurelia/event-handling.md)
-* [Lambda Expressions](getting-to-know-aurelia/lambda-expressions.md)
-* [Template references](getting-to-know-aurelia/template-references.md)
-* [Template variables](getting-to-know-aurelia/template-variables.md)
-* [Local templates](getting-to-know-aurelia/local-templates.md)
-* [Template promises](getting-to-know-aurelia/template-promises.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
 * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
 * [Observation](getting-to-know-aurelia/observation/README.md)
@@ -41,15 +56,6 @@
 * [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
 * [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
-
-## Components
-
-* [Component lifecycles](components/component-lifecycles.md)
-* [Bindable properties](components/bindable-properties.md)
-* [Styling components](components/class-and-style-binding.md)
-* [Attributes transferring](components/attributes-transferring.md)
-* [Slotted content](components/shadow-dom-and-slots.md)
-* [Scope and context](components/scope-and-binding-context.md)
 
 ## Developer Guides
 

@@ -27,8 +27,8 @@ See what you are getting yourself into before you continue. There is a working e
 
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While **these are not hard prerequisites**, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](broken-reference).
-* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components.md).
+* You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
+* You have familiarized yourself with [components in Aurelia](../components/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
 ## Create the app

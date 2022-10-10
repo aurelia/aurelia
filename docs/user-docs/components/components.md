@@ -1,4 +1,4 @@
-# Components
+# Component basics
 
 Custom elements underpin Aurelia applications, they are what you will be spending most of your time creating and can be consisted of:
 
@@ -9,7 +9,7 @@ Custom elements underpin Aurelia applications, they are what you will be spendin
 {% hint style="warning" %}
 **Naming Components**
 
-The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM (see [Styling Components](broken-reference)). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM (see [Styling Components](../getting-to-know-aurelia/broken-reference/)). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 There are numerous ways in which you can create custom components. By leveraging conventions, you can create simple components with minimal code to more verbose components that offer greater control over how they work.
@@ -18,7 +18,7 @@ There is no right or wrong way to create a component. As you will soon see, you 
 
 ## Creating components
 
-In Aurelia, you don't technically have to even tell it what a component is. You can export a plain Javascript class and it will assume that it is a component as a default convention-based setting.&#x20;
+In Aurelia, you don't technically have to even tell it what a component is. You can export a plain Javascript class and it will assume that it is a component as a default convention-based setting.
 
 This is what a basic component in Aurelia can look like. Obviously, you would add in logic and bindable properties (maybe) but a barebones component is just a class.
 

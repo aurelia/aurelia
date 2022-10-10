@@ -1,6 +1,6 @@
 # Binding behaviors
 
-Binding behaviors are a category of view resource, just like value converters, custom attributes and custom elements. Binding behaviors are most like [value converters](templates/value-converters.md) in that you use them declaratively in binding expressions to affect the binding.
+Binding behaviors are a category of view resource, just like value converters, custom attributes and custom elements. Binding behaviors are most like [value converters](value-converters.md) in that you use them declaratively in binding expressions to affect the binding.
 
 The primary difference between a binding behavior and a value converter is _binding behaviors have full access to the binding instance, throughout it's lifecycle_. Contrast this with a value converter which only has the ability to intercept values passing from the model to the view and visa versa.
 
@@ -60,7 +60,7 @@ A common use case is a search input that triggers searching automatically. You w
 <input type="text" value.bind="query & debounce:850">
 ```
 
-Like throttle, the `debounce` binding behavior shines in event binding.&#x20;
+Like throttle, the `debounce` binding behavior shines in event binding.
 
 Here's another example with the `mousemove` event:
 
@@ -92,7 +92,7 @@ Multiple events are supported:
 
 ## **Signal**
 
-The signal binding behavior enables you to "signal" the binding to refresh. This is especially useful when a binding result is impacted by global changes outside **** the observation path.
+The signal binding behavior enables you to "signal" the binding to refresh. This is especially useful when a binding result is impacted by global changes outside \*\*\*\* the observation path.
 
 For example, if you have a "translate" value converter that converts a key to a localized string- eg `${'greeting-key' | translate}` and your site allows users to change the current language, how would you refresh the bindings when that happens?
 

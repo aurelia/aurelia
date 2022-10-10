@@ -24,7 +24,7 @@ Before going any further, you should be familiar with some basic Aurelia concept
 
 * Creating a new Aurelia app. This won't be covered in this tutorial and you may refer the other tutorials to this end.
 * You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
-* You have familiarized yourself with [components in Aurelia](../getting-to-know-aurelia/components.md).
+* You have familiarized yourself with [components in Aurelia](../components/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 * Native Web APIs, such as [`createElement`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement).
 

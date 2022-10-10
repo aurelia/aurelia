@@ -9,7 +9,7 @@ Custom elements underpin Aurelia applications, they are what you will be spendin
 {% hint style="warning" %}
 **Naming Components**
 
-The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM (see [Styling Components](../getting-to-know-aurelia/broken-reference/)). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM (see [Styling Components](class-and-style-binding.md)). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three-character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 There are numerous ways in which you can create custom components. By leveraging conventions, you can create simple components with minimal code to more verbose components that offer greater control over how they work.
@@ -150,6 +150,23 @@ import { NumberInput } from './number-input';
 export class AppLoader {
 }
 ```
+
+## Programmatic component creation
+
+Aurelia also comes with a more verbose API for creating components in your applications. You can use this approach to create components inline without the need for separate files. This approach also works nicely for testing.
+
+```typescript
+import { CustomElement } from '@aurelia/runtime-html';
+
+export class App {
+  MyField = CustomElement.define({
+    name: 'my-input',
+    template: '<input value.bind="value">'
+  })
+}
+```
+
+By calling `CustomElement.define` we can create a component using familiar syntax to the verbose decorator approach above, including dependencies and more.
 
 ## HTML only components
 

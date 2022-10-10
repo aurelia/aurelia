@@ -151,11 +151,11 @@ Much like most facets of binding in Aurelia, two-way binding is intuitive. Inste
 
 **Explicit two-way binding looks like this:**
 
-```
+```html
 <input type="text" value.two-way="myVal">
 ```
 
-Whenever the text input is updated, the `myVal` variable will get the new value. Similarly, if `myVal` were updated from within the view model, the input would get the updated value.
+Whenever the text input is updated, the `myVal` variable will get a new value. Similarly, if `myVal` were updated from within the view model, the input would get the updated value.
 
 {% hint style="info" %}
 When using `.bind` for input/form control values such as text inputs, select dropdowns and other form elements, Aurelia will automatically create a two-way binding relationship. So, the above example using a text input can be rewritten to just be `value.bind="myVal"` and it would still be a two-way binding.
@@ -274,17 +274,17 @@ There are two relevant configuration options.
 * **`enableCoercion`**: The default value is `false`; that is Aurelia 2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
 * **`coerceNullish`**: The default value is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](bindable-properties.md#coercing-nullable-values) section).
 
-Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type-coercion.
+Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type coercion.
 
 ### For TypeScript development
 
-For TypeScript development this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
+For TypeScript development, this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
 
 If for some reason you cannot do that then refer to the next section.
 
 ### For JavaScript development
 
-For JavaScript development you need to explicitly specify the `type` in the `@bindable` definition.
+For JavaScript development, you need to explicitly specify the `type` in the `@bindable` definition.
 
 ```javascript
 @customElement({ name:'my-el', template: 'not important' })
@@ -299,7 +299,7 @@ The rest of the document is based on TypeScript examples. However, we trust that
 
 ## Coercing primitive types
 
-Currently coercing four primitive types are supported out-of-the-box. These are `number`, `string`, `boolean`, and `bigint`. The coercion functions for these type are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
+Currently coercing four primitive types are supported out of the box. These are `number`, `string`, `boolean`, and `bigint`. The coercion functions for these type are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
 
 {% hint style="warning" %}
 Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `value` cannot be converted to bigint; for example `null`, `undefined`, or non-numeric string literal.
@@ -307,7 +307,7 @@ Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `
 
 ## Coercing to instances of classes
 
-It is also possible to coerce values to instances of classes. There are two ways how that can be done.
+It is also possible to coerce values into instances of classes. There are two ways how that can be done.
 
 ### Using a static `coerce` method
 
@@ -441,12 +441,12 @@ When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `u
 
 ## `set` and auto-coercion
 
-It is important to note that an explicit `set` (see [bindable setter](broken-reference)) function is always prioritized over the `type`. In fact, the auto-coercion is the fallback for the `set` function. Hence whenever `set` is defined, the auto-coercion becomes non-operational.
+It is important to note that an explicit `set` (see [bindable setter](bindable-properties.md#bindable-setter)) function is always prioritized over the `type`. In fact, the auto-coercion is the fallback for the `set` function. Hence whenever `set` is defined, the auto-coercion becomes non-operational.
 
 However, this gives you an opportunity to:
 
 * Override any of the default primitive type coercing behavior, or
-* Disable coercion selectively for few selective `@bindable`s by using a `noop` function for `set`.
+* Disable coercion selectively for a few selective `@bindable` by using a `noop` function for `set`.
 
 {% hint style="info" %}
 Aurelia2 already exposes a `noop` function saving your effort to write such boring functions.

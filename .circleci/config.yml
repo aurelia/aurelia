@@ -581,7 +581,7 @@ jobs:
             cd test/playwright
             npm run build
             npm run e2e:<< parameters.suite >>
-          no_output_timeout: "2m"
+          no_output_timeout: "1m"
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
@@ -628,7 +628,7 @@ jobs:
           name: "Restore benchmark artifacts"
           key: cache-{{ .Revision }}-benchmark-app
       - run:
-          name: "benchmark"
+          name: "benchmark: <<parameters.command>>"
           command: <<parameters.command>>
           working_directory: "benchmarks"
           no_output_timeout: "30s"

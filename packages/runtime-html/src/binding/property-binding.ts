@@ -82,17 +82,17 @@ export class PropertyBinding implements IBinding {
       return;
     }
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
     this.obs.version++;
     const newValue = astEvaluate(
       this.ast,
       this._scope!,
       this,
-      // should connect?
+      // should observe?
       (this.mode & BindingMode.toView) > 0 ? this : null
     );
     this.obs.clear();
 
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this._task;

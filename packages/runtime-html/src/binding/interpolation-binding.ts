@@ -214,16 +214,15 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     if (!this.isBound) {
       return;
     }
-    const obsRecord = this.obs;
-    let shouldConnect: boolean = false;
-    shouldConnect = (this.mode & BindingMode.toView) > 0;
-    if (shouldConnect) {
-      obsRecord.version++;
-    }
-    const newValue = astEvaluate(this.ast, this._scope!, this, shouldConnect ? this : null);
-    if (shouldConnect) {
-      obsRecord.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
     // todo(!=): maybe should do strict comparison?
     // eslint-disable-next-line eqeqeq
     if (newValue != this._value) {
@@ -355,14 +354,15 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     if (!this.isBound) {
       return;
     }
-    const shouldConnect = (this.mode & BindingMode.toView) > 0;
-    if (shouldConnect) {
-      this.obs.version++;
-    }
-    const newValue = astEvaluate(this.ast, this._scope!, this, shouldConnect ? this : null);
-    if (shouldConnect) {
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
     if (newValue === this._value) {
       // in a frequent update, e.g collection mutation in a loop
       // value could be changing frequently and previous update task may be stale at this point

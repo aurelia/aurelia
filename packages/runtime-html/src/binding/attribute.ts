@@ -108,19 +108,20 @@ export class AttributeBinding implements IBinding {
       return;
     }
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & BindingMode.toView) > 0;
     let task: ITask | null;
-    if (shouldConnect) {
-      this.obs.version++;
-    }
-    const newValue = astEvaluate(this.ast, this._scope!, this, this);
-    if (shouldConnect) {
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
 
     if (newValue !== this._value) {
       this._value = newValue;
+      const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
         task = this._task;

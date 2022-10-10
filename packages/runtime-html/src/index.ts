@@ -114,7 +114,7 @@ export {
   BindingTargetSubscriber,
   mixinAstEvaluator,
   mixingBindingLimited,
-  mixinBindingUseScope,
+  mixinUseScope,
 } from './binding/binding-utils';
 export {
   ListenerBinding,
@@ -206,7 +206,6 @@ export {
   AttrBindingBehavior,
 } from './resources/binding-behaviors/attr';
 export {
-  type SelfableBinding,
   SelfBindingBehavior,
 } from './resources/binding-behaviors/self';
 export {
@@ -283,10 +282,6 @@ export {
 } from './resources/custom-element';
 
 export {
-  type Subject,
-  AuRender,
-} from './resources/custom-elements/au-render';
-export {
   AuCompose,
   type IDynamicComponentActivate,
 } from './resources/custom-elements/au-compose';
@@ -305,9 +300,6 @@ export {
   ISanitizer,
   SanitizeValueConverter,
 } from './resources/value-converters/sanitize';
-export {
-  ViewValueConverter,
-} from './resources/value-converters/view';
 
 export {
   ITemplateCompilerRegistration,
@@ -342,7 +334,6 @@ export {
 
   DefaultBindingLanguage,
 
-  ViewValueConverterRegistration,
   SanitizeValueConverterRegistration,
   IfRegistration,
   ElseRegistration,
@@ -351,7 +342,6 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  AuRenderRegistration,
 
   DefaultResources,
 
@@ -446,15 +436,7 @@ export {
 export {
   ViewFactory,
   IViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
-  Views,
 } from './templating/view';
-export {
-  createElement,
-  RenderPlan
-} from './create-element';
 export {
   INode,
   IEventTarget,
@@ -506,55 +488,3 @@ export {
   alias,
   registerAliases,
 } from './utilities-di';
-
-export {
-  // configurations
-  DialogConfiguration,
-  type DialogConfigurationProvider,
-  DialogDefaultConfiguration,
-
-  // enums
-  type DialogActionKey,
-  type DialogMouseEventType,
-  DialogDeactivationStatuses,
-
-  // settings
-  type IDialogSettings,
-  IDialogGlobalSettings,
-  type IDialogLoadedSettings,
-
-  // main interfaces
-  IDialogService,
-  IDialogController,
-  IDialogDomRenderer,
-  IDialogDom,
-
-  // dialog results
-  type DialogError,
-  type DialogOpenPromise,
-  DialogOpenResult,
-  type DialogCancelError,
-  type DialogCloseError,
-  DialogCloseResult,
-
-  // default impls
-  DialogService,
-  DialogController,
-  DefaultDialogDom,
-  DefaultDialogDomRenderer,
-  DefaultDialogGlobalSettings,
-
-  // implementable for applications
-  type IDialogCustomElementViewModel,
-  type IDialogComponent,
-  type IDialogComponentActivate,
-  type IDialogComponentCanActivate,
-  type IDialogComponentDeactivate,
-  type IDialogComponentCanDeactivate,
-} from './dialog';
-
-export {
-  IWcElementRegistry,
-  type WebComponentViewModelClass,
-  WcCustomElementRegistry,
-} from './plugins/web-components';

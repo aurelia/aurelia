@@ -4,6 +4,7 @@ document.write(`<script type="importmap">${JSON.stringify({
     ...([
       'addons',
       'compat-v1',
+      'dialog',
       'platform',
       'platform-browser',
       'metadata',
@@ -22,6 +23,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'validation',
       'validation-html',
       'validation-i18n',
+      'web-components',
     ].reduce((map, pkg) => {
       map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
       return map;
@@ -187,8 +189,8 @@ document.write(`<script type="importmap">${JSON.stringify({
       'util/identity',
     ].reduce((map, internalModule) => {
       map[`rxjs/_esm5/internal/${internalModule}`]
-        = map[`/base/node_moudles/rxjs/_esm5/internal/${internalModule}`]
-        = `/base/node_moudles/rxjs/_esm5/internal/${internalModule}.js`;
+        = map[`/base/node_modules/rxjs/_esm5/internal/${internalModule}`]
+        = `/base/node_modules/rxjs/_esm5/internal/${internalModule}.js`;
       return map;
     }, {}))
   }

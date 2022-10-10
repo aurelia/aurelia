@@ -24,15 +24,17 @@ import { createStateBindingScope } from './state-utilities';
  */
 export interface StateDispatchBinding extends IAstEvaluator, IConnectableBinding { }
 export class StateDispatchBinding implements IBinding {
+  public isBound: boolean = false;
+
   /** @internal */
   public readonly l: IServiceLocator;
 
-  public scope?: Scope | undefined;
-  public isBound: boolean = false;
+  /** @internal */
+  public _scope?: Scope | undefined;
   public ast: IsBindingBehavior;
 
-  private readonly target: HTMLElement;
-  private readonly targetProperty: string;
+  /** @internal */ private readonly _target: HTMLElement;
+  /** @internal */ private readonly _targetProperty: string;
 
   // see Listener binding for explanation
   /** @internal */
@@ -49,17 +51,17 @@ export class StateDispatchBinding implements IBinding {
     this.l = locator;
     this._store = store;
     this.ast = expr;
-    this.target = target;
-    this.targetProperty = prop;
+    this._target = target;
+    this._targetProperty = prop;
   }
 
   public callSource(e: Event) {
-    const scope = this.scope!;
+    const scope = this._scope!;
     scope.overrideContext.$event = e;
     const value = astEvaluate(this.ast, scope, this, null);
     delete scope.overrideContext.$event;
     if (!this.isAction(value)) {
-      throw new Error(`Invalid dispatch value from expression on ${this.target} on event: "${e.type}"`);
+      throw new Error(`Invalid dispatch value from expression on ${this._target} on event: "${e.type}"`);
     }
     void this._store.dispatch(value.type, ...(value.params instanceof Array ? value.params : []));
   }
@@ -68,13 +70,13 @@ export class StateDispatchBinding implements IBinding {
     this.callSource(e);
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
-    astBind(this.ast, scope, this);
-    this.scope = createStateBindingScope(this._store.getState(), scope);
-    this.target.addEventListener(this.targetProperty, this);
+    astBind(this.ast, _scope, this);
+    this._scope = createStateBindingScope(this._store.getState(), _scope);
+    this._target.addEventListener(this._targetProperty, this);
     this._store.subscribe(this);
     this.isBound = true;
   }
@@ -85,14 +87,14 @@ export class StateDispatchBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
-    this.scope = void 0;
-    this.target.removeEventListener(this.targetProperty, this);
+    astUnbind(this.ast, this._scope!, this);
+    this._scope = void 0;
+    this._target.removeEventListener(this._targetProperty, this);
     this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
-    const scope = this.scope!;
+    const scope = this._scope!;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
     scope.bindingContext = overrideContext.bindingContext = state;
   }

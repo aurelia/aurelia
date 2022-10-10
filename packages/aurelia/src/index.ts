@@ -691,7 +691,6 @@ export {
 
   // AttrBindingBehavior,
 
-  // SelfableBinding,
   // SelfBindingBehavior,
 
   // UpdateTriggerBindingBehavior,
@@ -813,9 +812,6 @@ export {
 
   // StandardConfiguration,
 
-  createElement,
-  // RenderPlan,
-
   // AttributeInstruction,
   // IInstructionRow,
   // NodeInstruction,
@@ -895,56 +891,4 @@ export {
   type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
-
-  // -------- dialog plugin -------------
-  // configurations
-  DialogConfiguration,
-  type DialogConfigurationProvider,
-  DialogDefaultConfiguration,
-
-  // enums
-  type DialogActionKey,
-  type DialogMouseEventType,
-  DialogDeactivationStatuses,
-
-  // settings
-  type IDialogSettings,
-  IDialogGlobalSettings,
-  type IDialogLoadedSettings,
-
-  // main interfaces
-  IDialogService,
-  IDialogController,
-  IDialogDomRenderer,
-  IDialogDom,
-
-  // dialog results
-  type DialogError,
-  type DialogOpenPromise,
-  DialogOpenResult,
-  type DialogCancelError,
-  type DialogCloseError,
-  DialogCloseResult,
-
-  // default impls
-  DialogService,
-  DialogController,
-  DefaultDialogDom,
-  DefaultDialogDomRenderer,
-  DefaultDialogGlobalSettings,
-
-  // implementable for applications
-  type IDialogCustomElementViewModel,
-  type IDialogComponent,
-  type IDialogComponentActivate,
-  type IDialogComponentCanActivate,
-  type IDialogComponentDeactivate,
-  type IDialogComponentCanDeactivate,
-  // -------- dialog plugin end -------------
-
-  // -------- wc plugin -------------
-  IWcElementRegistry,
-  type WebComponentViewModelClass,
-  WcCustomElementRegistry,
-  // -------- wc plugin end -------------
 } from '@aurelia/runtime-html';

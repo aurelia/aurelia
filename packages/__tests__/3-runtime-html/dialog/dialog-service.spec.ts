@@ -1,22 +1,24 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { noop } from '@aurelia/kernel';
 import {
+  INode,
+  customElement,
+  CustomElement,
+} from '@aurelia/runtime-html';
+import {
   IDialogService,
   IDialogSettings,
   IDialogGlobalSettings,
   DialogConfiguration,
   DialogDefaultConfiguration,
   DefaultDialogGlobalSettings,
-  customElement,
   DialogCancelError,
   DialogDeactivationStatuses,
   IDialogDom,
   IDialogController,
-  INode,
   DialogController,
   DefaultDialogDom,
-  CustomElement,
-} from '@aurelia/runtime-html';
+} from '@aurelia/dialog';
 import {
   createFixture,
   assert,

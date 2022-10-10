@@ -1,7 +1,7 @@
 import { createInterface } from '../../utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { ICustomElementViewModel } from '../../templating/controller';
+import type { ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
  * The dialog service for composing view & view model into a dialog

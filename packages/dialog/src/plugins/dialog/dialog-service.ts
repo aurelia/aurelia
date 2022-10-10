@@ -1,4 +1,5 @@
 import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
+import { AppTask, IPlatform } from '@aurelia/runtime-html';
 
 import {
   DialogActionKey,
@@ -11,8 +12,6 @@ import {
   IDialogLoadedSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
-import { AppTask } from '../../app-task';
-import { IPlatform } from '../../platform';
 import { createError, isFunction, isPromise } from '../../utilities';
 import { callbackRegistration, instanceRegistration, singletonRegistration } from '../../utilities-di';
 

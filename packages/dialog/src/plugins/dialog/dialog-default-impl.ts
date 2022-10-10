@@ -1,4 +1,4 @@
-import { IPlatform } from '../../platform';
+import { IPlatform } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,

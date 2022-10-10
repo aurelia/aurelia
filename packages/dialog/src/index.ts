@@ -12,25 +12,27 @@ export {
 
   // dialog results
   DialogCloseResult,
-  DialogError,
-  DialogCancelError,
-  DialogCloseError,
-  DialogOpenPromise,
+  type DialogError,
+  type DialogCancelError,
+  type DialogCloseError,
+  type DialogOpenPromise,
   DialogOpenResult,
 
   // dialog settings
-  IDialogSettings,
-  IDialogLoadedSettings,
+  type IDialogSettings,
+  type IDialogLoadedSettings,
   IDialogGlobalSettings,
 
   // implementable
-  IDialogCustomElementViewModel,
-  IDialogComponent,
-  IDialogComponentActivate,
-  IDialogComponentCanActivate,
-  IDialogComponentDeactivate,
-  IDialogComponentCanDeactivate,
+  type IDialogCustomElementViewModel,
+  type IDialogComponent,
+  type IDialogComponentActivate,
+  type IDialogComponentCanActivate,
+  type IDialogComponentDeactivate,
+  type IDialogComponentCanDeactivate,
 } from './plugins/dialog/dialog-interfaces';
+
+// default impl
 export {
   DialogController,
 } from './plugins/dialog/dialog-controller';

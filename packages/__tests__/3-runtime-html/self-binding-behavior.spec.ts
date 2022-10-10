@@ -1,37 +1,6 @@
-import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { PropertyBinding, IPlatform, SelfBindingBehavior, FlushQueue } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/self-binding-behavior.spec.ts', function () {
-  let container: IContainer;
-  let sut: SelfBindingBehavior;
-  let binding: PropertyBinding;
-  let originalCallSource: () => void;
-
-  // eslint-disable-next-line mocha/no-hooks
-  beforeEach(function () {
-    container = DI.createContainer();
-    Registration.instance(IPlatform, { }).register(container);
-    sut = new SelfBindingBehavior();
-    binding = new PropertyBinding({ state: 0 }, undefined, undefined, undefined, undefined, undefined, container as any, {} as any);
-    originalCallSource = binding['callSource'] = function () { return; };
-    binding['targetEvent'] = 'foo';
-    sut.bind(undefined, binding as any);
-  });
-
-  // TODO: test properly (different binding types)
-  it('[UNIT] bind()   should apply the correct behavior', function () {
-    assert.strictEqual(binding['selfEventCallSource'] === originalCallSource, true, `binding['selfEventCallSource'] === originalCallSource`);
-    assert.strictEqual(binding['callSource'] === originalCallSource, false, `binding['callSource'] === originalCallSource`);
-    assert.strictEqual(typeof binding['callSource'], 'function', `typeof binding['callSource']`);
-  });
-
-  it('[UNIT] unbind() should revert the original behavior', function () {
-    sut.unbind(undefined, binding as any);
-    assert.strictEqual(binding['selfEventCallSource'], null, `binding['selfEventCallSource']`);
-    assert.strictEqual(binding['callSource'] === originalCallSource, true, `binding['callSource'] === originalCallSource`);
-  });
-
   it('works with event binding', function () {
     let count = 0;
     const { getBy } = createFixture
@@ -51,5 +20,11 @@ describe('3-runtime-html/self-binding-behavior.spec.ts', function () {
 
     getBy('div').click();
     assert.strictEqual(count, 3);
+  });
+
+  it('throws on non listener binding', async function () {
+    const { appHost, start } = createFixture(`<div click.bind="m & self">`, {}, [], false);
+    assert.throws(() => start());
+    appHost.remove();
   });
 });

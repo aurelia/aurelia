@@ -1,8 +1,8 @@
 import { IContainer, IRegistry, noop } from '@aurelia/kernel';
+import { AppTask } from '@aurelia/runtime-html';
 
 import { IDialogGlobalSettings } from './dialog-interfaces';
 import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl';
-import { AppTask } from '../../app-task';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from '../../utilities-di';
 import { createError } from '../../utilities';

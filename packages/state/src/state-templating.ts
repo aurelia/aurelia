@@ -93,27 +93,27 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore, IPlatform];
+  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sb';
 
   public constructor(
-    /** @internal */ private readonly _exprParser: IExpressionParser,
-    /** @internal */ private readonly _observerLocator: IObserverLocator,
     /** @internal */ private readonly _stateContainer: IStore<object>,
-    /** @internal */ private readonly p: IPlatform,
   ) {}
 
   public render(
     renderingCtrl: IHydratableController,
     target: object,
     instruction: StateBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
   ): void {
     renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,
       renderingCtrl.container,
-      this._observerLocator,
-      this.p.domWriteQueue,
-      ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction),
+      observerLocator,
+      platform.domWriteQueue,
+      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
       target,
       instruction.to,
       this._stateContainer,

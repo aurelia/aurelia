@@ -261,9 +261,10 @@ jobs:
           key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
           paths:
             - packages/__tests__/dist
+            - packages/addons/dist
             - packages/aurelia/dist
             - packages/compat-v1/dist
-            - packages/addons/dist
+            - packages/dialog/dist
             - packages/fetch-client/dist
             - packages/i18n/dist
             - packages/kernel/dist
@@ -282,6 +283,7 @@ jobs:
             - packages/validation/dist
             - packages/validation-html/dist
             - packages/validation-i18n/dist
+            - packages/web-components/dist
 
             - packages-tooling/__tests__/dist
             - packages-tooling/aot/dist
@@ -579,7 +581,7 @@ jobs:
             cd test/playwright
             npm run build
             npm run e2e:<< parameters.suite >>
-          no_output_timeout: "2m"
+          no_output_timeout: "1m"
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
@@ -626,7 +628,7 @@ jobs:
           name: "Restore benchmark artifacts"
           key: cache-{{ .Revision }}-benchmark-app
       - run:
-          name: "benchmark"
+          name: "benchmark: <<parameters.command>>"
           command: <<parameters.command>>
           working_directory: "benchmarks"
           no_output_timeout: "30s"

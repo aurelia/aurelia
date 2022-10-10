@@ -1,7 +1,7 @@
 /* eslint-disable no-fallthrough */
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
-import { Scope } from '../observation/binding-context';
+import { Scope } from '../observation/scope';
 import { createError, isArray, isFunction, safeString } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';

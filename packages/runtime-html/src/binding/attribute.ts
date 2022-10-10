@@ -4,7 +4,7 @@ import {
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
 import { State } from '../templating/controller';
-import { mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type {
@@ -35,15 +35,21 @@ export interface AttributeBinding extends IAstEvaluator, IConnectableBinding {}
  */
 export class AttributeBinding implements IBinding {
   public isBound: boolean = false;
-  public scope?: Scope = void 0;
-  public task: ITask | null = null;
+  /** @internal */
+  public _scope?: Scope = void 0;
+
+  /** @internal */
+  private _task: ITask | null = null;
 
   /**
-   * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
+   * In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
+   *
+   * @internal
    */
-  public targetObserver!: IObserver;
+  private _targetObserver!: IObserver;
 
   public target: Element;
+
   /** @internal */
   private _value: unknown = void 0;
 
@@ -94,7 +100,7 @@ export class AttributeBinding implements IBinding {
   }
 
   public updateTarget(value: unknown): void {
-    this.targetObserver.setValue(value, this.target, this.targetProperty);
+    this._targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
   public handleChange(): void {
@@ -102,24 +108,25 @@ export class AttributeBinding implements IBinding {
       return;
     }
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & BindingMode.toView) > 0;
     let task: ITask | null;
-    if (shouldConnect) {
-      this.obs.version++;
-    }
-    const newValue = astEvaluate(this.ast, this.scope!, this, this);
-    if (shouldConnect) {
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
 
     if (newValue !== this._value) {
       this._value = newValue;
+      const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
-        task = this.task;
-        this.task = this._taskQueue.queueTask(() => {
-          this.task = null;
+        task = this._task;
+        this._task = this._taskQueue.queueTask(() => {
+          this._task = null;
           this.updateTarget(newValue);
         }, taskOptions);
         task?.cancel();
@@ -134,18 +141,18 @@ export class AttributeBinding implements IBinding {
     this.handleChange();
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
-    this.targetObserver ??= new AttributeObserver(
+    this._targetObserver ??= new AttributeObserver(
       this.target as HTMLElement,
       this.targetProperty,
       this.targetAttribute,
@@ -153,7 +160,7 @@ export class AttributeBinding implements IBinding {
 
     if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {
       this.updateTarget(
-        this._value = astEvaluate(this.ast, scope, this, /* should connect? */(this.mode & BindingMode.toView) > 0 ? this : null)
+        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & BindingMode.toView) > 0 ? this : null)
       );
     }
 
@@ -166,18 +173,18 @@ export class AttributeBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
     this._value = void 0;
 
-    this.task?.cancel();
-    this.task = null;
+    this._task?.cancel();
+    this._task = null;
     this.obs.clearAll();
   }
 }
 
-mixinBindingUseScope(AttributeBinding);
+mixinUseScope(AttributeBinding);
 mixingBindingLimited(AttributeBinding, () => 'updateTarget');
 connectable(AttributeBinding);
 mixinAstEvaluator(true)(AttributeBinding);

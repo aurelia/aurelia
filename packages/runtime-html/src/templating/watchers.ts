@@ -30,12 +30,16 @@ const { wrap, unwrap } = ProxyObservable;
 export interface ComputedWatcher extends IConnectableBinding { }
 
 export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
-  public value: unknown = void 0;
   public isBound: boolean = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
 
+  /** @internal */
+  private _value: unknown = void 0;
+  public get value(): unknown {
+    return this._value;
+  }
   /**
    * A semi-private property used by connectable mixin
    *
@@ -86,7 +90,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
       return;
     }
     const obj = this.obj;
-    const oldValue = this.value;
+    const oldValue = this._value;
     const newValue = this.compute();
 
     if (!areEqual(newValue, oldValue)) {
@@ -100,7 +104,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     this.obs.version++;
     try {
       enter(this);
-      return this.value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this._value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear();
       this.running = false;
@@ -112,32 +116,44 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 export class ExpressionWatcher implements IConnectableBinding {
+  public isBound: boolean = false;
   /**
    * @internal
    */
   private readonly obj: object;
 
-  public value: unknown;
-  public isBound: boolean = false;
+  /** @internal */
+  private _value: unknown;
+  public get value(): unknown {
+    return this._value;
+  }
 
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
+  /** @internal */
+  private readonly _expression: IsBindingBehavior;
+
+  /** @internal */
+  private readonly _callback: IWatcherCallback<object>;
+
   public constructor(
     public scope: Scope,
     public l: IServiceLocator,
     public oL: IObserverLocator,
-    private readonly expression: IsBindingBehavior,
-    private readonly callback: IWatcherCallback<object>,
+    expression: IsBindingBehavior,
+    callback: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
+    this._expression = expression;
+    this._callback = callback;
   }
 
   public handleChange(value: unknown): void {
-    const expr = this.expression;
+    const expr = this._expression;
     const obj = this.obj;
-    const oldValue = this.value;
+    const oldValue = this._value;
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
@@ -145,9 +161,9 @@ export class ExpressionWatcher implements IConnectableBinding {
       this.obs.clear();
     }
     if (!areEqual(value, oldValue)) {
-      this.value = value;
+      this._value = value;
       // should optionally queue for batch synchronous
-      this.callback.call(obj, value, oldValue, obj);
+      this._callback.call(obj, value, oldValue, obj);
     }
   }
 
@@ -156,7 +172,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.obs.version++;
-    this.value = astEvaluate(this.expression, this.scope, this, this);
+    this._value = astEvaluate(this._expression, this.scope, this, this);
     this.obs.clear();
     this.isBound = true;
   }
@@ -167,7 +183,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     }
     this.isBound = false;
     this.obs.clearAll();
-    this.value = void 0;
+    this._value = void 0;
   }
 }
 

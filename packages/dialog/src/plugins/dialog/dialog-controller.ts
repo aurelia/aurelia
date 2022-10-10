@@ -1,5 +1,5 @@
 import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags, Controller, ICustomElementController } from '../../templating/controller';
+import { LifecycleFlags, Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   DialogDeactivationStatuses,
   IDialogController,
@@ -10,9 +10,6 @@ import {
   DialogCancelError,
   DialogCloseError,
 } from './dialog-interfaces';
-import { IEventTarget, INode } from '../../dom';
-import { IPlatform } from '../../platform';
-import { CustomElement, CustomElementDefinition } from '../../resources/custom-element';
 import { createError, isFunction } from '../../utilities';
 import { instanceRegistration } from '../../utilities-di';
 

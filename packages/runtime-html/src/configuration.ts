@@ -71,11 +71,9 @@ import {
   FulfilledAttributePattern,
   RejectedAttributePattern,
 } from './resources/template-controllers/promise';
-import { AuRender } from './resources/custom-elements/au-render';
 import { AuCompose } from './resources/custom-elements/au-compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
-import { ViewValueConverter } from './resources/value-converters/view';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { instanceRegistration } from './utilities-di';
@@ -169,7 +167,6 @@ export const DefaultBindingLanguage = [
 ];
 
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
-export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
@@ -188,7 +185,6 @@ export const RejectedAttributePatternRegistration = RejectedAttributePattern as 
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
-export const AuRenderRegistration = AuRender as unknown as IRegistry;
 export const AuComposeRegistration = AuCompose as unknown as IRegistry;
 export const PortalRegistration = Portal as unknown as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
@@ -211,7 +207,6 @@ export const DefaultResources = [
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
   SanitizeValueConverterRegistration,
-  ViewValueConverterRegistration,
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -230,7 +225,6 @@ export const DefaultResources = [
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
-  AuRenderRegistration,
   AuComposeRegistration,
   PortalRegistration,
   FocusRegistration,

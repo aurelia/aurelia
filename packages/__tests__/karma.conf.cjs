@@ -314,6 +314,7 @@ const testDirs = [
 const packageNames = [
   'addons',
   'compat-v1',
+  'dialog',
   'fetch-client',
   'i18n',
   'kernel',
@@ -332,6 +333,7 @@ const packageNames = [
   'validation',
   'validation-html',
   'validation-i18n',
+  'web-components',
 ];
 
 const mimetypes = {

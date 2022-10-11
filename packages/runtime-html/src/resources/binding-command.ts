@@ -13,7 +13,7 @@ import {
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { isString } from '../utilities';
+import { isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 
 import type {
@@ -137,7 +137,7 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
 ): PartialBindingCommandDefinition[K] =>
   getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingCommandDefinition[K];
 
-export const BindingCommand = Object.freeze<BindingCommandKind>({
+export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {

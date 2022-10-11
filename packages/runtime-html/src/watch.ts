@@ -3,7 +3,7 @@ import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { createError, isFunction } from './utilities';
+import { createError, isFunction, objectFreeze } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
@@ -126,7 +126,7 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
 const noDefinitions: IWatchDefinition[] = emptyArray;
 const watchBaseName = getAnnotationKeyFor('watch');
 
-export const Watch = Object.freeze({
+export const Watch = objectFreeze({
   name: watchBaseName,
   add(Type: Constructable, definition: IWatchDefinition): void {
     let watchDefinitions: IWatchDefinition[] = getOwnMetadata(watchBaseName, Type);

@@ -177,8 +177,8 @@ export function createFixture<T extends object>(
       el.dispatchEvent(new ctx.CustomEvent(event, init));
     } });
   });
-  function type(selector: string, value: string): void {
-    const el = queryBy(selector);
+  function type(selector: string | Element, value: string): void {
+    const el = typeof selector === 'string' ? queryBy(selector) : selector;
     if (el === null || !/input|textarea/i.test(el.nodeName)) {
       throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
     }
@@ -348,7 +348,7 @@ export interface IFixture<T> {
   /**
    * Find an input or text area by the selector and emulate a keyboard event with the given value
    */
-  type(selector: string, value: string): void;
+  type(selector: string | Element, value: string): void;
 
   hJsx(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]): HTMLElement;
 

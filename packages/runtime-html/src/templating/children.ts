@@ -2,7 +2,7 @@ import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
 import { subscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
-import { isArray, isString } from '../utilities';
+import { isArray, isString, objectFreeze, objectKeys } from '../utilities';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
@@ -81,7 +81,7 @@ function isChildrenObserverAnnotation(key: string): boolean {
 }
 
 const baseName = getAnnotationKeyFor('children-observer');
-export const Children = Object.freeze({
+export const Children = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string =>`${baseName}:${name}`,
   from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | string[] | undefined)[]): Record<string, ChildrenDefinition> {
@@ -101,7 +101,7 @@ export const Children = Object.freeze({
       } else if (maybeList instanceof ChildrenDefinition) {
         childrenObservers[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList));
+        objectKeys(maybeList).forEach(name => addDescription(name, maybeList));
       }
     }
 

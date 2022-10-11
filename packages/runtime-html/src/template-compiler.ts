@@ -27,7 +27,7 @@ import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
 import { CustomAttribute } from './resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from './resources/custom-element';
 import { BindingCommand, CommandType } from './resources/binding-command';
-import { createError, createLookup, isString } from './utilities';
+import { createError, createLookup, isString, objectAssign, objectFreeze } from './utilities';
 import { allResources, createInterface, singletonRegistration } from './utilities-di';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
 import { BindingMode } from './binding/interfaces-bindings';
@@ -1772,7 +1772,7 @@ const commandBuildInfo: Writable<ICommandBuildInfo> = {
   bindable: null,
   def: null,
 };
-const invalidSurrogateAttribute = Object.assign(createLookup<boolean | undefined>(), {
+const invalidSurrogateAttribute = objectAssign(createLookup<boolean | undefined>(), {
   'id': true,
   'name': true,
   'au-slot': true,
@@ -1851,7 +1851,7 @@ const enum LocalTemplateBindableAttributes {
   mode = "mode",
 }
 _END_CONST_ENUM();
-const allowedLocalTemplateBindableAttributes: readonly string[] = Object.freeze([
+const allowedLocalTemplateBindableAttributes: readonly string[] = objectFreeze([
   LocalTemplateBindableAttributes.property,
   LocalTemplateBindableAttributes.attribute,
   LocalTemplateBindableAttributes.mode
@@ -1910,7 +1910,7 @@ export interface ITemplateCompilerHooks {
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();
 const hooksBaseName = getResourceKeyFor('compiler-hooks');
 
-export const TemplateCompilerHooks = Object.freeze({
+export const TemplateCompilerHooks = objectFreeze({
   name: hooksBaseName,
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
     let def = typeToHooksDefCache.get(Type);

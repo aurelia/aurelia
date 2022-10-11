@@ -25,7 +25,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { createError, isFunction, isPromise, isString } from '../utilities';
+import { createError, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, registerResolver } from '../utilities-di';
 
@@ -1250,7 +1250,7 @@ function createObservers(
   instance: object,
 ): void {
   const bindables = definition.bindables;
-  const observableNames = Object.getOwnPropertyNames(bindables);
+  const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
   if (length > 0) {
     let name: string;
@@ -1285,7 +1285,7 @@ function createChildrenObservers(
   instance: object,
 ): ChildrenObserver[] {
   const childrenObservers = definition.childrenObservers;
-  const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+  const childObserverNames = getOwnPropertyNames(childrenObservers);
   const length = childObserverNames.length;
   if (length > 0) {
     const observers = getLookup(instance as IIndexable);

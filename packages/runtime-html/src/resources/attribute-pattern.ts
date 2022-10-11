@@ -2,6 +2,7 @@ import { emptyArray, Protocol, all } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import { objectFreeze } from '../utilities';
 
 export interface AttributePatternDefinition {
   pattern: string;
@@ -532,7 +533,7 @@ const annotationKey = 'attribute-pattern-definitions';
 const getAllPatternDefinitions = <TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) =>
   Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
 
-export const AttributePattern = Object.freeze<AttributePattern>({
+export const AttributePattern = objectFreeze<AttributePattern>({
   name: apBaseName,
   definitionAnnotationKey: annotationKey,
   define<TProto, TClass>(

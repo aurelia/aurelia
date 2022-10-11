@@ -26,7 +26,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { createError, isArray, isPromise, rethrow } from '../../utilities';
+import { areEqual, createError, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
@@ -403,7 +403,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     if (observingInnerItems) {
       innerItems = this._innerItems = astEvaluate(this._innerItemsExpression!, scope, this._forOfBinding, null) as Items<C> ?? null;
-      observingInnerItems = this._observingInnerItems = !Object.is(this.items, innerItems);
+      observingInnerItems = this._observingInnerItems = !areEqual(this.items, innerItems);
     }
 
     const oldObserver = this._observer;
@@ -729,7 +729,7 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$length = length;
 };
 
-const toStringTag = Object.prototype.toString as {
+const toStringTag = baseObjectPrototype.toString as {
   call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
 };
 type AcceptableCollection = Collection | number | null | undefined;

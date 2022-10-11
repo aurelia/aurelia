@@ -4,7 +4,7 @@ import { Watch } from '../watch';
 import { getRef } from '../dom';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { createError, isFunction, isString } from '../utilities';
+import { createError, isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -193,7 +193,7 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
   return def;
 };
 
-export const CustomAttribute = Object.freeze<CustomAttributeKind>({
+export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   name: caBaseName,
   keyFrom: getAttributeKeyFrom,
   isType: isAttributeType,

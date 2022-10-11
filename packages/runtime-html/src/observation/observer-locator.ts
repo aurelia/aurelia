@@ -17,7 +17,7 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createError, createLookup, isDataAttribute, isString } from '../utilities';
+import { createError, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
@@ -33,7 +33,7 @@ const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = Object.assign(
+const nsAttributes = objectAssign(
   createLookup<[string, string]>(),
   {
     'xlink:actuate': ['actuate', xlinkNS],

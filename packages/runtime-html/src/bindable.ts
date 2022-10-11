@@ -2,7 +2,7 @@ import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aureli
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './utilities-metadata';
-import { isString } from './utilities';
+import { isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -128,7 +128,7 @@ type B12345 = B2345 & B1<B2345>;
 
 const baseName = getAnnotationKeyFor('bindable');
 
-export const Bindable = Object.freeze({
+export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
   from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
@@ -150,7 +150,7 @@ export const Bindable = Object.freeze({
       } else if (maybeList instanceof BindableDefinition) {
         bindables[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList[name]));
+        objectKeys(maybeList).forEach(name => addDescription(name, maybeList[name]));
       }
     }
 

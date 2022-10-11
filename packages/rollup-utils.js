@@ -167,22 +167,26 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     ],
     plugins: [
       ...(
-        // isDevMode // there's something wrong with sourcemap
-        false
+        isDevMode
         ? [
+          // @ts-ignore
+          rollupReplace({ '_START_CONST_ENUM': '(() => {})', '_END_CONST_ENUM': '(() => {})' }),
           esbuild({
             minify: false,
-            target: 'es2018',
-            define: { ...envVars, __DEV__: 'true' },
+            target: 'es2020',
+            define: {
+              ...envVars,
+              __DEV__: 'true',
+            },
             sourceMap: true,
           }),
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: true }),
           rollupTypeScript({}, isDevMode),
+          stripInternalConstEnum(),
         ]
       ),
-      stripInternalConstEnum(),
     ],
     onwarn: onWarn
   }, true, envVars);
@@ -216,26 +220,28 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     ],
     plugins: [
       ...(
-        // isDevMode // there's something wrong with sourcemap
-        false
+        isDevMode
         ? [
+          // @ts-ignore
+          rollupReplace({ '_START_CONST_ENUM': '(() => {})', '_END_CONST_ENUM': '(() => {})' }),
           esbuild({
             minify: false,
-            target: 'es2018',
-            define: { ...envVars, __DEV__: 'false' },
-            mangleProps: /^_/,
-            reserveProps: /^__.*__$|__esModule|_stateSubscriptions|_state|__REDUX_DEVTOOLS_EXTENSION__/,
+            target: 'es2020',
+            define: {
+              ...envVars,
+              __DEV__: 'false',
+            },
             mangleCache: esbuildNameCache,
             sourceMap: true,
-          })
+          }),
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
           rollupTypeScript({
           }, isDevMode),
+          stripInternalConstEnum(),
         ]
       ),
-      stripInternalConstEnum(),
       runPostbuildScript(...postBuildScript),
     ],
     onwarn: onWarn,

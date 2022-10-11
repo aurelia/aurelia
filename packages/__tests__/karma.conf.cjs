@@ -79,7 +79,7 @@ module.exports =
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js.map` }, // 1.3
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js` }, // 1.4
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js.map` }, // 1.4
-    { type: 'none', watched: false, included: false, nocache: true, pattern: 'node_modules/mocha/mocha.js.map' },
+    { type: 'none',   watched: false,           included: false, nocache: true,   pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
         .map(file =>
@@ -114,15 +114,9 @@ module.exports =
     if (/\.m?js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
-        p[file.pattern] = ['aurelia'];
+        p[file.pattern] = [];
       } else {
-        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter']
-        // p[file.pattern] = process.env.CI || isFirefox
-        //   ? ['aurelia', 'karma-coverage-istanbul-instrumenter']
-        //   : [
-        //     ...(/packages\/[a-z]+\/dist\/esm\/index\.mjs(\.map)?$/.test(file.pattern) ? [] : ['aurelia']),
-        //     'karma-coverage-istanbul-instrumenter'
-        //   ];
+        p[file.pattern] = ['karma-coverage-istanbul-instrumenter']
       }
     }
     return p;
@@ -192,7 +186,11 @@ module.exports =
       ...(() => {
         let runId = 0;
         /** @type {Record<string, string>} */
-        let resourceCache = {};
+        let jsCache = {};
+        /** @type {Record<string, string>} */
+        let htmlCache = {};
+        /** @type {Record<string, string>} */
+        let cssCache = {};
 
         return [
           // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
@@ -200,7 +198,9 @@ module.exports =
           {
             'reporter:clear-screen': ['type', function ClearScreenReporter() {
               this.onRunStart = function () {
-                resourceCache = {};
+                jsCache = {};
+                htmlCache = {};
+                cssCache = {};
                 console.log("\u001b[2J\u001b[0;0H");
                 console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
               };
@@ -226,12 +226,46 @@ module.exports =
                 response.end('');
                 return;
               }
+
+              if (requestUrl.endsWith('html')) {
+                const cachedCode = htmlCache[requestUrl];
+                if (cachedCode != null) {
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(cachedCode);
+                  return;
+                }
+
+                const htmlFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
+                if (fs.existsSync(htmlFilePath)) {
+                  const jsCode = htmlCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(htmlFilePath, { encoding: 'utf-8' }))}`;
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(jsCode);
+                  return;
+                }
+              }
+
+              if (requestUrl.endsWith('css')) {
+                const cachedCode = cssCache[requestUrl];
+                if (cachedCode != null) {
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(cachedCode);
+                  return;
+                }
+
+                const cssFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
+                if (fs.existsSync(cssFilePath)) {
+                  const jsCode = cssCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(cssFilePath, { encoding: 'utf-8' }))}`;
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(jsCode);
+                  return;
+                }
+              }
     
               if (process.env.CI || isFirefox) {
                 next();
                 return;
               }
-              const cachedCode = resourceCache[requestUrl];
+              const cachedCode = jsCache[requestUrl];
               if (cachedCode != null) {
                 response.setHeader('Content-Type', mimetypes.js);
                 response.end(cachedCode);
@@ -239,7 +273,7 @@ module.exports =
               }
               const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace(/(\.m?js)(\.map)?(\??.+)?$/, '$1$2'));
               if (fs.existsSync(maybeFilePath)) {
-                const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
+                const jsCode = jsCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
                 response.setHeader('Content-Type', mimetypes.js);
                 response.end(jsCode);
                 return;

@@ -54,7 +54,7 @@ export function rollupTypeScript(overrides, isDevMode) {
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
-    removeComments: true,
+    removeComments: false,
     inlineSourceMap: isDevMode,
     ...overrides,
   });
@@ -174,10 +174,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           esbuild({
             minify: false,
             target: 'es2020',
-            define: {
-              ...envVars,
-              __DEV__: 'true',
-            },
+            define: { ...envVars, __DEV__: 'true' },
             sourceMap: true,
           }),
         ]
@@ -227,18 +224,13 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           esbuild({
             minify: false,
             target: 'es2020',
-            define: {
-              ...envVars,
-              __DEV__: 'false',
-            },
-            mangleCache: esbuildNameCache,
+            define: { ...envVars, __DEV__: 'false' },
             sourceMap: true,
           }),
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
-          rollupTypeScript({
-          }, isDevMode),
+          rollupTypeScript({}, isDevMode),
           stripInternalConstEnum(),
         ]
       ),

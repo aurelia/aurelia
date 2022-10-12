@@ -346,7 +346,8 @@ function prepareIndexMap() {
       }
       const name = file.replace(/\.js$/, '');
       map[`rxjs/_esm5/internal/${name}`]
-        // sometimes, there's relative import from within the others modules that will end up requesting the path that looks like this
+        // sometimes, there's relative import from within the others modules
+        // that will end up requesting the path that looks like this
         = map[`/base/node_modules/rxjs/_esm5/internal/${name}`]
         = `/base/node_modules/rxjs/_esm5/internal/${file}`;
       return map;
@@ -358,6 +359,8 @@ function prepareIndexMap() {
         const basename = moduleName.replace(/\.js$/, '');
 
         map[`rxjs/_esm5/internal/${name}/${basename}`]
+          // sometimes, there's relative import from within the others modules
+          // that will end up requesting the path that looks like this
           = map[`/base/node_modules/rxjs/_esm5/internal/${name}/${basename}`]
           = `/base/node_modules/rxjs/_esm5/internal/${name}/${moduleName}`;
       });

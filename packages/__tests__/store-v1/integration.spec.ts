@@ -47,6 +47,8 @@ describe("store-v1/integration.spec.ts", function () {
   it("should allow to use the store without any options by using defaults", async function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App {
+      static inject = [Store];
+
       public state: testState;
       private readonly storeSubscription: Subscription;
 
@@ -112,6 +114,8 @@ describe("store-v1/integration.spec.ts", function () {
 
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
     class App {
+      static inject = [Store];
+
       public state: testState;
       private readonly storeSubscription: Subscription;
 

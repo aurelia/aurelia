@@ -181,7 +181,7 @@ module.exports =
       'karma-min-reporter',
       'karma-mocha-reporter',
       'karma-chrome-launcher',
-      'karma-firefox-launcher',
+      // 'karma-firefox-launcher',
       // @ts-ignore
       ...(() => {
         let runId = 0;
@@ -192,17 +192,20 @@ module.exports =
         /** @type {Record<string, string>} */
         let cssCache = {};
 
+        const importmap = prepareIndexMap();
+
         return [
           // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
           // for light-weight-ness
           {
             'reporter:clear-screen': ['type', function ClearScreenReporter() {
               this.onRunStart = function () {
+                runId++;
                 jsCache = {};
                 htmlCache = {};
                 cssCache = {};
                 console.log("\u001b[2J\u001b[0;0H");
-                console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
+                console.log(`Watch run: ${runId}. ${new Date().toJSON()}`);
               };
             }]
           },
@@ -217,6 +220,11 @@ module.exports =
                 response.end(`var process={env:${JSON.stringify({
                   BROWSERS: browsers[0],
                 })}}`);
+                return;
+              }
+              if (requestUrl.includes('importmap.js')) {
+                response.setHeader('Content-Type', mimetypes.js);
+                response.end(`document.write(\`<script type=importmap>${JSON.stringify({ imports: importmap })}</script>\`)`);
                 return;
               }
               // some tests has images and it could cause a lot of noises related image loading errors
@@ -309,6 +317,57 @@ module.exports =
 
   config.set(options);
 };
+
+function prepareIndexMap() {
+  const babelRuntimeHelpers = fs.readdirSync(path.resolve('../../node_modules/@babel/runtime/helpers/esm'));
+
+  return {
+    ...packageNames.reduce((map, pkg) => {
+      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
+      return map;
+    }, {
+      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`,
+      'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
+      'tslib': '/base/node_modules/tslib/tslib.es6.js',
+    }),
+
+    ...babelRuntimeHelpers.reduce((map, name) => {
+      const helper = path.parse(name).name;
+      map[`@babel/runtime/helpers/esm/${helper}`]
+        = `/base/node_modules/@babel/runtime/helpers/esm/${helper}.js`;
+      map[`@babel/runtime/${helper}`]
+        = `/base/node_modules/@babel/runtime/helpers/esm/${helper}.js`;
+      return map;
+    }, {}),
+
+    ...fs.readdirSync(path.resolve('../../node_modules/rxjs/_esm5/internal/')).reduce((map, file) => {
+      if (!file.endsWith('.js')) {
+        return map;
+      }
+      const name = file.replace(/\.js$/, '');
+      map[`rxjs/_esm5/internal/${name}`]
+        // sometimes, there's relative import from within the others modules that will end up requesting the path that looks like this
+        = map[`/base/node_modules/rxjs/_esm5/internal/${name}`]
+        = `/base/node_modules/rxjs/_esm5/internal/${file}`;
+      return map;
+    }, {}),
+    ...['observable', 'operators', 'scheduled', 'scheduler', 'symbol', 'testing', 'util'].reduce((map, name) => {
+      const modules = fs.readdirSync(path.resolve(`../../node_modules/rxjs/_esm5/internal/${name}/`));
+      modules.forEach(moduleName => {
+        if (!moduleName.endsWith('.js')) return;
+        const basename = moduleName.replace(/\.js$/, '');
+
+        map[`rxjs/_esm5/internal/${name}/${basename}`]
+          = map[`/base/node_modules/rxjs/_esm5/internal/${name}/${basename}`]
+          = `/base/node_modules/rxjs/_esm5/internal/${name}/${moduleName}`;
+      });
+      return map;
+    }, {
+      'rxjs': '/base/node_modules/rxjs/_esm5/index.js',
+      'rxjs/operators': '/base/node_modules/rxjs/_esm5/operators/index.js',
+    }),
+  };
+}
 
 const commonChromeFlags = [
   '--no-default-browser-check',

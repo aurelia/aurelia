@@ -183,6 +183,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'util/isDate',
       'Notification',
       'Observable',
+      'Subject',
       'util/ArgumentOutOfRangeError',
       'observable/of',
       'util/EmptyError',

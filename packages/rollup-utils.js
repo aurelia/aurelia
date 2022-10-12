@@ -54,7 +54,7 @@ export function rollupTypeScript(overrides, isDevMode) {
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
-    removeComments: false,
+    removeComments: true,
     inlineSourceMap: isDevMode,
     ...overrides,
   });

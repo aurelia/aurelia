@@ -175,13 +175,11 @@ module.exports =
     // logLevel: config.LOG_DEBUG,
     plugins: [
       'karma-mocha',
-      'karma-aurelia-preprocessor',
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
       'karma-mocha-reporter',
       'karma-chrome-launcher',
-      // 'karma-firefox-launcher',
       // @ts-ignore
       ...(() => {
         let runId = 0;

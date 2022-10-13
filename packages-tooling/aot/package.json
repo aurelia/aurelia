@@ -1,6 +1,7 @@
 {
   "name": "@aurelia/aot",
   "version": "2.0.0-alpha.41",
+  "private": true,
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -22,8 +23,9 @@
     "aot"
   ],
   "files": [
-    "dist",
-    "src",
+    "dist/**/*.cjs",
+    "dist/**/*.mjs",
+    "dist/**/*.d.ts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

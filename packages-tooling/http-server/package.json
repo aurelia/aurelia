@@ -23,7 +23,9 @@
   ],
   "files": [
     "bin",
-    "dist",
+    "dist/**/*.cjs",
+    "dist/**/*.mjs",
+    "dist/**/*.d.ts",
     "src",
     "README.md",
     "CHANGELOG.md",

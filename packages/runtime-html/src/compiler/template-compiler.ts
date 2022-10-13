@@ -20,17 +20,17 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
-} from './renderer';
-import { IPlatform } from './platform';
-import { Bindable, BindableDefinition } from './bindable';
-import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
-import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from './resources/custom-element';
-import { BindingCommand, CommandType } from './resources/binding-command';
-import { createError, createLookup, isString, objectAssign, objectFreeze } from './utilities';
-import { allResources, createInterface, singletonRegistration } from './utilities-di';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from './utilities-metadata';
-import { BindingMode } from './binding/interfaces-bindings';
+} from '../renderer';
+import { IPlatform } from '../platform';
+import { Bindable, BindableDefinition } from '../bindable';
+import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
+import { CustomAttribute } from '../resources/custom-attribute';
+import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
+import { BindingCommand, CommandType } from '../resources/binding-command';
+import { createError, createLookup, isString, objectAssign, objectFreeze } from '../utilities';
+import { allResources, createInterface, singletonRegistration } from '../utilities-di';
+import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
+import { BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   IContainer,
@@ -39,11 +39,11 @@ import type {
   Writable,
 } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
-import type { CustomAttributeDefinition } from './resources/custom-attribute';
-import type { PartialCustomElementDefinition } from './resources/custom-element';
-import type { IProjections } from './resources/slot-injectables';
-import type { BindingCommandInstance, ICommandBuildInfo } from './resources/binding-command';
-import type { ICompliationInstruction, IInstruction, } from './renderer';
+import type { CustomAttributeDefinition } from '../resources/custom-attribute';
+import type { PartialCustomElementDefinition } from '../resources/custom-element';
+import type { IProjections } from '../resources/slot-injectables';
+import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
+import type { ICompliationInstruction, IInstruction, } from '../renderer';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -1737,7 +1737,7 @@ class CompilationContext {
   }
 }
 
-function hasInlineBindings(rawValue: string): boolean {
+const hasInlineBindings = (rawValue: string): boolean => {
   const len = rawValue.length;
   let ch = 0;
   let i = 0;
@@ -1754,14 +1754,14 @@ function hasInlineBindings(rawValue: string): boolean {
     ++i;
   }
   return false;
-}
+};
 
-function resetCommandBuildInfo(): void {
+const resetCommandBuildInfo = (): void => {
   commandBuildInfo.node
     = commandBuildInfo.attr
     = commandBuildInfo.bindable
     = commandBuildInfo.def = null!;
-}
+};
 
 const emptyCompilationInstructions: ICompliationInstruction = { projections: null };
 // eslint-disable-next-line
@@ -1858,7 +1858,7 @@ const allowedLocalTemplateBindableAttributes: readonly string[] = objectFreeze([
 ]);
 const localTemplateIdentifier = 'as-custom-element';
 
-function processTemplateName(localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string {
+const processTemplateName = (localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string => {
   const name = localTemplate.getAttribute(localTemplateIdentifier);
   if (name === null || name === '') {
     if (__DEV__)
@@ -1876,9 +1876,9 @@ function processTemplateName(localTemplate: HTMLTemplateElement, localTemplateNa
     localTemplate.removeAttribute(localTemplateIdentifier);
   }
   return name;
-}
+};
 
-function getBindingMode(bindable: Element): BindingMode {
+const getBindingMode = (bindable: Element): BindingMode => {
   switch (bindable.getAttribute(LocalTemplateBindableAttributes.mode)) {
     case 'oneTime':
       return BindingMode.oneTime;
@@ -1892,7 +1892,7 @@ function getBindingMode(bindable: Element): BindingMode {
     default:
       return BindingMode.default;
   }
-}
+};
 
 /**
  * An interface describing the hooks a compilation process should invoke.

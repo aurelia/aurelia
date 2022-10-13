@@ -1,6 +1,6 @@
-import { IPlatform } from './platform';
-import { isString } from './utilities';
-import { createInterface } from './utilities-di';
+import { IPlatform } from '../platform';
+import { isString } from '../utilities';
+import { createInterface } from '../utilities-di';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.

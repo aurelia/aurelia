@@ -102,7 +102,7 @@ export {
 export {
   IAttrMapper,
   type IsTwoWayPredicate,
-} from './attribute-mapper';
+} from './compiler/attribute-mapper';
 export {
   BindingMode,
   type IBindingController,
@@ -369,14 +369,14 @@ export {
 } from './configuration';
 export {
   ITemplateElementFactory
-} from './template-element-factory';
+} from './compiler/template-element-factory';
 export {
   BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,
   templateCompilerHooks,
-} from './template-compiler';
+} from './compiler/template-compiler';
 
 export {
   allResources,

@@ -21,7 +21,7 @@ import {
   TriggerBindingCommand,
   SpreadBindingCommand,
 } from './resources/binding-command';
-import { TemplateCompiler } from './template-compiler';
+import { TemplateCompiler } from './compiler/template-compiler';
 import {
   CustomAttributeRenderer,
   CustomElementRenderer,

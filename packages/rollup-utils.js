@@ -186,14 +186,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           stripInternalConstEnum(),
         ]
       ),
-      // ...(isReleaseBuild
-      //     ? [{
-      //       name: 'generate-native-modules',
-      //       closeBundle() {
-      //         generateNativeImport(cwd, 'index.dev.mjs');
-      //       }
-      //     }]
-      //     : [])
     ],
     onwarn: onWarn
   }, true, envVars);
@@ -245,14 +237,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         ]
       ),
       runPostbuildScript(...postBuildScript),
-      ...(isReleaseBuild
-          ? [{
-            name: 'generate-native-modules',
-            closeBundle() {
-              generateNativeImport(cwd, 'index.mjs');
-            }
-          }]
-          : [])
+      generateNativeModulePlugin(cwd, 'index.mjs', isReleaseBuild),
     ],
     onwarn: onWarn,
   }, false, envVars);
@@ -319,14 +304,33 @@ function stripInternalConstEnum (options = {}) {
 
 import path from 'path';
 import fs from 'fs-extra';
+
 /**
  * @param {string} cwd
  * @param {string} fileName
+ * @param {boolean} enabled
+ * @returns {import('rollup').Plugin}
  */
-async function generateNativeImport(cwd, fileName) {
-  const code = await fs.readFile(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
-  const regex = /from\s+(['"])@aurelia\/([-a-z]+)['"];/g;
-  const transformed = code.replace(regex, `from $1../$2/dist/native-modules/${fileName}$1;`).replace(`//# sourceMappingURL=${fileName}.map`, '');
-  await fs.ensureDir(path.resolve(cwd, 'dist/native-modules'));
-  await fs.writeFile(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
+function generateNativeModulePlugin(cwd, fileName, enabled) {
+  /**
+   * @param {string} cwd
+   * @param {string} fileName
+   */
+  async function generateNativeImport(cwd, fileName) {
+    const code = await fs.readFile(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
+    const regex = /from\s+(['"])@aurelia\/([-a-z]+)['"];/g;
+    const transformed = code.replace(regex, `from $1../$2/dist/native-modules/${fileName}$1;`).replace(`//# sourceMappingURL=${fileName}.map`, '');
+    await fs.ensureDir(path.resolve(cwd, 'dist/native-modules'));
+    await fs.writeFile(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
+  }
+
+  return {
+    name: 'aurelia-generate-native-modules',
+    closeBundle() {
+      if (!enabled) {
+        return;
+      }
+      generateNativeImport(cwd, fileName);
+    }
+  }
 }

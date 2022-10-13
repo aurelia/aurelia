@@ -55,7 +55,7 @@ export interface IRouteConfig {
      *
      * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
      */
-    readonly transitionPlan?: TransitionPlanOrFunc;
+    readonly transitionPlan?: TransitionPlanOrFunc | null;
     /**
      * The name of the viewport this component should be loaded into.
      */
@@ -87,7 +87,7 @@ export interface IChildRouteConfig extends IRouteConfig {
    */
   readonly component: Routeable;
 }
-export interface IRedirectRouteConfig extends Pick<IRouteConfig, 'caseSensitive' | 'redirectTo' | 'path'> {}
+export interface IRedirectRouteConfig extends Pick<IRouteConfig, 'caseSensitive' | 'redirectTo' | 'path'> { }
 
 export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
 export type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);
@@ -107,7 +107,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly redirectTo: string | null,
     public readonly caseSensitive: boolean,
-    public readonly transitionPlan: TransitionPlanOrFunc,
+    public readonly transitionPlan: TransitionPlanOrFunc | null,
     public readonly viewport: string | null,
     public readonly data: Record<string, unknown>,
     public readonly routes: readonly Routeable[],
@@ -116,7 +116,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly nav: boolean,
   ) { }
 
-  public static create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null): RouteConfig {
+  /** @internal */
+  public static _create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null, parentConfig: RouteConfig | null): RouteConfig {
     if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
       const path = configOrPath;
 
@@ -124,7 +125,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       const caseSensitive = Type?.caseSensitive ?? false;
       const id = Type?.id ?? (path instanceof Array ? path[0] : path);
       const title = Type?.title ?? null;
-      const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
+      const reentryBehavior = Type?.transitionPlan ?? parentConfig?.transitionPlan ?? null;
       const viewport = Type?.viewport ?? null;
       const data = Type?.data ?? {};
       const children = Type?.routes ?? noRoutes;
@@ -152,7 +153,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
       const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
       const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
-      const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
+      const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? parentConfig?.transitionPlan ?? null;
       const viewport = config.viewport ?? Type?.viewport ?? null;
       const data = {
         ...Type?.data,
@@ -185,9 +186,9 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
    * Creates a new route config applying the child route config.
    * Note that the current rote config is not mutated.
    */
-  public applyChildRouteConfig(config: IChildRouteConfig): RouteConfig {
+  public applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
     let parentPath = this.path ?? '';
-    if(typeof parentPath!=='string') {
+    if (typeof parentPath !== 'string') {
       parentPath = parentPath[0];
     }
     validateRouteConfig(config, parentPath);
@@ -197,7 +198,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.title ?? this.title,
       config.redirectTo ?? this.redirectTo,
       config.caseSensitive ?? this.caseSensitive,
-      config.transitionPlan ?? this.transitionPlan,
+      config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null,
       config.viewport ?? this.viewport,
       config.data ?? this.data,
       config.routes ?? this.routes,
@@ -208,7 +209,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   public getTransitionPlan(cur: RouteNode, next: RouteNode) {
-    const plan = this.transitionPlan;
+    const plan = this.transitionPlan ?? defaultReentryBehavior;
     return typeof plan === 'function' ? plan(cur, next) : plan;
   }
 }
@@ -225,7 +226,7 @@ export const Route = {
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
   configure<T extends RouteType>(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: T): T {
-    const config = RouteConfig.create(configOrPath, Type);
+    const config = RouteConfig._create(configOrPath, Type, null);
     Metadata.define(Route.name, config, Type);
 
     return Type;

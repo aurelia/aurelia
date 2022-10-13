@@ -69,7 +69,7 @@
   "devDependencies": {
     "@types/jsdom": "^16.2.14",
     "@types/karma": "^6.3.3",
-    "@types/mocha": "^9.1.1",
+    "@types/mocha": "10.0.0",
     "@types/node": "^14.18.14",
     "cross-env": "^7.0.2",
     "full-icu": "^1.4.0",
@@ -85,11 +85,10 @@
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.3.7",
-    "mocha": "^9.2.2",
+    "mocha": "10.0.0",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.21",
-    "ts-node": "^10.7.0",
-    "tsconfig-paths": "^3.9.0"
+    "ts-node": "10.9.1"
   },
   "version": "2.0.0-alpha.41"
 }

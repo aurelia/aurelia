@@ -435,7 +435,6 @@ export {
   // IAccessor,
   // IBindingContext,
   // ICollectionChangeTracker,
-  // ICollectionObserver,
   // ICollectionSubscriber,
 
   // ValueConverterDefinition,
@@ -615,7 +614,6 @@ export {
   // IAccessor,
   // IBindingContext,
   // ICollectionChangeTracker,
-  // ICollectionObserver,
   // ICollectionSubscriber,
 
   IFlushQueue,

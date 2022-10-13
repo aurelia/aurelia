@@ -21,8 +21,9 @@
     "aurelia"
   ],
   "files": [
-    "dist",
-    "src",
+    "dist/**/*.cjs",
+    "dist/**/*.mjs",
+    "dist/**/*.d.ts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

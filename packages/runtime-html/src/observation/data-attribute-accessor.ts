@@ -17,8 +17,8 @@ export class DataAttributeAccessor implements IAccessor<string | null>, IObserve
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   // the followings come from the noop mixing
-  /** @internal */ public subscribe!: () => void;
-  /** @internal */ public unsubscribe!: () => void;
+  public subscribe!: () => void;
+  public unsubscribe!: () => void;
 
   public getValue(obj: HTMLElement, key: string): string | null {
     return obj.getAttribute(key);

@@ -105,12 +105,12 @@ export {
 } from './attribute-mapper';
 export {
   BindingMode,
-  IBindingController,
+  type IBindingController,
 } from './binding/interfaces-bindings';
 export {
   IFlushQueue,
   FlushQueue,
-  IFlushable,
+  type IFlushable,
   BindingTargetSubscriber,
   mixinAstEvaluator,
   mixingBindingLimited,

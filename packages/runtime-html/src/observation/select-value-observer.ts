@@ -74,8 +74,6 @@ export class SelectValueObserver implements INodeObserver {
 
   /**
    * Comes from mixin
-   *
-   * @internal
    */
   public useConfig!: (config: INodeObserverConfigBase) => void;
 

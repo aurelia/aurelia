@@ -79,7 +79,7 @@ module.exports =
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js.map` }, // 1.3
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js` }, // 1.4
     { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js.map` }, // 1.4
-    { type: 'none', watched: false, included: false, nocache: true, pattern: 'node_modules/mocha/mocha.js.map' },
+    { type: 'none',   watched: false,           included: false, nocache: true,   pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
         .map(file =>
@@ -114,15 +114,9 @@ module.exports =
     if (/\.m?js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
       if (/__tests__|testing|node_modules/.test(file.pattern) || !config.coverage) {
-        p[file.pattern] = ['aurelia'];
+        p[file.pattern] = [];
       } else {
-        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter']
-        // p[file.pattern] = process.env.CI || isFirefox
-        //   ? ['aurelia', 'karma-coverage-istanbul-instrumenter']
-        //   : [
-        //     ...(/packages\/[a-z]+\/dist\/esm\/index\.mjs(\.map)?$/.test(file.pattern) ? [] : ['aurelia']),
-        //     'karma-coverage-istanbul-instrumenter'
-        //   ];
+        p[file.pattern] = ['karma-coverage-istanbul-instrumenter']
       }
     }
     return p;
@@ -181,18 +175,22 @@ module.exports =
     // logLevel: config.LOG_DEBUG,
     plugins: [
       'karma-mocha',
-      'karma-aurelia-preprocessor',
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
       'karma-mocha-reporter',
       'karma-chrome-launcher',
-      'karma-firefox-launcher',
       // @ts-ignore
       ...(() => {
         let runId = 0;
         /** @type {Record<string, string>} */
-        let resourceCache = {};
+        let jsCache = {};
+        /** @type {Record<string, string>} */
+        let htmlCache = {};
+        /** @type {Record<string, string>} */
+        let cssCache = {};
+
+        const importmap = prepareIndexMap();
 
         return [
           // a copy paste version of https://github.com/arthurc/karma-clear-screen-reporter
@@ -200,9 +198,12 @@ module.exports =
           {
             'reporter:clear-screen': ['type', function ClearScreenReporter() {
               this.onRunStart = function () {
-                resourceCache = {};
+                runId++;
+                jsCache = {};
+                htmlCache = {};
+                cssCache = {};
                 console.log("\u001b[2J\u001b[0;0H");
-                console.log(`Watch run: ${++runId}. ${new Date().toJSON()}`);
+                console.log(`Watch run: ${runId}. ${new Date().toJSON()}`);
               };
             }]
           },
@@ -219,6 +220,11 @@ module.exports =
                 })}}`);
                 return;
               }
+              if (requestUrl.includes('importmap.js')) {
+                response.setHeader('Content-Type', mimetypes.js);
+                response.end(`document.write(\`<script type=importmap>${JSON.stringify({ imports: importmap })}</script>\`)`);
+                return;
+              }
               // some tests has images and it could cause a lot of noises related image loading errors
               // just disable it via returning an empty one
               if (requestUrl.endsWith('.jpeg') || requestUrl.endsWith('.jpg') || requestUrl.endsWith('.svg')) {
@@ -226,12 +232,46 @@ module.exports =
                 response.end('');
                 return;
               }
+
+              if (requestUrl.endsWith('html')) {
+                const cachedCode = htmlCache[requestUrl];
+                if (cachedCode != null) {
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(cachedCode);
+                  return;
+                }
+
+                const htmlFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
+                if (fs.existsSync(htmlFilePath)) {
+                  const jsCode = htmlCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(htmlFilePath, { encoding: 'utf-8' }))}`;
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(jsCode);
+                  return;
+                }
+              }
+
+              if (requestUrl.endsWith('css')) {
+                const cachedCode = cssCache[requestUrl];
+                if (cachedCode != null) {
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(cachedCode);
+                  return;
+                }
+
+                const cssFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
+                if (fs.existsSync(cssFilePath)) {
+                  const jsCode = cssCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(cssFilePath, { encoding: 'utf-8' }))}`;
+                  response.setHeader('Content-Type', mimetypes.js);
+                  response.end(jsCode);
+                  return;
+                }
+              }
     
               if (process.env.CI || isFirefox) {
                 next();
                 return;
               }
-              const cachedCode = resourceCache[requestUrl];
+              const cachedCode = jsCache[requestUrl];
               if (cachedCode != null) {
                 response.setHeader('Content-Type', mimetypes.js);
                 response.end(cachedCode);
@@ -239,7 +279,7 @@ module.exports =
               }
               const maybeFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace(/(\.m?js)(\.map)?(\??.+)?$/, '$1$2'));
               if (fs.existsSync(maybeFilePath)) {
-                const jsCode = resourceCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
+                const jsCode = jsCache[requestUrl] = fs.readFileSync(maybeFilePath, { encoding: 'utf-8' });
                 response.setHeader('Content-Type', mimetypes.js);
                 response.end(jsCode);
                 return;
@@ -275,6 +315,60 @@ module.exports =
 
   config.set(options);
 };
+
+function prepareIndexMap() {
+  const babelRuntimeHelpers = fs.readdirSync(path.resolve('../../node_modules/@babel/runtime/helpers/esm'));
+
+  return {
+    ...packageNames.reduce((map, pkg) => {
+      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
+      return map;
+    }, {
+      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`,
+      'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
+      'tslib': '/base/node_modules/tslib/tslib.es6.js',
+    }),
+
+    ...babelRuntimeHelpers.reduce((map, name) => {
+      const helper = path.parse(name).name;
+      map[`@babel/runtime/helpers/esm/${helper}`]
+        = `/base/node_modules/@babel/runtime/helpers/esm/${helper}.js`;
+      map[`@babel/runtime/${helper}`]
+        = `/base/node_modules/@babel/runtime/helpers/esm/${helper}.js`;
+      return map;
+    }, {}),
+
+    ...fs.readdirSync(path.resolve('../../node_modules/rxjs/_esm5/internal/')).reduce((map, file) => {
+      if (!file.endsWith('.js')) {
+        return map;
+      }
+      const name = file.replace(/\.js$/, '');
+      map[`rxjs/_esm5/internal/${name}`]
+        // sometimes, there's relative import from within the others modules
+        // that will end up requesting the path that looks like this
+        = map[`/base/node_modules/rxjs/_esm5/internal/${name}`]
+        = `/base/node_modules/rxjs/_esm5/internal/${file}`;
+      return map;
+    }, {}),
+    ...['observable', 'operators', 'scheduled', 'scheduler', 'symbol', 'testing', 'util'].reduce((map, name) => {
+      const modules = fs.readdirSync(path.resolve(`../../node_modules/rxjs/_esm5/internal/${name}/`));
+      modules.forEach(moduleName => {
+        if (!moduleName.endsWith('.js')) return;
+        const basename = moduleName.replace(/\.js$/, '');
+
+        map[`rxjs/_esm5/internal/${name}/${basename}`]
+          // sometimes, there's relative import from within the others modules
+          // that will end up requesting the path that looks like this
+          = map[`/base/node_modules/rxjs/_esm5/internal/${name}/${basename}`]
+          = `/base/node_modules/rxjs/_esm5/internal/${name}/${moduleName}`;
+      });
+      return map;
+    }, {
+      'rxjs': '/base/node_modules/rxjs/_esm5/index.js',
+      'rxjs/operators': '/base/node_modules/rxjs/_esm5/operators/index.js',
+    }),
+  };
+}
 
 const commonChromeFlags = [
   '--no-default-browser-check',

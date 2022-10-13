@@ -245,6 +245,9 @@ jobs:
       command:
         type: string
         default: npm run build
+      release:
+        type: boolean
+        default: false
       generate_native_modules:
         type: boolean
         default: false
@@ -252,13 +255,23 @@ jobs:
       - checkout
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: << parameters.command >>
       - when:
-          condition: << parameters.generate_native_modules >>
+          condition:
+            equal: [true, << parameters.release >>]
           steps:
-            - run: npm run generate-native-modules
+            - run: npm run build:release
+      - when:
+          condition:
+            equal: [false, << parameters.release >>]
+          steps:
+            - run: npm run build
+      # - run: << parameters.command >>
+      # - when:
+      #     condition: << parameters.generate_native_modules >>
+      #     steps:
+      #       - run: npm run generate-native-modules
       - save_cache:
-          key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
+          key: cache-{{ .Revision }}-build-<< parameters.release >>
           paths:
             - packages/__tests__/dist
             - packages/addons/dist
@@ -766,7 +779,7 @@ workflows:
           <<: *filter_ignore_develop_release
           name: build_release
           command: npm run build:release
-          generate_native_modules: true
+          release: true
           requires:
               - checkout_install
       - unit_test_esm:
@@ -923,7 +936,7 @@ workflows:
           <<: *filter_only_tag
           name: build_release
           command: npm run build:release
-          generate_native_modules: true
+          release: true
           requires:
             - checkout_install
       - unit_test_esm:

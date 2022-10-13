@@ -2,7 +2,7 @@
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
 import { terser }  from 'rollup-plugin-terser';
-import { esbuildNameCache, terserNameCache } from "./mangle-namecache";
+import { terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
 import esbuild from 'rollup-plugin-esbuild';
 
@@ -127,6 +127,8 @@ export function runPostbuildScript(...scripts) {
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */
 export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = [{ name: 'build dts', script: 'postrollup'}]) {
+  const isReleaseBuild = /true/.test(process.env.RELEASE_BUILD + '');
+  const cwd = process.cwd();
   /** @type {NormalizedEnvVars} */
   const envVars = {
     __DEV__: process.env.__DEV__,
@@ -184,6 +186,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           stripInternalConstEnum(),
         ]
       ),
+      // ...(isReleaseBuild
+      //     ? [{
+      //       name: 'generate-native-modules',
+      //       closeBundle() {
+      //         generateNativeImport(cwd, 'index.dev.mjs');
+      //       }
+      //     }]
+      //     : [])
     ],
     onwarn: onWarn
   }, true, envVars);
@@ -235,6 +245,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
         ]
       ),
       runPostbuildScript(...postBuildScript),
+      ...(isReleaseBuild
+          ? [{
+            name: 'generate-native-modules',
+            closeBundle() {
+              generateNativeImport(cwd, 'index.mjs');
+            }
+          }]
+          : [])
     ],
     onwarn: onWarn,
   }, false, envVars);
@@ -297,4 +315,18 @@ function stripInternalConstEnum (options = {}) {
       return { code: s.toString(), map };
     }
   }
+}
+
+import path from 'path';
+import fs from 'fs-extra';
+/**
+ * @param {string} cwd
+ * @param {string} fileName
+ */
+async function generateNativeImport(cwd, fileName) {
+  const code = await fs.readFile(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
+  const regex = /from\s+(['"])@aurelia\/([-a-z]+)['"];/g;
+  const transformed = code.replace(regex, `from $1../$2/dist/native-modules/${fileName}$1;`).replace(`//# sourceMappingURL=${fileName}.map`, '');
+  await fs.ensureDir(path.resolve(cwd, 'dist/native-modules'));
+  await fs.writeFile(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
 }

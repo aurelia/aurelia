@@ -35,6 +35,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
+import { createText, insertBefore } from './utilities-dom';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -49,6 +50,7 @@ export const enum InstructionType {
   iteratorBinding = 'rk',
   multiAttr = 'rl',
   textBinding = 'ha',
+  contentBinding = 'hh',
   listenerBinding = 'hb',
   attributeBinding = 'hc',
   stylePropertyBinding = 'hd',
@@ -210,6 +212,13 @@ export class LetBindingInstruction {
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
     public to: string,
+  ) {}
+}
+
+export class ContentBindingInstruction {
+  public readonly type = InstructionType.contentBinding;
+  public constructor(
+    public from: string | IsBindingBehavior,
   ) {}
 }
 
@@ -880,6 +889,66 @@ export class TextBindingRenderer implements IRenderer {
         parent.insertBefore(doc.createTextNode(text), next);
       }
     }
+    if (target.nodeName === 'AU-M') {
+      target.remove();
+    }
+  }
+}
+
+@renderer(InstructionType.contentBinding)
+/** @internal */
+export class ContentBindingRenderer implements IRenderer {
+  public target!: InstructionType.contentBinding;
+  public render(
+    renderingCtrl: IHydratableController,
+    target: Element,
+    instruction: ContentBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+  ): void {
+    renderingCtrl.addBinding(new ContentBinding(
+      renderingCtrl,
+      renderingCtrl.container,
+      observerLocator,
+      platform.domWriteQueue,
+      platform,
+      ensureExpression(exprParser, instruction.from, ExpressionType.Interpolation),
+      insertBefore(target.parentNode!, createText(platform, ''), target),
+      true,
+    ));
+
+    // const ii = dynamicParts.length;
+    // let i = 0;
+    // let text = staticParts[0];
+    // let part: IsBindingBehavior;
+    // if (text !== '') {
+    //   parent.insertBefore(doc.createTextNode(text), next);
+    // }
+    // for (; ii > i; ++i) {
+    //   part = dynamicParts[i];
+    //   renderingCtrl.addBinding(new ContentBinding(
+    //     renderingCtrl,
+    //     container,
+    //     observerLocator,
+    //     platform.domWriteQueue,
+    //     platform,
+    //     part,
+    //     // using a text node instead of comment, as a mean to:
+    //     // support seamless transition between a html node, or a text
+    //     // reduce the noise in the template, caused by html comment
+    //     parent.insertBefore(doc.createTextNode(''), next),
+    //     instruction.strict,
+    //   ));
+    //   // while each of the static part of an interpolation
+    //   // will just be a text node
+    //   text = staticParts[i + 1];
+    //   if (text !== '') {
+    //     parent.insertBefore(doc.createTextNode(text), next);
+    //   }
+    // }
+    // Renderer only renders after node sequence has turned <au-m/> into targets
+    // though there could be situation where the renderer is called directly
     if (target.nodeName === 'AU-M') {
       target.remove();
     }

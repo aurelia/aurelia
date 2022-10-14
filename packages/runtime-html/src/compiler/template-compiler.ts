@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser, Interpolation, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
@@ -20,6 +20,7 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
+  ContentBindingInstruction,
 } from '../renderer';
 import { IPlatform } from '../platform';
 import { Bindable, BindableDefinition } from '../bindable';
@@ -44,6 +45,7 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { IProjections } from '../resources/slot-injectables';
 import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
+import { appendChild, appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore } from '../utilities-dom';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -940,7 +942,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // 2.1 prepare fallback content for <au-slot/>
       if (elName === AU_SLOT) {
         const slotName = el.getAttribute('name') || /* name="" is the same with no name */DEFAULT_SLOT_NAME;
-        const template = context.h('template');
+        const template = context.t();
         const fallbackContentContext = context._createChild();
         let node: Node | null = el.firstChild;
         while (node !== null) {
@@ -952,7 +954,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
             el.removeChild(node);
           } else {
-            template.content.appendChild(node);
+            appendToTemplate(template, node);
+            // template.content.appendChild(node);
           }
           node = el.firstChild;
         }
@@ -1003,8 +1006,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (el.nodeName === 'TEMPLATE') {
         template = el as HTMLTemplateElement;
       } else {
-        template = context.h('template');
-        template.content.appendChild(el);
+        template = context.t();
+        appendToTemplate(template, el);
+        // template.content.appendChild(el);
       }
       const mostInnerTemplate = template;
       // 4.1.1.0. prepare child context for the inner template compilation
@@ -1077,7 +1081,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // into a single template
         // with some special rule around <template> element
         for (targetSlot in slotTemplateRecord) {
-          template = context.h('template');
+          template = context.t();
           slotTemplates = slotTemplateRecord[targetSlot];
           for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
             slotTemplate = slotTemplates[j];
@@ -1091,12 +1095,15 @@ export class TemplateCompiler implements ITemplateCompiler {
               // <my-element>
               //   <template au-slot>this is just some static stuff <b>And a b</b></template>
               if ((slotTemplate as Element).attributes.length > 0) {
-                template.content.appendChild(slotTemplate);
+                appendToTemplate(template, slotTemplate);
+                // template.content.appendChild(slotTemplate);
               } else {
-                template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
+                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
+                // template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
               }
             } else {
-              template.content.appendChild(slotTemplate);
+              appendToTemplate(template, slotTemplate);
+              // template.content.appendChild(slotTemplate);
             }
           }
 
@@ -1160,14 +1167,13 @@ export class TemplateCompiler implements ITemplateCompiler {
         // =========================
 
         tcInstruction = tcInstructions[i];
-        template = context.h('template');
+        template = context.t();
         // appending most inner template is inaccurate, as the most outer one
         // is not really the parent of the most inner one
         // but it's only for the purpose of creating a marker,
         // so it's just an optimization hack
-        marker = context.h('au-m');
-        marker.classList.add('au');
-        template.content.appendChild(marker);
+        marker = this._markAsTarget(context.h(auMarkerName));
+        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), marker]);
 
         tcInstruction.def = CustomElementDefinition.create({
           name: generateElementName(),
@@ -1265,7 +1271,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // into a single template
         // with some special rule around <template> element
         for (targetSlot in slotTemplateRecord) {
-          template = context.h('template');
+          template = context.t();
           slotTemplates = slotTemplateRecord[targetSlot];
           for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
             slotTemplate = slotTemplates[j];
@@ -1279,12 +1285,15 @@ export class TemplateCompiler implements ITemplateCompiler {
               // <my-element>
               //   <template au-slot>this is just some static stuff <b>And a b</b></template>
               if ((slotTemplate as Element).attributes.length > 0) {
-                template.content.appendChild(slotTemplate);
+                appendToTemplate(template, slotTemplate);
+                // template.content.appendChild(slotTemplate);
               } else {
-                template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
+                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
+                // template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
               }
             } else {
-              template.content.appendChild(slotTemplate);
+              appendToTemplate(template, slotTemplate);
+              // template.content.appendChild(slotTemplate);
             }
           }
 
@@ -1339,7 +1348,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     const parent = node.parentNode!;
     // prepare a marker
-    parent.insertBefore(this._markAsTarget(context.h('au-m')), node);
+    insertManyBefore(parent, node, [
+      context._comment(auStartComment),
+      context._comment(auEndComment),
+      this._markAsTarget(context.h(auMarkerName))
+    ]);
+    // parent.insertBefore(this._markAsTarget(context.h(auMarkerName)), node);
     // and the corresponding instruction
     context.rows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
 
@@ -1608,12 +1622,17 @@ export class TemplateCompiler implements ITemplateCompiler {
   private _replaceByMarker(node: Node, context: CompilationContext): HTMLElement {
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
-    const marker = context.h('au-m');
-    this._markAsTarget(parent.insertBefore(marker, node));
+    const marker = this._markAsTarget(context.h(auMarkerName));
+    // insertBefore(parent, marker, node);
+    insertManyBefore(parent, node, [context._comment(auStartComment), context._comment(auEndComment), marker]);
     parent.removeChild(node);
     return marker;
   }
 }
+
+const auMarkerName = 'au-m';
+const auStartComment = 'au-start';
+const auEndComment = 'au-end';
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
@@ -1671,14 +1690,26 @@ class CompilationContext {
     this.root.c.register(dep);
   }
 
+  public _text(text: string) {
+    return createText(this.p, text);
+  }
+
+  public _comment(text: string) {
+    return createComment(this.p, text);
+  }
+
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
   public h(name: string): HTMLElement;
   public h(name: string): HTMLElement {
-    const el = this.p.document.createElement(name);
+    const el = createElement(this.p, name);
     if (name === 'template') {
       this.p.document.adoptNode((el as HTMLTemplateElement).content);
     }
     return el;
+  }
+
+  public t() {
+    return this.h('template');
   }
 
   /**

@@ -518,11 +518,13 @@ describe(`Repeat`, function () {
     TextBindingRendererRegistration,
   );
 
+  const createStartLocation = () => PLATFORM.document.createComment('au-start');
+  const createEndLocation = () => PLATFORM.document.createComment('au-end');
   const marker = PLATFORM.document.createElement('au-m');
   marker.className = 'au';
   const text = PLATFORM.document.createTextNode('');
   const textTemplate = PLATFORM.document.createElement('template');
-  textTemplate.content.append(marker, text);
+  textTemplate.content.append(createStartLocation(), createEndLocation(), marker, text);
 
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs, flagsSpecs],

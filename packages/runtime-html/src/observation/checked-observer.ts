@@ -1,22 +1,20 @@
 import {
-  CollectionKind,
+  type CollectionKind,
   SetterObserver,
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator';
+import { getCollectionObserver, INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { hasOwnProperty, isArray } from '../utilities';
 
 import type { INode } from '../dom';
-import type { EventSubscriber } from './event-delegator';
 import type { ValueAttributeObserver } from './value-attribute-observer';
 import type {
   ICollectionObserver,
-  ISubscriber,
   ISubscriberCollection,
-  IObserver,
   IObserverLocator,
 } from '@aurelia/runtime';
+import { mixinNodeObserverUseConfig } from './observation-utils';
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
@@ -34,7 +32,7 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 export interface CheckedObserver extends
   ISubscriberCollection { }
 
-export class CheckedObserver implements IObserver {
+export class CheckedObserver implements INodeObserver {
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   /** @internal */
@@ -44,26 +42,48 @@ export class CheckedObserver implements IObserver {
   private _oldValue: unknown = void 0;
 
   /** @internal */
-  private readonly _obj: IInputElement;
+  public readonly _el: IInputElement;
 
   /** @internal */
   private _collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
 
-  /** @internal */
+  /**
+   * There' situation when a checked observers is used together with `model.bind` on the checkbox
+   *
+   * Then this checked box also needs to observe the changes of tht model so that it will be able to referesh the value accordingly
+   *
+   * @internal
+   */
   private _valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
 
   /** @internal */
   private readonly oL: IObserverLocator;
 
+  /**
+   * Used by mixing defined methods subscribe/unsubscribe
+   *
+   * @internal
+   */
+  public _listened: boolean = false;
+
+  /** @internal */
+  public _config: INodeObserverConfigBase;
+
+  /**
+   * Comes from mixin
+   */
+  public useConfig!: (config: INodeObserverConfigBase) => void;
+
   public constructor(
     obj: INode,
     // deepscan-disable-next-line
     _key: PropertyKey,
-    public readonly handler: EventSubscriber,
+    config: INodeObserverConfigBase,
     observerLocator: IObserverLocator,
   ) {
-    this._obj = obj as IInputElement;
+    this._el = obj as IInputElement;
     this.oL = observerLocator;
+    this._config = config;
   }
 
   public getValue(): unknown {
@@ -93,7 +113,7 @@ export class CheckedObserver implements IObserver {
   /** @internal */
   private _synchronizeElement(): void {
     const currentValue = this._value;
-    const obj = this._obj;
+    const obj = this._el;
     const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
@@ -131,7 +151,7 @@ export class CheckedObserver implements IObserver {
 
   public handleEvent(): void {
     let currentValue = this._oldValue = this._value;
-    const obj = this._obj;
+    const obj = this._el;
     const elementValue = hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     const isChecked = obj.checked;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
@@ -236,29 +256,24 @@ export class CheckedObserver implements IObserver {
     this._flush();
   }
 
-  public start() {
-    this.handler.subscribe(this._obj, this);
+  /**
+   * Used by mixing defined methods subscribe
+   *
+   * @internal
+   */
+  public _start() {
     this._observe();
   }
 
-  public stop(): void {
-    this.handler.dispose();
+  /**
+   * Used by mixing defined methods unsubscribe
+   *
+   * @internal
+   */
+  public _stop(): void {
     this._collectionObserver?.unsubscribe(this);
-    this._collectionObserver = void 0;
-
     this._valueObserver?.unsubscribe(this);
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.start();
-    }
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.stop();
-    }
+    this._collectionObserver = this._valueObserver = void 0;
   }
 
   /** @internal */
@@ -270,7 +285,7 @@ export class CheckedObserver implements IObserver {
 
   /** @internal */
   private _observe() {
-    const obj = this._obj;
+    const obj = this._el;
 
     (this._valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
 
@@ -283,6 +298,7 @@ export class CheckedObserver implements IObserver {
   }
 }
 
+mixinNodeObserverUseConfig(CheckedObserver);
 subscriberCollection(CheckedObserver);
 
 // a reusable variable for `.flush()` methods of observers

@@ -25,7 +25,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { createError, isFunction, isPromise, isString } from '../utilities';
+import { createError, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, registerResolver } from '../utilities-di';
 
@@ -56,8 +56,8 @@ type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<I
 
 export const enum LifecycleFlags {
   none                          = 0b0_00_00,
-  // Bitmask for flags that need to be stored on a binding during $bind for mutation
-  // callbacks outside of $bind
+  // Bitmask for flags that need to be stored on a binding during bind for mutation
+  // callbacks outside of bind
   fromBind                      = 0b0_00_01,
   fromUnbind                    = 0b0_00_10,
   dispose                       = 0b0_01_00,
@@ -634,7 +634,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let ii = this._childrenObs.length;
     let ret: void | Promise<void>;
     // timing: after binding, before bound
-    // reason: needs to start observing before all the bindings finish their $bind phase,
+    // reason: needs to start observing before all the bindings finish their bind phase,
     //         so that changes in one binding can be reflected into the other, regardless the index of the binding
     //
     // todo: is this timing appropriate?
@@ -649,7 +649,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       i = 0;
       ii = this.bindings.length;
       while (ii > i) {
-        this.bindings[i].$bind(this.scope!);
+        this.bindings[i].bind(this.scope!);
         ++i;
       }
     }
@@ -898,7 +898,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (this.bindings !== null) {
       for (; i < this.bindings.length; ++i) {
-        this.bindings[i].$unbind();
+        this.bindings[i].unbind();
       }
     }
 
@@ -1250,7 +1250,7 @@ function createObservers(
   instance: object,
 ): void {
   const bindables = definition.bindables;
-  const observableNames = Object.getOwnPropertyNames(bindables);
+  const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
   if (length > 0) {
     let name: string;
@@ -1285,7 +1285,7 @@ function createChildrenObservers(
   instance: object,
 ): ChildrenObserver[] {
   const childrenObservers = definition.childrenObservers;
-  const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+  const childObserverNames = getOwnPropertyNames(childrenObservers);
   const length = childObserverNames.length;
   if (length > 0) {
     const observers = getLookup(instance as IIndexable);

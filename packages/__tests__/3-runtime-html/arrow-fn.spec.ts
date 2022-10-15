@@ -1,10 +1,10 @@
 import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
-import { assert, createFixture } from "@aurelia/testing";
+import { assert, createFixture } from '@aurelia/testing';
 
-describe("3-runtime-html/arrow-fn.spec.ts", function () {
+describe('3-runtime-html/arrow-fn.spec.ts', function () {
 
   // leave this test at the top - if any tests below this one fail for unknown reasons, then corrupted parser state may not be properly recovered
-  it("corrupt the parser state to ensure it's correctly reset afterwards", function () {
+  it('corrupt the parser state to ensure its correctly reset afterwards', function () {
     let err: Error;
     try {
       createFixture
@@ -16,32 +16,32 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     assert.match(err.message, /AUR0167/);
   });
 
-  it("works with IIFE", function () {
+  it('works with IIFE', function () {
     const { assertText } = createFixture
       .html`\${(a => a)(1)}`
       .build();
     assertText('1');
   });
 
-  it("works with paren wrapping {}", function () {
+  it('works with paren wrapping {}', function () {
     const { assertText } = createFixture
       .html`\${(((e) => ({ a: e.v }))({ v: 1 })).a}`
       .build();
     assertText('1');
   });
 
-  it("can sort number array", function () {
+  it('can sort number array', function () {
     const { assertText } = createFixture
-      .html`<div repeat.for="i of items.sort((a, b) => a - b)">\${i}</div>`
+      .html`<div repeat.for='i of items.sort((a, b) => a - b)'>\${i}</div>`
       .component({ items: [5, 7, 6] })
       .build();
     assertText('567');
   });
 
-  it("can observe property accessed in each parameter", function () {
+  it('can observe property accessed in each parameter', function () {
     const { component, assertText } = createFixture
       .component({ items: [{ v: 0 }, { v: 1 }] })
-      .html`<div repeat.for="i of items.filter(i => i.v > 0)">\${i.v}</div>`
+      .html`<div repeat.for='i of items.filter(i => i.v > 0)'>\${i.v}</div>`
       .build();
     assertText('1');
 
@@ -49,7 +49,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     assertText('11');
   });
 
-  it("can reduce number array", function () {
+  it('can reduce number array', function () {
     const { assertText } = createFixture
       .html`\${items.reduce((sum, x) => sum + x, 0)}`
       .component({ items: [3, 4] })
@@ -57,21 +57,21 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     assertText('7');
   });
 
-  it("can call nested arrow inline", function () {
+  it('can call nested arrow inline', function () {
     const { assertText } = createFixture
       .html`\${(a => b => a + b)(1)(2)}`
       .build();
     assertText('3');
   });
 
-  it("can call arrow inline with rest", function () {
+  it('can call arrow inline with rest', function () {
     const { assertText } = createFixture
       .html`\${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}`
       .build();
     assertText('6');
   });
 
-  it("can flatMap nested fn", function () {
+  it('can flatMap nested fn', function () {
     const { assertText } = createFixture
         .component({
           items: [
@@ -79,12 +79,12 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
             { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
           ]
         })
-      .html`<div repeat.for="item of items.flatMap(x => [x].concat(x.children.flatMap(y => [y].concat(y.children))))">\${item.name}-</div>`
+      .html`<div repeat.for='item of items.flatMap(x => [x].concat(x.children.flatMap(y => [y].concat(y.children))))'>\${item.name}-</div>`
       .build();
     assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it("can flatMap nested fn and access parent scope", function () {
+  it('can flatMap nested fn and access parent scope', function () {
     const { assertText } = createFixture
         .component({
           items: [
@@ -92,12 +92,12 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
             { name: 'a2', children: [{ name: 'b2', children: [{ name: 'c2' }] }] }
           ]
         })
-      .html`<div repeat.for="item of items.flatMap(x => x.children.flatMap(y => ([x, y].concat(y.children))))">\${item.name}-</div>`
+      .html`<div repeat.for='item of items.flatMap(x => x.children.flatMap(y => ([x, y].concat(y.children))))'>\${item.name}-</div>`
       .build();
     assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it("can access the correct scope via $this", function () {
+  it('can access the correct scope via $this', function () {
     const { assertText } = createFixture
       .html`\${(a => $this.a)('2')}`
       .component({ a: '1' })
@@ -105,7 +105,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     assertText('1');
   });
 
-  it("can access the correct scope via $this in nested arrow", function () {
+  it('can access the correct scope via $this in nested arrow', function () {
     const { assertText } = createFixture
       .html`\${(a => a => $this.a)('3')('2')}`
       .component({ a: '1' })
@@ -113,25 +113,25 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     assertText('1');
   });
 
-  it("can access the correct scope via $parent", function () {
+  it('can access the correct scope via $parent', function () {
     const { assertText } = createFixture
-      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => $parent.a)('5')}</div></div></div>`
+      .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => $parent.a)('5')}</div></div></div>`
       .component({ a: '1' })
       .build();
     assertText('3');
   });
 
-  it("can access the correct scope via $parent in nested arrow", function () {
+  it('can access the correct scope via $parent in nested arrow', function () {
     const { assertText } = createFixture
-      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.a)('6')('5')}</div></div></div>`
+      .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => a => $parent.a)('6')('5')}</div></div></div>`
       .component({ a: '1' })
       .build();
     assertText('3');
   });
 
-  it("can access the correct scope via $parent.$parent in nested arrow", function () {
+  it('can access the correct scope via $parent.$parent in nested arrow', function () {
     const { assertText } = createFixture
-      .html`<div with.bind="{a:2}"><div with.bind="{a:3}"><div with.bind="{a:4}">\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
+      .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
       .component({ a: '1' })
       .build();
     assertText('2');
@@ -140,7 +140,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
   it('works with attribute binding + binding command', function () {
     const { getBy } = createFixture
       .component({ getValue: v => `light${v}` })
-      .html`<div square.bind="v => getValue(v)">`
+      .html`<div square.bind='v => getValue(v)'>`
       .deps(CustomAttribute.define('square', class {
         static inject = [INode];
 
@@ -162,7 +162,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
         getValue: v => `light${v}`,
         getDarkValue: v => `dark${v}`,
       })
-      .html`<div square="fn1.bind: v => getValue(v); fn2.bind: v => getDarkValue(v)">`
+      .html`<div square='fn1.bind: v => getValue(v); fn2.bind: v => getDarkValue(v)'>`
       .deps(CustomAttribute.define({ name: 'square', bindables: ['fn1', 'fn2'] }, class {
         static inject = [INode];
 
@@ -185,7 +185,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
   it('works with event', function () {
     let i = 0;
     const { getBy } = createFixture
-      .html`<button click.trigger="() => clicked()">`
+      .html`<button click.trigger='() => clicked()'>`
       .component({ clicked: () => i = 1 })
       .build();
 
@@ -195,7 +195,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
 
   it('works with binding behavior', function () {
     const { assertText } = createFixture
-      .html`<div repeat.for="i of items.sort((a, b) => a - b) & log">\${i}</div>`
+      .html`<div repeat.for='i of items.sort((a, b) => a - b) & log'>\${i}</div>`
       .component({ items: [5, 7, 6] })
       .deps(BindingBehavior.define('log', class {}))
       .build();
@@ -204,7 +204,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
 
   it('works with value converter', function () {
     const { assertText } = createFixture
-      .html`<div repeat.for="i of items.sort((a, b) => a - b) | identity">\${i}</div>`
+      .html`<div repeat.for='i of items.sort((a, b) => a - b) | identity'>\${i}</div>`
       .component({ items: [5, 7, 6] })
       .deps(ValueConverter.define('identity', class {
         toView() {
@@ -235,7 +235,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     it('observes on repeat + .map()', function () {
       const { component, flush, assertText } = createFixture
         .component({ items: [1] })
-        .html`<div repeat.for="i of items.map(i => i + 1)">\${i}`
+        .html`<div repeat.for='i of items.map(i => i + 1)'>\${i}`
         .build();
       assertText('2');
 
@@ -251,7 +251,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     it('observes on <let> + .map()', function () {
       const { component, flush, assertText } = createFixture
         .component({ items: [1] })
-        .html`<let i.bind="items.map(i => i + 1)"></let>\${i}`
+        .html`<let i.bind='items.map(i => i + 1)'></let>\${i}`
         .build();
       assertText('2');
 
@@ -278,6 +278,14 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
       component.items.push(3);
       flush();
       assertText('2,3');
+    });
+
+    it('can call .filter() with function call inside', function () {
+      const { assertText } = createFixture
+        .component({ query: 'item', items: [{ name: 'item 1' }, { name: 'gib' }] })
+        .html`<div repeat.for="item of items.filter(i => i.name.includes(query))">\${item.name}</div>`
+        .build();
+      assertText('item 1');
     });
 
     it('observes on .at()', function () {
@@ -527,7 +535,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     it('observes on repeat + .slice().sort', function () {
       const { component, assertText } = createFixture
         .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
-        .html`<div repeat.for="i of items.slice(0).sort((a, b) => a.id - b.id)">\${i.id},`
+        .html`<div repeat.for='i of items.slice(0).sort((a, b) => a.id - b.id)'>\${i.id},`
         .build();
       assertText('1,3,4,5,');
 
@@ -547,7 +555,7 @@ describe("3-runtime-html/arrow-fn.spec.ts", function () {
     it.skip('observes on ..sort', function () {
       const { component, assertText } = createFixture
         .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
-        .html`<div repeat.for="i of items.sort((a, b) => a.id - b.id)">\${i.id},`
+        .html`<div repeat.for='i of items.sort((a, b) => a.id - b.id)'>\${i.id},`
         .build();
       assertText('1,3,4,5,');
 

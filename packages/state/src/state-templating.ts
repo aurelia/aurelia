@@ -1,13 +1,11 @@
 import { camelCase } from '@aurelia/kernel';
 import {
-  ExpressionKind,
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  applyBindingBehavior,
   attributePattern,
   AttrSyntax,
   bindingCommand,
@@ -95,32 +93,31 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IObserverLocator, IStore, IPlatform];
+  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sb';
 
   public constructor(
-    /** @internal */ private readonly _exprParser: IExpressionParser,
-    /** @internal */ private readonly _observerLocator: IObserverLocator,
     /** @internal */ private readonly _stateContainer: IStore<object>,
-    /** @internal */ private readonly p: IPlatform,
   ) {}
 
   public render(
     renderingCtrl: IHydratableController,
     target: object,
     instruction: StateBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
   ): void {
-    const binding = new StateBinding(
+    renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,
       renderingCtrl.container,
-      this._observerLocator,
-      this.p.domWriteQueue,
-      ensureExpression(this._exprParser, instruction.from, ExpressionType.IsFunction),
+      observerLocator,
+      platform.domWriteQueue,
+      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
       target,
       instruction.to,
       this._stateContainer,
-    );
-    renderingCtrl.addBinding(binding);
+    ));
   }
 }
 
@@ -140,17 +137,13 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     instruction: DispatchBindingInstruction,
   ): void {
     const expr = ensureExpression(this._exprParser, instruction.ast, ExpressionType.IsProperty);
-    const binding = new StateDispatchBinding(
+    renderingCtrl.addBinding(new StateDispatchBinding(
       renderingCtrl.container,
       expr,
       target,
       instruction.from,
       this._stateContainer,
-    );
-    renderingCtrl.addBinding(expr.$kind === ExpressionKind.BindingBehavior
-      ? applyBindingBehavior(binding, expr, renderingCtrl.container)
-      : binding
-    );
+    ));
   }
 }
 

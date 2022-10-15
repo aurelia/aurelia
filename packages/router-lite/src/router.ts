@@ -291,7 +291,7 @@ export class Router {
   }
 
   private _currentTr: Transition | null = null;
-  private get currentTr(): Transition {
+  public get currentTr(): Transition {
     let currentTr = this._currentTr;
     if (currentTr === null) {
       currentTr = this._currentTr = Transition.create({
@@ -682,7 +682,8 @@ export class Router {
       || trChildren.length !== nodeChildren.length
       || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
 
-    if (!routeChanged) {
+    const shouldProcess = routeChanged || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
+    if (!shouldProcess) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;

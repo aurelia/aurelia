@@ -1,6 +1,7 @@
 import { emptyObject, IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorType,
+  getObserverLookup,
   IDirtyChecker,
   INodeObserverLocator,
   IObserverLocator,
@@ -12,12 +13,11 @@ import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';
 import { attrAccessor } from './data-attribute-accessor';
-import { EventSubscriber } from './event-delegator';
 import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createError, createLookup, isDataAttribute, isString } from '../utilities';
+import { createError, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
@@ -33,7 +33,7 @@ const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = Object.assign(
+const nsAttributes = objectAssign(
   createLookup<[string, string]>(),
   {
     'xlink:actuate': ['actuate', xlinkNS],
@@ -53,56 +53,71 @@ const nsAttributes = Object.assign(
 const elementPropertyAccessor = new PropertyAccessor();
 elementPropertyAccessor.type = AccessorType.Node | AccessorType.Layout;
 
-export type IHtmlObserverConstructor =
-  new (
-    el: INode,
-    key: PropertyKey,
-    handler: EventSubscriber,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator,
-  ) => IObserver;
-
-export interface INodeObserverConfig extends Partial<NodeObserverConfig> {
-  events: string[];
-}
-
-export class NodeObserverConfig {
-  /**
-   * The observer constructor to use
-   */
-  public type: IHtmlObserverConstructor;
+export interface INodeObserverConfigBase {
   /**
    * Indicates the list of events can be used to observe a particular property
    */
-  public readonly events!: string[];
+  readonly events: string[];
   /**
    * Indicates whether this property is readonly, so observer wont attempt to assign value
    * example: input.files
    */
-  public readonly readonly?: boolean;
+  readonly readonly?: boolean;
   /**
    * A default value to assign to the corresponding property if the incoming value is null/undefined
    */
-  public readonly default?: unknown;
+  readonly default?: unknown;
+}
 
-  public constructor(config: INodeObserverConfig) {
-    this.type = config.type ?? ValueAttributeObserver;
-    this.events = config.events;
-    this.readonly = config.readonly;
-    this.default = config.default;
-  }
+export interface INodeObserver extends IObserver {
+  /**
+   * Instruct this node observer event observation behavior
+   */
+  useConfig(config: INodeObserverConfigBase): void;
+}
+
+export type INodeObserverConstructor =
+  new (
+    el: INode,
+    key: PropertyKey,
+    config: INodeObserverConfig,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+  ) => INodeObserver;
+
+export interface INodeObserverConfig {
+  /**
+   * The observer constructor to use
+   */
+  readonly type?: INodeObserverConstructor;
+  /**
+   * Indicates the list of events can be used to observe a particular property
+   */
+  readonly events: string[];
+  /**
+   * Indicates whether this property is readonly, so observer wont attempt to assign value
+   * example: input.files
+   */
+  readonly readonly?: boolean;
+  /**
+   * A default value to assign to the corresponding property if the incoming value is null/undefined
+   */
+  readonly default?: unknown;
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
   /** @internal */
   protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
 
+  /**
+   * Indicates whether the node observer will be allowed to use dirty checking for a property it doesn't know how to observe
+   */
   public allowDirtyCheck: boolean = true;
 
   /** @internal */
-  private readonly _events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
+  private readonly _events: Record<string, Record<string, INodeObserverConfig>> = createLookup();
   /** @internal */
-  private readonly _globalEvents: Record<string, NodeObserverConfig> = createLookup();
+  private readonly _globalEvents: Record<string, INodeObserverConfig> = createLookup();
   /** @internal */
   private readonly _overrides: Record<string, Record<string, true>> = createLookup();
   /** @internal */
@@ -168,11 +183,11 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public useConfig(nodeName: string, key: PropertyKey, events: INodeObserverConfig): void;
   public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeObserverConfig>>, key?: PropertyKey, eventsConfig?: INodeObserverConfig): void {
     const lookup = this._events;
-    let existingMapping: Record<string, NodeObserverConfig>;
+    let existingMapping: Record<string, INodeObserverConfig>;
     if (isString(nodeNameOrConfig)) {
       existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
       if (existingMapping[key as string] == null) {
-        existingMapping[key as string] = new NodeObserverConfig(eventsConfig!);
+        existingMapping[key as string] = eventsConfig!;
       } else {
         throwMappingExisted(nodeNameOrConfig, key!);
       }
@@ -182,7 +197,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
         const newMapping = nodeNameOrConfig[nodeName];
         for (key in newMapping) {
           if (existingMapping[key] == null) {
-            existingMapping[key] = new NodeObserverConfig(newMapping[key]);
+            existingMapping[key] = newMapping[key];
           } else {
             throwMappingExisted(nodeName, key);
           }
@@ -198,14 +213,14 @@ export class NodeObserverLocator implements INodeObserverLocator {
     if (typeof configOrKey === 'object') {
       for (const key in configOrKey) {
         if (lookup[key] == null) {
-          lookup[key] = new NodeObserverConfig(configOrKey[key]);
+          lookup[key] = configOrKey[key];
         } else {
           throwMappingExisted('*', key);
         }
       }
     } else {
       if (lookup[configOrKey as string] == null) {
-        lookup[configOrKey as string] = new NodeObserverConfig(eventsConfig!);
+        lookup[configOrKey as string] = eventsConfig!;
       } else {
         throwMappingExisted('*', configOrKey);
       }
@@ -281,25 +296,49 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
   }
 
+  public getNodeObserverConfig(el: HTMLElement, key: PropertyKey): INodeObserverConfig | undefined {
+    return this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
+  }
+
+  public getNodeObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): INodeObserver | null {
+    const eventsConfig = this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
+    let observer: INodeObserver;
+    if (eventsConfig != null) {
+      observer = new (eventsConfig.type ?? ValueAttributeObserver)(el, key, eventsConfig, requestor, this.locator);
+      if (!observer.doNotCache) {
+        getObserverLookup(el)[key] = observer;
+      }
+      return observer;
+    }
+    return null;
+  }
+
   public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
     switch (key) {
       case 'class':
+        // todo: invalid accessor returned for a get observer call
+        //       for now it's a noop observer
         return new ClassAttributeAccessor(el);
       case 'css':
       case 'style':
+        // todo: invalid accessor returned for a get observer call
+        //       for now it's a noop observer
         return new StyleAttributeAccessor(el);
     }
-    const eventsConfig: NodeObserverConfig | undefined = this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
-    if (eventsConfig != null) {
-      return new eventsConfig.type(el, key, new EventSubscriber(eventsConfig), requestor, this.locator);
+    const nodeObserver = this.getNodeObserver(el, key, requestor);
+    if (nodeObserver != null) {
+      return nodeObserver;
     }
 
     const nsProps = nsAttributes[key as string];
     if (nsProps !== undefined) {
+      // todo: invalid accessor returned for a get observer call
+      //       for now it's a noop observer
       return AttributeNSAccessor.forNs(nsProps[1]);
     }
     if (isDataAttribute(el, key, this.svgAnalyzer)) {
-      // todo: should observe
+      // todo: invalid accessor returned for a get observer call
+      //       for now it's a noop observer
       return attrAccessor;
     }
     if (key in el.constructor.prototype) {

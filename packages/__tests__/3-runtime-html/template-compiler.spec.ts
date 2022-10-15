@@ -1,3 +1,4 @@
+import { delegateSyntax } from '@aurelia/compat-v1';
 import {
   Constructable,
   IContainer,
@@ -19,7 +20,6 @@ import {
   bindable,
   BindingMode,
   BindableDefinition,
-  DelegationStrategy,
   customAttribute,
   CustomAttribute,
   customElement,
@@ -673,10 +673,12 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   if (attr === 'repeat.for') {
     return [{
       type: TT.iteratorBinding,
-      from: new ForOfStatement(
+      forOf: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
-        new AccessScopeExpression(value.split(' of ')[1])),
-      to: 'items'
+        new AccessScopeExpression(value.split(' of ')[1]),
+        -1),
+      to: 'items',
+      props: [],
     }];
   } else if (attr.includes('.')) {
     return [{
@@ -967,7 +969,7 @@ type Bindables = { [pdName: string]: BindableDefinition };
 describe(`TemplateCompiler - combinations`, function () {
   function createFixture(ctx: TestContext, ...globals: any[]) {
     const container = ctx.container;
-    container.register(...globals);
+    container.register(...globals, delegateSyntax);
     const sut = ctx.templateCompiler;
     return { container, sut };
   }
@@ -982,8 +984,8 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => [string])[],
       [
         (_ctx) => ['foo', 'foo', 'bar'],
-        (_ctx) => ['foo.bar', 'foo', 'bar'],
-        (_ctx) => ['foo.bind', 'foo', 'bar'],
+        // (_ctx) => ['foo.bar', 'foo', 'bar'],
+        // (_ctx) => ['foo.bind', 'foo', 'bar'],
         (_ctx) => ['value', 'value', 'value']
       ] as ((ctx: TestContext, $1: [string]) => [string, string, string])[],
       [
@@ -993,10 +995,9 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  }],
         (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, }],
         (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,      from: new AccessScopeExpression(value), to }]
+        (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: true, capture: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false, capture: true }],
       ] as ((ctx: TestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} plain data-attr="value" ${n1}="${v1}"></${el}>`;
@@ -1526,7 +1527,7 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
-        (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
+        // (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
       ] as ((ctx: TestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
       [

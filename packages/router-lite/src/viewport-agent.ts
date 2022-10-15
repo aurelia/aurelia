@@ -633,12 +633,7 @@ export class ViewportAgent {
       this.$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      const plan = next.context.definition.config.transitionPlan;
-      if (typeof plan === 'function') {
-        this.$plan = plan(cur, next);
-      } else {
-        this.$plan = plan;
-      }
+      this.$plan = next.context.definition.config.getTransitionPlan(cur, next);
     }
 
     this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s'`, next, this.$plan);

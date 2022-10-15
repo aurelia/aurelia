@@ -97,7 +97,7 @@ export class App implements ICustomElementViewModel {
 ```
 {% endcode %}
 
-Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context.&#x20;
+Note that we haven't assigned any value explicitly to the `$controller` property; and that is assigned by the Aurelia pipeline. We can use the `$controller.scope` to access the scope, and subsequently `$controller.scope.bindingContext` can be used to access the binding context.
 
 Note how the `bindingContext` in the above example points to `this`, that is the current instance of `App` (with template controllers, this gets little bit more involved; but we will leave that one out for now). However, in the context of evaluating expressions, we refer the source of data as a "context".
 
@@ -174,9 +174,9 @@ Now with this information, we also have a new diagram.
 
 ### Motivation
 
-Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](../getting-to-know-aurelia/repeats-and-list-rendering.md) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
+Now let's address the question 'Why do we need override context at all?'. The reason it exists has to do with the template controllers (mostly). While writing template controllers, many times we want a context object that is not the underlying view-model instance. One such prominent example is the [`repeat.for`](../templates/repeats-and-list-rendering.md) template controller. As you might know that `repeat.for` template controller provides contextual properties such as `$index`, `$first`, `$last` etc. These properties end up being in the override context.
 
-Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts.&#x20;
+Now imagine if those properties actually end up being in the binding context, which is often the underlying view-model instance, it would have caused a lot of other issues. First of all, that would have restricted you having properties with the same name to avoid conflicts.
 
 This in turn means that you need to know the template controllers you are using thoroughly, to know about such restrictions, which is not a sound idea in itself. And with that if you define a property with the same name, as used by the template controller, coupled with change observation etc., we could have found ourselves dealing with numerous bugs in the process. Override context helps us to get out of that horrific mess.
 
@@ -287,7 +287,7 @@ Note that the `parentScope` for the scope of the root component is `null`.
 
 ## Host scope
 
-As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](broken-reference), and thus not repeated here.
+As we are talking about scope, it needs to be noted that the term 'host scope' is used in the context of `au-slot`. There is no difference between a "normal" scope and a host scope, just it acts as the special marker to instruct the scope selection process to use the scope of the host element, instead of scope of the parent element. Moreover, this is a special kind of scope that is valid only in the context of `au-slot`. This is already discussed in detail in the [`au-slot` documentation](broken-reference/), and thus not repeated here.
 
 ## Context and change observation
 
@@ -517,7 +517,7 @@ Note that both `App` and `FooBar` initializes their own `message` properties. Ac
 2 1
 ```
 
-Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards.&#x20;
+Although it should be quite as per expectation, the point to be noted here is that the scope traversal never reaches to `App` in the process. This is because of the 'component boundary' clause in rule `#2.1.`. In case of this example the expression evaluation starts with the scope of the innermost `repeat.for`, and traversed upwards.
 
 When traversal hits the scope of `FooBar`, it recognize the scope as a component boundary, and stops traversing any further, irrespective of whether the property is found or not. Contextually note that if you want to cross the component boundary, you need to explicitly use `$parent` keyword.
 

@@ -13,7 +13,7 @@ import { Children } from '../templating/children';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { createError, isFunction, isString } from '../utilities';
+import { createError, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 
 import type {
@@ -611,14 +611,14 @@ export const generateElementType = (function () {
 
     // Assign anything from the prototype that was passed in
     if (proto !== defaultProto) {
-      Object.assign(Type.prototype, proto);
+      objectAssign(Type.prototype, proto);
     }
 
     return Type;
   };
 })();
 
-export const CustomElement = Object.freeze<CustomElementKind>({
+export const CustomElement = objectFreeze<CustomElementKind>({
   name: elementBaseName,
   keyFrom: getElementKeyFrom,
   isType: isElementType,

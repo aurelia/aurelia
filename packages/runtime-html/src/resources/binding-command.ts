@@ -1,20 +1,19 @@
-import { camelCase, mergeArrays, firstDefined } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, IsBindingBehavior } from '@aurelia/runtime';
+import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
+import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../attribute-mapper';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,
-  CallBindingInstruction,
   IteratorBindingInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
   SpreadBindingInstruction,
-  DelegationStrategy,
+  MultiAttrInstruction,
 } from '../renderer';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { isString } from '../utilities';
+import { isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 
 import type {
@@ -26,7 +25,7 @@ import type {
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
-import type { AttrSyntax } from './attribute-pattern';
+import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
@@ -138,7 +137,7 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
 ): PartialBindingCommandDefinition[K] =>
   getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingCommandDefinition[K];
 
-export const BindingCommand = Object.freeze<BindingCommandKind>({
+export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
@@ -305,27 +304,36 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   }
 }
 
-@bindingCommand('call')
-export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.None { return CommandType.None; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    const target = info.bindable === null
-      ? camelCase(info.attr.target)
-      : info.bindable.property;
-    return new CallBindingInstruction(exprParser.parse(info.attr.rawValue, (ExpressionType.IsProperty | ExpressionType.IsFunction) as ExpressionType) as IsBindingBehavior, target);
-  }
-}
-
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.None { return CommandType.None; }
 
+  public static get inject(): unknown[] { return [IAttributeParser]; }
+
+  /** @internal */
+  private readonly _attrParser: IAttributeParser;
+
+  public constructor(attrParser: IAttributeParser) {
+    this._attrParser = attrParser;
+  }
+
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.property;
-    return new IteratorBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator), target);
+    const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
+    let props: MultiAttrInstruction[] = emptyArray;
+    if (forOf.semiIdx > -1) {
+      const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
+      const i = attr.indexOf(':');
+      if (i > -1) {
+        const attrName = attr.slice(0, i).trim();
+        const attrValue = attr.slice(i + 1).trim();
+        const attrSyntax = this._attrParser.parse(attrName, attrValue);
+        props = [new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command)];
+      }
+    }
+    return new IteratorBindingInstruction(forOf, target, props);
   }
 }
 
@@ -334,16 +342,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, DelegationStrategy.none);
-  }
-}
-
-@bindingCommand('delegate')
-export class DelegateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
-
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.bubbling);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, false);
   }
 }
 
@@ -352,7 +351,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, DelegationStrategy.capturing);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, true);
   }
 }
 

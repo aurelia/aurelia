@@ -28,7 +28,7 @@ There's a set of default implementations for the main interfaces of the Dialog p
 These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
 
 ```typescript
-import { DialogDefaultConfiguration } from '@aurelia/runtime-html';
+import { DialogDefaultConfiguration } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
 Aurelia.register(DialogDefaultConfiguration).app(MyApp).start();
@@ -51,7 +51,7 @@ Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
 If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
 
 ```typescript
-import { DialogConfiguration } from '@aurelia/runtime-html';
+import { DialogConfiguration } from '@aurelia/dialog';
 
 Aurelia.register(DialogConfiguration.customize(settings => {
 
@@ -66,7 +66,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
 If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
 
 ```typescript
-import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/runtime-html';
+import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/dialog';
 
 Aurelia.register(DialogConfiguration.customize(settings => {
 
@@ -188,7 +188,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
 
     ```typescript
     import { EditPerson } from './edit-person';
-    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/dialog';
 
     export class Welcome {
       static inject = [IDialogService];
@@ -228,7 +228,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
 
     ```typescript
     import { EditPerson } from './edit-person';
-    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+    import { IDialogService, DialogDeactivationStatuses } from '@aurelia/dialog';
 
     export class Welcome {
       static inject = [IDialogService];
@@ -267,7 +267,7 @@ Given an error list, open a dialog for each error, and close all of them after 5
 
 ```typescript
 import { Alert } from './dialog-alert';
-import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+import { IDialogService, DialogDeactivationStatuses } from '@aurelia/dialog';
 
 export class Welcome {
   static inject = [IDialogService];
@@ -291,7 +291,7 @@ If there's no need for the opening result of a dialog, and only the response of 
 
 ```typescript
 import { EditPerson } from './edit-person';
-import { IDialogService, DialogDeactivationStatuses } from '@aurelia/runtime-html';
+import { IDialogService, DialogDeactivationStatuses } from '@aurelia/dialog';
 
 export class Welcome {
   static inject = [IDialogService];
@@ -337,7 +337,7 @@ dialogService.open({
 By default, the dialog controller of a dialog will be assigned automatically to the property `$dialog` on the component view model. To specify this in TypeScript, the component class can implement the interface `IDialogCustomElementViewModel`:
 
 ```typescript
-import { IDialogController, IDialogCustomElementViewModel } from '@aurelia/runtime-html';
+import { IDialogController, IDialogCustomElementViewModel } from '@aurelia/dialog';
 
 class MyDialog implements IDialogCustomElementViewModel {
   $dialog: IDialogController;
@@ -355,7 +355,7 @@ Note that the property `$dialog` will only be ready after the contructor.
 If it's desirable to retrieve the associated dialog controller of a dialog during the constructor of the component, `IDialogController` can be inject to achieve the same effect:
 
 ```typescript
-import { IDialogController } from '@aurelia/runtime-html';
+import { IDialogController } from '@aurelia/dialog';
 
 @inject(IDialogController)
 class MyDialog {
@@ -404,7 +404,7 @@ An example of the html structure when document body is the dialog host:
 By default, the dialog content host is centered horizontally and vertically. It can be changed via `IDialogDom` injection:
 
 ```typescript
-import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
+import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
 
 @inject(IDialogDom)
 export class MyDialog {
@@ -423,7 +423,7 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
 
 ```typescript
-import { IDialogDom, DefaultDialogDom } from '@aurelia/runtime-html';
+import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
 
 @inject(IDialogDom)
 export class MyDialog {

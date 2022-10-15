@@ -13,9 +13,9 @@ import { IRouteableComponent, Parameters, Navigation, RoutingInstruction } from 
 
 export class MyComponent implements IRouteableComponent {
     canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
-    load(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
+    loading(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
     canUnload(instruction: RoutingInstruction, navigation: Navigation);
-    unload(instruction: RoutingInstruction, navigation: Navigation);
+    unloading(instruction: RoutingInstruction, navigation: Navigation);
 }
 ```
 
@@ -91,17 +91,17 @@ export class MyProduct implements IRouteableComponent {
 }
 ```
 
-### **load**
+### **loading**
 
-The `load` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `load` method as an object with one or more parameters as the first argument.
+The `loading` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `load` method as an object with one or more parameters as the first argument.
 
 {% hint style="info" %}
 If you are loading data from an API based on values provided in the URL and the rendering of this view is not dependent on the data being successfully returned, you can do that inside of `load`.
 {% endhint %}
 
-In many ways, the `load` method is the same as `canLoad` with the exception that `load` cannot prevent the component from loading. Where `canLoad` can be used to redirect users away from the component, the `load` method cannot.
+In many ways, the `loading` method is the same as `canLoad` with the exception that `loading` cannot prevent the component from loading. Where `canLoad` can be used to redirect users away from the component, the `loading` method cannot.
 
-All of the above code examples for `canLoad` can be used with `load` and will work the same with exception of being able to return `true` or `false` boolean values to prevent the component being loaded (as we just mentioned).
+All of the above code examples for `canLoad` can be used with `loading` and will work the same with exception of being able to return `true` or `false` boolean values to prevent the component being loaded (as we just mentioned).
 
 ### canUnload
 
@@ -109,11 +109,11 @@ The `canUnload` method is called when a user attempts to leave a routed view. Th
 
 Like the `canLoad` method, this is just the inverse. It determines if we can navigate away from the current component.
 
-### **unload**
+### **unloading**
 
-The `unload` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
+The `unloading` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
 
-Like the `load` method, this is just the inverse. It is called when the component is being unloaded (provided `canUnload` wasn't false).
+Like the `loading` method, this is just the inverse. It is called when the component is being unloaded (provided `canUnload` wasn't false).
 
 ## Loading data inside of components
 
@@ -141,7 +141,7 @@ Similarly, if you want the view to still load even if we can't get the data, you
 import { IRouteableComponent, Parameters } from "@aurelia/router";
 
 export class MyComponent implements IRouteableComponent {
-    async load(params: Parameters) {
+    async loading(params: Parameters) {
         this.product = await this.api.getProduct(params.productId);
     }
 }
@@ -159,7 +159,7 @@ You can achieve this from within the `canLoad` and `load` methods in your compon
 import { IRouteableComponent, Parameters, RoutingInstruction, Navigation } from "@aurelia/router";
 
 export class ProductPage implements IRouteableComponent {
-  load(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation) {
+  loading(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation) {
     instruction.route.match.title = 'COOL BEANS';
   }
 }

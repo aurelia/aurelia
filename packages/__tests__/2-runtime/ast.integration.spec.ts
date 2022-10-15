@@ -11,6 +11,7 @@ import {
 import {
   assert,
   createContainer,
+  createFixture,
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
@@ -36,7 +37,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           BindingMode.toView,
         );
 
-        binding.$bind(createScopeForTest(source));
+        binding.bind(createScopeForTest(source));
 
         assert.strictEqual(target.name, 'hello');
 
@@ -76,7 +77,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        binding.$bind(scope);
+        binding.bind(scope);
 
         assert.strictEqual(target.value, 'no');
 
@@ -129,7 +130,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           true
         );
 
-        binding.$bind(scope);
+        binding.bind(scope);
 
         assert.strictEqual(source.value, 'hello');
 
@@ -166,7 +167,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        binding.$bind(scope);
+        binding.bind(scope);
 
         assert.strictEqual(source.value, 'no');
         assert.strictEqual(handleChangeCallCount, 0);
@@ -201,6 +202,52 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           }
         });
       });
+    });
+  });
+
+  describe('[[AccessMember]]', function () {
+    it('notifies when binding with .length', function () {
+      const { trigger, assertText, flush } = createFixture
+        .component({ items: [1, 2] })
+        .html`
+          <button click.trigger="items.length = 0">item count: \${items.length}</button>
+        `
+        .build();
+      trigger.click('button');
+      flush();
+      assertText('button', 'item count: 0');
+    });
+  });
+
+  describe('[[AccessKey]]', function () {
+    it('notifies when assigning to array index', function () {
+      const { trigger, assertText, flush } = createFixture
+        .component({ items: [1, 2] })
+        .html`
+          <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
+        `
+        .build();
+      trigger.click('button');
+      flush();
+      assertText('button', 'item at [1]: 0');
+    });
+
+    it('notifies when binding two way with array index', function () {
+      const { getAllBy, type, flush } = createFixture
+        .component({ items: [1, 2] })
+        .html`
+          <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
+          <ul>
+            <li repeat.for="i of items"><input value.bind="items[$index]"/>item at \${$index}: \${items[$index]}</li>
+          </ul>
+        `
+        .build();
+
+      const inputs = getAllBy('input');
+      type(inputs[0], '3');
+      flush();
+
+      assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
     });
   });
 });

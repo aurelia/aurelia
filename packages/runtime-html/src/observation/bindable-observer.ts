@@ -1,6 +1,6 @@
 import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, ICoercionConfiguration } from '@aurelia/runtime';
-import { isFunction } from '../utilities';
+import { areEqual, isFunction } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -71,8 +71,8 @@ export class BindableObserver {
 
     this._obj = obj;
     this._key = key;
-    this.cb = hasCb ? cb : noop;
     this._cbAll = hasCbAll ? cbAll : noop;
+    this.cb = hasCb ? cb : noop;
     // when user declare @bindable({ set })
     // it's expected to work from the start,
     // regardless where the assignment comes from: either direct view model assignment or from binding during render
@@ -99,7 +99,7 @@ export class BindableObserver {
 
     const currentValue = this._value;
     if (this._observing) {
-      if (Object.is(newValue, currentValue)) {
+      if (areEqual(newValue, currentValue)) {
         return;
       }
       this._value = newValue;

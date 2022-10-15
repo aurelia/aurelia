@@ -1,76 +1,86 @@
-import { IServiceLocator } from '@aurelia/kernel';
 import {
-  AccessorType,
-  IObserver,
-  connectable,
-  astEvaluate,
-  astBind,
-  astUnbind,
-  astAssign,
+  AccessorType, astBind, astEvaluate, astUnbind, connectable, type IBinding,  IObserver, IAstEvaluator, IConnectableBinding
 } from '@aurelia/runtime';
 
-import { BindingMode } from './interfaces-bindings';
 import { AttributeObserver } from '../observation/element-attribute-observer';
-import { IFlushQueue, BindingTargetSubscriber, astEvaluator } from './binding-utils';
 import { State } from '../templating/controller';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { BindingMode } from './interfaces-bindings';
 
 import type {
   ITask,
   QueueTaskOptions,
-  TaskQueue,
+  TaskQueue
 } from '@aurelia/platform';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ForOfStatement,
   IObserverLocator,
   IsBindingBehavior,
-  Scope,
+  Scope
 } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import type { IAstBasedBinding, IBindingController } from './interfaces-bindings';
+import type { IBindingController } from './interfaces-bindings';
 
 const taskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
 };
 
-export interface AttributeBinding extends IAstBasedBinding {}
+// the 2 interfaces implemented come from mixin
+export interface AttributeBinding extends IAstEvaluator, IConnectableBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export class AttributeBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
+export class AttributeBinding implements IBinding {
   public isBound: boolean = false;
-  public $scope: Scope = null!;
-  public task: ITask | null = null;
-  private targetSubscriber: BindingTargetSubscriber | null = null;
+  /** @internal */
+  public _scope?: Scope = void 0;
+
+  /** @internal */
+  private _task: ITask | null = null;
 
   /**
-   * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
+   * In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
+   *
+   * @internal
    */
-  public targetObserver!: IObserver;
+  private _targetObserver!: IObserver;
 
   public target: Element;
-  public value: unknown = void 0;
+
+  /** @internal */
+  private _value: unknown = void 0;
 
   /**
    * A semi-private property used by connectable mixin
+   *
+   * @internal
    */
-  public oL: IObserverLocator;
+  public readonly oL: IObserverLocator;
 
   /** @internal */
   private readonly _controller: IBindingController;
+
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
+
+  /** @internal */
+  public readonly l: IServiceLocator;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
+  public ast: IsBindingBehavior | ForOfStatement;
+
   public constructor(
     controller: IBindingController,
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public taskQueue: TaskQueue,
-    public ast: IsBindingBehavior | ForOfStatement,
+    taskQueue: TaskQueue,
+    ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -81,17 +91,16 @@ export class AttributeBinding implements IAstBasedBinding {
     public targetProperty: string,
     public mode: BindingMode,
   ) {
+    this.l = locator;
+    this.ast = ast;
     this._controller = controller;
     this.target = target as Element;
     this.oL = observerLocator;
+    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
-    this.targetObserver.setValue(value, this.target, this.targetProperty);
-  }
-
-  public updateSource(value: unknown): void {
-    astAssign(this.ast, this.$scope, this, value);
+    this._targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
   public handleChange(): void {
@@ -99,38 +108,30 @@ export class AttributeBinding implements IAstBasedBinding {
       return;
     }
 
-    const mode = this.mode;
-    const interceptor = this.interceptor;
-    const $scope = this.$scope;
-    const targetObserver = this.targetObserver;
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
-    let shouldConnect: boolean = false;
     let task: ITask | null;
-    shouldConnect = (mode & BindingMode.oneTime) === 0;
-    if (shouldConnect) {
-      this.obs.version++;
-    }
-    const newValue = astEvaluate(this.ast, $scope, this, interceptor);
-    if (shouldConnect) {
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
 
-    if (newValue !== this.value) {
-      this.value = newValue;
+    if (newValue !== this._value) {
+      this._value = newValue;
+      const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
-        task = this.task;
-        this.task = this.taskQueue.queueTask(() => {
-          this.task = null;
-          interceptor.updateTarget(newValue);
+        task = this._task;
+        this._task = this._taskQueue.queueTask(() => {
+          this._task = null;
+          this.updateTarget(newValue);
         }, taskOptions);
         task?.cancel();
       } else {
-        interceptor.updateTarget(newValue);
+        this.updateTarget(newValue);
       }
     }
   }
@@ -140,67 +141,50 @@ export class AttributeBinding implements IAstBasedBinding {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.unbind();
     }
+    this._scope = _scope;
 
-    this.$scope = scope;
+    astBind(this.ast, _scope, this);
 
-    astBind(this.ast, scope, this.interceptor);
+    this._targetObserver ??= new AttributeObserver(
+      this.target as HTMLElement,
+      this.targetProperty,
+      this.targetAttribute,
+    );
 
-    let targetObserver = this.targetObserver;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!targetObserver) {
-      targetObserver = this.targetObserver = new AttributeObserver(
-        this.target as HTMLElement,
-        this.targetProperty,
-        this.targetAttribute,
+    if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {
+      this.updateTarget(
+        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & BindingMode.toView) > 0 ? this : null)
       );
-    }
-
-    const $mode = this.mode;
-    const interceptor = this.interceptor;
-    let shouldConnect: boolean = false;
-
-    if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
-      shouldConnect = ($mode & BindingMode.toView) > 0;
-      interceptor.updateTarget(
-        this.value = astEvaluate(this.ast, scope, this, shouldConnect ? interceptor : null)
-      );
-    }
-    if ($mode & BindingMode.fromView) {
-      targetObserver.subscribe(this.targetSubscriber ??= new BindingTargetSubscriber(interceptor, this.locator.get(IFlushQueue)));
     }
 
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
-
-    astUnbind(this.ast, this.$scope, this.interceptor);
-
-    this.$scope = null!;
-    this.value = void 0;
-
-    if (this.targetSubscriber) {
-      this.targetObserver.unsubscribe(this.targetSubscriber);
-    }
-
-    this.task?.cancel();
-    this.task = null;
-    this.obs.clearAll();
-
-    // remove isBound and isUnbinding flags
     this.isBound = false;
+
+    astUnbind(this.ast, this._scope!, this);
+
+    this._scope = void 0;
+    this._value = void 0;
+
+    this._task?.cancel();
+    this._task = null;
+    this.obs.clearAll();
   }
 }
 
+mixinUseScope(AttributeBinding);
+mixingBindingLimited(AttributeBinding, () => 'updateTarget');
 connectable(AttributeBinding);
-astEvaluator(true)(AttributeBinding);
+mixinAstEvaluator(true)(AttributeBinding);

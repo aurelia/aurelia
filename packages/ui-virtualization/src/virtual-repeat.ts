@@ -92,7 +92,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     platform: IPlatform,
   ) {
     const iteratorInstruction = instruction.props[0] as IteratorBindingInstruction;
-    const forOf = iteratorInstruction.from as ForOfStatement;
+    const forOf = iteratorInstruction.forOf as ForOfStatement;
     const iterable = this.iterable = unwrapExpression(forOf.iterable) ?? forOf.iterable;
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, hasWrapExpression ? 'handleInnerCollectionChange' : 'handleCollectionChange');
@@ -480,7 +480,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public handleInnerCollectionChange(): void {
-    const newItems = astEvaluate(this.iterable, this.parent.scope, this._container, null) as Collection;
+    const newItems = astEvaluate(this.iterable, this.parent.scope, { strict: true }, null) as Collection;
     const oldItems = this.items;
     this.items = newItems;
     if (newItems === oldItems) {

@@ -1,9 +1,8 @@
 /* eslint-disable no-fallthrough */
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
-import { Scope } from '../observation/binding-context';
-import { ISignaler } from '../observation/signaler';
-import { createError, isArray, isFunction, safeString } from '../utilities-objects';
+import { Scope } from '../observation/scope';
+import { createError, isArray, isFunction, isObject, safeString } from '../utilities-objects';
 import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -157,7 +156,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         }
         return ret;
       }
-      if (c !== null && instance instanceof Object) {
+      if (c !== null && isObject(instance)) {
         c.observe(instance, ast.name);
       }
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -172,7 +171,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     }
     case ExpressionKind.AccessKeyed: {
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-      if (instance instanceof Object) {
+      if (isObject(instance)) {
         const key = astEvaluate(ast.key, s, e, c) as string;
         if (c !== null) {
           c.observe(instance, key);
@@ -223,7 +222,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         }
         case 'in': {
           const $right = astEvaluate(right, s, e, c);
-          if ($right instanceof Object) {
+          if (isObject($right)) {
             return astEvaluate(left, s, e, c) as string in $right;
           }
           return false;
@@ -310,6 +309,11 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       } else {
         return `${ast.parts[0]}${astEvaluate(ast.firstExpression, s, e, c)}${ast.parts[1]}`;
       }
+    case ExpressionKind.DestructuringAssignmentLeaf:
+      return astEvaluate(ast.target, s, e, c);
+    case ExpressionKind.ArrayDestructuring: {
+      return ast.list.map(x => astEvaluate(x, s, e, c));
+    }
     // TODO: this should come after batch
     // as a destructuring expression like [x, y] = value
     //
@@ -328,9 +332,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     // for a single notification per destructing,
     // regardless number of property assignments on the scope binding context
     case ExpressionKind.ObjectBindingPattern:
-    case ExpressionKind.ArrayDestructuring:
     case ExpressionKind.ObjectDestructuring:
-    case ExpressionKind.DestructuringAssignmentLeaf:
     default:
       return void 0;
     case ExpressionKind.Custom:
@@ -348,21 +350,13 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
           throw createError(`AUR0106`);
       }
       const obj = getContext(s, ast.name, ast.ancestor) as IObservable;
-      if (obj instanceof Object) {
-        if (obj.$observers?.[ast.name] !== void 0) {
-          obj.$observers[ast.name].setValue(val);
-          return val;
-        } else {
-          return obj[ast.name] = val;
-        }
-      }
-      return void 0;
+      return obj[ast.name] = val;
     }
     case ExpressionKind.AccessMember: {
       const obj = astEvaluate(ast.object, s, e, null) as IObservable;
-      if (obj instanceof Object) {
-        if (obj.$observers !== void 0 && obj.$observers[ast.name] !== void 0) {
-          obj.$observers[ast.name].setValue(val);
+      if (isObject(obj)) {
+        if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
+          obj.splice(val as number);
         } else {
           obj[ast.name] = val;
         }
@@ -374,6 +368,16 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
     case ExpressionKind.AccessKeyed: {
       const instance = astEvaluate(ast.object, s, e, null) as IIndexable;
       const key = astEvaluate(ast.key, s, e, null) as string;
+      if (isArray(instance)) {
+        if (key === 'length' && !isNaN(val as number)) {
+          instance.splice(val as number);
+          return val;
+        }
+        if (isArrayIndex(key)) {
+          instance.splice(key as unknown as number, 1, val);
+          return val;
+        }
+      }
       return instance[key] = val;
     }
     case ExpressionKind.Assign:
@@ -493,7 +497,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       }
       if ((b as BindingWithBehavior)[key] === void 0) {
         (b as BindingWithBehavior)[key] = behavior;
-        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null) as {}[]));
+        behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null)));
       } else {
         throw duplicateBehaviorAppliedError(name);
       }
@@ -512,7 +516,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       // to make sure signaler works
       const signals = vc.signals;
       if (signals != null) {
-        const signaler = b.get?.(ISignaler);
+        const signaler = b.getSignaler?.();
         const ii = signals.length;
         let i = 0;
         for (; i < ii; ++i) {
@@ -550,12 +554,12 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
       if (vc?.signals === void 0) {
         return;
       }
-      const signaler = b.get(ISignaler);
+      const signaler = b.getSignaler?.();
       let i = 0;
       for (; i < vc.signals.length; ++i) {
         // the cast is correct, as the value converter expression would only add
         // a IConnectable that also implements `ISubscriber` interface to the signaler
-        signaler.removeSignalListener(vc.signals[i], b);
+        signaler?.removeSignalListener(vc.signals[i], b);
       }
       astUnbind(ast.expression, s, b);
       break;

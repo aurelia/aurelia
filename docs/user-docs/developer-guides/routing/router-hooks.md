@@ -50,9 +50,9 @@ import { Parameters, IRouteableComponent, Navigation, RoutingInstruction } from 
 
 class MyComponent implements IRouteableComponent {
   canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
-  load(params: Params, instruction: RoutingInstruction, navigation: Navigation);
+  loading(params: Params, instruction: RoutingInstruction, navigation: Navigation);
   canUnload(instruction: RoutingInstruction, navigation: Navigation);
-  unload(instruction: RoutingInstruction, navigation: Navigation);
+  unloading(instruction: RoutingInstruction, navigation: Navigation);
 }
 ```
 
@@ -66,7 +66,7 @@ import { Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
 class MySharedHooks {
   loading(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
   canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
-  load(viewModel, params: Params, instruction: RoutingInstruction, navigation: Navigation);
+  loading(viewModel, params: Params, instruction: RoutingInstruction, navigation: Navigation);
   canUnload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
   unloading(viewModel, instruction: RoutingInstruction, navigation: Navigation);
   unload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
@@ -101,7 +101,7 @@ import { lifecycleHooks } from 'aurelia';
 
 @lifecycleHooks()
 class Log1 {
-    async load() {
+    async loading() {
         console.log('1.start');
         await Promise.resolve();
         console.log('1.end');
@@ -110,7 +110,7 @@ class Log1 {
 
 @lifecycleHooks()
 class Log2 {
-    async load() {
+    async loading() {
         console.log('2.start');
         await Promise.resolve();
         console.log('2.end');
@@ -120,7 +120,7 @@ class Log2 {
 export class MyComponent {
     static dependencies = [Log1, Log2];
 
-    async load() {
+    async loading() {
         console.log('3.start');
         await Promise.resolve();
         console.log('3.end');
@@ -146,7 +146,7 @@ export class LifecycleLogger {
         return true;
     }
 
-    load(viewModel, params, instruction, navigation) {
+    loading(viewModel, params, instruction, navigation) {
         console.log(`invoking load on ${instruction.component.name}`);
     }
 }

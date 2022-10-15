@@ -1,3 +1,4 @@
+import { delegateSyntax } from '@aurelia/compat-v1';
 import {
   CustomAttribute,
   CustomElement,
@@ -252,6 +253,7 @@ describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
         <div click.bind="hasFocus2" click.capture="(log2 = (log2 || 0) + 1) && (hasFocus2 = log2)"></div>
       `,
       resources: [
+        delegateSyntax,
         CustomAttribute.define(
           { name: 'click', bindables: ['value'] },
           class Click {

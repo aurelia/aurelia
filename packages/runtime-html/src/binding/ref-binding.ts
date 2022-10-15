@@ -1,60 +1,57 @@
-import { astAssign, astBind, astEvaluate, astUnbind, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
-import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IAstBasedBinding } from './interfaces-bindings';
+import type { IServiceLocator } from '@aurelia/kernel';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
+import { mixinAstEvaluator } from './binding-utils';
 
-export interface RefBinding extends IAstBasedBinding {}
-export class RefBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
+export interface RefBinding extends IAstEvaluator, IConnectableBinding { }
+export class RefBinding implements IBinding {
   public isBound: boolean = false;
-  public $scope?: Scope = void 0;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
+
+  /** @internal */
+  public l: IServiceLocator;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: object,
-  ) {}
+  ) {
+    this.l = locator;
+  }
 
-  public $bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
 
-      this.interceptor.$unbind();
+      this.unbind();
     }
+    this._scope = _scope;
 
-    this.$scope = scope;
+    astBind(this.ast, _scope, this);
 
-    astBind(this.ast, scope, this);
-
-    astAssign(this.ast, this.$scope, this, this.target);
+    astAssign(this.ast, this._scope, this, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
 
-    if (astEvaluate(this.ast, this.$scope!, this, null) === this.target) {
-      astAssign(this.ast, this.$scope!, this, null);
+    if (astEvaluate(this.ast, this._scope!, this, null) === this.target) {
+      astAssign(this.ast, this._scope!, this, null);
     }
 
-    astUnbind(this.ast, this.$scope!, this.interceptor);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.$scope = void 0;
-
-    this.isBound = false;
-  }
-
-  public observe(_obj: IIndexable, _propertyName: string): void {
-    return;
-  }
-
-  public handleChange(_newValue: unknown, _previousValue: unknown): void {
-    return;
+    this._scope = void 0;
   }
 }
+
+mixinAstEvaluator(false)(RefBinding);

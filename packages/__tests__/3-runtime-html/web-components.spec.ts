@@ -1,4 +1,5 @@
-import { CustomElement, INode, IWcElementRegistry } from '@aurelia/runtime-html';
+import { CustomElement, INode } from '@aurelia/runtime-html';
+import { IWcElementRegistry } from '@aurelia/web-components';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/web-components.spec.ts', function () {

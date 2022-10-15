@@ -1,3 +1,4 @@
+import { delegateSyntax } from '@aurelia/compat-v1';
 import {
   newInstanceForScope,
   Registration
@@ -119,6 +120,7 @@ describe('validation-html/validation-router.integration.spec.ts/integration', fu
         Registration.instance(ILocation, mockBrowserHistoryLocation),
         RouterConfiguration,
         ValidationHtmlConfiguration,
+        delegateSyntax,
         ViewWithValidation,
         RedirectingView,
       )

@@ -38,7 +38,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe('validation/validation.spec.ts/ValidationRules', function () {
+describe('validation/rule-provider.spec.ts/ValidationRules', function () {
 
   function setup() {
     const container = DI.createContainer();
@@ -545,7 +545,7 @@ describe('validation/validation.spec.ts/ValidationRules', function () {
   });
 });
 
-describe('validation/validation.spec.ts/ValidationMessageProvider', function () {
+describe('validation/rule-provider.spec.ts/ValidationMessageProvider', function () {
   class EventLog implements ISink {
     public log: ILogEvent[] = [];
     public handleEvent(event: ILogEvent): void {
@@ -688,29 +688,29 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
   for (let i = 0, ii = rules.length; i < ii; i++) {
     const { title, getRule } = rules[i];
     it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
-      const { sut, container } = setup();
+      const { sut } = setup();
       const message = 'FooBar';
       const $rule = getRule();
       sut.setMessage($rule, message);
       const scope = Scope.create({});
-      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, null, null);
       assert.equal(actual, message);
     });
 
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
-      const { sut, container } = setup();
+      const { sut } = setup();
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, null, null);
       assert.equal(actual, messages[i]);
     });
 
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
-      const { sut, container } = setup();
+      const { sut } = setup();
       const $rule = getRule();
       $rule.messageKey = 'foobar';
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, null, null);
       assert.equal(actual, 'FooBar is invalid.');
     });
   }
@@ -761,11 +761,11 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
         ],
       },
     ];
-    const { sut, container, originalMessages } = setup(customMessages);
+    const { sut, originalMessages } = setup(customMessages);
     for (const { getRule } of rules) {
       const $rule = getRule();
       const scope = Scope.create({ $displayName: 'FooBar', $rule });
-      const actual = astEvaluate(sut.getMessage($rule), scope, container, null);
+      const actual = astEvaluate(sut.getMessage($rule), scope, null, null);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
       const expected = astEvaluate(sut.parseMessage(template), scope, null!, null);
@@ -789,7 +789,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
         ],
       }
     ];
-    const { sut, container, originalMessages } = setup(customMessages);
+    const { sut, originalMessages } = setup(customMessages);
 
     const $rule1 = new RequiredRule();
     $rule1.messageKey = 'required';
@@ -800,8 +800,8 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
     const scope1 = Scope.create({ $displayName, $rule: $rule1 });
     const scope2 = Scope.create({ $displayName, $rule: $rule2 });
 
-    const actual1 = astEvaluate(sut.getMessage($rule1), scope1, container, null);
-    const actual2 = astEvaluate(sut.getMessage($rule2), scope2, container, null);
+    const actual1 = astEvaluate(sut.getMessage($rule1), scope1, null, null);
+    const actual2 = astEvaluate(sut.getMessage($rule2), scope2, null, null);
 
     assert.equal(actual1, 'FooBar is required.');
     assert.equal(actual2, 'FooBar foobar fizbaz');
@@ -830,7 +830,7 @@ describe('validation/validation.spec.ts/ValidationMessageProvider', function () 
   }
 });
 
-describe('validation/validation.spec.ts/parsePropertyName', function () {
+describe('validation/rule-provider.spec.ts/parsePropertyName', function () {
 
   function setup() {
     const container = TestContext.create().container;
@@ -976,7 +976,7 @@ describe('validation/validation.spec.ts/parsePropertyName', function () {
   }
 });
 
-describe('validation/validation.spec.ts/PropertyRule', function () {
+describe('validation/rule-provider.spec.ts/PropertyRule', function () {
 
   function setup() {
     const container = TestContext.create().container;

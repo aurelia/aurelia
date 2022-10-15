@@ -1,21 +1,12 @@
-import { DI, firstDefined, fromAnnotationOrDefinitionOrTypeOrDefault, mergeArrays, Registration, Resolved, ResourceType } from '@aurelia/kernel';
-import { BindingBehaviorInstance, Collection, IAstEvaluator, IndexMap, ValueConverterInstance } from '@aurelia/runtime';
-import { BindingMode } from '../binding/interfaces-bindings';
-import { createError, def, isFunction, isString } from '../utilities';
-import { registerAliases } from '../utilities-di';
+import { firstDefined, mergeArrays, ResourceType } from '@aurelia/kernel';
+import { BindingBehaviorInstance } from '@aurelia/runtime';
+import { createError, isFunction, isString, objectFreeze } from '../utilities';
+import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
-import type { Constructable, IContainer, IResourceKind, IServiceLocator, Key, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
-import type { BindingBehaviorExpression, BindingObserverRecord, ForOfStatement, IBinding, IConnectableBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { Constructable, IContainer, IResourceKind, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
 
-export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
-  strategy?: BindingBehaviorStrategy;
-}>;
-
-export const enum BindingBehaviorStrategy {
-  singleton = 1,
-  interceptor = 2,
-}
+export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
@@ -45,7 +36,6 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-    public readonly strategy: BindingBehaviorStrategy,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -63,149 +53,21 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
       def = nameOrDef;
     }
 
-    const inheritsFromInterceptor = Object.getPrototypeOf(Type) === BindingInterceptor;
-
     return new BindingBehaviorDefinition(
       Type,
       firstDefined(getBehaviorAnnotation(Type, 'name'), name),
       mergeArrays(getBehaviorAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       BindingBehavior.keyFrom(name),
-      fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? BindingBehaviorStrategy.interceptor : BindingBehaviorStrategy.singleton),
     );
   }
 
   public register(container: IContainer): void {
-    const { Type, key, aliases, strategy } = this;
-    switch (strategy) {
-      case BindingBehaviorStrategy.singleton:
-        Registration.singleton(key, Type).register(container);
-        break;
-      case BindingBehaviorStrategy.interceptor:
-        Registration.instance(key, new BindingBehaviorFactory(container, Type)).register(container);
-        break;
-    }
-    Registration.aliasTo(key, Type).register(container);
+    const { Type, key, aliases } = this;
+    singletonRegistration(key, Type).register(container);
+    aliasRegistration(key, Type).register(container);
     registerAliases(aliases, BindingBehavior, key, container);
   }
 }
-
-export class BindingBehaviorFactory<T extends Constructable = Constructable> {
-  private readonly deps: readonly Key[];
-
-  public constructor(
-    private readonly ctn: IContainer,
-    private readonly Type: BindingBehaviorType<T>,
-  ) {
-    this.deps = DI.getDependencies(Type);
-  }
-
-  public construct(
-    binding: IInterceptableBinding,
-    expr: BindingBehaviorExpression,
-  ): IInterceptableBinding {
-    const container = this.ctn;
-    const deps = this.deps;
-    switch (deps.length) {
-      case 0:
-        // TODO(fkleuver): fix this cast
-        return new this.Type(binding, expr) as unknown as IInterceptableBinding;
-      case 1:
-        return new this.Type(container.get(deps[0]), binding, expr) as unknown as IInterceptableBinding;
-      case 2:
-        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as unknown as IInterceptableBinding;
-      default:
-        return new this.Type(...deps.map(d => container.get(d) as unknown), binding, expr) as unknown as IInterceptableBinding;
-    }
-  }
-}
-
-export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {
-  updateTarget?(value: unknown): void;
-  updateSource?(value: unknown): void;
-
-  callSource?(args: object): unknown;
-  handleChange?(newValue: unknown, previousValue: unknown): void;
-};
-
-export interface BindingInterceptor extends IConnectableBinding {}
-
-export class BindingInterceptor implements IInterceptableBinding {
-  public readonly type = 'instance';
-  public interceptor: this = this;
-  public readonly oL!: IObserverLocator;
-  public readonly locator!: IServiceLocator;
-  public readonly $scope: Scope | undefined;
-  public readonly isBound!: boolean;
-  public readonly obs!: BindingObserverRecord;
-  public readonly ast!: IsBindingBehavior | ForOfStatement;
-  public readonly mode!: BindingMode;
-
-  public constructor(
-    public readonly binding: IInterceptableBinding,
-    public readonly expr: BindingBehaviorExpression,
-  ) {
-    let interceptor: IBinding;
-    while (binding.interceptor !== this) {
-      interceptor = binding.interceptor;
-      binding.interceptor = this;
-      binding = interceptor as IInterceptableBinding;
-    }
-  }
-
-  public get(key: Key): Resolved<Key> {
-    return this.binding.get(key);
-  }
-
-  public getConverter<T>(name: string): ValueConverterInstance<T> | undefined {
-    return (this.binding as IAstEvaluator).getConverter<T>?.(name);
-  }
-
-  public getBehavior<T>(name: string): BindingBehaviorInstance<T> | undefined {
-    return (this.binding as IAstEvaluator).getBehavior<T>?.(name);
-  }
-
-  public updateTarget(value: unknown): void {
-    this.binding.updateTarget!(value);
-  }
-  public updateSource(value: unknown): void {
-    this.binding.updateSource!(value);
-  }
-  public callSource(args: object): unknown {
-    return this.binding.callSource!(args);
-  }
-  public handleChange(newValue: unknown, previousValue: unknown): void {
-    this.binding.handleChange(newValue, previousValue);
-  }
-  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
-    this.binding.handleCollectionChange(collection, indexMap);
-  }
-  public observe(obj: object, key: string): void {
-    this.binding.observe(obj, key);
-  }
-  public observeCollection(observer: Collection): void {
-    this.binding.observeCollection(observer);
-  }
-
-  public $bind(scope: Scope): void {
-    this.binding.$bind(scope);
-  }
-  public $unbind(): void {
-    this.binding.$unbind();
-  }
-}
-
-/* eslint-disable */
-const interceptableProperties = ['isBound', '$scope', 'obs', 'ast', 'locator', 'oL', 'boundFn'];
-interceptableProperties.forEach(prop => {
-  def(BindingInterceptor.prototype, prop, {
-    enumerable: false,
-    configurable: true,
-    get: function (this: BindingInterceptor) {
-      return (this.binding as any)[prop];
-    },
-  });
-});
-/* eslint-enable */
 
 const bbBaseName = getResourceKeyFor('binding-behavior');
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(
@@ -213,7 +75,7 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
   prop: K,
 ): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
 
-export const BindingBehavior = Object.freeze<BindingBehaviorKind>({
+export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom(name: string): string {
     return `${bbBaseName}:${name}`;

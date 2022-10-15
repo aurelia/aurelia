@@ -5,11 +5,14 @@ import {
   AccessorType,
   astEvaluate,
   connectable,
+  IAstEvaluator,
+  IBinding,
+  IConnectableBinding,
   Scope,
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, type IAstBasedBinding, State, astEvaluator } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -19,21 +22,28 @@ import { createStateBindingScope } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateBinding extends IAstBasedBinding { }
-export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> {
-  public readonly oL: IObserverLocator;
-  public interceptor: this = this;
-  public locator: IServiceLocator;
-  public $scope?: Scope | undefined;
+export interface StateBinding extends IAstEvaluator, IConnectableBinding { }
+export class StateBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
+
+  /** @internal */
+  public readonly oL: IObserverLocator;
+
+  /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
+  public _scope?: Scope | undefined;
+
   public ast: IsBindingBehavior;
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
-  private task: ITask | null = null;
-  private readonly taskQueue: TaskQueue;
+
+  /** @internal */ private _task: ITask | null = null;
+  /** @internal */ private readonly _taskQueue: TaskQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
-  /** @internal */ private targetObserver!: IAccessor;
+  /** @internal */ private _targetObserver!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
@@ -56,8 +66,8 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     store: IStore<object>,
   ) {
     this._controller = controller;
-    this.locator = locator;
-    this.taskQueue = taskQueue;
+    this.l = locator;
+    this._taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
     this.ast = ast;
@@ -66,7 +76,7 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
   }
 
   public updateTarget(value: unknown) {
-    const targetAccessor = this.targetObserver;
+    const targetAccessor = this._targetObserver;
     const target = this.target;
     const prop = this.targetProperty;
     const updateCount = this._updateCount++;
@@ -94,33 +104,32 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     targetAccessor.setValue(value, target, prop);
   }
 
-  public $bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
-    this.isBound = true;
-    this.targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this.$scope = createStateBindingScope(this._store.getState(), scope);
+    this._targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
     this._store.subscribe(this);
     this.updateTarget(this._value = astEvaluate(
       this.ast,
-      this.$scope,
+      this._scope = createStateBindingScope(this._store.getState(), _scope),
       this,
       this.mode > BindingMode.oneTime ? this : null),
     );
+    this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
-    this.isBound = false;
-    this.$scope = void 0;
-    this.task?.cancel();
-    this.task = null;
+    this._scope = void 0;
+    this._task?.cancel();
+    this._task = null;
     this._store.unsubscribe(this);
   }
 
@@ -133,24 +142,24 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
-    newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
+    newValue = astEvaluate(this.ast, this._scope!, this, this);
     obsRecord.clear();
 
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(newValue);
-        this.task = null;
+      task = this._task;
+      this._task = this._taskQueue.queueTask(() => {
+        this.updateTarget(newValue);
+        this._task = null;
       }, updateTaskOpts);
       task?.cancel();
       task = null;
     } else {
-      this.interceptor.updateTarget(newValue);
+      this.updateTarget(newValue);
     }
   }
 
@@ -159,16 +168,16 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
       return;
     }
     const state = this._store.getState();
-    const $scope = this.$scope!;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    const _scope = this._scope!;
+    const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
+    _scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     const value = astEvaluate(
       this.ast,
-      $scope,
+      _scope,
       this,
       this.mode > BindingMode.oneTime ? this : null
     );
-    const shouldQueueFlush = this._controller.state !== State.activating && (this.targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
 
     if (value === this._value) {
       return;
@@ -177,14 +186,14 @@ export class StateBinding implements IAstBasedBinding, IStoreSubscriber<object> 
     let task: ITask | null = null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
-      task = this.task;
-      this.task = this.taskQueue.queueTask(() => {
-        this.interceptor.updateTarget(value);
-        this.task = null;
+      task = this._task;
+      this._task = this._taskQueue.queueTask(() => {
+        this.updateTarget(value);
+        this._task = null;
       }, updateTaskOpts);
       task?.cancel();
     } else {
-      this.interceptor.updateTarget(this._value);
+      this.updateTarget(this._value);
     }
   }
 
@@ -218,4 +227,5 @@ const updateTaskOpts: QueueTaskOptions = {
 };
 
 connectable(StateBinding);
-astEvaluator(true)(StateBinding);
+mixinAstEvaluator(true)(StateBinding);
+mixingBindingLimited(StateBinding, () => 'updateTarget');

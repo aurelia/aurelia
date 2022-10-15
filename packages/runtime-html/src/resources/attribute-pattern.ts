@@ -2,6 +2,7 @@ import { emptyArray, Protocol, all } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import { objectFreeze } from '../utilities';
 
 export interface AttributePatternDefinition {
   pattern: string;
@@ -140,24 +141,24 @@ export class Interpretation {
   }
 }
 
-export class AttrParsingState {
-  public nextStates: AttrParsingState[] = [];
-  public types: SegmentTypes | null = null;
-  public patterns: string[];
-  public isEndpoint: boolean = false;
-  public get pattern(): string | null {
-    return this.isEndpoint ? this.patterns[0] : null;
+class AttrParsingState {
+  private readonly _nextStates: AttrParsingState[] = [];
+  private readonly _patterns: string[];
+  public _types: SegmentTypes | null = null;
+  public _isEndpoint: boolean = false;
+  public get _pattern(): string | null {
+    return this._isEndpoint ? this._patterns[0] : null;
   }
 
   public constructor(
     public charSpec: ICharSpec,
     ...patterns: string[]
   ) {
-    this.patterns = patterns;
+    this._patterns = patterns;
   }
 
   public findChild(charSpec: ICharSpec): AttrParsingState {
-    const nextStates = this.nextStates;
+    const nextStates = this._nextStates;
     const len = nextStates.length;
     let child: AttrParsingState = null!;
     let i = 0;
@@ -171,16 +172,16 @@ export class AttrParsingState {
   }
 
   public append(charSpec: ICharSpec, pattern: string): AttrParsingState {
-    const patterns = this.patterns;
+    const patterns = this._patterns;
     if (!patterns.includes(pattern)) {
       patterns.push(pattern);
     }
     let state = this.findChild(charSpec);
     if (state == null) {
       state = new AttrParsingState(charSpec, pattern);
-      this.nextStates.push(state);
+      this._nextStates.push(state);
       if (charSpec.repeat) {
-        state.nextStates.push(state);
+        state._nextStates.push(state);
       }
     }
     return state;
@@ -189,7 +190,7 @@ export class AttrParsingState {
   public findMatches(ch: string, interpretation: Interpretation): AttrParsingState[] {
     // TODO: reuse preallocated arrays
     const results = [];
-    const nextStates = this.nextStates;
+    const nextStates = this._nextStates;
     const len = nextStates.length;
     let childLen = 0;
     let child: AttrParsingState = null!;
@@ -199,15 +200,15 @@ export class AttrParsingState {
       child = nextStates[i];
       if (child.charSpec.has(ch)) {
         results.push(child);
-        childLen = child.patterns.length;
+        childLen = child._patterns.length;
         j = 0;
         if (child.charSpec.isSymbol) {
           for (; j < childLen; ++j) {
-            interpretation.next(child.patterns[j]);
+            interpretation.next(child._patterns[j]);
           }
         } else {
           for (; j < childLen; ++j) {
-            interpretation.append(child.patterns[j], ch);
+            interpretation.append(child._patterns[j], ch);
           }
         }
       }
@@ -223,14 +224,14 @@ export interface ISegment {
 
 /** @internal */
 class StaticSegment implements ISegment {
-  private readonly len: number;
-  private readonly specs: CharSpec[];
+  private readonly _len: number;
+  private readonly _specs: CharSpec[];
 
   public constructor(
     public text: string,
   ) {
-    const len = this.len = text.length;
-    const specs = this.specs = [] as CharSpec[];
+    const len = this._len = text.length;
+    const specs = this._specs = [] as CharSpec[];
     let i = 0;
     for (; len > i; ++i) {
       specs.push(new CharSpec(text[i], false, false, false));
@@ -238,8 +239,8 @@ class StaticSegment implements ISegment {
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
-    const len = this.len;
-    const specs = this.specs;
+    const len = this._len;
+    const specs = this._specs;
     let i = 0;
     for (; len > i; ++i) {
       callback(specs[i]);
@@ -250,29 +251,29 @@ class StaticSegment implements ISegment {
 /** @internal */
 class DynamicSegment implements ISegment {
   public text: string = 'PART';
-  private readonly spec: CharSpec;
+  private readonly _spec: CharSpec;
 
   public constructor(symbols: string) {
-    this.spec = new CharSpec(symbols, true, false, true);
+    this._spec = new CharSpec(symbols, true, false, true);
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
-    callback(this.spec);
+    callback(this._spec);
   }
 }
 
 /** @internal */
 class SymbolSegment implements ISegment {
-  private readonly spec: CharSpec;
+  private readonly _spec: CharSpec;
 
   public constructor(
     public text: string,
   ) {
-    this.spec = new CharSpec(text, false, true, false);
+    this._spec = new CharSpec(text, false, true, false);
   }
 
   public eachChar(callback: (spec: CharSpec) => void): void {
-    callback(this.spec);
+    callback(this._spec);
   }
 }
 
@@ -282,12 +283,17 @@ export class SegmentTypes {
   public symbols: number = 0;
 }
 
-export interface ISyntaxInterpreter extends SyntaxInterpreter {}
+export interface ISyntaxInterpreter {
+  add(defs: AttributePatternDefinition[]): void;
+  interpret(name: string): Interpretation;
+}
 export const ISyntaxInterpreter = createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
-export class SyntaxInterpreter {
-  public rootState: AttrParsingState = new AttrParsingState(null!);
-  private readonly initialStates: AttrParsingState[] = [this.rootState];
+export class SyntaxInterpreter implements ISyntaxInterpreter {
+  /** @internal */
+  public _rootState: AttrParsingState = new AttrParsingState(null!);
+  /** @internal */
+  private readonly _initialStates: AttrParsingState[] = [this._rootState];
 
   // todo: this only works if this method is ever called only once
   public add(defs: AttributePatternDefinition[]): void {
@@ -303,20 +309,18 @@ export class SyntaxInterpreter {
     let i = 0;
     let j: number;
     while (ii > i) {
-      currentState = this.rootState;
+      currentState = this._rootState;
       def = defs[i];
       pattern = def.pattern;
       types = new SegmentTypes();
-      segments = this.parse(def, types);
+      segments = this._parse(def, types);
       len = segments.length;
-      charSpecCb = (ch: ICharSpec) => {
-        currentState = currentState.append(ch, pattern);
-      };
+      charSpecCb = (ch: ICharSpec) => currentState = currentState.append(ch, pattern);
       for (j = 0; len > j; ++j) {
         segments[j].eachChar(charSpecCb);
       }
-      currentState.types = types;
-      currentState.isEndpoint = true;
+      currentState._types = types;
+      currentState._isEndpoint = true;
       ++i;
     }
   }
@@ -324,11 +328,11 @@ export class SyntaxInterpreter {
   public interpret(name: string): Interpretation {
     const interpretation = new Interpretation();
     const len = name.length;
-    let states = this.initialStates;
+    let states = this._initialStates;
     let i = 0;
     let state: AttrParsingState;
     for (; i < len; ++i) {
-      states = this.getNextStates(states, name.charAt(i), interpretation);
+      states = this._getNextStates(states, name.charAt(i), interpretation);
       if (states.length === 0) {
         break;
       }
@@ -340,14 +344,15 @@ export class SyntaxInterpreter {
       states.sort(sortEndpoint);
       state = states[0];
       if (!state.charSpec.isSymbol) {
-        interpretation.next(state.pattern!);
+        interpretation.next(state._pattern!);
       }
-      interpretation.pattern = state.pattern;
+      interpretation.pattern = state._pattern;
     }
     return interpretation;
   }
 
-  public getNextStates(states: AttrParsingState[], ch: string, interpretation: Interpretation): AttrParsingState[] {
+  /** @internal */
+  private _getNextStates(states: AttrParsingState[], ch: string, interpretation: Interpretation): AttrParsingState[] {
     // TODO: reuse preallocated arrays
     const nextStates: AttrParsingState[] = [];
     let state: AttrParsingState = null!;
@@ -361,7 +366,8 @@ export class SyntaxInterpreter {
     return nextStates;
   }
 
-  private parse(def: AttributePatternDefinition, types: SegmentTypes): ISegment[] {
+  /** @internal */
+  private _parse(def: AttributePatternDefinition, types: SegmentTypes): ISegment[] {
     const result = [];
     const pattern = def.pattern;
     const len = pattern.length;
@@ -404,14 +410,14 @@ export class SyntaxInterpreter {
 }
 
 function isEndpoint(a: AttrParsingState) {
-  return a.isEndpoint;
+  return a._isEndpoint;
 }
 
 function sortEndpoint(a: AttrParsingState, b: AttrParsingState) {
   // both a and b are endpoints
   // compare them based on the number of static, then dynamic & symbol fragments
-  const aTypes = a.types!;
-  const bTypes = b.types!;
+  const aTypes = a._types!;
+  const bTypes = b._types!;
   if (aTypes.statics !== bTypes.statics) {
     return bTypes.statics - aTypes.statics;
   }
@@ -448,7 +454,8 @@ export class AttributeParser implements IAttributeParser {
   /** @internal */
   protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
-  /** @internal */ private readonly _cache: Record<string, Interpretation> = {};
+  /** @internal */
+  private readonly _cache: Record<string, Interpretation> = {};
   /**
    * A 2 level record with the same key on both levels.
    * Just a trick to maintain `this` + have simple lookup + support multi patterns per class definition
@@ -456,7 +463,9 @@ export class AttributeParser implements IAttributeParser {
    * @internal
    */
   private readonly _patterns: Record<string, IAttributePattern>;
-  /** @internal */ private readonly _interpreter: ISyntaxInterpreter;
+
+  /** @internal */
+  private readonly _interpreter: ISyntaxInterpreter;
 
   public constructor(
     interpreter: ISyntaxInterpreter,
@@ -524,7 +533,7 @@ const annotationKey = 'attribute-pattern-definitions';
 const getAllPatternDefinitions = <TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) =>
   Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
 
-export const AttributePattern = Object.freeze<AttributePattern>({
+export const AttributePattern = objectFreeze<AttributePattern>({
   name: apBaseName,
   definitionAnnotationKey: annotationKey,
   define<TProto, TClass>(
@@ -545,7 +554,7 @@ export const AttributePattern = Object.freeze<AttributePattern>({
 
 @attributePattern(
   { pattern: 'PART.PART', symbols: '.' },
-  { pattern: 'PART.PART.PART', symbols: '.' }
+  { pattern: 'PART.PART.PART', symbols: '.' },
 )
 export class DotSeparatedAttributePattern {
   public 'PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
@@ -553,7 +562,7 @@ export class DotSeparatedAttributePattern {
   }
 
   public 'PART.PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+    return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
   }
 }
 

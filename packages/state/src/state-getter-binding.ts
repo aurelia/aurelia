@@ -1,5 +1,5 @@
 
-import { IDisposable, IIndexable, type IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, type Writable } from '@aurelia/kernel';
 import {
   connectable,
   Scope,
@@ -19,10 +19,11 @@ import { createStateBindingScope, isSubscribable } from './state-utilities';
 export interface StateGetterBinding extends IConnectableBinding { }
 @connectable()
 export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber<object> {
-  public interceptor: this = this;
-  public locator: IServiceLocator;
-  public $scope?: Scope | undefined;
   public isBound: boolean = false;
+
+  /** @internal */
+  private _scope?: Scope | undefined;
+
   private readonly $get: (s: unknown) => unknown;
   private readonly target: IIndexable;
   private readonly key: PropertyKey;
@@ -33,13 +34,11 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
   /** @internal */ private _updateCount = 0;
 
   public constructor(
-    locator: IServiceLocator,
     target: object,
     prop: PropertyKey,
     store: IStore<object>,
     getValue: (s: unknown) => unknown,
   ) {
-    this.locator = locator;
     this._store = store;
     this.$get = getValue;
     this.target = target as IIndexable;
@@ -74,33 +73,33 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     target[prop] = value;
   }
 
-  public $bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
     const state = this._store.getState();
-    this.isBound = true;
-    this.$scope = createStateBindingScope(state, scope);
+    this._scope = createStateBindingScope(state, _scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = this.$get(state));
+    this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
+    this.isBound = false;
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
-    this.isBound = false;
-    this.$scope = void 0;
+    this._scope = void 0;
     this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
-    const $scope = this.$scope!;
-    const overrideContext = $scope.overrideContext as Writable<IOverrideContext>;
-    $scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    const _scope = this._scope!;
+    const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
+    _scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
     const value = this.$get(this._store.getState());
 
     if (value === this._value) {

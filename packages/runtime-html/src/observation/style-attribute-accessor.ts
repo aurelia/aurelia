@@ -2,13 +2,16 @@ import { AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
 import { hasOwnProperty, isFunction, isString } from '../utilities';
 import type { IAccessor } from '@aurelia/runtime';
+import { mixinNoopSubscribable } from './observation-utils';
 
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
-  public value: unknown = '';
+  /** @internal */
+  private _value: unknown = '';
+
   /** @internal */
   private _oldValue: unknown = '';
 
@@ -28,7 +31,7 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown): void {
-    this.value = newValue;
+    this._value = newValue;
     this._hasChanges = newValue !== this._oldValue;
     this._flushChanges();
   }
@@ -126,7 +129,7 @@ export class StyleAttributeAccessor implements IAccessor {
   private _flushChanges(): void {
     if (this._hasChanges) {
       this._hasChanges = false;
-      const currentValue = this.value;
+      const currentValue = this._value;
       const styles = this.styles;
       const styleTuples = this._getStyleTuples(currentValue);
 
@@ -176,6 +179,12 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public bind(): void {
-    this.value = this._oldValue = this.obj.style.cssText;
+    this._value = this._oldValue = this.obj.style.cssText;
   }
+
+  // the followings come from the noop mixing
+  /** @internal */ public subscribe!: () => void;
+  /** @internal */ public unsubscribe!: () => void;
 }
+
+mixinNoopSubscribable(StyleAttributeAccessor);

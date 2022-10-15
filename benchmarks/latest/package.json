@@ -1,0 +1,13 @@
+{
+    "scripts": {
+        "build": "rollup -c"
+    },
+    "dependencies": {
+        "@aurelia/kernel": "dev",
+        "@aurelia/metadata": "dev",
+        "@aurelia/platform": "dev",
+        "@aurelia/platform-browser": "dev",
+        "@aurelia/runtime": "dev",
+        "@aurelia/runtime-html": "dev"
+    }
+}

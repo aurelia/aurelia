@@ -1,4 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
+import { IExpressionParser, IObserverLocator } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
@@ -18,6 +19,10 @@ export class Rendering {
   /** @internal */
   private readonly _ctn: IContainer;
   /** @internal */
+  private readonly _exprParser: IExpressionParser;
+  /** @internal */
+  private readonly _observerLocator: IObserverLocator;
+  /** @internal */
   private _renderers: Record<string, IRenderer> | undefined;
   /** @internal */
   private readonly _platform: IPlatform;
@@ -29,16 +34,19 @@ export class Rendering {
   private readonly _empty: INodeSequence;
 
   public get renderers(): Record<string, IRenderer> {
-    return this._renderers == null
-      ? (this._renderers = this._ctn.getAll(IRenderer, false).reduce((all, r) => {
-          all[r.target] = r;
-          return all;
-        }, createLookup<IRenderer>()))
-      : this._renderers;
+    return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
+      all[r.target] = r;
+      return all;
+    }, createLookup<IRenderer>());
   }
 
-  public constructor(container: IContainer) {
-    this._platform = (this._ctn = container.root).get(IPlatform);
+  public constructor(
+    container: IContainer,
+  ) {
+    const ctn = container.root;
+    this._platform = (this._ctn = ctn).get(IPlatform);
+    this._exprParser= ctn.get(IExpressionParser);
+    this._observerLocator = ctn.get(IObserverLocator);
     this._empty = new FragmentNodeSequence(this._platform, this._platform.document.createDocumentFragment());
   }
 
@@ -135,7 +143,7 @@ export class Rendering {
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, target, instruction);
+          renderers[instruction.type].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator);
           ++j;
         }
         ++i;
@@ -148,7 +156,7 @@ export class Rendering {
         j = 0;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, host, instruction);
+          renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
           ++j;
         }
       }

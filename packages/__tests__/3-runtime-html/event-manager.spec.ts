@@ -1,10 +1,8 @@
 import { IDisposable } from '@aurelia/kernel';
 import {
   EventDelegator,
-  EventSubscriber,
-  NodeObserverConfig,
-} from '@aurelia/runtime-html';
-import { _, TestContext, assert, createSpy } from '@aurelia/testing';
+} from '@aurelia/compat-v1';
+import { _, TestContext, assert } from '@aurelia/testing';
 
 const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;
@@ -169,74 +167,6 @@ describe('ListenerTracker', function () {
             });
           }
         }
-      }
-    }
-  }
-});
-
-describe('EventSubscriber', function () {
-  function createFixture(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
-    const ctx = TestContext.create();
-    const handler = createSpy();
-
-    if (listener == null) {
-      listener = handler;
-    } else {
-      listener['handleEvent'] = handler;
-    }
-
-    const el = ctx.createElement('div');
-    ctx.doc.body.appendChild(el);
-    const events = eventNames.map(eventName => {
-      return new ctx.UIEvent(eventName, {
-        bubbles,
-        cancelable: true,
-        view: ctx.wnd
-      });
-    });
-
-    const sut = new EventSubscriber(new NodeObserverConfig({ events: eventNames }));
-
-    return { ctx, sut, handler, listener, events, el };
-  }
-
-  function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-    ctx.doc.body.removeChild(el);
-  }
-
-  for (const bubbles of [true, false]) {
-    for (const eventNames of [['foo', 'bar', 'baz'], ['click', 'change', 'input']]) {
-      for (const listenerObj of [null, { handleEvent: null }]) {
-        it(_`subscribe() adds the event listener (eventNames=${eventNames}, bubbles=${bubbles}, listenerObj=${listenerObj})`, function () {
-          const { ctx, sut, handler, listener, events, el } = createFixture(listenerObj, eventNames, bubbles);
-
-          sut.subscribe(el, listener);
-
-          for (let i = 0, ii = events.length; i < ii; ++i) {
-            const event = events[i];
-            el.dispatchEvent(event);
-            assert.strictEqual(handler.calls.length, i + 1, 'handler.calls.length');
-            assert.deepStrictEqual(handler.calls[i], [event], `handler.calls[${i}]`);
-          }
-
-          for (let i = 0, ii = events.length; i < ii; ++i) {
-            const event = events[i];
-            el.dispatchEvent(event);
-            assert.strictEqual(handler.calls.length, i + 4, 'handler.calls.length');
-            assert.deepStrictEqual(handler.calls[i + 3], [event], `handler.calls[${i + 3}]`);
-          }
-
-          sut.dispose();
-
-          for (let i = 0, ii = events.length; i < ii; ++i) {
-            const event = events[i];
-            el.dispatchEvent(event);
-          }
-
-          assert.strictEqual(handler.calls.length, 6, 'handler.calls.length');
-
-          tearDown({ ctx, el });
-        });
       }
     }
   }

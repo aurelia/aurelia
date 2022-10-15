@@ -1,42 +1,24 @@
 import { type BindingBehaviorInstance } from '@aurelia/runtime';
-import { Listener } from '../../binding/listener';
+import { ListenerBinding } from '../../binding/listener-binding';
 import { bindingBehavior } from '../binding-behavior';
 
 import type { Scope } from '@aurelia/runtime';
 import { createError } from '../../utilities';
 
-/** @internal */
-export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
-  const target = event.composedPath()[0];
-
-  if (this.target !== target) {
-    return;
-  }
-
-  return this.selfEventCallSource(event);
-}
-
-export type SelfableBinding = Listener & {
-  selfEventCallSource: Listener['callSource'];
-};
-
 export class SelfBindingBehavior implements BindingBehaviorInstance {
-  public bind(_scope: Scope, binding: SelfableBinding): void {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!binding.callSource || !binding.targetEvent) {
+  public bind(_scope: Scope, binding: ListenerBinding): void {
+    if (!(binding instanceof ListenerBinding)) {
       if (__DEV__)
-        throw createError(`AUR0801: Self binding behavior only supports events.`);
+        throw createError(`AUR0801: Self binding behavior only supports listener binding via trigger/capture command.`);
       else
         throw createError(`AUR0801`);
     }
 
-    binding.selfEventCallSource = binding.callSource;
-    binding.callSource = handleSelfEvent;
+    binding.self = true;
   }
 
-  public unbind(_scope: Scope, binding: SelfableBinding): void {
-    binding.callSource = binding.selfEventCallSource;
-    binding.selfEventCallSource = null!;
+  public unbind(_scope: Scope, binding: ListenerBinding): void {
+    binding.self = false;
   }
 }
 

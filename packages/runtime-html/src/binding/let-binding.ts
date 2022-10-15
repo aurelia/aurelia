@@ -1,23 +1,20 @@
-import { astBind, astEvaluate, astUnbind, connectable } from '@aurelia/runtime';
-import { astEvaluator } from './binding-utils';
+import { astBind, astEvaluate, astUnbind, connectable, type IAstEvaluator, type IBinding, type IConnectableBinding } from '@aurelia/runtime';
+import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type {
   IObservable,
   IObserverLocator,
   IsExpression,
-  Scope,
+  Scope
 } from '@aurelia/runtime';
-import type { IAstBasedBinding } from './interfaces-bindings';
-export interface LetBinding extends IAstBasedBinding {}
+export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
 
-export class LetBinding implements IAstBasedBinding {
-  public interceptor: this = this;
-
+export class LetBinding implements IBinding {
   public isBound: boolean = false;
-  public $scope?: Scope = void 0;
-  public task: ITask | null = null;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
@@ -30,75 +27,78 @@ export class LetBinding implements IAstBasedBinding {
    */
   public readonly oL: IObserverLocator;
 
+  /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
+  private _value: unknown;
+
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
 
   public constructor(
-    public locator: IServiceLocator,
+    locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
     toBindingContext: boolean = false,
   ) {
+    this.l = locator;
     this.oL = observerLocator;
     this._toBindingContext = toBindingContext;
+  }
+
+  public updateTarget() {
+    this.target![this.targetProperty] = this._value;
   }
 
   public handleChange(): void {
     if (!this.isBound) {
       return;
     }
-
-    const target = this.target as IIndexable;
-    const targetProperty = this.targetProperty;
-    const previousValue: unknown = target[targetProperty];
     this.obs.version++;
-    const newValue = astEvaluate(this.ast, this.$scope!, this, this.interceptor);
+    this._value = astEvaluate(this.ast, this._scope!, this, this);
     this.obs.clear();
-    if (newValue !== previousValue) {
-      target[targetProperty] = newValue;
-    }
+    this.updateTarget();
   }
 
   public handleCollectionChange(): void {
     this.handleChange();
   }
 
-  public $bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this.$scope === scope) {
+      if (this._scope === _scope) {
         return;
       }
-      this.interceptor.$unbind();
+      this.unbind();
     }
+    this._scope = _scope;
+    this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext) as IIndexable;
 
-    this.$scope = scope;
-    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    astBind(this.ast, _scope, this);
 
-    astBind(this.ast, scope, this.interceptor);
+    this._value = astEvaluate(this.ast, this._scope, this, this);
+    this.updateTarget();
 
-    this.target[this.targetProperty]
-      = astEvaluate(this.ast, scope, this, this.interceptor);
-
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
-  public $unbind(): void {
+  public unbind(): void {
     if (!this.isBound) {
       return;
     }
-
-    astUnbind(this.ast, this.$scope!, this.interceptor);
-
-    this.$scope = void 0;
-    this.obs.clearAll();
-
-    // remove isBound and isUnbinding flags
     this.isBound = false;
+
+    astUnbind(this.ast, this._scope!, this);
+
+    this._scope = void 0;
+    this.obs.clearAll();
   }
 }
 
+mixinUseScope(LetBinding);
+mixingBindingLimited(LetBinding, () => 'updateTarget');
 connectable(LetBinding);
-astEvaluator(true)(LetBinding);
+mixinAstEvaluator(true)(LetBinding);

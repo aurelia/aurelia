@@ -1,4 +1,4 @@
-import { createError, def, defineHiddenProp, ensureProto, isArray } from '../utilities-objects';
+import { createError, def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities-objects';
 import { getArrayObserver } from '../observation/array-observer';
 import { getSetObserver } from '../observation/set-observer';
 import { getMapObserver } from '../observation/map-observer';
@@ -12,44 +12,31 @@ import type {
   Collection,
   CollectionObserver,
   ICollectionSubscriber,
-  IndexMap,
   ICollectionSubscribable,
 } from '../observation';
 import type { IObserverLocator } from '../observation/observer-locator';
 
-export interface IObserverLocatorBasedConnectable extends IBinding, ISubscriber, ICollectionSubscriber {
+export interface IConnectableBinding extends IConnectable, IBinding, ISubscriber, ICollectionSubscriber {
   oL: IObserverLocator;
-}
-
-export interface IConnectableBinding extends IObserverLocatorBasedConnectable, IConnectable {
   /**
    * A record storing observers that are currently subscribed to by this binding
    */
   obs: BindingObserverRecord;
 }
 
-function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void {
-  const observer = this.oL.getObserver(obj, key);
-  /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
-   *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
-   *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
-   *  2. Fail silently (without throwing): give all accessors a no-op subscribe method
-   *
-   * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
-   */
-  this.obs.add(observer);
-}
 function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
   return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
 }
-
+function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void {
+  this.obs.add(this.oL.getObserver(obj, key));
+}
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
   let obs: CollectionObserver;
   if (isArray(collection)) {
     obs = getArrayObserver(collection);
-  } else if (collection instanceof Set) {
+  } else if (isSet(collection)) {
     obs = getSetObserver(collection);
-  } else if (collection instanceof Map) {
+  } else if (isMap(collection)) {
     obs = getMapObserver(collection);
   } else {
     if (__DEV__)
@@ -81,31 +68,22 @@ function noopHandleCollectionChange() {
 type ObservationRecordImplType = {
   version: number;
   count: number;
-  binding: IConnectableBinding;
 } & Record<string, unknown>;
 
 export interface BindingObserverRecord extends ObservationRecordImplType { }
-export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
+export class BindingObserverRecord {
   public version: number = 0;
   public count: number = 0;
-  /** @internal */
   // a map of the observers (subscribables) that the owning binding of this record
   // is currently subscribing to. The values are the version of the observers,
   // as the observers version may need to be changed during different evaluation
+  /** @internal */
   public o = new Map<ISubscribable | ICollectionSubscribable, number>();
   /** @internal */
-  private readonly b: IConnectableBinding;
+  public readonly b: IConnectableBinding;
 
   public constructor(b: IConnectableBinding) {
     this.b = b;
-  }
-
-  public handleChange(value: unknown, oldValue: unknown): unknown {
-    return this.b.interceptor.handleChange(value, oldValue);
-  }
-
-  public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
-    this.b.interceptor.handleCollectionChange(collection, indexMap);
   }
 
   /**
@@ -113,7 +91,7 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
    */
   public add(observer: ISubscribable | ICollectionSubscribable): void {
     if (!this.o.has(observer)) {
-      observer.subscribe(this);
+      observer.subscribe(this.b);
       ++this.count;
     }
     this.o.set(observer, this.version);
@@ -135,17 +113,17 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
 }
 
 function unsubscribeAll(this: BindingObserverRecord, version: number, subscribable: ISubscribable | ICollectionSubscribable) {
-  subscribable.unsubscribe(this);
+  subscribable.unsubscribe(this.b);
 }
 
 function unsubscribeStale(this: BindingObserverRecord, version: number, subscribable: ISubscribable | ICollectionSubscribable) {
   if (this.version !== version) {
-    subscribable.unsubscribe(this);
+    subscribable.unsubscribe(this.b);
     this.o.delete(subscribable);
   }
 }
 
-type Connectable = IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
+type Connectable = { oL: IObserverLocator } & IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 

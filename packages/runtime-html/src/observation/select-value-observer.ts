@@ -1,19 +1,18 @@
 import {
-  CollectionKind,
+  type CollectionKind,
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
-import type { EventSubscriber } from './event-delegator';
 import type {
   ICollectionObserver,
-  IObserver,
   IObserverLocator,
-  ISubscriber,
   ISubscriberCollection,
 } from '@aurelia/runtime';
 import { createError, hasOwnProperty, isArray } from '../utilities';
+import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
+import { mixinNodeObserverUseConfig } from './observation-utils';
 
 const childObserverOptions = {
   childList: true,
@@ -36,12 +35,10 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-export class SelectValueObserver implements IObserver {
+export class SelectValueObserver implements INodeObserver {
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-
-  public readonly handler: EventSubscriber;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -50,7 +47,7 @@ export class SelectValueObserver implements IObserver {
   private _oldValue: unknown = void 0;
 
   /** @internal */
-  private readonly _obj: ISelectElement;
+  public readonly _el: ISelectElement;
 
   /** @internal */
   private _hasChanges: boolean = false;
@@ -65,16 +62,31 @@ export class SelectValueObserver implements IObserver {
   /** @internal */
   private readonly _observerLocator: IObserverLocator;
 
+  /**
+   * Used by mixing defined methods subscribe/unsubscribe
+   *
+   * @internal
+   */
+  public _listened: boolean = false;
+
+  /** @internal */
+  public _config: INodeObserverConfigBase;
+
+  /**
+   * Comes from mixin
+   */
+  public useConfig!: (config: INodeObserverConfigBase) => void;
+
   public constructor(
     obj: INode,
     // deepscan-disable-next-line
     _key: PropertyKey,
-    handler: EventSubscriber,
+    config: INodeObserverConfigBase,
     observerLocator: IObserverLocator,
   ) {
-    this._obj = obj as ISelectElement;
+    this._el = obj as ISelectElement;
     this._observerLocator = observerLocator;
-    this.handler = handler;
+    this._config = config;
   }
 
   public getValue(): unknown {
@@ -82,10 +94,10 @@ export class SelectValueObserver implements IObserver {
     // todo: ability to turn on/off cache based on type
     return this._observing
       ? this._value
-      : this._obj.multiple
+      : this._el.multiple
         // todo: maybe avoid double iteration?
-        ? getSelectedOptions(this._obj.options)
-        : this._obj.value;
+        ? getSelectedOptions(this._el.options)
+        : this._el.value;
   }
 
   public setValue(newValue: unknown): void {
@@ -112,7 +124,7 @@ export class SelectValueObserver implements IObserver {
 
   public syncOptions(): void {
     const value = this._value;
-    const obj = this._obj;
+    const obj = this._el;
     const $isArray = isArray(value);
     const matcher = obj.matcher ?? defaultMatcher;
     const options = obj.options;
@@ -145,7 +157,7 @@ export class SelectValueObserver implements IObserver {
     //    2. assign `this.currentValue` to `this.oldValue`
     //    3. assign `value` to `this.currentValue`
     //    4. return `true` to signal value has changed
-    const obj = this._obj;
+    const obj = this._el;
     const options = obj.options;
     const len = options.length;
     const currentValue = this._value;
@@ -221,16 +233,24 @@ export class SelectValueObserver implements IObserver {
     return true;
   }
 
-  /** @internal */
-  private _start(): void {
-    (this._nodeObserver = new this._obj.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
-      .observe(this._obj, childObserverOptions);
+  /**
+   * Used by mixing defined methods subscribe
+   *
+   * @internal
+   */
+  public _start(): void {
+    (this._nodeObserver = new this._el.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
+      .observe(this._el, childObserverOptions);
     this._observeArray(this._value instanceof Array ? this._value : null);
     this._observing = true;
   }
 
-  /** @internal */
-  private _stop(): void {
+  /**
+   * Used by mixing defined method unsubscribe
+   *
+   * @internal
+   */
+  public _stop(): void {
     this._nodeObserver!.disconnect();
     this._arrayObserver?.unsubscribe(this);
     this._nodeObserver
@@ -245,7 +265,7 @@ export class SelectValueObserver implements IObserver {
     this._arrayObserver?.unsubscribe(this);
     this._arrayObserver = void 0;
     if (array != null) {
-      if (!this._obj.multiple) {
+      if (!this._el.multiple) {
         if (__DEV__)
           throw createError(`AUR0654: Only null or Array instances can be bound to a multi-select.`);
         else
@@ -279,20 +299,6 @@ export class SelectValueObserver implements IObserver {
     }
   }
 
-  public subscribe(subscriber: ISubscriber): void {
-    if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.handler.subscribe(this._obj, this);
-      this._start();
-    }
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.handler.dispose();
-      this._stop();
-    }
-  }
-
   /** @internal */
   private _flush(): void {
     oV = this._oldValue;
@@ -301,6 +307,7 @@ export class SelectValueObserver implements IObserver {
   }
 }
 
+mixinNodeObserverUseConfig(SelectValueObserver);
 subscriberCollection(SelectValueObserver);
 
 function getSelectedOptions(options: ArrayLike<IOptionElement>): unknown[] {

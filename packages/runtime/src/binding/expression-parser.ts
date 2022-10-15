@@ -106,6 +106,7 @@ export class ExpressionParser {
     $currentChar = $charCodeAt(0);
     $assignable = true;
     $optional = false;
+    $semicolonIndex = -1;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
 }
@@ -290,35 +291,36 @@ const enum Token {
   OpenBracket             = 0b0101001000001_0000_010000,
   CloseBracket            = 0b1110000000000_0000_010011,
   Colon                   = 0b1100000000000_0000_010100,
-  Question                = 0b1100000000000_0000_010101,
-  Ampersand               = 0b1100000000000_0000_010110,
-  Bar                     = 0b1100000000000_0000_010111,
-  QuestionQuestion        = 0b1100100000000_0010_011000,
-  BarBar                  = 0b1100100000000_0011_011001,
-  AmpersandAmpersand      = 0b1100100000000_0100_011010,
-  EqualsEquals            = 0b1100100000000_0101_011011,
-  ExclamationEquals       = 0b1100100000000_0101_011100,
-  EqualsEqualsEquals      = 0b1100100000000_0101_011101,
-  ExclamationEqualsEquals = 0b1100100000000_0101_011110,
-  LessThan                = 0b1100100000000_0110_011111,
-  GreaterThan             = 0b1100100000000_0110_100000,
-  LessThanEquals          = 0b1100100000000_0110_100001,
-  GreaterThanEquals       = 0b1100100000000_0110_100010,
-  InKeyword               = 0b1100100001000_0110_100011,
-  InstanceOfKeyword       = 0b1100100001000_0110_100100,
-  Plus                    = 0b0100110000000_0111_100101,
-  Minus                   = 0b0100110000000_0111_100110,
-  TypeofKeyword           = 0b0000010001000_0000_100111,
-  VoidKeyword             = 0b0000010001000_0000_101000,
-  Asterisk                = 0b1100100000000_1000_101001,
-  Percent                 = 0b1100100000000_1000_101010,
-  Slash                   = 0b1100100000000_1000_101011,
-  Equals                  = 0b1000000000000_0000_101100,
-  Exclamation             = 0b0000010000000_0000_101101,
-  TemplateTail            = 0b0100001000001_0000_101110,
-  TemplateContinuation    = 0b0100001000001_0000_101111,
-  OfKeyword               = 0b1000000001010_0000_110000,
-  Arrow                   = 0b0000000000000_0000_110001,
+  Semicolon               = 0b1100000000000_0000_010101,
+  Question                = 0b1100000000000_0000_010110,
+  Ampersand               = 0b1100000000000_0000_010111,
+  Bar                     = 0b1100000000000_0000_011000,
+  QuestionQuestion        = 0b1100100000000_0010_011001,
+  BarBar                  = 0b1100100000000_0011_011010,
+  AmpersandAmpersand      = 0b1100100000000_0100_011011,
+  EqualsEquals            = 0b1100100000000_0101_011100,
+  ExclamationEquals       = 0b1100100000000_0101_011101,
+  EqualsEqualsEquals      = 0b1100100000000_0101_011110,
+  ExclamationEqualsEquals = 0b1100100000000_0101_011111,
+  LessThan                = 0b1100100000000_0110_100000,
+  GreaterThan             = 0b1100100000000_0110_100001,
+  LessThanEquals          = 0b1100100000000_0110_100010,
+  GreaterThanEquals       = 0b1100100000000_0110_100011,
+  InKeyword               = 0b1100100001000_0110_100100,
+  InstanceOfKeyword       = 0b1100100001000_0110_100101,
+  Plus                    = 0b0100110000000_0111_100110,
+  Minus                   = 0b0100110000000_0111_100111,
+  TypeofKeyword           = 0b0000010001000_0000_101000,
+  VoidKeyword             = 0b0000010001000_0000_101001,
+  Asterisk                = 0b1100100000000_1000_101010,
+  Percent                 = 0b1100100000000_1000_101011,
+  Slash                   = 0b1100100000000_1000_101100,
+  Equals                  = 0b1000000000000_0000_101101,
+  Exclamation             = 0b0000010000000_0000_101110,
+  TemplateTail            = 0b0100001000001_0000_101111,
+  TemplateContinuation    = 0b0100001000001_0000_110000,
+  OfKeyword               = 0b1000000001010_0000_110001,
+  Arrow                   = 0b0000000000000_0000_110010,
 }
 _END_CONST_ENUM();
 
@@ -331,11 +333,12 @@ const $parent = AccessThisExpression.$parent;
 
 export const enum ExpressionType {
           None = 0,
- Interpolation = 0b0_00001,
-    IsIterator = 0b0_00010,
-    IsFunction = 0b0_00100,
-    IsProperty = 0b0_01000,
-    IsCustom   = 0b0_10000,
+ Interpolation = 0b0_000001,
+    IsIterator = 0b0_000010,
+   IsChainable = 0b0_000100,
+    IsFunction = 0b0_001000,
+    IsProperty = 0b0_010000,
+    IsCustom   = 0b0_100000,
 }
 /* eslint-enable @typescript-eslint/indent */
 
@@ -349,6 +352,7 @@ let $tokenValue: string | number = '';
 let $currentChar: number;
 let $assignable: boolean = true;
 let $optional: boolean = false;
+let $semicolonIndex: number = -1;
 
 const stringFromCharCode = String.fromCharCode;
 const $charCodeAt = (index: number) => $input.charCodeAt(index);
@@ -366,6 +370,7 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
   $currentChar = $charCodeAt(0);
   $assignable = true;
   $optional = false;
+  $semicolonIndex = -1;
   return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
 
@@ -840,8 +845,17 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     }
     result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
+
   if ($currentToken !== Token.EOF) {
     if ((expressionType & ExpressionType.Interpolation) > 0 && $currentToken === Token.CloseBrace) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return result as any;
+    }
+    if ((expressionType & ExpressionType.IsChainable) > 0 && $currentToken === Token.Semicolon) {
+      if ($index === $length) {
+        throw unconsumedToken();
+      }
+      $semicolonIndex = $index - 1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
@@ -1265,8 +1279,8 @@ function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement
   }
   nextToken();
   const declaration = result;
-  const statement = parse(Precedence.Variadic, ExpressionType.None);
-  return new ForOfStatement(declaration, statement as IsBindingBehavior);
+  const statement = parse(Precedence.Variadic, ExpressionType.IsChainable);
+  return new ForOfStatement(declaration, statement as IsBindingBehavior, $semicolonIndex);
 }
 
 /**
@@ -1806,7 +1820,7 @@ const unexpectedDoubleDot = () => {
 const TokenValues = [
   $false, $true, $null, $undefined, '$this', null/* '$host' */, '$parent',
 
-  '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
+  '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', ';', '?', '\'', '"',
 
   '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
@@ -2009,6 +2023,7 @@ CharScanners[Char.Comma]        = returnToken(Token.Comma);
 CharScanners[Char.Minus]        = returnToken(Token.Minus);
 CharScanners[Char.Slash]        = returnToken(Token.Slash);
 CharScanners[Char.Colon]        = returnToken(Token.Colon);
+CharScanners[Char.Semicolon]    = returnToken(Token.Semicolon);
 CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);
 CharScanners[Char.CloseBracket] = returnToken(Token.CloseBracket);
 CharScanners[Char.OpenBrace]    = returnToken(Token.OpenBrace);

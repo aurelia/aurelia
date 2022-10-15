@@ -4,7 +4,7 @@ While the docs do a great job explaining the intricacies of the router, sometime
 
 ## Create a routeable component
 
-A component that is loaded as part of a route definition. The `IRouteableComponent`&#x20;
+A component that is loaded as part of a route definition. The `IRouteableComponent`
 
 ```typescript
 import { IRouteableComponent } from '@aurelia/router';
@@ -83,7 +83,7 @@ export class MyApp {
 
 In applications with multiple viewports, some routes might be loaded into specific viewports. You can use the `viewport` property on routes to specify which route.
 
-```
+```typescript
 export class MyApp {
     static routes = [
         {

@@ -1,10 +1,22 @@
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
-/** @internal */ export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
+const O = Object;
+
+/** @internal */ export const baseObjectPrototype = O.prototype;
+
+/** @internal */ export const createLookup = <T = unknown>() => O.create(null) as Record<string, T>;
 
 /** @internal */ export const createError = (message: string) => new Error(message);
 
-/** @internal */ export const hasOwnProperty = Object.prototype.hasOwnProperty;
+/** @internal */ export const hasOwnProperty = baseObjectPrototype.hasOwnProperty;
+
+/** @internal */ export const objectFreeze = O.freeze;
+
+/** @internal */ export const objectAssign = O.assign;
+
+/** @internal */ export const getOwnPropertyNames = O.getOwnPropertyNames;
+
+/** @internal */ export const objectKeys = O.keys;
 
 const IsDataAttribute: Record<string, boolean> = createLookup();
 
@@ -31,8 +43,9 @@ const IsDataAttribute: Record<string, boolean> = createLookup();
 /** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
-/** @internal */ export const defineProp = Object.defineProperty;
+/** @internal */ export const defineProp = O.defineProperty;
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
+/** @internal */ export const areEqual = O.is;
 
 /** @internal */
 export const def = Reflect.defineProperty;

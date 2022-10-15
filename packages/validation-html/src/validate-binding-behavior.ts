@@ -1,17 +1,17 @@
-import { DI, IServiceLocator } from '@aurelia/kernel';
+import { DI, IContainer, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   astEvaluate,
   BindingBehaviorExpression,
+  BindingBehaviorInstance,
   connectable,
+  IAstEvaluator,
   IBinding,
-  IConnectableBinding,
-  IObserverLocator,
-  Scope
+  IConnectable, IConnectableBinding, IObserverLocator, Scope
 } from '@aurelia/runtime';
 import {
-  astEvaluator,
-  bindingBehavior, BindingInterceptor, IPlatform, PropertyBinding, type ICustomElementViewModel
+  bindingBehavior, BindingTargetSubscriber,
+  IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
@@ -51,60 +51,113 @@ export enum ValidationTrigger {
   changeOrFocusout = 'changeOrFocusout',
 }
 
-/* @internal */
 export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
+const validationConnectorMap = new WeakMap<IBinding, ValidatitionConnector>();
+const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();
+
+@bindingBehavior('validate')
+export class ValidateBindingBehavior implements BindingBehaviorInstance {
+  protected static inject = [IPlatform, IObserverLocator];
+
+  /** @internal */
+  private readonly _platform: IPlatform;
+
+  /** @internal */
+  private readonly _observerLocator: IObserverLocator;
+
+  public constructor(
+    platform: IPlatform,
+    observerLocator: IObserverLocator,
+  ) {
+    this._platform = platform;
+    this._observerLocator = observerLocator;
+  }
+
+  public bind(scope: Scope, binding: IBinding) {
+    if (!(binding instanceof PropertyBinding)) {
+      throw new Error('Validate behavior used on non property binding');
+    }
+    let connector = validationConnectorMap.get(binding);
+    if (connector == null) {
+      validationConnectorMap.set(binding, connector = new ValidatitionConnector(
+        this._platform,
+        this._observerLocator,
+        binding.get(IDefaultTrigger),
+        binding as BindingWithBehavior,
+        binding.get(IContainer)
+      ));
+    }
+    let targetSubscriber = validationTargetSubscriberMap.get(binding);
+    if (targetSubscriber == null) {
+      validationTargetSubscriberMap.set(binding, targetSubscriber = new WithValidationTargetSubscriber(
+        connector,
+        binding as BindingWithBehavior,
+        binding.get(IFlushQueue)
+      ));
+    }
+
+    connector.start(scope);
+    // target subscriber will notify connector to validate
+    // only need to connect the target subscriber to the binding via .useTargetSubscriber
+    binding.useTargetSubscriber(targetSubscriber);
+  }
+
+  public unbind(scope: Scope, binding: IBinding) {
+    validationConnectorMap.get(binding)?.stop();
+    // targetSubscriber is automatically unsubscribed by the binding
+    // there's no need to do anything
+  }
+}
+
+interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
-@bindingBehavior('validate')
-export class ValidateBindingBehavior extends BindingInterceptor implements ValidationResultsSubscriber {
-  private propertyBinding: BindingWithBehavior = (void 0)!;
-  private target: HTMLElement = (void 0)!;
+class ValidatitionConnector implements ValidationResultsSubscriber {
+  /** @internal */
+  protected static inject = [IPlatform, IObserverLocator, IDefaultTrigger];
+  private readonly propertyBinding: BindingWithBehavior;
+  private target!: HTMLElement;
   private trigger!: ValidationTrigger;
   private readonly scopedController?: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly defaultTrigger: ValidationTrigger;
-  private scope!: Scope;
-  private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.oL, this.locator);
-  private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.oL, this.locator);
-  private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.oL, this.locator);
+  public scope?: Scope;
   private isDirty: boolean = false;
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
   private bindingInfo!: BindingInfo;
-  private readonly platform: IPlatform;
+  /** @internal */ public readonly l: IServiceLocator;
+  /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _triggerMediator: BindingMediator<'handleTriggerChange'>;
+  /** @internal */ private readonly _controllerMediator: BindingMediator<'handleControllerChange'>;
+  /** @internal */ private readonly _rulesMediator: BindingMediator<'handleRulesChange'>;
 
   public constructor(
-    public readonly binding: BindingWithBehavior,
-    expr: BindingBehaviorExpression,
+    platform: IPlatform,
+    observerLocator: IObserverLocator,
+    defaultTrigger: ValidationTrigger,
+    propertyBinding: BindingWithBehavior,
+    locator: IServiceLocator,
   ) {
-    super(binding, expr);
-    const locator = this.locator;
-    this.platform = locator.get(IPlatform);
-    this.defaultTrigger = locator.get(IDefaultTrigger);
+    this.propertyBinding = propertyBinding;
+    this.target = propertyBinding.target as HTMLElement;
+    this.defaultTrigger = defaultTrigger;
+    this._platform = platform;
+    this.oL = observerLocator;
+    this.l = locator;
+    this._triggerMediator = new BindingMediator('handleTriggerChange', this, observerLocator, locator);
+    this._controllerMediator = new BindingMediator('handleControllerChange', this, observerLocator, locator);
+    this._rulesMediator = new BindingMediator('handleRulesChange', this, observerLocator, locator);
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
-    this._setPropertyBinding();
   }
 
-  public updateSource(value: unknown) {
-    // TODO: need better approach. If done incorrectly may cause infinite loop, stack overflow 💣
-    if (this.interceptor !== this) {
-      this.interceptor.updateSource(value);
-    } else {
-      // let binding = this as BindingInterceptor;
-      // while (binding.binding !== void 0) {
-      //   binding = binding.binding as unknown as BindingInterceptor;
-      // }
-      // binding.updateSource(value, flags);
-
-      // this is a shortcut of the above code
-      this.propertyBinding.updateSource(value);
-    }
-
+  /** @internal */
+  public _onUpdateSource() {
     this.isDirty = true;
     const event = this.triggerEvent;
     if (this.isChangeTrigger && (event === null || event !== null && this.validatedOnce)) {
@@ -118,25 +171,23 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(scope: Scope) {
+  public start(scope: Scope) {
     this.scope = scope;
-    this.binding.$bind(scope);
-    this._setTarget();
+    this.target = this._getTarget();
     const delta = this._processBindingExpressionArgs();
     this._processDelta(delta);
   }
 
-  public $unbind() {
+  public stop() {
     this.task?.cancel();
+    this.scope = void 0;
     this.task = null;
 
-    const event = this.triggerEvent;
-    if (event !== null) {
-      this.target?.removeEventListener(event, this);
+    const triggerEventName = this.triggerEvent;
+    if (triggerEventName !== null) {
+      this.target?.removeEventListener(triggerEventName, this);
     }
     this.controller?.removeSubscriber(this);
-    this.controller?.unregisterBinding(this.propertyBinding);
-    this.binding.$unbind();
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown): void {
@@ -165,12 +216,12 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   /** @internal */
   private _processBindingExpressionArgs(): ValidateArgumentsDelta {
-    const scope: Scope = this.scope;
+    const scope = this.scope!;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
     let controller: ValidationController | undefined;
 
-    let ast = this.propertyBinding.ast;
+    let ast = this.propertyBinding.ast as BindingBehaviorExpression;
     while (ast.name !== 'validate' && ast !== void 0) {
       ast = ast.expression as BindingBehaviorExpression;
     }
@@ -180,13 +231,13 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       const arg = args[i];
       switch (i) {
         case 0:
-          trigger = this._ensureTrigger(astEvaluate(arg, scope, this, this.triggerMediator));
+          trigger = this._ensureTrigger(astEvaluate(arg, scope, this, this._triggerMediator));
           break;
         case 1:
-          controller = this._ensureController(astEvaluate(arg, scope, this, this.controllerMediator));
+          controller = this._ensureController(astEvaluate(arg, scope, this, this._controllerMediator));
           break;
         case 2:
-          rules = this._ensureRules(astEvaluate(arg, scope, this, this.rulesMediator));
+          rules = this._ensureRules(astEvaluate(arg, scope, this, this._rulesMediator));
           break;
         default:
           throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${astEvaluate(arg, scope, this, null)}`);
@@ -203,7 +254,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private validateBinding() {
     // Queue the new one before canceling the old one, to prevent early yield
     const task = this.task;
-    this.task = this.platform.domReadQueue.queueTask(() =>
+    this.task = this._platform.domReadQueue.queueTask(() =>
       this.controller.validateBinding(this.propertyBinding)
     );
     if (task !== this.task) {
@@ -229,7 +280,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
         || trigger === ValidationTrigger.changeOrBlur
         || trigger === ValidationTrigger.changeOrFocusout;
 
-      event = this.setTriggerEvent(this.trigger);
+      event = this.triggerEvent = this._getTriggerEvent(this.trigger);
       if (event !== null) {
         this.target.addEventListener(event, this);
       }
@@ -239,7 +290,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
       this.controller?.unregisterBinding(this.propertyBinding);
 
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, this.setBindingInfo(rules));
+      controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules));
       controller.addSubscriber(this);
     }
   }
@@ -272,32 +323,21 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   /** @internal */
-  private _setPropertyBinding() {
-    let binding: IBinding = this.binding;
-    while (!(binding instanceof PropertyBinding) && binding !== void 0) {
-      binding = (binding as unknown as BindingInterceptor).binding;
-    }
-    if (binding === void 0) {
-      throw new Error('Unable to set property binding');
-    }
-    this.propertyBinding = binding as BindingWithBehavior;
-  }
-
-  /** @internal */
-  private _setTarget() {
+  private _getTarget() {
     const target = this.propertyBinding.target;
-    if (target instanceof this.platform.Node) {
-      this.target = target as HTMLElement;
+    if (target instanceof this._platform.Node) {
+      return target as HTMLElement;
     } else {
       const controller = (target as ICustomElementViewModel)?.$controller;
       if (controller === void 0) {
         throw new Error('Invalid binding target'); // TODO: use reporter
       }
-      this.target = controller.host;
+      return controller.host;
     }
   }
 
-  private setTriggerEvent(trigger: ValidationTrigger) {
+  /** @internal */
+  private _getTriggerEvent(trigger: ValidationTrigger) {
     let triggerEvent: 'blur' | 'focusout' | null = null;
     switch (trigger) {
       case ValidationTrigger.blur:
@@ -309,16 +349,32 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
         triggerEvent = 'focusout';
         break;
     }
-    return this.triggerEvent = triggerEvent;
+    return triggerEvent;
   }
 
-  private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
-    return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+  /** @internal */
+  private _setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
+    return this.bindingInfo = new BindingInfo(this.target, this.scope!, rules);
   }
 }
 
-connectable()(ValidateBindingBehavior);
-astEvaluator(true)(ValidateBindingBehavior);
+connectable()(ValidatitionConnector);
+mixinAstEvaluator(true)(ValidatitionConnector);
+
+class WithValidationTargetSubscriber extends BindingTargetSubscriber {
+  public constructor(
+    private readonly _validationSubscriber: ValidatitionConnector,
+    binding: BindingWithBehavior,
+    flushQueue: IFlushQueue
+  ) {
+    super(binding, flushQueue);
+  }
+
+  public handleChange(value: unknown, _: unknown): void {
+    super.handleChange(value, _);
+    this._validationSubscriber._onUpdateSource();
+  }
+}
 
 class ValidateArgumentsDelta {
   public constructor(
@@ -333,30 +389,14 @@ type MediatedBinding<K extends string> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface BindingMediator<K extends string> extends IConnectableBinding { }
-export class BindingMediator<K extends string> implements IConnectableBinding {
-  public interceptor = this;
-
+export interface BindingMediator<K extends string> extends IConnectable, IAstEvaluator { }
+export class BindingMediator<K extends string> {
   public constructor(
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,
     public oL: IObserverLocator,
-    public locator: IServiceLocator,
+    public readonly l: IServiceLocator,
   ) {
-  }
-
-  public $bind(): void {
-    if (__DEV__)
-      throw new Error(`AUR0213: Method not implemented.`);
-    else
-      throw new Error(`AUR0213:$bind`);
-  }
-
-  public $unbind(): void {
-    if (__DEV__)
-      throw new Error(`AUR0214: Method not implemented.`);
-    else
-      throw new Error(`AUR0214:$unbind`);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown): void {
@@ -365,4 +405,4 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
 }
 
 connectable()(BindingMediator);
-astEvaluator(true)(BindingMediator);
+mixinAstEvaluator(true)(BindingMediator);

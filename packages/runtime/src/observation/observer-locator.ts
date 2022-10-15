@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject } from '../utilities-objects';
 
 import type {
   Collection,
@@ -88,7 +88,7 @@ export class ObserverLocator {
     if (obj == null) {
       throw nullObjectError(key);
     }
-    if (!(obj instanceof Object)) {
+    if (!isObject(obj)) {
       return new PrimitiveObserver(obj as Primitive, key);
     }
     const lookup = getObserverLookup(obj);
@@ -138,9 +138,9 @@ export class ObserverLocator {
         }
         break;
       case 'size':
-        if (obj instanceof Map) {
+        if (isMap(obj)) {
           return getMapObserver(obj).getLengthObserver();
-        } else if (obj instanceof Set) {
+        } else if (isSet(obj)) {
           return getSetObserver(obj).getLengthObserver();
         }
         break;
@@ -204,9 +204,9 @@ export const getCollectionObserver = (collection: RepeatableCollection): Collect
   let obs: CollectionObserver | undefined;
   if (isArray(collection)) {
     obs = getArrayObserver(collection);
-  } else if (collection instanceof Map) {
+  } else if (isMap(collection)) {
     obs = getMapObserver(collection);
-  } else if (collection instanceof Set) {
+  } else if (isSet(collection)) {
     obs = getSetObserver(collection);
   }
   return obs;

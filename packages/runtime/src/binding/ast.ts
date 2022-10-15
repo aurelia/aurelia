@@ -1,13 +1,10 @@
 import { emptyArray } from '@aurelia/kernel';
-import { type IBinding } from '../observation';
-import { type Scope } from '../observation/binding-context';
-import { type IConnectableBinding } from './connectable';
+import type { IBinding, IConnectable } from '../observation';
+import type { Scope } from '../observation/scope';
+import type { IConnectableBinding } from './connectable';
 
-import type { IServiceLocator } from '@aurelia/kernel';
-import type {
-  IConnectable
-} from '../observation';
-import { IVisitor } from './ast.visitor';
+import type { ISignaler } from '../observation/signaler';
+import type { IVisitor } from './ast.visitor';
 
 export {
   astVisit,
@@ -97,8 +94,8 @@ export class CustomExpression {
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
   type?: 'instance' | 'factory';
-  bind?(scope: Scope, binding: IBinding, ...args: T[]): void;
-  unbind?(scope: Scope, binding: IBinding, ...args: T[]): void;
+  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
 } & T;
 
 export class BindingBehaviorExpression {
@@ -315,6 +312,7 @@ export class ForOfStatement {
   public constructor(
     public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
     public readonly iterable: IsBindingBehavior,
+    public readonly semiIdx: number,
   ) {}
 }
 
@@ -388,8 +386,8 @@ export class ArrowFunction {
   boundFn?: boolean;
   /** describe whether the evaluator wants to evaluate the function call in strict mode */
   strictFnCall?: boolean;
-  /** Allow an AST to retrieve a service that it needs */
-  get?: IServiceLocator['get'];
+  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
+  getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */
   getConverter?<T>(name: string): ValueConverterInstance<T> | undefined;
   /** Allow an AST to retrieve a binding behavior that it needs */

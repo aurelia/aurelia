@@ -1,9 +1,10 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition, Router } from '@aurelia/router-lite';
 import { LifecycleFlags, Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { start } from './_shared/create-fixture.js';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);
@@ -2425,6 +2426,347 @@ describe('router (smoke tests)', function () {
       assert.strictEqual(await router.load({ component: CeL23, params: { id: '5', a: '6' } }, { context: ce12 }), true);
       assert.match(location.path, /12\/1\/23\/5\/tt\/6$/);
       BaseRouteViewModel.assertAndClear('params5', ['cel23', [{ id: '5', a: '6' }, new URLSearchParams()]]);
+
+      await au.stop();
+    });
+  });
+
+  describe('transition plan', function () {
+    it('replace - inherited', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan: 'replace',
+        routes: [
+          {
+            id: 'ce1',
+            path: 'ce1',
+            component: CeOne,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2', 'round#2');
+
+      await au.stop();
+    });
+
+    it('replace - inherited - sibling', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeTwo.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan: 'replace',
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1'],
+            component: CeOne,
+          },
+          {
+            id: 'ce2',
+            path: ['ce2'],
+            component: CeTwo,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2');
+
+      await au.stop();
+    });
+
+    it('transitionPlan function #1', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan(current: RouteNode, next: RouteNode) {
+          return next.component.Type === Root ? 'replace' : 'invoke-lifecycles';
+        },
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1'],
+            component: CeOne,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get<Router>(IRouter);
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 2', 'round#2');
+
+      await au.stop();
+    });
+
+    it('transitionPlan function #2 - sibling', async function () {
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeTwo.id2;
+          return true;
+        }
+      }
+
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan(current: RouteNode, next: RouteNode) {
+          return next.component.Type === CeTwo ? 'invoke-lifecycles' : 'replace';
+        },
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1'],
+            component: CeOne,
+          },
+          {
+            id: 'ce2',
+            path: ['ce2'],
+            component: CeTwo,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get<Router>(IRouter);
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2 ce2 1 2', 'round#2');
+
+      await au.stop();
+    });
+
+    it('transitionPlan function #3 - parent-child - parent:replace,child:invoke-lifecycles', async function () {
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeTwo.id2;
+          return true;
+        }
+      }
+
+      @route({
+        routes: [
+          {
+            id: 'ce2',
+            path: ['', 'ce2'],
+            component: CeTwo,
+          },
+        ]
+      })
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2} <au-viewport></au-viewport>' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan(current: RouteNode, next: RouteNode) {
+          return next.component.Type === CeTwo ? 'invoke-lifecycles' : 'replace';
+        },
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1'],
+            component: CeOne,
+          }
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get<Router>(IRouter);
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2'); // this happens as the ce-one (parent) is replaced causing replacement of child
+
+      await au.stop();
+    });
+
+    it('transitionPlan function #3 - parent-child - parent:invoke-lifecycles,child:replace', async function () {
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeTwo.id2;
+          return true;
+        }
+      }
+
+      @route({
+        routes: [
+          {
+            id: 'ce2',
+            path: ['', 'ce2'],
+            component: CeTwo,
+          },
+        ]
+      })
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2} <au-viewport></au-viewport>' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan(current: RouteNode, next: RouteNode) {
+          return next.component.Type === CeOne ? 'invoke-lifecycles' : 'replace';
+        },
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1'],
+            component: CeOne,
+          }
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start(Root, false, CeOne);
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get<Router>(IRouter);
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
+
+      host.querySelector('a').click();
+      await router.currentTr.promise;
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 2 ce2 2 2', 'round#2');
 
       await au.stop();
     });

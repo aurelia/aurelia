@@ -72,7 +72,8 @@ export class RouteDefinition {
   public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): RouteDefinition;
   public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
   public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
-    if (isPartialRedirectRouteConfig(routeable)) return new RouteDefinition(RouteConfig.create(routeable, null), null, parentDefinition);
+    const parentConfig = parentDefinition?.config ?? null;
+    if (isPartialRedirectRouteConfig(routeable)) return new RouteDefinition(RouteConfig._create(routeable, null, parentConfig), null, parentDefinition);
 
     const instruction = this.createNavigationInstruction(routeable);
     let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
@@ -107,12 +108,12 @@ export class RouteDefinition {
         const type = def.Type;
         let config: RouteConfig | null = null;
         if(hasRouteConfigHook) {
-          config = RouteConfig.create((routeable as IRouteViewModel).getRouteConfig!(parentDefinition, routeNode) ?? emptyObject, type);
+          config = RouteConfig._create((routeable as IRouteViewModel).getRouteConfig!(parentDefinition, routeNode) ?? emptyObject, type, parentConfig);
         } else {
           config = isPartialChildRouteConfig(routeable)
           ? Route.isConfigured(type)
-            ? Route.getConfig(type).applyChildRouteConfig(routeable)
-            : RouteConfig.create(routeable, type)
+            ? Route.getConfig(type).applyChildRouteConfig(routeable, parentConfig)
+            : RouteConfig._create(routeable, type, parentConfig)
           : Route.getConfig(def.Type);
         }
 
@@ -133,7 +134,7 @@ export class RouteDefinition {
 
   /** @internal */
   private applyChildRouteConfig(config: IChildRouteConfig) {
-    (this as Writable<RouteDefinition>).config = config = this.config.applyChildRouteConfig(config);
+    (this as Writable<RouteDefinition>).config = config = this.config.applyChildRouteConfig(config, null);
     (this as Writable<RouteDefinition>).hasExplicitPath = config.path !== null;
     (this as Writable<RouteDefinition>).caseSensitive = config.caseSensitive ?? this.caseSensitive;
     (this as Writable<RouteDefinition>).path = ensureArrayOfStrings(config.path ?? this.path);

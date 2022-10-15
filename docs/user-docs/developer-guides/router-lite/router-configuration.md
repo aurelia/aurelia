@@ -304,4 +304,19 @@ Aurelia
 
 ## Configure browser history strategy
 
+By default, the router-lite will interact with Browser history to `push` the navigation state so that an end user can use the back and forward buttons of the browser to navigate back and forth in an application using router-lite.
+Example of this default behavior can be seen in any of the embedded demos on this page.
+
+The default behavior can be customized using the `historyStrategy` configuration option, which can take the following values.
+
+- `push`: This is the default option. Each time a new navigation is performed, the a new state is pushed onto the history.
+- `replace`: This can be used to replace the current state in the history.
+- `none`: Use this if you don't want the router-lite to interact with the history at all. Check out the example below to see it in action.
+
+**Example of `none` history strategy**
+
+{% embed url="https://stackblitz.com/edit/router-lite-historystrategy-none?ctl=1&embed=1&file=src/main.ts" %}
+
+**Example of `replace` history strategy**
+
 TODO

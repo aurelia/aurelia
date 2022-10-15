@@ -40,7 +40,6 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
   SpreadRenderer,
-  ContentBindingRenderer,
 } from './renderer';
 import {
   FromViewBindingBehavior,
@@ -183,7 +182,6 @@ export const RejectedTemplateControllerRegistration = RejectedTemplateController
 export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
 export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
 export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
-export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
 export const AuComposeRegistration = AuCompose as unknown as IRegistry;
@@ -223,7 +221,7 @@ export const DefaultResources = [
   PromiseAttributePatternRegistration,
   FulfilledAttributePatternRegistration,
   RejectedAttributePatternRegistration,
-  AttrBindingBehaviorRegistration,
+  AttrBindingBehavior,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   AuComposeRegistration,
@@ -232,24 +230,6 @@ export const DefaultResources = [
   ShowRegistration,
   AuSlot,
 ];
-
-export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
-export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
-export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
-export const IteratorBindingRendererRegistration = IteratorBindingRenderer as unknown as IRegistry;
-export const LetElementRendererRegistration = LetElementRenderer as unknown as IRegistry;
-export const PropertyBindingRendererRegistration = PropertyBindingRenderer as unknown as IRegistry;
-export const RefBindingRendererRegistration = RefBindingRenderer as unknown as IRegistry;
-export const SetPropertyRendererRegistration = SetPropertyRenderer as unknown as IRegistry;
-export const TemplateControllerRendererRegistration = TemplateControllerRenderer as unknown as IRegistry;
-export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
-export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
-export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
-export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
-export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
-export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
-export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
-export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry;
 
 /**
  * Default renderers for:
@@ -269,24 +249,23 @@ export const SpreadRendererRegistration = SpreadRenderer as unknown as IRegistry
  * - TextBinding: `${}`
  */
 export const DefaultRenderers = [
-  PropertyBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  RefBindingRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  CustomElementRendererRegistration,
-  CustomAttributeRendererRegistration,
-  TemplateControllerRendererRegistration,
-  LetElementRendererRegistration,
-  ListenerBindingRendererRegistration,
-  AttributeBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  SetClassAttributeRendererRegistration,
-  SetStyleAttributeRendererRegistration,
-  StylePropertyBindingRendererRegistration,
-  TextBindingRendererRegistration,
-  ContentBindingRenderer,
-  SpreadRendererRegistration,
+  PropertyBindingRenderer,
+  IteratorBindingRenderer,
+  RefBindingRenderer,
+  InterpolationBindingRenderer,
+  SetPropertyRenderer,
+  CustomElementRenderer,
+  CustomAttributeRenderer,
+  TemplateControllerRenderer,
+  LetElementRenderer,
+  ListenerBindingRenderer,
+  AttributeBindingRenderer,
+  SetAttributeRenderer,
+  SetClassAttributeRenderer,
+  SetStyleAttributeRenderer,
+  StylePropertyBindingRenderer,
+  TextBindingRenderer,
+  SpreadRenderer,
 ];
 
 export const StandardConfiguration = createConfiguration(noop);

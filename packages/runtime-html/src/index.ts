@@ -161,10 +161,32 @@ export {
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
+  SpreadBindingInstruction,
+  SpreadElementPropBindingInstruction,
+
   isInstruction,
   type InstructionTypeName,
   IInstruction,
   InstructionType,
+
+  PropertyBindingRenderer,
+  TextBindingRenderer,
+  ListenerBindingRenderer,
+  LetElementRenderer,
+  TemplateControllerRenderer,
+  AttributeBindingRenderer,
+  CustomAttributeRenderer,
+  CustomElementRenderer,
+  InterpolationBindingRenderer,
+  IteratorBindingRenderer,
+  MultiAttrInstruction,
+  RefBindingRenderer,
+  SetAttributeRenderer,
+  SetClassAttributeRenderer,
+  SetPropertyRenderer,
+  SetStyleAttributeRenderer,
+  SpreadRenderer,
+  StylePropertyBindingRenderer,
 } from './renderer';
 
 export {
@@ -339,29 +361,10 @@ export {
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
-  AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
 
   DefaultResources,
-
-  AttributeBindingRendererRegistration,
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  SetClassAttributeRendererRegistration,
-  SetStyleAttributeRendererRegistration,
-  StylePropertyBindingRendererRegistration,
-  TextBindingRendererRegistration,
-
-  RefBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
 
   DefaultRenderers,
 

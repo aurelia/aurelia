@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
-import { ExpressionType, IExpressionParser, Interpolation, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { ExpressionType, IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
@@ -20,7 +20,6 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
-  ContentBindingInstruction,
 } from '../renderer';
 import { IPlatform } from '../platform';
 import { Bindable, BindableDefinition } from '../bindable';
@@ -30,6 +29,7 @@ import { CustomElement, CustomElementDefinition, CustomElementType, defineElemen
 import { BindingCommand, CommandType } from '../resources/binding-command';
 import { createError, createLookup, isString, objectAssign, objectFreeze } from '../utilities';
 import { allResources, createInterface, singletonRegistration } from '../utilities-di';
+import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, getPreviousSibling } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -45,7 +45,6 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { IProjections } from '../resources/slot-injectables';
 import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
-import { appendChild, appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore } from '../utilities-dom';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -730,7 +729,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        canCapture = realAttrTarget !== 'au-slot' && realAttrTarget !== 'slot';
+        canCapture = realAttrTarget !== AU_SLOT && realAttrTarget !== 'slot';
         if (canCapture) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           // if capture is on, capture everything except:
@@ -951,7 +950,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           // so anything attempting to project into it is discarded
           // doing so during compilation via removing the node,
           // instead of considering it as part of the fallback view
-          if (node.nodeType === 1 && (node as Element).hasAttribute('au-slot')) {
+          if (node.nodeType === 1 && (node as Element).hasAttribute(AU_SLOT)) {
             el.removeChild(node);
           } else {
             appendToTemplate(template, node);
@@ -1000,15 +999,20 @@ export class TemplateCompiler implements ITemplateCompiler {
       tcInstruction = tcInstructions[i];
 
       let template: HTMLTemplateElement;
-      // assumption: el.parentNode is not null
-      // but not always the case: e.g compile/enhance an element without parent with TC on it
-      this._replaceByMarker(el, context);
-      if (el.nodeName === 'TEMPLATE') {
-        template = el as HTMLTemplateElement;
-      } else {
+      if (this._isMarker(el)) {
         template = context.t();
-        appendToTemplate(template, el);
-        // template.content.appendChild(el);
+        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), this._markAsTarget(context.h(auMarkerName))]);
+      } else {
+        // assumption: el.parentNode is not null
+        // but not always the case: e.g compile/enhance an element without parent with TC on it
+        this._replaceByMarker(el, context);
+        if (el.nodeName === 'TEMPLATE') {
+          template = el as HTMLTemplateElement;
+        } else {
+          template = context.t();
+          appendToTemplate(template, el);
+        }
+
       }
       const mostInnerTemplate = template;
       // 4.1.1.0. prepare child context for the inner template compilation
@@ -1089,21 +1093,22 @@ export class TemplateCompiler implements ITemplateCompiler {
               // this means user has some thing more than [au-slot] on a template
               // consider this intentional, and use it as is
               // e.g:
+              // case 1
               // <my-element>
               //   <template au-slot repeat.for="i of items">
               // ----vs----
+              // case 2
               // <my-element>
               //   <template au-slot>this is just some static stuff <b>And a b</b></template>
               if ((slotTemplate as Element).attributes.length > 0) {
+                // case 1
                 appendToTemplate(template, slotTemplate);
-                // template.content.appendChild(slotTemplate);
               } else {
+                // case 2
                 appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-                // template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
               }
             } else {
               appendToTemplate(template, slotTemplate);
-              // template.content.appendChild(slotTemplate);
             }
           }
 
@@ -1279,21 +1284,23 @@ export class TemplateCompiler implements ITemplateCompiler {
               // this means user has some thing more than [au-slot] on a template
               // consider this intentional, and use it as is
               // e.g:
+              // case 1
               // <my-element>
               //   <template au-slot repeat.for="i of items">
               // ----vs----
+              // case 2
               // <my-element>
               //   <template au-slot>this is just some static stuff <b>And a b</b></template>
+
               if ((slotTemplate as Element).attributes.length > 0) {
+                // case 1
                 appendToTemplate(template, slotTemplate);
-                // template.content.appendChild(slotTemplate);
               } else {
+                // case 2
                 appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-                // template.content.appendChild((slotTemplate as HTMLTemplateElement).content);
               }
             } else {
               appendToTemplate(template, slotTemplate);
-              // template.content.appendChild(slotTemplate);
             }
           }
 
@@ -1335,37 +1342,39 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /** @internal */
   private _compileText(node: Text, context: CompilationContext): Node | null {
-    let text = '';
-    let current: Node | null = node;
-    while (current !== null && current.nodeType === 3) {
-      text += current.textContent!;
-      current = current.nextSibling;
-    }
-    const expr = context._exprParser.parse(text, ExpressionType.Interpolation);
-    if (expr === null) {
-      return current;
-    }
-
     const parent = node.parentNode!;
-    // prepare a marker
-    insertManyBefore(parent, node, [
-      context._comment(auStartComment),
-      context._comment(auEndComment),
-      this._markAsTarget(context.h(auMarkerName))
-    ]);
-    // parent.insertBefore(this._markAsTarget(context.h(auMarkerName)), node);
-    // and the corresponding instruction
-    context.rows.push([new TextBindingInstruction(expr, !!context.def.isStrictBinding)]);
+    const expr = context._exprParser.parse(node.textContent!, ExpressionType.Interpolation);
+    const next = node.nextSibling;
+    let parts: readonly string[];
+    let expressions: readonly IsBindingBehavior[];
+    let i: number;
+    let ii: number;
+    let part: string;
+    if (expr !== null) {
+      ({ parts, expressions } = expr);
 
-    // and cleanup all the DOM for rendering text binding
-    node.textContent = '';
-    current = node.nextSibling;
-    while (current !== null && current.nodeType === 3) {
-      parent.removeChild(current);
-      current = node.nextSibling;
+      // foreach normal part, turn into a standard text node
+      if ((part = parts[0])) {
+        insertBefore(parent, context._text(part), node);
+      }
+      for (i = 0, ii = expressions.length; ii > i; ++i) {
+        // foreach expression part, turn into a marker
+        insertManyBefore(parent, node, [
+          context._comment(auStartComment),
+          context._comment(auEndComment),
+          this._markAsTarget(context.h(auMarkerName)),
+        ]);
+        // insertBefore(parent, this._markAsTarget(context.h(auMarkerName)), current);
+        // foreach normal part, turn into a standard text node
+        if ((part = parts[i + 1])) {
+          insertBefore(parent, context._text(part), node);
+        }
+        // and the corresponding instruction
+        context.rows.push([new TextBindingInstruction(expressions[i], context.root.def.isStrictBinding!)]);
+      }
+      parent.removeChild(node);
     }
-
-    return node.nextSibling;
+    return next;
   }
 
   /** @internal */
@@ -1604,6 +1613,15 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
+   * @internal
+   */
+  private _isMarker(el: Node) {
+    return el.nodeName === 'AU-M'
+      && ($prevSibling = getPreviousSibling(el))?.nodeType === 8 && $prevSibling!.textContent === auEndComment
+      && ($prevSibling = getPreviousSibling($prevSibling!))?.nodeType === 8 && $prevSibling!.textContent === auStartComment;
+  }
+
+  /**
    * Mark an element as target with a special css class
    * and return it
    *
@@ -1620,6 +1638,12 @@ export class TemplateCompiler implements ITemplateCompiler {
    * @internal
    */
   private _replaceByMarker(node: Node, context: CompilationContext): HTMLElement {
+    if (node.nodeName === 'AU-M'
+      && ($prevSibling = getPreviousSibling(node))?.nodeType === 8 && $prevSibling!.textContent === auEndComment
+      && ($prevSibling = getPreviousSibling($prevSibling!))?.nodeType === 8 && $prevSibling!.textContent === auStartComment
+    ) {
+      return node as HTMLElement;
+    }
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
     const marker = this._markAsTarget(context.h(auMarkerName));
@@ -1630,7 +1654,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 }
 
-const auMarkerName = 'au-m';
+let $prevSibling: Node | null;
+const auMarkerName = 'AU-M';
 const auStartComment = 'au-start';
 const auEndComment = 'au-end';
 

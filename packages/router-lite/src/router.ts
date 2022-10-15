@@ -291,7 +291,7 @@ export class Router {
   }
 
   private _currentTr: Transition | null = null;
-  private get currentTr(): Transition {
+  public get currentTr(): Transition {
     let currentTr = this._currentTr;
     if (currentTr === null) {
       currentTr = this._currentTr = Transition.create({

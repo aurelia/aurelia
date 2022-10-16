@@ -24,7 +24,7 @@ describe('router-lite/router-containerless.spec.ts', function () {
     })
     class App {}
 
-    const { host } = await start(App);
+    const { host } = await start({ appRoot: App });
 
     assert.strictEqual(null, host.querySelector('foo'));
   });
@@ -49,7 +49,7 @@ describe('router-lite/router-containerless.spec.ts', function () {
     })
     class App {}
 
-    const { host, container } = await start(App);
+    const { host, container } = await start({ appRoot: App });
 
     assert.strictEqual(null, host.querySelector('foo'));
     assert.html.textContent(host.querySelector('au-viewport'), 'foo');

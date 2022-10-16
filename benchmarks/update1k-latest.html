@@ -2,7 +2,7 @@
 import { start } from './latest/dist/app.latest.js';
 
 const host = document.body.appendChild(document.createElement('div'));
-const au = start(host);
+const au = start(host, 1000);
 performance.mark('1k-start');
 
 au.root.controller.viewModel.updateItems();

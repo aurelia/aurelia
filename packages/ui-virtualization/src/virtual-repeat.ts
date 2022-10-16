@@ -256,7 +256,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = itemCount;
       } else {
-        view.nodes.insertBefore(prevView.nodes.firstChild.nextSibling!);
+        view.nodes.insertBefore(prevView.nodes.firstChild!.nextSibling!);
         scope = Scope.fromParent(
           controller.scope,
           new BindingContext(local, collectionStrategy.item(idx))
@@ -407,7 +407,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.bindingContext[local] = collectionStrategy.item(idx);
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = collectionSize;
-        view.nodes.insertBefore(views[0].nodes.firstChild);
+        view.nodes.insertBefore(views[0].nodes.firstChild!);
         views.unshift(view);
         ++idxIncrement;
         --viewsToMoveCount;

@@ -102,7 +102,7 @@ export {
 export {
   IAttrMapper,
   type IsTwoWayPredicate,
-} from './attribute-mapper';
+} from './compiler/attribute-mapper';
 export {
   BindingMode,
   type IBindingController,
@@ -161,10 +161,32 @@ export {
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
+  SpreadBindingInstruction,
+  SpreadElementPropBindingInstruction,
+
   isInstruction,
   type InstructionTypeName,
   IInstruction,
   InstructionType,
+
+  PropertyBindingRenderer,
+  TextBindingRenderer,
+  ListenerBindingRenderer,
+  LetElementRenderer,
+  TemplateControllerRenderer,
+  AttributeBindingRenderer,
+  CustomAttributeRenderer,
+  CustomElementRenderer,
+  InterpolationBindingRenderer,
+  IteratorBindingRenderer,
+  MultiAttrInstruction,
+  RefBindingRenderer,
+  SetAttributeRenderer,
+  SetClassAttributeRenderer,
+  SetPropertyRenderer,
+  SetStyleAttributeRenderer,
+  SpreadRenderer,
+  StylePropertyBindingRenderer,
 } from './renderer';
 
 export {
@@ -339,29 +361,10 @@ export {
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
-  AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
 
   DefaultResources,
-
-  AttributeBindingRendererRegistration,
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  SetClassAttributeRendererRegistration,
-  SetStyleAttributeRendererRegistration,
-  StylePropertyBindingRendererRegistration,
-  TextBindingRendererRegistration,
-
-  RefBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
 
   DefaultRenderers,
 
@@ -369,14 +372,14 @@ export {
 } from './configuration';
 export {
   ITemplateElementFactory
-} from './template-element-factory';
+} from './compiler/template-element-factory';
 export {
   BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,
   templateCompilerHooks,
-} from './template-compiler';
+} from './compiler/template-compiler';
 
 export {
   allResources,

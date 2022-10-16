@@ -1,4 +1,4 @@
-import { Scope, Interpolation, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
+import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
 import {
   LifecycleFlags,
   Repeat,
@@ -6,8 +6,8 @@ import {
   CustomElementDefinition,
   IHydratableController,
   IRenderLocation,
-  PropertyBindingRendererRegistration,
-  TextBindingRendererRegistration,
+  PropertyBindingRenderer,
+  TextBindingRenderer,
   TextBindingInstruction,
   INodeObserverLocatorRegistration,
   IRendering,
@@ -514,15 +514,17 @@ describe(`Repeat`, function () {
 
   const container = createContainer().register(
     INodeObserverLocatorRegistration,
-    PropertyBindingRendererRegistration,
-    TextBindingRendererRegistration,
+    PropertyBindingRenderer,
+    TextBindingRenderer,
   );
 
+  const createStartLocation = () => PLATFORM.document.createComment('au-start');
+  const createEndLocation = () => PLATFORM.document.createComment('au-end');
   const marker = PLATFORM.document.createElement('au-m');
   marker.className = 'au';
   const text = PLATFORM.document.createTextNode('');
   const textTemplate = PLATFORM.document.createElement('template');
-  textTemplate.content.append(marker, text);
+  textTemplate.content.append(createStartLocation(), createEndLocation(), marker, text);
 
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs, flagsSpecs],
@@ -533,7 +535,6 @@ describe(`Repeat`, function () {
         const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         const items = $items.slice();
-        // common stuff
         const baseFlags: LifecycleFlags = LifecycleFlags.none;
 
         const host = PLATFORM.document.createElement('div');
@@ -546,7 +547,7 @@ describe(`Repeat`, function () {
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')]), false),
+              new TextBindingInstruction(new AccessScopeExpression('item'), false),
             ],
           ],
           needsCompile: false,

@@ -1,6 +1,6 @@
 import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform, Class } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
-import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router-lite';
+import { IRouterOptions, RouterConfiguration, IRouter, HistoryStrategy } from '@aurelia/router-lite';
 import { TestContext } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
@@ -90,16 +90,23 @@ export async function createFixture<T extends Constructable>(
   };
 }
 
+type RouterTestStartOptions<TAppRoot> = {
+  appRoot: Class<TAppRoot>;
+  useHash?: boolean;
+  registrations?: any[];
+  historyStrategy?: HistoryStrategy;
+};
+
 /**
  * Simpler fixture creation.
  */
-export async function start<TAppRoot>(appRoot: Class<TAppRoot>, useHash: boolean = false, ...registrations: any[]) {
+export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace' }: RouterTestStartOptions<TAppRoot>) {
   const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(
     TestRouterConfiguration.for(LogLevel.warn),
-    RouterConfiguration.customize({ useUrlFragmentHash: useHash }),
+    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy }),
     ...registrations,
   );
 

@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition, Router } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition, Router, HistoryStrategy, IRouterEvents } from '@aurelia/router-lite';
 import { LifecycleFlags, Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -2458,7 +2458,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
 
       host.querySelector('a').click();
@@ -2515,7 +2515,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
 
       host.querySelector('a').click();
@@ -2557,7 +2557,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
       const router = container.get<Router>(IRouter);
 
@@ -2620,7 +2620,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
       const router = container.get<Router>(IRouter);
 
@@ -2687,7 +2687,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
       const router = container.get<Router>(IRouter);
 
@@ -2754,7 +2754,7 @@ describe('router (smoke tests)', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start(Root, false, CeOne);
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
       const queue = container.get(IPlatform).domWriteQueue;
       const router = container.get<Router>(IRouter);
 
@@ -2770,5 +2770,93 @@ describe('router (smoke tests)', function () {
 
       await au.stop();
     });
+  });
+
+  describe('history strategy', function () {
+    class TestData {
+      public constructor(
+        public readonly strategy: HistoryStrategy,
+        public readonly expectations: string[]
+      ) { }
+    }
+
+    function* getTestData(): Generator<TestData> {
+      yield new TestData('push', [
+        '#1 - len: 1 - state: {"au-nav-id":1}',
+        '#2 - len: 2 - state: {"au-nav-id":2}',
+        '#3 - len: 3 - state: {"au-nav-id":3}',
+        '#4 - len: 4 - state: {"au-nav-id":4}',
+      ]);
+      yield new TestData('replace', [
+        '#1 - len: 1 - state: {"au-nav-id":1}',
+        '#2 - len: 1 - state: {"au-nav-id":2}',
+        '#3 - len: 1 - state: {"au-nav-id":3}',
+        '#4 - len: 1 - state: {"au-nav-id":4}',
+      ]);
+      yield new TestData('none', [
+        '#1 - len: 1 - state: {"au-nav-id":1}', // initial state replace
+        '#2 - len: 1 - state: {"au-nav-id":1}',
+        '#3 - len: 1 - state: {"au-nav-id":1}',
+        '#4 - len: 1 - state: {"au-nav-id":1}',
+      ]);
+    }
+
+    for (const data of getTestData()) {
+      it(data.strategy, async function () {
+
+        @customElement({ name: 'ce-two', template: 'ce2' })
+        class CeTwo implements IRouteViewModel { }
+
+        @customElement({ name: 'ce-one', template: 'ce1' })
+        class CeOne implements IRouteViewModel { }
+
+        @route({
+          routes: [
+            {
+              id: 'ce1',
+              path: ['', 'ce1'],
+              component: CeOne,
+            },
+            {
+              id: 'ce2',
+              path: ['ce2'],
+              component: CeTwo,
+            },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce2"></a><span id="history">${history}</span><au-viewport></au-viewport>' })
+        class Root {
+          private history: string;
+          public constructor(
+            @IHistory history: IHistory,
+            @IRouterEvents events: IRouterEvents
+          ) {
+            let i = 0;
+            events.subscribe('au:router:navigation-end', () => {
+              this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
+            });
+          }
+        }
+
+        const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne, CeTwo], historyStrategy: data.strategy });
+        const queue = container.get(IPlatform).domWriteQueue;
+        const router = container.get<Router>(IRouter);
+
+        const expectations = data.expectations;
+        const len = expectations.length;
+        await queue.yield();
+        const history = host.querySelector<HTMLSpanElement>('#history');
+        assert.html.textContent(history, expectations[0], 'start');
+        const anchors = Array.from(host.querySelectorAll('a'));
+        for (let i = 1; i < len; i++) {
+          anchors[i % 2].click();
+          await router.currentTr.promise;
+          await queue.yield();
+          assert.html.textContent(history, expectations[i], `round#${i}`);
+        }
+
+        await au.stop();
+      });
+    }
   });
 });

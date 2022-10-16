@@ -105,24 +105,17 @@ export class TaskQueue {
   /** @internal */ public _pendingAsyncCount: number = 0;
 
   /** @internal */
-  private _processing: Task[] = [];
-  public get processing(): Task[] {
-    return this._processing;
-  }
+  public _processing: Task[] = [];
 
   /** @internal */
-  private _pending: Task[] = [];
-  public get pending(): Task[] {
-    return this._pending;
-  }
+  public _pending: Task[] = [];
 
   /** @internal */
-  private _delayed: Task[] = [];
-  public get delayed(): Task[] {
-    return this._delayed;
-  }
+  public _delayed: Task[] = [];
 
-  private flushRequested: boolean = false;
+  /** @internal */
+  public _flushRequested: boolean = false;
+
   /** @internal */
   private _yieldPromise: ExposedPromise | undefined = void 0;
 
@@ -137,6 +130,9 @@ export class TaskQueue {
 
   /** @internal */
   private _lastFlush: number = 0;
+
+  /** @internal */
+  private readonly _now: () => number;
 
   public get isEmpty(): boolean {
     return (
@@ -172,13 +168,14 @@ export class TaskQueue {
     private readonly $request: () => void,
     private readonly $cancel: () => void,
   ) {
+    this._now = platform.performanceNow;
     this._tracer = new Tracer(platform.console);
   }
 
-  public flush(time: number = this.platform.performanceNow()): void {
+  public flush(time: number = this._now()): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'flush'); }
 
-    this.flushRequested = false;
+    this._flushRequested = false;
     this._lastFlush = time;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
@@ -251,9 +248,9 @@ export class TaskQueue {
   public cancel(): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'cancel'); }
 
-    if (this.flushRequested) {
+    if (this._flushRequested) {
       this.$cancel();
-      this.flushRequested = false;
+      this._flushRequested = false;
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel'); }
@@ -303,7 +300,7 @@ export class TaskQueue {
       this._requestFlush();
     }
 
-    const time = this.platform.performanceNow();
+    const time = this._now();
 
     let task: Task<T>;
     if (reusable) {
@@ -385,7 +382,7 @@ export class TaskQueue {
   public _resetPersistentTask(task: Task): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'resetPersistentTask'); }
 
-    task.reset(this.platform.performanceNow());
+    task.reset(this._now());
 
     if (task.createdTime === task.queueTime) {
       this._pending[this._pending.length] = task;
@@ -436,9 +433,9 @@ export class TaskQueue {
   private readonly _requestFlush: () => void = () => {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'requestFlush'); }
 
-    if (!this.flushRequested) {
-      this.flushRequested = true;
-      this._lastRequest = this.platform.performanceNow();
+    if (!this._flushRequested) {
+      this._flushRequested = true;
+      this._lastRequest = this._now();
       this.$request();
     }
 
@@ -778,10 +775,10 @@ class Tracer {
 
   private log(prefix: string, obj: TaskQueue | Task, method: string): void {
     if (obj instanceof TaskQueue) {
-      const processing = obj['processing'].length;
-      const pending = obj['pending'].length;
-      const delayed = obj['delayed'].length;
-      const flushReq = obj['flushRequested'];
+      const processing = obj._processing.length;
+      const pending = obj._pending.length;
+      const delayed = obj._delayed.length;
+      const flushReq = obj._flushRequested;
       const susTask = !!obj._suspenderTask;
 
       const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} susTask=${susTask}`;
@@ -855,3 +852,24 @@ const preemptyPersistentComboError = () =>
     : createError(`AUR1007`);
 
 const createError = (msg: string) => new Error(msg);
+
+/**
+ * Retrieve internal tasks information of a TaskQueue
+ */
+export const reportTaskQueue = (taskQueue: TaskQueue) => {
+  const processing = taskQueue._processing;
+  const pending = taskQueue._pending;
+  const delayed = taskQueue._delayed;
+  const flushReq = taskQueue._flushRequested;
+
+  return { processing, pending, delayed, flushRequested: flushReq };
+};
+
+/**
+ * Flush a taskqueue and cancel all the tasks that are queued by the flush
+ * Mainly for debugging purposes
+ */
+export const ensureEmpty = (taskQueue: TaskQueue) => {
+  taskQueue.flush();
+  taskQueue._pending.forEach((x: ITask) => x.cancel());
+};

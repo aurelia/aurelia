@@ -34,6 +34,7 @@ describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () 
       public readonly customElements: CustomElementType[],
       public readonly allExpectedProjections: [string, Record<string, string>][] | null,
       public readonly expectedSlotInfos: ExpectedSlotFallbackInfo[],
+      public readonly only = false,
     ) {
     }
   }
@@ -61,7 +62,7 @@ describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () 
     yield new TestData(
       `<my-element><au-slot au-slot><div au-slot="s1">p1</div><div au-slot="s1">p2</div></au-slot></my-element>`,
       [$createCustomElement('', 'my-element')],
-      [['my-element', { 'default': '<au-m class="au"></au-m>' }]],
+      [['my-element', { 'default': '<!--au-start--><!--au-end--><au-m class="au"></au-m>' }]],
       [],
     );
 
@@ -102,8 +103,8 @@ describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () 
       ],
     );
   }
-  for (const { customElements, template, expectedSlotInfos, allExpectedProjections } of getTestData()) {
-    it(`compiles - ${template}`, function () {
+  for (const { only, customElements, template, expectedSlotInfos, allExpectedProjections } of getTestData()) {
+    (only ? it.only : it)(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
       container.register(AuSlot, ...customElements);
 

@@ -554,16 +554,7 @@ export {
   // ThrottleBindingBehaviorRegistration,
   // TwoWayBindingBehaviorRegistration,
 
-  // RefBindingRendererRegistration,
   // CallBindingRendererRegistration,
-  // CustomAttributeRendererRegistration,
-  // CustomElementRendererRegistration,
-  // InterpolationBindingRendererRegistration,
-  // IteratorBindingRendererRegistration,
-  // LetElementRendererRegistration,
-  // PropertyBindingRendererRegistration,
-  // SetPropertyRendererRegistration,
-  // TemplateControllerRendererRegistration,
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
@@ -791,20 +782,11 @@ export {
   // ToViewBindingCommandRegistration,
   // TwoWayBindingCommandRegistration,
 
-  // AttrBindingBehaviorRegistration,
   // SelfBindingBehaviorRegistration,
   // UpdateTriggerBindingBehaviorRegistration,
   // ComposeRegistration,
 
   // DefaultResources as RuntimeHtmlDefaultResources,
-
-  // AttributeBindingRendererRegistration,
-  // ListenerBindingRendererRegistration,
-  // SetAttributeRendererRegistration,
-  // SetClassAttributeRendererRegistration,
-  // SetStyleAttributeRendererRegistration,
-  // StylePropertyBindingRendererRegistration,
-  // TextBindingRendererRegistration,
 
   // DefaultRenderers,
 
@@ -819,7 +801,6 @@ export {
   // ISetAttributeInstruction,
   // isInstruction,
   // IStylePropertyBindingInstruction,
-  // ITextBindingInstruction,
 
   // NodeSequenceFactory,
   // FragmentNodeSequence,
@@ -829,7 +810,6 @@ export {
   // SetClassAttributeInstruction,
   // SetStyleAttributeInstruction,
   // StylePropertyBindingInstruction,
-  // TextBindingInstruction,
 
   // ContainerlessProjector,
   // HostProjector,

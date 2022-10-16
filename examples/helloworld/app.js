@@ -1,4 +1,5 @@
-import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, /* StandardConfiguration */ } from '@aurelia/runtime-html';
+import { TemplateCompiler, TextBindingRenderer } from '@aurelia/runtime-html';
 
 const App = CustomElement.define(
   {
@@ -12,7 +13,10 @@ const App = CustomElement.define(
   }
 );
 
-void new Aurelia().register(StandardConfiguration).app(
+void new Aurelia().register(
+  TemplateCompiler,
+  TextBindingRenderer,
+).app(
   {
     host: document.getElementById('app'),
     component: App,

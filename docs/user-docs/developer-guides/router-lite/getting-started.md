@@ -35,6 +35,10 @@ Aurelia
 
 <!-- TODO(Sayan): add link to the detailed configuration section -->
 
+{% hint style="info" %}
+To know more about the different configuration options for router-lite, please refer the [documentation](router-configuration.md) on that topic.
+{% endhint %}
+
 ## Create the routable components
 
 For this example, we have a root component which is `MyApp`.
@@ -127,7 +131,7 @@ export class MyApp {}
 
 There are couple of stuffs to note here.
 We start by looking at the configurations defined using the `@route` decorator where we list out the routes under the `routes` property in the configuration object in the `@route` decorator.
-<!-- TODO(Sayan): add link to the detailed configuration section -->
+<!-- TODO(Sayan): add link to the detailed route-configuration section -->
 The most important things in every route configurations are the `path` and the `component` properties.
 This indicates the router to use the defined `component` in the routing viewport when it sees the associated `path`.
 

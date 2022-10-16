@@ -802,9 +802,9 @@ export class Router {
 
         this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
         this._isNavigating = false;
+        this.applyHistoryState(tr);
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-        this.applyHistoryState(tr);
         tr.resolve!(true);
 
         this.runNextTransition();

@@ -192,26 +192,14 @@ export function convertToRenderLocation(node: Node): IRenderLocation {
     return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
   }
 
-  const previousSibling = node.previousSibling;
-  let locationEnd: IRenderLocation;
-  let locationStart: Comment;
+  const locationEnd = node.ownerDocument!.createComment('au-end') as IRenderLocation;
+  const locationStart = locationEnd.$start = node.ownerDocument!.createComment('au-start') as IRenderLocation;
+  const parentNode = node.parentNode;
 
-  if (previousSibling?.nodeType === NodeType.Comment && previousSibling.textContent === 'au-end') {
-    locationEnd = previousSibling as IRenderLocation;
-    locationEnd.$start = locationStart = locationEnd.previousSibling! as Comment;
-    node.parentNode?.removeChild(node);
-    return locationEnd;
+  if (parentNode !== null) {
+    parentNode.replaceChild(locationEnd, node);
+    parentNode.insertBefore(locationStart, locationEnd);
   }
-
-  locationEnd = node.ownerDocument!.createComment('au-end');
-  locationStart = node.ownerDocument!.createComment('au-start');
-
-  if (node.parentNode !== null) {
-    node.parentNode.replaceChild(locationEnd, node);
-    locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
-  }
-
-  (locationEnd).$start = locationStart;
 
   return locationEnd;
 }

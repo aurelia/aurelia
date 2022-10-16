@@ -860,13 +860,13 @@ workflows:
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_startup
-          command: npm run bench:startup1k
+          command: npm run bench:startup10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_rerender
-          command: npm run bench:rerender1k
+          command: npm run bench:rerender10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:

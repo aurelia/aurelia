@@ -72,7 +72,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const template = isString(definition.template) || !partialDefinition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
-    const isTemplateElement = template.nodeName === 'TEMPLATE' && (template as HTMLTemplateElement).content != null;
+    const isTemplateElement = template.nodeName === TEMPLATE_NODE_NAME && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
     const hooks = container.get(allResources(ITemplateCompilerHooks));
     const ii = hooks.length;
@@ -999,9 +999,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       tcInstruction = tcInstructions[i];
 
       let template: HTMLTemplateElement;
-      if (this._isMarker(el)) {
+      if (isMarker(el)) {
         template = context.t();
-        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), this._markAsTarget(context.h(auMarkerName))]);
+        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), this._markAsTarget(context.h(MARKER_NODE_NAME))]);
       } else {
         // assumption: el.parentNode is not null
         // but not always the case: e.g compile/enhance an element without parent with TC on it
@@ -1143,7 +1143,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // ======================
         // only goes inside a template, if there is a template controller on it
         // otherwise, leave it alone
-        if (el.nodeName === 'TEMPLATE') {
+        if (el.nodeName === TEMPLATE_NODE_NAME) {
           this._compileNode((el as HTMLTemplateElement).content, childContext);
         } else {
           child = el.firstChild;
@@ -1177,7 +1177,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // is not really the parent of the most inner one
         // but it's only for the purpose of creating a marker,
         // so it's just an optimization hack
-        marker = this._markAsTarget(context.h(auMarkerName));
+        marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
         appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), marker]);
 
         tcInstruction.def = CustomElementDefinition.create({
@@ -1280,7 +1280,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           slotTemplates = slotTemplateRecord[targetSlot];
           for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
             slotTemplate = slotTemplates[j];
-            if (slotTemplate.nodeName === 'TEMPLATE') {
+            if (slotTemplate.nodeName === TEMPLATE_NODE_NAME) {
               // this means user has some thing more than [au-slot] on a template
               // consider this intentional, and use it as is
               // e.g:
@@ -1362,7 +1362,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         insertManyBefore(parent, node, [
           context._comment(auStartComment),
           context._comment(auEndComment),
-          this._markAsTarget(context.h(auMarkerName)),
+          this._markAsTarget(context.h(MARKER_NODE_NAME)),
         ]);
         // insertBefore(parent, this._markAsTarget(context.h(auMarkerName)), current);
         // foreach normal part, turn into a standard text node
@@ -1616,9 +1616,9 @@ export class TemplateCompiler implements ITemplateCompiler {
    * @internal
    */
   private _isMarker(el: Node) {
-    return el.nodeName === 'AU-M'
-      && ($prevSibling = getPreviousSibling(el))?.nodeType === 8 && $prevSibling!.textContent === auEndComment
-      && ($prevSibling = getPreviousSibling($prevSibling!))?.nodeType === 8 && $prevSibling!.textContent === auStartComment;
+    return el.nodeName === MARKER_NODE_NAME
+      && isComment($prevSibling = getPreviousSibling(el)) && $prevSibling.textContent === auEndComment
+      && isComment($prevSibling = getPreviousSibling($prevSibling)) && $prevSibling.textContent === auStartComment;
   }
 
   /**
@@ -1638,15 +1638,12 @@ export class TemplateCompiler implements ITemplateCompiler {
    * @internal
    */
   private _replaceByMarker(node: Node, context: CompilationContext): HTMLElement {
-    if (node.nodeName === 'AU-M'
-      && ($prevSibling = getPreviousSibling(node))?.nodeType === 8 && $prevSibling!.textContent === auEndComment
-      && ($prevSibling = getPreviousSibling($prevSibling!))?.nodeType === 8 && $prevSibling!.textContent === auStartComment
-    ) {
+    if (isMarker(node)) {
       return node as HTMLElement;
     }
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
-    const marker = this._markAsTarget(context.h(auMarkerName));
+    const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
     // insertBefore(parent, marker, node);
     insertManyBefore(parent, node, [context._comment(auStartComment), context._comment(auEndComment), marker]);
     parent.removeChild(node);
@@ -1655,9 +1652,15 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 let $prevSibling: Node | null;
-const auMarkerName = 'AU-M';
+const MARKER_NODE_NAME = 'AU-M';
+const TEMPLATE_NODE_NAME = 'TEMPLATE';
 const auStartComment = 'au-start';
 const auEndComment = 'au-end';
+const isMarker = (el: Node): boolean =>
+  el.nodeName === MARKER_NODE_NAME
+    && isComment($prevSibling = getPreviousSibling(el)) && $prevSibling.textContent === auEndComment
+    && isComment($prevSibling = getPreviousSibling($prevSibling)) && $prevSibling.textContent === auStartComment;
+const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved

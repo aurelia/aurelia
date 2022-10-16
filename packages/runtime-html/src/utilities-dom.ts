@@ -51,13 +51,14 @@ export const appendManyToTemplate = (parent: HTMLTemplateElement, children: Arra
   }
 };
 
+/** @internal */
 export const markerToLocation = (el: Element) => {
   const previousSibling = el.previousSibling;
   let locationEnd: IRenderLocation;
 
   if (previousSibling?.nodeType === /* Comment */8 && previousSibling.textContent === 'au-end') {
     locationEnd = previousSibling as IRenderLocation;
-    if ((locationEnd.$start = locationEnd.previousSibling! as Comment) == null) {
+    if ((locationEnd.$start = locationEnd.previousSibling! as IRenderLocation) == null) {
       throw markerMalformedError();
     }
     el.parentNode?.removeChild(el);

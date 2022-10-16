@@ -466,6 +466,22 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
 });
 
 describe('3-runtime/interpolation.spec.ts', function () {
+  it('works with strict mode', function () {
+    const { assertText, component, flush } = createFixture(
+      'hey ${id}',
+      CustomElement.define({ name: 'app', isStrictBinding: true }, class { id = undefined; })
+    );
+    assertText('hey undefined');
+
+    component.id = '1';
+    flush();
+    assertText('hey 1');
+
+    component.id = null;
+    flush();
+    assertText('hey null');
+  });
+
   it('observes and updates when bound with array', async function () {
     const { tearDown, appHost, ctx, startPromise } = createFixture(
       `<label repeat.for="product of products">

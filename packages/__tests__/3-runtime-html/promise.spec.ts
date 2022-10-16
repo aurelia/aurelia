@@ -1,4 +1,5 @@
 import {
+  reportTaskQueue,
   Task,
   TaskStatus,
 } from '@aurelia/platform';
@@ -2549,7 +2550,8 @@ describe('promise template-controller', function () {
 
               const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               const postSettleTask = tc['postSettledTask'];
-              const taskNums = [q['pending'].length, q['processing'].length, q['delayed'].length];
+              let { pending, processing, delayed } = reportTaskQueue(q);
+              const taskNums = [pending.length, processing.length, delayed.length];
 
               try {
                 if ($resolve) {
@@ -2563,7 +2565,8 @@ describe('promise template-controller', function () {
               }
               await q.yield();
               assert.strictEqual(tc['postSettledTask'], postSettleTask);
-              assert.deepStrictEqual([q['pending'].length, q['processing'].length, q['delayed'].length], taskNums);
+              ({ pending, processing, delayed } = reportTaskQueue(q));
+              assert.deepStrictEqual([pending.length, processing.length, delayed.length], taskNums);
             },
           );
         }

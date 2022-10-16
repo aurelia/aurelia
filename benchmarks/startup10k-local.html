@@ -2,13 +2,13 @@
 import { start } from './local/dist/app.local.js';
 
 const host = document.body.appendChild(document.createElement('div'));
-performance.mark('1k-start');
-const au = start(host, 1000);
+performance.mark('10k-start');
+const au = start(host, 10000);
 
-performance.mark('1k-end');
+performance.mark('10k-end');
 
 // measure memory in MBs
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
 
-performance.measure('startup-1k', '1k-start', '1k-end');
+performance.measure('startup-10k', '10k-start', '10k-end');
 </script>

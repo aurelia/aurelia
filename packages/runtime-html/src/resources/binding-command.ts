@@ -1,7 +1,7 @@
 import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
 import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import { BindingMode } from '../binding/interfaces-bindings';
-import { IAttrMapper } from '../attribute-mapper';
+import { IAttrMapper } from '../compiler/attribute-mapper';
 import {
   AttributeBindingInstruction,
   PropertyBindingInstruction,

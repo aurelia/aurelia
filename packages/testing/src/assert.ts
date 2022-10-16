@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import { Task, TaskQueue, TaskQueuePriority } from '@aurelia/platform';
+import { Task, TaskQueue, TaskQueuePriority, reportTaskQueue } from '@aurelia/platform';
 import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,
@@ -798,11 +798,8 @@ const areTaskQueuesEmpty = (function () {
       + `    task callback="${task.callback?.toString()}"`;
   }
 
-  function reportTaskQueue(name: string, taskQueue: TaskQueue) {
-    const processing = taskQueue['processing'] as any[];
-    const pending = taskQueue['pending'] as any[];
-    const delayed = taskQueue['delayed'] as any[];
-    const flushReq = taskQueue['flushRequested'];
+  function $reportTaskQueue(name: string, taskQueue: TaskQueue) {
+    const { processing, pending, delayed, flushRequested: flushReq } = reportTaskQueue(taskQueue);
 
     let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
     if (processing.length > 0) {
@@ -828,15 +825,15 @@ const areTaskQueuesEmpty = (function () {
     let isEmpty = true;
     let message = '';
     if (!domWriteQueue.isEmpty) {
-      message += `\n${reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
+      message += `\n${$reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
       isEmpty = false;
     }
     if (!taskQueue.isEmpty) {
-      message += `\n${reportTaskQueue('taskQueue', taskQueue)}\n\n`;
+      message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
       isEmpty = false;
     }
     if (!domReadQueue.isEmpty) {
-      message += `\n${reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
+      message += `\n${$reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
       isEmpty = false;
     }
 

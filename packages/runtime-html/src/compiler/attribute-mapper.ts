@@ -1,6 +1,6 @@
-import { createError, createLookup, isDataAttribute } from './utilities';
-import { ISVGAnalyzer } from './observation/svg-analyzer';
-import { createInterface } from './utilities-di';
+import { createError, createLookup, isDataAttribute } from '../utilities';
+import { ISVGAnalyzer } from '../observation/svg-analyzer';
+import { createInterface } from '../utilities-di';
 
 export interface IAttrMapper extends AttrMapper {}
 export const IAttrMapper = createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));

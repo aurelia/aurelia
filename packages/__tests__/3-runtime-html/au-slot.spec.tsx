@@ -5,7 +5,7 @@ import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomEleme
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('3-runtime-html/au-slot.spec.ts', function () {
+describe('3-runtime-html/au-slot.spec.tsx', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -1038,7 +1038,8 @@ describe('3-runtime-html/au-slot.spec.ts', function () {
         [
           createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot><au-slot with.bind="{item: people[1]}">\${item.firstName}</au-slot>`),
         ],
-        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] },
+        void 0,
       );
     }
     // #endregion

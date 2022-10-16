@@ -304,19 +304,78 @@ Aurelia
 
 ## Configure browser history strategy
 
-By default, the router-lite will interact with Browser history to `push` the navigation state so that an end user can use the back and forward buttons of the browser to navigate back and forth in an application using router-lite.
-Example of this default behavior can be seen in any of the embedded demos on this page.
+Using the `historyStrategy` configuration option it can be instructed, how the router-lite should interact with the browser history object.
+This configuration option can take the following values: `push`, `replace`, and `none`.
 
-The default behavior can be customized using the `historyStrategy` configuration option, which can take the following values.
+### `push`
 
-- `push`: This is the default option. Each time a new navigation is performed, the a new state is pushed onto the history.
-- `replace`: This can be used to replace the current state in the history.
-- `none`: Use this if you don't want the router-lite to interact with the history at all. Check out the example below to see it in action.
+This is the default strategy.
+In this mode, the router-lite will interact with Browser history to `push` a new navigation state each time a new navigation is performed.
+This enables the end users to use the back and forward buttons of the browser to navigate back and forth in an application using router-lite.
 
-**Example of `none` history strategy**
+Check out the following example to see this in action.
+
+{% embed url="https://stackblitz.com/edit/router-lite-historystrategy-push?ctl=1&embed=1&file=src/main.ts" %}
+
+The main configuration can be found in the `main.ts`.
+
+```typescript
+import { RouterConfiguration } from '@aurelia/router-lite';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { MyApp as component } from './my-app';
+
+(async function () {
+  const host = document.querySelector<HTMLElement>('app');
+  const au = new Aurelia();
+  au.register(
+    StandardConfiguration,
+    RouterConfiguration.customize({
+      historyStrategy: 'push', // default value can can be omitted
+    })
+  );
+  au.app({ host, component });
+  await au.start();
+})().catch(console.error);
+```
+
+To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
+
+```typescript
+import { IHistory } from '@aurelia/runtime-html';
+import { IRouterEvents } from '@aurelia/router-lite';
+
+export class MyApp {
+  private history: string;
+  public constructor(
+    @IHistory history: IHistory,
+    @IRouterEvents events: IRouterEvents
+  ) {
+    let i = 0;
+    events.subscribe('au:router:navigation-end', () => {
+      this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
+    });
+  }
+}
+```
+
+As you click the `Home` and `About` links in the example, you can see that the new states are being pushed to the history, and thereby increasing the length of the history.
+
+### `replace`
+
+This can be used to replace the current state in the history.
+Check out the following example to see this in action.
+Note that the following example is identical with the previous example, with the difference of using the `replace`-value as the history strategy.
+
+{% embed url="https://stackblitz.com/edit/router-lite-historystrategy-replace?ctl=1&embed=1&file=src/main.ts" %}
+
+As you interact with this example, you can see that new states are replacing old states, and therefore, unlike the previous example, you don't observe any change in the length of the history.
+
+### `none`
+
+Use this if you don't want the router-lite to interact with the history at all.
+Check out the following example to see this in action.
+Note that the following example is identical with the previous example, with the difference of using the `none`-value as the history strategy.
 
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-none?ctl=1&embed=1&file=src/main.ts" %}
 
-**Example of `replace` history strategy**
-
-TODO
+As you interact with this example, you can see that there is absolutely no change in the history information, indicating non-interaction with the history object.

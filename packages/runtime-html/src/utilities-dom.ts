@@ -3,12 +3,25 @@ import { IPlatform } from './platform';
 import { createError } from './utilities';
 
 /** @internal */
+export const auLocationStart = 'au-start';
+/** @internal */
+export const auLocationEnd = 'au-end';
+
+/** @internal */
 export const createElement
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   = <K extends string>(p: IPlatform, name: K): K extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[K] : HTMLElement => p.document.createElement(name) as any;
 
 /** @internal */
 export const createComment = (p: IPlatform, text: string) => p.document.createComment(text);
+
+/** @internal */
+export const createLocation = (p: IPlatform) => {
+  const locationEnd = createComment(p, auLocationEnd) as IRenderLocation;
+  locationEnd.$start = createComment(p, auLocationStart) as IRenderLocation;
+
+  return locationEnd;
+};
 
 /** @internal */
 export const createText = (p: IPlatform, text: string) => p.document.createTextNode(text);
@@ -19,7 +32,10 @@ export const insertBefore = <T extends Node>(parent: Node, newChildNode: T, targ
 };
 
 /** @internal */
-export const insertManyBefore = (parent: Node, target: Node, newChildNodes: ArrayLike<Node>) => {
+export const insertManyBefore = (parent: Node | null, target: Node | null, newChildNodes: ArrayLike<Node>) => {
+  if (parent === null) {
+    return;
+  }
   const ii = newChildNodes.length;
   let i = 0;
   while (ii > i) {

@@ -4,21 +4,25 @@ import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { createError, isPromise, isString } from '../../utilities';
+import { createError, isPromise, isString, rethrow } from '../../utilities';
+import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { LifecycleFlags, ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
-export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
-type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;
+export type PortalTarget = string | Element | null | undefined;
+type ResolvedTarget = Element;
 
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
-export class Portal<T extends Node & ParentNode = Node & ParentNode> implements ICustomAttributeViewModel {
+export class Portal implements ICustomAttributeViewModel {
   public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable({ primary: true })
   public target: PortalTarget;
+
+  @bindable()
+  public position: InsertPosition = 'beforeend';
 
   @bindable({ callback: 'targetChanged' })
   public renderContext: PortalTarget;
@@ -43,8 +47,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   public view: ISyntheticView;
 
-  /** @internal */ private _currentTarget?: PortalTarget;
+  /** @internal */ private _resolvedTarget: ResolvedTarget;
   /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _targetLocation: IRenderLocation;
 
   public constructor(
     factory: IViewFactory,
@@ -54,9 +59,11 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     this._platform = p;
     // to make the shape of this object consistent.
     // todo: is this necessary
-    this._currentTarget = p.document.createElement('div');
+    this._resolvedTarget = p.document.createElement('div');
 
-    this.view = factory.create();
+    (this.view = factory.create()).setLocation(
+      this._targetLocation = createLocation(p)
+    );
     setEffectiveParentNode(this.view.nodes, originalLoc as unknown as Node);
   }
 
@@ -68,8 +75,8 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope.bindingContext;
     }
-    const newTarget = this._currentTarget = this._resolveTarget();
-    this.view.setHost(newTarget);
+    const newTarget = this._resolvedTarget = this._getTarget();
+    this._moveLocation(newTarget, this.position);
 
     return this._activating(initiator, newTarget, flags);
   }
@@ -79,7 +86,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this._deactivating(initiator, this._currentTarget as T, flags);
+    return this._deactivating(initiator, this._resolvedTarget, flags);
   }
 
   public targetChanged(): void {
@@ -88,33 +95,49 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return;
     }
 
-    const oldTarget = this._currentTarget;
-    const newTarget = this._currentTarget = this._resolveTarget();
+    const newTarget = this._getTarget();
 
-    if (oldTarget === newTarget) {
+    if (this._resolvedTarget === newTarget) {
       return;
     }
+    this._resolvedTarget = newTarget;
 
-    this.view.setHost(newTarget);
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
       this._deactivating(null, newTarget, $controller.flags),
       () => {
+        this._moveLocation(newTarget, this.position);
         return this._activating(null, newTarget, $controller.flags);
       },
     );
-    if (isPromise(ret)) { ret.catch(err => { throw err; }); }
+    if (isPromise(ret)) { ret.catch(rethrow); }
+  }
+
+  public positionChanged(): void {
+    const { $controller, _resolvedTarget } = this;
+    if (!$controller.isActive) {
+      return;
+    }
+    // TODO(fkleuver): fix and test possible race condition
+    const ret = onResolve(
+      this._deactivating(null, _resolvedTarget, $controller.flags),
+      () => {
+        this._moveLocation(_resolvedTarget, this.position);
+        return this._activating(null, _resolvedTarget, $controller.flags);
+      },
+    );
+    if (isPromise(ret)) { ret.catch(rethrow); }
   }
 
   /** @internal */
   private _activating(
     initiator: IHydratedController | null,
-    target: T,
+    target: ResolvedTarget,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { activating, callbackContext, view } = this;
 
-    view.setHost(target);
+    // view.setHost(target);
 
     return onResolve(
       activating?.call(callbackContext, target, view),
@@ -127,13 +150,13 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   /** @internal */
   private _activate(
     initiator: IHydratedController | null,
-    target: T,
+    target: ResolvedTarget,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller, view } = this;
 
     if (initiator === null) {
-      view.nodes.appendTo(target);
+      view.nodes.insertBefore(this._targetLocation);
     } else {
       // TODO(fkleuver): fix and test possible race condition
       return onResolve(
@@ -149,7 +172,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   /** @internal */
   private _activated(
-    target: T,
+    target: ResolvedTarget,
   ): void | Promise<void> {
     const { activated, callbackContext, view } = this;
 
@@ -159,7 +182,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   /** @internal */
   private _deactivating(
     initiator: IHydratedController | null,
-    target: T,
+    target: ResolvedTarget,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { deactivating, callbackContext, view } = this;
@@ -175,7 +198,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   /** @internal */
   private _deactivate(
     initiator: IHydratedController | null,
-    target: T,
+    target: ResolvedTarget,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller, view } = this;
@@ -196,14 +219,15 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
   /** @internal */
   private _deactivated(
-    target: T,
+    target: ResolvedTarget,
   ): void | Promise<void> {
     const { deactivated, callbackContext, view } = this;
 
     return deactivated?.call(callbackContext, target, view);
   }
 
-  private _resolveTarget(): T {
+  /** @internal */
+  private _getTarget(): ResolvedTarget {
     const p = this._platform;
     // with a $ in front to make it less confusing/error prone
     const $document = p.document;
@@ -217,7 +241,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
         else
           throw createError(`AUR0811`);
       }
-      return $document.body as unknown as T;
+      return $document.body;
     }
 
     if (isString(target)) {
@@ -232,7 +256,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     }
 
     if (target instanceof p.Node) {
-      return target as T & Node & ParentNode;
+      return target;
     }
 
     if (target == null) {
@@ -242,10 +266,34 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
         else
           throw createError(`AUR0812`);
       }
-      return $document.body as unknown as T;
+      return $document.body;
     }
 
-    return target as T & Node & ParentNode;
+    return target;
+  }
+
+  /** @internal */
+  private _moveLocation(target: Element, position: InsertPosition) {
+    const end = this._targetLocation;
+    const start = end.$start!;
+    const parent = target.parentNode;
+    const nodes = [start, end];
+    switch (position) {
+      case 'beforeend':
+        insertManyBefore(target, null, nodes);
+        break;
+      case 'afterbegin':
+        insertManyBefore(target, target.firstChild, nodes);
+        break;
+      case 'beforebegin':
+        insertManyBefore(parent, target, nodes);
+        break;
+      case 'afterend':
+        insertManyBefore(parent, target.nextSibling, nodes);
+        break;
+      default:
+        throw new Error('Invalid portal insertion position');
+    }
   }
 
   public dispose(): void {

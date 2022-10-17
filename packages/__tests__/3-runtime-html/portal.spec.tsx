@@ -4,11 +4,77 @@ import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
   eachCartesianJoin,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hJsx, // deepscan-disable-line UNUSED_IMPORT
   TestContext,
+  createFixture,
 } from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
+
+  it('portals to "beforebegin" position', function () {
+    const { assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position: beforebegin">click me</button>
+      </>
+    );
+    assertHtml('<!--au-start--><button>click me</button><!--au-end--><div id="d1">hello</div><!--au-start--><!--au-end-->');
+  });
+
+  it('portals to "afterbegin" position', function () {
+    const { assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position: afterbegin">click me</button>
+      </>
+    );
+    assertHtml('<div id="d1"><!--au-start--><button>click me</button><!--au-end-->hello</div><!--au-start--><!--au-end-->');
+  });
+
+  it('portals to "beforeend" position', function () {
+    const { assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position: beforeend">click me</button>
+      </>
+    );
+    assertHtml('<div id="d1">hello<!--au-start--><button>click me</button><!--au-end--></div><!--au-start--><!--au-end-->');
+  });
+
+  it('portals to "afterend" position', function () {
+    const { assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position: afterend">click me</button>
+      </>
+    );
+    assertHtml('<div id="d1">hello</div><!--au-start--><button>click me</button><!--au-end--><!--au-start--><!--au-end-->');
+  });
+
+  it('moves view when position change beforeend -> afterend', function () {
+    const { component, assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position.bind: position">click me</button>
+      </>,
+      { position: 'beforeend' }
+    );
+    component.position = 'afterend';
+    assertHtml('<div id="d1">hello</div><!--au-start--><button>click me</button><!--au-end--><!--au-start--><!--au-end-->');
+  });
+
+  it('moves view when position change afterend -> beforebegin', function () {
+    const { component, assertHtml } = createFixture(
+      <>
+        <div id="d1">hello</div>
+        <button portal="target: #d1; position.bind: position">click me</button>
+      </>,
+      { position: 'beforeend' }
+    );
+    component.position = 'beforebegin';
+    assertHtml('<!--au-start--><button>click me</button><!--au-end--><div id="d1">hello</div><!--au-start--><!--au-end-->');
+  });
 
   describe('basic', function () {
 
@@ -229,10 +295,10 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
         rootVm: CustomElement.define(
           {
             name: 'app',
-            template: <template>
+            template: <>
               <div ref='divdiv' portal='target.bind: target' class='divdiv'>{'${message}'}</div>
               <div ref='localDiv'></div>
-            </template>
+            </>
           },
           class App {
             public localDiv: HTMLElement;

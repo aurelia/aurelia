@@ -61,6 +61,8 @@ const validPackages = [
   'kernel',
   'runtime',
   'runtime-html',
+  'dialog',
+  'web-components',
   'i18n',
   'fetch-client',
   'route-recognizer',

@@ -4,6 +4,7 @@
   "version": "2.0.0-beta.1",
   "workspaces": [
     "packages/__tests__",
+    "packages/__e2e__/hmr-vite",
     "packages/__e2e__/hmr-webpack",
     "packages/__e2e__/router",
     "packages/__e2e__/router-lite",

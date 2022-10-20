@@ -148,7 +148,7 @@ export class RoutingScope {
       if (instruction.startsWith('./')) {
         instruction = instruction.slice(2);
       } else if (instruction.startsWith('../')) { // Traverse upwards
-        scope = scope?.parent ?? scope;
+        scope = scope.parent ?? scope;
         instruction = instruction.slice(3);
       } else { // Bad traverse instruction
         break;

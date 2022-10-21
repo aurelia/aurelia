@@ -210,6 +210,10 @@ export class ViewportContent extends EndpointContent {
       try {
         this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
       } catch (e) {
+        // TODO: Improve this by extracting the existance check separately
+        if (!(e as Error).message.startsWith('AUR0009:')) {
+          throw e;
+        }
         if (__DEV__) {
           console.warn(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
         }
@@ -232,6 +236,9 @@ export class ViewportContent extends EndpointContent {
             // ...and try again.
             this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
           } catch (ee) {
+            if (!(ee as Error).message.startsWith('AUR0009:')) {
+              throw ee;
+            }
             throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }
         } else {

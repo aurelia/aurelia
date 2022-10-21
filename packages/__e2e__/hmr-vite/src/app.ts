@@ -7,6 +7,5 @@ export class App {
   public constructor(
     @IEventAggregator private readonly ea: IEventAggregator,
   ) {
-    debugger
   }
 }

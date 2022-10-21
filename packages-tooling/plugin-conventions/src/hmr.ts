@@ -3,10 +3,9 @@
  *
  * @param className - The name of the class to generate HMR code for
  * @param moduleText -  Usually module but Vite uses import instead
- * @param type - CustomElement | CustomAttribute
  * @returns Generated HMR code
  */
-export const getHmrCode = (className: string, moduleText: string = 'module'): string => {
+export const getHmrCode = (className: string, moduleText: string = 'module', moduleNames?: string[]): string => {
 
   const code = `
     import { Metadata as $$M } from '@aurelia/metadata';
@@ -20,7 +19,9 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
     if (${moduleText}.hot) {
 
     // @ts-ignore
-    ${moduleText}.hot.accept();
+    ${moduleText}.hot.accept(${moduleNames ? `${JSON.stringify(moduleNames)}, ` : ''} function () {
+      console.log(arguments);
+    });
 
     // @ts-ignore
     const hot = ${moduleText}.hot;

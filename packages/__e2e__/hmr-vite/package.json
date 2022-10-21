@@ -8,7 +8,7 @@
   },
   "version": "2.0.0-alpha.41",
   "scripts": {
-    "dev": "cross-env APP_PORT=9006 concurrently \"vite build -w\" \"http-server dist -p 9006 -s -q\" --kill-others --failure first",
+    "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9006 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9006 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9006 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",

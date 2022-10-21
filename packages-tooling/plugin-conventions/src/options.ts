@@ -39,6 +39,24 @@ export interface IOptionalPreprocessOptions {
   hmr?: boolean;
   enableConventions?: boolean;
   hmrModule?: string;
+  /**
+   * Used to transform a html module import specifier into something else if necessary
+   * Example: changing import `./app.html` ->  `./app.$au.ts`:
+   *
+   * ```
+   * {
+   *   transformHtmlImportSpecifier: specifier => specifier.replace('.html', '.$au.ts')
+   * }
+   * ```
+   */
+  transformHtmlImportSpecifier?: (specifier: string) => string;
+  /**
+   * This gets the generated HMR code for the specified class
+   *
+   * @param viewModelClassName - The name of the class to generate HMR code for
+   * @param moduleName - the name of the module that triggers the hot reload
+   */
+  getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
 }
 
 export interface IPreprocessOptions {
@@ -53,6 +71,24 @@ export interface IPreprocessOptions {
   hmr?: boolean;
   enableConventions?: boolean;
   hmrModule?: string;
+  /**
+   * Used to transform a html module import specifier into something else if necessary
+   * Example: changing import `./app.html` ->  `./app.$au.ts`:
+   *
+   * ```
+   * {
+   *   transformHtmlImportSpecifier: specifier => specifier.replace('.html', '.$au.ts')
+   * }
+   * ```
+   */
+  transformHtmlImportSpecifier?: (specifier: string) => string;
+  /**
+   * This gets the generated HMR code for the specified class
+   *
+   * @param viewModelClassName - The name of the class to generate HMR code for
+   * @param moduleName - the name of the module that triggers the hot reload
+   */
+  getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
 }
 
 export const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];

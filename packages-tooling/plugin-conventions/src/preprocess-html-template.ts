@@ -1,4 +1,3 @@
-import { getHmrCode } from './hmr';
 import * as path from 'path';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
@@ -45,8 +44,13 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   deps.forEach((d, i) => {
     const ext = path.extname(d);
     // All known resource types
-    if (!ext || ext === '.js' || ext === '.ts' || options.templateExtensions.includes(ext)) {
+    if (!ext || ext === '.js' || ext === '.ts') {
       statements.push(`import * as d${i} from ${s(d)};\n`);
+      viewDeps.push(`d${i}`);
+      return;
+    }
+    if (options.templateExtensions.includes(ext)) {
+      statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);
       viewDeps.push(`d${i}`);
       return;
     }
@@ -127,24 +131,22 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
   ].filter(Boolean);
   const definition = `{ ${definitionProperties.join(', ')} }`;
 
-  if (hmrEnabled) {
-    m.append(`const _e = CustomElement.define(${definition});
-      export function register(container) {
-        container.register(_e);
-      }`);
-  } else {
-    m.append(`let _e;
+  // if (hmrEnabled) {
+  //   m.append(`const _e = CustomElement.define(${definition});
+  //     export function register(container) {
+  //       container.register(_e);
+  //     }`);
+  // } else {
+  // }
+  m.append(`const _e = CustomElement.define(${definition});
 export function register(container) {
-  if (!_e) {
-    _e = CustomElement.define(${definition});
-  }
   container.register(_e);
 }
 `);
-  }
 
-  if (hmrEnabled) {
-    m.append(getHmrCode('_e', options.hmrModule));
+  if (hmrEnabled && options.getHmrCode) {
+    // m.append(getHmrCode('_e', options.hmrModule, [unit.path, unit.path.replace('.html', '.$au.ts')]));
+    m.append(options.getHmrCode('_e', unit.path));
   }
 
   const { code, map } = m.transform();

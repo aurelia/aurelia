@@ -4,56 +4,89 @@ import * as path from 'path';
 
 test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
+  const contentMap = new Map<string, string>();
+
   test.beforeEach(async ({ page, baseURL }) => {
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
   });
 
-  // const appFilePath = path.resolve(__dirname, '../src/app.ts');
-  // const originalContent = fs.readFileSync(appFilePath, { encoding: 'utf-8' });
+  let appFilePath: string;
+  let inputFilePath: string;
+  let textFilePath: string;
 
-  // const myInputFilePath = path.resolve(__dirname, '../src/components/my-input.ts');
-  // const originalMyInputContent = fs.readFileSync(myInputFilePath, { encoding: 'utf-8' });
+  [
+    appFilePath = '../src/app.ts',
+    inputFilePath = '../src/components/my-input.ts',
+    textFilePath = '../src/components/my-text.html',
+  ].forEach(file => {
+    const filePath = path.resolve(__dirname, file);
+    const originalContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
 
-  // test.afterEach(() => {
-  //   fs.writeFileSync(appFilePath, originalContent);
-  //   fs.writeFileSync(myInputFilePath, originalMyInputContent);
-  // });
+    contentMap.set(filePath, originalContent);
+  });
+
+  test.afterEach(() => {
+    for (const [filePath, originalContent] of contentMap) {
+      fs.writeFileSync(filePath, originalContent, { encoding: 'utf-8' });
+    }
+  });
 
   test(`rerenders without flushing <input> state`, async function ({ page }) {
+    page.on('console', msg => console.log(msg.text()));
+
     await expect(page.locator('app > div')).toHaveText('Hello World!');
     await page.type('input', 'abc');
     await expect(page.locator('input')).toHaveValue('abc');
+    await page.locator('input').focus();
 
-    // const newContent = `import { IEventAggregator } from '@aurelia/kernel';
+    const newContent = `import { IEventAggregator } from '@aurelia/kernel';
 
-    // export class App {
-    //   public message = 'New Hello World!';
+    export class App {
+      public message = ''
+      public id = 1;
 
-    //   public constructor(
-    //     @IEventAggregator private readonly ea: IEventAggregator,
-    //   ) {}
-    // }
-    // `;
-    // fs.writeFileSync(appFilePath, newContent, { encoding: 'utf-8' });
+      public constructor(
+        @IEventAggregator private readonly ea: IEventAggregator,
+      ) {
+        (window as any).app = this;
+        console.log('built ????', Math.random());
+      }
+    }
+    `;
+    fs.writeFileSync(path.resolve(__dirname, appFilePath), newContent, { encoding: 'utf-8' });
 
-    // await expect(page.locator('app > div')).toHaveText('New Hello World!');
-    // await expect(page.locator('input')).toHaveValue('abc');
+    await new Promise(r => setTimeout(r, 10000));
+    expect(await page.evaluate('window.app?.id')).toEqual(1);
+
+    await expect(page.locator('app > div')).toHaveText('Hello World!');
+    await expect(page.locator('input')).toHaveValue('abc');
+    await expect(page.locator('input')).toBeFocused();
   });
 
   test('retains bindable values', async function ({ page }) {
-    await expect(page.locator('app textarea')).toHaveValue('Hello 2!');
+    await expect(page.locator('app p')).toHaveText('Hello 2!');
 
-    // const newContent = `import { bindable } from 'aurelia';
+    const newContent = `import { bindable } from 'aurelia';
 
-    // export class MyInput {
-    //     @bindable value = 'hello';
-    // }
-    // `;
-    // fs.writeFileSync(myInputFilePath, newContent, { encoding: 'utf-8' });
+    export class MyInput {
+        @bindable value = 'hello';
+    }
+    `;
+    fs.writeFileSync(path.resolve(__dirname, inputFilePath), newContent, { encoding: 'utf-8' });
 
-    // await expect(page.locator('app p')).toHaveText('Hello 2!');
-    // await expect(page.locator('textarea')).toHaveValue('Hello 2!');
+    await expect(page.locator('app p')).toHaveText('Hello 2!');
+    await expect(page.locator('textarea')).toHaveValue('Hello 2!');
+  });
+
+  test.skip('reloads html only module', async function ({ page }) {
+    await expect(page.locator('my-text')).toHaveText('Hello 2!');
+    const newContent =`<bindable name="text"></bindable>new: \${text}`;
+    await fs.promises.writeFile(path.resolve(__dirname, textFilePath), newContent, { encoding: 'utf-8' });
+
+    // it should, but it's not working in test
+    // doing normal app development works???
+    await expect(page.locator('my-text')).toHaveText('new: Hello 2!');
   });
 
   test.skip('invokes binding lifecycle', function () {/* empty */});

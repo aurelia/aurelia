@@ -26,14 +26,14 @@
             <input class="form-control form-control-lg" type="password" placeholder="Password"
               value.bind="local.password" autocomplete="current-password" name="password">
           </fieldset>
-          <button class="btn btn-lg btn-primary pull-xs-right" click.delegate="update()" data-e2e="updateBtn">
+          <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="update()" data-e2e="updateBtn">
             Update Settings
           </button>
         </fieldset>
       </form>
 
       <hr>
-      <button class="btn btn-outline-danger" click.delegate="logout()">
+      <button class="btn btn-outline-danger" click.trigger="logout()">
         Or click here to logout.
       </button>
     </div>

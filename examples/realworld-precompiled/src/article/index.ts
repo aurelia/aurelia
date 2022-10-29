@@ -1,6 +1,6 @@
 import template from './index.html';
 
-import marked from 'marked';
+import { marked } from 'marked';
 import { customElement, IRouteViewModel, Params } from 'aurelia';
 import { IArticleState, IUserState } from '../state';
 import { ArticleMetaCustomElement } from './article-meta';

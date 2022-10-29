@@ -1,3 +1,3 @@
 declare module 'marked' {
-  export default function (input: string): string;
+  export function marked(input: string): string;
 }

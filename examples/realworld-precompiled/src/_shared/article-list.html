@@ -11,7 +11,7 @@
       <span class="date">${article.createdAt | date}</span>
     </div>
     <button class="btn btn-sm pull-xs-right ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
-      click.delegate="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
+      click.trigger="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
       <i class="ion-heart"></i>
       ${article.favoritesCount}
     </button>
@@ -30,7 +30,7 @@
 <nav if.bind="$articleList.pages.length > 1">
   <ul class="pagination">
     <li repeat.for="page of $articleList.pages" class="page-item" active.class="page === $articleList.currentPage"
-      click.delegate="setPage(page)" data-e2e="page-${page}Link">
+      click.trigger="setPage(page)" data-e2e="page-${page}Link">
       <a class="page-link">${page}</a>
     </li>
   </ul>

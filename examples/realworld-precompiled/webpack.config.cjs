@@ -11,6 +11,33 @@ module.exports = function (env, { mode }) {
     resolve: {
       extensions: ['.ts', '.js'],
       modules: [srcDir, 'node_modules'],
+      alias: {
+        'aurelia': path.resolve(__dirname, '..', '..', 'node_modules/aurelia/dist/esm/index.dev.mjs'),
+        ...[
+          'dialog',
+          'fetch-client',
+          'i18n',
+          'kernel',
+          'metadata',
+          'platform',
+          'platform-browser',
+          'route-recognizer',
+          'router',
+          'router-html',
+          'router-lite',
+          'runtime',
+          'runtime-html',
+          'state',
+          'store',
+          'ui-virtualization',
+          'validation',
+          'validation-html',
+          'validation-i18n',
+        ].reduce((map, pkg) => {
+          map[`@aurelia/${pkg}`] = path.resolve(__dirname, '..', '..', `node_modules/@aurelia/${pkg}/dist/esm/index.dev.mjs`);
+          return map;
+        }, {}),
+      },
       mainFields: ['module', 'main'],
     },
     devServer: {

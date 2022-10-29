@@ -48,6 +48,7 @@
     "examples/navigation-skeleton",
     "examples/rainbow-spiral",
     "examples/realworld",
+    "examples/realworld-precompiled",
     "examples/realworld-advanced",
     "examples/router-animation",
     "examples/sierpinski-triangle",

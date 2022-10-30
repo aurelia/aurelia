@@ -7,6 +7,7 @@
     ],
     "module": "esnext",
     "moduleResolution": "node",
+    "sourceMap": true,
     "skipLibCheck": true,
     "strict": true,
     "outDir": "dist",

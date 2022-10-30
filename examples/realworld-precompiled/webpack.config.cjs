@@ -3,10 +3,9 @@ module.exports = function (env, { mode }) {
   const HtmlWebpackPlugin = require('html-webpack-plugin');
   const srcDir = path.resolve(__dirname, 'src');
 
-  const production = mode === 'production';
   return {
-    mode: production ? 'production' : 'development',
-    devtool: production ? 'source-maps' : 'inline-source-map',
+    mode: 'development',
+    devtool: 'source-map',
     entry: './src/main.ts',
     resolve: {
       extensions: ['.ts', '.js'],
@@ -48,6 +47,7 @@ module.exports = function (env, { mode }) {
     module: {
       rules: [
         { test: /\.ts$/, loader: 'ts-loader' },
+        { test: /\.mjs$/, enforce: 'pre', loader: 'source-map-loader' },
         { test: /\.html$/, loader: 'html-loader' },
         { test: /\.css$/, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
       ],

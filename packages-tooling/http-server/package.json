@@ -24,9 +24,11 @@
   "files": [
     "bin",
     "dist/**/*.cjs",
+    "dist/**/*.cjs.map",
     "dist/**/*.mjs",
+    "dist/**/*.mjs.map",
     "dist/**/*.d.ts",
-    "src",
+    "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

@@ -22,9 +22,9 @@
   ],
   "files": [
     "dist/**/*.cjs",
-    "dist/**/*.cjs.map",
+    "dist/**/*.dev.cjs.map",
     "dist/**/*.mjs",
-    "dist/**/*.mjs.map",
+    "dist/**/*.dev.mjs.map",
     "dist/**/*.d.ts",
     "src/**/*.ts",
     "README.md",

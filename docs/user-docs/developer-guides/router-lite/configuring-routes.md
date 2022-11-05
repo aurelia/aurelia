@@ -41,7 +41,7 @@ export class MyApp {}
 For the example above, when the router-lite sees either the path `/` or `/home`, it loads the `Home` component and if it sees the `/about` path it loads the `About` component.
 Note that you can map multiple paths to a single component.
 
-### `path`
+### `path` and parameters
 
 The path defines one or more patterns, which are used by the router-lite to evaluate whether or not an URL matches a route or not.
 A path can be either a static string (empty string is also allowed, and is considered as the default route) without any additional dynamic parts in it, or it can contain parameters.
@@ -50,7 +50,7 @@ The paths defined on every routing hierarchy (note that routing configurations c
 **Required parameters**
 
 Required parameters are prefixed with a colon.
-The following example shows how to have a required parameter in the `path`.
+The following example shows how to use a required parameter in the `path`.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -90,22 +90,51 @@ Check out the live example to see this in action.
 
 **Optional parameters**
 
-Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.
+Optional parameters start with a colon and end with a question mark.
+The following example shows how to use a required parameter in the `path`.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { route } from '@aurelia/router-lite';
+import { Product } from './product';
 
-export class MyApp implements IRouteableComponent {
-  static routes: IRoute[] = [
+@route({
+  routes: [
     {
-      path: 'product/:productId/:variation?',
-      component: import('./components/product-detail')
-    }
-  ]
-}
+      path: 'product/:id?',
+      component: Product,
+    },
+  ],
+})
+export class MyApp {}
 ```
 
-In the above example, we have an optional parameter called variation. We know it's optional because of the question mark at the end. This means if you were to visit this route with supplying the variation parameter, it would still be valid.
+In the example, shown above, the `Product` component is loaded when the router-lite sees paths like `/product` or `/product/some-id`, that is irrespective of a value for the `id` parameter.
+You can see the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-optional-param?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note that there is a additional link added to the `products.html` to fetch a random product.
+
+```html
+<li>
+  <a href="../product">Random product</a>
+</li>
+```
+
+Because the `id` parameter is optional, even without a value for the `id` parameter, clicking the link loads the `Product` component.
+Depending on whether or not there is a value present for the `id` parameter, the `Product` component generates a random id and loads that.
+
+```typescript
+public canLoad(params: Params): boolean {
+  let id = Number(params.id);
+  if (Number.isNaN(id)) {
+    id = Math.ceil(Math.random() * 30);
+  }
+
+  this.promise = this.productService.get(id);
+  return true;
+}
+```
 
 #### Wildcard parameters
 

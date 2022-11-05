@@ -1,52 +1,94 @@
 ---
-description: Learn all there is to know about creating routes in Aurelia.
+description: Learn about configuring routes in Router-Lite.
 ---
 
 # Configuring Routes
 
-The router takes your routing instructions and matches the URL to determine what components to render. In the case of configured routes, when the URL patch matches the configured route path, the component is loaded. If you are using the direct router because there is no configuration the premise is the same without the configuration part.
+The router takes your routing instructions and matches the URL to one of the configured Routes to determine which components to render.
+To register routes you can either use the `@route` decorator or you can use the `static route` property to register one or more routes in your application.
 
-To register routes you can either use the `@route` decorator or you can use the static routes property `static routes` to register one or more routes in your application.
+## Route configuration syntax
 
-## Route syntax
-
-The routing syntax used in the Aurelia router is similar to that of other routers you might have worked with before. If you have worked with Express.js routing, then the syntax will be very familiar to you.
+The routing configuration syntax for router-lite is similar to that of other routers you might have worked with before. If you have worked with Express.js routing, then the syntax will be very familiar to you.
 
 A route is an object containing a few required properties that tell the router what component to render, what URL it should match on and other route-specific configuration options.
 
-At a minimum, a route must contain `path` and `component` properties, or `path` and `redirectTo` properties. The `component` and `redirectTo` properties can be used in place of one another, allowing you to create routes that point to other routes.
+The most usual case of defining a route configuration is by specifying the `path` and the `component` properties.
+The idea is to use the `path` property to define a pattern, which when seen in the URL path, the view model defined using the `component` property is activated by the router-lite.
+Simply put, a routing configuration is a mapping between one or more path patterns to components.
+Below is a simple example of this.
 
 ```typescript
-{
-    path: 'my-route',
-    component: import('./my-component')
-}
-```
+import { route } from '@aurelia/router-lite';
+import { Home } from './home';
+import { About } from './about';
 
-### The anatomy of a route path
-
-The `path` property on a route is where you'll spend the most time configuring your routes. The path tells the router what to match in the URL, what parameters there are and if they're required or not.
-
-A path can be made up of either a static string with no additional values in it, or it can be an array of strings. An empty path value is interpreted as the default route and there should only ever be one specified.
-
-#### Required named parameters
-
-Named required parameters that are prefixed with a colon. `:productId` when used in a path a named required parameter might look like this:
-
-```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
-
-export class MyApp implements IRouteableComponent {
-  static routes: IRoute[] = [
+@route({
+  routes: [
     {
-      path: 'product/:productId',
-      component: import('./components/product-detail')
-    }
-  ]
+      path: ['', 'home'],
+      component: Home,
+    },
+    {
+      path: 'about',
+      component: About,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+For the example above, when the router-lite sees either the path `/` or `/home`, it loads the `Home` component and if it sees the `/about` path it loads the `About` component.
+Note that you can map multiple paths to a single component.
+
+### `path`
+
+The path defines one or more patterns, which are used by the router-lite to evaluate whether or not an URL matches a route or not.
+A path can be either a static string (empty string is also allowed, and is considered as the default route) without any additional dynamic parts in it, or it can contain parameters.
+The paths defined on every routing hierarchy (note that routing configurations can be hierarchical) must be unique.
+
+**Required parameters**
+
+Required parameters are prefixed with a colon.
+The following example shows how to have a required parameter in the `path`.
+
+```typescript
+import { route } from '@aurelia/router-lite';
+import { Product } from './product';
+
+@route({
+  routes: [
+    {
+      path: 'products/:id',
+      component: Product,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+When a given URL matches one such route, the parameter value is made available in the `canLoad`, and `load` [routing hooks](TODO).
+
+```typescript
+import { IRouteViewModel, Params } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+import template from './product.html';
+
+@customElement({ name: 'pro-duct', template })
+export class Product implements IRouteViewModel {
+  public canLoad(params: Params): boolean {
+    console.log(params.id);
+    return true;
+  }
 }
 ```
 
-#### Optional named parameters
+Note that the value of the `id` parameter as defined in the route configuration (`:id`) is available via the `params.id`.
+Check out the live example to see this in action.
+
+{% embed url="https://stackblitz.com/edit/router-lite-required-param?ctl=1&embed=1&file=src/my-app.ts" %}
+
+**Optional parameters**
 
 Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.
 

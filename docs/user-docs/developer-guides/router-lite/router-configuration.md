@@ -1,3 +1,7 @@
+---
+description: Learn about configuring the Router-Lite.
+---
+
 # Router configuration
 
 The router allows you to configure how it interprets and handles routing in your Aurelia applications. The `customize` method on the `RouterConfiguration` object can be used to configure router settings.

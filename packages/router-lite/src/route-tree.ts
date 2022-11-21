@@ -9,6 +9,7 @@ import {
   ConfigurableRoute,
   Endpoint,
   RecognizedRoute,
+  RESIDUE,
 } from '@aurelia/route-recognizer';
 import {
   CustomElementDefinition,
@@ -25,7 +26,6 @@ import {
 import {
   $RecognizedRoute,
   IRouteContext,
-  RESIDUE,
 } from './route-context';
 import {
   defaultViewportName,

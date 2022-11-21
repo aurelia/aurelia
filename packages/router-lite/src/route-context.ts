@@ -1,5 +1,5 @@
 import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
-import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
@@ -16,8 +16,6 @@ import { ViewportAgent, ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
-
-export const RESIDUE = 'au$residue' as const;
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
 
@@ -426,12 +424,7 @@ export class RouteContext {
       path,
       caseSensitive,
       handler,
-    });
-    this.recognizer.add({
-      path: `${path}/*${RESIDUE}`,
-      caseSensitive,
-      handler,
-    });
+    }, true);
   }
 
   public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {

@@ -1,4 +1,4 @@
-import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter } from '@aurelia/route-recognizer';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
@@ -6,6 +6,7 @@ describe(RouteRecognizer.name, function () {
   interface RecognizeSpec {
     routes: [string, Parameter[]][];
     tests: [string, string | null, Record<string, string> | null][];
+    addResidue?: boolean;
   }
 
   const recognizeSpecs: RecognizeSpec[] = [
@@ -2758,12 +2759,29 @@ describe(RouteRecognizer.name, function () {
       ],
     },
     // #endregion
+    // #region
+    {
+      routes: [
+        ['', []],
+        ['a', []],
+        ['b/:1', [new Parameter('1', false, false)]],
+        ['b/:1/*2', [new Parameter('1', false, false), new Parameter('2', true, true)]],
+      ],
+      tests: [
+        ['b/1', 'b/:1', { 1: '1' }],
+        ['b/1/2', 'b/:1/*2', { 1: '1', 2: '2' }],
+        ['b/1/2/3', 'b/:1/*2', { 1: '1', 2: '2/3' }],
+        ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }],
+      ],
+      addResidue: true,
+    }
+    // #endregion
   ];
 
   for (const hasLeadingSlash of [true, false]) {
     for (const hasTrailingSlash of [true, false]) {
       for (const reverseAdd of [true, false]) {
-        for (const { tests, routes: $routes } of recognizeSpecs) {
+        for (const { tests, routes: $routes, addResidue = false } of recognizeSpecs) {
           const routes = reverseAdd ? $routes.slice().reverse() : $routes;
           for (const [path, match, $params] of tests) {
             const leading = hasLeadingSlash ? '/' : '';
@@ -2777,7 +2795,7 @@ describe(RouteRecognizer.name, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, addResidue);
                 }
 
                 // Act
@@ -2794,12 +2812,22 @@ describe(RouteRecognizer.name, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, addResidue);
                 }
 
                 const params = { ...$params };
                 const configurableRoute = new ConfigurableRoute(match, false, null);
-                const endpoint = new Endpoint(configurableRoute, routes.find(([route]) => route === match)[1]);
+                let parameters: Parameter[];
+                if(match.endsWith(`/*${RESIDUE}`)) {
+                  const $match = match.substring(0, match.length - (RESIDUE.length + 2));
+                  parameters = [
+                    ...routes.find(([route]) => route === $match)[1],
+                    new Parameter(RESIDUE, true, true),
+                  ];
+                } else {
+                  parameters = routes.find(([route]) => route === match)[1];
+                }
+                const endpoint = new Endpoint(configurableRoute, parameters);
                 const expected = new RecognizedRoute(endpoint, params);
 
                 // Act

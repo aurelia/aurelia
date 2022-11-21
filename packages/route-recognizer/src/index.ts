@@ -324,25 +324,36 @@ class RecognizeResult<T> {
   }
 }
 
+/**
+ * Reserved parameter name that's used when registering a route with residual star segment (catch-all).
+ */
+export const RESIDUE = '$$residue' as const;
+
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
 
-  public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[]): void {
+  public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
-        this.$add(route);
+        this.$add(route, false);
+        if (addResidue) {
+          this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
+        }
       }
     } else {
-      this.$add(routeOrRoutes);
+      this.$add(routeOrRoutes, false);
+      if (addResidue) {
+        this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
+      }
     }
 
     // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
     this.cache.clear();
   }
 
-  private $add(route: IConfigurableRoute<T>): void {
+  private $add(route: IConfigurableRoute<T>, addResidue: boolean): void {
     const path = route.path;
     const lookup = this.endpointLookup;
     if(lookup.has(path)) throw createError(`Cannot add duplicate path '${path}'.`);
@@ -362,14 +373,22 @@ export class RouteRecognizer<T> {
         case ':': { // route parameter
           const isOptional = part.endsWith('?');
           const name = isOptional ? part.slice(1, -1) : part.slice(1);
+          if (name === RESIDUE) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
           params.push(new Parameter(name, isOptional, false));
           state = new DynamicSegment<T>(name, isOptional).appendTo(state);
           break;
         }
         case '*': { // dynamic route
           const name = part.slice(1);
+          let kind: SegmentKind.residue | SegmentKind.star;
+          if (name === RESIDUE) {
+            if (!addResidue) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
+            kind = SegmentKind.residue;
+          } else {
+            kind = SegmentKind.star;
+          }
           params.push(new Parameter(name, true, true));
-          state = new StarSegment<T>(name).appendTo(state);
+          state = new StarSegment<T>(name, kind).appendTo(state);
           break;
         }
         default: { // standard path route
@@ -503,6 +522,7 @@ class State<T> {
         this.isOptional = segment.optional;
         break;
       case SegmentKind.star:
+      case SegmentKind.residue:
         this.length = prevState!.length + 1;
         this.isSeparator = false;
         this.isDynamic = true;
@@ -561,6 +581,7 @@ class State<T> {
       case SegmentKind.dynamic:
         return !this.value.includes(ch);
       case SegmentKind.star:
+      case SegmentKind.residue:
         return true;
       case SegmentKind.static:
       case undefined:
@@ -582,9 +603,10 @@ type AnySegment<T> = (
 
 _START_CONST_ENUM();
 const enum SegmentKind {
-  star    = 1,
-  dynamic = 2,
-  static  = 3,
+  residue = 1, // used when default residue segment is registered.
+  star = 2,
+  dynamic = 3,
+  static = 4,
 }
 _END_CONST_ENUM();
 
@@ -655,10 +677,9 @@ class DynamicSegment<T> {
 }
 
 class StarSegment<T> {
-  public get kind(): SegmentKind.star { return SegmentKind.star; }
-
   public constructor(
     public readonly name: string,
+    public readonly kind: SegmentKind.star | SegmentKind.residue,
   ) {}
 
   public appendTo(state: AnyState<T>): StarState<T> {
@@ -672,7 +693,7 @@ class StarSegment<T> {
 
   public equals(b: AnySegment<T>): boolean {
     return (
-      b.kind === SegmentKind.star &&
+      (b.kind === SegmentKind.star || b.kind === SegmentKind.residue) &&
       b.name === this.name
     );
   }

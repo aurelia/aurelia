@@ -138,7 +138,8 @@ public canLoad(params: Params): boolean {
 
 #### Wildcard parameters
 
-Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead of using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.
+The wildcard parameters, start with an asterisk instead of a colon, act as a catch-all, capturing everything provided after it.
+
 
 ```typescript
 import { IRouteableComponent, IRoute } from "@aurelia/router";

@@ -335,16 +335,18 @@ export class RouteRecognizer<T> {
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
+    let params: readonly Parameter[];
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
-        this.$add(route, false);
-        if (addResidue) {
-          this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
-        }
+        params = this.$add(route, false).params;
+        // add residue iff the last parameter is not a star segment.
+        if (!addResidue || (params[params.length - 1]?.isStar ?? false)) continue;
+        this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
       }
     } else {
-      this.$add(routeOrRoutes, false);
-      if (addResidue) {
+      params = this.$add(routeOrRoutes, false).params;
+        // add residue iff the last parameter is not a star segment.
+      if (addResidue && !(params[params.length - 1]?.isStar ?? false)) {
         this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
       }
     }
@@ -353,7 +355,7 @@ export class RouteRecognizer<T> {
     this.cache.clear();
   }
 
-  private $add(route: IConfigurableRoute<T>, addResidue: boolean): void {
+  private $add(route: IConfigurableRoute<T>, addResidue: boolean): Endpoint<T> {
     const path = route.path;
     const lookup = this.endpointLookup;
     if(lookup.has(path)) throw createError(`Cannot add duplicate path '${path}'.`);
@@ -402,6 +404,7 @@ export class RouteRecognizer<T> {
 
     state.setEndpoint(endpoint);
     lookup.set(path, endpoint);
+    return endpoint;
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {

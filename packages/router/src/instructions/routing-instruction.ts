@@ -461,8 +461,9 @@ export class RoutingInstruction {
    * @param context - The context (used for syntax) within to stringify the instructions
    * @param excludeEndpoint - Whether to exclude endpoint names in the string
    * @param endpointContext - Whether to include endpoint context in the string
+   * @param shallow - Whether to stringify next scope instructions
    */
-  public stringify(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
+  public stringify(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, endpointContext: boolean = false, shallow = false): string {
     const seps = Separators.for(context);
     let excludeCurrentEndpoint = excludeEndpoint;
     let excludeCurrentComponent = false;
@@ -497,7 +498,7 @@ export class RoutingInstruction {
 
     // It's a configured route that's already added as part of a configuration, so skip to next scope!
     if (this.route instanceof FoundRoute && !this.routeStart) {
-      return Array.isArray(nextInstructions)
+      return !shallow && Array.isArray(nextInstructions)
         ? RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext)
         : '';
     }
@@ -505,7 +506,7 @@ export class RoutingInstruction {
     stringified += path.endsWith(seps.scope) ? path.slice(0, -seps.scope.length) : path;
 
     // If any next scope/child instructions...
-    if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
+    if (!shallow && Array.isArray(nextInstructions) && nextInstructions.length > 0) {
       // ...get them as string...
       const nextStringified = RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext);
       if (nextStringified.length > 0) {

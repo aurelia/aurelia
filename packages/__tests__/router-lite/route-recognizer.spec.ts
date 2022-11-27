@@ -1,4 +1,4 @@
-import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter } from '@aurelia/route-recognizer';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
@@ -2777,7 +2777,7 @@ describe(RouteRecognizer.name, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, false);
                 }
 
                 // Act
@@ -2794,7 +2794,7 @@ describe(RouteRecognizer.name, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, false);
                 }
 
                 const params = { ...$params };
@@ -2812,6 +2812,78 @@ describe(RouteRecognizer.name, function () {
               });
             }
           }
+        }
+      }
+    }
+  }
+
+  for (const hasLeadingSlash of [true, false]) {
+    for (const hasTrailingSlash of [true, false]) {
+      for (const reverseAdd of [true, false]) {
+        const $routes: [string, Parameter[], boolean][] = [
+          ['', [], true],
+          ['a', [], true],
+          ['b/:1', [new Parameter('1', false, false)], true],
+          ['b/:1/*2', [new Parameter('1', false, false), new Parameter('2', true, true)], false],
+        ];
+        const tests: [string, string | null, Record<string, string> | null][] = [
+          ['b/1', 'b/:1', { 1: '1' }],
+          ['b/1/2', 'b/:1/*2', { 1: '1', 2: '2' }],
+          ['b/1/2/3', 'b/:1/*2', { 1: '1', 2: '2/3' }],
+          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }],
+        ];
+
+        const routes = reverseAdd ? $routes.slice().reverse() : $routes;
+        for (const [path, match, $params] of tests) {
+          const leading = hasLeadingSlash ? '/' : '';
+          const trailing = hasTrailingSlash ? '/' : '';
+
+          let title = `should`;
+          const input = `${leading}${path}${trailing}`;
+          title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
+
+          it(title, function () {
+            // Arrange
+            const sut = new RouteRecognizer();
+            for (const [route] of routes) {
+              sut.add({ path: route, handler: null }, true);
+            }
+
+            for (const [route, parameters, residueAdded] of routes) {
+              const endpoint = sut.getEndpoint(route);
+              assert.notEqual(endpoint, null);
+              assert.deepStrictEqual(endpoint.params, parameters);
+              const residueEndpoint = sut.getEndpoint(`${route}/*${RESIDUE}`);
+              if(residueAdded) {
+                assert.notEqual(residueEndpoint, null);
+              } else {
+                assert.equal(residueEndpoint, null);
+              }
+            }
+
+            const params = { ...$params };
+            const configurableRoute = new ConfigurableRoute(match, false, null);
+            let parameters: Parameter[];
+            if(match.endsWith(`/*${RESIDUE}`)) {
+              const $match = match.substring(0, match.length - (RESIDUE.length + 2));
+              parameters = [
+                ...routes.find(([route]) => route === $match)[1],
+                new Parameter(RESIDUE, true, true),
+              ];
+            } else {
+              parameters = routes.find(([route]) => route === match)[1];
+            }
+            const endpoint = new Endpoint(configurableRoute, parameters);
+            const expected = new RecognizedRoute(endpoint, params);
+
+            // Act
+            const actual1 = sut.recognize(path);
+            const actual2 = sut.recognize(path);
+
+            // Assert
+            assert.deepStrictEqual(actual1, actual2, `consecutive calls should return the same result`);
+            assert.deepStrictEqual(actual1, expected);
+          });
         }
       }
     }

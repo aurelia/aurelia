@@ -1,5 +1,6 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
+import { Metadata } from '@aurelia/metadata';
 import { BindingMode } from './binding/interfaces-bindings';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './utilities-metadata';
 import { isString, objectFreeze, objectKeys } from './utilities';
@@ -329,13 +330,6 @@ function apiTypeCheck() {
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
-/** @internal */
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace Reflect {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
-}
-
 export function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void {
   Coercer.define(target, property);
 }
@@ -352,7 +346,7 @@ const Coercer = {
 };
 
 function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
+  const type: PropertyType | null = def.type ?? Metadata.get('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;
   switch (type) {

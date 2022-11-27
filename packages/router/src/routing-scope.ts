@@ -17,6 +17,7 @@ import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement
 import { IContainer } from '@aurelia/kernel';
 import { arrayRemove, arrayUnique } from './utilities/utils';
 import { Parameters } from './instructions/instruction-parameters';
+import { Separators } from './router-options';
 
 export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
 
@@ -71,7 +72,7 @@ export class RoutingScope {
    */
   public children: RoutingScope[] = [];
 
-  public path: string | null = null;
+  // public path: string | null = null;
 
   public constructor(
     public readonly router: IRouter,
@@ -95,12 +96,12 @@ export class RoutingScope {
     // console.log('Created RoutingScope', this.id, this);
   }
 
-  public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope | null {
+  public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null, instruction?: string): { scope: RoutingScope | null; instruction: string | undefined } {
     if (origin == null) {
-      return null;
+      return { scope: null, instruction };
     }
     if (origin instanceof RoutingScope || origin instanceof Viewport || origin instanceof ViewportScope) {
-      return origin.scope;
+      return { scope: origin.scope, instruction };
     }
     // return this.getClosestScope(origin) || this.rootScope!.scope;
     let container: IContainer | null | undefined;
@@ -121,12 +122,44 @@ export class RoutingScope {
       }
     }
     if (container == null) {
-      return null;
+      if (__DEV__) {
+        console.warn("RoutingScope failed to find a container for provided origin", origin);
+      }
+      return { scope: null, instruction };
     }
     const closestEndpoint = (container.has(Router.closestEndpointKey, true)
       ? container.get(Router.closestEndpointKey)
       : null) as Endpoint | null;
-    return closestEndpoint?.scope ?? null;
+
+    let scope = closestEndpoint?.scope ?? null;
+
+    if (scope === null || instruction === undefined) {
+      const safeInstruction = instruction ?? '';
+      return { scope, instruction: safeInstruction.startsWith('/') ? safeInstruction.slice(1) : instruction };
+    }
+
+    // Instruction specifies from root scope
+    if (instruction.startsWith('/')) {
+      return { scope: null, instruction: instruction.slice(1) };
+    }
+    // Instruction specifies scope traversals
+    while (instruction.startsWith('.')) {
+      // The same as no scope modification
+      if (instruction.startsWith('./')) {
+        instruction = instruction.slice(2);
+      } else if (instruction.startsWith('../')) { // Traverse upwards
+        scope = scope.parent ?? scope;
+        instruction = instruction.slice(3);
+      } else { // Bad traverse instruction
+        break;
+      }
+    }
+    // Testing without this since it seems to be removed
+    // if (scope?.path != null) {
+    //   instruction = `${scope.path}/${instruction}`;
+    //   scope = null; // scope.root;
+    // }
+    return { scope, instruction };
   }
 
   /**
@@ -162,7 +195,14 @@ export class RoutingScope {
   }
 
   public get pathname(): string {
-    return `${this.owningScope !== this ? this.owningScope!.pathname : ''}/${this.endpoint!.name}`;
+    return `${this.owningScope !== this ? this.owningScope!.pathname : ''}/${this.endpoint.name}`;
+  }
+
+  public get path(): string {
+    const parentPath = this.parent?.path ?? '';
+    const path = this.routingInstruction?.stringify(this.router, false, true, true) ?? '';
+    const sep = this.routingInstruction ? Separators.for(this.router).scope : '';
+    return `${parentPath}${path}${sep}`;
   }
 
   public toString(recurse = false): string {

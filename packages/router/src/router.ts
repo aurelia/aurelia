@@ -512,7 +512,7 @@ export class Router implements IRouter {
    */
   public disconnectEndpoint(step: Step | null, endpoint: Viewport | ViewportScope, connectedCE: IConnectedCustomElement): void {
     if (!endpoint.connectedScope.parent!.removeEndpoint(step, endpoint, connectedCE)) {
-      throw new Error("Failed to remove endpoint: " + endpoint.name);
+      throw new Error("Router failed to remove endpoint: " + endpoint.name);
     }
   }
 
@@ -568,43 +568,24 @@ export class Router implements IRouter {
     if ('origin' in options && !('context' in options)) {
       options.context = options.origin;
     }
-    // let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
-    let scope = RoutingScope.for(options.context ?? null) ?? /* router.rootScope!.scope ?? */ null;
+
+    const { scope, instruction } = RoutingScope.for(options.context ?? null, typeof loadInstructions === 'string' ? loadInstructions : undefined);
     if (typeof loadInstructions === 'string') {
-      // If it's not from scope root, figure out which scope
-      if (!(loadInstructions).startsWith('/')) {
-        // Scope modifications
-        if ((loadInstructions).startsWith('.')) {
-          // The same as no scope modification
-          if ((loadInstructions).startsWith('./')) {
-            loadInstructions = (loadInstructions).slice(2);
-          }
-          // Find out how many scopes upwards we should move
-          while ((loadInstructions as string).startsWith('../')) {
-            scope = scope?.parent ?? scope;
-            loadInstructions = (loadInstructions as string).slice(3);
-          }
-        }
-        if (scope?.path != null) {
-          loadInstructions = `${scope.path}/${loadInstructions as string}`;
-          scope = null; // router.rootScope!.scope;
-        }
-      } else { // Specified root scope with /
-        scope = null; // router.rootScope!.scope;
-      }
       if (!keepString) {
-        loadInstructions = RoutingInstruction.from(this, loadInstructions);
-        for (const instruction of loadInstructions as RoutingInstruction[]) {
-          if (instruction.scope === null) {
-            instruction.scope = scope;
+        loadInstructions = RoutingInstruction.from(this, instruction as string);
+        for (const loadInstruction of loadInstructions as RoutingInstruction[]) {
+          if (loadInstruction.scope === null) {
+            loadInstruction.scope = scope;
           }
         }
+      } else {
+        loadInstructions = instruction as string;
       }
     } else {
       loadInstructions = RoutingInstruction.from(this, loadInstructions);
-      for (const instruction of loadInstructions as RoutingInstruction[]) {
-        if (instruction.scope === null) {
-          instruction.scope = scope;
+      for (const loadInstruction of loadInstructions as RoutingInstruction[]) {
+        if (loadInstruction.scope === null) {
+          loadInstruction.scope = scope;
         }
       }
     }
@@ -737,7 +718,7 @@ export class Router implements IRouter {
       if (!this.loadedFirst) {
         this.appendedInstructions.push(...instructions);
       } else {
-        throw Error('Failed to append routing instructions to coordinator');
+        throw Error('Router failed to append routing instructions to coordinator');
       }
     }
     coordinator?.enqueueAppendedInstructions(instructions);
@@ -763,7 +744,7 @@ export class Router implements IRouter {
     while (matchedInstructions.length > 0) {
       // Guard against endless loop
       if (guard-- === 0) {
-        throw new Error('Failed to find viewport when updating viewer paths.');
+        throw new Error('Router failed to find viewport when updating viewer paths.');
       }
       matchedInstructions = matchedInstructions.map(instruction => {
         const { matchedInstructions } = instruction.endpoint.instance!.scope.matchEndpoints(instruction.nextScopeInstructions ?? [], [], true);

@@ -82,8 +82,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
         }
         value = RoutingInstruction.stringify(this.router, [instruction]);
       }
+      const { scope, instruction } = RoutingScope.for(this.element, value);
+      const scopePath = scope?.path ?? '';
+      value = `${scopePath}${instruction ?? ''}`;
       if (this.router.configuration.options.useUrlFragmentHash && !value.startsWith('#')) {
-        value = `#${value}`;
+        value = `#/${value}`;
       }
       this.element.setAttribute('href', value);
     }
@@ -109,7 +112,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     if (typeof value === 'string') {
       return new FoundRoute();
     }
-    const scope = RoutingScope.for(this.element) ?? this.router.rootScope!.scope;
+    const scope = RoutingScope.for(this.element).scope ?? this.router.rootScope!.scope;
     if (value.id != null) {
       return scope.findMatchingRoute(value.id, value.parameters as Parameters ?? {});
     }

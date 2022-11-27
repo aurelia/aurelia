@@ -91,7 +91,7 @@ Check out the live example to see this in action.
 **Optional parameters**
 
 Optional parameters start with a colon and end with a question mark.
-The following example shows how to use a required parameter in the `path`.
+The following example shows how to use an optional parameter in the `path`.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -139,22 +139,40 @@ public canLoad(params: Params): boolean {
 #### Wildcard parameters
 
 The wildcard parameters, start with an asterisk instead of a colon, act as a catch-all, capturing everything provided after it.
-
+The following example shows how to use a wildcard parameter in the `path`.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { route } from '@aurelia/router-lite';
+import { Product } from './product';
 
-export class MyApp implements IRouteableComponent {
-  static routes: IRoute[] = [
+@route({
+  routes: [
     {
-      path: 'files/*path',
-      component: import('./components/files-manager')
-    }
-  ]
-}
+      id: 'foo',
+      path: ['product/:id', 'product/:id/*rest'],
+      component: Product,
+    },
+  ],
+})
+export class MyApp {}
 ```
 
-In the above code example, we can have an endless path after which is supplied as a value to the `canLoad` and `load` methods.
+In the example, shown above, the `Product` component is loaded when the router-lite sees paths like `/product/some-id` or `/product/some-id/foo/bar`.
+You can see the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-wildcard-param?ctl=1&embed=1&file=src/my-app.ts" %}
+
+The example utilizes a wildcard parameter named `rest`, and when the value of `rest` is `'image'`, an image for the product is shown.
+To this end, the `canLoad` hook of the `Product` view-model reads the `rest` parameter.
+
+```typescript
+public canLoad(params: Params): boolean {
+  const id = Number(params.id);
+  this.promise = this.productService.get(id);
+  this.showImage = params.rest == 'image';
+  return true;
+}
+```
 
 ### Route configuration options
 

@@ -11,7 +11,7 @@ const noRoutes = emptyArray as RouteConfig['routes'];
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
  * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
  * - `IChildRouteConfig`: a standalone child route config object.
- * - `Routeable`: see `Routeable`.
+ * - `RouteableComponent`: see `RouteableComponent`.
  *
  * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)

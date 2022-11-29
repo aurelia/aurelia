@@ -17,7 +17,7 @@ A route is an object containing a few required properties that tell the router w
 The most usual case of defining a route configuration is by specifying the `path` and the `component` properties.
 The idea is to use the `path` property to define a pattern, which when seen in the URL path, the view model defined using the `component` property is activated by the router-lite.
 Simply put, a routing configuration is a mapping between one or more path patterns to components.
-Below is a simple example of this.
+Below is the simple example (from the [getting started section](getting-started.md)) of this.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -41,7 +41,12 @@ export class MyApp {}
 ```
 
 For the example above, when the router-lite sees either the path `/` or `/home`, it loads the `Home` component and if it sees the `/about` path it loads the `About` component.
+
+{% hint style="info" %}
 Note that you can map multiple paths to a single component.
+Although these paths can be thought of as aliases, multiple paths, in combination with [path parameters](#path-and-parameters) gets interesting.
+Another way of creating aliases is to use the [`redirectTo`](#redirect-to-another-path) configuration option.
+{% endhint %}
 
 Note that the example above uses the `@route` decorator.
 In case you cannot use the decorator, you can use the static properties instead.
@@ -247,6 +252,60 @@ With this configuration in place, the default-built title will be `Home | Aureli
 That is, the titles of the child routes precedes the base title.
 You can customize this default behavior by using a [custom `buildTitle` function](./router-configuration.md#customizing-title) when customizing the router configuration.
 
+## Redirect to another path
+
+By specifying the `redirectTo` property on our route, we can create route aliases.
+These allow us to redirect to other routes.
+In the following example, we redirect our default route to the `home` page and the `about-us` to `about` page.
+
+```typescript
+@route({
+  routes: [
+    { path: '', redirectTo: 'home' },
+    { path: 'about-us', redirectTo: 'about' },
+    {
+      path: 'home',
+      component: Home,
+    },
+    {
+      path: 'about',
+      component: About,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+You can see this action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-redirect?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note that redirection also works when there are multiple paths/aliases defined for the same component.
+
+```typescript
+@route({
+  routes: [
+    { path: 'foo', redirectTo: 'home' },
+    { path: 'bar', redirectTo: 'about' },
+    { path: 'fizz', redirectTo: 'about-us' },
+    {
+      path: ['', 'home'],
+      component: Home,
+      title: 'Home',
+    },
+    {
+      path: ['about', 'about-us'],
+      component: About,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+You can see this action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths?ctl=1&embed=1&file=src/my-app.ts" %}
+
 ### Route configuration options
 
 Besides the basics of `path` and `component` a route can have additional configuration options.
@@ -263,43 +322,6 @@ Besides the basics of `path` and `component` a route can have additional configu
 * `data` — Any custom data that should be accessible to matched components or hooks. This is where you can specify data such as roles and other permissions.
 * `routes` — The child routes that can be navigated from this route.
 
-### Redirect
-
-By specifying the `redirectTo` property on our route, we can create route aliases. These allow us to redirect to other routes. In the following example, we redirect our default route to the products page.
-
-```typescript
-@route({
-  routes: [
-    { path: '', redirectTo: 'products' },
-    { path: 'products', component: import('./products'), title: 'Products' },
-    { path: 'product/:id', component: import('./product'), title: 'Product' }
-  ]
-})
-export class MyApp {
-
-}
-```
-
-## Specify routes
-
-When creating routes, it is important to note that the `component` property can do more than accept inline import statements. If you prefer, you can also import the component and specify the component class as the component property.
-
-```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
-import { HomePage } from './components/home-page';
-
-export class MyApp implements IRouteableComponent {
-  static routes: IRoute[] = [
-    {
-      path: ['', 'home'],
-      component: HomePage,
-      title: 'Home',
-    }
-  ]
-}
-```
-
-As you will learn towards the end of this section, inline import statements allow you to implement lazy loaded routes (which might be needed as your application grows in size).
 
 ### Create routes using a static property
 
@@ -439,23 +461,6 @@ You can also specify a component that gets loaded like a normal route:
 }
 ```
 
-## Lazy loaded routes
-
-Most modern bundlers like Webpack support lazy bundling and loading of Javascript code. The Aurelia router allows you to create routes that are lazily loaded only when they are evaluated. What this allows us to do is keep the initial page load bundle size down, only loading code when it is needed.
-
-```typescript
-    {
-      path: 'product/:productId',
-      component: () => import('./components/product-detail')
-    }
-```
-
-By specifying an arrow function that returns an inline `import` we are telling the bundler that our route is to be lazily loaded when requested.
-
-{% hint style="warning" %}
-Inline import statements are a relatively new feature. Inside your tsconfig.json file, ensure you have your module property set to esnext to support inline import statements using this syntax.
-{% endhint %}
-
 ## Passing information between routes
 
 We went over creating routes with support for parameters in the creating routes section, but there is an additional property you can specify on a route called `data,` which allows you to associate metadata with a route.
@@ -502,6 +507,17 @@ In your HTML, if you were to create some links with `load` attributes and visit 
 <a load="about">About</a>
 <a load="home">Home</a>
 ```
+
+## Specifying component
+TODO(Sayan): complete this section
+- component name (CE name)
+- inline import; demo: https://stackblitz.com/edit/router-lite-component-inline-import?file=src%2Fmy-app.ts
+{% hint style="warning" %}
+Inline import statements are a relatively new feature. Inside your tsconfig.json file, ensure you have your module property set to esnext to support inline import statements using this syntax.
+{% endhint %}
+- function returning a class
+- custom element definition
+- existing custom element instance
 
 TODO(Sayan): verify the content above ^^
 

@@ -5,9 +5,10 @@ description: Learn about configuring routes in Router-Lite.
 # Configuring Routes
 
 The router takes your routing instructions and matches the URL to one of the configured Routes to determine which components to render.
-To register routes you can either use the `@route` decorator or you can use the `static route` property to register one or more routes in your application.
+To register routes you can either use the `@route` decorator or you can use the `static routes` property to register one or more routes in your application.
+This section describes the route configuration options in details.
 
-## Route configuration syntax
+## Route configuration basics
 
 The routing configuration syntax for router-lite is similar to that of other routers you might have worked with before. If you have worked with Express.js routing, then the syntax will be very familiar to you.
 
@@ -24,6 +25,7 @@ import { Home } from './home';
 import { About } from './about';
 
 @route({
+  title: 'Aurelia',
   routes: [
     {
       path: ['', 'home'],
@@ -41,13 +43,42 @@ export class MyApp {}
 For the example above, when the router-lite sees either the path `/` or `/home`, it loads the `Home` component and if it sees the `/about` path it loads the `About` component.
 Note that you can map multiple paths to a single component.
 
-### `path` and parameters
+Note that the example above uses the `@route` decorator.
+In case you cannot use the decorator, you can use the static properties instead.
+For example, the example, shown above, can be rewritten as follows.
+
+```typescript
+import { Routeable } from '@aurelia/router-lite';
+import { Home } from './home';
+import { About } from './about';
+
+export class MyApp {
+  // corresponds to the `title` property in the options object used in the @route decorator.
+  static title: string = 'Aurelia';
+
+  // corresponds to the `routes` property in the options object used in the @route decorator.
+  static routes: Routeable[] = [
+    {
+      path: ['', 'home'],
+      component: Home,
+    },
+    {
+      path: 'about',
+      component: About,
+    },
+  ];
+}
+```
+
+As the re-written example shows, you can convert the properties in the options object used for the `@route` decorator into `static` properties in the view model class.
+
+## `path` and parameters
 
 The path defines one or more patterns, which are used by the router-lite to evaluate whether or not an URL matches a route or not.
 A path can be either a static string (empty string is also allowed, and is considered as the default route) without any additional dynamic parts in it, or it can contain parameters.
 The paths defined on every routing hierarchy (note that routing configurations can be hierarchical) must be unique.
 
-**Required parameters**
+### Required parameters
 
 Required parameters are prefixed with a colon.
 The following example shows how to use a required parameter in the `path`.
@@ -88,7 +119,7 @@ Check out the live example to see this in action.
 
 {% embed url="https://stackblitz.com/edit/router-lite-required-param?ctl=1&embed=1&file=src/my-app.ts" %}
 
-**Optional parameters**
+### Optional parameters
 
 Optional parameters start with a colon and end with a question mark.
 The following example shows how to use an optional parameter in the `path`.
@@ -136,7 +167,7 @@ public canLoad(params: Params): boolean {
 }
 ```
 
-#### Wildcard parameters
+### Wildcard parameters
 
 The wildcard parameters, start with an asterisk instead of a colon, act as a catch-all, capturing everything provided after it.
 The following example shows how to use a wildcard parameter in the `path`.
@@ -174,17 +205,59 @@ public canLoad(params: Params): boolean {
 }
 ```
 
+## Setting the title
+
+You can configure the title for the routes while you are configuring the routes.
+The title can be configured in the root level, as well as in the individual route level.
+This can be seen in the following example using the `@route` decorator.
+
+```typescript
+import { route, IRouteViewModel } from '@aurelia/router-lite';
+@route({
+    title: 'Aurelia', // <-- this is the base title
+    routes: [
+      {
+        path: ['', 'home'],
+        component: import('./components/home-page'),
+        title: 'Home',
+      }
+    ]
+})
+export class MyApp implements IRouteViewModel {}
+```
+
+If you prefer using the static `routes` property, the title can be set using a static `title` property in the class.
+The following example has exactly the same effect as of the previous example.
+
+```typescript
+import { IRouteViewModel, Routeable } from "aurelia";
+export class MyApp implements IRouteViewModel {
+  static title: string = 'Aurelia'; // <-- this is the base title
+  static routes: Routeable[] = [
+    {
+      path: ['', 'home'],
+      component: import('./components/home-page'),
+      title: 'Home',
+    }
+  ];
+}
+```
+
+With this configuration in place, the default-built title will be `Home | Aurelia` when user is navigated to `/` or `/home` route.
+That is, the titles of the child routes precedes the base title.
+You can customize this default behavior by using a [custom `buildTitle` function](./router-configuration.md#customizing-title) when customizing the router configuration.
+
 ### Route configuration options
 
 Besides the basics of `path` and `component` a route can have additional configuration options.
 
-* `id` — The unique ID for this route
+* `id` — The unique ID for this route. This can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc).
 * `redirectTo` — Allows you to specify whether this route redirects to another route. If the `redirectTo` path starts with `/` it is considered absolute, otherwise relative to the parent path.
 * `caseSensitive` — Determines whether the `path` should be case sensitive. By default, this is `false`
 * `transitionPlan` — How to behave when this component is scheduled to be loaded again in the same viewport. Valid values for transitionPlan are:
   * `replace` — completely removes the current component and creates a new one, behaving as if the component changed.
-  * `invoke-lifecycles` — calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed)
-  * `none` — does nothing (default if nothing has changed for the viewport)
+  * `invoke-lifecycles` — calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed).
+  * `none` — does nothing (default if nothing has changed for the viewport).
 * `title` — Specify a title for the route. This can be a string, or it can be a function that returns a string.
 * `viewport` — The name of the viewport this component should be loaded into.
 * `data` — Any custom data that should be accessible to matched components or hooks. This is where you can specify data such as roles and other permissions.
@@ -433,44 +506,3 @@ In your HTML, if you were to create some links with `load` attributes and visit 
 TODO(Sayan): verify the content above ^^
 
 
-## Setting the title
-
-You can set the title while you are configuring the routes.
-The title can be configured in the root level, as well as in the individual route level.
-This can be seen in the following example using the `@route` decorator.
-
-```typescript
-import { route, IRouteViewModel } from '@aurelia/router-lite';
-@route({
-    title: 'Aurelia', // <-- this is the base title
-    routes: [
-      {
-        path: ['', 'home'],
-        component: import('./components/home-page'),
-        title: 'Home',
-      }
-    ]
-})
-export class MyApp implements IRouteViewModel {}
-```
-
-If you prefer using the static `routes` property, the title can be set using a static `title` property in the class.
-The following example has exactly the same effect as of the previous example.
-
-```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
-export class MyApp implements IRouteViewModel {
-  static title: string = 'Aurelia'; // <-- this is the base title
-  static routes: Routeable[] = [
-    {
-      path: ['', 'home'],
-      component: import('./components/home-page'),
-      title: 'Home',
-    }
-  ];
-}
-```
-
-With this configuration in place, the default-built title will be `Home | Aurelia` when user is navigated to `/` or `/home` route.
-That is, the titles of the child routes precedes the base title.
-You can customize this default behavior by using a [custom `buildTitle` function](./router-configuration.md#customizing-title) when customizing the router configuration.

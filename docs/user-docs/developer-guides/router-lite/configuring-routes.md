@@ -306,11 +306,60 @@ You can see this action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths?ctl=1&embed=1&file=src/my-app.ts" %}
 
+## Fallback: redirecting the unknown path
+
+We can instruct the router-lite to the users to a different configured path, whenever it sees any unknown/un-configured paths.
+To this end, we can use the `fallback` configuration option.
+Following example shows how to use this configuration option.
+
+{% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths?ctl=1&embed=1&file=src/my-app.ts" %}
+
+As the example shows, the `fallback` is configured as follows.
+
+```typescript
+import { route } from '@aurelia/router-lite';
+import template from './my-app.html';
+import { Home } from './home';
+import { About } from './about';
+import { NotFound } from './not-found';
+
+@route({
+  routes: [
+    {
+      path: ['', 'home'],
+      component: Home,
+      title: 'Home',
+    },
+    {
+      path: 'about',
+      component: About,
+      title: 'About',
+    },
+    {
+      path: 'notfound',
+      component: NotFound,
+      title: 'Not found',
+    },
+  ],
+  fallback: 'notfound',
+})
+export class MyApp {}
+```
+
+There is a custom element, named `NotFound`, which is meant to be loaded when any unknown/un-configured route is encountered.
+As you can see in the above example, clicking the "Foo" link that is with un-configured `href`, leads to the `NotFound` view.
+
+Another way of defining the `fallback` is to use the [route-`id`](#route-configuration-options).
+The following example demonstrates this behavior, where the `NotFound` view can be reached via multiple aliases, and instead of choosing one of these aliases the route-`id` is used to refer the route.
+
+{% embed url="https://stackblitz.com/edit/router-lite-fallback-using-routeid?ctl=1&embed=1&file=src/my-app.ts" %}
+
+
 ### Route configuration options
 
 Besides the basics of `path` and `component` a route can have additional configuration options.
 
-* `id` — The unique ID for this route. This can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc).
+* `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. This can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
 * `redirectTo` — Allows you to specify whether this route redirects to another route. If the `redirectTo` path starts with `/` it is considered absolute, otherwise relative to the parent path.
 * `caseSensitive` — Determines whether the `path` should be case sensitive. By default, this is `false`
 * `transitionPlan` — How to behave when this component is scheduled to be loaded again in the same viewport. Valid values for transitionPlan are:

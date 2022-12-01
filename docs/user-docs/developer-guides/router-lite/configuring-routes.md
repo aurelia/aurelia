@@ -354,6 +354,11 @@ The following example demonstrates this behavior, where the `NotFound` view can 
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-using-routeid?ctl=1&embed=1&file=src/my-app.ts" %}
 
+The name of the custom element, meant to be displayed for any un-configured route can also be used to define `fallback`.
+The following example demonstrates this behavior, where `not-found`, the name of custom element `NotFound`, is used to refer the route.
+
+{% embed url="https://stackblitz.com/edit/router-lite-fallback-using-ce-name?ctl=1&embed=1&file=src/not-found.ts" %}
+
 
 ### Route configuration options
 

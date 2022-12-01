@@ -503,7 +503,7 @@ function createAndAppendNodes(
 
             log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
             const rr = ctx.recognize(fallback, true);
-            if (rr !== null) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
+            if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
 
             // fallback is not recognized as a configured route; treat as CE and look for a route definition.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);

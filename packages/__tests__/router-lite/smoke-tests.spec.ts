@@ -789,7 +789,7 @@ describe('router (smoke tests)', function () {
     });
 
     for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
-      it(`will load the fallback when navigating to a non-existing route - with ${name} - with mode: ${mode}`, async function () {
+      it(`will load the fallback when navigating to a non-existing route - with ${name} - with mode: ${mode} - viewport`, async function () {
         @customElement({ name: 'ce-a', template: 'a' })
         class A { }
         @route({
@@ -830,7 +830,7 @@ describe('router (smoke tests)', function () {
         assert.areTaskQueuesEmpty();
       });
 
-      it(`will load the global-fallback when navigating to a non-existing route - with mode: ${mode}`, async function () {
+      it(`will load the global-fallback when navigating to a non-existing route - with ${name} - with mode: ${mode}`, async function () {
         @customElement({ name: 'ce-a', template: 'a' })
         class A { }
         @route({
@@ -914,6 +914,51 @@ describe('router (smoke tests)', function () {
         assert.areTaskQueuesEmpty();
       });
     }
+
+    it(`will load the global-fallback when navigating to a non-existing route - with ce-name - with mode: ${mode} - with empty route`, async function () {
+      @customElement({ name: 'ce-a', template: 'a' })
+      class A { }
+      @customElement({ name: 'n-f', template: 'nf' })
+      class NF { }
+      @route({
+        routes: [
+          { id: 'r1', path: ['', 'a'], component: A, transitionPlan: 'invoke-lifecycles' },
+          { id: 'r2', path: ['nf'], component: NF, transitionPlan: 'invoke-lifecycles' },
+        ],
+        fallback: 'n-f',
+      })
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport>`,
+        dependencies: [A, NF],
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
+      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await router.load('b');
+
+      assertComponentsVisible(host, [Root, [NF]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
 
     it(`will load the global-fallback when navigating to a non-existing route - parent-child - with mode: ${mode}`, async function () {
       @customElement({ name: 'ce-a01', template: 'ac01' })

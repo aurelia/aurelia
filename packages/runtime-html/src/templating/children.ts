@@ -3,11 +3,13 @@ import { subscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { isArray, isString, objectFreeze, objectKeys } from '../utilities';
+import { IPlatform } from '../platform';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import type { ICustomElementViewModel, ICustomElementController } from './controller';
+import type { BrowserPlatform } from '@aurelia/platform-browser';
 
 export type PartialChildrenDefinition = {
   callback?: string;
@@ -175,6 +177,9 @@ export class ChildrenObserver {
   private children: unknown[] = (void 0)!;
   private observer: MutationObserver | undefined = void 0;
 
+  /** @internal */
+  private readonly _platform: IPlatform;
+
   public constructor(
     private readonly controller: ICustomElementController,
     public readonly obj: IIndexable,
@@ -185,6 +190,7 @@ export class ChildrenObserver {
     private readonly map = defaultChildMap,
     private readonly options?: MutationObserverInit
   ) {
+    this._platform = this.controller.container.get(IPlatform);
     this.callback = obj[cbName] as typeof ChildrenObserver.prototype.callback;
     Reflect.defineProperty(
       this.obj,
@@ -208,7 +214,7 @@ export class ChildrenObserver {
     if (!this.observing) {
       this.observing = true;
       this.children = this.get();
-      (this.observer ??= new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this._onChildrenChanged(); }))
+      (this.observer ??= new (this._platform as BrowserPlatform).MutationObserver(() => { this._onChildrenChanged(); }))
         .observe(this.controller.host, this.options);
     }
   }

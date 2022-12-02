@@ -1,11 +1,14 @@
 import { subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { createError, isString } from '../utilities';
+import { IPlatform } from '../platform';
 
 import type {
   IObserver,
   ISubscriber,
   ISubscriberCollection,
 } from '@aurelia/runtime';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { BrowserPlatform } from '@aurelia/platform-browser';
 
 export interface AttributeObserver extends
   IObserver,
@@ -41,15 +44,20 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   /** @internal */
   private readonly _attr: string;
 
+  /** @internal */
+  private readonly _platform: IPlatform;
+
   public constructor(
     obj: HTMLElement,
     // todo: rename to attr and sub-attr
     prop: string,
     attr: string,
+    locator: IServiceLocator,
   ) {
     this._obj = obj;
     this._prop = prop;
     this._attr = attr;
+    this._platform = locator.get(IPlatform);
   }
 
   public getValue(): unknown {
@@ -145,7 +153,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this._value = this._oldValue = this._obj.getAttribute(this._prop);
-      startObservation(this._obj.ownerDocument.defaultView!.MutationObserver, this._obj as IHtmlElement, this);
+      startObservation((this._platform as BrowserPlatform).MutationObserver, this._obj as IHtmlElement, this);
     }
   }
 

@@ -156,6 +156,7 @@ export class AttributeBinding implements IBinding {
       this.target as HTMLElement,
       this.targetProperty,
       this.targetAttribute,
+      this.l,
     );
 
     if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {

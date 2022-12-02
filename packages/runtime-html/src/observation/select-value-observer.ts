@@ -3,6 +3,10 @@ import {
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
+import { createError, hasOwnProperty, isArray } from '../utilities';
+import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
+import { mixinNodeObserverUseConfig } from './observation-utils';
+import { IPlatform } from '../platform';
 
 import type { INode } from '../dom';
 import type {
@@ -10,9 +14,8 @@ import type {
   IObserverLocator,
   ISubscriberCollection,
 } from '@aurelia/runtime';
-import { createError, hasOwnProperty, isArray } from '../utilities';
-import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
-import { mixinNodeObserverUseConfig } from './observation-utils';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { BrowserPlatform } from '@aurelia/platform-browser';
 
 const childObserverOptions = {
   childList: true,
@@ -62,6 +65,9 @@ export class SelectValueObserver implements INodeObserver {
   /** @internal */
   private readonly _observerLocator: IObserverLocator;
 
+  /** @internal */
+  private readonly _platform: IPlatform;
+
   /**
    * Used by mixing defined methods subscribe/unsubscribe
    *
@@ -83,10 +89,12 @@ export class SelectValueObserver implements INodeObserver {
     _key: PropertyKey,
     config: INodeObserverConfigBase,
     observerLocator: IObserverLocator,
+    locator: IServiceLocator,
   ) {
     this._el = obj as ISelectElement;
     this._observerLocator = observerLocator;
     this._config = config;
+    this._platform = locator.get(IPlatform);
   }
 
   public getValue(): unknown {
@@ -239,7 +247,7 @@ export class SelectValueObserver implements INodeObserver {
    * @internal
    */
   public _start(): void {
-    (this._nodeObserver = new this._el.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
+    (this._nodeObserver = new (this._platform as BrowserPlatform).MutationObserver(this._handleNodeChange.bind(this)))
       .observe(this._el, childObserverOptions);
     this._observeArray(this._value instanceof Array ? this._value : null);
     this._observing = true;

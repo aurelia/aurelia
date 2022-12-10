@@ -38,8 +38,6 @@ export interface IRouteConfig {
     readonly title?: string | ((node: RouteNode) => string | null) | null;
     /**
      * The path to which to redirect when the url matches the path in this config.
-     *
-     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
      */
     readonly redirectTo?: string | null;
     /**

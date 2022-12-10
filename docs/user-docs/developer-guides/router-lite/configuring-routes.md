@@ -50,7 +50,7 @@ Another way of creating aliases is to use the [`redirectTo`](#redirect-to-anothe
 
 Note that the example above uses the `@route` decorator.
 In case you cannot use the decorator, you can use the static properties instead.
-For example, the example, shown above, can be rewritten as follows.
+The example shown above can be rewritten as follows.
 
 ```typescript
 import { Routeable } from '@aurelia/router-lite';
@@ -252,6 +252,8 @@ With this configuration in place, the default-built title will be `Home | Aureli
 That is, the titles of the child routes precedes the base title.
 You can customize this default behavior by using a [custom `buildTitle` function](./router-configuration.md#customizing-title) when customizing the router configuration.
 
+Note that, instead of a string, a function can also be used for `title` to lazily set the title.
+
 ## Redirect to another path
 
 By specifying the `redirectTo` property on our route, we can create route aliases.
@@ -349,6 +351,11 @@ export class MyApp {}
 There is a custom element, named `NotFound`, which is meant to be loaded when any unknown/un-configured route is encountered.
 As you can see in the above example, clicking the "Foo" link that is with un-configured `href`, leads to the `NotFound` view.
 
+
+{% hint style="info" %}
+It is recommended that you configure a `fallback` at the root to handle the navigation to un-configured routes gracefully.
+{% endhint %}
+
 Another way of defining the `fallback` is to use the [route-`id`](#route-configuration-options).
 The following example demonstrates this behavior, where the `NotFound` view can be reached via multiple aliases, and instead of choosing one of these aliases the route-`id` is used to refer the route.
 
@@ -369,160 +376,25 @@ With this configuration in place, when navigation to a un-configured route ('Foo
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-hierarchical?ctl=1&embed=1&file=src/my-app.ts" %}
 
-### Route configuration options
+## Case sensitive routes
+
+Routes can be marked as case-sensitive in the configuration, allowing the navigation to the component only when the case matches exactly the configured path.
+See the example below where the navigation to the "about" page is only successful when the casing matches.
+Any attempt with a different casing is navigated to the `fallback`.
+
+{% embed url="https://stackblitz.com/edit/router-lite-case-sensitive?ctl=1&embed=1&file=src/my-app.ts" %}
+
+## Route configuration options
 
 Besides the basics of `path` and `component` a route can have additional configuration options.
 
 * `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. This can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
-* `redirectTo` — Allows you to specify whether this route redirects to another route. If the `redirectTo` path starts with `/` it is considered absolute, otherwise relative to the parent path.
-* `caseSensitive` — Determines whether the `path` should be case sensitive. By default, this is `false`
 * `transitionPlan` — How to behave when this component is scheduled to be loaded again in the same viewport. Valid values for transitionPlan are:
   * `replace` — completely removes the current component and creates a new one, behaving as if the component changed.
   * `invoke-lifecycles` — calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed).
   * `none` — does nothing (default if nothing has changed for the viewport).
-* `title` — Specify a title for the route. This can be a string, or it can be a function that returns a string.
 * `viewport` — The name of the viewport this component should be loaded into.
 * `data` — Any custom data that should be accessible to matched components or hooks. This is where you can specify data such as roles and other permissions.
-* `routes` — The child routes that can be navigated from this route.
-
-
-### Create routes using a static property
-
-If you have a lot of routes, the static property might be preferable from a cleanliness perspective.
-
-```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
-
-export class MyApp implements IRouteableComponent {
-  static routes: IRoute[] = [
-    {
-      path: ['', 'home'],
-      component: import('./components/home-page'),
-      title: 'Home',
-    }
-  ]
-}
-```
-
-{% hint style="info" %}
-If you have more than a few routes, it might be best practice to write them in a separate file and then import them inside your application.
-{% endhint %}
-
-### Defining routes using the route decorator
-
-The syntax for routes stays the same using the decorator, just how they are defined changes slightly.
-
-```typescript
-import { IRouteableComponent } from "@aurelia/router";
-
-@route({
-    routes: [
-      {
-        path: ['', 'home'],
-        component: import('./components/home-page'),
-        title: 'Home',
-      }
-    ]
-})
-export class MyApp implements IRouteableComponent {
-
-}
-```
-
-## Child routes
-
-As your application grows, child routes can become a valuable way to organize your routes and keep things manageable. Instead of defining all your routes top-level, you can create routes inside your child components to keep them contained.
-
-An example of where child routes might be useful in creating a dashboard area for authenticated users.
-
-{% code title="my-app.ts" %}
-```typescript
-export class MyApp {
-    static routes = [
-        {
-            path: '/dashboard',
-            component: () => import('./dashboard-page'),
-            title: 'Dashboard'
-        }
-    ];
-}
-```
-{% endcode %}
-
-We add a route in our top-level `my-app.ts` component where we added routes in our previous examples. Now, we will create the dashboard-page component.
-
-{% code title="dashboard-page.ts" %}
-```typescript
-import { DashboardHome } from './dashboard-home';
-
-import { IRouteableComponent } from '@aurelia/router';
-
-export class DashboardPage implements IRouteableComponent {
-    static routes = [
-        {
-            path: '',
-            component: DashboardHome,
-            title: 'Landing'
-        }
-    ];
-}
-```
-{% endcode %}
-
-{% code title="dashboard-page.html" %}
-```html
-<div>
-    <au-viewport></au-viewport>
-</div>
-```
-{% endcode %}
-
-You will notice we create routes the same way we learned further above. However, we are defining these inside of a component we are using for our dashboard section. Notice how we use the `au-viewport` element inside of the `dashboard-page` component.
-
-Lastly, let's create our default dashboard component for the landing page.
-
-{% code title="dashboard-home.ts" %}
-```typescript
-export class DashboardHome {
-
-}
-```
-{% endcode %}
-
-{% code title="dashboard-home.html" %}
-```html
-<h1>Dashboard</h1>
-<p>Welcome to your dashboard.</p>
-```
-{% endcode %}
-
-Now, we can contain all dashboard-specific routes inside of our `dashboard-page` component for dashboard views. Furthermore, it allows us to implement route guards to prevent unauthorized users from visiting the dashboard.
-
-## Catch all / 404 not found route
-
-When a user attempts to visit a route that does not exist, we want to catch this route attempt using a catch-all route. We can use a wildcard `*` to create a route that does this.
-
-{% hint style="warning" %}
-When using a catch-all wildcard route, ensure that it is the last route in your routes array so it does not hijack any other valid route first.
-{% endhint %}
-
-A good use of a catch-all route might be to redirect users away to a landing page. For example, if you had an online store you might just redirect users to a products page.
-
-```typescript
-{
-    path: '*',
-    redirectTo: '/products'
-}
-```
-
-You can also specify a component that gets loaded like a normal route:
-
-```typescript
-{
-    path: '*',
-    component: () => import('./not-found')
-}
-```
 
 ## Passing information between routes
 

@@ -386,45 +386,17 @@ Any attempt with a different casing is navigated to the `fallback`.
 
 ## Route configuration options
 
-Besides the basics of `path` and `component` a route can have additional configuration options.
+There are few other routing configuration which aren't discussed above.
+To understand these options fully, knowledge of other parts of the route would be beneficial.
+Therefore, although this section briefly describes these options, it also provides links to the sections, describing these topics with detailed examples.
 
 * `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. This can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
 * `transitionPlan` — How to behave when this component is scheduled to be loaded again in the same viewport. Valid values for transitionPlan are:
   * `replace` — completely removes the current component and creates a new one, behaving as if the component changed.
   * `invoke-lifecycles` — calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed).
   * `none` — does nothing (default if nothing has changed for the viewport).
-* `viewport` — The name of the viewport this component should be loaded into.
-* `data` — Any custom data that should be accessible to matched components or hooks. This is where you can specify data such as roles and other permissions.
-
-## Passing information between routes
-
-We went over creating routes with support for parameters in the creating routes section, but there is an additional property you can specify on a route called `data,` which allows you to associate metadata with a route.
-
-```typescript
-@route({
-  routes: [
-    {
-      id: 'home',
-      path: '',
-      component: import('./home'),
-      title: 'Home'
-    },
-    {
-      path: 'product/:id',
-      component: import('./product'),
-      title: 'Product',
-      data: {
-          requiresAuth: false
-      }
-    }
-  ]
-})
-export class MyApp {
-
-}
-```
-
-This data property will be available in the routable component and can be a great place to store data associated with a route, such as roles and auth permissions. In some instances, the route parameters can be used to pass data, but for other use cases, you should use the data property.
+* `viewport` — The name of the viewport this component should be loaded into. This demands a full fledged documentation of its own. Refer to the [viewport documentation](./viewports.md) for more details.
+* `data` — Any custom data that should be accessible to matched components or hooks. The value of this configuration property must be an object and the object can take any shape (that is there is no pre-defined interface/class for this object). A typical use-case for the `data` property is to define the permissions, required by the users, when they attempt to navigate to this route. Refer [an example](./router-hooks.md#example-for-handling-authorization) of this.
 
 ## Styling Active Router Links
 

@@ -398,16 +398,53 @@ Therefore, although this section briefly describes these options, it also provid
 * `nav` - Set this flag to `false` (default value is `true`), to instruct the router not to add the route to the [navigation model](./navigation-model.md). This is typically useful to [exclude routes](./navigation-model.md#excluding-routes-from-the-navigation-model) from the public navigation menu.
 
 ## Specifying component
-TODO(Sayan): complete this section
-- component name (CE name)
-- inline import; demo: https://stackblitz.com/edit/router-lite-component-inline-import?file=src%2Fmy-app.ts
-{% hint style="warning" %}
-Inline import statements are a relatively new feature. Inside your tsconfig.json file, ensure you have your module property set to esnext to support inline import statements using this syntax.
+
+Before finishing the section on the route configuration, we need to discuss one last topic for completeness, and that is how many different ways you can configure the `component`.
+Throughout various examples we have seen that components are configured by importing and using those in the routing configuration.
+However, there are many other ways in which the components can be configured.
+This section discusses those.
+
+### Using inline `import()`
+
+Components can be configured using the [`import()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) or dynamic import.
+Instead of statically importing the components, those can be imported using `import()`-syntax, as the example shows below.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: import('./home'),
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: import('./about'),
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+You can see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-component-inline-import?ctl=1&embed=1&file=src/my-app.ts" %}
+
+{% hint style="info" %}
+If you are using TypeScript, ensure that the `module` property set to `esnext` in your `tsconfig.json` to support inline import statements.
 {% endhint %}
+
+- component name (CE name)
 - function returning a class
 - custom element definition
 - existing custom element instance
-
-TODO(Sayan): verify the content above ^^
-
-

@@ -397,23 +397,7 @@ Therefore, although this section briefly describes these options, it also provid
   * `none` — does nothing (default if nothing has changed for the viewport).
 * `viewport` — The name of the viewport this component should be loaded into. This demands a full fledged documentation of its own. Refer to the [viewport documentation](./viewports.md) for more details.
 * `data` — Any custom data that should be accessible to matched components or hooks. The value of this configuration property must be an object and the object can take any shape (that is there is no pre-defined interface/class for this object). A typical use-case for the `data` property is to define the permissions, required by the users, when they attempt to navigate to this route. Refer [an example](./router-hooks.md#example-for-handling-authorization) of this.
-
-## Styling Active Router Links
-
-A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. When a route is active, by default, a CSS class name of `active` will be added to the route element.
-
-```css
-.active {
-    font-weight: bold;
-}
-```
-
-In your HTML, if you were to create some links with `load` attributes and visit one of those routes, the `active` class would be applied to the link for styling. In the following example, visiting the about route would put `class="active"` onto our `a` element.
-
-```html
-<a load="about">About</a>
-<a load="home">Home</a>
-```
+* `nav` - Set this flag to `false` (default value is `true`), to instruct the router not to add the route to the [navigation model](./navigation-model.md). This is typically useful to [exclude routes](./navigation-model.md#excluding-routes-from-the-navigation-model) from the public navigation menu.
 
 ## Specifying component
 TODO(Sayan): complete this section

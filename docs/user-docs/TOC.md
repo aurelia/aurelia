@@ -74,6 +74,8 @@
 * [Router lite](developer-guides/router-lite/README.md)
   * [Getting Started](developer-guides/router-lite/getting-started.md)
   * [Router configuration](developer-guides/router-lite/router-configuration.md)
+  * [Configure routes](developer-guides/router-lite/configuring-routes.md)
+  * [Navigation model](developer-guides/router-lite/navigation-model.md)
 * [Validation](developer-guides/validation/README.md)
   * [Validation Tutorial](developer-guides/validation/validation-tutorial.md)
   * [Plugin Configuration](developer-guides/validation/registering-the-plugin.md)

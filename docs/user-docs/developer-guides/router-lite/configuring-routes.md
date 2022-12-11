@@ -444,7 +444,66 @@ You can see this in action below.
 If you are using TypeScript, ensure that the `module` property set to `esnext` in your `tsconfig.json` to support inline import statements.
 {% endhint %}
 
-- component name (CE name)
+### Using the name
+
+Components can be configured using only the custom-element name of the component.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: 'ho-me', // <-- assuming that Home component has the name 'ho-me'
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: 'ab-out', // <-- assuming that About component has the name 'ab-out'
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+However, when configuring the route this way, you need to register the components to the DI.
+
+```typescript
+// main.ts
+import { RouterConfiguration } from '@aurelia/router-lite';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { About } from './about';
+import { Home } from './home';
+import { MyApp as component } from './my-app';
+
+(async function () {
+  const host = document.querySelector<HTMLElement>('app');
+  const au = new Aurelia();
+  au.register(
+    StandardConfiguration,
+    RouterConfiguration,
+
+    // component registrations
+    Home,
+    About,
+  );
+  au.app({ host, component });
+  await au.start();
+})().catch(console.error);
+```
+
+You can see this configuration in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-component-ce-name?ctl=1&embed=1&file=src/my-app.ts" %}
+
 - function returning a class
 - custom element definition
 - existing custom element instance

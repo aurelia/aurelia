@@ -504,6 +504,147 @@ You can see this configuration in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-component-ce-name?ctl=1&embed=1&file=src/my-app.ts" %}
 
-- function returning a class
-- custom element definition
-- existing custom element instance
+### Using a function returning the class
+
+Components can be configured using a function that returns a class.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: () => {
++         @customElement({ name: 'ho-me', template: '<h1>${message}</h1>' })
++         class Home {
++           private readonly message: string = 'Welcome to Aurelia2 router-lite!';
++         }
++         return Home;
++       },
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: () => {
++         @customElement({ name: 'ab-out', template: '<h1>${message}</h1>' })
++         class About {
++           private readonly message = 'Aurelia2 router-lite is simple';
++         }
++         return About;
++       },
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+You can see this configuration in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-component-function?ctl=1&embed=1&file=src/my-app.ts" %}
+
+### Using custom element definition
+
+Components can be configured using custom element definition.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
++ class Home {
++   private readonly message: string = 'Welcome to Aurelia2 router-lite!';
++ }
++ const homeDefn = CustomElementDefinition.create(
++   { name: 'ho-me', template: '<h1>${message}</h1>' },
++   Home
++ );
++ CustomElement.define(homeDefn, Home);
++
++ class About {
++   private readonly message = 'Aurelia2 router-lite is simple';
++ }
++ const aboutDefn = CustomElementDefinition.create(
++   { name: 'ab-out', template: '<h1>${message}</h1>' },
++   About
++ );
++ CustomElement.define(aboutDefn, About);
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: homeDefn,
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: aboutDefn,
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+You can see this configuration in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-component-ce-defn?ctl=1&embed=1&file=src/my-app.ts" %}
+
+### Using custom element instance
+
+Components can be configured using custom element instance.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
++ @customElement({ name: 'ho-me', template: '<h1>${message}</h1>' })
++ class Home {
++   private readonly message: string = 'Welcome to Aurelia2 router-lite!';
++ }
++
++ @customElement({ name: 'ab-out', template: '<h1>${message}</h1>' })
++ class About {
++   private readonly message = 'Aurelia2 router-lite is simple';
++ }
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: new Home(),
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: new About(),
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+You can see this configuration in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-component-ce-instance-jx3kee?ctl=1&embed=1&file=src/my-app.ts" %}

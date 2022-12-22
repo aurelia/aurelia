@@ -352,10 +352,13 @@ export function updateNode(
     //   - add the compiled nodes from those to children of the node.
     return onResolve(
       resolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
-      () => resolveAll(...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+      () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
         const vp = vpa.viewport;
-        return createAndAppendNodes(log, node, ViewportInstruction.create({ component: vp.default, viewport: vp.name, }));
-      }))
+        const component = vp.default;
+        if (component === null) return acc;
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        return acc;
+      }, [] as (void | Promise<void>)[]))
     );
   }
 
@@ -376,13 +379,13 @@ export function processResidue(node: RouteNode): Promise<void> | void {
       ...node.residue.splice(0).map(vi => {
         return createAndAppendNodes(log, node, vi);
       }),
-      ...ctx.getAvailableViewportAgents('static').map(vpa => {
-        const defaultInstruction = ViewportInstruction.create({
-          component: vpa.viewport.default,
-          viewport: vpa.viewport.name,
-        });
-        return createAndAppendNodes(log, node, defaultInstruction);
-      }),
+      ...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+        const vp = vpa.viewport;
+        const component = vp.default;
+        if (component === null) return acc;
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        return acc;
+      }, ([] as (void | Promise<void>)[])),
     );
   });
 }
@@ -402,14 +405,15 @@ export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[
         .map(vi => createAndAppendNodes(log, node, vi))),
       () => onResolve(
         resolveAll(...ctx
-          .getAvailableViewportAgents('dynamic')
-          .map(vpa => {
-            const defaultInstruction = ViewportInstruction.create({
-              component: vpa.viewport.default,
-              viewport: vpa.viewport.name,
-            });
-            return createAndAppendNodes(log, node, defaultInstruction);
-          })),
+          .getAvailableViewportAgents()
+          .reduce((acc, vpa) => {
+            const vp = vpa.viewport;
+            const component = vp.default;
+            if (component === null) return acc;
+            acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+            return acc;
+          }, ([] as (void | Promise<void>)[]))
+        ),
         () => node.children.filter(x => !existingChildren.includes(x))
       ),
     );
@@ -491,7 +495,7 @@ function createAndAppendNodes(
             if (name === '') return;
             let vp = vi.viewport;
             if (vp === null || vp.length === 0) vp = defaultViewportName;
-            const vpa = ctx.getFallbackViewportAgent('dynamic', vp);
+            const vpa = ctx.getFallbackViewportAgent(vp);
             const fallback = vpa !== null ? vpa.viewport.fallback : ctx.definition.fallback;
             if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
@@ -564,7 +568,6 @@ function createConfiguredNode(
       const vpa = ctx.resolveViewportAgent(new ViewportRequest(
         vpName,
         ced.name,
-        rt.options.resolutionMode,
       ));
 
       const router = ctx.container.get(IRouter);

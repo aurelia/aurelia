@@ -82,7 +82,6 @@ export {
   RouterOptions,
   NavigationOptions,
   Transition,
-  type ResolutionMode,
   type HistoryStrategy,
 } from './router';
 

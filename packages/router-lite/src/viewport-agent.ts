@@ -7,7 +7,7 @@ import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
 import { processResidue, getDynamicChildren, RouteNode } from './route-tree';
 import { IRouteContext } from './route-context';
-import { Transition, ResolutionMode, NavigationOptions } from './router';
+import { Transition, NavigationOptions } from './router';
 import { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 import { defaultViewportName } from './route-definition';
@@ -16,11 +16,10 @@ export class ViewportRequest {
   public constructor(
     public readonly viewportName: string,
     public readonly componentName: string,
-    public readonly resolution: ResolutionMode,
   ) { }
 
   public toString(): string {
-    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}')`;
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}')`;
   }
 }
 
@@ -41,7 +40,6 @@ export class ViewportAgent {
   private get nextState(): NextState { return this.state & State.next; }
   private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
 
-  private $resolution: ResolutionMode = 'dynamic';
   private $plan: TransitionPlan = 'replace';
   private currNode: RouteNode | null = null;
   private nextNode: RouteNode | null = null;
@@ -94,9 +92,6 @@ export class ViewportAgent {
         if (this.currTransition === null) {
           throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
         }
-        if (this.$resolution !== 'static') {
-          throw new Error(`Unexpected viewport activation at ${this}`);
-        }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
         const b = Batch.start(b1 => { this.activate(initiator, this.currTransition!, b1); });
         const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
@@ -138,7 +133,7 @@ export class ViewportAgent {
   }
 
   public handles(req: ViewportRequest): boolean {
-    if (!this.isAvailable(req.resolution)) {
+    if (!this.isAvailable()) {
       return false;
     }
 
@@ -160,14 +155,14 @@ export class ViewportAgent {
     return true;
   }
 
-  public isAvailable(resolution: ResolutionMode): boolean {
-    if (resolution === 'dynamic' && !this.isActive) {
-      this.logger.trace(`isAvailable(resolution:%s) -> false (viewport is not active and we're in dynamic resolution resolution)`, resolution);
+  public isAvailable(): boolean {
+    if (!this.isActive) {
+      this.logger.trace(`isAvailable -> false (viewport is not active)`);
       return false;
     }
 
     if (this.nextState !== State.nextIsEmpty) {
-      this.logger.trace(`isAvailable(resolution:%s) -> false (update already scheduled for %s)`, resolution, this.nextNode);
+      this.logger.trace(`isAvailable -> false (update already scheduled for %s)`, this.nextNode);
       return false;
     }
 
@@ -270,20 +265,8 @@ export class ViewportAgent {
           });
           return;
         case 'replace':
-          // In the case of 'replace', always process this node and its subtree as if it's a new one
-          switch (this.$resolution) {
-            case 'dynamic':
-              // Residue compilation will happen at `ViewportAgent#processResidue`
-              this.logger.trace(`canLoad(next:%s) - (resolution: 'dynamic'), delaying residue compilation until activate`, next, this.$plan);
-              return;
-            case 'static':
-              this.logger.trace(`canLoad(next:%s) - (resolution: '${this.$resolution}'), creating nextCA and compiling residue`, next, this.$plan);
-              b1.push();
-              void onResolve(processResidue(next), () => {
-                b1.pop();
-              });
-              return;
-          }
+          this.logger.trace(`canLoad(next:%s), delaying residue compilation until activate`, next, this.$plan);
+          return;
       }
     }).continueWith(b1 => {
       switch (this.nextState) {
@@ -445,10 +428,7 @@ export class ViewportAgent {
 
     b.push();
 
-    if (
-      this.nextState === State.nextIsScheduled &&
-      this.$resolution === 'dynamic'
-    ) {
+    if (this.nextState === State.nextIsScheduled) {
       this.logger.trace(`activate() - invoking canLoad(), loading() and activate() on new component due to resolution 'dynamic' at %s`, this);
       // This is the default v2 mode "lazy loading" situation
       Batch.start(b1 => {
@@ -612,7 +592,6 @@ export class ViewportAgent {
       case State.nextIsEmpty:
         this.nextNode = next;
         this.nextState = State.nextIsScheduled;
-        this.$resolution = options.resolutionMode;
         break;
       default:
         this.unexpectedState('scheduleUpdate 1');
@@ -758,7 +737,7 @@ export class ViewportAgent {
   }
 
   public toString(): string {
-    return `VPA(state:${this.$state},plan:'${this.$plan}',resolution:'${this.$resolution}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
+    return `VPA(state:${this.$state},plan:'${this.$plan}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
   }
 
   public dispose(): void {

@@ -12,8 +12,6 @@ import {
   CustomElementType,
 } from '@aurelia/runtime-html';
 import {
-  IRouterOptions,
-  ResolutionMode,
   IRouter,
   Params as P,
   RouteNode as RN,
@@ -472,9 +470,6 @@ function* interleave(
     }
   }
 }
-export interface Iopts {
-  resolutionMode: ResolutionMode;
-}
 
 export interface IComponentSpec {
   kind: 'all-sync' | 'all-async';
@@ -484,7 +479,6 @@ export interface IComponentSpec {
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  routerOptions: IRouterOptions,
   level: LogLevel = LogLevel.fatal,
 ) {
   const ctx = TestContext.create();
@@ -493,7 +487,7 @@ async function createFixture<T extends Constructable>(
 
   container.register(TestRouterConfiguration.for(level));
   container.register(Registration.instance(INotifierConfig, cfg));
-  container.register(RouterConfiguration.customize({ ...routerOptions }));
+  container.register(RouterConfiguration);
   container.register(...deps);
 
   const mgr = container.get(INotifierManager);
@@ -534,35 +528,8 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-function $forEachRouterOptions(cb: (opts: Iopts) => void) {
-  return function () {
-    for (const resolutionMode of [
-      'dynamic',
-      'static',
-    ] as ResolutionMode[]) {
-      describe(`resolution:'${resolutionMode}'`, function () {
-        cb({
-          resolutionMode,
-        });
-      });
-    }
-  };
-}
-
-function forEachRouterOptions(title: string, cb: (opts: Iopts) => void) {
-  describe(title, $forEachRouterOptions(cb));
-}
-forEachRouterOptions.skip = function (title: string, cb: (opts: Iopts) => void) {
-  // eslint-disable-next-line mocha/no-skipped-tests
-  describe.skip(title, $forEachRouterOptions(cb));
-};
-forEachRouterOptions.only = function (title: string, cb: (opts: Iopts) => void) {
-  // eslint-disable-next-line mocha/no-exclusive-tests
-  describe.only(title, $forEachRouterOptions(cb));
-};
-
 describe('router hooks', function () {
-  forEachRouterOptions('monomorphic timings', function (opts) {
+  describe('monomorphic timings', function () {
     for (const ticks of [
       0,
       1,
@@ -629,7 +596,7 @@ describe('router hooks', function () {
           ] as ISpec[]) {
             const { t1, t2, t3, t4 } = spec;
             it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture(Root2, A, opts);
+              const { router, mgr, tearDown } = await createFixture(Root2, A);
 
               const phase1 = `('' -> '${t1}')#1`;
               const phase2 = `('${t1}' -> '${t2}')#2`;
@@ -767,7 +734,7 @@ describe('router hooks', function () {
             const instr1 = join('+', `${t1.vp0}@$0`, `${t1.vp1}@$1`);
             const instr2 = join('+', `${t2.vp0}@$0`, `${t2.vp1}@$1`);
             it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture(Root2, A, opts);
+              const { router, mgr, tearDown } = await createFixture(Root2, A);
 
               const phase1 = `('' -> '${instr1}')#1`;
               const phase2 = `('${instr1}' -> '${instr2}')#2`;
@@ -985,7 +952,7 @@ describe('router hooks', function () {
             const instr1 = join('/', t1.p, t1.c);
             const instr2 = join('/', t2.p, t2.c);
             it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture(PcRoot, deps, opts);
+              const { router, mgr, tearDown } = await createFixture(PcRoot, deps);
 
               const phase1 = `('' -> '${instr1}')#1`;
               const phase2 = `('${instr1}' -> '${instr2}')#2`;
@@ -1011,18 +978,7 @@ describe('router hooks', function () {
                   case 0:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
-                    switch (opts.resolutionMode) {
-                      case 'dynamic':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-                        break;
-                      case 'static':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'loading');
-
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'binding', 'bound', 'attaching');
-                        yield* $(phase1, [t1.c, t1.p], ticks, 'attached');
-                        break;
-                    }
+                    yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1, $t2 }] of [
                       [phase2, { $t1: t1, $t2: t2 }],
@@ -1041,34 +997,15 @@ describe('router hooks', function () {
                       } else {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
-
-                        switch (opts.resolutionMode) {
-                          case 'dynamic':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
-                            yield* $(phase, $t2.p, ticks, 'loading');
-                            break;
-                          case 'static':
-                            yield* $(phase, $t2.c, ticks, 'canLoad');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
-                            yield* $(phase, [$t2.p, $t2.c], ticks, 'loading');
-                            break;
-                        }
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                        yield* $(phase, $t2.p, ticks, 'loading');
 
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'detaching');
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'unbinding');
                         yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
                         yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching');
-
-                        switch (opts.resolutionMode) {
-                          case 'dynamic':
-                            yield* $(phase, $t2.p, ticks, 'attached');
-                            yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'static':
-                            yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t2.p, ticks, 'attached');
-                            break;
-                        }
+                        yield* $(phase, $t2.p, ticks, 'attached');
+                        yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                       }
                     }
 
@@ -1078,23 +1015,7 @@ describe('router hooks', function () {
                     break;
                   case 1:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
-
-                    switch (opts.resolutionMode) {
-                      case 'dynamic':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-                        break;
-                      case 'static':
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
-                        yield* $(phase1, [t1.p, t1.c], ticks, 'loading');
-
-                        yield* $(phase1, t1.p, ticks, 'binding', 'bound');
-                        yield* interleave(
-                          $(phase1, t1.p, ticks, 'attaching'),
-                          $(phase1, t1.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                        );
-                        yield* $(phase1, t1.p, ticks, 'attached');
-                        break;
-                    }
+                    yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1, $t2 }] of [
                       [phase2, { $t1: t1, $t2: t2 }],
@@ -1114,37 +1035,15 @@ describe('router hooks', function () {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
 
-                        switch (opts.resolutionMode) {
-                          case 'dynamic':
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
-                            yield* $(phase, $t2.p, ticks, 'loading');
-                            break;
-                          case 'static':
-                            yield* $(phase, $t2.c, ticks, 'canLoad');
-                            yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
-                            yield* $(phase, [$t2.p, $t2.c], ticks, 'loading');
-                            break;
-                        }
+                        yield* $(phase, [$t1.c, $t1.p], ticks, 'unloading');
+                        yield* $(phase, $t2.p, ticks, 'loading');
                         yield* interleave(
                           $(phase, $t1.c, ticks, 'detaching', 'unbinding'),
                           $(phase, $t1.p, ticks, 'detaching', 'unbinding'),
                         );
                         yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
-
-                        switch (opts.resolutionMode) {
-                          case 'dynamic':
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
-                            yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-                            break;
-                          case 'static':
-                            yield* $(phase, $t2.p, ticks, 'binding', 'bound');
-                            yield* interleave(
-                              $(phase, $t2.p, ticks, 'attaching'),
-                              $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached'),
-                            );
-                            yield* $(phase, $t2.p, ticks, 'attached');
-                            break;
-                        }
+                        yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
+                        yield* $(phase, $t2.c, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
                       }
                     }
 
@@ -1167,7 +1066,7 @@ describe('router hooks', function () {
     }
   });
 
-  forEachRouterOptions('parent-child timings', function (opts) {
+  describe('parent-child timings', function () {
     for (const hookSpec of [
       HookSpecs.create(0, {
         canUnload: DelayedInvoker.canUnload(1),
@@ -1218,7 +1117,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D], opts);
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D]);
 
         const phase1 = `('' -> 'a/b/c/d')`;
         mgr.setPrefix(phase1);
@@ -1234,111 +1133,43 @@ describe('router hooks', function () {
           yield* $('start', 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
           const hookName = hookSpec.toString().slice(0, -3) as typeof hookNames[number];
-          switch (opts.resolutionMode) {
-            case 'dynamic':
-              yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-              switch (hookName) {
-                case 'canLoad':
-                  yield* $(phase1, 'c', 1, 'canLoad');
-                  yield* $(phase1, 'c', 0, 'loading', 'binding', 'bound', 'attaching', 'attached');
-                  break;
-                case 'loading':
-                  yield* $(phase1, 'c', 0, 'canLoad');
-                  yield* $(phase1, 'c', 1, 'loading');
-                  yield* $(phase1, 'c', 0, 'binding', 'bound', 'attaching', 'attached');
-                  break;
-                case 'binding':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'loading');
-                  yield* $(phase1, 'c', 1, 'binding');
-                  yield* $(phase1, 'c', 0, 'bound', 'attaching', 'attached');
-                  break;
-                case 'bound':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding');
-                  yield* $(phase1, 'c', 1, 'bound');
-                  yield* $(phase1, 'c', 0, 'attaching', 'attached');
-                  break;
-                case 'attaching':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound');
-                  yield* $(phase1, 'c', 1, 'attaching');
-                  yield* $(phase1, 'c', 0, 'attached');
-                  break;
-                case 'attached':
-                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching');
-                  yield* $(phase1, 'c', 1, 'attached');
-
-                  break;
-                default:
-                  yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
-                  break;
-              }
-
-              yield* $(phase1, 'd', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
+          yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
+          switch (hookName) {
+            case 'canLoad':
+              yield* $(phase1, 'c', 1, 'canLoad');
+              yield* $(phase1, 'c', 0, 'loading', 'binding', 'bound', 'attaching', 'attached');
               break;
-            case 'static':
-              switch (hookName) {
-                case 'canLoad':
-                  yield* $(phase1, ['a', 'b'], 0, 'canLoad');
-                  yield* $(phase1, 'c', 1, 'canLoad');
-                  yield* $(phase1, 'd', 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['d', 'c', 'b', 'a'], 0, 'attached');
-                  break;
-                case 'loading':
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b'], 0, 'loading');
-                  yield* $(phase1, 'c', 1, 'loading');
-                  yield* $(phase1, 'd', 0, 'loading');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['d', 'c', 'b', 'a'], 0, 'attached');
-                  break;
-                case 'binding':
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, 'c', 1, 'binding');
-                  yield* $(phase1, 'c', 0, 'bound', 'attaching');
-                  yield* $(phase1, 'd', 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['d', 'c', 'b', 'a'], 0, 'attached');
-                  break;
-                case 'bound':
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, 'c', 0, 'binding');
-                  yield* $(phase1, 'c', 1, 'bound');
-                  yield* $(phase1, 'c', 0, 'attaching');
-                  yield* $(phase1, 'd', 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['d', 'c', 'b', 'a'], 0, 'attached');
-                  break;
-                case 'attaching':
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, 'c', 0, 'binding', 'bound');
-                  yield* $(phase1, 'c', 0, 'attaching.enter');
-                  yield* $(phase1, 'd', 0, 'binding', 'bound', 'attaching', 'attached');
-                  yield* $(phase1, 'c', 0, 'attaching.tick(1)');
-                  yield* $(phase1, 'c', 0, 'attaching.leave');
-                  yield* $(phase1, ['c', 'b', 'a'], 0, 'attached');
-                  break;
-                case 'attached':
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, 'd', 0, 'attached');
-                  yield* $(phase1, 'c', 1, 'attached');
-                  yield* $(phase1, ['b', 'a'], 0, 'attached');
-                  break;
-                default:
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'canLoad');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'loading');
-                  yield* $(phase1, ['a', 'b', 'c', 'd'], 0, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['d', 'c', 'b', 'a'], 0, 'attached');
-                  break;
-              }
+            case 'loading':
+              yield* $(phase1, 'c', 0, 'canLoad');
+              yield* $(phase1, 'c', 1, 'loading');
+              yield* $(phase1, 'c', 0, 'binding', 'bound', 'attaching', 'attached');
+              break;
+            case 'binding':
+              yield* $(phase1, 'c', 0, 'canLoad', 'loading');
+              yield* $(phase1, 'c', 1, 'binding');
+              yield* $(phase1, 'c', 0, 'bound', 'attaching', 'attached');
+              break;
+            case 'bound':
+              yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding');
+              yield* $(phase1, 'c', 1, 'bound');
+              yield* $(phase1, 'c', 0, 'attaching', 'attached');
+              break;
+            case 'attaching':
+              yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound');
+              yield* $(phase1, 'c', 1, 'attaching');
+              yield* $(phase1, 'c', 0, 'attached');
+              break;
+            case 'attached':
+              yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching');
+              yield* $(phase1, 'c', 1, 'attached');
+
+              break;
+            default:
+              yield* $(phase1, 'c', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
               break;
           }
+
+          yield* $(phase1, 'd', 0, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
           switch (hookName) {
             case 'canUnload':
@@ -1397,7 +1228,7 @@ describe('router hooks', function () {
     }
   });
 
-  forEachRouterOptions('single incoming sibling transition', function (opts) {
+  describe('single incoming sibling transition', function () {
     interface ISiblingTransitionSpec {
       a: HookSpecs;
       b: HookSpecs;
@@ -1459,7 +1290,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A, B], opts);
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B]);
 
         const phase1 = `('' -> 'a$0+b$1')`;
 
@@ -1507,7 +1338,7 @@ describe('router hooks', function () {
     }
   });
 
-  forEachRouterOptions('single incoming parent-child transition', function (opts) {
+  describe('single incoming parent-child transition', function () {
     interface IParentChildTransitionSpec {
       a1: HookSpecs;
       a2: HookSpecs;
@@ -1548,7 +1379,7 @@ describe('router hooks', function () {
         class Root extends TestVM {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
         }
-        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2], opts);
+        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2]);
 
         const phase1 = `('' -> 'a1/a2')`;
 
@@ -1559,32 +1390,12 @@ describe('router hooks', function () {
 
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
-
-          switch (opts.resolutionMode) {
-            case 'dynamic':
-              yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
-              yield* $(phase1, 'a1', a1Load, 'loading');
-              yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
-
-              yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-              yield* $(phase1, 'a2', a2Load, 'loading');
-              yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
-              break;
-            case 'static':
-              yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
-              yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-
-              yield* $(phase1, 'a1', a1Load, 'loading');
-              yield* $(phase1, 'a2', a2Load, 'loading');
-
-              yield* $(phase1, 'a1', 1, 'binding', 'bound');
-              yield* interleave(
-                $(phase1, 'a1', 1, 'attaching'),
-                $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached'),
-              );
-              yield* $(phase1, 'a1', 1, 'attached');
-              break;
-          }
+          yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
+          yield* $(phase1, 'a1', a1Load, 'loading');
+          yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
+          yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
+          yield* $(phase1, 'a2', a2Load, 'loading');
+          yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
 
           yield* $('stop', ['a2', 'a1'], 0, 'detaching.enter');
           yield* $('stop', 'root', 0, 'detaching');
@@ -1603,7 +1414,7 @@ describe('router hooks', function () {
     }
   });
 
-  forEachRouterOptions('single incoming parentsiblings-childsiblings transition', function (opts) {
+  describe('single incoming parentsiblings-childsiblings transition', function () {
     interface IParentSiblingsChildSiblingsTransitionSpec {
       a1: HookSpecs;
       a2: HookSpecs;
@@ -1757,7 +1568,7 @@ describe('router hooks', function () {
           public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
         }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2], opts);
+        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2]);
 
         const phase1 = `('' -> 'a1@$0/a2+b1@$1/b2')`;
 
@@ -1768,79 +1579,32 @@ describe('router hooks', function () {
 
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
+          yield* interleave(
+            $(phase1, 'a1', a1CanLoad, 'canLoad'),
+            $(phase1, 'b1', b1CanLoad, 'canLoad'),
+          );
 
-          switch (opts.resolutionMode) {
-            case 'dynamic':
-              yield* interleave(
-                $(phase1, 'a1', a1CanLoad, 'canLoad'),
-                $(phase1, 'b1', b1CanLoad, 'canLoad'),
-              );
+          yield* interleave(
+            $(phase1, 'a1', a1Load, 'loading'),
+            $(phase1, 'b1', b1Load, 'loading'),
+          );
 
-              yield* interleave(
-                $(phase1, 'a1', a1Load, 'loading'),
-                $(phase1, 'b1', b1Load, 'loading'),
-              );
+          yield* interleave(
+            (function* () {
+              yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
 
-              yield* interleave(
-                (function* () {
-                  yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
+              yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
+              yield* $(phase1, 'a2', a2Load, 'loading');
+              yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
+            })(),
+            (function* () {
+              yield* $(phase1, 'b1', 1, 'binding', 'bound', 'attaching', 'attached');
 
-                  yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-                  yield* $(phase1, 'a2', a2Load, 'loading');
-                  yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
-                })(),
-                (function* () {
-                  yield* $(phase1, 'b1', 1, 'binding', 'bound', 'attaching', 'attached');
-
-                  yield* $(phase1, 'b2', b2CanLoad, 'canLoad');
-                  yield* $(phase1, 'b2', b2Load, 'loading');
-                  yield* $(phase1, 'b2', 1, 'binding', 'bound', 'attaching', 'attached');
-                })(),
-              );
-              break;
-            case 'static':
-              yield* interleave(
-                (function* () {
-                  yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
-                  yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
-                })(),
-                (function* () {
-                  yield* $(phase1, 'b1', b1CanLoad, 'canLoad');
-                  yield* $(phase1, 'b2', b2CanLoad, 'canLoad');
-                })(),
-              );
-
-              yield* interleave(
-                (function* () {
-                  yield* $(phase1, 'a1', a1Load, 'loading');
-                  yield* $(phase1, 'a2', a2Load, 'loading');
-                })(),
-                (function* () {
-                  yield* $(phase1, 'b1', b1Load, 'loading');
-                  yield* $(phase1, 'b2', b2Load, 'loading');
-                })(),
-              );
-
-              yield* interleave(
-                $(phase1, 'a1', 1, 'binding', 'bound'),
-                $(phase1, 'b1', 1, 'binding', 'bound'),
-              );
-              yield* interleave(
-                $(phase1, 'a1', 1, 'attaching'),
-                $(phase1, 'a2', 1, 'binding'),
-                $(phase1, 'b1', 1, 'attaching'),
-                $(phase1, 'b2', 1, 'binding'),
-              );
-              yield* interleave(
-                $(phase1, 'a2', 1, 'bound', 'attaching', 'attached'),
-                $(phase1, 'b2', 1, 'bound', 'attaching', 'attached'),
-              );
-              yield* interleave(
-                $(phase1, 'a1', 1, 'attached'),
-                $(phase1, 'b1', 1, 'attached'),
-              );
-              break;
-          }
+              yield* $(phase1, 'b2', b2CanLoad, 'canLoad');
+              yield* $(phase1, 'b2', b2Load, 'loading');
+              yield* $(phase1, 'b2', 1, 'binding', 'bound', 'attaching', 'attached');
+            })(),
+          );
 
           yield* interleave(
             $('stop', ['a2', 'b2'], 0, 'detaching.enter'),
@@ -1873,7 +1637,7 @@ describe('router hooks', function () {
 
   // TODO: make these pass in firefox (firefox for some reason uses different type of stack trace - see https://app.circleci.com/pipelines/github/aurelia/aurelia/7569/workflows/60a7fb9f-e8b0-47e4-b753-eaa9b5da42c2/jobs/64147)
   if (!isFirefox()) {
-    forEachRouterOptions('error handling', function (opts) {
+    describe('error handling', function () {
       interface IErrorSpec {
         createCes: () => CustomElementType[];
         action: (router: IRouter) => Promise<void>;
@@ -1889,7 +1653,7 @@ describe('router hooks', function () {
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
           class Root { }
 
-          const { router, tearDown } = await createFixture(Root, components, opts);
+          const { router, tearDown } = await createFixture(Root, components);
 
           let err: Error | undefined = void 0;
           try {
@@ -2106,7 +1870,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A, B], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2210,7 +1974,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C]/* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2344,7 +2108,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2]/* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2411,7 +2175,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: vp(1) })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P]/* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2536,7 +2300,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: vp(1) })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture(Root, [GC11, GC12, GC21, GC22, C1, C2, P], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown } = await createFixture(Root, [GC11, GC12, GC21, GC22, C1, C2, P]/* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2647,7 +2411,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2, S3], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2, S3]/* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2751,7 +2515,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, GC11, GC12, GC21, GC22], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, GC11, GC12, GC21, GC22]/* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2856,7 +2620,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P, NF], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+        const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P, NF]/* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2934,7 +2698,7 @@ describe('router hooks', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture(Root, [GC1, GC21, GC22, C1, C2, P, NF], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+        const { router, mgr, tearDown } = await createFixture(Root, [GC1, GC21, GC22, C1, C2, P, NF]/* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -3010,7 +2774,7 @@ describe('router hooks', function () {
       })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
       const queue = platform.domWriteQueue;
       const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
@@ -3141,7 +2905,7 @@ describe('router hooks', function () {
       })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
       const queue = platform.domWriteQueue;
 
       // load p1/gc-11
@@ -3297,7 +3061,7 @@ describe('router hooks', function () {
       @customElement({ name: 'root', template: 'root <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, host, tearDown } = await createFixture(Root, [S1, S2, S3], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, host, tearDown } = await createFixture(Root, [S1, S2, S3]/* , LogLevel.trace */);
 
       // load s1@$1+s2@$2
       let phase = 'round#1';
@@ -3447,7 +3211,7 @@ describe('router hooks', function () {
       })
       class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11], { resolutionMode: 'dynamic' }/* , LogLevel.trace */);
+      const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
       const queue = platform.domWriteQueue;
 
       // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)

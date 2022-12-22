@@ -1,5 +1,5 @@
 import { Aurelia, CustomElement, customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouteConfig, IRouter, IRouterOptions, IRouteViewModel, ResolutionMode, route, Route, RouteDefinition, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouteConfig, IRouter, IRouteViewModel, route, Route, RouteDefinition, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
@@ -40,26 +40,6 @@ export function* prepend(
   }
 }
 
-export function* prependDeferrable(
-  prefix: string,
-  component: string,
-  resolution: ResolutionMode,
-  ...calls: (HookName | '')[]
-): Generator<string, void> {
-  if (resolution === 'dynamic') {
-    yield `${prefix}.${component}.canLoad`;
-    yield `${prefix}.${component}.loading`;
-  }
-
-  for (const call of calls) {
-    if (call === '') {
-      yield '';
-    } else {
-      yield `${prefix}.${component}.${call}`;
-    }
-  }
-}
-
 export function* interleave(
   ...generators: Generator<string, void>[]
 ): Generator<string, void> {
@@ -79,11 +59,6 @@ export function* interleave(
       }
     }
   }
-}
-
-export interface IRouterOptionsSpec {
-  resolution: ResolutionMode;
-  toString(): string;
 }
 
 export interface IComponentSpec {
@@ -109,11 +84,6 @@ export abstract class SimpleActivityTrackingVMBase {
 
 describe('router config', function () {
   describe('monomorphic timings', function () {
-    const routerOptionsSpecs: IRouterOptionsSpec[] = ([
-      'dynamic',
-      'static',
-    ] as const).map((resolution) => ({ resolution, toString() { return `resolution:'${resolution}'`; } }));
-
     const componentSpecs: IComponentSpec[] = [
       {
         kind: 'all-sync',
@@ -202,108 +172,102 @@ describe('router config', function () {
       const A = [...A0, ...A1, ...A2];
 
       describe(`componentSpec.kind:'${kind}'`, function () {
-        for (const routerOptionsSpec of routerOptionsSpecs) {
-          const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
+        describe('single', function () {
+          interface ISpec {
+            t1: [string, string];
+            t2: [string, string];
+            t3: [string, string];
+            t4: [string, string];
+            configure(): void;
+          }
 
-          describe(`${routerOptionsSpec}`, function () {
-            describe('single', function () {
-              interface ISpec {
-                t1: [string, string];
-                t2: [string, string];
-                t3: [string, string];
-                t4: [string, string];
-                configure(): void;
-              }
+          function runTest(spec: ISpec) {
+            const { t1: [t1, t1c], t2: [t2, t2c], t3: [t3, t3c], t4: [t4, t4c] } = spec;
+            spec.configure();
+            it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
+              const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig);
 
-              function runTest(spec: ISpec) {
-                const { t1: [t1, t1c], t2: [t2, t2c], t3: [t3, t3c], t4: [t4, t4c] } = spec;
-                spec.configure();
-                it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
+              const phase1 = `('' -> '${t1}')#1`;
+              const phase2 = `('${t1}' -> '${t2}')#2`;
+              const phase3 = `('${t2}' -> '${t3}')#3`;
+              const phase4 = `('${t3}' -> '${t4}')#4`;
 
-                  const phase1 = `('' -> '${t1}')#1`;
-                  const phase2 = `('${t1}' -> '${t2}')#2`;
-                  const phase3 = `('${t2}' -> '${t3}')#3`;
-                  const phase4 = `('${t3}' -> '${t4}')#4`;
+              hia.setPhase(phase1);
+              await router.load(t1);
 
-                  hia.setPhase(phase1);
-                  await router.load(t1);
+              hia.setPhase(phase2);
+              await router.load(t2);
 
-                  hia.setPhase(phase2);
-                  await router.load(t2);
+              hia.setPhase(phase3);
+              await router.load(t3);
 
-                  hia.setPhase(phase3);
-                  await router.load(t3);
+              hia.setPhase(phase4);
+              await router.load(t4);
 
-                  hia.setPhase(phase4);
-                  await router.load(t4);
+              await tearDown();
 
-                  await tearDown();
+              const expected = [...(function* () {
+                yield `start.root2.binding`;
+                yield `start.root2.bound`;
+                yield `start.root2.attaching`;
+                yield `start.root2.attached`;
 
-                  const expected = [...(function* () {
-                    yield `start.root2.binding`;
-                    yield `start.root2.bound`;
-                    yield `start.root2.attaching`;
-                    yield `start.root2.attached`;
+                yield* prepend(phase1, t1c, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
 
-                    yield* prepend(phase1, t1c, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
+                for (const [phase, { $t1c, $t2c }] of [
+                  [phase2, { $t1c: t1c, $t2c: t2c }],
+                  [phase3, { $t1c: t2c, $t2c: t3c }],
+                  [phase4, { $t1c: t3c, $t2c: t4c }],
+                ] as const) {
+                  yield `${phase}.${$t1c}.canUnload`;
+                  yield `${phase}.${$t2c}.canLoad`;
+                  yield `${phase}.${$t1c}.unloading`;
+                  yield `${phase}.${$t2c}.loading`;
 
-                    for (const [phase, { $t1c, $t2c }] of [
-                      [phase2, { $t1c: t1c, $t2c: t2c }],
-                      [phase3, { $t1c: t2c, $t2c: t3c }],
-                      [phase4, { $t1c: t3c, $t2c: t4c }],
-                    ] as const) {
-                      yield `${phase}.${$t1c}.canUnload`;
-                      yield `${phase}.${$t2c}.canLoad`;
-                      yield `${phase}.${$t1c}.unloading`;
-                      yield `${phase}.${$t2c}.loading`;
+                  yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
+                  yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
+                }
 
-                      yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
-                      yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
-                    }
+                yield `stop.${t4c}.detaching`;
+                yield `stop.root2.detaching`;
+                yield `stop.${t4c}.unbinding`;
+                yield `stop.root2.unbinding`;
+                yield `stop.root2.dispose`;
+                yield `stop.${t4c}.dispose`;
+              })()];
+              verifyInvocationsEqual(hia.notifyHistory, expected);
 
-                    yield `stop.${t4c}.detaching`;
-                    yield `stop.root2.detaching`;
-                    yield `stop.${t4c}.unbinding`;
-                    yield `stop.root2.unbinding`;
-                    yield `stop.root2.dispose`;
-                    yield `stop.${t4c}.dispose`;
-                  })()];
-                  verifyInvocationsEqual(hia.notifyHistory, expected);
-
-                  hia.dispose();
-                });
-              }
-
-              const specs: ISpec[] = [
-                {
-                  t1: ['1', 'a01'],
-                  t2: ['2', 'a02'],
-                  t3: ['1', 'a01'],
-                  t4: ['2', 'a02'],
-                  configure() {
-                    Route.configure({
-                      routes: [
-                        {
-                          path: '1',
-                          component: A01,
-                        },
-                        {
-                          path: '2',
-                          component: A02,
-                        },
-                      ],
-                    }, Root2);
-                  },
-                },
-              ];
-
-              for (const spec of specs) {
-                runTest(spec);
-              }
+              hia.dispose();
             });
-          });
-        }
+          }
+
+          const specs: ISpec[] = [
+            {
+              t1: ['1', 'a01'],
+              t2: ['2', 'a02'],
+              t3: ['1', 'a01'],
+              t4: ['2', 'a02'],
+              configure() {
+                Route.configure({
+                  routes: [
+                    {
+                      path: '1',
+                      component: A01,
+                    },
+                    {
+                      path: '2',
+                      component: A02,
+                    },
+                  ],
+                }, Root2);
+              },
+            },
+          ];
+
+          for (const spec of specs) {
+            runTest(spec);
+          }
+        });
       });
     }
   });

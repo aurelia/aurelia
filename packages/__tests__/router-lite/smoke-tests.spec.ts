@@ -43,7 +43,7 @@ async function createFixture<T extends Constructable>(
   const { container, platform } = ctx;
 
   container.register(TestRouterConfiguration.for(level));
-  container.register(RouterConfiguration.customize({ resolutionMode: 'dynamic' }));
+  container.register(RouterConfiguration);
   container.register(...deps);
 
   const component = container.get(Component);
@@ -600,391 +600,205 @@ describe('router (smoke tests)', function () {
     }
   }
 
-  for (const mode of ['static', 'dynamic'] as const) {
-    it(`can load single anonymous default at the root with mode: ${mode}`, async function () {
-      @customElement({ name: 'a', template: 'a' })
-      class A { }
-      @customElement({ name: 'b', template: 'b' })
-      class B { }
-      @route({
-        routes: [
-          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
-        ]
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport default="a"></au-viewport>`,
-        dependencies: [A, B],
-      })
-      class Root { }
+  it('can load single anonymous default at the root', async function () {
+    @customElement({ name: 'a', template: 'a' })
+    class A { }
+    @customElement({ name: 'b', template: 'b' })
+    class B { }
+    @route({
+      routes: [
+        { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+        { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport default="a"></au-viewport>`,
+      dependencies: [A, B],
+    })
+    class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
+    const ctx = TestContext.create();
+    const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
 
-      const component = container.get(Root);
-      const router = container.get(IRouter);
+    const component = container.get(Root);
+    const router = container.get(IRouter);
 
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
 
-      au.app({ component, host });
+    au.app({ component, host });
 
-      await au.start();
+    await au.start();
 
-      assertComponentsVisible(host, [Root, [A]]);
+    assertComponentsVisible(host, [Root, [A]]);
 
-      await router.load('b');
-
-      assertComponentsVisible(host, [Root, [B]]);
-
-      await router.load('');
-
-      assertComponentsVisible(host, [Root, [A]]);
-
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
+    await router.load('b');
+
+    assertComponentsVisible(host, [Root, [B]]);
+
+    await router.load('');
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
 
-    it(`can load a named default with one sibling at the root with mode: ${mode}`, async function () {
-      @customElement({ name: 'a', template: 'a' })
-      class A { }
-      @customElement({ name: 'b', template: 'b' })
-      class B { }
-      @route({
-        routes: [
-          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
-        ]
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport name="a" default="a"></au-viewport><au-viewport name="b"></au-viewport>`,
-        dependencies: [A, B],
-      })
-      class Root { }
+  it('can load a named default with one sibling at the root', async function () {
+    @customElement({ name: 'a', template: 'a' })
+    class A { }
+    @customElement({ name: 'b', template: 'b' })
+    class B { }
+    @route({
+      routes: [
+        { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+        { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport name="a" default="a"></au-viewport><au-viewport name="b"></au-viewport>`,
+      dependencies: [A, B],
+    })
+    class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
+    const ctx = TestContext.create();
+    const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
 
-      const component = container.get(Root);
-      const router = container.get(IRouter);
+    const component = container.get(Root);
+    const router = container.get(IRouter);
 
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
 
-      au.app({ component, host });
+    au.app({ component, host });
 
-      await au.start();
+    await au.start();
 
-      assertComponentsVisible(host, [Root, [A]], '1');
+    assertComponentsVisible(host, [Root, [A]], '1');
 
-      await router.load('b@b');
+    await router.load('b@b');
 
-      assertComponentsVisible(host, [Root, [A, B]], '2');
+    assertComponentsVisible(host, [Root, [A, B]], '2');
 
-      await router.load('');
+    await router.load('');
 
-      assertComponentsVisible(host, [Root, [A]], '3');
+    assertComponentsVisible(host, [Root, [A]], '3');
 
-      await router.load('a@a+b@b');
+    await router.load('a@a+b@b');
 
-      assertComponentsVisible(host, [Root, [A, B]], '4');
+    assertComponentsVisible(host, [Root, [A, B]], '4');
 
-      await router.load('b@a');
+    await router.load('b@a');
 
-      assertComponentsVisible(host, [Root, [B]], '5');
+    assertComponentsVisible(host, [Root, [B]], '5');
 
-      await router.load('');
+    await router.load('');
 
-      assertComponentsVisible(host, [Root, [A]], '6');
+    assertComponentsVisible(host, [Root, [A]], '6');
 
-      await router.load('b@a+a@b');
+    await router.load('b@a+a@b');
 
-      assertComponentsVisible(host, [Root, [B, A]], '7');
+    assertComponentsVisible(host, [Root, [B, A]], '7');
 
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
 
-    it(`can load a named default with one sibling at a child with mode: ${mode}`, async function () {
-      @customElement({ name: 'b', template: 'b' })
-      class B { }
-      @customElement({ name: 'c', template: 'c' })
-      class C { }
-      @route({
-        routes: [
-          { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
-          { path: 'c', component: C, transitionPlan: 'invoke-lifecycles' },
-        ]
-      })
-      @customElement({
-        name: 'a',
-        template: 'a<au-viewport name="b" default="b"></au-viewport><au-viewport name="c"></au-viewport>',
-        dependencies: [B, C],
-      })
-      class A { }
-      @route({
-        routes: [
-          { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-        ]
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport default="a">`,
-        dependencies: [A],
-      })
-      class Root { }
+  it('can load a named default with one sibling at a child', async function () {
+    @customElement({ name: 'b', template: 'b' })
+    class B { }
+    @customElement({ name: 'c', template: 'c' })
+    class C { }
+    @route({
+      routes: [
+        { path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+        { path: 'c', component: C, transitionPlan: 'invoke-lifecycles' },
+      ]
+    })
+    @customElement({
+      name: 'a',
+      template: 'a<au-viewport name="b" default="b"></au-viewport><au-viewport name="c"></au-viewport>',
+      dependencies: [B, C],
+    })
+    class A { }
+    @route({
+      routes: [
+        { path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport default="a">`,
+      dependencies: [A],
+    })
+    class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
+    const ctx = TestContext.create();
+    const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
 
-      const component = container.get(Root);
-      const router = container.get(IRouter);
+    const component = container.get(Root);
+    const router = container.get(IRouter);
 
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
 
-      au.app({ component, host });
+    au.app({ component, host });
 
-      await au.start();
+    await au.start();
 
-      assertComponentsVisible(host, [Root, [A, [B]]], '1');
+    assertComponentsVisible(host, [Root, [A, [B]]], '1');
 
-      await router.load('a/c@c');
+    await router.load('a/c@c');
 
-      assertComponentsVisible(host, [Root, [A, [B, C]]], '2');
+    assertComponentsVisible(host, [Root, [A, [B, C]]], '2');
 
-      await router.load('');
+    await router.load('');
 
-      assertComponentsVisible(host, [Root, [A, [B]]], '3');
+    assertComponentsVisible(host, [Root, [A, [B]]], '3');
 
-      await router.load('a/(b@b+c@c)');
+    await router.load('a/(b@b+c@c)');
 
-      assertComponentsVisible(host, [Root, [A, [B, C]]], '4');
+    assertComponentsVisible(host, [Root, [A, [B, C]]], '4');
 
-      await router.load('a/c@b');
+    await router.load('a/c@b');
 
-      assertComponentsVisible(host, [Root, [A, [C]]], '5');
+    assertComponentsVisible(host, [Root, [A, [C]]], '5');
 
-      await router.load('');
+    await router.load('');
 
-      assertComponentsVisible(host, [Root, [A, [B]]], '6');
+    assertComponentsVisible(host, [Root, [A, [B]]], '6');
 
-      await router.load('a/(c@b+b@c)');
+    await router.load('a/(c@b+b@c)');
 
-      assertComponentsVisible(host, [Root, [A, [C, B]]], '7');
+    assertComponentsVisible(host, [Root, [A, [C, B]]], '7');
 
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
 
-    for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
-      it(`will load the fallback when navigating to a non-existing route - with ${name} - with mode: ${mode} - viewport`, async function () {
-        @customElement({ name: 'ce-a', template: 'a' })
-        class A { }
-        @route({
-          routes: [
-            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          ]
-        })
-        @customElement({
-          name: 'root',
-          template: `root<au-viewport fallback="${fallback}">`,
-          dependencies: [A],
-        })
-        class Root { }
-
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
-
-        const component = container.get(Root);
-        const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
-
-        assertComponentsVisible(host, [Root]);
-
-        await router.load('b');
-
-        assertComponentsVisible(host, [Root, [A]]);
-
-        await au.stop(true);
-        assert.areTaskQueuesEmpty();
-      });
-
-      it(`will load the global-fallback when navigating to a non-existing route - with ${name} - with mode: ${mode}`, async function () {
-        @customElement({ name: 'ce-a', template: 'a' })
-        class A { }
-        @route({
-          routes: [
-            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          ],
-          fallback,
-        })
-        @customElement({
-          name: 'root',
-          template: `root<au-viewport>`,
-          dependencies: [A],
-        })
-        class Root { }
-
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
-
-        const component = container.get(Root);
-        const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
-
-        assertComponentsVisible(host, [Root]);
-
-        await router.load('b');
-
-        assertComponentsVisible(host, [Root, [A]]);
-
-        await au.stop(true);
-        assert.areTaskQueuesEmpty();
-      });
-
-      it(`will load the global-fallback when navigating to a non-existing route - sibling - with ${name} - with mode: ${mode}`, async function () {
-        @customElement({ name: 'ce-a', template: 'a' })
-        class A { }
-        @route({
-          routes: [
-            { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          ],
-          fallback,
-        })
-        @customElement({
-          name: 'root',
-          template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
-          dependencies: [A],
-        })
-        class Root { }
-
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration.customize({ resolutionMode: mode }));
-
-        const component = container.get(Root);
-        const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
-
-        assertComponentsVisible(host, [Root]);
-
-        await router.load('b+c');
-
-        assertComponentsVisible(host, [Root, [A, A]]);
-
-        await au.stop(true);
-        assert.areTaskQueuesEmpty();
-      });
-    }
-
-    it(`will load the global-fallback when navigating to a non-existing route - with ce-name - with mode: ${mode} - with empty route`, async function () {
+  for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
+    it('will load the fallback when navigating to a non-existing route - with ${name} - viewport', async function () {
       @customElement({ name: 'ce-a', template: 'a' })
       class A { }
-      @customElement({ name: 'n-f', template: 'nf' })
-      class NF { }
-      @route({
-        routes: [
-          { id: 'r1', path: ['', 'a'], component: A, transitionPlan: 'invoke-lifecycles' },
-          { id: 'r2', path: ['nf'], component: NF, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'n-f',
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport>`,
-        dependencies: [A, NF],
-      })
-      class Root { }
-
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
-
-      const component = container.get(Root);
-      const router = container.get(IRouter);
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      au.app({ component, host });
-
-      await au.start();
-
-      assertComponentsVisible(host, [Root, [A]]);
-
-      await router.load('b');
-
-      assertComponentsVisible(host, [Root, [NF]]);
-
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
-
-    it(`will load the global-fallback when navigating to a non-existing route - parent-child - with mode: ${mode}`, async function () {
-      @customElement({ name: 'ce-a01', template: 'ac01' })
-      class Ac01 { }
-      @customElement({ name: 'ce-a02', template: 'ac02' })
-      class Ac02 { }
-
-      @route({
-        routes: [
-          { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
-          { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'rc1',
-      })
-      @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
-      class A { }
-
       @route({
         routes: [
           { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'r1',
+        ]
       })
       @customElement({
         name: 'root',
-        template: `root<au-viewport>`,
+        template: `root<au-viewport fallback="${fallback}">`,
         dependencies: [A],
       })
       class Root { }
@@ -993,7 +807,7 @@ describe('router (smoke tests)', function () {
       const { container } = ctx;
 
       container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+      container.register(RouterConfiguration);
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -1007,55 +821,69 @@ describe('router (smoke tests)', function () {
 
       assertComponentsVisible(host, [Root]);
 
-      await router.load('a/b');
+      await router.load('b');
 
-      assertComponentsVisible(host, [Root, [A, [Ac01]]]);
+      assertComponentsVisible(host, [Root, [A]]);
 
       await au.stop(true);
       assert.areTaskQueuesEmpty();
     });
 
-    it(`will load the global-fallback when navigating to a non-existing route - sibling + parent-child - with mode: ${mode}`, async function () {
-      @customElement({ name: 'ce-a01', template: 'ac01' })
-      class Ac01 { }
-      @customElement({ name: 'ce-a02', template: 'ac02' })
-      class Ac02 { }
-
-      @route({
-        routes: [
-          { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
-          { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'rc1',
-      })
-      @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
+    it('will load the global-fallback when navigating to a non-existing route - with ${name}', async function () {
+      @customElement({ name: 'ce-a', template: 'a' })
       class A { }
-      @customElement({ name: 'ce-b01', template: 'bc01' })
-      class Bc01 { }
-      @customElement({ name: 'ce-b02', template: 'bc02' })
-      class Bc02 { }
-
-      @route({
-        routes: [
-          { id: 'rc1', path: 'bc01', component: Bc01, transitionPlan: 'invoke-lifecycles' },
-          { id: 'rc2', path: 'bc02', component: Bc02, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'rc2',
-      })
-      @customElement({ name: 'ce-b', template: 'b<au-viewport>', dependencies: [Bc01, Bc02] })
-      class B { }
-
       @route({
         routes: [
           { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
         ],
-        fallback: 'r1',
+        fallback,
+      })
+      @customElement({
+        name: 'root',
+        template: `root<au-viewport>`,
+        dependencies: [A],
+      })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      container.register(TestRouterConfiguration.for(LogLevel.warn));
+      container.register(RouterConfiguration);
+
+      const component = container.get(Root);
+      const router = container.get(IRouter);
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      au.app({ component, host });
+
+      await au.start();
+
+      assertComponentsVisible(host, [Root]);
+
+      await router.load('b');
+
+      assertComponentsVisible(host, [Root, [A]]);
+
+      await au.stop(true);
+      assert.areTaskQueuesEmpty();
+    });
+
+    it(`will load the global-fallback when navigating to a non-existing route - sibling - with ${name}`, async function () {
+      @customElement({ name: 'ce-a', template: 'a' })
+      class A { }
+      @route({
+        routes: [
+          { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+        ],
+        fallback,
       })
       @customElement({
         name: 'root',
         template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
-        dependencies: [A, B],
+        dependencies: [A],
       })
       class Root { }
 
@@ -1063,7 +891,7 @@ describe('router (smoke tests)', function () {
       const { container } = ctx;
 
       container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
+      container.register(RouterConfiguration);
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -1077,67 +905,237 @@ describe('router (smoke tests)', function () {
 
       assertComponentsVisible(host, [Root]);
 
-      await router.load('a/ac02+b/u');
+      await router.load('b+c');
 
-      assertComponentsVisible(host, [Root, [A, [Ac02]], [B, [Bc02]]]);
-
-      await router.load('a/u+b/bc01');
-
-      assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc01]]]);
-
-      await router.load('a/u+b/u');
-
-      assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc02]]]);
-
-      await au.stop(true);
-      assert.areTaskQueuesEmpty();
-    });
-
-    it(`au-viewport#fallback precedes global fallback - with mode: ${mode}`, async function () {
-      @customElement({ name: 'ce-a', template: 'a' })
-      class A { }
-      @customElement({ name: 'ce-b', template: 'b' })
-      class B { }
-      @route({
-        routes: [
-          { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
-          { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
-        ],
-        fallback: 'r1',
-      })
-      @customElement({
-        name: 'root',
-        template: `root<au-viewport name="1"></au-viewport><au-viewport name="2" fallback="r2"></au-viewport>`,
-        dependencies: [A, B],
-      })
-      class Root { }
-
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration.customize({ resolutionMode: mode }));
-
-      const component = container.get(Root);
-      const router = container.get(IRouter);
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      au.app({ component, host });
-
-      await au.start();
-
-      assertComponentsVisible(host, [Root]);
-
-      await router.load('u1@1+u2@2');
-
-      assertComponentsVisible(host, [Root, [A, B]]);
+      assertComponentsVisible(host, [Root, [A, A]]);
 
       await au.stop(true);
       assert.areTaskQueuesEmpty();
     });
   }
+
+  it('will load the global-fallback when navigating to a non-existing route - with ce-name - with empty route', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A, transitionPlan: 'invoke-lifecycles' },
+        { id: 'r2', path: ['nf'], component: NF, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'n-f',
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+      dependencies: [A, NF],
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('b');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('will load the global-fallback when navigating to a non-existing route - parent-child', async function () {
+    @customElement({ name: 'ce-a01', template: 'ac01' })
+    class Ac01 { }
+    @customElement({ name: 'ce-a02', template: 'ac02' })
+    class Ac02 { }
+
+    @route({
+      routes: [
+        { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
+        { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'rc1',
+    })
+    @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
+    class A { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'r1',
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+      dependencies: [A],
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Root]);
+
+    await router.load('a/b');
+
+    assertComponentsVisible(host, [Root, [A, [Ac01]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('will load the global-fallback when navigating to a non-existing route - sibling + parent-child', async function () {
+    @customElement({ name: 'ce-a01', template: 'ac01' })
+    class Ac01 { }
+    @customElement({ name: 'ce-a02', template: 'ac02' })
+    class Ac02 { }
+
+    @route({
+      routes: [
+        { id: 'rc1', path: 'ac01', component: Ac01, transitionPlan: 'invoke-lifecycles' },
+        { id: 'rc2', path: 'ac02', component: Ac02, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'rc1',
+    })
+    @customElement({ name: 'ce-a', template: 'a<au-viewport>', dependencies: [Ac01, Ac02] })
+    class A { }
+    @customElement({ name: 'ce-b01', template: 'bc01' })
+    class Bc01 { }
+    @customElement({ name: 'ce-b02', template: 'bc02' })
+    class Bc02 { }
+
+    @route({
+      routes: [
+        { id: 'rc1', path: 'bc01', component: Bc01, transitionPlan: 'invoke-lifecycles' },
+        { id: 'rc2', path: 'bc02', component: Bc02, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'rc2',
+    })
+    @customElement({ name: 'ce-b', template: 'b<au-viewport>', dependencies: [Bc01, Bc02] })
+    class B { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+        { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'r1',
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
+      dependencies: [A, B],
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Root]);
+
+    await router.load('a/ac02+b/u');
+
+    assertComponentsVisible(host, [Root, [A, [Ac02]], [B, [Bc02]]]);
+
+    await router.load('a/u+b/bc01');
+
+    assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc01]]]);
+
+    await router.load('a/u+b/u');
+
+    assertComponentsVisible(host, [Root, [A, [Ac01]], [B, [Bc02]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('au-viewport#fallback precedes global fallback', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'ce-b', template: 'b' })
+    class B { }
+    @route({
+      routes: [
+        { id: 'r1', path: 'a', component: A, transitionPlan: 'invoke-lifecycles' },
+        { id: 'r2', path: 'b', component: B, transitionPlan: 'invoke-lifecycles' },
+      ],
+      fallback: 'r1',
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport name="1"></au-viewport><au-viewport name="2" fallback="r2"></au-viewport>`,
+      dependencies: [A, B],
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(TestRouterConfiguration.for(LogLevel.warn));
+    container.register(RouterConfiguration);
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Root]);
+
+    await router.load('u1@1+u2@2');
+
+    assertComponentsVisible(host, [Root, [A, B]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
 
   it(`correctly parses parameters`, async function () {
     const a1Params: Params[] = [];

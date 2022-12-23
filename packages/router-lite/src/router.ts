@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -7,8 +7,8 @@ import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCanc
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
-import { RouteTree, RouteNode, updateNode } from './route-tree';
-import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
+import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
+import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
 import { ViewportAgent } from './viewport-agent';
@@ -23,7 +23,6 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };
 }
 
-export type ResolutionMode = 'static' | 'dynamic';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
 function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
@@ -46,7 +45,6 @@ export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
-    public readonly resolutionMode: ResolutionMode,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
      *
@@ -70,7 +68,6 @@ export class RouterOptions {
     return new RouterOptions(
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
-      input.resolutionMode ?? 'dynamic',
       input.historyStrategy ?? 'push',
       input.buildTitle ?? null,
     );
@@ -82,7 +79,6 @@ export class RouterOptions {
 
   protected stringifyProperties(): string {
     return ([
-      ['resolutionMode', 'resolution'],
       ['historyStrategy', 'history'],
     ] as const).map(([key, name]) => {
       const value = this[key];
@@ -94,7 +90,6 @@ export class RouterOptions {
     return new RouterOptions(
       this.useUrlFragmentHash,
       this.useHref,
-      this.resolutionMode,
       this.historyStrategy,
       this.buildTitle,
     );
@@ -139,7 +134,6 @@ export class NavigationOptions extends RouterOptions {
     super(
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
-      routerOptions.resolutionMode,
       routerOptions.historyStrategy,
       routerOptions.buildTitle,
     );
@@ -897,4 +891,44 @@ export class Router {
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
     return NavigationOptions.create({ ...this.options, ...options });
   }
+}
+
+function updateNode(
+  log: ILogger,
+  vit: ViewportInstructionTree,
+  ctx: IRouteContext,
+  node: RouteNode,
+): Promise<void> | void {
+  log.trace(`updateNode(ctx:%s,node:%s)`, ctx, node);
+
+  node.queryParams = vit.queryParams;
+  node.fragment = vit.fragment;
+
+  if (!node.context.isRoot) {
+    node.context.vpa.scheduleUpdate(node.tree.options, node);
+  }
+  if (node.context === ctx) {
+    // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
+    node.clearChildren();
+    // - first append the nodes as children, compiling the viewport instructions.
+    // - if afterward, any viewports are still available
+    //   - look at the default value of those viewports
+    //   - create instructions, and
+    //   - add the compiled nodes from those to children of the node.
+    return onResolve(
+      resolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+        const vp = vpa.viewport;
+        const component = vp.default;
+        if (component === null) return acc;
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        return acc;
+      }, [] as (void | Promise<void>)[]))
+    );
+  }
+
+  // Drill down until we're at the node whose context matches the provided navigation context
+  return resolveAll(...node.children.map(child => {
+    return updateNode(log, vit, ctx, child);
+  }));
 }

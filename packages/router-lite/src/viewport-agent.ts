@@ -1,16 +1,17 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-import { ILogger, onResolve } from '@aurelia/kernel';
+import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
 import { LifecycleFlags, IHydratedController, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
-import { processResidue, getDynamicChildren, RouteNode } from './route-tree';
+import { RouteNode, createAndAppendNodes } from './route-tree';
 import { IRouteContext } from './route-context';
 import { Transition, NavigationOptions } from './router';
 import { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 import { defaultViewportName } from './route-definition';
+import { ViewportInstruction } from './instructions';
 
 export class ViewportRequest {
   public constructor(
@@ -249,7 +250,7 @@ export class ViewportAgent {
       const next = this.nextNode!;
       switch (this.$plan) {
         case 'none':
-        case 'invoke-lifecycles':
+        case 'invoke-lifecycles': {
           this.logger.trace(`canLoad(next:%s) - plan set to '%s', compiling residue`, next, this.$plan);
 
           // These plans can only occur if there is already a current component active in this viewport,
@@ -260,10 +261,27 @@ export class ViewportAgent {
           // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
           // their target viewports have the appropriate updates scheduled.
           b1.push();
-          void onResolve(processResidue(next), () => {
-            b1.pop();
-          });
+          const ctx = next.context;
+          void onResolve(
+            ctx.resolved,
+            () => onResolve(
+              resolveAll(
+                ...next.residue.splice(0).map(vi => {
+                  return createAndAppendNodes(this.logger, next, vi);
+                }),
+                ...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+                  const vp = vpa.viewport;
+                  const component = vp.default;
+                  if (component === null) return acc;
+                  acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                  return acc;
+                }, ([] as (void | Promise<void>)[])),
+              ),
+              () => { b1.pop(); }
+            )
+          );
           return;
+        }
         case 'replace':
           this.logger.trace(`canLoad(next:%s), delaying residue compilation until activate`, next, this.$plan);
           return;
@@ -552,7 +570,29 @@ export class ViewportAgent {
 
     tr.run(() => {
       b.push();
-      return getDynamicChildren(next);
+      const ctx = next.context;
+      return onResolve(ctx.resolved, () => {
+        const existingChildren = next.children.slice();
+        return onResolve(
+          resolveAll(...next
+            .residue
+            .splice(0)
+            .map(vi => createAndAppendNodes(this.logger, next, vi))),
+          () => onResolve(
+            resolveAll(...ctx
+              .getAvailableViewportAgents()
+              .reduce((acc, vpa) => {
+                const vp = vpa.viewport;
+                const component = vp.default;
+                if (component === null) return acc;
+                acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                return acc;
+              }, ([] as (void | Promise<void>)[]))
+            ),
+            () => next.children.filter(x => !existingChildren.includes(x))
+          ),
+        );
+      });
     }, newChildren => {
       Batch.start(b1 => {
         for (const node of newChildren) {

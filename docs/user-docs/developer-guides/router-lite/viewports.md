@@ -153,11 +153,159 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport?ctl=1&embed=1&file=src/my-app.ts" %}
 
+If you open the example in a new tab, you can see how the URLs are constructed.
+For example, when you click a product link, the URL is `/42/details` or `/products/42/details`.
+This also means that when you try to navigate to that URL directly, the product details will be loaded from the start.
+It essentially creates shareable URLs.
+
 ## Sibling viewports
 
-Two viewports are called siblings if they are under one parent routing context.
+Two viewports are called siblings if they are under one parent routing hierarchy.
+Let us recreate the previous example but using sibling viewports this time.
 
-{% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport?ctl=1&embed=1&file=src/my-app.ts" %}
+```
++--------------------------------------------------------------------+
+|                                                                    |
+|   Viewport#1                      Viewport#2                       |
+|   +                               +                                |
+|   |                               |                                |
+|   |  +------------------------+   |  +------------------------+    |
+|   +->+                        |   +->+                        |    |
+|      |   Products' List       |      |    Product details     |    |
+|      |                        |      |                        |    |
+|      |                        |      |                        |    |
+|      |   +-------------+      |      |                        |    |
+|      |                        |      |                        |    |
+|      |   +-------------+      |      |                        |    |
+|      |                        |      |                        |    |
+|      |   +-------------+      |      |                        |    |
+|      |                        |      |                        |    |
+|      |   +-------------+      |      |                        |    |
+|      |                        |      |                        |    |
+|      +------------------------+      +------------------------+    |
++--------------------------------------------------------------------+
+```
+
+To this end, we want to viewports, housed side-by-side on the root component.
+We show the products' list on one viewport and the details of the selected product on the other one.
+
+To this end, let us start with the routing configuration on the root component.
+
+{% code title="my-app.ts" %}
+```typescript
+import { customElement } from '@aurelia/runtime-html';
+import { route } from '@aurelia/router-lite';
+import template from './my-app.html';
+import { Products } from './products';
+import { Product } from './product';
+
+@route({
+  routes: [
+    {
+      id: 'products',
+      path: ['', 'products'],
+      component: Products,
+    },
+    {
+      id: 'details',
+      path: 'details/:id',
+      component: Product,
+    },
+  ],
+})
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+{% endcode %}
+
+Two routes, one for the list another for the details, are configured on the route.
+Next we need 2 viewports to on the root component.
+Let us get that done.
+
+{% code title="my-app.html" %}
+```html
+<style>
+  div.content {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+  }
+</style>
+
+<nav>
+  <a load="products">Products</a>
+</nav>
+
+<div class="content">
+  <au-viewport></au-viewport>
+  <au-viewport></au-viewport>
+</div>
+```
+{% endcode %}
+
+Even though we are not yet done, you can check out our work so far in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport-duplicate?ctl=1&embed=1&file=src/my-app.html" %}
+
+If you run the example, you can immediately see a "problem" that both the viewports are loading the products' list.
+Although it is not an error per se, with natural use-case in mind, you probably like to avoid that.
+Let us fix this "problem" first.
+
+This is happening due to the default value of the [`default` attribute](#default-attribute) of the `<au-viewport>` that is set to `''` (empty string).
+This default value enables loading the component associated with the empty path without any additional configuration.
+This default behavior makes sense as the usage of a single viewport at every routing hierarchy might be prevalent.
+
+However, we need a way to prevent this duplication.
+To this end, we can bind `null` to the `default` attribute of a viewport, which instructs the router-lite that this particular viewport should be left out when it is empty (that is no component is targeted to be loaded in this viewport).
+
+{% code title="my-app.html" %}
+```diff
+  <div class="content">
+    <au-viewport></au-viewport>
+-   <au-viewport></au-viewport>
++   <au-viewport default.bind="null"></au-viewport>
+  </div>
+```
+
+You can see in the live example below that this fixes the duplication issue.
+
+{% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport-no-duplicate?ctl=1&embed=1&file=src/my-app.html" %}
+
+We still need a way to load the product details on the second viewport.
+Note that till now, the two viewports cannot be referentially differentiated from one another; that is if you want to load a component specifically on the first or on the second viewport, there is no way to do this for now.
+To this end, we need to [name the viewports](#named-viewports).
+
+{% code title="my-app.html" %}
+```diff
+  <div class="content">
+-   <au-viewport></au-viewport>
+-   <au-viewport default.bind="null"></au-viewport>
++   <au-viewport name="list"></au-viewport>
++   <au-viewport name="details" default.bind="null"></au-viewport>
+  </div>
+```
+
+Although we name the viewports semantically, it is not necessary, and you are free to choose names, as you like, for the viewports.
+Lastly, we need to use the [`load` attribute](./navigating.md#html-load-attribute) in the `Products` component to construct the URL, or more accurately the routing instruction correctly, such that the details of the product is loaded on the `details` viewport.
+
+{% code title="products.html" %}
+```diff
+  <ul>
+    <li repeat.for="item of data">
+-     <a href="#">${item.title}</a>
++     <a load="route.bind:{component:'details', params: {id: item.id}, viewport:'details'}; context.bind:null">${item.title}</a>
+    </li>
+  </ul>
+```
+
+Using the `load` attribute we are instructing the router-lite to load the `product` (route-id) component, with the `id` parameter of the route set to the `id` of the current `item` in the repeater, in the `details` viewport.
+With the `context.bind:null`, we are instructing the router-lite to perform this routing instruction on the root routing context.
+Now, when someone clicks a product link the associated details are loaded in the `details` viewport.
+You can see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport?ctl=1&embed=1&file=src/products.html" %}
+
+<!-- TODO(Sayan): fix the URL construction in the address bar and add a note here -->
 
 ## Named viewports
 
@@ -173,6 +321,10 @@ The router allows you to add in multiple viewports into your application and ren
 ```
 
 In this example, we have the main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered. When using viewports, think of them like iframes, independent containers that can maintain their own states.
+
+## `default` attribute
+
+TODO(Sayan)
 
 ## Specifying a viewport on a route
 

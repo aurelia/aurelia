@@ -1,4 +1,4 @@
-# Getting Started
+# Getting started
 
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 

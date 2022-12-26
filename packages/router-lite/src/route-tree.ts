@@ -430,6 +430,7 @@ export function createAndAppendNodes(
 
           for (let i = 0; i < collapse; ++i) {
             const child = vi.children[0];
+            (vi as Writable<ViewportInstruction>).viewport = child.viewport;
             if (residue?.startsWith(child.component.value as string) ?? false) break;
             (vi as Writable<ViewportInstruction>).children = child.children;
           }

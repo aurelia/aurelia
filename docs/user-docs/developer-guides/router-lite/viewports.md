@@ -311,7 +311,11 @@ For example, when you click a product link, the URL is `/details/42@details+prod
 
 ## Named viewports
 
-The router allows you to add in multiple viewports into your application and render components into each of those viewport elements by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one of them.
+As seen in [this example](#sibling-viewports), viewports can be named.
+It is particularly useful when there are multiple [sibling viewports](#sibling-viewports) present.
+Note that specifying a value for the `name` attribute of viewport is optional, and the default value is simply `'default'`.
+
+In the following example, we have the `main` viewport for our main content and then another viewport called `sidebar` for our sidebar content.
 
 ```markup
 <main>
@@ -322,11 +326,21 @@ The router allows you to add in multiple viewports into your application and ren
 </aside>
 ```
 
-In this example, we have the main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered. When using viewports, think of them like iframes, independent containers that can maintain their own states.
+The names can be used to instruct the router-lite to load a specific component to a specific named viewport.
+To this end the path syntax is as follows: `{path}@{viewport-name}`.
+The live example below shows this.
 
-## `default` attribute
+{% embed url="https://stackblitz.com/edit/router-lite-named-viewport?ctl=1&embed=1&file=src/my-app.html" %}
 
-TODO(Sayan)
+Note the `load` attributes in the `anchor` elements.
+
+```html
+<a load="products@list+details/${id}@details">Load products@list+details/${id}@details</a>
+<a load="details/${id}@details">Load details/${id}@details</a>
+```
+
+In the example, clicking the first anchor loads the `products` component in the `list` viewport and the details of the product with #{`id`} into the `details` viewport.
+The second anchor facilitates loading only the the details of the product with #{`id`} into the `details` viewport.
 
 ## Specifying a viewport on a route
 
@@ -349,3 +363,7 @@ export class MyApp implements IRouteableComponent {
 ```
 
 By specifying the `viewport` property on a route, we can tell it to load into a specific route.
+
+## `default` attribute
+
+TODO(Sayan)

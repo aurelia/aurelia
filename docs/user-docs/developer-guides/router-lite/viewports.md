@@ -326,6 +326,8 @@ In the following example, we have the `main` viewport for our main content and t
 </aside>
 ```
 
+### Using viewport name for routing instructions
+
 The names can be used to instruct the router-lite to load a specific component to a specific named viewport.
 To this end the path syntax is as follows: `{path}@{viewport-name}`.
 The live example below shows this.
@@ -342,9 +344,15 @@ Note the `load` attributes in the `anchor` elements.
 In the example, clicking the first anchor loads the `products` component in the `list` viewport and the details of the product with #{`id`} into the `details` viewport.
 The second anchor facilitates loading only the the details of the product with #{`id`} into the `details` viewport.
 
-## Specifying a viewport on a route
+{% hint style="info" %}
+For more details about navigating and instructions for router-lite, please refer the [documentation](navigating.md).
+{% endhint %}
 
-Routes will load in the default viewport element by default if there are one or more viewports. However, routes can be told to load into a specific viewport.
+### Specifying a viewport name on a route
+
+By default, the routes/components are loaded into the first available viewport, when there is no viewport instruction is present.
+However, the routes can also be configured, such that a configured route is allowed to be loaded only in a certain viewport.
+To this end, use the `viewport` option of the [route configuration](./configuring-routes.md).
 
 ```typescript
 import { IRouteableComponent, routes } from "@aurelia/router";

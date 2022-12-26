@@ -33,8 +33,6 @@ Aurelia
 ```
 {% endcode %}
 
-<!-- TODO(Sayan): add link to the detailed configuration section -->
-
 {% hint style="info" %}
 To know more about the different configuration options for router-lite, please refer the [documentation](router-configuration.md) on that topic.
 {% endhint %}

@@ -796,7 +796,21 @@ export class Router {
 
         this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
         this._isNavigating = false;
-        this.applyHistoryState(tr);
+
+        // apply history state
+        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
+        switch (tr.options.getHistoryStrategy(this.instructions)) {
+          case 'none':
+            // do nothing
+            break;
+          case 'push':
+            this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            break;
+          case 'replace':
+            this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            break;
+        }
+
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
         tr.resolve!(true);
@@ -806,34 +820,23 @@ export class Router {
     });
   }
 
-  private applyHistoryState(tr: Transition): void {
-    const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
-    switch (tr.options.getHistoryStrategy(this.instructions)) {
-      case 'none':
-        // do nothing
-        break;
-      case 'push':
-        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
-        break;
-      case 'replace':
-        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
-        break;
-    }
-  }
-
-  private getTitle(tr: Transition): string {
-    switch (typeof tr.options.title) {
-      case 'function':
-        return tr.options.title.call(void 0, tr.routeTree.root) ?? '';
-      case 'string':
-        return tr.options.title;
-      default:
-        return tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
-    }
-  }
-
   public updateTitle(tr: Transition = this.currentTr): string {
-    const title = this._hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
+    let title: string;
+    if(this._hasTitleBuilder) {
+      title = this.options.buildTitle!(tr) ?? '';
+    } else {
+      switch (typeof tr.options.title) {
+        case 'function':
+          title = tr.options.title.call(void 0, tr.routeTree.root) ?? '';
+          break;
+        case 'string':
+          title = tr.options.title;
+          break;
+        default:
+          title = tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
+          break;
+      }
+    }
     if (title.length > 0) {
       this.p.document.title = title;
     }

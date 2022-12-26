@@ -77,6 +77,7 @@
   * [Configuring routes](developer-guides/router-lite/configuring-routes.md)
   * [Navigation model](developer-guides/router-lite/navigation-model.md)
   * [Transition plan](developer-guides/router-lite/transition-plans.md)
+  * [Viewports](developer-guides/router-lite/viewports.md)
 * [Validation](developer-guides/validation/README.md)
   * [Validation Tutorial](developer-guides/validation/validation-tutorial.md)
   * [Plugin Configuration](developer-guides/validation/registering-the-plugin.md)

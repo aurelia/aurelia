@@ -153,7 +153,7 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport?ctl=1&embed=1&file=src/my-app.ts" %}
 
-If you open the example in a new tab, you can see how the URLs are constructed.
+If you open the example in a new tab, you can see how the URL paths are constructed.
 For example, when you click a product link, the URL is `/42/details` or `/products/42/details`.
 This also means that when you try to navigate to that URL directly, the product details will be loaded from the start.
 It essentially creates shareable URLs.
@@ -261,8 +261,9 @@ To this end, we can bind `null` to the `default` attribute of a viewport, which 
 {% code title="my-app.html" %}
 ```diff
   <div class="content">
-    <au-viewport></au-viewport>
 -   <au-viewport></au-viewport>
+-   <au-viewport></au-viewport>
++   <au-viewport default="products"></au-viewport> <!-- instruct the router to load the products component by default -->
 +   <au-viewport default.bind="null"></au-viewport>
   </div>
 ```
@@ -280,7 +281,7 @@ To this end, we need to [name the viewports](#named-viewports).
   <div class="content">
 -   <au-viewport></au-viewport>
 -   <au-viewport default.bind="null"></au-viewport>
-+   <au-viewport name="list"></au-viewport>
++   <au-viewport name="list" default="products"></au-viewport>
 +   <au-viewport name="details" default.bind="null"></au-viewport>
   </div>
 ```
@@ -305,7 +306,8 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport?ctl=1&embed=1&file=src/products.html" %}
 
-<!-- TODO(Sayan): fix the URL construction in the address bar and add a note here -->
+If you open the example in a new tab, you can see how the URL paths are constructed.
+For example, when you click a product link, the URL is `/details/42@details+products@list`.
 
 ## Named viewports
 

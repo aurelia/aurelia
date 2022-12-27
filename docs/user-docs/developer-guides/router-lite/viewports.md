@@ -352,25 +352,50 @@ For more details about navigating and instructions for router-lite, please refer
 
 By default, the routes/components are loaded into the first available viewport, when there is no viewport instruction is present.
 However, the routes can also be configured, such that a configured route is allowed to be loaded only in a certain viewport.
+This is useful when you know that a certain component needs to be loaded in a certain viewport, because in that case you can use the simple `{path}` instruction instead of the more verbose alternative, the `{path}@{viewport-name}` instruction.
 To this end, use the `viewport` option of the [route configuration](./configuring-routes.md).
 
 ```typescript
-import { IRouteableComponent, routes } from "@aurelia/router";
+import { route } from '@aurelia/router-lite';
+import { Products } from './products';
+import { Product } from './product';
 
-@routes([
+@route({
+  routes: [
     {
-        component: import('./my-component'),
-        path: 'my-component',
-        title: 'Your Component <3',
-        viewport: 'sidebar'
-    }
-])
-export class MyApp implements IRouteableComponent {
-}
-
+      id: 'products',
+      path: 'products',
+      component: Products,
+      viewport: 'list',
+    },
+    {
+      id: 'details',
+      path: 'details/:id',
+      component: Product,
+      viewport: 'details',
+    },
+  ],
+})
+export class MyApp {}
 ```
 
-By specifying the `viewport` property on a route, we can tell it to load into a specific route.
+In this example, we are specifying that the `Products` component needs to be loaded into the `list` viewport and the `Product` component need to be loaded into the `details` viewport.
+You can also see this in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-named-viewport-route-config?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note the `anchor`s in the example that show that the viewport names can now be dropped from the routing instructions.
+
+```html
+<nav>
+  <!-- clicking this will load the products into the 'list' viewport -->
+  <a load="products">products</a>
+  <!-- clicking this will load the products into the 'list' viewport and the details of product #3 into the 'details' viewport -->
+  <a load="products+details/3">products+details/3</a>
+  <!-- same as above; but shows that the sibling order does not matter -->
+  <a load="details/4+products">details/4+products</a>
+</nav>
+```
 
 ## `default` attribute
 

@@ -407,4 +407,66 @@ describe('viewport', function () {
 
     await au.stop();
   });
+
+  it('multiple routes can use the same viewport', async function () {
+    @customElement({ name: 'ce-one', template: 'ce1' })
+    class CeOne implements IRouteViewModel { }
+
+    @customElement({ name: 'ce-two', template: 'ce2 ${id}' })
+    class CeTwo implements IRouteViewModel {
+      id: string;
+      public canLoad(params: Params): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: 'ce-one',
+          component: CeOne,
+          viewport: '$1',
+        },
+        {
+          path: 'ce-two/:id',
+          component: CeTwo,
+          viewport: '$1',
+        },
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `
+                <au-viewport></au-viewport>
+                <au-viewport name="$1"></au-viewport>
+            `
+    })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    const router = container.get<Router>(IRouter);
+
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll('au-viewport'));
+    const vms = vps.map(vp => CustomElement.for<ViewportCustomElement>(vp).viewModel);
+    assert.deepStrictEqual(vms.map(vm => vm.name), ['default', '$1']);
+
+    await router.load('ce-one');
+    await queue.yield();
+    assertText(vps, ['', 'ce1']);
+
+    await router.load('ce-two/42');
+    await queue.yield();
+    assertText(vps, ['', 'ce2 42']);
+
+    try {
+      await router.load('ce-one+ce-two/42');
+      assert.fail('expected error for loading ce-one+ce-two/42');
+    } catch {
+      /** ignore */
+    }
+    await au.stop();
+  });
 });

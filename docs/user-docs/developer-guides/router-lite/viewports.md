@@ -397,6 +397,42 @@ Note the `anchor`s in the example that show that the viewport names can now be d
 </nav>
 ```
 
+## Reserve viewports for components using `used-by`
+
+The `used-by` attribute on the `au-viewport` component can be thought of as (almost) the parallel of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration.
+Using this property on a viewport, you can "reserve" a viewport for particular component(s).
+In other words, you are instructing the router that no other components apart from those specified can be loaded into a viewport with `used-by` set.
+
+```html
+<au-viewport used-by="ce-two"></au-viewport>
+<au-viewport used-by="ce-one"></au-viewport>
+```
+
+In this example, we are instructing the router-lite to reserve the first viewport for `ce-two` custom element and the reserve the second viewport for `ce-one` custom element.
+You can see this in the live example below, by clicking the various links available and observing how the components are loaded into the reserved viewports.
+
+{% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by?ctl=1&embed=1&file=src/my-app.ts" %}
+
+You can reserve a viewport for more than one component.
+To this end, you can use comma-separated values for the `used-by` attribute.
+
+```html
+<au-viewport used-by="ce-one,ce-two"></au-viewport>
+<au-viewport used-by="ce-one"></au-viewport>
+```
+
+The live example below shows this in action
+
+{% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by-multiple-values?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Although it feels like a markup alternative of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration, there is a subtle difference.
+Having the `used-by` property on a particular viewport set to `X` component, does not prevent a preceding viewport without any value for the `used-by` property to load the `X` component.
+This is shown in action in the example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by-with-default?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note how clicking the links load the components also in the first viewport without any value for the `used-by`.
+
 ## `default` attribute
 
 TODO(Sayan)

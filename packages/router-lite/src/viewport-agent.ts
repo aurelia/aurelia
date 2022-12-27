@@ -141,7 +141,26 @@ export class ViewportAgent {
     const $vp = this.viewport;
     const reqVp = req.viewportName;
     const vp = $vp.name;
-    if (reqVp !== defaultViewportName && vp !== defaultViewportName && vp !== reqVp) {
+    /*
+                     Name from viewport request
+
+                     D (default)         N (Non-default)
+
+          Name from  +-------------------------------------------+
+     viewport agent  |                   |                       |
+                     |        DD         |          DN           |
+                     |    can handle     |      can't handle     |
+          D (default)|                   |                       |
+                     |                   |                       |
+                     +-------------------------------------------+
+                     |                   |                       |
+     N (Non-default) |        DD         |          DD           |
+                     |    can handle     |   can handle only     |
+                     |                   |   if the names match  |
+                     |                   |                       |
+                     +-------------------------------------------+
+    */
+    if (reqVp !== defaultViewportName && vp !== reqVp) {
       this.logger.trace(`handles(req:%s) -> false (viewport names don't match '%s')`, req, vp);
       return false;
     }

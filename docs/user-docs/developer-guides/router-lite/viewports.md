@@ -433,7 +433,7 @@ This is shown in action in the example below.
 
 Note how clicking the links load the components also in the first viewport without any value for the `used-by`.
 
-## `default` attribute
+## Specify a default component for a viewport
 
 When no route is loaded into a viewport, a 'default' route is loaded into the viewport.
 For every viewport, such defaults can be configured using the `default` attribute.
@@ -441,3 +441,33 @@ It is optional to specify a value for this attribute and by default `''` (empty 
 This explains why the route with empty path (when exists) is loaded into a viewport without the `default` attribute set.
 
 However, you are free to use any other path as a value for the `default` attribute.
+The following example shows four viewports with varied values for the `default` attribute.
+Whereas the first viewport might be the usual viewport with empty path, the other three specifies different default values.
+These components are loaded into the viewport, by default when the application is started.
+
+```html
+<div class="content">
+
+  <!-- loads the empty route -->
+  <au-viewport></au-viewport>
+
+  <!-- loads the ce-two with parameter -->
+  <au-viewport default="foo/42"></au-viewport>
+
+  <!-- loads the ce-one -->
+  <au-viewport default="ce-one"></au-viewport>
+
+  <!-- loads the ce-two without parameter -->
+  <au-viewport default="foo"></au-viewport>
+
+</div>
+```
+
+The example below shows this in action.
+
+{% embed url="https://stackblitz.com/edit/router-lite-viewport-default?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note that `default` attribute can also be bound to `null`, to instruct the router-lite not to load any component into ths viewport when no component is scheduled (either by explicit instruction of implicit availability check) to be loaded into the viewport.
+This is useful when you have more than one viewports and you want to load the empty path (assuming it is configured) in a particular viewport.
+In that case, you can bind `null` to the `default` attribute of the other viewport.
+To see examples of this, please refer to the [sibling viewport](#sibling-viewports) section.

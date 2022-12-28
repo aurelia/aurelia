@@ -435,4 +435,9 @@ Note how clicking the links load the components also in the first viewport witho
 
 ## `default` attribute
 
-TODO(Sayan)
+When no route is loaded into a viewport, a 'default' route is loaded into the viewport.
+For every viewport, such defaults can be configured using the `default` attribute.
+It is optional to specify a value for this attribute and by default `''` (empty string) is used as the default value for this property.
+This explains why the route with empty path (when exists) is loaded into a viewport without the `default` attribute set.
+
+However, you are free to use any other path as a value for the `default` attribute.

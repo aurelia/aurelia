@@ -471,3 +471,14 @@ Note that `default` attribute can also be bound to `null`, to instruct the route
 This is useful when you have more than one viewports and you want to load the empty path (assuming it is configured) in a particular viewport.
 In that case, you can bind `null` to the `default` attribute of the other viewport.
 To see examples of this, please refer to the [sibling viewport](#sibling-viewports) section.
+
+## Specify a fallback component for a viewport
+
+If a route cannot be recognized, a fallback route is looked for and load (when configured) into the viewport.
+Such fallback can be configured using the `fallback` property of the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path).
+`au-viewport` also offers a similar `fallback` attribute using which a fallback component can be configured for a particular viewport.
+The `fallback` attribute is similar to its route configuration counterpart, with only one difference.
+The `fallback` attribute in the `au-viewport`, when configured, always takes precedence over the `fallback` route configuration option.
+This is shown in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-viewport-fallback?ctl=1&embed=1&file=src/my-app.html" %}

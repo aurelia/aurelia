@@ -1823,7 +1823,6 @@ describe('router hooks', function () {
     });
   }
 
-  // Note that the resolution mode ('dynamic' | 'static') will be removed in future. Thus, here we are concentrating only on the 'dynamic' resolution mode.
   describe('unconfigured route', function () {
     for (const { name, routes, withInitialLoad } of [
       {

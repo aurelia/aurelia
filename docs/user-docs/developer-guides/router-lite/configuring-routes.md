@@ -369,7 +369,7 @@ The following example demonstrates this behavior, where `not-found`, the name of
 A `fallback` defined on parent is inherited by the children (to know more about hierarchical routing configuration, refer the [documentation](./viewports.md#hierarchical-routing)).
 However, every child can override the fallback as needed.
 The following example demonstrate this.
-The root has two [sibling viewports](./viewports.md#sibling-viewports) and two children components can be loaded into each y clicking the link.
+The root has two [sibling viewports](./viewports.md#sibling-viewports) and two children components can be loaded into each of those by clicking the link.
 Every child defines their own child routing configuration.
 The root defines a `fallback` and one of the children overrides the `fallback` by defining one of its' own.
 With this configuration in place, when navigation to a un-configured route ('Foo') is attempted for each children, one loads the overridden version whereas the other loads the fallback inherited from the parent (in this case the root).

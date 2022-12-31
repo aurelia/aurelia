@@ -437,9 +437,8 @@ export class ViewportAgent {
             return;
           case 'replace': {
             const controller = this.hostController;
-            const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
             tr.run(() => {
-              return this.curCA!.deactivate(initiator, controller, deactivateFlags);
+              return this.curCA!.deactivate(initiator, controller, LifecycleFlags.dispose);
             }, () => {
               b.pop();
             });
@@ -556,20 +555,18 @@ export class ViewportAgent {
         const controller = this.hostController;
         const curCA = this.curCA!;
         const nextCA = this.nextCA!;
-        const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
-        const activateFlags = LifecycleFlags.none;
         b.push();
         Batch.start(b1 => {
           tr.run(() => {
             b1.push();
-            return curCA.deactivate(null, controller, deactivateFlags);
+            return curCA.deactivate(null, controller, LifecycleFlags.dispose);
           }, () => {
             b1.pop();
           });
         }).continueWith(b1 => {
           tr.run(() => {
             b1.push();
-            return nextCA.activate(null, controller, activateFlags);
+            return nextCA.activate(null, controller, LifecycleFlags.none);
           }, () => {
             b1.pop();
           });
@@ -800,12 +797,8 @@ export class ViewportAgent {
   }
 
   public dispose(): void {
-    if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
-      this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
-    } else {
-      this.logger.trace(`dispose() - disposing %s`, this);
-      this.curCA?.dispose();
-    }
+    this.logger.trace(`dispose() - disposing %s`, this);
+    this.curCA?.dispose();
   }
 
   private unexpectedState(label: string): never {

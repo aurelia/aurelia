@@ -415,10 +415,10 @@ export class ViewportContent extends EndpointContent {
 
         if (hooks.length !== 0) {
           // Add hook in component
-          if (instance.loading != null) {
+          if (typeof instance.loading  === 'function') {
             hooks.push(() => instance.loading!(merged, this.instruction, this.navigation));
           }
-          if ((instance as any).load != null) {
+          if (typeof (instance as any).load  === 'function') {
             console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
             hooks.push(() => (instance as any).load!(merged, this.instruction, this.navigation));
           }
@@ -427,11 +427,11 @@ export class ViewportContent extends EndpointContent {
         }
 
         // Skip if there's no hook in component
-        if (instance.loading != null) {
+        if (typeof instance.loading === 'function') {
           return instance.loading(merged, this.instruction, this.navigation);
         }
         // Skip if there's no hook in component
-        if ((instance as any).load != null) {
+        if (typeof (instance as any).load  === 'function') {
           console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
           return (instance as any).load(merged, this.instruction, this.navigation);
         }
@@ -473,10 +473,10 @@ export class ViewportContent extends EndpointContent {
 
     if (hooks.length !== 0) {
       // Add hook in component
-      if (instance.unloading != null) {
+      if (typeof instance.unloading  === 'function') {
         hooks.push(() => instance.unloading!(this.instruction, navigation));
       }
-      if ((instance as any).unload != null) {
+      if (typeof (instance as any).unload  === 'function') {
         console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
         hooks.push(() => (instance as any).unload!(this.instruction, navigation));
       }
@@ -485,10 +485,10 @@ export class ViewportContent extends EndpointContent {
     }
 
     // Skip if there's no hook in component
-    if (instance.unloading != null) {
+    if (typeof instance.unloading  === 'function') {
       return instance.unloading(this.instruction, navigation);
     }
-    if ((instance as any).unload != null) {
+    if (typeof (instance as any).unload  === 'function') {
       console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
       return (instance as any).unload(this.instruction, navigation);
     }

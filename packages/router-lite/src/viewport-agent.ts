@@ -1,26 +1,26 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-import { ILogger, onResolve } from '@aurelia/kernel';
+import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
 import { LifecycleFlags, IHydratedController, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
-import { processResidue, getDynamicChildren, RouteNode } from './route-tree';
+import { RouteNode, createAndAppendNodes } from './route-tree';
 import { IRouteContext } from './route-context';
-import { Transition, ResolutionMode, NavigationOptions } from './router';
+import { Transition, NavigationOptions } from './router';
 import { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 import { defaultViewportName } from './route-definition';
+import { ViewportInstruction } from './instructions';
 
 export class ViewportRequest {
   public constructor(
     public readonly viewportName: string,
     public readonly componentName: string,
-    public readonly resolution: ResolutionMode,
   ) { }
 
   public toString(): string {
-    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}')`;
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}')`;
   }
 }
 
@@ -41,7 +41,6 @@ export class ViewportAgent {
   private get nextState(): NextState { return this.state & State.next; }
   private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
 
-  private $resolution: ResolutionMode = 'dynamic';
   private $plan: TransitionPlan = 'replace';
   private currNode: RouteNode | null = null;
   private nextNode: RouteNode | null = null;
@@ -94,9 +93,6 @@ export class ViewportAgent {
         if (this.currTransition === null) {
           throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
         }
-        if (this.$resolution !== 'static') {
-          throw new Error(`Unexpected viewport activation at ${this}`);
-        }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
         const b = Batch.start(b1 => { this.activate(initiator, this.currTransition!, b1); });
         const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
@@ -138,14 +134,33 @@ export class ViewportAgent {
   }
 
   public handles(req: ViewportRequest): boolean {
-    if (!this.isAvailable(req.resolution)) {
+    if (!this.isAvailable()) {
       return false;
     }
 
     const $vp = this.viewport;
     const reqVp = req.viewportName;
     const vp = $vp.name;
-    if (reqVp !== defaultViewportName && vp !== defaultViewportName && vp !== reqVp) {
+    /*
+                     Name from viewport request
+
+                     D (default)         N (Non-default)
+
+          Name from  +-------------------------------------------+
+     viewport agent  |                   |                       |
+                     |        DD         |          DN           |
+                     |    can handle     |      can't handle     |
+          D (default)|                   |                       |
+                     |                   |                       |
+                     +-------------------------------------------+
+                     |                   |                       |
+     N (Non-default) |        DD         |          DD           |
+                     |    can handle     |   can handle only     |
+                     |                   |   if the names match  |
+                     |                   |                       |
+                     +-------------------------------------------+
+    */
+    if (reqVp !== defaultViewportName && vp !== reqVp) {
       this.logger.trace(`handles(req:%s) -> false (viewport names don't match '%s')`, req, vp);
       return false;
     }
@@ -160,14 +175,14 @@ export class ViewportAgent {
     return true;
   }
 
-  public isAvailable(resolution: ResolutionMode): boolean {
-    if (resolution === 'dynamic' && !this.isActive) {
-      this.logger.trace(`isAvailable(resolution:%s) -> false (viewport is not active and we're in dynamic resolution resolution)`, resolution);
+  public isAvailable(): boolean {
+    if (!this.isActive) {
+      this.logger.trace(`isAvailable -> false (viewport is not active)`);
       return false;
     }
 
     if (this.nextState !== State.nextIsEmpty) {
-      this.logger.trace(`isAvailable(resolution:%s) -> false (update already scheduled for %s)`, resolution, this.nextNode);
+      this.logger.trace(`isAvailable -> false (update already scheduled for %s)`, this.nextNode);
       return false;
     }
 
@@ -254,7 +269,7 @@ export class ViewportAgent {
       const next = this.nextNode!;
       switch (this.$plan) {
         case 'none':
-        case 'invoke-lifecycles':
+        case 'invoke-lifecycles': {
           this.logger.trace(`canLoad(next:%s) - plan set to '%s', compiling residue`, next, this.$plan);
 
           // These plans can only occur if there is already a current component active in this viewport,
@@ -265,25 +280,30 @@ export class ViewportAgent {
           // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
           // their target viewports have the appropriate updates scheduled.
           b1.push();
-          void onResolve(processResidue(next), () => {
-            b1.pop();
-          });
+          const ctx = next.context;
+          void onResolve(
+            ctx.resolved,
+            () => onResolve(
+              resolveAll(
+                ...next.residue.splice(0).map(vi => {
+                  return createAndAppendNodes(this.logger, next, vi);
+                }),
+                ...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+                  const vp = vpa.viewport;
+                  const component = vp.default;
+                  if (component === null) return acc;
+                  acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                  return acc;
+                }, ([] as (void | Promise<void>)[])),
+              ),
+              () => { b1.pop(); }
+            )
+          );
           return;
+        }
         case 'replace':
-          // In the case of 'replace', always process this node and its subtree as if it's a new one
-          switch (this.$resolution) {
-            case 'dynamic':
-              // Residue compilation will happen at `ViewportAgent#processResidue`
-              this.logger.trace(`canLoad(next:%s) - (resolution: 'dynamic'), delaying residue compilation until activate`, next, this.$plan);
-              return;
-            case 'static':
-              this.logger.trace(`canLoad(next:%s) - (resolution: '${this.$resolution}'), creating nextCA and compiling residue`, next, this.$plan);
-              b1.push();
-              void onResolve(processResidue(next), () => {
-                b1.pop();
-              });
-              return;
-          }
+          this.logger.trace(`canLoad(next:%s), delaying residue compilation until activate`, next, this.$plan);
+          return;
       }
     }).continueWith(b1 => {
       switch (this.nextState) {
@@ -417,9 +437,8 @@ export class ViewportAgent {
             return;
           case 'replace': {
             const controller = this.hostController;
-            const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
             tr.run(() => {
-              return this.curCA!.deactivate(initiator, controller, deactivateFlags);
+              return this.curCA!.deactivate(initiator, controller, LifecycleFlags.dispose);
             }, () => {
               b.pop();
             });
@@ -445,10 +464,7 @@ export class ViewportAgent {
 
     b.push();
 
-    if (
-      this.nextState === State.nextIsScheduled &&
-      this.$resolution === 'dynamic'
-    ) {
+    if (this.nextState === State.nextIsScheduled) {
       this.logger.trace(`activate() - invoking canLoad(), loading() and activate() on new component due to resolution 'dynamic' at %s`, this);
       // This is the default v2 mode "lazy loading" situation
       Batch.start(b1 => {
@@ -539,20 +555,18 @@ export class ViewportAgent {
         const controller = this.hostController;
         const curCA = this.curCA!;
         const nextCA = this.nextCA!;
-        const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
-        const activateFlags = LifecycleFlags.none;
         b.push();
         Batch.start(b1 => {
           tr.run(() => {
             b1.push();
-            return curCA.deactivate(null, controller, deactivateFlags);
+            return curCA.deactivate(null, controller, LifecycleFlags.dispose);
           }, () => {
             b1.pop();
           });
         }).continueWith(b1 => {
           tr.run(() => {
             b1.push();
-            return nextCA.activate(null, controller, activateFlags);
+            return nextCA.activate(null, controller, LifecycleFlags.none);
           }, () => {
             b1.pop();
           });
@@ -572,7 +586,29 @@ export class ViewportAgent {
 
     tr.run(() => {
       b.push();
-      return getDynamicChildren(next);
+      const ctx = next.context;
+      return onResolve(ctx.resolved, () => {
+        const existingChildren = next.children.slice();
+        return onResolve(
+          resolveAll(...next
+            .residue
+            .splice(0)
+            .map(vi => createAndAppendNodes(this.logger, next, vi))),
+          () => onResolve(
+            resolveAll(...ctx
+              .getAvailableViewportAgents()
+              .reduce((acc, vpa) => {
+                const vp = vpa.viewport;
+                const component = vp.default;
+                if (component === null) return acc;
+                acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                return acc;
+              }, ([] as (void | Promise<void>)[]))
+            ),
+            () => next.children.filter(x => !existingChildren.includes(x))
+          ),
+        );
+      });
     }, newChildren => {
       Batch.start(b1 => {
         for (const node of newChildren) {
@@ -612,7 +648,6 @@ export class ViewportAgent {
       case State.nextIsEmpty:
         this.nextNode = next;
         this.nextState = State.nextIsScheduled;
-        this.$resolution = options.resolutionMode;
         break;
       default:
         this.unexpectedState('scheduleUpdate 1');
@@ -633,12 +668,7 @@ export class ViewportAgent {
       this.$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      const plan = next.context.definition.config.transitionPlan;
-      if (typeof plan === 'function') {
-        this.$plan = plan(cur, next);
-      } else {
-        this.$plan = plan;
-      }
+      this.$plan = next.context.definition.config.getTransitionPlan(cur, next);
     }
 
     this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s'`, next, this.$plan);
@@ -763,16 +793,12 @@ export class ViewportAgent {
   }
 
   public toString(): string {
-    return `VPA(state:${this.$state},plan:'${this.$plan}',resolution:'${this.$resolution}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
+    return `VPA(state:${this.$state},plan:'${this.$plan}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
   }
 
   public dispose(): void {
-    if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
-      this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
-    } else {
-      this.logger.trace(`dispose() - disposing %s`, this);
-      this.curCA?.dispose();
-    }
+    this.logger.trace(`dispose() - disposing %s`, this);
+    this.curCA?.dispose();
   }
 
   private unexpectedState(label: string): never {

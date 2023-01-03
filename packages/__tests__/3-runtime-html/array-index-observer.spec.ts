@@ -130,14 +130,18 @@ describe('simple Computed Observer test case', function () {
         const inputEls = host.querySelectorAll('input');
 
         inputEls.forEach((inputEl, idx) => {
-          assert.strictEqual(inputEl.value, `i-${idx}`);
+          // when input event happens array "itemNames" change
+          // the repeat immediately responses to this and will unbind the listener of each view that is changed
+          // hence the value never has a chance to react
+          const oldValue = `i-${idx}`;
+          assert.strictEqual(inputEl.value, oldValue);
 
           const newValue = `00-${idx}`;
           inputEl.value = newValue;
           inputEl.dispatchEvent(new ctx.CustomEvent('input'));
 
           assert.strictEqual(component.itemNames[idx], newValue);
-          assert.strictEqual(component.items[idx].name, newValue);
+          assert.strictEqual(component.items[idx].name, oldValue);
         });
 
         const dirtyChecker = ctx.container.get(IDirtyChecker);

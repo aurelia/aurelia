@@ -1,4 +1,4 @@
-import { isFunction } from './utilities';
+import { isFunction, objectFreeze } from './utilities';
 import { createInterface, instanceRegistration } from './utilities-di';
 import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
 
@@ -50,7 +50,7 @@ class $AppTask<K extends Key = Key> implements IAppTask {
   }
 }
 
-export const AppTask = Object.freeze({
+export const AppTask = objectFreeze({
   /**
    * Returns a task that will run just before the root component is created by DI
    */

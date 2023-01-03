@@ -22,8 +22,12 @@
     "testing"
   ],
   "files": [
-    "dist",
-    "src",
+    "dist/**/*.cjs",
+    "dist/**/*.dev.cjs.map",
+    "dist/**/*.mjs",
+    "dist/**/*.dev.mjs.map",
+    "dist/**/*.d.ts",
+    "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -51,9 +55,9 @@
     "@aurelia/runtime-html": "2.0.0-alpha.41"
   },
   "devDependencies": {
-    "@types/mocha": "^9.1.1",
+    "@types/mocha": "10.0.0",
     "jsdom": "^19.0.0",
-    "mocha": "^9.2.2",
+    "mocha": "10.0.0",
     "typescript": "4.7.3"
   },
   "engines": {

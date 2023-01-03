@@ -8,8 +8,13 @@
   },
   "version": "2.0.0-alpha.15",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js"
+    "build": "rollup -c",
+    "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
+    "build:kernel": "cd ../../packages/kernel && npm run build",
+    "build:runtime": "cd ../../packages/runtime && npm run build",
+    "build:runtime-html": "cd ../../packages/runtime-html && npm run build",
+    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
+    "postbuild:all": "rollup -c"
   },
   "dependencies": {
     "@aurelia/kernel": "2.0.0-alpha.15",

@@ -7,6 +7,7 @@ import { defineAttribute } from '../resources/custom-attribute';
 import { createInterface, instanceRegistration } from '../utilities-di';
 
 import type { IRegistry } from '@aurelia/kernel';
+import { objectAssign } from '../utilities';
 
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);
@@ -18,7 +19,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
   ) {}
 
   public register(container: IContainer): void {
-    const classLookup = Object.assign({}, ...this.modules) as Record<string, string>;
+    const classLookup = objectAssign({}, ...this.modules) as Record<string, string>;
     const ClassCustomAttribute = defineAttribute({
       name: 'class',
       bindables: ['value'],

@@ -1,6 +1,6 @@
 import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IAstEvaluator, IBinding, IConnectableBinding, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
-import { BindingTargetSubscriber, IFlushQueue, mixinAstEvaluator, mixinBindingUseScope, mixingBindingLimited } from './binding-utils';
+import { BindingTargetSubscriber, IFlushQueue, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -20,7 +20,9 @@ export interface PropertyBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class PropertyBinding implements IBinding {
   public isBound: boolean = false;
-  public scope?: Scope = void 0;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
 
   /** @internal */
   private _targetObserver?: AccessorOrObserver = void 0;
@@ -72,7 +74,7 @@ export class PropertyBinding implements IBinding {
   }
 
   public updateSource(value: unknown): void {
-    astAssign(this.ast, this.scope!, this, value);
+    astAssign(this.ast, this._scope!, this, value);
   }
 
   public handleChange(): void {
@@ -80,16 +82,17 @@ export class PropertyBinding implements IBinding {
       return;
     }
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & BindingMode.toView) > 0;
-    if (shouldConnect) {
-      this.obs.version++;
-    }
-    const newValue = astEvaluate(this.ast, this.scope!, this, this);
-    if (shouldConnect) {
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      // should observe?
+      (this.mode & BindingMode.toView) > 0 ? this : null
+    );
+    this.obs.clear();
 
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this._task;
@@ -111,12 +114,12 @@ export class PropertyBinding implements IBinding {
 
   public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this._scope === scope) {
         return;
       }
       this.unbind();
     }
-    this.scope = scope;
+    this._scope = scope;
 
     astBind(this.ast, scope, this);
 
@@ -136,7 +139,7 @@ export class PropertyBinding implements IBinding {
 
     if ($mode & (BindingMode.toView | BindingMode.oneTime)) {
       this.updateTarget(
-        astEvaluate(this.ast, this.scope, this, shouldConnect ? this : null),
+        astEvaluate(this.ast, this._scope, this, shouldConnect ? this : null),
       );
     }
 
@@ -156,9 +159,9 @@ export class PropertyBinding implements IBinding {
     }
     this.isBound = false;
 
-    astUnbind(this.ast, this.scope!, this);
+    astUnbind(this.ast, this._scope!, this);
 
-    this.scope = void 0;
+    this._scope = void 0;
 
     if (this._targetSubscriber) {
       (this._targetObserver as IObserver).unsubscribe(this._targetSubscriber);
@@ -191,7 +194,7 @@ export class PropertyBinding implements IBinding {
   }
 }
 
-mixinBindingUseScope(PropertyBinding);
+mixinUseScope(PropertyBinding);
 mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & BindingMode.fromView) ? 'updateSource' : 'updateTarget');
 connectable(PropertyBinding);
 mixinAstEvaluator(true, false)(PropertyBinding);

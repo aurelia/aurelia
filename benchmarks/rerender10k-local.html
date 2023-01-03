@@ -1,0 +1,16 @@
+<script type="module">
+import { start } from './local/dist/app.local.js';
+
+const host = document.body.appendChild(document.createElement('div'));
+const au = start(host);
+performance.mark('10k-start');
+
+au.root.controller.viewModel.newItems(10000);
+
+performance.mark('10k-end');
+
+// measure memory in MBs
+window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
+
+performance.measure('rerender-10k', '10k-start', '10k-end');
+</script>

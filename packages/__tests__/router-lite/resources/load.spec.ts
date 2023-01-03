@@ -34,7 +34,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, Foo);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -72,7 +72,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, Foo);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -96,7 +96,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, Foo);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -135,7 +135,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, Products, Product);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -197,7 +197,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, Products, Product);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 
@@ -260,7 +260,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, L11, L12, L21, L22);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
@@ -319,7 +319,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, L11, L12, L21, L22);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
@@ -396,7 +396,7 @@ describe('load custom-attribute', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start(Root, false, L11, L12, L21, L22, L23, L24);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', 'init');
@@ -454,7 +454,7 @@ describe('load custom-attribute', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start(Root, true, CeOne, CeTwo);
+    const { au, host, container } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo] });
     const queue = container.get(IPlatform).domWriteQueue;
     await queue.yield();
 

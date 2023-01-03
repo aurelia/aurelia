@@ -200,7 +200,7 @@ const App = CustomElement.define(
     }
 
     attaching() {
-      this.count = 1000;
+      this.count = 2700;
       // this.scheduler.enqueueRAF(Point.update, Point, Priority.preempt);
       this.platform.domWriteQueue.queueTask(
         () => {

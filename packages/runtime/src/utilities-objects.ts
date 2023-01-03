@@ -1,15 +1,21 @@
 import { Metadata } from '@aurelia/metadata';
 import { DI, Protocol } from '@aurelia/kernel';
 
+const O = Object;
+
 /**
  * A shortcut to Object.prototype.hasOwnProperty
  * Needs to do explicit .call
  *
  * @internal
  */
-export const hasOwnProp = Object.prototype.hasOwnProperty;
+export const hasOwnProp = O.prototype.hasOwnProperty;
 
-/** @internal */
+/**
+ * Reflect does not throw on invalid property def
+ *
+ * @internal
+ */
 export const def = Reflect.defineProperty;
 
 /** @internal */
@@ -23,6 +29,9 @@ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v =
 export const isString = (v: unknown): v is string => typeof v === 'string';
 
 /** @internal */
+export const isObject = (v: unknown): v is object => v instanceof O;
+
+/** @internal */
 export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
 
 /** @internal */
@@ -32,7 +41,7 @@ export const isSet = <T>(v: unknown): v is Set<T> => v instanceof Set;
 export const isMap = <T, K>(v: unknown): v is Map<T, K> => v instanceof Map;
 
 /** @internal */
-export const areEqual = Object.is;
+export const areEqual = O.is;
 
 /** @internal */
 export function defineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
@@ -60,7 +69,7 @@ export function ensureProto<T extends object, K extends keyof T>(
 /** @internal */ export const safeString = String;
 /** @internal */ export const createInterface = DI.createInterface;
 
-/** @internal */ export const createLookup = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
+/** @internal */ export const createLookup = <T>(): Record<string, T> => O.create(null) as Record<string, T>;
 
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;
 /** @internal */ export const hasOwnMetadata = Metadata.hasOwn;

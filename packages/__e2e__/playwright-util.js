@@ -11,7 +11,7 @@ module.exports = function getPlaywrightConfig(port) {
     //   port: port,
     // }
     use: {
-      baseURL: 'http://localhost:' + port
+      baseURL: 'http://localhost:' + port,
     }
   }
 };

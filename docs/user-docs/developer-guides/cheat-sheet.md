@@ -136,13 +136,13 @@ import {
   ForBindingCommandRegistration,
   TriggerBindingCommandRegistration,
 
-  PropertyBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  RefBindingRendererRegistration,
-  CustomElementRendererRegistration,
-  TemplateControllerRendererRegistration,
-  ListenerBindingRendererRegistration,
-  TextBindingRendererRegistration,
+  PropertyBindingRenderer,
+  IteratorBindingRenderer,
+  RefBindingRenderer,
+  CustomElementRenderer,
+  TemplateControllerRenderer,
+  ListenerBindingRenderer,
+  TextBindingRenderer,
 } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AppRoot } from './app-root';
@@ -176,13 +176,13 @@ container.register(
   TriggerBindingCommandRegistration, // .trigger
 
   // Commonly used Aurelia renderers (only a small selection)
-  PropertyBindingRendererRegistration, // .bind, .one-time, .to-view, .from-view, .two-way bindings
-  IteratorBindingRendererRegistration, // .for bindings
-  RefBindingRendererRegistration, // ref bindings
-  CustomElementRendererRegistration, // custom element hydration
-  TemplateControllerRendererRegistration, // template controller hydration (if, repeat)
-  ListenerBindingRendererRegistration, // .trigger, .capture, .delegate bindings
-  TextBindingRendererRegistration, // ${} text bindings
+  PropertyBindingRenderer, // .bind, .one-time, .to-view, .from-view, .two-way bindings
+  IteratorBindingRenderer, // .for bindings
+  RefBindingRenderer, // ref bindings
+  CustomElementRenderer, // custom element hydration
+  TemplateControllerRenderer, // template controller hydration (if, repeat)
+  ListenerBindingRenderer, // .trigger, .capture bindings
+  TextBindingRenderer, // ${} text bindings
 );
 
 await new Aurelia(container).app({

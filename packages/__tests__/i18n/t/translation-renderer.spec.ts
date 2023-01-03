@@ -36,6 +36,8 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
+const noopLocator = {} as unknown as IObserverLocator;
+
 describe('TranslationAttributePattern', function () {
   function createFixture(aliases: string[] = ['t']) {
     const patterns: AttributePatternDefinition[] = [];
@@ -125,14 +127,13 @@ describe('TranslationBindingRenderer', function () {
   }
 
   it('instantiated with instruction type', function () {
-    const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindingRenderer();
     assert.equal(sut.target, TranslationInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindingRenderer();
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -142,6 +143,9 @@ describe('TranslationBindingRenderer', function () {
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
+      PLATFORM,
+      expressionParser,
+      noopLocator,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -149,7 +153,7 @@ describe('TranslationBindingRenderer', function () {
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindingRenderer();
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding({ state: 0 }, container, {} as unknown as IObserverLocator, container.get(IPlatform), targetElement);
@@ -161,6 +165,9 @@ describe('TranslationBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
+      PLATFORM,
+      expressionParser,
+      noopLocator
     );
 
     assert.equal(binding.ast, from);
@@ -263,14 +270,13 @@ describe('TranslationBindBindingRenderer', function () {
   }
 
   it('instantiated with instruction type', function () {
-    const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindBindingRenderer();
     assert.equal(sut.target, TranslationBindInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindBindingRenderer();
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -280,6 +286,9 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
+      PLATFORM,
+      expressionParser,
+      noopLocator,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -287,7 +296,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   it('#render instantiates TranslationBinding - .bind expr', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindBindingRenderer();
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -297,6 +306,9 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
+      PLATFORM,
+      expressionParser,
+      noopLocator,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -304,7 +316,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
+    const sut: IRenderer = new TranslationBindBindingRenderer();
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding({ state: 0 }, container, {} as unknown as IObserverLocator, container.get(IPlatform), targetElement);
@@ -316,6 +328,9 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
+      PLATFORM,
+      expressionParser,
+      noopLocator,
     );
 
     assert.equal(binding.ast, from);

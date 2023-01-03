@@ -10,7 +10,6 @@ export interface IViewport {
   readonly usedBy: string;
   readonly default: string;
   readonly fallback: string;
-  readonly stateful: boolean;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -19,7 +18,6 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
   @bindable public fallback: string = '';
-  @bindable public stateful: boolean = false;
 
   private agent: ViewportAgent = (void 0)!;
   private controller: ICustomElementController = (void 0)!;
@@ -91,5 +89,4 @@ const props = [
   'usedBy',
   'default',
   'fallback',
-  'stateful',
 ] as const;

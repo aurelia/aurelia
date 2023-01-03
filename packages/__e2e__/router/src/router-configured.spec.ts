@@ -72,4 +72,12 @@ test.describe('router', () => {
       await expect(page.locator('#root-vp')).toContainText(t.result);
     });
   }
+
+  test('sets the right href based on load attribute', async ({ page }) => {
+    await page.click('a:text("Child")');
+    await expect(page.locator('#-link')).toHaveAttribute('href', '');
+    await expect(page.locator('#auth-link')).toHaveAttribute('href', 'auth');
+    await expect(page.locator('#child-auth-link')).toHaveAttribute('href', 'auth');
+    await expect(page.locator('#child-something-missing-link')).toHaveAttribute('href', 'child/something/missing');
+  });
 });

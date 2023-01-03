@@ -4,7 +4,7 @@ import {
   firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from '../utilities-di';
-import { createError, isFunction, isString } from '../utilities';
+import { createError, isFunction, isString, objectFreeze } from '../utilities';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
 import type {
@@ -86,7 +86,7 @@ const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>
   prop: K,
 ): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
-export const ValueConverter = Object.freeze<ValueConverterKind>({
+export const ValueConverter = objectFreeze<ValueConverterKind>({
   name: vcBaseName,
   keyFrom: (name: string): string => `${vcBaseName}:${name}`,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {

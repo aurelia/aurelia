@@ -296,7 +296,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             `<template><el prop.bind="p"></el></template>`,
             [Prop]
           );
-          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
           assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', `(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML`);
         });
@@ -313,7 +313,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
             [Prop]
           );
-          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.props, [
             { toVerify: ['type', 'to', 'from'],
@@ -719,7 +719,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
         ...defaultCustomElementDefinitionProperties,
         name: stringOrUnnamed(target),
         key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
-        template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
+        template: ctx.createElementFromMarkup(`<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
@@ -734,7 +734,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     } as unknown as PartialCustomElementDefinition;
     const output: PartialCustomElementDefinition = {
       ...defaultCustomElementDefinitionProperties,
-      template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
+      template: ctx.createElementFromMarkup(`<template><div><!--au-start--><!--au-end--><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
@@ -749,7 +749,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
       compiledMarkup = `<${tagName}></${tagName}>`;
       instructions = [];
     } else {
-      compiledMarkup = `<${tagName}><au-m class="au"></au-m></${tagName}>`;
+      compiledMarkup = `<${tagName}><!--au-start--><!--au-end--><au-m class="au"></au-m></${tagName}>`;
       instructions = [[childInstr]];
     }
     const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
@@ -775,7 +775,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     } as unknown as PartialCustomElementDefinition;
     const output: PartialCustomElementDefinition = {
       ...defaultCustomElementDefinitionProperties,
-      template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
+      template: ctx.createElementFromMarkup(finalize ? `<template><div><!--au-start--><!--au-end--><au-m class="au"></au-m></div></template>` : `<!--au-start--><!--au-end--><au-m class="au"></au-m>`),
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
@@ -1466,9 +1466,14 @@ describe(`TemplateCompiler - combinations`, function () {
         );
         sut.resolveResources = resolveRes;
 
+        const getOuterHtml = (node: any) =>
+          /au-m/i.test(node.nodeName)
+            ? `<!--au-start--><!--au-end-->${node.outerHTML}`
+            : node.outerHTML;
+
         const output: PartialCustomElementDefinition = {
           ...defaultCustomElementDefinitionProperties,
-          template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
+          template: ctx.createElementFromMarkup(`<template><div>${getOuterHtml(output1.template)}${getOuterHtml(output2.template)}${getOuterHtml(output3.template)}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,

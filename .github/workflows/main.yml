@@ -29,72 +29,70 @@ jobs:
         with:
           initialize: true
 
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Cache node modules
-  #       id: cache-npm
-  #       uses: actions/cache@v3
-  #       with:
-  #         # npm cache files are stored in `~/.npm` on Linux/macOS
-  #         path: node_modules
-  #         key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-build-deps-
+      - name: Cache node modules
+        id: cache_npm
+        uses: actions/cache@v3
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/package-lock.json') }}
 
-  #     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
-  #       name: Missing deps, reinstalling the state of node modules
-  #       run: npm install
+      - if: ${{ steps.cache_npm.outputs.cache-hit != 'true' }}
+        name: installing deps
+        run: npm install
 
-  #     - name: Build
-  #       run: npm build
-
-  #     - name: Cache build output
-  #       id: cache-build
-  #       uses: actions/cache@v3
-  #       with:
-  #         key: ${{ runner.os }}-build-dist-${{ github.sha }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-build-dist-
-  #         path: |
-  #           packages/__tests__/dist
-  #           packages/aurelia/dist
-  #           packages/compat-v1/dist
-  #           packages/addons/dist
-  #           packages/fetch-client/dist
-  #           packages/i18n/dist
-  #           packages/kernel/dist
-  #           packages/metadata/dist
-  #           packages/platform/dist
-  #           packages/platform-browser/dist
-  #           packages/route-recognizer/dist
-  #           packages/router/dist
-  #           packages/router-lite/dist
-  #           packages/runtime/dist
-  #           packages/runtime-html/dist
-  #           packages/state/dist
-  #           packages/store-v1/dist
-  #           packages/testing/dist
-  #           packages/ui-virtualization/dist
-  #           packages/validation/dist
-  #           packages/validation-html/dist
-  #           packages/validation-i18n/dist
-  #           packages-tooling/__tests__/dist
-  #           packages-tooling/aot/dist
-  #           packages-tooling/au/dist
-  #           packages-tooling/babel-jest/dist
-  #           packages-tooling/http-server/dist
-  #           packages-tooling/parcel-transformer/dist
-  #           packages-tooling/plugin-conventions/dist
-  #           packages-tooling/plugin-gulp/dist
-  #           packages-tooling/ts-jest/dist
-  #           packages-tooling/webpack-loader/dist
+      - name: Cache build output
+        id: cache_build
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-build-dist-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-dist-
+          path: |
+            packages/__tests__/dist
+            packages/addons/dist
+            packages/aurelia/dist
+            packages/compat-v1/dist
+            packages/dialog/dist
+            packages/fetch-client/dist
+            packages/i18n/dist
+            packages/kernel/dist
+            packages/metadata/dist
+            packages/platform/dist
+            packages/platform-browser/dist
+            packages/route-recognizer/dist
+            packages/router/dist
+            packages/router-lite/dist
+            packages/runtime/dist
+            packages/runtime-html/dist
+            packages/state/dist
+            packages/store-v1/dist
+            packages/testing/dist
+            packages/ui-virtualization/dist
+            packages/validation/dist
+            packages/validation-html/dist
+            packages/validation-i18n/dist
+            packages/web-components/dist
+            packages-tooling/__tests__/dist
+            packages-tooling/aot/dist
+            packages-tooling/au/dist
+            packages-tooling/babel-jest/dist
+            packages-tooling/http-server/dist
+            packages-tooling/parcel-transformer/dist
+            packages-tooling/plugin-conventions/dist
+            packages-tooling/plugin-gulp/dist
+            packages-tooling/ts-jest/dist
+            packages-tooling/webpack-loader/dist
 
   bench_startup:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

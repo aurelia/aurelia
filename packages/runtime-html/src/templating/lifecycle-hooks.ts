@@ -1,6 +1,7 @@
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
+import { getOwnPropertyNames, objectFreeze, baseObjectPrototype } from '../utilities';
 
 export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
   TViewModel[TKey] extends (AnyFunction | undefined)
@@ -37,8 +38,8 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
   public static create<T extends Constructable>(def: {}, Type: T): LifecycleHooksDefinition<T> {
     const propertyNames = new Set<string>();
     let proto = Type.prototype;
-    while (proto !== Object.prototype) {
-      for (const name of Object.getOwnPropertyNames(proto)) {
+    while (proto !== baseObjectPrototype) {
+      for (const name of getOwnPropertyNames(proto)) {
         // This is the only check we will do for now. Filtering on e.g. function types might not always work properly when decorators come into play. This would need more testing first.
         if (name !== 'constructor') {
           propertyNames.add(name);
@@ -60,7 +61,7 @@ const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
 
 const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
 
-export const LifecycleHooks = Object.freeze({
+export const LifecycleHooks = objectFreeze({
   name: lhBaseName,
   /**
    * @param def - Placeholder for future extensions. Currently always an empty object.

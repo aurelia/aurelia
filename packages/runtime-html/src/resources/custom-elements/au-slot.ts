@@ -11,6 +11,11 @@ import type { LifecycleFlags, ControllerVisitor, ICustomElementController, ICust
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
 
+@customElement({
+  name: 'au-slot',
+  template: null,
+  containerless: true
+})
 export class AuSlot implements ICustomElementViewModel {
   /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
 
@@ -103,4 +108,3 @@ export class AuSlot implements ICustomElementViewModel {
   }
 }
 
-customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);

@@ -8,8 +8,8 @@
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",
     "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
     "bench": "npm run bench rerender1k && npm run bench:startup1k && npm run bench:update1k",
-    "bench:rerender1k": "tach --config rerender-1k.json --json-file results/rerender-1k.json",
-    "bench:startup1k": "tach --config startup-1k.json --json-file results/startup-1k.json",
+    "bench:rerender10k": "tach --config rerender-10k.json --json-file results/rerender-10k.json",
+    "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",
     "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json"
   },
   "dependencies": {

@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
 import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -7,8 +7,8 @@ import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCanc
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
-import { RouteTree, RouteNode, updateNode } from './route-tree';
-import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
+import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
+import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
 import { ViewportAgent } from './viewport-agent';
@@ -23,9 +23,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };
 }
 
-export type ResolutionMode = 'static' | 'dynamic';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
-export type SameUrlStrategy = 'ignore' | 'reload';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
 function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
   if (typeof valueOrFunc === 'function') {
@@ -47,7 +45,6 @@ export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
-    public readonly resolutionMode: ResolutionMode,
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
      *
@@ -60,17 +57,6 @@ export class RouterOptions {
      */
     public readonly historyStrategy: ValueOrFunc<HistoryStrategy>,
     /**
-     * The strategy to use for when navigating to the same URL.
-     *
-     * - `ignore`: do nothing (default).
-     * - `reload`: reload the current URL, effectively performing a refresh.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `ignore`
-     */
-    public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
-
-    /**
      * An optional handler to build the title.
      * When configured, the work of building the title string is completely handed over to this function.
      * If this function returns `null`, the title is not updated.
@@ -82,9 +68,7 @@ export class RouterOptions {
     return new RouterOptions(
       input.useUrlFragmentHash ?? false,
       input.useHref ?? true,
-      input.resolutionMode ?? 'dynamic',
       input.historyStrategy ?? 'push',
-      input.sameUrlStrategy ?? 'ignore',
       input.buildTitle ?? null,
     );
   }
@@ -92,16 +76,10 @@ export class RouterOptions {
   public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
     return valueOrFuncToValue(instructions, this.historyStrategy);
   }
-  /** @internal */
-  public getSameUrlStrategy(instructions: ViewportInstructionTree): SameUrlStrategy {
-    return valueOrFuncToValue(instructions, this.sameUrlStrategy);
-  }
 
   protected stringifyProperties(): string {
     return ([
-      ['resolutionMode', 'resolution'],
       ['historyStrategy', 'history'],
-      ['sameUrlStrategy', 'sameUrl'],
     ] as const).map(([key, name]) => {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
@@ -112,9 +90,7 @@ export class RouterOptions {
     return new RouterOptions(
       this.useUrlFragmentHash,
       this.useHref,
-      this.resolutionMode,
       this.historyStrategy,
-      this.sameUrlStrategy,
       this.buildTitle,
     );
   }
@@ -158,9 +134,7 @@ export class NavigationOptions extends RouterOptions {
     super(
       routerOptions.useUrlFragmentHash,
       routerOptions.useHref,
-      routerOptions.resolutionMode,
       routerOptions.historyStrategy,
-      routerOptions.sameUrlStrategy,
       routerOptions.buildTitle,
     );
   }
@@ -311,7 +285,7 @@ export class Router {
   }
 
   private _currentTr: Transition | null = null;
-  private get currentTr(): Transition {
+  public get currentTr(): Transition {
     let currentTr = this._currentTr;
     if (currentTr === null) {
       currentTr = this._currentTr = Transition.create({
@@ -701,9 +675,9 @@ export class Router {
     const routeChanged = !this.navigated
       || trChildren.length !== nodeChildren.length
       || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
-    const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
-    if (!shouldProcessRoute) {
+    const shouldProcess = routeChanged || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
+    if (!shouldProcess) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;
@@ -822,9 +796,23 @@ export class Router {
 
         this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
         this._isNavigating = false;
+
+        // apply history state
+        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
+        switch (tr.options.getHistoryStrategy(this.instructions)) {
+          case 'none':
+            // do nothing
+            break;
+          case 'push':
+            this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            break;
+          case 'replace':
+            this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            break;
+        }
+
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-        this.applyHistoryState(tr);
         tr.resolve!(true);
 
         this.runNextTransition();
@@ -832,34 +820,23 @@ export class Router {
     });
   }
 
-  private applyHistoryState(tr: Transition): void {
-    const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
-    switch (tr.options.getHistoryStrategy(this.instructions)) {
-      case 'none':
-        // do nothing
-        break;
-      case 'push':
-        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
-        break;
-      case 'replace':
-        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
-        break;
-    }
-  }
-
-  private getTitle(tr: Transition): string {
-    switch (typeof tr.options.title) {
-      case 'function':
-        return tr.options.title.call(void 0, tr.routeTree.root) ?? '';
-      case 'string':
-        return tr.options.title;
-      default:
-        return tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
-    }
-  }
-
   public updateTitle(tr: Transition = this.currentTr): string {
-    const title = this._hasTitleBuilder ? (this.options.buildTitle!(tr) ?? '') : this.getTitle(tr);
+    let title: string;
+    if(this._hasTitleBuilder) {
+      title = this.options.buildTitle!(tr) ?? '';
+    } else {
+      switch (typeof tr.options.title) {
+        case 'function':
+          title = tr.options.title.call(void 0, tr.routeTree.root) ?? '';
+          break;
+        case 'string':
+          title = tr.options.title;
+          break;
+        default:
+          title = tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
+          break;
+      }
+    }
     if (title.length > 0) {
       this.p.document.title = title;
     }
@@ -917,4 +894,44 @@ export class Router {
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
     return NavigationOptions.create({ ...this.options, ...options });
   }
+}
+
+function updateNode(
+  log: ILogger,
+  vit: ViewportInstructionTree,
+  ctx: IRouteContext,
+  node: RouteNode,
+): Promise<void> | void {
+  log.trace(`updateNode(ctx:%s,node:%s)`, ctx, node);
+
+  node.queryParams = vit.queryParams;
+  node.fragment = vit.fragment;
+
+  if (!node.context.isRoot) {
+    node.context.vpa.scheduleUpdate(node.tree.options, node);
+  }
+  if (node.context === ctx) {
+    // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
+    node.clearChildren();
+    // - first append the nodes as children, compiling the viewport instructions.
+    // - if afterward, any viewports are still available
+    //   - look at the default value of those viewports
+    //   - create instructions, and
+    //   - add the compiled nodes from those to children of the node.
+    return onResolve(
+      resolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+        const vp = vpa.viewport;
+        const component = vp.default;
+        if (component === null) return acc;
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        return acc;
+      }, [] as (void | Promise<void>)[]))
+    );
+  }
+
+  // Drill down until we're at the node whose context matches the provided navigation context
+  return resolveAll(...node.children.map(child => {
+    return updateNode(log, vit, ctx, child);
+  }));
 }

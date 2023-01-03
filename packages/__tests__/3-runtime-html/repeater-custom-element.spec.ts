@@ -20,9 +20,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-const spec = 'repeater-custom-element';
-
-describe(spec, function () {
+describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
 
   interface TestSetupContext<TApp> {
     template: string;

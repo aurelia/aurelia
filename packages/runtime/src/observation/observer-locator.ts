@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject } from '../utilities-objects';
 
 import type {
   Collection,
@@ -88,7 +88,7 @@ export class ObserverLocator {
     if (obj == null) {
       throw nullObjectError(key);
     }
-    if (!(obj instanceof Object)) {
+    if (!isObject(obj)) {
       return new PrimitiveObserver(obj as Primitive, key);
     }
     const lookup = getObserverLookup(obj);

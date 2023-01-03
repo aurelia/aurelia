@@ -43,8 +43,6 @@ export class ValueAttributeObserver implements INodeObserver {
 
   /**
    * Comes from mixin
-   *
-   * @internal
    */
   public useConfig!: (config: INodeObserverConfigBase) => void;
 

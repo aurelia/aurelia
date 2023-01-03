@@ -1,0 +1,62 @@
+{
+  "name": "@aurelia/web-components",
+  "version": "2.0.0-alpha.41",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    "require": "./dist/cjs/index.cjs",
+    "import": "./dist/esm/index.mjs"
+  },
+  "typings": "dist/types/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "web-components"
+  ],
+  "files": [
+    "dist/**/*.cjs",
+    "dist/**/*.dev.cjs.map",
+    "dist/**/*.mjs",
+    "dist/**/*.dev.mjs.map",
+    "dist/**/*.d.ts",
+    "src/**/*.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages": "npm run rollup"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-alpha.41",
+    "@aurelia/metadata": "2.0.0-alpha.41",
+    "@aurelia/runtime": "2.0.0-alpha.41",
+    "@aurelia/runtime-html": "2.0.0-alpha.41"
+  },
+  "devDependencies": {
+    "typescript": "4.7.3"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  }
+}

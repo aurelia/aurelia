@@ -102,7 +102,7 @@ function throwsOn<
 // const $num1 = new PrimitiveLiteralExpression(1);
 // const $str1 = new PrimitiveLiteralExpression('1');
 
-describe('AST', function () {
+describe('[UNIT] AST', function () {
 
   const AccessThisList: [string, AccessThisExpression][] = [
     [`$this`, $this],

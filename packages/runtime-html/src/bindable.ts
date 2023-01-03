@@ -1,8 +1,9 @@
 import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
+import { Metadata } from '@aurelia/metadata';
 import { BindingMode } from './binding/interfaces-bindings';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './utilities-metadata';
-import { isString } from './utilities';
+import { isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -128,7 +129,7 @@ type B12345 = B2345 & B1<B2345>;
 
 const baseName = getAnnotationKeyFor('bindable');
 
-export const Bindable = Object.freeze({
+export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
   from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
@@ -150,7 +151,7 @@ export const Bindable = Object.freeze({
       } else if (maybeList instanceof BindableDefinition) {
         bindables[maybeList.property] = maybeList;
       } else if (maybeList !== void 0) {
-        Object.keys(maybeList).forEach(name => addDescription(name, maybeList[name]));
+        objectKeys(maybeList).forEach(name => addDescription(name, maybeList[name]));
       }
     }
 
@@ -329,13 +330,6 @@ function apiTypeCheck() {
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
-/** @internal */
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace Reflect {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any;
-}
-
 export function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void {
   Coercer.define(target, property);
 }
@@ -352,7 +346,7 @@ const Coercer = {
 };
 
 function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  const type: PropertyType | null = def.type ?? Reflect.getMetadata('design:type', target, prop) ?? null;
+  const type: PropertyType | null = def.type ?? Metadata.get('design:type', target, prop) ?? null;
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;
   switch (type) {

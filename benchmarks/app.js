@@ -5,7 +5,7 @@ let $count = 0;
 
 const App = CustomElement.define({
     name: 'app',
-    template: '<div repeat.for="i of items">${i.message}</div>'
+    template: '<div repeat.for="i of items">hello ${i.message} item</div>'
 }, class {
     constructor() {
         this.newItems($count);

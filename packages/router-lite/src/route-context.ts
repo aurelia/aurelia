@@ -1,5 +1,5 @@
 import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
-import { Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
@@ -8,7 +8,7 @@ import { IViewport } from './resources/viewport';
 import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
-import { IRouter, ResolutionMode } from './router';
+import { IRouter } from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
@@ -16,8 +16,6 @@ import { ViewportAgent, ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
-
-export const RESIDUE = 'au$residue' as const;
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
 
@@ -327,12 +325,12 @@ export class RouteContext {
     return agent;
   }
 
-  public getAvailableViewportAgents(resolution: ResolutionMode): readonly ViewportAgent[] {
-    return this.childViewportAgents.filter(x => x.isAvailable(resolution));
+  public getAvailableViewportAgents(): readonly ViewportAgent[] {
+    return this.childViewportAgents.filter(x => x.isAvailable());
   }
 
-  public getFallbackViewportAgent(resolution: ResolutionMode, name: string): ViewportAgent | null {
-    return this.childViewportAgents.find(x => x.isAvailable(resolution) && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
+  public getFallbackViewportAgent(name: string): ViewportAgent | null {
+    return this.childViewportAgents.find(x => x.isAvailable() && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
   }
 
   /**
@@ -426,12 +424,7 @@ export class RouteContext {
       path,
       caseSensitive,
       handler,
-    });
-    this.recognizer.add({
-      path: `${path}/*${RESIDUE}`,
-      caseSensitive,
-      handler,
-    });
+    }, true);
   }
 
   public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {

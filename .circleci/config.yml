@@ -245,6 +245,9 @@ jobs:
       command:
         type: string
         default: npm run build
+      release:
+        type: boolean
+        default: false
       generate_native_modules:
         type: boolean
         default: false
@@ -252,18 +255,29 @@ jobs:
       - checkout
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: << parameters.command >>
       - when:
-          condition: << parameters.generate_native_modules >>
+          condition:
+            equal: [true, << parameters.release >>]
           steps:
-            - run: npm run generate-native-modules
+            - run: npm run build:release
+      - when:
+          condition:
+            equal: [false, << parameters.release >>]
+          steps:
+            - run: npm run build
+      # - run: << parameters.command >>
+      # - when:
+      #     condition: << parameters.generate_native_modules >>
+      #     steps:
+      #       - run: npm run generate-native-modules
       - save_cache:
-          key: cache-{{ .Revision }}-build-<< parameters.generate_native_modules >>
+          key: cache-{{ .Revision }}-build-<< parameters.release >>
           paths:
             - packages/__tests__/dist
+            - packages/addons/dist
             - packages/aurelia/dist
             - packages/compat-v1/dist
-            - packages/addons/dist
+            - packages/dialog/dist
             - packages/fetch-client/dist
             - packages/i18n/dist
             - packages/kernel/dist
@@ -282,6 +296,7 @@ jobs:
             - packages/validation/dist
             - packages/validation-html/dist
             - packages/validation-i18n/dist
+            - packages/web-components/dist
 
             - packages-tooling/__tests__/dist
             - packages-tooling/aot/dist
@@ -579,7 +594,7 @@ jobs:
             cd test/playwright
             npm run build
             npm run e2e:<< parameters.suite >>
-          no_output_timeout: "2m"
+          no_output_timeout: "1m"
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
@@ -626,7 +641,7 @@ jobs:
           name: "Restore benchmark artifacts"
           key: cache-{{ .Revision }}-benchmark-app
       - run:
-          name: "benchmark"
+          name: "benchmark: <<parameters.command>>"
           command: <<parameters.command>>
           working_directory: "benchmarks"
           no_output_timeout: "30s"
@@ -764,7 +779,7 @@ workflows:
           <<: *filter_ignore_develop_release
           name: build_release
           command: npm run build:release
-          generate_native_modules: true
+          release: true
           requires:
               - checkout_install
       - unit_test_esm:
@@ -845,13 +860,13 @@ workflows:
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_startup
-          command: npm run bench:startup1k
+          command: npm run bench:startup10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
           name: benchmark_rerender
-          command: npm run bench:rerender1k
+          command: npm run bench:rerender10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
@@ -921,7 +936,7 @@ workflows:
           <<: *filter_only_tag
           name: build_release
           command: npm run build:release
-          generate_native_modules: true
+          release: true
           requires:
             - checkout_install
       - unit_test_esm:

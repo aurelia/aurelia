@@ -5,8 +5,8 @@
 
 <div class="message">${message}</div>
 <nav>
-  <a load="/">Home</a>
-  <a load="auth">Register</a>
+  <a id="-link" load="/">Home</a>
+  <a id="auth-link" load="auth">Register</a>
   <a load="child">Child</a>
   <a load="something/missing">Something missing</a>
 
@@ -14,7 +14,7 @@
   <a load="pages/two-route">Pages two-route</a>
 </nav>
 
-<au-viewport id="root-vp" fallback="fallback" fallback-action="abort"></au-viewport>
+<au-viewport id="root-vp" name="root-vp" fallback="fallback" fallback-action="abort"></au-viewport>
 <hr>
 <div>Fragment hash: <span id="fragment-hash">${router.configuration.options.useUrlFragmentHash}</span> <button
     click.trigger="toggleFragmentHash()">Toggle url fragment hash</button></div>

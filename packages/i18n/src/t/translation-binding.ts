@@ -72,15 +72,25 @@ export class TranslationBinding implements IConnectableBinding {
   private readonly _contentAttributes: readonly string[] = contentAttributes;
   /** @internal */
   private _keyExpression: string | undefined | null;
-  public scope!: Scope;
-  private task: ITask | null = null;
+
+  /** @internal */
+  public _scope!: Scope;
+
+  /** @internal */
+  private _task: ITask | null = null;
+
   /** @internal */
   private _isInterpolation!: boolean;
+
+  /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
 
   public target: HTMLElement;
-  private readonly platform: IPlatform;
-  private readonly taskQueue: TaskQueue;
+  /** @internal */
+  private readonly _platform: IPlatform;
+
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */
@@ -107,11 +117,11 @@ export class TranslationBinding implements IConnectableBinding {
     this._controller = controller;
     this.target = target as HTMLElement;
     this.i18n = locator.get(I18N);
-    this.platform = platform;
+    this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
     this.i18n.subscribeLocaleChange(this);
-    this.taskQueue = platform.domWriteQueue;
+    this._taskQueue = platform.domWriteQueue;
   }
 
   public static create({
@@ -152,18 +162,18 @@ export class TranslationBinding implements IConnectableBinding {
     return binding;
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!this.ast) { throw new Error('key expression is missing'); }
-    this.scope = scope;
+    this._scope = _scope;
     this._isInterpolation = this.ast instanceof Interpolation;
 
-    this._keyExpression = astEvaluate(this.ast, scope, this, this) as string;
+    this._keyExpression = astEvaluate(this.ast, _scope, this, this) as string;
     this._ensureKeyExpression();
-    this.parameter?.bind(scope);
+    this.parameter?.bind(_scope);
 
     this.updateTranslations();
     this.isBound = true;
@@ -174,23 +184,23 @@ export class TranslationBinding implements IConnectableBinding {
       return;
     }
 
-    astUnbind(this.ast, this.scope, this);
+    astUnbind(this.ast, this._scope, this);
 
     this.parameter?.unbind();
     this._targetAccessors.clear();
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
+    if (this._task !== null) {
+      this._task.cancel();
+      this._task = null;
     }
 
-    this.scope = (void 0)!;
+    this._scope = (void 0)!;
     this.obs.clearAll();
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     this.obs.version++;
     this._keyExpression = this._isInterpolation
-        ? astEvaluate(this.ast, this.scope, this, this) as string
+        ? astEvaluate(this.ast, this._scope, this, this) as string
         : newValue as string;
     this.obs.clear();
     this._ensureKeyExpression();
@@ -215,7 +225,7 @@ export class TranslationBinding implements IConnectableBinding {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
     const accessorUpdateTasks: AccessorUpdateTask[] = [];
-    const task = this.task;
+    const task = this._task;
     this._targetAccessors.clear();
 
     for (const item of results) {
@@ -249,8 +259,8 @@ export class TranslationBinding implements IConnectableBinding {
     }
 
     if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-      this.task = this.taskQueue.queueTask(() => {
-        this.task = null;
+      this._task = this._taskQueue.queueTask(() => {
+        this._task = null;
         for (const updateTask of accessorUpdateTasks) {
           updateTask.run();
         }
@@ -311,7 +321,7 @@ export class TranslationBinding implements IConnectableBinding {
 
   /** @internal */
   private _prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
-    const template = this.platform.document.createElement('template');
+    const template = this._platform.document.createElement('template');
 
     this._addContentToTemplate(template, content.prepend, marker);
 
@@ -329,7 +339,7 @@ export class TranslationBinding implements IConnectableBinding {
   /** @internal */
   private _addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
-      const parser = this.platform.document.createElement('div');
+      const parser = this._platform.document.createElement('div');
       parser.innerHTML = content;
       for (const child of toArray(parser.childNodes)) {
         Reflect.set(child, marker, true);
@@ -369,6 +379,7 @@ class AccessorUpdateTask {
 interface ParameterBinding extends IAstEvaluator, IConnectableBinding {}
 
 class ParameterBinding {
+  public isBound: boolean = false;
   public value!: i18next.TOptions;
   /**
    * A semi-private property used by connectable mixin
@@ -376,10 +387,11 @@ class ParameterBinding {
    * @internal
    */
   public readonly oL: IObserverLocator;
+  /** @internal */
   public readonly l: IServiceLocator;
-  public isBound: boolean = false;
 
-  public scope!: Scope;
+  /** @internal */
+  public _scope!: Scope;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -400,20 +412,20 @@ class ParameterBinding {
       return;
     }
     this.obs.version++;
-    this.value = astEvaluate(this.ast, this.scope, this, this) as i18next.TOptions;
+    this.value = astEvaluate(this.ast, this._scope, this, this) as i18next.TOptions;
     this.obs.clear();
     this.updater();
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
-    this.scope = scope;
+    this._scope = _scope;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
-    this.value = astEvaluate(this.ast, scope, this, this) as i18next.TOptions;
+    this.value = astEvaluate(this.ast, _scope, this, this) as i18next.TOptions;
     this.isBound = true;
   }
 
@@ -422,9 +434,9 @@ class ParameterBinding {
       return;
     }
 
-    astUnbind(this.ast, this.scope, this);
+    astUnbind(this.ast, this._scope, this);
 
-    this.scope = (void 0)!;
+    this._scope = (void 0)!;
     this.obs.clearAll();
   }
 }

@@ -20,4 +20,4 @@ Please see below a reference to each [Dependency Injection](../../../getting-to-
 * [AUR0012](aur0012.md)
 * [AUR0013](aur0013.md)
 * [AUR0014](aur0014.md)&#x20;
-* [AUR0015](aur0015.md)
+* [AUR0015](../../../aurelia-packages/dialog/aur0015.md)

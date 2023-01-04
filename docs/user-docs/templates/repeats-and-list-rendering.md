@@ -1,8 +1,10 @@
-# List rendering
+# List Rendering
+
+Aurelia supports working with different types of data. Array, Set, and Map are all supported collection types that can be iterated in your templates.
 
 ## `repeat.for`
 
-You can use the `repeat.for` binding to iterate over collections of data in your templates. Think of `repeat.for` as a for loop, it can iterate arrays, maps and sets.
+You can use the `repeat.for` binding to iterate over data collections in your templates. Think of `repeat.for` as a for loop. It can iterate arrays, maps and sets.
 
 ```markup
 <ul>
@@ -10,10 +12,10 @@ You can use the `repeat.for` binding to iterate over collections of data in your
 </ul>
 ```
 
-Breaking this intuitive syntax down, it works like this:
+**Breaking this intuitive syntax down, it works like this:**
 
 * Loop over every item in the items array
-* Store each iterative value in the local variable `item` on the left hand side
+* Store each iterative value in the local variable `item` on the left-hand side
 * For each iteration, make the current item available
 
 If you were to write the above in Javascript form, it would look like this:
@@ -26,25 +28,29 @@ for (let item of items) {
 
 ### Index and Contextual properties inside of `repeat.for`
 
-Aurelia's binding engine makes several special properties available to you in your binding expressions. Some properties are available everywhere, while others are only available in a particular context. Below is a brief summary of the available contextual properties within repeats.
+Aurelia's binding engine makes several special properties available in your binding expressions. Some properties are available everywhere, while others are only available in a particular context.&#x20;
 
-* `$index` - In a repeat template, the index of the item in the collection.
+Below is a summary of the available contextual properties within repeats.
+
+* `$index` - In a repeat template, the item's index in the collection.
 * `$first` - In a repeat template, is `true` if the item is the first item in the array.
-* `$last` - In a repeat template, is `true` if the item is the last item in the array.
-* `$even` - In a repeat template, is `true` if the item has an even numbered index.
-* `$odd` - In a repeat template, is `true` if the item has an odd numbered index.
+* `$last` - In a repeat template, is `true` if the item is the last in the array.
+* `$even` - In a repeat template, is `true` if the item has an even-numbered index.
+* `$odd` - In a repeat template, is `true` if the item has an odd-numbered index.
 * `$length` - In a repeat template, this indicates the length of the collection.
 * `$parent` - Explicitly accesses the outer scope from within a `repeat` template.
 
 You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
 
-Inside of the `repeat.for` these can be accessed. In the following example we display the current index value.
+Inside of the `repeat.for` these can be accessed. In the following example, we display the current index value.
 
 ```markup
 <ul>
     <li repeat.for="item of items">${$index}</li>
 </ul>
 ```
+
+Please note `$index` starts from zero.
 
 ### Array Syntax:
 
@@ -61,7 +67,9 @@ class MyComponent {
 <li repeat.for="item of items">${item.name}</li>
 ```
 
-Aurelia will not be able to observe changes to arrays using the \`array\[index] = value\` syntax. To ensure that Aurelia can observe the changes on your array, make use of the Array methods: \`Array.prototype.push\` , \`Array.prototype.pop\` , and \`Array.prototype.splice\` . \{% endhint }
+{% hint style="info" %}
+Aurelia will not be able to observe changes to arrays using the `array[index] = value` syntax. To ensure that Aurelia can observe the changes on your array, use the Array methods: `Array.prototype.push`, `Array.prototype.pop`, and `Array.prototype.splice`.
+{% endhint %}
 
 ### Ranges Syntax:
 
@@ -96,7 +104,7 @@ In the following example, we generate a range of numbers to 10. We subtract the 
 
 ### Map Syntax
 
-One of the more useful iterables is the Map, because you can decompose your key and value into two variables directly in the repeater. Although you can repeat over objects straightforwardly, Maps can be two-way bound much more straightforwardly than Objects, so you should try to use Maps where possible.
+One of the more useful iterables is the Map because you can directly decompose your key and value into two variables in the repeater. Although you can repeat over objects straightforwardly, Maps can be two-way bound much more straightforwardly than Objects, so you should try to use Maps where possible.
 
 ```ts
 export interface IFriend {
@@ -126,13 +134,13 @@ One thing to notice in the example above is the dereference operator in `[greeti
 
 ### Object Syntax
 
-With objects, we can do the same thing, except with a traditional JavaScript object in our view-model:
+With objects, we can do the same thing, except with a traditional JavaScript object in our view model:
 
 ```html
 <p repeat.for="greeting of friends | keys">${greeting}, ${friends[greeting].name}!</p>
 ```
 
-```ts
+```typescript
 export class RepeaterTemplate {
   constructor() {
     this.friends = {
@@ -149,12 +157,11 @@ export class RepeaterTemplate {
 }
 ```
 
-To iterate keys, we introduce a concept of a [Value Convertor](../fundamentals/value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
+To iterate keys, we introduce a concept of a [Value Converter](value-converters.md). We take the object in our view model, friends, and run it through our keys value converter. Aurelia looks for a registered class named KeysValueConverter and tries to call its toView() method with our friends object. That method returns an array of keys- which we can iterate. In a pinch, we can use this to iterate over Objects.
 
-```ts
+```typescript
 // resources/value-convertors/keys.ts
 export class KeysValueConverter {
-
   toView(obj): string[] {
     return Reflect.ownKeys(obj);
   }

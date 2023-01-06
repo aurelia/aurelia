@@ -1137,6 +1137,149 @@ describe('router (smoke tests)', function () {
     assert.areTaskQueuesEmpty();
   });
 
+  it('will load the root-level fallback when navigating to a non-existing route - parent-child - children without fallback', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-one',
+      template: `c1 <br>
+  <nav>
+    <a href="gc11">gc11</a>
+    <a href="gc12">gc12</a>
+    <a href="c2">c2 (doesn't work)</a>
+    <a href="../c2">../c2 (works)</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+    })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22' })
+    class GrandChildTwoTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 <br>
+  <nav>
+    <a href="gc21">gc21</a>
+    <a href="gc22">gc22</a>
+    <a href="c1">c1 (doesn't work)</a>
+    <a href="../c1">../c1 (works)</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+    })
+    class ChildTwo { }
+
+    @customElement({
+      name: 'not-found',
+      template: 'nf',
+    })
+    class NotFound { }
+
+    @route({
+      routes: [
+        {
+          path: ['', 'c1'],
+          component: ChildOne,
+        },
+        {
+          path: 'c2',
+          component: ChildTwo,
+        },
+        {
+          path: 'not-found',
+          component: NotFound,
+        },
+      ],
+      fallback: 'not-found',
+    })
+    @customElement({
+      name: 'my-app',
+      template: `<nav>
+  <a load="c1">C1</a>
+  <a load="c2">C2</a>
+</nav>
+
+<au-viewport></au-viewport>` })
+    class Root { }
+
+    const { au, container, host } = await start({
+      appRoot: Root,
+      registrations: [
+        NotFound,
+      ]
+    });
+
+    const queue = container.get(IPlatform).domWriteQueue;
+
+    const rootVp = host.querySelector('au-viewport');
+    let childVp = rootVp.querySelector('au-viewport');
+    assert.html.textContent(childVp, 'gc11');
+
+    let [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
+    a2.click();
+    queue.flush();
+    await queue.yield();
+
+    assert.html.textContent(childVp, 'gc12');
+
+    nf.click();
+    queue.flush();
+    await queue.yield();
+
+    assert.html.textContent(childVp, 'nf');
+
+    f.click();
+    queue.flush();
+    await queue.yield();
+
+    childVp = rootVp.querySelector('au-viewport');
+    assert.html.textContent(childVp, 'gc21', host.textContent);
+
+    [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
+    a2.click();
+    queue.flush();
+    await queue.yield();
+
+    assert.html.textContent(childVp, 'gc22');
+
+    nf.click();
+    queue.flush();
+    await queue.yield();
+
+    assert.html.textContent(childVp, 'nf');
+
+    f.click();
+    queue.flush();
+    await queue.yield();
+
+    childVp = rootVp.querySelector('au-viewport');
+    assert.html.textContent(childVp, 'gc11');
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
   it(`correctly parses parameters`, async function () {
     const a1Params: Params[] = [];
     const a2Params: Params[] = [];

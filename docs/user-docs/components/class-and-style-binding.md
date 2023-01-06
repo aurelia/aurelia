@@ -4,9 +4,9 @@ Aurelia makes it easy to work with component styles. From the type of CSS flavor
 
 ## Style conventions
 
-In this section, you will learn how you can style components using conventions as well as with Shadow DOM to encapsulate your CSS styles.
+This section will teach you how to style components using conventions and Shadow DOM to encapsulate your CSS styles.
 
-Not always, but sometimes when you are creating components you also want styles for your component. Default conventions for custom elements mean that if you create a custom element and a CSS file with a matching filename, it will be imported automatically.
+Not always, but sometimes when you are creating components, you also want styles for your component. Default conventions for custom elements mean that they will be imported automatically if you create a custom element and a CSS file with a matching filename.
 
 {% tabs %}
 {% tab title="my-component.ts" %}
@@ -32,17 +32,21 @@ export class MyComponent {
 {% endtab %}
 {% endtabs %}
 
-Notice how we didn't import `my-component.css` but when we run the app, it gets imported automatically? That is Aurelia's intuitive conventions at work.
+Notice how we didn't import `my-component.css` But when we run the app, it gets imported automatically? That is Aurelia's intuitive conventions at work.
 
 ## Shadow DOM
 
-One of the most exciting web specifications is Web Components. Part of the Web Components specification is [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web\_Components/Using\_shadow\_DOM) API. What Shadow DOM offers us is the ability to encapsulate HTML and styles within our web applications, allowing us to deal with a problem that has plagued web development since the beginning: global styles.
+One of the most exciting web specifications is Web Components. Part of the Web Components specification is [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web\_Components/Using\_shadow\_DOM) API. Shadow DOM offers us the ability to encapsulate HTML and styles within our web applications, allowing us to deal with a problem that has plagued web development since the beginning: global styles.
 
-In Aurelia, you can work with Shadow DOM in three different ways:&#x20;
+In Aurelia, you can work with Shadow DOM in three different ways:
 
 1. Global Shadow DOM — all components in your application will be encapsulated
 2. Configured Shadow DOM — allows you to opt-in to using Shadow DOM on some components using the decorator `useShadowDOM`
-3. Global opt-out Shadow DOM — this is a mix of the previous two configuration options. You can turn on Shadow DOM globally, but then disable it on a per-component basis.
+3. Global opt-out Shadow DOM is a mix of the previous two configuration options. You can turn on Shadow DOM globally but then disable it on a per-component basis.
+
+{% hint style="warning" %}
+If you use CSS libraries such as Bootstrap, which rely on global styles, you must account for this when using Shadow DOM. See below in the "Global shared styles" section for more information.
+{% endhint %}
 
 ### Setting up Shadow DOM
 
@@ -77,7 +81,7 @@ If you are using Webpack, additional configuration work needs to be done. The Au
 
 ### Global shared styles
 
-Unlike the traditional way in which CSS works (populating the global scope) the concept of global styles in Shadow DOM does not exist. However, if you require reusable global-like styles, you can configure shared styles.
+Unlike the traditional way CSS works (populating the global scope), the concept of global styles in Shadow DOM does not exist. However, you can configure shared styles if you require reusable global-like styles.
 
 A great example of shared styles is using the Bootstrap CSS library.
 
@@ -100,7 +104,7 @@ You can use the `sharedStyles` configuration property to share any CSS styles. F
 
 ### Component configuration using useShadowDOM
 
-As we mentioned earlier, Aurelia provides a decorator that allows you to opt-in and opt-out of using Shadow DOM in your web applications. This decorator is called `useShadowDOM` and can be imported from the main `aurelia` package.
+As we mentioned earlier, Aurelia provides a decorator that allows you to opt in and opt out of using Shadow DOM in your web applications. This decorator is called `useShadowDOM` and can be imported from the main `aurelia` package.
 
 Using the decorator without providing any configuration options will enable Shadow DOM on your component in the default mode of `open`.
 
@@ -137,7 +141,7 @@ export class MyComponent {
 
 ### Understanding Shadow DOM modes
 
-The Shadow DOM API provides two different modes you can use for your components these modes are part of the specification itself and not Aurelia specific.
+The Shadow DOM API provides two modes you can use for your components. These modes are part of the specification itself and not Aurelia-specific.
 
 #### open
 
@@ -145,7 +149,7 @@ Open mode is the default setting for Shadow DOM. This allows you to access the D
 
 #### closed
 
-Closed mode does the exact opposite of `open` in that the shadowRoot property of your component will return `null` as the component is closed. This is useful for instances where you want components to only be accessible from within.
+The closed mode does the exact opposite of `open` in that the shadowRoot property of your component will return `null` as the component is closed. This is useful for instances where you want components to only be accessible from within.
 
 {% hint style="warning" %}
 Where possible, it is recommended that you use `open` mode for your Shadow DOM-based components. Open mode allows you to use e2e testing and libraries that rely on the DOM being accessible.
@@ -153,7 +157,7 @@ Where possible, it is recommended that you use `open` mode for your Shadow DOM-b
 
 ### Disabling Shadow DOM
 
-The `useShadowDom` decorator allows you to change the mode, but can also accept a `false` value to disable Shadow DOM on a specific component.
+The `useShadowDom` decorator allows you to change the mode but can also accept a `false` value to disable Shadow DOM on a specific component.
 
 ```typescript
 import { useShadowDOM } from 'aurelia';
@@ -166,11 +170,11 @@ export class MyComponent {
 
 ### Shadow DOM special selectors
 
-When working with Shadow DOM component styles, you have access to a variety of special selectors allowing you to style components in particular ways. These selectors can be found in the [CSS Scoping Module level 1 specification](https://www.w3.org/TR/css-scoping-1/).
+When working with Shadow DOM component styles, you have access to various special selectors, allowing you to style components in particular ways. These selectors can be found in the [CSS Scoping Module level 1 specification](https://www.w3.org/TR/css-scoping-1/).
 
-#### :host&#x20;
+#### :host
 
-Every custom element in Aurelia has a HTML tag name. If you have a custom element called `app-header` your HTML tags would be `<app-header></app-header>` this then leads us to the usage of the `:host` selector. The host element is the HTML element itself.
+Every custom element in Aurelia has an HTML tag name. If you have a custom element called `app-header` your HTML tags, this leads us to the use of the `:host` selector. The host element is the HTML element itself.
 
 {% code title="app-header.css" %}
 ```css
@@ -180,7 +184,7 @@ Every custom element in Aurelia has a HTML tag name. If you have a custom elemen
 ```
 {% endcode %}
 
-This would add a border to the `app-header` element, but not the child elements inside of it. Using the function form of `:host()` allows you to target elements inside of the custom element.
+This would add a border to the `app-header` element but not the child elements. Using the function form  `:host()` allows you to target elements inside of the custom element.
 
 {% code title="app-header.css" %}
 ```css
@@ -196,7 +200,7 @@ This would add a border to the `app-header` element, but not the child elements 
 
 #### :host-context
 
-The `host-context` selector allows you to target your elements based on the outer context. A valid use for this type of selector is to implement theme functionality allowing your components to be styled. If you have a light or dark mode feature, this would be especially helpful.
+The `host-context` selector allows you to target your elements based on the outer context. A valid use for this type of selector is to implement theme functionality allowing your components to be styled. This would be especially helpful if you have a light or dark mode feature.
 
 ```css
 :host-context(.dark-mode) {
@@ -206,7 +210,7 @@ The `host-context` selector allows you to target your elements based on the oute
 
 ## CSS Modules
 
-In some instances, Shadow DOM is not the right fit for your web application needs, particularly the constraints around global styles. If you need an in-between solution that allows you to encapsulate styles, but also use global styles as well, CSS Modules might be the option for you.
+In some instances, Shadow DOM is not the right fit for your web application needs, particularly the constraints around global styles. If you need an in-between solution that allows you to encapsulate styles and use global styles, CSS Modules might be the option for you.
 
 To use CSS Modules, the process is a lot more straightforward if you use the `npx makes aurelia` CLI tool and choose CSS Modules as your preferred styling option. Otherwise, you will have to configure your application manually.
 
@@ -225,7 +229,7 @@ Please note the following loader configuration only applies to Webpack.
 ```
 {% endcode %}
 
-There is nothing special that you need to do to use CSS Modules in your component styles. Specify your class names and then reference them in your HTML, the bundler takes care of turning that class value into a randomly generated string value.
+You need to do nothing special to use CSS Modules in your components. Specify your class names and then reference them in your HTML. The bundler takes care of turning that class value into a randomly generated string value.
 
 ```css
 .madeup-style {
@@ -245,15 +249,15 @@ And once the CSS Modules functionality rewrites the class, it might end up looki
 <a class="nNe4iytdPCf3HfNJUXiz">Italic link</a>
 ```
 
-### CSS Modules special selectors
+### CSS Modules' special selectors
 
-Much like the Shadow DOM styling option, there are some special selectors you can use when using CSS Modules.
+Much like the Shadow DOM styling option, you can use some special selectors when using CSS Modules.
 
 #### :global
 
-The global selector allows you to style global CSS selectors, without transforming them. For some CSS classes, you want them to be global for active states. In fact, the default Aurelia app generated using Makes comes with an example of `:global` being used.
+The global selector allows you to style global CSS selectors without transforming them. For some CSS classes, you want them to be global for active states. In fact, the default Aurelia app generated using Makes comes with an example of `:global` being used.
 
-Where this selector especially comes in use is when you are working with CSS libraries like Bootstrap, allowing you to target global CSS selectors.
+This selector especially comes in use when you are working with CSS libraries like Bootstrap, allowing you to target global CSS selectors.
 
 ```css
 :global(.load-active) {

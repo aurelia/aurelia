@@ -284,17 +284,17 @@ export class ViewportAgent {
           void onResolve(
             ctx.resolved,
             () => onResolve(
-              resolveAll(
-                ...next.residue.splice(0).map(vi => {
-                  return createAndAppendNodes(this.logger, next, vi);
-                }),
-                ...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+              onResolve(
+                resolveAll(
+                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this.logger, next, vi))
+                ),
+                () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
                   const vp = vpa.viewport;
                   const component = vp.default;
                   if (component === null) return acc;
                   acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
                   return acc;
-                }, ([] as (void | Promise<void>)[])),
+                }, ([] as (void | Promise<void>)[]))),
               ),
               () => { b1.pop(); }
             )

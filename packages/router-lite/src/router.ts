@@ -565,10 +565,23 @@ export class Router {
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
+
+    let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (typeof instructionOrInstructions === 'string') {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
+      if ((instructionOrInstructions as string).startsWith('../') && context !== null) {
+        context = this.resolveContext(context);
+        while ((instructionOrInstructions as string).startsWith('../') && (context?.parent ?? null) !== null) {
+          instructionOrInstructions = (instructionOrInstructions as string).slice(3);
+          context = context!.parent;
+        }
+      }
     }
-    return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options), this.ctx);
+    return ViewportInstructionTree.create(
+      instructionOrInstructions,
+      NavigationOptions.create({ ...this.options, ...options, context }),
+      this.ctx
+    );
   }
 
   /**
@@ -648,7 +661,7 @@ export class Router {
       return ret;
     }).catch(err => {
       logger.error(`Transition %s failed: %s`, nextTr, err);
-      if(nextTr.erredWithUnknownRoute) {
+      if (nextTr.erredWithUnknownRoute) {
         this.cancelNavigation(nextTr);
       } else {
         this._isNavigating = false;
@@ -822,7 +835,7 @@ export class Router {
 
   public updateTitle(tr: Transition = this.currentTr): string {
     let title: string;
-    if(this._hasTitleBuilder) {
+    if (this._hasTitleBuilder) {
       title = this.options.buildTitle!(tr) ?? '';
     } else {
       switch (typeof tr.options.title) {
@@ -889,10 +902,6 @@ export class Router {
         }
       },
     );
-  }
-
-  private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
-    return NavigationOptions.create({ ...this.options, ...options });
   }
 }
 

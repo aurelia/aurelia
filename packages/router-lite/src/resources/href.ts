@@ -104,17 +104,11 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
 
     // Use the normalized attribute instead of this.value to ensure consistency.
-    let href = this.el.getAttribute('href');
+    const href = this.el.getAttribute('href');
     if (href !== null) {
       e.preventDefault();
-      // align the context with href
-      let context = this.ctx;
-      while (href.startsWith('../') && context.parent !== null) {
-        href = href.slice(3);
-        context = context.parent;
-      }
       // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-      void this.router.load(href, { context });
+      void this.router.load(href, { context: this.ctx });
     }
   }
 }

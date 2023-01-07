@@ -7,7 +7,7 @@ description: Learn to navigate from one view to another using the Router-Lite.
 This section details the various ways that you can use to navigate from one part of your application to another part.
 For performing navigation the router-lite offers couple of alternatives, namely the `href` and the `load` custom attributes, and the `IRouter#load` method.
 
-## Using `href` custom attribute
+## Using the `href` custom attribute
 
 You can use the `href` custom attribute with an `a` (anchor) tag, with a string value.
 When the users click this link, the router-lite performs the navigation.
@@ -89,6 +89,18 @@ Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`,
 Following example demonstrate these options.
 
 {% embed url="https://stackblitz.com/edit/router-lite-bypassing-href?ctl=1&embed=1&file=src/my-app.html" %}
+
+## Using the `load` custom attribute
+
+Although the usage of `href` is the most natural choice, it has some limitations.
+Firstly, it allows navigating in the [current routing context](#navigate-in-current-routing-context).
+However, the bigger limitation might be that the `href` allows usage of only string values.
+This might be bit sub-optimal when the routes have parameters, as in that case you need to know the order of the parameters, the parameterized and static segments etc. to correctly compose the string path.
+In case the order of those segments are changed, it may cause undesired or unexpected results if your application.
+Therefore, the router-lite offers another alternative namely the `load` attribute.
+
+You can
+
 
 ## Using the Router API
 

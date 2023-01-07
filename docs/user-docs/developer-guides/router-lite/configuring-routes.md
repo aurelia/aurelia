@@ -366,6 +366,9 @@ The following example demonstrates this behavior, where `not-found`, the name of
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-using-ce-name?ctl=1&embed=1&file=src/not-found.ts" %}
 
+An important point to note here is that when you are using the custom element name as fallback, you need to ensure that the custom element is registered to the DI container.
+Note that in the example above, the `NotFound` component is registered to the DI container in `main.ts`.
+
 A `fallback` defined on parent is inherited by the children (to know more about hierarchical routing configuration, refer the [documentation](./viewports.md#hierarchical-routing)).
 However, every child can override the fallback as needed.
 The following example demonstrate this.

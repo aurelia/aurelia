@@ -47,10 +47,40 @@ The last `href` attribute is an example of a parameterized route.
 ### Navigate in current routing context
 
 The navigation using `href` attribute always happens in the current routing context; that is, the routing instruction will be successful if and only the route is configured in the current routing parent.
+This is shown in the example below.
 
+{% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport-2mcxwj?ctl=1&embed=1&file=src/main.ts" %}
 
-By default the router-lite enables usage of a custom attribute named `href`.
-This way, whenever an `a` (anchor) tag with `href` attribute is used, router-lite handles the
+In the example, the root component has two child-routes (`c1`, `c2`) and every child component in turn has 2 child-routes (`gc11`, and `gc12` and `gc21`, and `gc22` respectively) of their own.
+In this case, any `href` pointing to any of the immediate child-routes (and thus configured in the current routing parent) works as expected.
+However, when an `href`, like below, is used to navigate from one child component to another child component, it does not work.
+
+```html
+ <a href="c2">c2 (doesn't work)</a>
+```
+
+In such cases, the router-lite offers the following syntax to make such navigation possible.
+
+```html
+<a href="../c2">../c2 (works)</a>
+```
+
+### Bypassing the `href` custom attribute
+
+By default the router-lite enables usage of the `href` custom attribute, as that ensure that router-lite handles the routing instructions by default.
+There might be cases, where you want to avoid that.
+If you want to globally deactivate the usage of `href`, then you can customize the router configuration by setting `false` to the [`useHref` configuration option](./router-configuration.md#enable-or-disable-the-usage-of-the-href-custom-attribute-using-usehref).
+
+To disable/bypass the default handling of router-lite for any particular `href` attribute, you can avail many different ways as per your need and convenience.
+
+- Using `external` or `data-external` attribute on the `a` tag.
+- Using a non-null value for the `target`, other than the current window name, or `_self`.
+
+Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router-lite ignores the routing instruction.
+
+Following example demonstrate these options.
+
+{% embed url="https://stackblitz.com/edit/router-lite-bypassing-href?ctl=1&embed=1&file=src/my-app.html" %}
 
 ## Using the Router API
 

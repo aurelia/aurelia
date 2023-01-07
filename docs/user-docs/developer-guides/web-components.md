@@ -6,13 +6,13 @@ description: The basics of the web-component plugin for Aurelia.
 
 ## Introduction
 
-TODO...
+Web Components are part of an ever-evolving web specification that aims to allow developers to create native self-contained components without the need for additional libraries or transpilation steps. In this guide, you will learn how to use Aurelia in Web Components.
 
 ## Installing The Plugin
 
 To use the plugin, import the interface `IWcElementRegistry` interface from `@aurelia/runtime-html` module and start defining web-component custom elements by calling method `define` on the instance of `IWcElementRegistry`.
 
-WC custom elements can be defined at any time, either at application start time or later. Applications are responsible for ensuring names are unique.
+WC custom elements can be defined anytime, either at the application start or later. Applications are responsible for ensuring names are unique.
 
 Extending built-in elements is supported via the 3rd parameter of the `define` call, like the `define` call on the global `window.customElements.define` call.
 
@@ -20,21 +20,21 @@ Extending built-in elements is supported via the 3rd parameter of the `define` c
 
 * Each of WC custom element will be backed by a view model, like a normal Aurelia element component.
 * For each `define` call, a corresponding native custom element class will be created and defined.
-* Each of the bindable property on the backing Aurelia view model will be converted to a reactive attribute \(via `observedAttributes`\) and reactive property \(on the prototype of the extended HTML Element class created\).
+* Each bindable property on the backing Aurelia view model will be converted to a reactive attribute (via `observedAttributes`) and reactive property (on the prototype of the extended HTML Element class created).
 * Slot: `[au-slot]` is not supported when upgrading an existing element. `slot` can be used as a normal WC custom element.
 
 Notes:
 
-* WC custom element works independently with Aurelia component. This means the same class can be both a WC custom element and Aurelia element component. Though this should be avoided as it could result in double rendering.
-* `containerless` mode is not supported, use extend-built-in instead if you want to avoid wrappers.
+* WC custom element works independently with the Aurelia component. This means the same class can be both a WC custom element and an Aurelia component. Though this should be avoided as it could result in double rendering.
+* `containerless` mode is not supported. Use extend-built-in instead if you want to avoid wrappers.
 * the defined WC custom elements will continue working even after the owning Aurelia application has stopped.
-* `template` info will be retrieved & compiled only once per `define` call, changing it after this call won't have any effects.
-* `bindables` info will be retrieved & compiled only once per `define` call, changing it after this call won't have any effects.
+* `template` info will be retrieved & compiled only once per `define` call. Changing it after this call won't have any effects.
+* `bindables` info will be retrieved & compiled only once per `define` call. Changing it after this call won't have any effects.
 
 ## Examples
 
 {% hint style="info" %}
-For simplicity, all the examples below are defining elements at the start of an application, but they can be defined at any time.
+For simplicity, all the examples below define elements at the start of an application, but they can be defined at any time.
 {% endhint %}
 
 1. Defining a `tick-clock` element
@@ -213,4 +213,3 @@ Aurelia
   .app(class App {})
   .start();
 ```
-

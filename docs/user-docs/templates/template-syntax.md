@@ -2,7 +2,7 @@
 description: Learn all there is to know about Aurelia's HTML templating syntax.
 ---
 
-# Template syntax
+# Template syntax & features
 
 Aurelia uses an HTML-based syntax for templating, allowing you to build applications straightforwardly. All Aurelia templates are valid spec-compliant HTML that works in all browsers and HTML parsers.
 
@@ -198,4 +198,236 @@ Referencing our custom element, if we wanted to bind in a value to our `email` p
 <my-custom-element email.bind="myEmail"></my-custom-element>
 ```
 
-This allows us to pass in data to custom elements in a clean and familiar way.
+This allows us to pass in data to custom elements cleanly and familiarly.
+
+## Events
+
+Using Aurelia's intuitive event binding syntax, you can listen to mouse clicks, keyboard events, mouse movements, touches and other native browser events that are accessible via Javascript.
+
+If you have familiarized yourself with other aspects of Aurelia's template binding, a lot of this will look similar to you. Due to differences in how certain events function (bubbling vs non-bubbling), there are some nuances to be aware of when working with them.
+
+You can listen to events using two different types of event bindings; `trigger` and `capture`. The syntax for event binding is the event name you want to target, followed by one of the above event bindings.
+
+To listen to a `click` event on a button, for example, you would do something like this:
+
+```html
+<button click.trigger="myClickFunction()">Click me!</button>
+```
+
+Inside of the quotation marks, you specify the name of a function to be called inside of your view model.
+
+### Common events
+
+There are several events that you will bind onto in your Aurelia applications.
+
+#### click
+
+You will listen to the `click` event on buttons and links using `click.trigger`
+
+#### keypress
+
+The native `keypress` event using `keypress.trigger` will allow you to listen to keypress events on inputs and other elements.
+
+### **Capturing event binding**
+
+The `capture` event binding command should only be used as a last resort. Primarily in situations where an event is fired too early before Aurelia can capture it (third-party plugins, for example) or an event is being stopped using `event.preventDefault` capture can guarantee the event is captured (hence the name).
+
+In most situations, `trigger` will be more than sufficient.
+
+## Template References
+
+Template references and variables allow you to identify and specify parts of your templates that are accessible both inside of the view itself as well as the view model.
+
+Using the `ref` attribute, you can denote elements as variables.
+
+```markup
+<input type="text" ref="myInput" placeholder="First name">
+```
+
+We can then reference our input by the identifying value we provided to the `ref` attribute. For inputs, this is convenient because we can access the value property of the input itself.
+
+```markup
+<p>${myInput.value}</p>
+```
+
+You can also access this referenced element inside of your view model as well. Just make sure if you're using TypeScript to specify this property before attempting to reference it inside of your code.
+
+```typescript
+export class MyApp {
+  private myInput: HTMLInputElement;
+}
+```
+
+The `ref` attribute has several qualifiers you can use in conjunction with custom elements and attributes:
+
+* `view-model.ref="expression"`: create a reference to a custom element's view-model
+* `custom-attribute.ref="expression"`: create a reference to a custom attribute's view-model
+* `controller.ref="expression"`: create a reference to a custom element's controller instance
+
+{% hint style="info" %}
+Template references are a great way to reference elements inside view models for use with third-party libraries. They negate the need to query for elements using Javascript apis.
+{% endhint %}
+
+## Template Variables
+
+In your view templates, you can specify inline variables using the `<let>` custom element.
+
+The `<let>` element supports working with interpolation strings, plain strings, referencing view model variables and other let bindings within your templates.
+
+```markup
+<let some-var="This is a string value"></let>
+```
+
+You could then display this value using its camelCase variant:
+
+```markup
+<p>${someVar}</p>
+```
+
+You can bind to variable values in a `<let>` too:
+
+```markup
+<let math-equation.bind="1 + 2 + 5"></let>
+
+<!-- This will display 8 -->
+<p>${mathEquation}</p>
+```
+
+## Template Promises
+
+When working with promises in Aurelia, previously in version 1, you had to resolve them in your view model and then pass the values to your view templates. It worked, but you had to write code to handle those promise requests. In Aurelia 2, we can work with promises directly inside of our templates.
+
+The `promise.bind` template controller allows you to use `then`, `pending` and `catch` in your view removing unnecessary boilerplate.
+
+### A basic example
+
+The promise binding is intuitive, allowing you to use attributes to bind to steps of the promise resolution process from initialization (pending to resolve and errors).
+
+```html
+<div promise.bind="promise1">
+ <template pending>The promise is not yet settled.</template>
+ <template then.from-view="data">The promise is resolved with ${data}.</template>         <!-- grab the resolved value -->
+ <template catch.from-view="err">This promise is rejected with ${err.message}.</template> <!-- grab the rejection reason -->
+</div>
+
+<div promise.bind="promise2">
+ <template pending>The promise is not yet settled.</template>
+ <template then>The promise is resolved.</template>
+ <template catch>This promise is rejected.</template>
+</div
+```
+
+### Promise binding using functions
+
+In the following example, notice how we have a parent `div` with the `promise.bind` binding and then a method called `fetchAdvice`? Followed by other attributes inside `then.from-view` and `catch.from-view` which handles both the resolved value as well as any errors.
+
+Ignore the `i` variable being incremented, this is only there to make Aurelia fire off a call to our `fetchAdvice` method as it sees the parameter value has changed.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+```markup
+<let i.bind="0"></let>
+
+<div promise.bind="fetchAdvice(i)">
+  <span pending>Fetching advice...</span>
+  <span then.from-view="data">
+    Advice id: ${data.slip.id}<br>
+    ${data.slip.advice}
+    <button click.trigger="i = i+1">try again</button>
+  </span>
+  <span catch.from-view="err">
+    Cannot get an advice, error: ${err}
+    <button click.trigger="i = i+1">try again</button>
+  </span>
+</div>
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```
+export class MyApp {
+  fetchAdvice() {
+    return fetch("https://api.adviceslip.com/advice")
+      .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to fetch NASA APOD data') }))
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="info" %}
+The parameter `i` passed to the method `fetchAdvice()` call in the template is for refreshing binding purposes. It is not used in the method itself. This is because method calls in Aurelia are considered pure, and will only be called again if any of its parameters have changed.
+{% endhint %}
+
+### Promise bind scope
+
+The `promise` template controller creates its own scope. This prevents accidentally polluting the parent scope or the view model where this template controller is used. Let's see an example to understand what it means.
+
+```html
+<div promise.bind="promise">
+ <foo-bar then.from-view="data" foo-data.bind="data"></foo-bar>
+ <fizz-buzz catch.from-view="err" fizz-err.bind="err"></fizz-buzz>
+</div>
+```
+
+In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
+
+This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view model. Note that this does not make any difference regarding data binding or change observation. However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
+
+### Nested promise bindings
+
+If you have a promise inside of a promise (promise-ception), you can nest promise controllers in your markup.
+
+```html
+<template promise.bind="fetchPromise">
+ <template pending>Fetching...</template>
+ <template then.from-view="response" promise.bind="response.json()">
+   <template then.from-view="data">${data}</template>
+   <template catch>Deserialization error</template>
+ </template>
+ <template catch.from-view="err2">Cannot fetch</template>
+</template>
+```
+
+### Using promise bindings inside of a [repeat.for](repeats-and-list-rendering.md)
+
+Due to the way the scoping and binding context resolution works, you might want to use a `let` binding when using the `promise` inside `repeat.for`.
+
+```html
+<let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
+<template repeat.for="item of items">
+  <template promise.bind="item[0] | promisify:item[1]">
+    <let data.bind="null" err.bind="null"></let>
+    <span then.from-view="data">${data}</span>
+    <span catch.from-view="err">${err.message}</span>
+  </template>
+</template>
+```
+
+```typescript
+import {
+  valueConverter,
+} from '@aurelia/runtime-html';
+
+@valueConverter('promisify')
+class Promisify {
+  public toView(value: unknown, resolve: boolean = true): Promise<unknown> {
+    return resolve
+      ? Promise.resolve(value)
+      : Promise.reject(new Error(String(value)));
+  }
+}
+```
+
+The above example shows usage involving `repeat.for` chained with a `promisify` value converter. The value converter converts a simple value to a resolving or rejecting promise depending on the second boolean value. The value converter in itself is not that important for this discussion. It is used to construct a `repeat.for`, `promise` combination easily.
+
+The important thing to note here is the usage of `let` binding that forces the creation of two properties, namely `data` and `err`, in the overriding context, which gets higher precedence while binding.
+
+Without these properties in the overriding context, the properties get created in the binding context, which eventually gets overwritten with the second iteration of the repeat. In short, with `let` binding in place, the output looks as follows.
+
+```html
+<span>42</span>
+<span>foo-bar</span>
+<span>forty-two</span>
+<span>fizz-bazz</span>
+```

@@ -44,6 +44,14 @@ The markup has three anchor tags as follows:
 
 The last `href` attribute is an example of a parameterized route.
 
+### Targeting viewports
+
+You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
+To this end, you can use the following syntax: `{path1}@{viewport-name}[+{path2}@{sibling-viewport-name}]`.
+The following live example, demonstrates that.
+
+{% embed url="https://stackblitz.com/edit/router-lite-named-sibling-viewport-href?ctl=1&embed=1&file=src/my-app.html" %}
+
 ### Navigate in current routing context
 
 The navigation using `href` attribute always happens in the current routing context; that is, the routing instruction will be successful if and only the route is configured in the current routing parent.

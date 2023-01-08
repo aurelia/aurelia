@@ -238,6 +238,36 @@ This case also demonstrates the aspect of "maximization of parameter matching" w
 
 One last point to note here is that when un-configured parameters are included in the `params` object, those are converted into query string.
 
+### Using the route view-model class as `route`
+
+The bindable `route` property in the `load` attribute supports binding a class instead of route-id.
+The following example demonstrates [the `params`-example](#binding-the-route-params) using the classes (`child1`, `child2`) directly, instead of using the route-id.
+
+```typescript
+// my-app.ts
+import { ChildOne } from './child1';
+import { ChildTwo } from './child2';
+
+export class MyApp {
+  private readonly child1: typeof ChildOne = ChildOne;
+  private readonly child2: typeof ChildTwo = ChildTwo;
+}
+```
+
+```html
+<!-- my-app.html -->
+<a load="route.bind: child1">C1</a>
+<a load="route.bind: child2; params.bind: {p1: 1};">C2 {p1: 1}</a>
+<a load="route.bind: child2; params.bind: {p1: 2, p2: 3};">C2 {p1: 2, p2: 3}</a>
+<a load="route.bind: child2; params.bind: {p1: 4, p3: 5};">C2 {p1: 4, p3: 5}</a>
+<a load="route.bind: child2; params.bind: {p1: 6, p2: 7, p3: 8};">C2 {p1: 6, p2: 7, p3: 8}</a>
+<a load="route.bind: child2; params.bind: {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'};">C2 {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'}</a>
+```
+
+You can see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-params-u8lfjw?ctl=1&embed=1&file=src/my-app.ts" %}
+
 ## Using the Router API
 
 TODO

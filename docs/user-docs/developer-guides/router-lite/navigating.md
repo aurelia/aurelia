@@ -44,6 +44,40 @@ The markup has three anchor tags as follows:
 
 The last `href` attribute is an example of a parameterized route.
 
+### Using route-id
+
+While configuring routes, an [`id` for the route](./configuring-routes.md#advanced-route-configuration-options) can be set explicitly.
+This `id` can also be used with the `href` attribute.
+This is shown in the example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-href-route-id?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note that the example set a route id that is different than the defined path.
+
+```typescript
+// my-app.ts
+{
+  id: 'r1',
+  path: ['', 'c1'],
+  component: ChildOne,
+},
+{
+  id: 'r2',
+  path: 'c2',
+  component: ChildTwo,
+},
+```
+
+These route-ids are later used in the markup as the values for the `href` attributes.
+
+```html
+<!-- my-app.html -->
+<nav>
+  <a href="r1">C1</a>
+  <a href="r2">C2</a>
+</nav>
+```
+
 ### Targeting viewports
 
 You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
@@ -71,7 +105,7 @@ The example shows the following variations.
 
 Note that using the viewport name in the routing instruction is optional and when omitted, the router uses the first available viewport.
 
-### Navigate in current routing context
+### Navigate in current and ancestor routing context
 
 The navigation using `href` attribute always happens in the current routing context; that is, the routing instruction will be successful if and only the route is configured in the current routing parent.
 This is shown in the example below.
@@ -91,6 +125,15 @@ In such cases, the router-lite offers the following syntax to make such navigati
 ```html
 <a href="../c2">../c2 (works)</a>
 ```
+
+That is, you can use `../` prefix to instruct the router to point to the parent routing context.
+The prefix can also be used multiple times to point to any ancestor routing context.
+Naturally, this does not go beyond the root routing context.
+
+Contextually, note that the [example involving route-id](#using-route-id) also demonstrates this behavior of navigating in the current context.
+There the root uses `r1`, and `r2` as route identifiers, which are the same identifiers used in the children to identify their respective child-routes.
+The route-ids are used in the markup with the `href` attributes.
+Despite being the same route-ids, the navigation works because unless specified otherwise, the routing instructions are constructed under the current routing context.
 
 ### Bypassing the `href` custom attribute
 

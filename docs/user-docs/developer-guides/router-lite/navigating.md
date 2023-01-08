@@ -423,39 +423,6 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-### HTML `load` attribute
-
-The router also allows you to decorate links and buttons in your application using a `load` attribute which works the same way as the router instance `load` method.
-
-If you have routes defined on a root level (inside of `my-app.ts`) you will need to add a forward slash in front of any routes you attempt to load. The following would work in the case of an application using configured routes.
-
-```markup
-<a load="/products/12">Product #12</a>
-```
-
-The load attribute can do more than just accept a string value. You can also bind to the load attribute as well for more explicit routing. The following example is a bit redundant as specifying `route:product` would be the same as specifying `load="product"` but if you're wanting more explicit routing, it conveys the intent better.
-
-```html
-<a load="route:product;">My Route</a>
-```
-
-And where things really start to get interesting is when you want to pass parameters to a route. We use the `params` configuration property to specify parameters.
-
-```html
-<a load="route:profile; params.bind:{name: 'rob'}">View Profile</a>
-```
-
-In the above example, we provide the route (`id`) value (via `route: profile`). But, then also provide an object of parameters (via `params.bind: { name: 'rob' }`). These parameter values correspond to any parameters configured in your route definition. In our case, our route looks like this:
-
-```typescript
-{
-    id: 'profile',
-    path: 'profile/:name',
-    component: () => import('./view-profile'),
-    title: 'View Profile'
-},
-```
-
 ## Redirection and unknown paths
 
 For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.

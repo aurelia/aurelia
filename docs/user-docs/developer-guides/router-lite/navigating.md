@@ -278,10 +278,7 @@ The routing works in this case, because the routes are searched in the same rout
 {% embed url="https://stackblitz.com/edit/router-lite-load-current-context?ctl=1&embed=1&file=src/my-app.ts" %}
 
 However, this default behavior can be changed by binding the `context` property explicitly.
-Several different type of values for the `context` property is supported and you can avail one of those based on your use-case.
-
-**Use injected `IRouteContext`**
-
+To this end, you need to bind the instance of `IRouteContext` in which you want to perform the navigation.
 The most straightforward way to select a parent routing context is to use the `parent` property of the `IRouteContext`.
 The current `IRouteContext` can be injected using the `@IRouteContext` in the class constructor.
 Then one can use `context.parent`, `context.parent?.parent` etc. to select an ancestor context.
@@ -306,28 +303,11 @@ The following live example demonstrate this behavior.
 
 Note that even though the `ChildOne` defines a route with `r2` route-id, specifying the `context` explicitly, instructs the router-lite to look for a route with `r2` route-id in the parent routing context.
 
-**Use `null` to select the root `IRouteContext`**
-
 Using the `IRouteContext#parent` path to select the root routing context is somewhat cumbersome when you intend to target the root routing context.
 For convenience, the router-lite supports binding `null` to the `context` property which instructs the router to perform the navigation in the root routing context.
 This is shown in the following example.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nullroot-context?ctl=1&embed=1&file=src/child1.ts" %}
-
-**Use HTML element**
-
-Using an HTML element as context is also supported.
-To inject the HTML element, you can use the `@INode` decorator and then query the HTML element that you want to use as the context.
-The following shows that a child component grabs the HTMLElement of the parent component and uses that as routing context in the `load` attribute.
-
-{% embed url="https://stackblitz.com/edit/router-lite-load-html-context?ctl=1&embed=1&file=src/child1.ts" %}
-
-**Use custom view model instance or controller**
-
-Using an instance of a custom view model or the controller (`IController`) as context is also supported.
-The following example demonstrate that.
-
-TODO(Sayan): complete this section
 
 ## Using the Router API
 

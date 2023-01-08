@@ -47,10 +47,29 @@ The last `href` attribute is an example of a parameterized route.
 ### Targeting viewports
 
 You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
-To this end, you can use the following syntax: `{path1}@{viewport-name}[+{path2}@{sibling-viewport-name}]`.
+To this end, you can use the following syntax: `{path1}[@{viewport-name}][+{path2}[@{sibling-viewport-name}]]`.
 The following live example, demonstrates that.
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-sibling-viewport-href?ctl=1&embed=1&file=src/my-app.html" %}
+
+The example shows the following variations.
+
+```html
+<!-- Load the products' list in the first viewport and the details in the second viewport -->
+<a href="products+details/${id}">Load products+details/${id}</a>
+
+<!-- Load the details in the first viewport and the products' list in the second viewport -->
+<a href="details/${id}+products">Load details/${id}+products</a>
+
+<!-- Specifically target the named viewports -->
+<a href="products@list+details/${id}@details">Load products@list+details/${id}@details</a>
+<a href="products@details+details/${id}@list">Load products@details+details/${id}@list</a>
+
+<!-- Load only the details in the specific named viewport -->
+<a href="details/${id}@details">Load details/${id}@details</a>
+```
+
+Note that using the viewport name in the routing instruction is optional and when omitted, the router uses the first available viewport.
 
 ### Navigate in current routing context
 
@@ -99,8 +118,26 @@ This might be bit sub-optimal when the routes have parameters, as in that case y
 In case the order of those segments are changed, it may cause undesired or unexpected results if your application.
 Therefore, the router-lite offers another alternative namely the `load` attribute.
 
-You can
+Besides supporting string-instructions like the `href` attribute, the `load` attribute also offers a way to compose the routing instructions in a more structured manner.
+Before starting the discussion on the features supported exclusively by the `load` attribute, let us quickly review the following example of using string-instructions with the `load` attribute.
 
+{% embed url="https://stackblitz.com/edit/router-lite-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
+
+The example shows various instances of `load` attribute with various string instructions.
+
+```html
+<!-- my-app.html -->
+<!-- instructions pointing to individual routes -->
+<a load="c1">C1</a>
+<a load="c2">C2</a>
+<!-- instructions involving sibling viewports -->
+<a load="c1+c2">C1+C2</a>
+<a load="c1@vp2+c2@vp1">C1@vp2+C2@vp1</a>
+
+<!-- child1 -->
+<!-- instruction pointing to parent routing context -->
+<a load="../c2">../c2</a>
+```
 
 ## Using the Router API
 

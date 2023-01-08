@@ -299,75 +299,13 @@ In the above example, we provide the route (`id`) value (via `route: profile`). 
 },
 ```
 
-## Handling unknown components
+## Redirection and unknown paths
 
-If you are using the router to render components in your application, there might be situations where a component attempts to be rendered that does not exist. This can happen while using direct routing (not configured routing)
+For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.
+Other sections of the router-lite documentation discusses these topics in detail.
+Hence these topics aren't repeated here.
+Please refer to the linked documentations for more details.
 
-{% hint style="warning" %}
-This section is not for catch-all/404 routes. If you are using configured routing, you are looking for the [section on catch-all routes here](creating-routes.md#catch-all-404-not-found-route).
-{% endhint %}
-
-To add in fallback behavior, we can do this two ways. The `fallback` attribute on the `<au-viewport>` element or in the router `customize` method (code).
-
-### Create the fallback component
-
-Let's create the `missing-page` component (this is required or the fallback behavior will not work). First, we'll create the view-model for our `missing-page` component.
-
-{% code title="missing-page.ts" %}
-```typescript
-export class MissingPage {
-  public static parameters = ['id'];
-  public missingComponent: string ;
-
-  public load(parameters: {id: string}): void {
-    this.missingComponent = parameters.id;
-  }
-}
-```
-{% endcode %}
-
-For the `fallback` component, an ID gets passed as a parameter which is the value from the URL. If you were to attempt to visit a non-existent route called "ROB" the `missingComponent` value would be ROB.
-
-Now, the HTML.
-
-{% code title="missing-page.html" %}
-```html
-<h3>Ouch! I couldn't find '${missingComponent}'!</h3>
-```
-{% endcode %}
-
-### Programmatically
-
-By using the `fallback` property on the `customize` method when we register the router, we can pass a component.
-
-```typescript
-import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router';
-import { MyApp } from './my-app';
-import { MissingPage } from './missing-page';
-
-Aurelia
-  .register(RouterConfiguration.customize({
-    fallback: MissingPage,
-  }))
-  .app(MyApp)
-  .start();
-```
-
-### Attribute
-
-Sometimes the `fallback` attribute can be the prefered approach to registering a fallback. Import your fallback component and pass the name to the `fallback` attribute. Same result, but it doesn't require touching the router registration.
-
-{% code title="my-app.html" %}
-```html
-<import from="./missing-page"></import>
-
-<au-viewport fallback="missing-page"></au-viewport>
-```
-{% endcode %}
-
-## Redirecting
-
-Depending on the scenario, you will want to redirect users in your application. Unlike using the `load` API on the router where we manually route (for example, after logging in) redirection allows us to redirect inside router hooks.
-
-Please see the [Routing Lifecycle](routing-lifecycle.md#canload) section to learn how to implement redirection inside of your components.
+- [Redirection documentation](./configuring-routes.md#redirect-to-another-path)
+- Fallback using the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path)
+- Fallback using the [viewport attribute](./viewports.md#specify-a-fallback-component-for-a-viewport)

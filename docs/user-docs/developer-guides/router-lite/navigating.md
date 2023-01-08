@@ -78,6 +78,11 @@ These route-ids are later used in the markup as the values for the `href` attrib
 </nav>
 ```
 
+{% hint style="warning" %}
+Note that using the route-id of a parameterized route with the `href` attribute might be limiting or in some cases non-operational as with `href` attribute there is no way to specify the parameters for the route separately.
+This case is handled by the [`load` attribute](#using-the-load-custom-attribute).
+{% endhint %}
+
 ### Targeting viewports
 
 You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
@@ -182,7 +187,60 @@ The example shows various instances of `load` attribute with various string inst
 <a load="../c2">../c2</a>
 ```
 
+The following sections discuss the various other ways routing instruction can be used with the `load` attribute.
+
+### Binding the route-`params`
+
+Using the bindable `params` property in the `load` custom attribute, you can bind the parameters for a parameterized route.
+The complete URL is then constructed from the given route and the parameters.
+Following is an example where the route-id is used with bound parameters.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-params?ctl=1&embed=1&file=src/my-app.html" %}
+
+The example above configures a route as follows.
+
+```typescript
+// my-app.ts
+{
+  id: 'r2',
+  path: ['c2/:p1/foo/:p2?', 'c2/:p1/foo/:p2/bar/:p3'],
+  component: ChildTwo,
+}
+```
+
+The route-id is then used in the markup with the bound `params`, as shown in the example below.
+
+```html
+<!-- constructed path: /c2/1/foo/ -->
+<a load="route: r2; params.bind: {p1: 1};">C2 {p1: 1}</a>
+
+<!-- constructed path: /c2/2/foo/3 -->
+<a load="route: r2; params.bind: {p1: 2, p2: 3};">C2 {p1: 2, p2: 3}</a>
+
+<!-- constructed path: /c2/4/foo/?p3=5 -->
+<a load="route: r2; params.bind: {p1: 4, p3: 5};">C2 {p1: 4, p3: 5}</a>
+
+<!-- constructed path: /c2/6/foo/7/bar/8 -->
+<a load="route: r2; params.bind: {p1: 6, p2: 7, p3: 8};">C2 {p1: 6, p2: 7, p3: 8}</a>
+
+<!-- constructed path: /c2/9/foo/10/bar/11?p4=awesome&p5=possum -->
+<a load="route: r2; params.bind: {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'};">C2 {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'}</a>
+```
+
+An important thing to note here is how the URL paths are constructed for each URL.
+Based on the given set of parameters, a path is selected from the configured set of paths for the route, that maximizes the number of matched parameters at the same time meeting the parameter constraints.
+
+For example, the third instance (params: `{p1: 4, p3: 5}`) creates the path `/c2/4/foo/?p3=5` (instance of `'c2/:p1/foo/:p2?'` path) even though there is a path with `:p3` configured.
+This happens because the bound parameters-object is missing the `p2` parameter.
+
+In other case, the fourth instance provides a value for `p2` as well as a value for `p3` that results in the construction of path `/c2/6/foo/7/bar/8` (instance of `'c2/:p1/foo/:p2/bar/:p3'`).
+This case also demonstrates the aspect of "maximization of parameter matching" while path construction.
+
+One last point to note here is that when un-configured parameters are included in the `params` object, those are converted into query string.
+
 ## Using the Router API
+
+TODO
 
 Router offers the `load` method that can be used to perform navigation.
 To this end, you have to first inject the router into your component.

@@ -309,6 +309,34 @@ This is shown in the following example.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nullroot-context?ctl=1&embed=1&file=src/child1.ts" %}
 
+### `active` status
+
+When using the `load` attribute, you can also leverage the bindable `active` property which is `true` whenever the associated route, bound to the `href` is active.
+In the following example, when a link in clicked and thereby the route is activated, the `active*` properties are bound from the views to `true` and thereby applying the `.active`-CSS-class on the `a` tags.
+
+```html
+<style>
+  a.active {
+    font-weight: bolder;
+  }
+</style>
+
+<nav>
+  <a
+    load="route:foo; params.bind:{id: 1}; active.bind:active1"
+    active.class="active1"
+    >foo/1</a
+  >
+  <a load="route:foo/2; active.bind:active2" active.class="active2">foo/2</a>
+</nav>
+
+<au-viewport></au-viewport>
+```
+
+This can also be seen in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-active?ctl=1&embed=1&file=src/my-app.html" %}
+
 ## Using the Router API
 
 TODO

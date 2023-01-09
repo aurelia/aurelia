@@ -300,7 +300,7 @@ Lastly, we need to use the [`load` attribute](./navigating.md#html-load-attribut
 ```
 
 Using the `load` attribute we are instructing the router-lite to load the `product` (route-id) component, with the `id` parameter of the route set to the `id` of the current `item` in the repeater, in the `details` viewport.
-With the `context.bind:null`, we are instructing the router-lite to perform this routing instruction on the root routing context.
+With the `context.bind:null`, we are instructing the router-lite to perform this routing instruction on the root routing context (refer [the documentation](./navigating.md#using-the-load-custom-attribute) for the `load` attribute for more details).
 Now, when someone clicks a product link the associated details are loaded in the `details` viewport.
 You can see this in action below.
 

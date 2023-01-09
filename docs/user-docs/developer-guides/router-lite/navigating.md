@@ -1,5 +1,5 @@
 ---
-description: Learn to navigate from one view to another using the Router-Lite.
+description: Learn to navigate from one view to another using the Router-Lite as well as about routing context.
 ---
 
 # Navigating
@@ -339,9 +339,7 @@ This can also be seen in the live example below.
 
 ## Using the Router API
 
-TODO
-
-Router offers the `load` method that can be used to perform navigation.
+Along with the custom attributes on the markup-side, the router-lite also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript is at your disposal.
 To this end, you have to first inject the router into your component.
 This can be done by using the `IRouter` decorator on your component constructor method as shown in the example below.
 
@@ -353,41 +351,51 @@ export class MyComponent {
 }
 ```
 
-Once you have an injected instance of the router, you can use the `load` method to perform navigation.
-The `load` method supports many overloads, which are outlined below.
+Now you are ready to use the `load` method, with many supported overloads at your disposal.
+These are outlined below.
 
-### Navigating without options
+### Using string instructions
 
-The `load` method can accept a simple string value allowing you to navigate to another component without needing to supply any configuration options.
+The easiest way to use the `load` method is to use the paths directly.
 
 ```typescript
-import { IRouter, IRouteableComponent } from '@aurelia/router';
-
-export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    async viewProducts() {
-        await this.router.load('/products');
-    }
-}
+router.load('c1')
+router.load('c2')
+router.load('c2/42')
+router.load('c1+c2')
+router.load('c1@vp2+c2@vp1')
 ```
 
-You could also use the string value method to pass parameter values and do something like this where our route expects a product ID and we pass 12:
+With respect to that, this method supports the string instructions supported by the `href` and the `load` attribute.
+This is also shown in the example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
+
+There is a major difference regarding the context selection in the `IRouter#load` method and the `href` and `load` custom attributes.
+By default, the custom attributes performs the navigation in the current routing context (refer the [`href`](#navigate-in-current-and-ancestor-routing-context) and [`load` attribute](#customize-the-routing-context) documentation).
+However, the `load` method always use the root routing context to perform the navigation.
+This can be observed in the `ChildOne` and `ChildTwo` components where the `load` method is used the following way to navigate from `ChildOne` to `ChildTwo` and vice versa.
+As the `load` API uses the the root routing context by default, such routing instructions works.
 
 ```typescript
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+// in ChildOne
+router.load('c2')
 
-export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
 
-    }
+// in ChildTwo
+router.load('c1')
+```
 
-    async viewProducts() {
-        await this.router.load(`/products/12`);
-    }
-}
+However, on the other hand, you need to specify the routing context, when you want to navigate inside the current routing context.
+Most obvious use case is when you issue routing instruction for the child-routes inside a parent component.
+This can also be observed in `ChildOne` and `ChildTwo` components where a specific context is used to navigate to the child routes.
+
+```typescript
+// in ChildOne
+router.load('gc11', {context: this})
+
+// in ChildTwo
+router.load('gc21', {context: this})
 ```
 
 ### Specifying load options

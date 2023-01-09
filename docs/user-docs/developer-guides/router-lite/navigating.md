@@ -388,7 +388,7 @@ router.load('c1')
 
 However, on the other hand, you need to specify the routing context, when you want to navigate inside the current routing context.
 Most obvious use case is when you issue routing instruction for the child-routes inside a parent component.
-This can also be observed in `ChildOne` and `ChildTwo` components where a specific context is used to navigate to the child routes.
+This can also be observed in `ChildOne` and `ChildTwo` components where a specific context is used as part of the [navigation options](#using-navigation-options) to navigate to the child routes.
 
 ```typescript
 // in ChildOne
@@ -398,7 +398,9 @@ router.load('gc11', {context: this})
 router.load('gc21', {context: this})
 ```
 
-### Specifying load options
+### Using non-string routing instructions
+
+### Using navigation options
 
 The router instance `load` method allows you to specify different properties on a per-use basis. The most common one being the `title` property to allow you to modify the title as you navigate to your route.
 

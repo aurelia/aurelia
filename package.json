@@ -109,7 +109,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",
-    "@rollup/plugin-alias": "^4.0.0",
+    "@rollup/plugin-alias": "^4.0.2",
     "@rollup/plugin-node-resolve": "14.1.0",
     "@rollup/plugin-replace": "4.0.0",
     "@rollup/plugin-typescript": "8.2.5",
@@ -131,7 +131,7 @@
     "fs-extra": "^10.1.0",
     "http-server": "14.1.1",
     "husky": "^4.3.8",
-    "lage": "1.9.2",
+    "lage": "^1.9.6",
     "rimraf": "3.0.2",
     "rollup": "2.78.1",
     "rollup-plugin-esbuild": "4.10.1",

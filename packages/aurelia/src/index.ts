@@ -206,25 +206,6 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  RouterOptions,
-  IRouter,
-  IRouterEvents,
-  Router,
-  RouteNode,
-  route,
-  Route,
-  RouteConfig,
-  IRouteContext,
-  type IRouteViewModel,
-  type NavigationInstruction,
-  type Routeable,
-  type Params,
-
-  RouterConfiguration,
-  RouterRegistration,
-} from '@aurelia/router-lite';
-
-export {
   CollectionKind,
   batch,
   // CallFunctionExpression,

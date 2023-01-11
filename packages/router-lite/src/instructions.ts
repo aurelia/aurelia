@@ -30,7 +30,7 @@ export type NavigationInstruction = string | IViewportInstruction | RouteableCom
  * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
  * - `IRouteViewModel`: an existing component instance.
  */
-export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule> | PartialCustomElementDefinition | IRouteViewModel;
+export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule> | CustomElementDefinition | IRouteViewModel;
 
 export type Params = { [key: string]: string | undefined };
 
@@ -448,12 +448,6 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     if (isCustomElementViewModel(instruction)) return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
-    if (isPartialCustomElementDefinition(instruction)) {
-      // If we just got a partial definition, define a new anonymous class
-      const Type = CustomElement.define(instruction);
-      const definition = CustomElement.getDefinition(Type);
-      return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
-    }
     throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
   }
 

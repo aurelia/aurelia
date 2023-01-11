@@ -379,11 +379,11 @@ As the `load` API uses the the root routing context by default, such routing ins
 
 ```typescript
 // in ChildOne
-router.load('c2')
+router.load('c2');
 
 
 // in ChildTwo
-router.load('c1')
+router.load('c1');
 ```
 
 However, on the other hand, you need to specify the routing context, when you want to navigate inside the current routing context.
@@ -392,13 +392,65 @@ This can also be observed in `ChildOne` and `ChildTwo` components where a specif
 
 ```typescript
 // in ChildOne
-router.load('gc11', {context: this})
+router.load('gc11', { context: this });
 
 // in ChildTwo
-router.load('gc21', {context: this})
+router.load('gc21', { context: this });
 ```
 
+An array of paths (string) can be used to load components into sibling viewports.
+The paths can be parameterized or not non-parameterized.
+
+```typescript
+router.load(['c1', 'c2']);
+router.load(['c1', 'c2/21']);
+```
+
+This is shown in the example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-array-of-paths-siblings?ctl=1&embed=1&file=src/my-app.html" %}
+
 ### Using non-string routing instructions
+
+The `load` method also support non-string routing instruction.
+
+**Using custom elements**
+
+You can use the custom element classes directly for which routes have been configured.
+Multiple custom element classes can be used in an array to target sibling viewports.
+
+```typescript
+router.load(ChildOne);
+router.load([ChildOne, ChildTwo]);
+
+router.load(GrandChildOneOne, { context: this });
+```
+
+This can be seen in action in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-ce?ctl=1&embed=1&file=src/my-app.ts" %}
+
+Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective class, purely for convenience purpose.
+
+**Using custom elements**
+
+You can use the custom element definitions for which routes have been configured.
+Multiple definitions can be used in an array to target sibling viewports.
+
+```typescript
+import { CustomElement } from '@aurelia/runtime-html';
+
+router.load(CustomElement.getDefinition(ChildOne));
+router.load([CustomElement.getDefinition(ChildOne), CustomElement.getDefinition(ChildTwo)]);
+
+router.load(CustomElement.getDefinition(GrandChildOneOne), { context: this });
+```
+
+This can be seen in action in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-ce-definition?ctl=1&embed=1&file=src/util.ts" %}
+
+Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective custom element definitions, purely for convenience purpose.
 
 ### Using navigation options
 

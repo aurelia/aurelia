@@ -468,17 +468,6 @@ export class Router {
    * router.load({ component: ProductDetail, parameters: { id: 37 } })
    * router.load({ component: 'category', children: ['product(id=20)'] })
    * router.load({ component: 'category', children: [{ component: 'product', parameters: { id: 20 } }] })
-   * router.load({
-   *   component: CustomElement.define({
-   *     name: 'greeter',
-   *     template: 'Hello, ${name}!'
-   *   }, class {
-   *     load(instruction) {
-   *       this.name = instruction.parameters.name;
-   *     }
-   *   }),
-   *   parameters: { name: 'John' }
-   * })
    * ```
    */
   public load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): boolean | Promise<boolean>;

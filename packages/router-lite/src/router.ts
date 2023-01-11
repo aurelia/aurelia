@@ -445,16 +445,6 @@ export class Router {
    */
   public load(componentTypes: readonly RouteType[], options?: INavigationOptions): Promise<boolean>;
   /**
-   * Loads the provided component definition. May or may not be pre-compiled.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.load({ name: 'greeter', template: 'Hello!' });
-   * ```
-   */
-  public load(componentDefinition: PartialCustomElementDefinition, options?: INavigationOptions): Promise<boolean>;
-  /**
    * Loads the provided component instance.
    *
    * Examples:

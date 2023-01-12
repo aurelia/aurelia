@@ -17,7 +17,7 @@ export class CustomPropertyCustomAttribute {
 }
 ```
 
-If you were to replace `CustomAttribute` with `CustomElement`, it would be a component. On a core level, custom attributes are just a more primitive component form.
+If you were to replace `CustomAttribute` with `CustomElement`, it would be a component. On a core level, custom attributes are a more primitive component form.
 
 Let's create a custom attribute that adds a red background and height to any dom element it is used on:
 
@@ -107,7 +107,7 @@ Sometimes, you want a custom attribute with only one bindable property. You don'
   }
 ```
 
-The `value` property is automatically populated if a value is supplied to a custom attribute, however requires you to explicitly define the value property as a bindable.
+The `value` property is automatically populated if a value is supplied to a custom attribute, however, requires you to define the value property as a bindable explicitly.
 
 When the value is changed, we can access it like this:
 
@@ -171,7 +171,7 @@ Using bindable properties, you can create a configurable custom attribute. Takin
   }
 ```
 
-We now can provide a color on a per-use basis. Let's go one step further and allow the size to be set too.
+We can now provide a color on a per-use basis. Let's go one step further and allow the size to be set too.
 
 ```typescript
   import { bindable, INode } from 'aurelia';

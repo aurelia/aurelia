@@ -35,7 +35,9 @@ Shared lifecycle hook logic can be defined by implementing a router lifecycle ho
 
 In the example above, we register `NoopAuthHandler` globally, which means it will be invoked for each routed component and return `true` each time, effectively changing nothing.&#x20;
 
-**Please note** that you are not recommended to use global lifecycle hooks when you can avoid them, as they are run for each component.the same as you would use inside&#x20;
+{% hint style="info" %}
+**Please note** that you are not recommended to use global lifecycle hooks when you can avoid them, as they are run for each component, the same as you would use inside.
+{% endhint %}
 
 {% hint style="warning" %}
 Because lifecycle hooks are invoked for each component, it is considered best practice to ensure that you name your lifecycle hooks appropriately, especially if you're working in a team where developers might not be aware of hooks modifying global component lifecycle behaviors.
@@ -74,7 +76,7 @@ class MySharedHooks {
 }
 ```
 
-The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance since the `this` keyword won't give you access to it like in ordinary component methods.
+The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance since the `this` keyword won't give you access like in ordinary component methods.
 
 ### Restricting hooks to specific components
 

@@ -27,9 +27,9 @@ See what you are getting yourself into before you continue. There is a working e
 
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While **these are not hard prerequisites**, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
-* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
+* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
 ## Create the app
 
@@ -139,11 +139,11 @@ export class TodoComponent {
 * **Line 24:** `deleteTodo` will remove a todo from our `todos` array and is passed an index
   * We call Array.splice on the `todos` array and tell it we want to delete one item
 
-Believe it or not, this entire view model code forms the basis of adding and deleting todos. If we didn't have example todos in there, the code would be so much smaller.
+Believe it or not, this entire view model code forms the basis of adding and deleting todos. The code would be much smaller if we didn't have example todos in there.
 
 ### Create the view
 
-The view is the most simple part of our application. Inside of `todo-component.html` add in the following HTML and then we'll explain what is going on.
+The view is the most simple part of our application. Inside of `todo-component.html` add in the following HTML, and then we'll explain what is going on.
 
 ```markup
 <import from="./todo-item.html"></import>
@@ -163,7 +163,7 @@ The view is the most simple part of our application. Inside of `todo-component.h
 </div>
 ```
 
-* **Line 1:** importing an as of yet nonexistent todo-item component
+* **Line 1:** importing an as-of-yet nonexistent todo-item component
 * **Line 8:** we define a text input field and bind its value to `todo` and also a `keypress.trigger` to listen to keyboard events (we want to know when the user hits enter)
 * **Line 12:** using a repeater, we are looping over the todos in our view model and binding them onto the `todo-item` element
   * `todo.bind="todo"` we have a bindable property defined on the `todo-item` element called todo
@@ -227,7 +227,7 @@ Let's now quickly add in some styling for our todo component. Open up `todo-comp
 
 We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet `todo-item.html`. Let's create that right now.
 
-For this component, we are going to be creating a HTML only component. It means it'll just be HTML, no view model needed:
+For this component, we are going to be creating an HTML-only component. It means it'll just be HTML. No view model needed:
 
 ```markup
 <bindable name="todo"></bindable>
@@ -241,7 +241,7 @@ For this component, we are going to be creating a HTML only component. It means 
 </div>
 ```
 
-* **Line 1,2 & 3:** the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is a bindable for a function that gets passed in.
+* **Lines 1,2 & 3:** the bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because that is bindable for a function that gets passed in.
 * **Line 5:** we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
 * **Line 6:** we bind the native checkbox `checked` event to the `completed` property which sets it to true or false
 * **Line 7:** we are making our paragraph element a `contenteditable` element which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`
@@ -249,7 +249,7 @@ For this component, we are going to be creating a HTML only component. It means 
 
 ## Styling for our todo item component
 
-Even though our `todo-item.html` component is HTML only and has no view model, Aurelia's default conventions still work. This means by creating a CSS file called `todo-item.css` it will automatically be included when we reference our element.
+Even though our `todo-item.html` component is HTML only and has no view model. Aurelia's default conventions still work. This means creating a CSS file called `todo-item.css` it will automatically be included when we reference our element.
 
 Create a new file `todo-item.css` in the `components` directory and add the following:
 
@@ -299,7 +299,7 @@ Create a new file `todo-item.css` in the `components` directory and add the foll
 
 ## Bringing it together and running your app
 
-To round it all off, let's open up `my-app.html` and add in the following:
+To round it all off, let's open up `my-app.html` and add the following:
 
 ```markup
 <import from="./components/todo-component"></import>
@@ -307,10 +307,10 @@ To round it all off, let's open up `my-app.html` and add in the following:
 <todo-component></todo-component>
 ```
 
-This forms the basis of our application. The `todo-component` custom element is the main application container for our app. All we do is import it and then reference it by its HTML tagname.
+This forms the basis of our application. The `todo-component` custom element is the main application container for our app. We import it and then reference it by its HTML tag name.
 
 Now, let's run the app: `npm start` on the command line and wait for the browser to open. You should see a functioning todo list application. It should look something like the following screenshot. Type into the todo input field and hit enter to see it working.
 
 ![](../.gitbook/assets/image.png)
 
-In case you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app/). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).
+If you missed the link in the beginning, a working example can be seen [here](https://upbeat-clarke-fe622b.netlify.app/). The code for this tutorial can also be found [on GitHub here](https://github.com/Vheissu/aurelia2-todo).

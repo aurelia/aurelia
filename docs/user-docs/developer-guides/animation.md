@@ -1,8 +1,14 @@
+---
+description: >-
+  A developer guide that details numerous strategies for implementing animation
+  into Aurelia applications.
+---
+
 # Animation
 
 Learn numerous techniques for implementing animations into your Aurelia applications.
 
-## Class-based animations
+## Component-based animations
 
 In instances where you don't need to implement router-based transition animations (entering and leaving), we can lean on traditional CSS-based animations to add animation to our Aurelia applications.
 

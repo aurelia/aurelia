@@ -1,10 +1,12 @@
 ---
-description: Learn all there is to know about Aurelia's HTML templating syntax.
+description: >-
+  Learn all there is to know about Aurelia's HTML templating syntax and
+  features.
 ---
 
 # Template syntax & features
 
-Aurelia uses an HTML-based syntax for templating, allowing you to build applications straightforwardly. All Aurelia templates are valid spec-compliant HTML that works in all browsers and HTML parsers.
+Aurelia uses an HTML-based syntax for templating, allowing you to build applications in an intuitive way. All Aurelia templates are valid spec-compliant HTML that works in all browsers and HTML parsers.
 
 ## Text Interpolation
 
@@ -30,19 +32,19 @@ export class MyApp {
 ```
 {% endcode %}
 
-Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view-model will be accessible inside your templates.
+Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view model will be accessible inside your templates.
 
 ### Template expressions
 
 A template expression allows you to perform code operations inside of `${}` we learned about earlier. You can perform addition, subtraction and even call functions inside of interpolation.
 
-In the following simple example, we are adding two and two together, the value that will be displayed will be `4`.
+In the following simple example, we are adding two and two together. The value that will be displayed will be `4`.
 
 ```html
 <p>Quick maths: ${2 + 2}</p>
 ```
 
-If you have a function inside your view model, you can also call functions with parameters.
+You can call functions with parameters if you have a function inside your view model.
 
 {% code title="my-app.ts" %}
 ```typescript
@@ -62,7 +64,7 @@ export class MyApp {
 
 You can also use ternaries inside of your interpolation expressions:
 
-```markup
+```html
 <p>${isTrue ? 'True' : 'False'}</p>
 ```
 
@@ -93,7 +95,7 @@ You would be forgiven for thinking that you can do pretty much anything that Jav
 
 1. Expressions cannot be chained using `;` or `,`
 2. You cannot use primitives such as `Boolean`, `String`, `instanceOf`, `typeof` and so on
-3. You can only use the pipe separator `|` when using value converters, but not as a bitwise operator
+3. You can only use the pipe separator `|` when using value converters but not as a bitwise operator
 
 ## Attribute Bindings
 
@@ -107,11 +109,43 @@ The basic syntax for most attributes being bound is:
 
 You can bind almost every attribute from this list [here](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes). Some examples of what you can bind to can be found below with code examples.
 
+### Binding syntax
+
+In Aurelia, you can bind attributes in more than one way, and it is important to understand the difference in syntax. To illustrate our point, we are going to be using the native `id` attribute for our example.
+
+#### Binding with interpolation
+
+You can bind values with interpolation. The following example illustrates how this looks.
+
+```html
+<div>
+    <h1 id="${headingId}">My Heading</h1>
+</div>
+```
+
+We specify the `id` attribute and then use string interpolation to get the `headingId` value. This will populate the `id` attribute with our value (if one exists).
+
+#### Binding with keywords
+
+For a full list of binding keywords, please see below. However, we are now going to bind the `id` attribute using the `.bind` keyword.  If the value being bound is `null` or `undefined` the attribute will not be displayed.
+
+```html
+<div>
+    <h1 id.bind="headingId">My Heading</h1>
+</div>
+```
+
+This achieves the same result. The value `headingId` will populate the `id` attribute and add the value.
+
+{% hint style="info" %}
+A note on binding. Both approaches detailed above from an implementation perspective are the same. You can use either of the above approaches, and there would be no noticeable difference in performance or features.
+{% endhint %}
+
 ### Binding Keywords:
 
-* `one-time`: flows data in one direction, from the view-model to the view, once.
-* `to-view` / `one-way`: flows data in one direction, from the view-model to the view.
-* `from-view`: flows data in one direction, from the view to the view-model.
+* `one-time`: flows data in one direction, from the view model to the view, once.
+* `to-view` / `one-way`: flows data in one direction, from the view model to the view.
+* `from-view`: flows data in one direction, from the view to the view model.
 * `two-way`: flows data both ways, from view-model to view and from view to view-model.
 * `bind`: automatically chooses the binding mode. Uses `two-way` binding for form controls and `to-view` binding for almost everything else.
 
@@ -125,11 +159,13 @@ You can bind almost every attribute from this list [here](https://developer.mozi
   <a class="external-link" href.one-time="profile.linkedInUrl">LinkedIn</a>
 ```
 
-The first input uses the `bind` command which will automatically create `two-way` bindings for input value attribute bindings. The second and third input uses the `two-way` / `from-view` commands which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and the those properties will also be updated whenever the inputs change. For the third input, changes in the bound view-model `middleName` property will not update the input value, however, changes in the input will update the view-model. The first anchor element uses the `bind` command which will automatically create a `to-view` binding for anchor href attributes. The other two anchor elements use the `to-view` and `one-time` commands to explicitly set the binding's mode.
+The first input uses the `bind` command to create `two-way` bindings for input value attribute bindings automatically. The second and third input uses the `two-way` / `from-view` commands which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and those properties will also be updated whenever the inputs change.&#x20;
+
+For the third input, changes in the bound view-model `middleName` property will not update the input value. However, changes in the input will update the view model. The first anchor element uses the `bind` command that automatically creates a `to-view` binding for anchor HREF attributes. The other two anchor elements use the `to-view` and `one-time` commands to explicitly set the binding's mode.
 
 ### Binding to images
 
-You can bind to numerous image properties, but the most common one of those is the `src` attribute that allows you to bind the image source. The value in the below example is `imageSrc` which is a property inside of the view model.
+You can bind to numerous image properties, but the most common is the `src` attribute that allows you to bind the image source. The value in the below example is `imageSrc` which is a property inside of the view model.
 
 ```html
 <img src.bind="imageSrc">
@@ -161,7 +197,7 @@ export class MyComponent {
 ```
 {% endcode %}
 
-### Binding to innerhtml and textcontent
+### Binding to innerHtml and textContent
 
 The native `innerhtml` and `textcontent` properties allow you to set the values of HTML elements. When binding to these properties, the difference between what to choose is `textcontent` will not display HTML tags and `innerhtml` will.
 
@@ -179,7 +215,9 @@ The native `innerhtml` and `textcontent` properties allow you to set the values 
 
 ## Binding values to custom elements
 
-When working with custom elements in Aurelia, if you leverage bindables to have custom bindable properties allowing values to be bound, you will use `.bind` extensively. Say you had a custom element that accepted an email value, you might call it `email` inside of your component definition.
+When working with custom elements in Aurelia, if you leverage bindables to have custom bindable properties allowing values to be bound, you will use `.bind` extensively.&#x20;
+
+Say you had a custom element that accepted an email value. You might call it `email` inside your component definition.
 
 {% code title="my-custom-element.ts" %}
 ```typescript
@@ -192,7 +230,7 @@ export class MyCustomElement {
 ```
 {% endcode %}
 
-Referencing our custom element, if we wanted to bind in a value to our `email` property we would do this:
+Referencing our custom element, if we wanted to bind a value to our `email` property, we would do this:
 
 ```markup
 <my-custom-element email.bind="myEmail"></my-custom-element>
@@ -208,17 +246,17 @@ If you have familiarized yourself with other aspects of Aurelia's template bindi
 
 You can listen to events using two different types of event bindings; `trigger` and `capture`. The syntax for event binding is the event name you want to target, followed by one of the above event bindings.
 
-To listen to a `click` event on a button, for example, you would do something like this:
+To listen to an `click` event on a button, for example, you would do something like this:
 
 ```html
 <button click.trigger="myClickFunction()">Click me!</button>
 ```
 
-Inside of the quotation marks, you specify the name of a function to be called inside of your view model.
+Inside the quotation marks, you specify the function's name to be called inside your view model.
 
 ### Common events
 
-There are several events that you will bind onto in your Aurelia applications.
+There are several events that you will bind onto in your Aurelia applications. These events are native events that Aurelia can bind to.
 
 #### click
 
@@ -265,7 +303,7 @@ The `ref` attribute has several qualifiers you can use in conjunction with custo
 * `controller.ref="expression"`: create a reference to a custom element's controller instance
 
 {% hint style="info" %}
-Template references are a great way to reference elements inside view models for use with third-party libraries. They negate the need to query for elements using Javascript apis.
+Template references are a great way to reference elements inside view models for use with third-party libraries. They negate the need to query for elements using Javascript APIs.
 {% endhint %}
 
 ## Template Variables
@@ -301,7 +339,7 @@ The `promise.bind` template controller allows you to use `then`, `pending` and `
 
 ### A basic example
 
-The promise binding is intuitive, allowing you to use attributes to bind to steps of the promise resolution process from initialization (pending to resolve and errors).
+The promise binding is intuitive, allowing you to use attributes to bind to steps of the promise resolution process from initialization (pending to resolution and errors).
 
 ```html
 <div promise.bind="promise1">
@@ -405,9 +443,7 @@ Due to the way the scoping and binding context resolution works, you might want 
 ```
 
 ```typescript
-import {
-  valueConverter,
-} from '@aurelia/runtime-html';
+import { valueConverter } from '@aurelia/runtime-html';
 
 @valueConverter('promisify')
 class Promisify {

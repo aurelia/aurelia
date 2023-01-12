@@ -6,7 +6,7 @@ description: The basics of the web-component plugin for Aurelia.
 
 ## Introduction
 
-Web Components are part of an ever-evolving web specification that aims to allow developers to create native self-contained components without the need for additional libraries or transpilation steps. In this guide, you will learn how to use Aurelia in Web Components.
+Web Components are part of an ever-evolving web specification that aims to allow developers to create native self-contained components without the need for additional libraries or transpilation steps. This guide will teach you how to use Aurelia in Web Components.
 
 ## Installing The Plugin
 

@@ -1,8 +1,14 @@
+---
+description: >-
+  Learn how to use the Aurelia Validation package with this comprehensive
+  tutorial.
+---
+
 # Validation Tutorial
 
 ## Introduction
 
-Aurelia provides a powerful validation library that allows you to add validation to your applications. If you are new to Aurelia, we recommend visiting the [Getting Started](../../developer-guides/validation/broken-reference/) section first to familiarize yourself with the framework.
+Aurelia provides a powerful validation library that allows you to add validation to your applications. If you are new to Aurelia, we recommend visiting the [Getting Started](../../routing/getting-started.md) section first to familiarize yourself with the framework.
 
 This tutorial aims to teach you all the basics of validation. Enabling it, validation rules, conditional validation and multiple objects.
 
@@ -20,7 +26,7 @@ A working demo and code for the following tutorial can also be found [here](http
 
 To do this tutorial, you'll need a working Aurelia application. We highly recommend following the [Quick Start](../../getting-started/quick-install-guide.md) guide to do this. However, for this tutorial, we have a [starter Aurelia 2 application](https://stackblitz.com/edit/au2-conventions-6kuayx) ready to go that we recommend. It will allow you to follow along and live code.
 
-Because the validation packages do not come with Aurelia out-of-the-box, you will need to install them as detailed in the [Validation section](broken-reference). The linked code environment already has these dependencies added for you.
+Because the validation packages do not come with Aurelia out-of-the-box, you will need to install them as detailed in the [Validation section](./). The linked code environment already has these dependencies added for you.
 
 ## Enable and configure the plugin
 
@@ -38,7 +44,7 @@ Aurelia
   .start();
 ```
 
-The `ValidationHtmlConfiguration` object will configure our Aurelia application to use HTML validation and that's all we need to do to start using it.
+The `ValidationHtmlConfiguration` object will configure our Aurelia application to use HTML validation, and that's all we need to do to start using it.
 
 ## Create a form
 
@@ -62,7 +68,7 @@ Because we will be using the validation package on a form (the most common scena
 ```
 {% endcode %}
 
-We have added in a few form input elements and binding their values to class properties that will be inside of our view-model. One thing to point out here is `& validate` which is a binding behavior that tells the validation library we want to validate these bindable values.
+We have added a few form input elements and bound their values to class properties inside our view model. One thing to point out here is `& validate` which is a binding behavior that tells the validation library we want to validate these bindable values.
 
 ## Add the validation plugin
 
@@ -83,7 +89,7 @@ export class MyApp {
 ```
 {% endcode %}
 
-`@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `my-app`
+`@newInstanceForScope(IValidationController)` injects a new instance of validation controller, which is made available to the children of `my-app`
 
 `IValidationRules` is what we will use to register our validation rules that we validate against in our views.
 
@@ -186,7 +192,7 @@ A common UI pattern when adding validation is turning the input fields red to hi
 &#x3C;/form>
 </code></pre>
 
-We place the `validation-errors` attribute on the surrounding DIV element, then use the pattern of `propertyNameErrors` where `propertyName` is the name of our property and `Errors` is the suffix that Aurelia sees as an error pointer.
+We place the `validation-errors` attribute on the surrounding DIV element, then use the pattern of `propertyNameErrors` where `propertyName` our property's name is and `Errors` is the suffix that Aurelia sees as an error pointer.
 
 Inside `my-app.css` add a CSS class called `error`
 
@@ -284,7 +290,7 @@ export class MyApp {
 }
 </code></pre>
 
-We make a slight change to our website rules by using `.when` to introduce a condition to our validation. The `obj` being returned is the object itself, allowing us to inspect other object property values.
+We make a slight change to our website rules by using `.when` to introduce a condition to our validation. The `obj` The object itself is returned, allowing us to inspect other object property values.
 
 * When the `type` value is user
 * Make the `website` property mandatory
@@ -292,7 +298,7 @@ We make a slight change to our website rules by using `.when` to introduce a con
 
 ## Do something on successful validation
 
-We already have the code for this part, but it's important we talk about it. In our `my-app.ts` file we created a method called `add` which calls our validation controller.
+We already have the code for this part, but we must talk about it. In our `my-app.ts` file, we created a method called `add` which calls our validation controller.
 
 {% code title="my-app.ts" overflow="wrap" %}
 ```typescript
@@ -308,13 +314,13 @@ public async add() {
 ```
 {% endcode %}
 
-Calling the `validate` method on the validation controller which returns a promise allows us to check the `valid` property to determine if validation was successful or not. The `valid` value will be `true` if all validation rules pass and `false` if one or more do not. In the case of a form where we create users, we would probably call an API or something to save.
+Calling the `validate` method on the validation controller, which returns a promise, allows us to check the `valid` property to determine if validation was successful or not. The `valid` value will be `true` if all validation rules pass and `false` if one or more do not. In the case of a form where we create users, we would probably call an API or something to save.
 
-The cool thing about this is that we also get back all of the validation rules (the ones that pass and fail) on the `results` property. This allows us to do things in our code without relying on the view. An example might be to display a toast notification with an error message for one or more errors.
+The cool thing about this is that we also get back all the validation rules (the ones that pass and fail) on the `results` property. This allows us to do things in our code without relying on the view. An example might be to display a toast notification with an error message for one or more errors.
 
 ## Conclusion
 
-While we only scratched the surface of what the validator can do, we have covered all of the essential aspects of validation. We highly recommend reading over the validation documentation to get a deeper understanding of the validation library.
+While we only scratched the surface of what the validator can do, we have covered all of the essential aspects of validation. We highly recommend reading over the validation documentation to better understand the validation library.
 
 The code above can be found in a working demo application [here](https://stackblitz.com/edit/au2-conventions-xk8z3e?file=src/my-app.html).
 

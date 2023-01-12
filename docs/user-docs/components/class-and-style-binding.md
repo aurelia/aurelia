@@ -1,3 +1,9 @@
+---
+description: >-
+  Styling components using CSS, CSS pre and post-processors as well as working
+  with web components.
+---
+
 # Styling components
 
 Aurelia makes it easy to work with component styles. From the type of CSS flavor you prefer to work with (CSS, PostCSS, SASS, Stylus) to how you use those styles in your components. At the end of the day, regardless of what CSS flavor you choose, it all compiles into CSS.
@@ -6,7 +12,7 @@ Aurelia makes it easy to work with component styles. From the type of CSS flavor
 
 This section will teach you how to style components using conventions and Shadow DOM to encapsulate your CSS styles.
 
-Not always, but sometimes when you are creating components, you also want styles for your component. Default conventions for custom elements mean that they will be imported automatically if you create a custom element and a CSS file with a matching filename.
+Not always, but sometimes when you are creating components, you also want styles for your component. Default conventions for custom elements will be imported automatically if you create a custom element and a CSS file with a matching filename.
 
 {% tabs %}
 {% tab title="my-component.ts" %}
@@ -36,7 +42,7 @@ Notice how we didn't import `my-component.css` But when we run the app, it gets 
 
 ## Shadow DOM
 
-One of the most exciting web specifications is Web Components. Part of the Web Components specification is [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web\_Components/Using\_shadow\_DOM) API. Shadow DOM offers us the ability to encapsulate HTML and styles within our web applications, allowing us to deal with a problem that has plagued web development since the beginning: global styles.
+One of the most exciting web specifications is Web Components. Part of the Web Components specification is [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web\_Components/Using\_shadow\_DOM) API. Shadow DOM allows us to encapsulate HTML and styles within our web applications, allowing us to deal with a problem that has plagued web development since the beginning: global styles.
 
 In Aurelia, you can work with Shadow DOM in three different ways:
 
@@ -210,7 +216,7 @@ The `host-context` selector allows you to target your elements based on the oute
 
 ## CSS Modules
 
-In some instances, Shadow DOM is not the right fit for your web application needs, particularly the constraints around global styles. If you need an in-between solution that allows you to encapsulate styles and use global styles, CSS Modules might be the option for you.
+In some instances, Shadow DOM is not the right fit for your web application needs, particularly the constraints around global styles. If you need an in-between solution that allows you to encapsulate and use global styles, CSS Modules might be a desired option.
 
 To use CSS Modules, the process is a lot more straightforward if you use the `npx makes aurelia` CLI tool and choose CSS Modules as your preferred styling option. Otherwise, you will have to configure your application manually.
 
@@ -229,7 +235,7 @@ Please note the following loader configuration only applies to Webpack.
 ```
 {% endcode %}
 
-You need to do nothing special to use CSS Modules in your components. Specify your class names and then reference them in your HTML. The bundler takes care of turning that class value into a randomly generated string value.
+You need to do nothing special to use CSS Modules in your components. Specify your class names and then reference them in your HTML. The bundler turns that class value into a randomly generated string value.
 
 ```css
 .madeup-style {
@@ -257,10 +263,14 @@ Much like the Shadow DOM styling option, you can use some special selectors when
 
 The global selector allows you to style global CSS selectors without transforming them. For some CSS classes, you want them to be global for active states. In fact, the default Aurelia app generated using Makes comes with an example of `:global` being used.
 
-This selector especially comes in use when you are working with CSS libraries like Bootstrap, allowing you to target global CSS selectors.
+This selector especially comes in use when working with CSS libraries like Bootstrap, allowing you to target global CSS selectors.
 
 ```css
 :global(.load-active) {
     background-color: lightgray;
 }
 ```
+
+## Additional Reading
+
+You should consult the [CSS classes and styling section](../templates/class-and-style-bindings.md) to learn how to work with classes and styles in your Aurelia applications, where strategies for working with classes as well as inline CSS styles are discussed.

@@ -1,12 +1,12 @@
 # Validation Controller
 
-So far the functionalities of the `@aurelia/validation` have been discussed. The part regarding the integration with view has been kept out of the discussion so far. This section starts addressing that.
+So far, the functionalities of the `@aurelia/validation` have been discussed. The part regarding the integration with a view has been kept out of the discussion so far. This section starts addressing that.
 
-The validation controller is the implementation of `IValidationController` interface. It acts as a bridge between the validator and the other related components, such as view, binding, and subscribers. The capabilities of validation controller is discussed below.
+The validation controller is the implementation of `IValidationController` interface. It acts as a bridge between the validator and the other related components, such as view, binding, and subscribers. The capabilities of the validation controller are discussed below.
 
 ## Injecting a controller instance
 
-An instance of the validation controller can be injected using the `@newInstanceForScope(IValidationController)`, and the `@IValidationController` decorator. The `@newInstanceForScope(IValidationController)` decorator creates a new instance of the validation controller and registers the instance with the dependency inject container. This same instance can later be made available to the child components using the `@IValidationController` decorator.
+An instance of the validation controller can be injected using the `@newInstanceForScope(IValidationController)`, and the `@IValidationController` decorator. The `@newInstanceForScope(IValidationController)` decorator creates a new instance of the validation controller and registers the instance with the dependency injection container. This same instance can later be made available to the child components using the `@IValidationController` decorator.
 
 ```typescript
 // parent-ce.ts
@@ -33,7 +33,11 @@ export class Parent {
 }
 ```
 
-> The design decision is made keeping the following frequent use case in mind. The manual/final validation happens in the "root"/"parent" component/custom element. The child components such as other custom elements define the necessary validation rules in the custom element level, as well as uses the `validate` binding behavior to mark the validation targets in the view/markup. This helps showing the validation messages near the validation targets. Creating a new instance of the validation controller and registering the instance with the dependency injection container, makes the same instance available to the child components level. The instance can then be used for registering the validation targets (see [`validate` binding behavior](broken-reference)), which makes it possible to execute all the validation rules defined in the children with a single instance of controller.
+{% hint style="info" %}
+The design decision is made keeping the following frequent use case in mind. The manual/final validation happens in the "root"/"parent" component/custom element. The child components, such as other custom elements, define the necessary validation rules at the custom element level, as well as uses the `validate` binding behavior to mark the validation targets in the view/markup. This helps show the validation messages near the validation targets.\
+\
+Creating a new instance of the validation controller and registering the instance with the dependency injection container makes the same instance available to the child components level. The instance can then be used for registering the validation targets (see [`validate` binding behavior](broken-reference)), which makes it possible to execute all the validation rules defined in the children with a single instance of the controller.
+{% endhint %}
 
 A new instance of validation controller can always be injected using the `@newInstanceOf(IValidationController)` decorator. See this action in the demo below.
 
@@ -60,7 +64,7 @@ The `reset` method on the other hand removes the errors from the validation cont
 
 ### `revalidateErrors`
 
-With the `revalidateErrors` method, it is possible to verify whether the current set of errors are still there. Note that it does not validates all objects and bindings, as it is done in `validate` method. It is useful when you don't want to get a new set of errors, and rather check on the current status of the existing set of errors.
+With the `revalidateErrors` method, verifying whether the current errors are still there is possible. Note that it does not validate all objects and bindings, as it is done in `validate` method. It is useful when you don't want to get a new set of errors and rather check on the current status of the existing set of errors.
 
 ```typescript
 await validationController.revalidateErrors();
@@ -70,7 +74,7 @@ await validationController.revalidateErrors();
 
 ## `addObject` and `removeObject`
 
-The method `addObject` registers an object explicitly to validation controller. Validation controller automatically validates the object every time the `validate` method is called. This is useful when you can to validate some object in your view-model, that does not have any direct reference to the view.
+The method `addObject` registers an object explicitly to the validation controller. The validation controller automatically validates the object every time the `validate` method is called. This is useful when you can validate some object in your view model, that does not have any direct reference to the view.
 
 The object can be unregistered by calling the `removeObject` method. This also removes the associated errors of the object.
 
@@ -108,7 +112,7 @@ Note that the errors added by the `addError` method, never gets revalidated when
 
 ## `addSubscriber` and `removeSubscriber`
 
-The subscribers can be added or removed using `addSubscriber` and `removeSubscriber` methods respectively. Whenever, the validation controller performs validation or resets errors, the registered subscribers are notified of the change in validation results. To unsubscribe the validation results notification, the subscriber needs to be removed.
+The subscribers can be added or removed using `addSubscriber` and `removeSubscriber` methods respectively. Whenever the validation controller performs validation or resets errors, the registered subscribers are notified of the change in validation results. To unsubscribe from the validation results notification, the subscriber needs to be removed.
 
 The subscriber interface is rather simple, consisting of only one method.
 
@@ -118,7 +122,7 @@ interface ValidationResultsSubscriber {
 }
 ```
 
-The notification event data looks loosely like following.
+The notification event data looks loosely like the following.
 
 ```typescript
 class ValidationEvent {
@@ -144,6 +148,6 @@ class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
 }
 ```
 
-What the subscribers do with the event data, depends on the subscribers. A obvious use-case is to present the errors to the end-users. In fact the [out-of-the-box subscribers](broken-reference) are used for the purpose only. Below is one example of how you can create a custom subscriber.
+What the subscribers do with the event data depends on the subscribers. An obvious use case is to present the errors to the end users. In fact, the [out-of-the-box subscribers](broken-reference) are used for that purpose only. Below is one example of how you can create a custom subscriber.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-add-remove-subscriber" %}

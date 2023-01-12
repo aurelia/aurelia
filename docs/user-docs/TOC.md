@@ -25,6 +25,7 @@
 * [List Rendering](templates/repeats-and-list-rendering.md)
 * [Lambda Expressions](templates/lambda-expressions.md)
 * [Local templates (inline templates)](templates/local-templates.md)
+* [Advanced Attribute Binding)](templates/advanced-attribute-binding.md)
 
 ## Components
 

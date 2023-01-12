@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Refactorings:
+
+* **all:** error msg code & better bundle size ([d81ec6d](https://github.com/aurelia/aurelia/commit/d81ec6d))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

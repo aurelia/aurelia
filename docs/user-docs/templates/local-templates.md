@@ -1,6 +1,15 @@
-# Local Templates
+---
+description: >-
+  Local templates allow you to remove boilerplate in your Aurelia applications,
+  by creating local templates specific to the templated view you are working
+  within and are not reusable.
+---
 
-Like local functions, templates can also be defined locally. Let us consider the following example.
+# Local templates (inline templates)
+
+## Introduction
+
+In many instances, when working with templated views in Aurelia, you will be approaching development from a reusability mindset. However, sometimes, you need a template for one specific application part. You could create a component for this, but it might be overkill. This is where local templates can be useful.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -48,7 +57,9 @@ class Person {
 {% endtab %}
 {% endtabs %}
 
-The example defines a template inside the `my-app.html` markup that can be used as a custom element. The name of the custom element, so defined, comes from the value of the `as-custom-element` attribute used on the template. In this case, it is named as `person-info`. A custom element defined that way cannot be used outside the template that defines it; in this case the `person-info` is therefore unavailable outside `my-app`. Thus, the name 'local template'.
+The example defines a template inside the `my-app.html` markup that can be used as a custom element. The name of the custom element, so defined, comes from the value of the `as-custom-element` attribute used on the template.&#x20;
+
+In this case, it is named as `person-info`. A custom element defined that way cannot be used outside the template that defines it; in this case, the `person-info` is, therefore, unavailable outside `my-app`. Thus, the name 'local template'.
 
 Local templates can also optionally specify bindable properties using the `<bindable>` tag as shown above. Apart from `property`, other allowed attributes that can be used in this tag are `attribute`, and `mode`. In that respect, the following two declarations are synonymous.
 
@@ -62,11 +73,15 @@ Local templates can also optionally specify bindable properties using the `<bind
 
 Although it might be quite clear, it is worth reiterating that the value of the `bindable` `attribute` should not be camelCased or PascalCased.
 
-## Why
+### Why use local templates
 
-In essence, the local templates are similar to HTML-Only custom elements, with the difference that the local templates cannot be reused outside the defining custom element. Sometimes we need to reuse a template multiple times in a single custom element. To create a separate custom element for that is bit of an overkill. Also given the fact that the custom element is only used in one single custom element, it might be optimized for that, and not meant to be reused outside this context. The local templates are meant to promote that, whereas having a separate custom element makes it open for reuse in another context. In short, it aims to reduce boilerplate code, and promotes highly cohesive, better encapsulated custom elements.
+In essence, the local templates are similar to HTML-Only custom elements, with the difference that the local templates cannot be reused outside the defining custom element. Sometimes we need to reuse a template multiple times in a single custom element.&#x20;
 
-This means that the following is a perfectly valid example. Note that the local templates with same name (`foo-bar`) are _defined_ in different custom elements.
+Creating a separate custom element for that is a bit overkill. Also, given that the custom element is only used in one single custom element, it might be optimized for that and not meant to be reused outside this context. The local templates are meant to promote that, whereas having a separate custom element makes it open for reuse in another context.&#x20;
+
+In short, it aims to reduce boilerplate code and promotes highly cohesive, better-encapsulated custom elements.
+
+This means that the following is a perfectly valid example. Note that the local templates with the same name (`foo-bar`) are _defined_ in different custom elements.
 
 {% tabs %}
 {% tab title="level-one.html" %}
@@ -118,7 +133,9 @@ class LevelTwo {
 
 ## Features and pitfalls
 
-* Local templates are hoisted. That is following example will work.
+Like anything, there is always an upside and downside: local templates are no different. While they can be a powerful addition to your Aurelia applications, you need to be aware of the caveats when using them, as you may encounter them.
+
+### Local templates are hoisted.
 
 ```markup
 <foo-bar foo.bind="'John'"></foo-bar>
@@ -129,27 +146,34 @@ class LevelTwo {
 </template>
 ```
 
-*   It is theoretically possible to go to an infinite level of nesting. That is the following example will work. However, whether such composition is helpful or not, depends on the use-case. Although it might provide a stronger cohesion, as the level of nesting grows, it can be difficult to work with. It is up to you decide a reasonable tradeoff while using local templates. In this respect, a good thumb rule is to keep the local function analogy in mind.
+It is theoretically possible to go to an infinite level of nesting. That is, the following example will work. However, whether such composition is helpful depends on the use case.
 
-    ```markup
-    <template as-custom-element="el-one">
-    <template as-custom-element="one-two">
-      1
-    </template>
-    2
-    <one-two></one-two>
-    </template>
-    <template as-custom-element="el-two">
-    <template as-custom-element="two-two">
-      3
-    </template>
-    4
-    <two-two></two-two>
-    </template>
-    <el-two></el-two>
-    <el-one></el-one>
-    ```
-* A custom element cannot contain only local templates. The following examples will cause a (jit) compilation error.
+Although it might provide a stronger cohesion, as the level of nesting grows, it might not be easy to work with. It is up to you to decide on a reasonable tradeoff while using local templates.&#x20;
+
+In this respect, a good thumb rule is to keep the local function analogy in mind.
+
+```markup
+<template as-custom-element="el-one">
+<template as-custom-element="one-two">
+  1
+</template>
+2
+<one-two></one-two>
+</template>
+<template as-custom-element="el-two">
+<template as-custom-element="two-two">
+  3
+</template>
+4
+<two-two></two-two>
+</template>
+<el-two></el-two>
+<el-one></el-one>
+```
+
+### Custom elements cannot contain only local templates
+
+The following examples will cause a (jit) compilation error.
 
 {% tabs %}
 {% tab title="invalid-example2.html" %}
@@ -161,7 +185,9 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* A local template always needs to be defined directly under the root element. The following example will cause a (jit) compilation error.
+### A local template always needs to be defined directly under the root element
+
+The following example will cause a (jit) compilation error.
 
 {% tabs %}
 {% tab title="invalid-example1.html" %}
@@ -173,14 +199,18 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* This one is obvious; the local templates need to have a name. The following example will cause a (jit) compilation error.
+### Local templates need to have a name
+
+The following example will cause a (jit) compilation error.
 
 ```markup
 <template as-custom-element="">foo-bar</template>
 <div></div>
 ```
 
-* The names of the local templates need to be unique (in defining custom element). The following example will cause a (jit) compilation error.
+### Local template names need to be unique
+
+The following example will cause a (jit) compilation error.
 
 ```markup
 <template as-custom-element="foo-bar">foo-bar1</template>
@@ -188,7 +218,9 @@ class LevelTwo {
 <div></div>
 ```
 
-* The `<bindable>` tags needs to be under the local template root. The following example will cause a (jit) compilation error.
+### Bindable tags need to be under the local template root
+
+The following example will cause a (jit) compilation error.
 
 ```markup
 <template as-custom-element="foo-bar">
@@ -199,7 +231,9 @@ class LevelTwo {
 <div></div>
 ```
 
-* The `property` attribute in `<bindable>` tags is mandatory. The following example will cause a (jit) compilation error.
+### The property attribute on bindable tags is mandatory
+
+The following example will cause a (jit) compilation error.
 
 ```markup
 <template as-custom-element="foo-bar">

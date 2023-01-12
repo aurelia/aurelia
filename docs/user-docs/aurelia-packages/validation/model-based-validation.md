@@ -4,9 +4,11 @@ description: Performing validation on data models using Aurelia Validation.
 
 # Model Based Validation
 
-It is a commonly known best practice to perform the data validation both on the server and the client. Validating the data on server reduces the coupling between the client and the server as then the service do not have to depend for the data quality, solely on the client. The client side validation on the other hand is equally important to ensure better user experience, so that the client can quickly provide feedback to the end users, without making a roundtrip to the server. For this reason, it is often the case that the validation rules are defined on server, and the client ends up duplicating those definitions.
+It is a commonly known best practice to perform data validation both on the server and the client. Validating the data on the server reduces the coupling between the client and the server as then the service does not have to depend on the data quality, solely on the client.&#x20;
 
-With the support of model-based validation, `@aurelia/validation` plugin tries to reduce the duplication. For this we assume that the server is capable of communicating the validation rules with the client in form of json data. The plugin uses an implementation of `IValidationHydrator` to adapt the json data to aurelia validation rules. Let us see an example of this.
+On the other hand, client-side validation is equally important to ensure a better user experience so that the client can quickly provide feedback to the end users without making a round trip to the server. For this reason, it is often the case that the validation rules are defined on the server, and the client ends up duplicating those definitions.
+
+With the support of model-based validation, `@aurelia/validation` plugin tries to reduce duplication. We assume the server can communicate the validation rules with the client in JSON data. The plugin uses an implementation of `IValidationHydrator` to adapt the JSON data to Aurelia validation rules. Let us see an example of this.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-model-based-validation" %}
 
@@ -30,15 +32,15 @@ export const personRules = [
 ]
 ```
 
-In the next step, these rules needs to be associated with taregts. The method that applies the model based rules is the following (refer `my-app.ts`).
+In the next step, these rules need to be associated with targets. The method that applies the model-based rules is the following (refer `my-app.ts`).
 
 ```typescript
 validationRules.applyModelBasedRules(Person, personRules);
 ```
 
-The first argument to the method can be a class or an object instance. The second argument must be an array of `ModelBasedRule` instances. This registers the rules for the target class or object instance. After this the normal validation works as expected, without any further changes.
+The first argument to the method can be a class or an object instance. The second argument must be an array of `ModelBasedRule` instances. This registers the rules for the target class or object instance. After this, the normal validation works as expected without any further changes.
 
-The `ModelBasedRule` is a simple class that describes the ruleset definition or the json data that describes the validation rules.
+The `ModelBasedRule` is a simple class that describes the ruleset definition or the JSON data that describes the validation rules.
 
 ```typescript
 export class ModelBasedRule {
@@ -49,7 +51,7 @@ export class ModelBasedRule {
 }
 ```
 
-The constructor of the class as shown above takes 2 arguments. The first is the ruleset. The second one is an optional object tag (refer the [validate instruction](broken-reference)). The ruleset although typically a plain javascript object, can take any shape that is supported by the implementation of `IValidationHydrator`.
+The constructor of the class, as shown above, takes 2 arguments. The first is the ruleset. The second is an optional object tag (refer to the [validate instruction](validate-binding-behavior.md)). The ruleset, although typically a plain javascript object, can take any shape that is supported by the implementation of `IValidationHydrator`.
 
 ## Default model-based ruleset schema
 
@@ -106,13 +108,13 @@ The default implementation also supports defining all the out-of-the-box rules.
 | Exclusive numeric range | `between`   | Same as `range`. Examples: `{ between: { isInclusive: true, min: 42 } }`, `{ between: { max: 42 } }`, `{ between: { min: 42, max: 84 } }`.                                                                                                                                                                                                                |
 | Equality                | `equals`    | `expectedValue`: any. Examples: `{ equals: { expectedValue: 42 } }`.                                                                                                                                                                                                                                                                                      |
 
-It is also possible to specify a conditional rule, by using a string value that represents a boolean expression. For example,
+Specifying a conditional rule by using a string value representing a boolean expression is also possible.
 
 ```javascript
 { ruleKey: { when: "$object.age > 18" } }
 ```
 
-Loosely speaking, the expression in `when` will be hydrated to this function expression: `($object) => $object.age > 18`. Alternatively, if the ruleset is not a plain json, rather a javascript object, a function can be used as well.
+Loosely speaking, the expression in `when` will be hydrated to this function expression: `($object) => $object.age > 18`. Alternatively, if the ruleset is not a plain JSON but rather a javascript object, a function can be used as well.
 
 ```javascript
 { ruleKey: { when: function(person) { return object.age > 18; } } }
@@ -120,10 +122,10 @@ Loosely speaking, the expression in `when` will be hydrated to this function exp
 
 ## Custom rule hydrator
 
-You would want to create custom rule hydrator if you have either one of these use-cases.
+If you have either use-case, you would want to create a custom rule hydrator.
 
-1. You have custom rules, and you want to use those in model-based rule json data.
-2. You have your own schema for rules or the rules metadata is not even a JSON data.
+1. You have custom rules and want to use those in model-based rule JSON data.
+2. You have your own schema for rules, or the rules metadata is not even a JSON data.
 
 Implementing a custom hydrator ends up implementing the following interface.
 
@@ -137,7 +139,7 @@ export interface IValidationHydrator {
 }
 ```
 
-Additionally, you need to register your custom hydrator implementation using the `HydratorType` customization option as shown below.
+Additionally, you need to register your custom hydrator implementation using the `HydratorType` customization option, as shown below.
 
 ```typescript
 import Aurelia from 'aurelia';
@@ -153,7 +155,7 @@ Aurelia
   //...
 ```
 
-Note that the second use-case as stated above probably needs an completely new implementation of this interface, which is in its own merit out-of-the-scope of this documentation. This section focusses rather on the first use-case. To that end, you can easily subclass the default implementation to support your custom rule. Refer the example and the demo below.
+Note that the second use case, as stated above, probably needs a completely new implementation of this interface, which is in its own merit out-of-the-scope of this documentation. To that end, you can easily subclass the default implementation to support your custom rule. Refer to the example and the demo below.
 
 {% tabs %}
 {% tab title="model-based-rules.ts" %}

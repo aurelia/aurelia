@@ -424,8 +424,6 @@ export class BananaInBox {
 
 ## Binding commands / instruction renderer
 
-TODO (api not yet mature enough)
-
 ## Templating syntax
 
 ```markup
@@ -593,13 +591,13 @@ interface IRouteViewModel extends ICustomElementViewModel {
 
 ### Migrating from v1
 
-Most stuff from v1 will still work as-is, but we do recommend that you consider using `DI.createInterface` liberally to create injection tokens, both within your own app as well as when authoring plugins.
+Most stuff from v1 will still work as-is, but we do recommend that you consider using `DI.createInterface` liberally to create injection tokens, both within your app as well as when authoring plugins.
 
 Consumers can use these as either parameter decorators or as direct values to `.get(...)` / `static inject = [...]`.
 
-Benefit of parameter decorators is that they also work in Vanilla JS with babel, and will work natively in browsers (without any tooling) in the future once the browsers implement them.
+The benefit of parameter decorators is that they also work in Vanilla JS with babel and will work natively in browsers (without any tooling) once they implement them.
 
-They are therefore generally the more forward-compatible and consumer-friendly option.
+They are, therefore, generally the more forward-compatible and consumer-friendly option.
 
 ### Creating an interface
 
@@ -607,7 +605,7 @@ Note: this is a multi-purpose "injection token" that can be used as a plain valu
 
 #### Strongly-typed with default
 
-Useful when you _just_ want the parameter decorator and don't really need the interface itself.
+Useful when you want the parameter decorator and don't need the interface itself.
 
 ```typescript
 export class ApiClient {
@@ -646,7 +644,7 @@ export class MyComponent {
 
 #### Creating resolvers explicitly
 
-This is more loosely coupled (keys can be declared independently of their implementations) but also results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, less typical in apps.
+This is more loosely coupled (keys can be declared independently of their implementations) but results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, and less typical in apps.
 
 These can be provided directly to e.g. `au.register(dep1, dep2)` as global dependencies (available in all components) or to the `static dependencies = [dep1, dep1]` of components as local dependencies.
 
@@ -716,151 +714,6 @@ export class MyComponent {
   // Note that the type itself is not responsible for resolving the proper key but the decorator
   constructor(@IWindow private window: IReduxDevTools) {}
 }
-```
-
-## Making your code more robust with the TaskQueue
-
-Not to be confused with v1's `TaskQueue`, the new TaskQueue is a sophisticated scheduler designed to prevent a variety of timing issues, memory leaks, race conditions and more bad things that tend to result from `setTimeout`, `setInterval`, floating promises, etc.
-
-### `setTimeout` (synchronous)
-
-#### From
-
-```typescript
-// Queue
-const handle = setTimeout(() => {
-  doStuff();
-}, 100);
-
-// Cancel
-clearTimeout(handle);
-```
-
-#### To
-
-```typescript
-// Queue
-const task = PLATFORM.taskQueue.queueTask(() => {
-  doStuff();
-}, { delay: 100 });
-
-// Cancel
-task.cancel();
-```
-
-Now, in your unit/integration/e2e tests or in other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done (and not a millisecond longer than needed), or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks. End result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
-
-### `setTimeout` (async/await)
-
-#### From
-
-```typescript
-// Queue
-let handle;
-const timeoutPromise = new Promise(resolve => {
-  handle = setTimeout(async () => {
-    await doAsyncStuff();
-    resolve();
-  }, 100);
-});
-
-// Await
-await timeoutPromise;
-
-// Cancel
-clearTimeout(handle);
-```
-
-#### To
-
-```typescript
-// Queue
-const task = PLATFORM.taskQueue.queueTask(async () => {
-  await doAsyncStuff();
-}, { delay: 100 });
-
-// Await
-await task.result;
-
-// Cancel
-task.cancel();
-```
-
-### `setInterval`
-
-#### From
-
-```typescript
-// Start
-const handle = setInterval(() => {
-  poll();
-}, 100);
-
-// Stop
-clearInterval(handle);
-```
-
-#### To
-
-```typescript
-// Queue
-const task = PLATFORM.taskQueue.queueTask(() => {
-  poll();
-}, { delay: 100, persistent: true /* runs until canceled */ });
-
-// Stop
-task.cancel();
-```
-
-### `requestAnimationFrame`
-
-#### From
-
-```typescript
-requestAnimationFrame(() => {
-  applyStyles();
-});
-```
-
-#### To
-
-```typescript
-PLATFORM.domWriteQueue.queueTask(() => {
-  applyStyles();
-});
-```
-
-### `requestAnimationFrame` loop
-
-#### From
-
-```typescript
-let isRunning = true;
-// Start
-export function start() {
-  requestAnimationFrame(loop);
-}
-// Stop
-export function stop() {
-  isRunning = false;
-}
-function loop() {
-  updateAnimationProps();
-  if (isRunning) {
-    requestAnimationFrame(loop);
-  }
-}
-```
-
-#### To
-
-```typescript
-// Start
-const task = PLATFORM.domWriteQueue.queueTask(() => {
-  updateAnimationProps();
-}, { persistent: true });
-// Stop
-task.cancel();
 ```
 
 ### Using lifecycle hooks in a non-blocking fashion but keeping things awaitable
@@ -1110,72 +963,4 @@ export * from './my-nav';
 import * as GlobalResources from './resources';
 
 au.register(GlobalResources).app(...);
-```
-
-## Routing
-
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
-### Migrating from v1
-
-* Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator (in the near future there will also be a separate `@routes` decorator as a shorthand). For each route config object:
-  * Rename `route` to `path`
-  * Rename `name` to `id`
-  * Change `moduleId: 'folder/my-component'` to `component: MyComponent` (where `MyComponent` is the actual `import`ed component)
-  * Rename `settings` to `data`
-* Rename `canActivate` to `canLoad`
-* Rename `activate` to `load`
-* Rename `canDeactivate` to `canUnload`
-* Rename `deactivate` to `unload`
-* For pipeline steps, use the `@lifecycleHooks` api (TODO: link to examples / docs)
-* Rename `router-view` to `au-viewport`
-* Rename `'router:navigation:processing'` to `'au:router:navigation-start'`
-* Rename `'router:navigation:cancel'` to `'au:router:navigation-cancel'`
-* Rename `'router:navigation:error'` to `'au:router:navigation-error'`
-* Rename `'router:navigation:success'`and `'router:navigation:complete'` to `'au:router:navigation-end'`
-
-(more migration notes will be added based on incoming questions)
-
-### New in v2: routing without configuration (direct routing)
-
-By default, components can be navigated to by using their name as the path, as long as they are registered as either global or local resources.
-
-Example:
-
-**app.ts**
-
-```typescript
-import { HomeCustomElement } from './home';
-
-export class App {
-  static dependencies = [HomeCustomElement];
-}
-```
-
-**app.html**
-
-```markup
-<a href="/home">Home</a>
-<au-viewport></au-viewport>
-```
-
-Which is functionally equivalent to:
-
-**app.ts**
-
-```typescript
-import { HomeCustomElement } from './home';
-
-export class App {
-  static routes = [{ path: 'home', component: HomeCustomElement }];
-}
-```
-
-**app.html**
-
-```markup
-<a href="/home">Home</a>
-<au-viewport></au-viewport>
 ```

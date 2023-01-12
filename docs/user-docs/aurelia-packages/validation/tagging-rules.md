@@ -6,9 +6,9 @@ description: >-
 
 # Tagging Rules
 
-Tagging rules involves marking a rule or ruleset for a property or an object with a string identifier, namely tag. Later the tag can be used to selectively execute specific set of rules. Note that every set of rules defined on an object has a tag. When the tag is omitted, a default tag for the ruleset is used for the objects.
+Tagging rules involves marking a rule or ruleset for a property or an object with a string identifier, namely a tag. Later, the tag can be used to execute a specific set of rules selectively. Note that every set of rules defined on an object has a tag. When the tag is omitted, a default tag for the ruleset is used for the objects.
 
-Tags can be defined both with objects and properties. Refer the following examples.
+Tags can be defined both with objects and properties. Refer to the following examples.
 
 ```typescript
 /* tagged rule definition */

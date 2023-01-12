@@ -1,4 +1,8 @@
-# TailwindCSS Integration
+---
+description: Learn how to use TailwindCSS in Aurelia 2 with this detailed guide.
+---
+
+# TailwindCSS integration
 
 ## What is Tailwind CSS?
 
@@ -16,7 +20,7 @@ npx makes aurelia
 
 2- Use your type of project, I am using Default Typescript with Webpack and CSS.
 
-![](../../.gitbook/assets/1%20%281%29.png)
+![](<../../.gitbook/assets/1 (1).png>)
 
 3- Install Tailwind CSS in your project via this command
 
@@ -45,7 +49,7 @@ module.exports = {
 }
 ```
 
-5- Open your `webpack.config.js` file and add the below line into the `postcssLoader` literal object as a first item in `plugins` array. \(Just like the picture\)
+5- Open your `webpack.config.js` file and add the below line into the `postcssLoader` literal object as a first item in `plugins` array. (Just like the picture)
 
 ```typescript
 require('tailwindcss')('tailwind.config.js'),
@@ -53,9 +57,9 @@ require('tailwindcss')('tailwind.config.js'),
 
 ![](../../.gitbook/assets/2.png)
 
-![](../../.gitbook/assets/screenshot_1.png)
+![](../../.gitbook/assets/screenshot\_1.png)
 
-6- Add these lines to the **top** of your main CSS file \(for example `my-app.css`\)
+6- Add these lines to the **top** of your main CSS file (for example `my-app.css`)
 
 ```css
 @tailwind base;
@@ -99,7 +103,7 @@ Seems everything works
 
 Purgecss is particularly effective with Tailwind because Tailwind generates thousands of utility classes for you, most of which you probably won't actually use. For more information, you can read [Controlling File Size](https://tailwindcss.com/docs/controlling-file-size/).
 
-If you run the `build` command, you will see the final bundle side is huge \(even in production mode\)
+If you run the `build` command, you will see the final bundle side is huge (even in production mode)
 
 ```bash
 npm run build
@@ -129,4 +133,3 @@ purge: {
 Now, execute the `build` command again and see the result.
 
 ![](../../.gitbook/assets/5.png)
-

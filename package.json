@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-alpha.41",
+  "version": "2.0.0-beta.1",
   "workspaces": [
     "packages/__tests__",
     "packages/__e2e__/hmr-webpack",
@@ -117,7 +117,7 @@
     "@typescript-eslint/eslint-plugin": "5.38.1",
     "@typescript-eslint/parser": "5.38.1",
     "chalk": "^4.1.2",
-    "chromedriver": "107.0.3",
+    "chromedriver": "^109.0.0",
     "codecov": "^3.8.3",
     "concurrently": "7.4.0",
     "cross-env": "7.0.3",

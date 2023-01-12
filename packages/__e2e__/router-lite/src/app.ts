@@ -1,4 +1,5 @@
-import { customElement, IRouter, route } from 'aurelia';
+import { IRouter, route } from '@aurelia/router-lite';
+import { customElement } from 'aurelia';
 import template from './app.html';
 // import { Auth } from './pages/auth';
 import { Home } from './pages/home';

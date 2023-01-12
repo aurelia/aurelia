@@ -627,9 +627,9 @@ jobs:
       command:
         type: string
     steps:
+      - checkout
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
-      - checkout
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

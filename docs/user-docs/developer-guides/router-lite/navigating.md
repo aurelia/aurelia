@@ -432,7 +432,7 @@ This can be seen in action in the live example below.
 
 Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective class, purely for convenience purpose.
 
-**Using custom elements**
+**Using custom element definitions**
 
 You can use the custom element definitions for which routes have been configured.
 Multiple definitions can be used in an array to target sibling viewports.

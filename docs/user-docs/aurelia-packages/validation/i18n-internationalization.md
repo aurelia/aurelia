@@ -34,7 +34,7 @@ Aurelia
   .start();
 ```
 
-Note that the `@aurelia/validation-i18n` wraps the `@aurelia/validation` plugin. Stated differently, it [customizes](broken-reference) the `@aurelia/validation` plugin with custom implementations of the following:
+Note that the `@aurelia/validation-i18n` wraps the `@aurelia/validation` plugin. Stated differently, it [customizes](defining-rules.md) the `@aurelia/validation` plugin with custom implementations of the following:
 
 * Validation controller factory ( see the `ValidationControllerFactoryType` customization option): This ensures that the validation controller reacts to locale change.
 * Message provider (see the `MessageProviderType` customization option): This ensures that localized error message templates and property names are used to create the error messages. With this place, the evaluation `expr` in `withMessageKey(expr)` is used as an I18N key, and the value is looked up in the I18N resources. This also happens for the display names of the properties, where the property name is used as the I18N key.

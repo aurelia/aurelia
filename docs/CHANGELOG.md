@@ -3,6 +3,82 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### BREAKING CHANGES
+
+
+
+### Features:
+
+* **router:** improve href creation ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+* **portal:** ability to specify position ([6e78e4c](https://github.com/aurelia/aurelia/commit/6e78e4c))
+* **runtime:** key assignment notify changes (#1601) ([4163dd4](https://github.com/aurelia/aurelia/commit/4163dd4))
+* **repeat:** add keyed mode (#1583) ([d0c5706](https://github.com/aurelia/aurelia/commit/d0c5706))
+* **compat:** add binding property to compat package ([b58be1e](https://github.com/aurelia/aurelia/commit/b58be1e))
+* **compat:** add ast methods to compat package ([8b99581](https://github.com/aurelia/aurelia/commit/8b99581))
+* **compat:** add a compat-v1 package for migration ([6cec5a2](https://github.com/aurelia/aurelia/commit/6cec5a2))
+
+
+### Bug Fixes:
+
+* **router-lite:** support ../ prefix for load CA (#1635) ([bcf8afd](https://github.com/aurelia/aurelia/commit/bcf8afd))
+* **router-lite/href:** parent context selection (#1634) ([03b86bf](https://github.com/aurelia/aurelia/commit/03b86bf))
+* **router:** check to make sure hooks are valid ([0daa097](https://github.com/aurelia/aurelia/commit/0daa097))
+* **router-lite:** viewport-request and viewport-agent vieport name matching (#1629) ([2dd75d9](https://github.com/aurelia/aurelia/commit/2dd75d9))
+* **router-lite:** viewport adjustment (#1628) ([25eab0a](https://github.com/aurelia/aurelia/commit/25eab0a))
+* **router-lite/viewport:** null default binding (#1627) ([dfe569f](https://github.com/aurelia/aurelia/commit/dfe569f))
+* **router-lite:** fallback with ce-name (#1621) ([baed798](https://github.com/aurelia/aurelia/commit/baed798))
+* **router-lite:** fallback with ce-name ([baed798](https://github.com/aurelia/aurelia/commit/baed798))
+* **route-recognizer:** residue handling (#1620) ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **route-recognizer:** residue handling ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **runtime-html:** remove direct dependency on Reflect polyfill (#1610) ([5b37ff5](https://github.com/aurelia/aurelia/commit/5b37ff5))
+* **router-lite:** history state change timing (#1606) ([2cf5b64](https://github.com/aurelia/aurelia/commit/2cf5b64))
+* **toc:** missing app tasks docs from toc ([4ccc3e7](https://github.com/aurelia/aurelia/commit/4ccc3e7))
+* **router-lite:** handling hash in load, href CAs (#1578) ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+* **router-lite:** handling hash in load, href CAs ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+* **router-lite:** deepscan issue ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+* **array-length-observer:** notify array subscribers ([9ea3d85](https://github.com/aurelia/aurelia/commit/9ea3d85))
+
+
+### Performance Improvements:
+
+* **runtime:** move render location creation to compiler (#1605) ([66846b1](https://github.com/aurelia/aurelia/commit/66846b1))
+
+
+### Refactorings:
+
+* **route-recognizer:** residue handling ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **router:** improve href creation (#1609) ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+* **router-lite:** same URL handling (#1603) ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** removed SameUrlStrategy ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** transition plan ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** transition plan inheritance ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **web-components:** move webcomponents plugin into separate package ([065a949](https://github.com/aurelia/aurelia/commit/065a949))
+* **runtime:** add platform & obs locator to renderers ([6763eed](https://github.com/aurelia/aurelia/commit/6763eed))
+* **runtime:** add expr parser to renderers via param ([06449b0](https://github.com/aurelia/aurelia/commit/06449b0))
+* **route-recognizer:** remove create element API ([de5faf4](https://github.com/aurelia/aurelia/commit/de5faf4))
+* **dialog:** remove dialog export from aurelia pkg ([73e3078](https://github.com/aurelia/aurelia/commit/73e3078))
+* **dialog:** move to a separate plugin package ([1fb795e](https://github.com/aurelia/aurelia/commit/1fb795e))
+* **runtime:** remove au render + infra ([0a18ed1](https://github.com/aurelia/aurelia/commit/0a18ed1))
+* **runtime:** rename scope file ([6adce39](https://github.com/aurelia/aurelia/commit/6adce39))
+* **route-recognizer:** prefix private props on bindings ([d9cfc83](https://github.com/aurelia/aurelia/commit/d9cfc83))
+* **compat:** remove call command, move to compat package ([d302d72](https://github.com/aurelia/aurelia/commit/d302d72))
+* **compat:** remove event delegator, move completely to compat ([cca1ce8](https://github.com/aurelia/aurelia/commit/cca1ce8))
+* **event:** remove .delegate, add .delegate to compat package ([d1539a2](https://github.com/aurelia/aurelia/commit/d1539a2))
+* **router-lite:** remove delegation in load/href attrs ([649b078](https://github.com/aurelia/aurelia/commit/649b078))
+* **runtime:** cleanup & size opt, rename binding methods (#1582) ([2000e3b](https://github.com/aurelia/aurelia/commit/2000e3b))
+* **runtime:** remove interceptor prop from interface ([3074f54](https://github.com/aurelia/aurelia/commit/3074f54))
+* **binding-behavior:** remove binding interceptor ([767eee7](https://github.com/aurelia/aurelia/commit/767eee7))
+* **state:** cleanup bindings ([76cbb04](https://github.com/aurelia/aurelia/commit/76cbb04))
+* **bindings:** create override fn instead of binding interceptor ([5c2ed80](https://github.com/aurelia/aurelia/commit/5c2ed80))
+* **all:** error msg code & better bundle size ([d81ec6d](https://github.com/aurelia/aurelia/commit/d81ec6d))
+* **ast:** extract evaluate into a seprate fn ([6691f7f](https://github.com/aurelia/aurelia/commit/6691f7f))
+* **runtime:** rename Scope.parentScope -> parent ([937d29e](https://github.com/aurelia/aurelia/commit/937d29e))
+* **ast:** extract visit APIs into a fn ([a9d2abb](https://github.com/aurelia/aurelia/commit/a9d2abb))
+* **templating:** cleanup commands, renderers & compiler ([099e988](https://github.com/aurelia/aurelia/commit/099e988))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Features:
+
+* **router:** improve href creation ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+
+
+### Bug Fixes:
+
+* **router:** check to make sure hooks are valid ([0daa097](https://github.com/aurelia/aurelia/commit/0daa097))
+
+
+### Refactorings:
+
+* **router:** improve href creation (#1609) ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

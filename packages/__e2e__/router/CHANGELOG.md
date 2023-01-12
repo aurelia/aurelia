@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Features:
+
+* **router:** improve href creation ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+
+
+### Performance Improvements:
+
+* ***:** move render location creation to compiler (#1605) ([66846b1](https://github.com/aurelia/aurelia/commit/66846b1))
+
+
+### Refactorings:
+
+* **router:** improve href creation (#1609) ([d963c72](https://github.com/aurelia/aurelia/commit/d963c72))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

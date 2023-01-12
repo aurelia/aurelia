@@ -1,5 +1,6 @@
 import { ConsoleSink } from '@aurelia/kernel';
-import Aurelia, { LoggerConfiguration, LogLevel, RouterConfiguration } from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router-lite';
+import Aurelia, { LoggerConfiguration, LogLevel } from 'aurelia';
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import { AppShell } from './components/app-shell';
 

@@ -1,4 +1,5 @@
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router-lite';
+import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
 import { DefaultVirtualRepeatConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 import { Scrollbar } from './shared/scrollbar';

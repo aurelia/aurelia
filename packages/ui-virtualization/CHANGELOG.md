@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Features:
+
+* **repeat:** add keyed mode (#1583) ([d0c5706](https://github.com/aurelia/aurelia/commit/d0c5706))
+
+
+### Performance Improvements:
+
+* ***:** move render location creation to compiler (#1605) ([66846b1](https://github.com/aurelia/aurelia/commit/66846b1))
+
+
+### Refactorings:
+
+* **ast:** extract evaluate into a seprate fn ([6691f7f](https://github.com/aurelia/aurelia/commit/6691f7f))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

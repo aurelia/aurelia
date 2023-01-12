@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Bug Fixes:
+
+* **router-lite:** support ../ prefix for load CA (#1635) ([bcf8afd](https://github.com/aurelia/aurelia/commit/bcf8afd))
+* **router-lite/href:** parent context selection (#1634) ([03b86bf](https://github.com/aurelia/aurelia/commit/03b86bf))
+* **router-lite:** viewport-request and viewport-agent vieport name matching (#1629) ([2dd75d9](https://github.com/aurelia/aurelia/commit/2dd75d9))
+* **router-lite:** viewport adjustment (#1628) ([25eab0a](https://github.com/aurelia/aurelia/commit/25eab0a))
+* **router-lite/viewport:** null default binding (#1627) ([dfe569f](https://github.com/aurelia/aurelia/commit/dfe569f))
+* **router-lite:** fallback with ce-name (#1621) ([baed798](https://github.com/aurelia/aurelia/commit/baed798))
+* **router-lite:** fallback with ce-name ([baed798](https://github.com/aurelia/aurelia/commit/baed798))
+* **route-recognizer:** residue handling (#1620) ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **route-recognizer:** residue handling ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **router-lite:** history state change timing (#1606) ([2cf5b64](https://github.com/aurelia/aurelia/commit/2cf5b64))
+* **router-lite:** handling hash in load, href CAs (#1578) ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+* **router-lite:** handling hash in load, href CAs ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+* **router-lite:** deepscan issue ([5a951a0](https://github.com/aurelia/aurelia/commit/5a951a0))
+
+
+### Refactorings:
+
+* ***:** route-recognizer ([bd8bd05](https://github.com/aurelia/aurelia/commit/bd8bd05))
+* **router-lite:** same URL handling (#1603) ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** removed SameUrlStrategy ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** transition plan ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* **router-lite:** transition plan inheritance ([590c8b6](https://github.com/aurelia/aurelia/commit/590c8b6))
+* ***:** remove event delegator, move completely to compat ([cca1ce8](https://github.com/aurelia/aurelia/commit/cca1ce8))
+* ***:** remove delegation in load/href attrs ([649b078](https://github.com/aurelia/aurelia/commit/649b078))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

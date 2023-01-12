@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Features:
+
+* ***:** key assignment notify changes (#1601) ([4163dd4](https://github.com/aurelia/aurelia/commit/4163dd4))
+
+
+### Bug Fixes:
+
+* **array-length-observer:** notify array subscribers ([9ea3d85](https://github.com/aurelia/aurelia/commit/9ea3d85))
+
+
+### Performance Improvements:
+
+* ***:** move render location creation to compiler (#1605) ([66846b1](https://github.com/aurelia/aurelia/commit/66846b1))
+
+
+### Refactorings:
+
+* ***:** remove call command, move to compat package ([d302d72](https://github.com/aurelia/aurelia/commit/d302d72))
+* **runtime:** cleanup & size opt, rename binding methods (#1582) ([2000e3b](https://github.com/aurelia/aurelia/commit/2000e3b))
+* **runtime:** remove interceptor prop from interface ([3074f54](https://github.com/aurelia/aurelia/commit/3074f54))
+* **binding-behavior:** remove binding interceptor ([767eee7](https://github.com/aurelia/aurelia/commit/767eee7))
+* **bindings:** create override fn instead of binding interceptor ([5c2ed80](https://github.com/aurelia/aurelia/commit/5c2ed80))
+* **all:** error msg code & better bundle size ([d81ec6d](https://github.com/aurelia/aurelia/commit/d81ec6d))
+* **ast:** extract evaluate into a seprate fn ([6691f7f](https://github.com/aurelia/aurelia/commit/6691f7f))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

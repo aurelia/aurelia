@@ -114,7 +114,8 @@ Instantiates the root component and adds it to the DOM.
 ```typescript
 // src/main(.js|.ts)
 ​
-import Aurelia, { RouterConfiguration } from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router';
+import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
 ​
 Aurelia
@@ -376,10 +377,10 @@ import * as LogManager from 'aurelia-logging';
 import { ConsoleAppender } from 'aurelia-logging-console';
 export function configure(aurelia) {
     aurelia.use.standardConfiguration();
-    
+
     LogManager.addAppender(new ConsoleAppender());
     LogManager.setLevel(LogManager.logLevel.debug);
-    
+
     aurelia.start().then(() => aurelia.setRoot());
 }
 ```

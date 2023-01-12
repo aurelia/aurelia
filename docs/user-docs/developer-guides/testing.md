@@ -112,7 +112,7 @@ We want to test that our custom element says what it should say when data is pas
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, createFixture, setPlatform } from '@aurelia/testing';
 
-import { PersonDetail } from './person-detail'; 
+import { PersonDetail } from './person-detail';
 
 const platform = new BrowserPlatform(window);
 setPlatform(platform);
@@ -130,7 +130,7 @@ describe('Person Detail', function() {
       );
 
       await startPromise;
-      
+
       assert.strictEqual(appHost.textContent, 'Person is called Rob and is 29 years old.');
 
       await tearDown();
@@ -149,30 +149,30 @@ Before we write any tests, let's create a custom attribute that adds a color bor
 {% code title="color-square.ts" %}
 ```typescript
   import { bindable, customAttribute, INode } from 'aurelia';
-  
-  @customAttribute('color-square') 
+
+  @customAttribute('color-square')
   export class ColorSquareCustomAttribute {
     @bindable() color: string = 'red';
     @bindable() size: string = '100px';
-  
+
     constructor(@INode private element: HTMLElement){
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.width = this.element.style.height = this.size;
       this.element.style.backgroundColor = this.color;
     }
-    
+
     colorChanged(newColor, oldColor) {
       this.element.style.backgroundColor = newColor;
     }
-    
+
     sizeChanged(newSize: string, oldSize: string) {
       this.element.style.width = this.element.style.height = newSize;
     }
-}  
+}
 ```
 {% endcode %}
 
@@ -183,7 +183,7 @@ Our color square attribute will make an element uniform in size (same height and
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, createFixture, setPlatform } from '@aurelia/testing';
 
-import { ColorSquareCustomAttribute } from './color-square'; 
+import { ColorSquareCustomAttribute } from './color-square';
 
 const platform = new BrowserPlatform(window);
 setPlatform(platform);
@@ -229,7 +229,7 @@ export class ToUpper {
         if (!str) {
             return str;
         }
-        
+
         return str.toUpperCase();
     }
 }
@@ -245,7 +245,7 @@ Now, onto our test. Our test is going to test the code itself, as well as being 
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, createFixture, setPlatform } from '@aurelia/testing';
 
-import { ToUpper } from './to-upper'; 
+import { ToUpper } from './to-upper';
 
 const platform = new BrowserPlatform(window);
 setPlatform(platform);
@@ -255,21 +255,21 @@ describe('To Upper', function() {
     // Passing in null should return null
     it('returns invalid values', function() {
         const sut = new ToUpper();
-        
+
         assert.strictEqual(sut.toView(null), null);
     });
-    
+
     // Passing in a string should return in uppercase
     it('returns provided string as uppercase', function() {
         const sut = new ToUpper();
-        
+
         assert.strictEqual(sut.toView('rOb wAs hErE'), 'ROB WAS HERE');
     });
-    
+
     // Passing in a string containing numbers should return only string in uppercase
     it('returns provided string as uppercase', function() {
         const sut = new ToUpper();
-        
+
         assert.strictEqual(sut.toView('rOb wAs hErE'), 'ROB WAS HERE');
     });
 
@@ -330,14 +330,15 @@ Before we do that, let's create a basic component with an injected dependency an
 
 {% code title="my-component.ts" %}
 ```typescript
-import { customElement, IRouter } from 'aurelia';
+import { IRouter } from '@aurelia/router';
+import { customElement } from 'aurelia';
 
 @customElement('my-component')
 export class MyComponent {
     constructor(@IRouter private router: IRouter) {
-    
+
     }
-    
+
     navigate(path) {
         return this.router.load(path);
     }
@@ -354,7 +355,7 @@ In this test, we will use a Sinon stub to stub out the `load` method inside the 
 ```typescript
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, createFixture, setPlatform } from '@aurelia/testing';
-import { IRouter, RouterConfiguration } from 'aurelia';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 
 import { MyComponent } from '../src/components/my-component';
 
@@ -372,18 +373,18 @@ describe('Component Test', function() {
             MyComponent,
             [ RouterConfiguration ]
           );
-          
+
           await startPromise;
-          
+
           // The router property is private, so get the router instance
           // from the container
           const router = container.get(IRouter);
-          
+
           // Stub load and return first argument
           sinon.stub(router, 'load').returnsArg(0);
 
           assert.strictEqual(component.navigate('nowhere'), 'nowhere');
-      
+
           await tearDown();
     });
 });
@@ -396,7 +397,7 @@ Sometimes, you will want to replace a dependency with a fake version completely.
 ```typescript
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, createFixture, setPlatform } from '@aurelia/testing';
-import { IRouter, RouterConfiguration } from 'aurelia';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 
 import { MyComponent } from '../src/components/my-component';
 
@@ -420,11 +421,11 @@ describe('Component Test', function() {
             MyComponent,
             [ Registration.instance(IRouter, mockRouter) ]
           );
-          
+
           await startPromise;
 
           assert.strictEqual(component.navigate('nowhere'), 'nowhere');
-      
+
           await tearDown();
     });
 });
@@ -445,11 +446,11 @@ Where spies are useful is not only in knowing when a method is called but how ma
 import { customElement } from 'aurelia';
 
 @customElement('magic-button')
-export class MagicButton {    
+export class MagicButton {
     callbackFunction(event, id) {
         return this.save(event, id);
     }
-    
+
     save(event, id) {
         // This would call the API or something...
         return `${id}__special`;
@@ -480,16 +481,16 @@ describe('Magic Button', function() {
             `<magic-button></magic-button>`,
             MagicButton
           );
-          
+
           await startPromise;
-          
+
           const save = sinon.spy(component, 'save');
-          
+
           component.callbackFunction(new CustomEvent('test'), 2);
-          
+
           save.restore();
           sinon.assert.calledOnce(save);
-      
+
           await tearDown();
     });
 });
@@ -511,9 +512,9 @@ import { customElement } from 'aurelia';
 @customElement('my-component')
 export class MyComponent {
     constructor(@IRouter private router: IRouter) {
-    
+
     }
-    
+
     navigate(path) {
         return this.router.load(path);
     }
@@ -527,7 +528,7 @@ Inside our test file, you'll notice things are a little cleaner than in the prev
 ```typescript
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { assert, setPlatform } from '@aurelia/testing';
-import { IRouter, RouterConfiguration } from 'aurelia';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 
 import { MyComponent } from '../src/components/my-component';
 
@@ -536,7 +537,7 @@ setPlatform(platform);
 BrowserPlatform.set(globalThis, platform);
 
 describe('Component Test', function() {
-    
+
     // We need any or TypeScript will complain it's not a proper router instance
     const mockRouter: any = {
         load(path) {
@@ -546,7 +547,7 @@ describe('Component Test', function() {
 
     it('should mock dependencies', function() {
         const sut = new MyElement(mockRouter);
-        
+
         assert.strictEqual(sut.navigate('nowhere'), 'nowhere');
     });
 });

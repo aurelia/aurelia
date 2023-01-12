@@ -23,9 +23,9 @@ You can see a working example [here](https://stackblitz.com/edit/typescript-hh9a
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
 * Creating a new Aurelia app. This won't be covered in this tutorial and you may refer the other tutorials to this end.
-* You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
-* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
+* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 * Native Web APIs, such as [`createElement`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement).
 
 ## Custom elements

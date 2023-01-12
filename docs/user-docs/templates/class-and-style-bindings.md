@@ -1,4 +1,11 @@
-# Class and Style Bindings
+---
+description: >-
+  Learn how to style elements, components and other facets of an Aurelia
+  application using classes and CSS. Strategies for different approaches are
+  discussed in this section.
+---
+
+# CSS classes and styling
 
 Aurelia makes it easy to modify an element inline class list and styles. You can work with not only strings but also objects to manipulate elements.
 

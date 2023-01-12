@@ -1,3 +1,9 @@
+---
+description: >-
+  The Aurelia template compiler is powerful and developer-friendly, allowing you
+  extend its syntax with great ease.
+---
+
 # Extending templating syntax
 
 ## Context
@@ -160,4 +166,3 @@ And with the above, your Aurelia application will get two way binding flow seaml
 <fast-text-area value.bind="description"></fast-text-area>
 <fast-slider value.bind="fontSize"></fast-slider>
 ```
-

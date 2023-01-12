@@ -1,13 +1,19 @@
-# Content projection
+---
+description: >-
+  Learn how to work with slots to work with the concept of dynamic slot
+  placeholders in your custom elements.
+---
 
-In Aurelia, we have a couple of different ways we can project content into custom elements. In the case of Shadow DOM is enabled, we can use `<slot>` and for situations where Shadow DOM is disabled but we want content project functionality, we have `<au-slot>`
+# Slotted content
+
+In Aurelia, we have several ways to project content into custom elements. In the case of Shadow DOM, we can use `<slot>` and for situations where Shadow DOM is disabled, but we want content project functionality, we have `<au-slot>`
 
 ## Slot
 
-When working with Shadow DOM components, the `<slot>` element is a native way to allow for content projection into components. In some instances, the `<slot>` element will not be the right choice and you will need to consider `<au-slot>` (referenced below) instead.
+When working with Shadow DOM-enabled components, the `<slot>` element is a native way to allow content projection into components. In some instances, the `<slot>` element will not be the right choice, and you will need to consider `<au-slot>` (referenced below) instead.
 
 {% hint style="warning" %}
-`The slot element will only work when Shadow DOM is enabled for your component. Attempting to use the slot element with it disabled will result in an error being thrown.`
+The slot element will only work when Shadow DOM is enabled for your component. Attempting to use the slot element with it disabled will throw an error in the console.
 {% endhint %}
 
 In the case of a fictional but realistic example, we have a modal element. The user can provide content which is rendered inside of the element.
@@ -20,7 +26,7 @@ In the case of a fictional but realistic example, we have a modal element. The u
 </div>
 ```
 
-Now, assuming this is a Shadow DOM enabled component, all is well. We have a custom element that allows for content to be used inside of it.
+Assuming this is a Shadow DOM-enabled component, all is well. We have a custom element that allows for content to be used inside of it.
 
 Because we named our component `au-modal` we will then use it like this:
 
@@ -32,7 +38,7 @@ Because we named our component `au-modal` we will then use it like this:
 </au-modal>
 ```
 
-Notice how we use the attribute `slot` on our content being passed in? This tells Aurelia to project our content into the default slot. Now, custom elements can have multiple slots, so how do we tell Aurelia where to project our content?
+Notice how we use the attribute `slot` on our content being passed in? This tells Aurelia to project our content into the default slot. Custom elements can have multiple slots, so how do we tell Aurelia where to project our content?
 
 ### Named slots
 
@@ -46,7 +52,7 @@ A named slot is no different to a conventional slot. The only difference is the 
 </div>
 ```
 
-Now, to use our element with named slot, you can do this:
+Now, to use our element with a named slot, you can do this:
 
 ```html
 <au-modal>
@@ -58,28 +64,33 @@ Now, to use our element with named slot, you can do this:
 
 ### Fallback content
 
-A slot can have default content that is displayed when nothing is explicitly projected into it. Fallback content works for default and named slot elements.
+A slot can display default content when nothing is explicitly projected into it. Fallback content works for default and named slot elements.
 
 ```html
 <div class="modal">
     <button type="button" data-action="close" class="close" aria-label="Close" click.trigger="close()" ><span aria-hidden="true">&times;</span></button>
     <div class="modal-inner">
-        <slot>This is default content shown if the user does not supply anything.</slot>
+        <slot>This is the default content shown if the user does not supply anything.</slot>
     </div>
 </div>
 ```
 
 ## Au-slot
 
-Aurelia provides another way of content projection with `au-slot`. This is similar to the native `slot` in terms of content projection, however, it does not use Shadow DOM. `au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.&#x20;
+Aurelia provides another way of content projection with `au-slot`. This is similar to the native `slot` when working with content projection. However, it does not use Shadow DOM. `au-slot` is useful where you want externally defined styles to penetrate the component boundary, facilitating easy styling of components.
 
-If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application.&#x20;
+Suppose you create your own set of custom elements solely used in your application. In that case, you might want to avoid the native slots in the custom elements, as it might be difficult to style them from your application.
 
-However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier. Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline. There are other aspects of `au-slot` as well which will be explored in this section with examples.
+However, if you still want slot-like behavior, then you can use `au-slot`, as that makes styling those custom elements/components easier. Instead of using shadow DOM, the resulting view is composed purely by the Aurelia compilation pipeline.&#x20;
+
+There are other aspects of `au-slot` as well which will be explored in this section with examples.
 
 {% hint style="info" %}
-* An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes in the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
-* If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
+An obvious question might be, "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes opposite to Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case. However, still brings slotting behavior to use.
+{% endhint %}
+
+{% hint style="info" %}
+If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
 {% endhint %}
 
 ## Basic templating usage
@@ -135,7 +146,7 @@ static content
 ```
 {% endcode %}
 
-In the example above, the `my-element` custom element defines two slots: one default, and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is therefore also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
+In the example above, the `my-element` custom element defines two slots: one default and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is, therefore, also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
 
 Similar to native shadow DOM and `<slot/>`/`[slot]` pair, `[au-slot]` attribute is not mandatory if you are targeting the default slot. All content without explicit `[au-slot]` is treated as targeting the default slot. Having no `[au-slot]` is also equal to having explicit `au-slot` on the content:
 
@@ -176,7 +187,7 @@ Another important point to note is that the usage of `[au-slot]` attribute is su
 
 **Inject the projected slot information**
 
-It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model. This provides information related to the slots inside a custom element. As of now the information includes only the slot names for which content has been projected. Let's consider the following example.
+It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model. This provides information related to the slots inside a custom element. The information includes only the slot names for which content has been projected. Let's consider the following example.
 
 {% tabs %}
 {% tab title="my-element.html" %}
@@ -214,9 +225,9 @@ class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Following would be logged to the console for the instances of `my-element`.
+The followingrk would be logged to the console for the instances of `my-element`.
 
-```
+```markup
 // my_element_instance_1
 ['default', 's1']
 
@@ -226,15 +237,17 @@ Following would be logged to the console for the instances of `my-element`.
 
 ## Binding scope
 
-It is also possible to use data-binding, interpolation etc. while projecting. While doing so, the scope accessing rule can be described by the following thumb rule:
+It is also possible to use data-binding, interpolation etc., while projecting. While doing so, the scope accessing rule can be described by the following thumb rule:
 
-1. When projection is provided, the scope of the custom element, providing the projection is used.
-2. When projection is not provided, the scope of the inner custom element is used.
+1. When the projection is provided, the scope of the custom element providing the projection is used.
+2. When the projection is not provided, the scope of the inner custom element is used.
 3. The outer custom element can still access the inner scope using the `$host` keyword while projecting.
 
-These rules are explained with the following examples.
+### Examples
 
-**Example: Projection uses the outer scope by default**
+To further explain how these rules apply, these rules are explained with the following examples.
+
+#### Projection uses the outer scope by defaultthe&#x20;
 
 Let's consider the following example with interpolation.
 
@@ -330,7 +343,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-**Example: Fallback uses the inner scope by default**
+#### **Fallback uses the inner scope by default**
 
 Let's consider the following example with interpolation. This is the same example as before, but this time without projection.
 
@@ -424,7 +437,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-**Example: Access the inner scope with `$host`**
+#### **Access the inner scope with `$host`**
 
 The outer custom element can access the inner custom element's scope using the `$host` keyword, as shown in the following example.
 
@@ -469,7 +482,7 @@ export class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Note that using the `$host.message` expression, `MyApp` can access the `MyElement#message`. The following example demonstrate the same behavior for binding values to custom elements.
+Note that using the `$host.message` expression, `MyApp` can access the `MyElement#message`. The following example demonstrates the same behavior for binding values to custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -523,7 +536,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-Let's consider another example of `$host` which highlights the communication between inside and outside of a custom element that employs `<au-slot>`
+Let's consider another example of `$host` which highlights the communication between the inside and outside of a custom element that employs `<au-slot>`
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -587,19 +600,21 @@ class Person {
 {% endtab %}
 {% endtabs %}
 
-In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the `<au-slot name="content" />` and use the properties made available by the binding `expose.bind="{ person, $even, $odd, $index }"`, and use those in the projection template. Note that `$host` allows us to access whatever the `<au-slot/>` element exposes, and this value can be changed to enable powerful scenarios. Without the `$host` it might have been difficult to provide a template for the repeater from outside.
+In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the `<au-slot name="content" />` and use the properties made available by the binding `expose.bind="{ person, $even, $odd, $index }"`, and use those in the projection template.&#x20;
+
+Note that `$host` allows us to access whatever the `<au-slot/>` element exposes, and this value can be changed to enable powerful scenarios. Without the `$host` it might not have been easy to provide a template for the repeater from the outside.
 
 {% hint style="info" %}
-The last example is also interesting from another aspect. It shows that while working with a grid, many parts of the grid can be replaced with projection. This includes, the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
+The last example is also interesting from another aspect. It shows that many parts of the grid can be replaced with projection while working with a grid. This includes the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
 {% endhint %}
 
 {% hint style="warning" %}
-The `$host` keyword can only be used in context of projection. Using it in any other context is not supported, and will throw error with high probability.
+The `$host` keyword can only be used in the context of projection. Using it in any other context is not supported and will throw errors with high probability.
 {% endhint %}
 
 ## Multiple projections for a single slot
 
-It is possible to provide multiple projections to single slot.
+It is possible to provide multiple projections to a single slot.
 
 {% code title="my-element.html" %}
 ```html
@@ -652,11 +667,11 @@ This is useful for many cases. One evident example would a 'tabs' custom element
 ```
 {% endcode %}
 
-This helps keep things closer that belong together. For example, keeping the tab-header and tab-content next to each other provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents at the right slot.
+This helps keep things closer that belong together. For example, keeping the tab-header and tab-content next to each other provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents in the right slot.
 
 ## Duplicate slots
 
-Having more than one `<au-slot>` with same name is also supported. This lets us project the same content to multiple slots declaratively, as can be seen from the following example.
+Having more than one `<au-slot>` with the same name is also supported. This lets us project the same content to multiple slots declaratively, as can be seen in the following example.
 
 {% code title="person-card.html" %}
 ```html

@@ -1,5 +1,8 @@
 ---
-description: There are two ways to show and hide content in Aurelia.
+description: >-
+  There are two ways to show and hide content in Aurelia. Conditional rendering
+  allows you to use boolean logic to show and hide things inside Aurelia
+  applications.
 ---
 
 # Conditional Rendering
@@ -18,20 +21,24 @@ In the following example, we pass a value called `isLoading` , which is populate
 <div if.bind="isLoading">Loading...</div>
 ```
 
-When `isLoading` is a truthy value, the element will be displayed and added to the DOM. When `isLoading` is falsy, the element will be removed from the DOM, disposing of any events or child components inside it.
+When `isLoading` is a truthy value, the element will be displayed and added to the DOM. When `isLoading` is falsy, the element will be removed from the DOM, disposing of any events or child components.
 
-There is also a `else` binding that allows you to create `if/else` statements too.
+### else
+
+There is also a `else` binding that allows you to create `if/else` statements too. The `if/else` functionality works how you might expect. Like Javascript, it allows you to say, "If this, otherwise that."
 
 ```html
 <div if.bind="showThis">Hello, there.</div>
 <div else>Or else.</div>
 ```
 
-The `else` value must be used on an element directly proceeding  `if.bind` or it will not work.
+The `else` value must be used on an element directly proceeding  `if.bind` , or it will not work.
 
-By default, the `if.bind` feature will cache the view-model/view of the element you are using `if.bind` . Not being aware of this default behavior can lead to confusing situations where the previous state is retained, especially on custom elements.
+{% hint style="warning" %}
+**A note on caching behavior:** By default, the `if.bind` feature will cache the view model/view of the element you are using `if.bind` . Not being aware of this default behavior can lead to confusing situations where the previous state is retained, especially on custom elements.
+{% endhint %}
 
-You can opt out of caching if this becomes a problem by using verbose `if.bind` syntax.
+Using verbose syntax, you can opt out of caching if this becomes a problem.
 
 ```html
 <some-element if="value.bind: showThis; cache: false"></some-element>
@@ -40,7 +47,7 @@ You can opt out of caching if this becomes a problem by using verbose `if.bind` 
 When using the verbose syntax, `value.bind` is the boolean condition that triggers your `if.bind` condition and `cache: false` is what disables the cache. Only disable the cache if it becomes a problem.
 
 {% hint style="warning" %}
-Be careful. Using if.bind takes your markup out of the flow of the page. This causes both reflow and repaint events in the browser, which can be intensive for large applications with a lot of markup.
+Be careful. Using `if.bind` takes your markup out of the flow of the page. This causes both reflow and repaint events in the browser, which can be intensive for large applications with a lot of HTML markup.
 {% endhint %}
 
 ## show.bind
@@ -73,4 +80,4 @@ In Javascript, we can use `switch/case` statements that act as neater `if` state
 
 The `switch.bind` controller will watch the bound value, which in our case is `selectedAction` and when it changes, match it against our case values. It is important to note that this will add and remove elements from the DOM like the `if.bind` does.
 
-In the above example, you can see that we denote the container element where we use `switch.bind` followed by `case` with the value to match. At the end, we have `default-case` which will be displayed if the provided value does not match any of the case values.
+In the above example, you can see that we denote the container element where we use `switch.bind` followed by `case` with the value to match. At the bottom, we have `default-case` which will be displayed if the provided value does not match any of the case values.

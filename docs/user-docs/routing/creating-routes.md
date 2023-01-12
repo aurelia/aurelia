@@ -4,15 +4,15 @@ description: Learn all there is to know about creating routes in Aurelia.
 
 # Creating Routes
 
-The router takes your routing instructions and matches the URL to determine what components to render. In the case of configured routes, when the URL patch matches the configured route path, the component is loaded. If you are using the direct router because there is no configuration the premise is the same without the configuration part.
+The router takes your routing instructions and matches the URL to determine what components to render. When the URL patch matches the configured route path, the component is loaded in the case of configured routes.
 
-To register routes you can either use the `@route` decorator or you can use the static routes property `static routes` to register one or more routes in your application.
+To register routes, you can either use the `@route` decorator or the static routes property `static routes` to register one or more routes in your application.
 
 ## Route syntax
 
-The routing syntax used in the Aurelia router is similar to that of other routers you might have worked with before. If you have worked with Express.js routing, then the syntax will be very familiar to you.
+The routing syntax used in the Aurelia router is similar to that of other routers you might have worked with before. The syntax will be very familiar if you have worked with Express.js routing.
 
-A route is an object containing a few required properties that tell the router what component to render, what URL it should match on and other route-specific configuration options.
+A route is an object containing a few required properties that tell the router what component to render, what URL it should match and other route-specific configuration options.
 
 At a minimum, a route must contain `path` and `component` properties, or `path` and `redirectTo` properties. The `component` and `redirectTo` properties can be used in place of one another, allowing you to create routes that point to other routes.
 
@@ -38,7 +38,7 @@ Parameters are supplied to `canLoad` and `loading` router lifecycle callbacks as
 Named required parameters that are prefixed with a colon. `:productId` when used in a path, a named required parameter might look like this:
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { IRouteableComponent, IRoute } from '@aurelia/router';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -50,12 +50,14 @@ export class MyApp implements IRouteableComponent {
 }
 ```
 
+This named parameter is denoted by the colon prefix and is called `productId` which we will be able to access within our routed component.
+
 #### Optional named parameters
 
 Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { IRouteableComponent, IRoute } from '@aurelia/router';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -67,14 +69,16 @@ export class MyApp implements IRouteableComponent {
 }
 ```
 
-In the above example, we have an optional parameter called variation. We know it's optional because of the question mark at the end. This means it would still be valid if you were to visit this route with supplying the variation parameter.
+In the above example, we have an optional parameter called `variation`. We know it's optional because of the question mark at the end. This means it would still be valid if you visited this route with supplying the variation parameter.
+
+Using optional name parameters is convenient for routes where different things can happen depending on the presence of those optional parameters.
 
 #### Wildcard parameters
 
-Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead of using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.
+Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { IRouteableComponent, IRoute } from '@aurelia/router';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -86,7 +90,7 @@ export class MyApp implements IRouteableComponent {
 }
 ```
 
-In the above code example, we can have an endless path after which is supplied as a value to the `canLoad` and `load` methods.
+In the above code example, we can have an endless path after which it is supplied as a value to the `canLoad` and `load` methods.
 
 ### Route configuration options
 
@@ -106,7 +110,7 @@ Besides the basics of `path` and `component` a route can have additional configu
 
 ### Redirect
 
-By specifying the `redirectTo` property on our route, we can create route aliases. These allow us to redirect to other routes. In the following example, we redirect our default route to the products page.
+By specifying the `redirectTo` property on our route, we can create route aliases. These allow us to redirect to other routes. We redirect our default route to the products page in the following example.
 
 ```typescript
 @routes([
@@ -121,10 +125,12 @@ export class MyApp {
 
 ## Specify routes
 
-When creating routes, it is important to note that the `component` property can do more than accept inline import statements. If you prefer, you can also import the component and specify the component class as the component property.
+When creating routes, it is important to note that the `component` property can do more than accept inline import statements. You can also import the component and specify the component class as the component property if you prefer.
+
+If you are working with the Aurelia application generated using `npx makes aurelia` you would already have a `my-app.ts` file to place your routes in. It's the main component of the scaffolded Aurelia application.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { IRouteableComponent, IRoute } from '@aurelia/router';
 import { HomePage } from './components/home-page';
 
 export class MyApp implements IRouteableComponent {
@@ -145,7 +151,7 @@ As you will learn towards the end of this section, inline import statements allo
 If you have a lot of routes, the static property might be preferable from a cleanliness perspective.
 
 ```typescript
-import { IRouteableComponent, IRoute } from "@aurelia/router";
+import { IRouteableComponent, IRoute } from '@aurelia/router';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -164,10 +170,10 @@ If you have more than a few routes, it might be best practice to write them in a
 
 ### Defining routes using the route decorator
 
-The syntax for routes stays the same using the decorator. Just how they are defined changes slightly.
+The syntax for routes stays the same using the decorator. Just how they have defined changes slightly.
 
 ```typescript
-import { IRouteableComponent, routes } from "@aurelia/router";
+import { IRouteableComponent, routes } from '@aurelia/router';
 
 @routes([
     {
@@ -229,7 +235,7 @@ export class DashboardPage implements IRouteableComponent {
 ```
 {% endcode %}
 
-You will notice we create routes the same way we learned further above. However, we are defining these inside of a component we are using for our dashboard section. Notice how we use the `au-viewport` element inside of the `dashboard-page` component.
+You will notice we create routes the same way we learned further above. However, we are defining these inside a component we use for our dashboard section. Notice how we use the `au-viewport` element inside of the `dashboard-page` component.
 
 Lastly, let's create our default dashboard component for the landing page.
 

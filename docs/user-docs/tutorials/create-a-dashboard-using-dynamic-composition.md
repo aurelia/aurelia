@@ -24,9 +24,9 @@ The dashboard will be comprised of a handful of different widgets and by leverag
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](broken-reference/).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
-* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di.md). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
+* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
 ## Create the app
 
@@ -133,13 +133,13 @@ Now, we create a `dog-component.html` file inside of the `components` directory:
 </div>
 ```
 
-If you have [read up on the promise controller](https://docs.aurelia.io/getting-to-know-aurelia/introduction/built-in-template-features/promise.bind), this syntax will be familiar to you. We make the call to our `fetchDog` method, while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then.from-view` we get the return object we can work with. We then bind the returned URL `src` attribute of the image. If there is an error the `catch.from-view` will be triggered and pass our error.
+If you have [read up on the promise controller](../templates/template-syntax.md#using-promise-bindings-inside-of-a-repeat.for), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then.from-view` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch.from-view` will be triggered and pass our error.
 
 ## Base styling
 
 Our dashboard application is going to be a series of components with varied sizes. Because this isn't a CSS tutorial, here are the styles to make everything look pretty. Add these into your `my-app.css` file as they will form the basis of the core dashboard styling.
 
-If you are comfortable with CSS, feel free to change things. For the purposes of this article, this merely serves to make the dashboard feel like a dashboard and look nicer.
+If you are comfortable with CSS, feel free to change things. For this tutorial, this merely serves to make the dashboard feel like a dashboard and look nicer.
 
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
@@ -231,7 +231,7 @@ ul li {
 ```
 
 {% hint style="success" %}
-**Have you had enough water today?** If not, take a moment to go get yourself a nice refreshing glass of water or take a sip from your water bottle.
+**Have you had enough water today?** If not, take a moment to get yourself a nice refreshing glass of water or take a sip from your water bottle.
 {% endhint %}
 
 ## Using dynamic composition
@@ -258,7 +258,7 @@ export class MyApp {
 * We create a new class property called `components` which is an array of our imported components
 * We use an array because it allows us to change the order of components being displayed as well as remove any we don't want to show (it becomes modular)
 
-The missing piece is now adding in the actual dynamic composition to our view. Open `my-app.html` and add in the following:
+The missing piece is now adding the actual dynamic composition to our view. Open `my-app.html` and add in the following:
 
 ```markup
 <div class="container">
@@ -268,11 +268,11 @@ The missing piece is now adding in the actual dynamic composition to our view. O
 </div>
 ```
 
-* We add in a div with a class of container which will hold our components
+* We add a div with a class of container which will hold our components
 * We loop over our components using `repeat.for` we do this on a `<template` element so we don't introduce any additional elements to the DOM (template elements don't get shown in the browser)
 * Our `repeat.for` is the equivalent of `for (let component of components)` in Javascript
 * We use the `<au-compose>` element and pass in the instance to `view-model` which will then render the component
-* On `<au-compose>` we also use the `containerless` attribute which will remove any `<au-compose>` element in the DOM and only leave us with the custom element itself
+* On `<au-compose>` we also use the `containerless` attribute, which will remove any `<au-compose>` element in the DOM and only leave us with the custom element itself
 
 If you were to run this app using `npm start` you would see something like this so far:
 
@@ -280,9 +280,9 @@ If you were to run this app using `npm start` you would see something like this 
 
 ## Component #3 - GeoIP component
 
-For our third component, we are going to leverage the GeoIP API to create a component that displays information about the current user. Their IP address, approximate location and other details (only you can see your own details).
+For our third component, we will leverage the GeoIP API to create a component that displays information about the current user. Their IP address, approximate location and other details (only you can see your own details).
 
-Some of this code will look familiar to you, we worked with the Aurelia Fetch Client to build our dog component (component #2), we'll be using the promise controller for this again as well because it makes working with promises in Aurelia cleaner.
+Some of this code will look familiar to you. We worked with the Aurelia Fetch Client to build our dog component (component #2), we'll be using the promise controller for this again as well because it makes working with promises in Aurelia cleaner.
 
 Create a new file called `geoip-component.ts` inside of the `src/components` directory in your application and populate it with the following:
 
@@ -301,9 +301,9 @@ export class GeoipComponent {
 }
 ```
 
-We actually don't need to explain what is happening here, this is pretty much a copy and paste of our dog component. We explain what each piece of code is doing, so if you skipped that step, please go back before continuing
+We actually don't need to explain what is happening here. This is pretty much a copy and paste of our dog component. We explain what each piece of code is doing, so if you skipped that step, please go back before continuing
 
-Now, let's create the view for our geoip component. Create a HTML file called `geoip-component.html` in the `src/components` directory:
+Now, let's create the view for our geoip component. Create an HTML file called `geoip-component.html` in the `src/components` directory:
 
 ```markup
 <div class="component geoip-component" promise.bind="getUserInfo()">
@@ -353,7 +353,7 @@ export class MyApp {
 
 Our fourth component will be a note-taking component. It will show a simple list of notes, allow us to delete them and most importantly: allow us to add new notes. This component will not require communicating with a third-party API.
 
-Like all the components we have created before, we start off creating two files in the `components` directory. Let's create `notes-component.ts` first as this is where most of the code will be.
+Like all the components we have created before, we start off by creating two files in the `components` directory. Let's create `notes-component.ts` first as this is where most of the code will be.
 
 Inside of `notes-component.ts` add the following:
 
@@ -376,13 +376,13 @@ export class NotesComponent {
 ```
 
 * First, we create a class property called `notes` which is an array of strings. These strings are our notes.
-* The class property called `note` is where our in progress notes are stored (bound to a textarea)
+* The class property called `note` is where our in-progress notes are stored (bound to a textarea)
 * The `addNote` method puts the value of `note` bound to our textarea into our array, using `unshift` to push it to the beginning
 * We can then set the `note` value to be an empty string (you will see the textarea empty)
 * The `remoteNote` method takes a numeric index of a note
 * Using `splice` on the notes array, we delete our not based on its index value
 
-We now need the markup for our component. Create a new file called `notes-component.html` alongside our `notes-component.ts` file and add in the following:
+We now need the markup for our component. Create a new file called `notes-component.html` alongside our `notes-component.ts` file and add the following:
 
 ```markup
 <div class="component notes-component">
@@ -486,7 +486,7 @@ Now, we create the view for our component `exchange-component.html`
 </div>
 ```
 
-Like the other promise based examples before this one (component 4 and component 2) we use the promise controller syntax. Inside of `then.from-view` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
+Like the other promise-based examples before this one (component 4 and component 2), we use the promise controller syntax. Inside  `then.from-view` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
 
 Now, let's create the accompanying CSS file for our component of the same name, `exchange-component.css`
 
@@ -605,7 +605,7 @@ export class GeoipComponent {
 
 Inside of `geoip-component.html` replace the existing `promise.bind` with this one:
 
-```
+```html
 promise.bind="api.fetchData('https://freegeoip.app/json/')"
 ```
 

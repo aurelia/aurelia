@@ -1510,6 +1510,100 @@ describe('router (smoke tests)', function () {
     assert.areTaskQueuesEmpty();
   });
 
+  it('Router#load accepts viewport instructions with specific viewport name', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22' })
+    class GrandChildTwoTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: ['', 'c1'],
+          component: ChildOne,
+        },
+        {
+          path: 'c2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    await router.load([
+      {
+        component: ChildOne,
+        children: [{ component: GrandChildOneTwo }],
+        viewport: 'vp2',
+      },
+      {
+        component: ChildTwo,
+        params: { id: 21 },
+        children: [{ component: GrandChildTwoTwo }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22', 'round#2 vp1');
+    assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
+
+    await router.load([
+      {
+        component: ChildTwo,
+        viewport: 'vp2',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
+
+    await au.stop();
+  });
   // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
   it('does not interfere with standard "href" attribute', async function () {

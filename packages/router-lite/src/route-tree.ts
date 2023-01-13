@@ -442,9 +442,15 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
-      const { vi: newVi, query } = rc.generateViewportInstruction({ component: rd, params: vi.params ?? emptyObject })!;
+      const { vi: newVi, query } = rc.generateViewportInstruction({
+        component: rd,
+        params: vi.params ?? emptyObject,
+        open: vi.open,
+        close: vi.close,
+        viewport: vi.viewport,
+        children: vi.children.slice(),
+      })!;
       (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
-      (newVi.children as NavigationInstruction[]).push(...vi.children);
       return appendNode(log, node, createConfiguredNode(
         log,
         node,

@@ -399,6 +399,26 @@ export function createAndAppendNodes(
           // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
           // Therefore the path matches the configured empty route and puts the whole path into residue.
           if (rr === null || residue === path) {
+            // check if a route-id is used
+            const eagerResult = ctx.generateViewportInstruction({
+              component: vi.component.value,
+              params: vi.params ?? emptyObject,
+              open: vi.open,
+              close: vi.close,
+              viewport: vi.viewport,
+              children: vi.children.slice(),
+            });
+            if(eagerResult !== null) {
+              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, eagerResult.query, true);
+              return appendNode(log, node, createConfiguredNode(
+                log,
+                node,
+                eagerResult.vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+                eagerResult.vi.recognizedRoute!,
+                vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+            }
+
+            // fallback
             const name = vi.component.value;
             if (name === '') return;
             let vp = vi.viewport;

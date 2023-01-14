@@ -408,7 +408,7 @@ export function createAndAppendNodes(
               viewport: vi.viewport,
               children: vi.children.slice(),
             });
-            if(eagerResult !== null) {
+            if (eagerResult !== null) {
               (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, eagerResult.query, true);
               return appendNode(log, node, createConfiguredNode(
                 log,
@@ -458,25 +458,29 @@ export function createAndAppendNodes(
           return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, rr, originalInstruction));
         }
       }
+    case NavigationInstructionType.Promise:
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
-      const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
-      const { vi: newVi, query } = rc.generateViewportInstruction({
-        component: rd,
-        params: vi.params ?? emptyObject,
-        open: vi.open,
-        close: vi.close,
-        viewport: vi.viewport,
-        children: vi.children.slice(),
-      })!;
-      (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
-      return appendNode(log, node, createConfiguredNode(
-        log,
-        node,
-        newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
-        newVi.recognizedRoute!,
-        vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+      return onResolve(
+        RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
+        rd => {
+          const { vi: newVi, query } = rc.generateViewportInstruction({
+            component: rd,
+            params: vi.params ?? emptyObject,
+            open: vi.open,
+            close: vi.close,
+            viewport: vi.viewport,
+            children: vi.children.slice(),
+          })!;
+          (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
+          return appendNode(log, node, createConfiguredNode(
+            log,
+            node,
+            newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+            newVi.recognizedRoute!,
+            vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+        });
     }
   }
 }

@@ -452,6 +452,89 @@ This can be seen in action in the live example below.
 
 Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective custom element definitions, purely for convenience purpose.
 
+**Using a function to return the view-model class**
+
+Similar to [route configuration](./configuring-routes.md#using-a-function-returning-the-class), for `load` you can use a function that returns a class as routing instruction.
+This looks like as follows.
+
+```typescript
+router.load(() => ChildOne);
+router.load([() => ChildOne, () => ChildTwo]);
+
+router.load(() => GrandChildOneOne, { context: this });
+```
+
+This can be seen in action in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-component-factory?ctl=1&embed=1&file=src/my-app.ts" %}
+
+**Using `import()`**
+
+Similar to [route configuration](./configuring-routes.md#using-inline-import), for `load` you can use an `import()` statement to import a module.
+This looks like as follows.
+
+```typescript
+router.load(import('./child1'));          // uses the default or first non-default import
+router.load([
+  import('./child1'),
+  import('./child2').then(m => m.Child2) // selective import
+]);
+```
+
+This can be seen in action in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-import?ctl=1&embed=1&file=src/child2.ts" %}
+
+Note that because the `import()` function returns a promise, you can also use a promise directly with the `load` function.
+
+```typescript
+router.load(Promise.resolve({ ChildOne }));
+```
+
+**Using a viewport instruction**
+
+Any kind of routing instruction used for the `load` method is converted to a viewport instruction tree.
+You can also use a (partial) viewport instruction with the `load` method.
+This offers maximum configuration, such as routing parameters, viewports, children etc.
+Following are few examples, how the viewport instruction API can be used.
+
+```typescript
+// using a route-id
+router.load({ component: 'c1' });
+
+// using a class
+router.load({ component: ChildTwo });
+
+// load sibling routes
+router.load([
+  // use custom element definition
+  { component: CustomElement.getDefinition(ChildOne) },
+  // use a function returning class
+  { component: () => ChildTwo, params: { id: 42 } },
+]);
+
+// load sibling routes with nested children and parameters etc.
+router.load([
+  // using path
+  {
+    component: 'c1',
+    children: [{ component: GrandChildOneTwo }],
+    viewport: 'vp2',
+  },
+  // using import
+  {
+    component: import('./child2'),
+    params: { id: 21 },
+    children: [{ component: GrandChildTwoTwo }],
+    viewport: 'vp1',
+  },
+]);
+```
+
+This can be seen in the example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-viewport-instruction?ctl=1&embed=1&file=src/my-app.ts" %}
+
 ### Using navigation options
 
 The router instance `load` method allows you to specify different properties on a per-use basis. The most common one being the `title` property to allow you to modify the title as you navigate to your route.

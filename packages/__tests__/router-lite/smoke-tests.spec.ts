@@ -1510,6 +1510,674 @@ describe('router (smoke tests)', function () {
     assert.areTaskQueuesEmpty();
   });
 
+  it('Router#load accepts viewport instructions with specific viewport name - component: class', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22' })
+    class GrandChildTwoTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: ['', 'c1'],
+          component: ChildOne,
+        },
+        {
+          path: 'c2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    await router.load([
+      {
+        component: ChildOne,
+        children: [{ component: GrandChildOneTwo }],
+        viewport: 'vp2',
+      },
+      {
+        component: ChildTwo,
+        params: { id: 21 },
+        children: [{ component: GrandChildTwoTwo }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22', 'round#2 vp1');
+    assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
+
+    await router.load([
+      {
+        component: ChildTwo,
+        viewport: 'vp2',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
+
+    await au.stop();
+  });
+
+  it('Router#load accepts hierarchical viewport instructions with route-id', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22 ${id}' })
+    class GrandChildTwoTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          id: 'c1',
+          path: ['', 'c-1'],
+          component: ChildOne,
+        },
+        {
+          id: 'c2',
+          path: 'c-2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    await router.load([
+      {
+        component: 'c1',
+        children: [{ component: 'gc12' }],
+        viewport: 'vp2',
+      },
+      {
+        component: 'c2',
+        params: { id: 21 },
+        children: [{ component: 'gc22' }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22 NA', 'round#2 vp1');
+    assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
+
+    await router.load([
+      {
+        component: 'c2',
+        viewport: 'vp2',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
+
+    await router.load([
+      {
+        component: 'c1',
+        children: [{ component: 'gc12' }],
+        viewport: 'vp2',
+      },
+      {
+        component: 'c2',
+        params: { id: 21 },
+        children: [{ component: 'gc22', params: { id: 42 } }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22 42', 'round#4 vp1');
+    assert.html.textContent(vps[1], 'c1 gc12', 'round#4 vp2');
+
+    await router.load([
+      {
+        component: 'c1',
+        children: [{ component: 'gc12' }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc12', 'round#5 vp1');
+    assert.html.textContent(vps[1], '', 'round#5 vp2');
+
+    await au.stop();
+  });
+
+  it('Router#load supports class-returning-function as component', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22 ${id}' })
+    class GrandChildTwoTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          id: 'c1',
+          path: ['', 'c-1'],
+          component: ChildOne,
+        },
+        {
+          id: 'c2',
+          path: 'c-2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    // single
+    await router.load(() => ChildTwo);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc21', 'round#2 vp1');
+    assert.html.textContent(vps[1], '', 'round#2 vp2');
+
+    // sibling
+    await router.load([() => ChildTwo, () => ChildOne]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc21', 'round#3 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#3 vp2');
+
+    // viewport instruction
+    await router.load([
+      { component: () => ChildTwo, viewport: 'vp2' },
+      { component: () => ChildOne, viewport: 'vp1' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#4 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#4 vp2');
+
+    // viewport instruction - params
+    await router.load([
+      { component: () => ChildTwo, viewport: 'vp1', params: { id: 42 } },
+      { component: () => ChildOne, viewport: 'vp2' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 42 gc21', 'round#5 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#5 vp2');
+
+    // viewport instruction - children
+    await router.load([
+      { component: () => ChildTwo, viewport: 'vp2', children: [() => GrandChildTwoTwo] },
+      { component: () => ChildOne, viewport: 'vp1', children: [() => GrandChildOneTwo] },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc12', 'round#6 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc22 NA', 'round#6 vp2');
+
+    // viewport instruction - parent-params - children
+    await router.load([
+      { component: () => ChildTwo, viewport: 'vp1', params: { id: 42 }, children: [() => GrandChildTwoTwo] },
+      { component: () => ChildOne, viewport: 'vp2' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 42 gc22 NA', 'round#7 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#7 vp2');
+
+    // viewport instruction - parent-params - children-params
+    await router.load([
+      { component: () => ChildTwo, viewport: 'vp2', params: { id: 42 }, children: [{ component: () => GrandChildTwoTwo, params: { id: 21 } }] },
+      { component: () => ChildOne, viewport: 'vp1', children: [() => GrandChildOneTwo] },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc12', 'round#8 vp1');
+    assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#8 vp2');
+
+    await au.stop();
+  });
+
+  // Use-case: router.load(import('./class'))
+  it('Router#load supports promise as component', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22 ${id}' })
+    class GrandChildTwoTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          id: 'c1',
+          path: ['', 'c-1'],
+          component: ChildOne,
+        },
+        {
+          id: 'c2',
+          path: 'c-2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    // single - default
+    await router.load(Promise.resolve({ default: ChildTwo }));
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc21', 'round#2 vp1');
+    assert.html.textContent(vps[1], '', 'round#2 vp2');
+
+    // single - non-default
+    await router.load(Promise.resolve({ ChildOne }));
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
+    assert.html.textContent(vps[1], '', 'round#3 vp2');
+
+    // single - chained
+    await router.load(Promise.resolve({ ChildOne, ChildTwo }).then(x => x.ChildTwo));
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc21', 'round#4 vp1');
+    assert.html.textContent(vps[1], '', 'round#4 vp2');
+
+    // sibling
+    await router.load([Promise.resolve({ ChildTwo }), Promise.resolve({ ChildOne })]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc21', 'round#5 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#5 vp2');
+
+    // viewport instruction
+    await router.load([
+      { component: Promise.resolve({ ChildTwo }), viewport: 'vp2' },
+      { component: Promise.resolve({ ChildOne }), viewport: 'vp1' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#6 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#6 vp2');
+
+    // viewport instruction - params
+    await router.load([
+      { component: Promise.resolve({ ChildTwo }), viewport: 'vp1', params: { id: 42 } },
+      { component: Promise.resolve({ ChildOne }), viewport: 'vp2' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 42 gc21', 'round#7 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#7 vp2');
+
+    // viewport instruction - children
+    await router.load([
+      { component: Promise.resolve({ ChildTwo }), viewport: 'vp2', children: [() => GrandChildTwoTwo] },
+      { component: Promise.resolve({ ChildOne }), viewport: 'vp1', children: [() => GrandChildOneTwo] },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc12', 'round#8 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc22 NA', 'round#8 vp2');
+
+    // viewport instruction - parent-params - children
+    await router.load([
+      { component: Promise.resolve({ ChildTwo }), viewport: 'vp1', params: { id: 42 }, children: [() => GrandChildTwoTwo] },
+      { component: Promise.resolve({ ChildOne }), viewport: 'vp2' },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 42 gc22 NA', 'round#9 vp1');
+    assert.html.textContent(vps[1], 'c1 gc11', 'round#9 vp2');
+
+    // viewport instruction - parent-params - children-params
+    await router.load([
+      { component: Promise.resolve({ ChildTwo }), viewport: 'vp2', params: { id: 42 }, children: [{ component: () => GrandChildTwoTwo, params: { id: 21 } }] },
+      { component: Promise.resolve({ ChildOne }), viewport: 'vp1', children: [() => GrandChildOneTwo] },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc12', 'round#10 vp1');
+    assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#10 vp2');
+
+    await au.stop();
+  });
+
+  it('Router#load accepts viewport instructions with specific viewport name - component: mixed', async function () {
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
+        { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
+    class ChildOne { }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22 ${id}' })
+    class GrandChildTwoTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
+        { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2 \${id} <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id ?? 'NA';
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          id: 'c1',
+          path: ['', 'c-1'],
+          component: ChildOne,
+        },
+        {
+          id: 'c2',
+          path: 'c-2/:id?',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    class MyApp { }
+
+    const { au, container, host } = await start({ appRoot: MyApp });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
+    assert.html.textContent(vps[1], '', 'round#1 vp2');
+
+    await router.load([
+      {
+        component: 'c1', /* route-id */
+        children: [{ component: 'gc-12' /* path */ }],
+        viewport: 'vp2',
+      },
+      {
+        component: ChildTwo, /* class */
+        params: { id: 21 },
+        children: [{ component: 'gc22' /* route-id */ }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22 NA', 'round#2 vp1');
+    assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
+
+    await router.load([
+      {
+        component: CustomElement.getDefinition(ChildTwo), /* definition */
+        viewport: 'vp2',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
+    assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
+
+    await router.load([
+      {
+        component: CustomElement.getDefinition(ChildTwo), /* definition */
+        params: { id: 42 },
+        children: [{ component: GrandChildTwoTwo /* class */, params: { id: 21 } }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 42 gc22 21', 'round#4 vp1');
+    assert.html.textContent(vps[1], '', 'round#4 vp2');
+
+    await router.load([
+      {
+        component: CustomElement.getDefinition(ChildTwo), /* definition */
+        children: [{ component: GrandChildTwoTwo /* class */ }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 NA gc22 NA', 'round#5 vp1');
+    assert.html.textContent(vps[1], '', 'round#5 vp2');
+
+    await router.load([
+      {
+        component: () => ChildTwo,
+        params: { id: 42 },
+        children: [{ component: Promise.resolve({ GrandChildTwoTwo }), params: { id: 21 } }],
+        viewport: 'vp2',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c1 gc11', 'round#6 vp1');
+    assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#6 vp2');
+
+    await router.load([
+      {
+        component: Promise.resolve({ ChildTwo }),
+        params: { id: 21 },
+        children: [{ component: CustomElement.getDefinition(GrandChildTwoTwo), params: { id: 42 } }],
+        viewport: 'vp1',
+      },
+    ]);
+    await queue.yield();
+
+    assert.html.textContent(vps[0], 'c2 21 gc22 42', 'round#7 vp1');
+    assert.html.textContent(vps[1], '', 'round#7 vp2');
+
+    await au.stop();
+  });
   // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
   it('does not interfere with standard "href" attribute', async function () {

@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
-import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger } from './router-events';

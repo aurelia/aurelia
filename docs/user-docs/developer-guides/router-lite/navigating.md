@@ -570,9 +570,29 @@ This can also be seen in the action below where a random title separator is sele
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-title-separator?ctl=1&embed=1&file=src/my-app.ts" %}
 
-A list of available load options can be found below:
+**`queryParams`**
 
-* `queryParams` — Specify an object to be serialized to a query string, and then set to the query string of the new URL.
+This option lets you specify an object to be serialized to a query string.
+This can be used as follows.
+
+```typescript
+// the generated URL: /home?foo=bar&fizz=buzz
+router.load(
+  'home',
+  {
+    queryParams: {
+      foo: 'bar',
+      fizz: 'buzz',
+    }
+  }
+);
+```
+
+This can be seen in the live example below.
+
+{% embed url="TODO" %}
+
+
 * `fragment` — Specify the hash fragment for the new URL.
 
 These option values can be specified as follows and when needed:

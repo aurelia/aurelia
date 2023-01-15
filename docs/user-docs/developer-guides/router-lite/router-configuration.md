@@ -173,7 +173,8 @@ import { route, IRouteViewModel } from '@aurelia/router-lite';
 export class MyApp implements IRouteViewModel {}
 ```
 
-With this route configuration in place, we can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when user is navigated to `/` or `/home` route.
+With this route configuration in place, when we navigate to `/home`, the default-built title will be `Home | Aurelia`.
+We can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when user is navigated to `/` or `/home` route.
 
 ```typescript
 // main.ts
@@ -201,7 +202,7 @@ Check out the following live example. You might need to open the demo in a nex t
 When localizing your app, you would also like to translate the title.
 Note that the router does not facilitate the translation by itself.
 However, there are enough hooks that can be leveraged to translate the title.
-To this end, we would use the [`data` property](TODO(Sayan): add link) in the route configuration to store the i18n key.
+To this end, we would use the [`data` property](./configuring-routes.md#advanced-route-configuration-options) in the route configuration to store the i18n key.
 
 ```typescript
 import { IRouteViewModel, Routeable } from "aurelia";

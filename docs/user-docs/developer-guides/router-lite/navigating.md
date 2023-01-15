@@ -537,11 +537,41 @@ This can be seen in the example below.
 
 ### Using navigation options
 
-The router instance `load` method allows you to specify different properties on a per-use basis. The most common one being the `title` property to allow you to modify the title as you navigate to your route.
+Along with using the routing instructions, the `load` method allows you to specify different navigation options on a per-use basis.
+One of those, the `context`, you have already seen in the examples in the previous sections.
+This section describes other available options.
+
+**`title`**
+
+The `title` property allows you to modify the title as you navigate to your route.
+This looks like as follows.
+
+```typescript
+router.load(Home, { title: 'Some title' });
+```
+
+Note that defining the `title` like this, overrides the title defined via the route configuration.
+This can also be seen in the action below where a random title is generated every time.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-title?ctl=1&embed=1&file=src/my-app.ts" %}
+
+**`titleSeparator`**
+
+As the name suggests, this provides a configuration option to customize the separator for the [title parts](./configuring-routes.md#setting-the-title).
+By default router-lite uses `|` as separator.
+For example if the root component defines a title `'Aurelia'` and has a route `/home` with title `Home`, then the resulting title would be `Home | Aurelia` when navigating to the route `/home`.
+Using this option, you can customize the separator.
+
+```typescript
+router.load(Home, { titleSeparator: '-' });
+```
+
+This can also be seen in the action below where a random title separator is selected every time.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-title-separator?ctl=1&embed=1&file=src/my-app.ts" %}
 
 A list of available load options can be found below:
 
-* `title` — Sets the title of the component being loaded
 * `queryParams` — Specify an object to be serialized to a query string, and then set to the query string of the new URL.
 * `fragment` — Specify the hash fragment for the new URL.
 

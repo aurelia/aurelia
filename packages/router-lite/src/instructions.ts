@@ -81,7 +81,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly viewport: string | null,
     public readonly params: Params | null,
     public readonly children: ViewportInstruction[],
-  ) {}
+  ) { }
 
   public static create(instruction: NavigationInstruction): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
@@ -224,7 +224,7 @@ export class RedirectInstruction implements IRedirectInstruction {
   private constructor(
     public readonly path: string,
     public readonly redirectTo: string,
-  ) {}
+  ) { }
 
   public static create(instruction: IRedirectInstruction): RedirectInstruction {
     if (instruction instanceof RedirectInstruction) {
@@ -273,7 +273,7 @@ export class ViewportInstructionTree {
     public readonly children: ViewportInstruction[],
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-  ) {}
+  ) { }
 
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
@@ -292,10 +292,10 @@ export class ViewportInstructionTree {
       const len = instructionOrInstructions.length;
       const children = new Array(len);
       const query = new URLSearchParams($options.queryParams ?? emptyObject);
-      for(let i = 0; i<len; i++) {
+      for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
-        if(eagerVi !== null) {
+        if (eagerVi !== null) {
           children[i] = eagerVi.vi;
           mergeURLSearchParams(query, eagerVi.query, false);
         } else {
@@ -311,19 +311,20 @@ export class ViewportInstructionTree {
     }
 
     const eagerVi = hasContext ? context.generateViewportInstruction(instructionOrInstructions) : null;
+    const query = new URLSearchParams($options.queryParams ?? emptyObject);
     return eagerVi !== null
       ? new ViewportInstructionTree(
         $options,
         false,
         [eagerVi.vi],
-        new URLSearchParams(eagerVi.query ?? emptyObject),
+        mergeURLSearchParams(query, eagerVi.query, false),
         null,
       )
       : new ViewportInstructionTree(
         $options,
         false,
         [ViewportInstruction.create(instructionOrInstructions)],
-        emptyQuery,
+        query,
         null,
       );
   }
@@ -387,11 +388,11 @@ export interface ITypedNavigationInstruction<
   toUrlComponent(): string;
   clone(): this;
 }
-export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> {}
-export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> {}
-export interface ITypedNavigationInstruction_CustomElementDefinition extends ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> {}
-export interface ITypedNavigationInstruction_Promise extends ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> {}
-export interface ITypedNavigationInstruction_IRouteViewModel extends ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> {}
+export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> { }
+export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> { }
+export interface ITypedNavigationInstruction_CustomElementDefinition extends ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> { }
+export interface ITypedNavigationInstruction_Promise extends ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> { }
+export interface ITypedNavigationInstruction_IRouteViewModel extends ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> { }
 
 export type ITypedNavigationInstruction_T = (
   ITypedNavigationInstruction_Component |
@@ -413,7 +414,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
   private constructor(
     public readonly type: TType,
     public readonly value: TInstruction,
-  ) {}
+  ) { }
 
   public static create(instruction: string): ITypedNavigationInstruction_string;
   public static create(instruction: IViewportInstruction): ITypedNavigationInstruction_ViewportInstruction;

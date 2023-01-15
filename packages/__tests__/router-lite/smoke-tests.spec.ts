@@ -2235,6 +2235,15 @@ describe('router (smoke tests)', function () {
       public async redirect4() {
         await this.router.load('a/fizz', { queryParams: { foo: 'bar' } });
       }
+      public async redirect5() {
+        await this.router.load(VmA, { queryParams: { foo: 'bar' } });
+      }
+      public async redirect6() {
+        await this.router.load({ component: VmA, params: { foo: '42' } }, { queryParams: { foo: 'bar' } });
+      }
+      public async redirect7() {
+        await this.router.load({ component: 'a' /** route-id */, params: { foo: '42', bar: 'foo' } }, { queryParams: { bar: 'fizz' } });
+      }
     }
 
     @route({
@@ -2263,7 +2272,7 @@ describe('router (smoke tests)', function () {
       return { host, au, container };
     }
 
-    it('queryString - #1', async function () {
+    it('queryString - #1 - query string in string routing instruction', async function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
@@ -2274,7 +2283,7 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    it('queryString - #2', async function () {
+    it('queryString - #2 - structured query string object', async function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
@@ -2285,7 +2294,7 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    it('queryString - #3', async function () {
+    it('queryString - #3 - multi-valued query string - value from both string path and structured query params', async function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
@@ -2296,13 +2305,46 @@ describe('router (smoke tests)', function () {
       await au.stop();
     });
 
-    it('queryString - #4', async function () {
+    it('queryString - #4 - structured query string along with path parameter', async function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirect4();
 
       assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #5 - structured query string with class as routing instruction', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect5();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #6 - structured query string with viewport instruction', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect6();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar');
+
+      await au.stop();
+    });
+
+    it('queryString - #7 - structured query string with viewport instruction - route-id and multi-valued key', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirect7();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: bar=fizz&bar=foo');
 
       await au.stop();
     });

@@ -2208,14 +2208,16 @@ describe('router (smoke tests)', function () {
   });
 
   {
-    @customElement({ name: 'vm-a', template: `view-a foo: \${params.foo} | query: \${query.toString()}` })
+    @customElement({ name: 'vm-a', template: `view-a foo: \${params.foo} | query: \${query.toString()} | fragment: \${fragment}` })
     class VmA {
       public params!: Params;
       public query!: Readonly<URLSearchParams>;
+      public fragment: string;
 
       public loading(params: Params, next: RouteNode) {
         this.params = params;
         this.query = next.queryParams;
+        this.fragment = next.fragment;
       }
     }
     @customElement({ name: 'vm-b', template: 'view-b' })
@@ -2223,26 +2225,47 @@ describe('router (smoke tests)', function () {
       public constructor(
         @IRouter public readonly router: IRouter,
       ) { }
-      public async redirect1() {
+      public async redirectToPath() {
         await this.router.load('a?foo=bar');
       }
-      public async redirect2() {
+      public async redirectWithQueryObj() {
         await this.router.load('a', { queryParams: { foo: 'bar' } });
       }
-      public async redirect3() {
+      public async redirectWithMultivaluedQuery() {
         await this.router.load('a?foo=fizz', { queryParams: { foo: 'bar' } });
       }
-      public async redirect4() {
+      public async redirectWithRouteParamAndQueryObj() {
         await this.router.load('a/fizz', { queryParams: { foo: 'bar' } });
       }
-      public async redirect5() {
+      public async redirectWithClassAndQueryObj() {
         await this.router.load(VmA, { queryParams: { foo: 'bar' } });
       }
-      public async redirect6() {
+      public async redirectVpInstrcAndQueryObj() {
         await this.router.load({ component: VmA, params: { foo: '42' } }, { queryParams: { foo: 'bar' } });
       }
-      public async redirect7() {
+      public async redirectVpInstrcRouteIdAndQueryObj() {
         await this.router.load({ component: 'a' /** route-id */, params: { foo: '42', bar: 'foo' } }, { queryParams: { bar: 'fizz' } });
+      }
+      public async redirectFragment() {
+        await this.router.load('a#foobar');
+      }
+      public async redirectFragmentInNavOpt() {
+        await this.router.load('a', { fragment: 'foobar' });
+      }
+      public async redirectFragmentInPathAndNavOpt() {
+        await this.router.load('a#foobar', { fragment: 'fizzbuzz' });
+      }
+      public async redirectFragmentWithVpInstrc() {
+        await this.router.load({ component: 'a', params: { foo: '42' } }, { fragment: 'foobar' });
+      }
+      public async redirectFragmentWithVpInstrcRawUrl() {
+        await this.router.load({ component: 'a/42' }, { fragment: 'foobar' });
+      }
+      public async redirectFragmentSiblingViewport() {
+        await this.router.load([{ component: 'a/42' }, { component: 'a' }], { fragment: 'foobar' });
+      }
+      public async redirectSiblingViewport() {
+        await this.router.load([{ component: 'a/42' }, { component: 'a' }], { queryParams: { foo: 'bar' } });
       }
     }
 
@@ -2253,7 +2276,7 @@ describe('router (smoke tests)', function () {
         { path: ['', 'b'], component: VmB, title: 'B', transitionPlan: 'invoke-lifecycles' },
       ],
     })
-    @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
+    @customElement({ name: 'app-root', template: '<au-viewport></au-viewport> <au-viewport default.bind="null"></au-viewport>' })
     class AppRoot { }
 
     async function start(buildTitle: IRouterOptions['buildTitle'] | null = null) {
@@ -2276,9 +2299,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect1();
+      await vmb.redirectToPath();
 
-      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2287,9 +2310,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect2();
+      await vmb.redirectWithQueryObj();
 
-      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2298,9 +2321,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect3();
+      await vmb.redirectWithMultivaluedQuery();
 
-      assert.html.textContent(host, 'view-a foo: undefined | query: foo=fizz&foo=bar');
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=fizz&foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2309,9 +2332,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect4();
+      await vmb.redirectWithRouteParamAndQueryObj();
 
-      assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2320,9 +2343,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect5();
+      await vmb.redirectWithClassAndQueryObj();
 
-      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2331,9 +2354,9 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect6();
+      await vmb.redirectVpInstrcAndQueryObj();
 
-      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar');
+      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment:');
 
       await au.stop();
     });
@@ -2342,9 +2365,86 @@ describe('router (smoke tests)', function () {
       const { host, au } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect7();
+      await vmb.redirectVpInstrcRouteIdAndQueryObj();
 
-      assert.html.textContent(host, 'view-a foo: 42 | query: bar=fizz&bar=foo');
+      assert.html.textContent(host, 'view-a foo: 42 | query: bar=fizz&bar=foo | fragment:');
+
+      await au.stop();
+    });
+
+    it('queryString - #8 - sibling viewports', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectSiblingViewport();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: view-a foo: undefined | query: foo=bar | fragment:');
+
+      await au.stop();
+    });
+
+    it('fragment - #1 - raw fragment in path', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragment();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+
+      await au.stop();
+    });
+
+    it('fragment - #2 - fragment in navigation options', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragmentInNavOpt();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+
+      await au.stop();
+    });
+
+    it('fragment - #3 - fragment in path always wins over the fragment in navigation options', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragmentInPathAndNavOpt();
+
+      assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+
+      await au.stop();
+    });
+
+    it('fragment - #4 - with viewport instruction', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragmentWithVpInstrc();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
+
+      await au.stop();
+    });
+
+    it('fragment - #5 - with viewport instruction - raw url', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragmentWithVpInstrcRawUrl();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
+
+      await au.stop();
+    });
+
+    it('fragment - #6 - sibling viewport', async function () {
+      const { host, au } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectFragmentSiblingViewport();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar view-a foo: undefined | query: | fragment: foobar');
 
       await au.stop();
     });
@@ -2354,7 +2454,7 @@ describe('router (smoke tests)', function () {
       assert.strictEqual(container.get(IPlatform).document.title, 'B | base');
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect1();
+      await vmb.redirectToPath();
 
       assert.strictEqual(container.get(IPlatform).document.title, 'A | base');
 
@@ -2369,7 +2469,7 @@ describe('router (smoke tests)', function () {
       assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
-      await vmb.redirect1();
+      await vmb.redirectToPath();
 
       assert.strictEqual(container.get(IPlatform).document.title, 'base - A');
 

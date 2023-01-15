@@ -196,7 +196,7 @@ export class RouteExpression {
       this.isAbsolute,
       this.root.toInstructions(0, 0),
       mergeURLSearchParams(this.queryParams, options.queryParams, true),
-      this.fragment,
+      this.fragment ?? options.fragment,
     );
   }
 

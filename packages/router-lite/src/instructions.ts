@@ -302,7 +302,7 @@ export class ViewportInstructionTree {
           children[i] = ViewportInstruction.create(instruction);
         }
       }
-      return new ViewportInstructionTree($options, false, children, query, null);
+      return new ViewportInstructionTree($options, false, children, query, $options.fragment);
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -318,14 +318,14 @@ export class ViewportInstructionTree {
         false,
         [eagerVi.vi],
         mergeURLSearchParams(query, eagerVi.query, false),
-        null,
+        $options.fragment,
       )
       : new ViewportInstructionTree(
         $options,
         false,
         [ViewportInstruction.create(instructionOrInstructions)],
         query,
-        null,
+        $options.fragment,
       );
   }
 

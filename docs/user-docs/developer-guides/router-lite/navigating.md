@@ -611,6 +611,136 @@ This can be seen in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query?ctl=1&embed=1&file=src/my-app.ts" %}
 
+**`context`**
+
+As by default, the `load` method performs the navigation relative to root context, when navigating to child routes, the context needs to be specified.
+This navigation options has also been used in various examples previously.
+Note that you can use various context types.
+
+The easiest is to use the custom element **view model instance**.
+If you are reading this documentation sequentially, then you already noticed this.
+An example looks like as follows.
+
+```typescript
+router.load('child-route', { context: this });
+```
+
+Here is one of the previous example.
+Take a look at the `child1.ts` or `child2.ts` that demonstrates this.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/child1.ts" %}
+
+
+You can also use an **instance of `IRouteContext`** directly.
+One way to grab the instance of `IRouteContext` is to get it inject via `constructor` using the `@IRouteContext` decorator.
+An example looks like as follows.
+
+```typescript
+import { IRouteContext, IRouter, Params, route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-21', template: 'gc21' })
+class GrandChildTwoOne {}
+
+@customElement({ name: 'gc-22', template: 'gc22' })
+class GrandChildTwoTwo {}
+
+@route({
+  routes: [
+    { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
+    { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+  ],
+})
+@customElement({
+  name: 'c-two',
+  template: `c2 <br>
+  id: \${id}
+  <nav>
+    <button click.trigger="load('gc21', true)">Go to gc21</button>
+    <button click.trigger="load('gc22', true)">Go to gc22</button>
+    <button click.trigger="load('c1')"        >Go to c1  </button>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildTwo {
+  private id: string;
+  public constructor(
+    @IRouter private readonly router: IRouter,
+    @IRouteContext private readonly context: IRouteContext
+  ) {}
+
+  private load(route: string, useCurrentContext: boolean = false) {
+    void this.router.load(
+      route,
+      useCurrentContext ? { context: this.context } : undefined
+    );
+  }
+  public loading(params: Params) {
+    this.id = params.id ?? 'NA';
+  }
+}
+```
+
+You can see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-iroutecontext?ctl=1&embed=1&file=src/child2.ts" %}
+
+Using a **custom element controller** instance is also supported to be used as a value for the `context` option.
+An example looks as follows.
+
+```typescript
+import { IRouter, route } from '@aurelia/router-lite';
+import {
+  customElement,
+  type ICustomElementController,
+  type IHydratedCustomElementViewModel,
+} from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-11', template: 'gc11' })
+class GrandChildOneOne {}
+
+@customElement({ name: 'gc-12', template: 'gc12' })
+class GrandChildOneTwo {}
+
+@route({
+  routes: [
+    { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
+    { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+  ],
+})
+@customElement({
+  name: 'c-one',
+  template: `c1 <br>
+  <nav>
+    <button click.trigger="load('gc11', true)">Go to gc11</button>
+    <button click.trigger="load('gc12', true)">Go to gc12</button>
+    <button click.trigger="load('c2')"        >Go to c2  </button>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildOne implements IHydratedCustomElementViewModel {
+  public readonly $controller: ICustomElementController<this>; // set by aurelia pipeline
+  public constructor(@IRouter private readonly router: IRouter) {}
+
+  private load(route: string, useCurrentContext: boolean = false) {
+    void this.router.load(
+      route,
+      useCurrentContext ? { context: this.$controller } : undefined
+    );
+  }
+}
+```
+
+You can see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-controller?ctl=1&embed=1&file=src/child1.ts" %}
+
+And lastly, you can use the **HTML element** as context.
+
+TODO
+
 ## Redirection and unknown paths
 
 For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.

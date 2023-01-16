@@ -17,7 +17,7 @@ import { ViewportAgent, ViewportRequest } from './viewport-agent';
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
-type PathGenerationResult = { vi: ViewportInstruction; query: Params | null };
+type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 
 export type EagerInstruction = {
   component: string | RouteDefinition | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;

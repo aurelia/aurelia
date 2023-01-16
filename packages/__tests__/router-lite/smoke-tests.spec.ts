@@ -2267,6 +2267,12 @@ describe('router (smoke tests)', function () {
       public async redirectSiblingViewport() {
         await this.router.load([{ component: 'a/42' }, { component: 'a' }], { queryParams: { foo: 'bar' } });
       }
+      public async redirectWithQueryAndFragment() {
+        await this.router.load({ component: 'a', params: { foo: '42' } }, { queryParams: { foo: 'bar' }, fragment: 'foobar' });
+      }
+      public async redirectWithQueryAndFragmentSiblingViewport() {
+        await this.router.load([{ component: 'a', params: { foo: '42' } }, { component: 'a', params: { foo: '84' } }], { queryParams: { foo: 'bar' }, fragment: 'foobar' });
+      }
     }
 
     @route({
@@ -2296,155 +2302,193 @@ describe('router (smoke tests)', function () {
     }
 
     it('queryString - #1 - query string in string routing instruction', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectToPath();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #2 - structured query string object', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectWithQueryObj();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #3 - multi-valued query string - value from both string path and structured query params', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectWithMultivaluedQuery();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=fizz&foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=fizz&foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #4 - structured query string along with path parameter', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectWithRouteParamAndQueryObj();
 
       assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/fizz\?foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #5 - structured query string with class as routing instruction', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectWithClassAndQueryObj();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #6 - structured query string with viewport instruction', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectVpInstrcAndQueryObj();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?foo=bar$/);
 
       await au.stop();
     });
 
     it('queryString - #7 - structured query string with viewport instruction - route-id and multi-valued key', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectVpInstrcRouteIdAndQueryObj();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: bar=fizz&bar=foo | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?bar=fizz&bar=foo$/);
 
       await au.stop();
     });
 
     it('queryString - #8 - sibling viewports', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectSiblingViewport();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: view-a foo: undefined | query: foo=bar | fragment:');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\?foo=bar$/);
 
       await au.stop();
     });
 
     it('fragment - #1 - raw fragment in path', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragment();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
       await au.stop();
     });
 
     it('fragment - #2 - fragment in navigation options', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragmentInNavOpt();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
       await au.stop();
     });
 
     it('fragment - #3 - fragment in path always wins over the fragment in navigation options', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragmentInPathAndNavOpt();
 
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
       await au.stop();
     });
 
     it('fragment - #4 - with viewport instruction', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragmentWithVpInstrc();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar$/);
 
       await au.stop();
     });
 
     it('fragment - #5 - with viewport instruction - raw url', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragmentWithVpInstrcRawUrl();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar$/);
 
       await au.stop();
     });
 
     it('fragment - #6 - sibling viewport', async function () {
-      const { host, au } = await start();
+      const { host, au, container } = await start();
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
 
       await vmb.redirectFragmentSiblingViewport();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar view-a foo: undefined | query: | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a#foobar$/);
+
+      await au.stop();
+    });
+
+    it('query and fragment', async function () {
+      const { host, au, container } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectWithQueryAndFragment();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar\?foo=bar$/);
+
+      await au.stop();
+    });
+
+    it('query and fragment - sibling viewport', async function () {
+      const { host, au, container } = await start();
+      const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
+
+      await vmb.redirectWithQueryAndFragmentSiblingViewport();
+
+      assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar view-a foo: 84 | query: foo=bar | fragment: foobar');
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\/84#foobar\?foo=bar$/);
 
       await au.stop();
     });

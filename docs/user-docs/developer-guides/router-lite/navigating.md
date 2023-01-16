@@ -590,10 +590,11 @@ router.load(
 
 This can be seen in the live example below.
 
-{% embed url="TODO" %}
+{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query?ctl=1&embed=1&file=src/my-app.ts" %}
 
+**`fragment`**
 
-* `fragment` — Specify the hash fragment for the new URL.
+Like the `queryParams`, using the `fragment` option, you can specify the hash fragment for the new URL.
 
 These option values can be specified as follows and when needed:
 

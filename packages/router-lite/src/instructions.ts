@@ -6,7 +6,7 @@ import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
 import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
-import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
+import { INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 

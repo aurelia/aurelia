@@ -595,29 +595,21 @@ This can be seen in the live example below.
 **`fragment`**
 
 Like the `queryParams`, using the `fragment` option, you can specify the hash fragment for the new URL.
-
-These option values can be specified as follows and when needed:
+This can be used as follows.
 
 ```typescript
-import { IRouter, IRouteableComponent } from '@aurelia/router';
-
-export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
-
-    async viewProduct() {
-        await this.router.load('products', {
-            title: 'My product',
-            queryParams: {
-                prop1: 'val',
-                tracking: 'asdasdjaks232'
-            },
-            fragment: 'jfjdjf'
-        });
-    }
-}
+// the generated URL: /home#foobar
+router.load(
+  'home',
+  {
+    fragment: 'foobar'
+  }
+);
 ```
+
+This can be seen in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query?ctl=1&embed=1&file=src/my-app.ts" %}
 
 ## Redirection and unknown paths
 

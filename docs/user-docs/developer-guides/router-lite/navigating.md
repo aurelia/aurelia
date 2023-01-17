@@ -738,8 +738,9 @@ You can see this in action below.
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-controller?ctl=1&embed=1&file=src/child1.ts" %}
 
 And lastly, you can use the **HTML element** as context.
+Following is live example of this.
 
-TODO
+{% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-element?ctl=1&embed=1&file=src/child1.ts" %}
 
 ## Redirection and unknown paths
 

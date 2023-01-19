@@ -62,46 +62,47 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
       const previousControllers = hot.data.controllers;
       if(previousControllers == null || previousControllers.length === 0) {
         // @ts-ignore
-        hot.invalidate();
+        if(hot.invalidate) hot.invalidate();
       }
-
-      // @ts-ignore
-      previousControllers.forEach(controller => {
-        const values = { ...controller.viewModel };
-        const hydrationContext = controller.container.get($$IHC)
-        const hydrationInst = hydrationContext.instruction;
-
-        const bindableNames = Object.keys(controller.definition.bindables);
+      else{
         // @ts-ignore
-        Object.keys(values).forEach(key => {
-          if (bindableNames.includes(key)) {
-            return;
-          }
-          // if there' some bindings that target the existing property
+        previousControllers.forEach(controller => {
+          const values = { ...controller.viewModel };
+          const hydrationContext = controller.container.get($$IHC)
+          const hydrationInst = hydrationContext.instruction;
+
+          const bindableNames = Object.keys(controller.definition.bindables);
           // @ts-ignore
-          const isTargettedByBinding = controller.bindings?.some(y =>
-            y.ast?.$kind === $$EK.AccessScope
-              && y.ast.name === key && y.targetProperty
-          );
-          if (!isTargettedByBinding) {
-            delete values[key];
+          Object.keys(values).forEach(key => {
+            if (bindableNames.includes(key)) {
+              return;
+            }
+            // if there' some bindings that target the existing property
+            // @ts-ignore
+            const isTargettedByBinding = controller.bindings?.some(y =>
+              y.ast?.$kind === $$EK.AccessScope
+                && y.ast.name === key && y.targetProperty
+            );
+            if (!isTargettedByBinding) {
+              delete values[key];
+            }
+          });
+          const h = controller.host;
+          delete controller._compiledDef;
+          controller.viewModel = controller.container.invoke(currentClassType);
+          controller.definition = newDefinition;
+          Object.assign(controller.viewModel, values);
+          if (controller._hydrateCustomElement) {
+            controller._hydrateCustomElement(hydrationInst, hydrationContext);
+          } else {
+            controller.hE(hydrationInst, hydrationContext);
           }
+          h.parentNode.replaceChild(controller.host, h);
+          controller.hostController = null;
+          controller.deactivate(controller, controller.parent ?? null, 0);
+          controller.activate(controller, controller.parent ?? null, 0);
         });
-        const h = controller.host;
-        delete controller._compiledDef;
-        controller.viewModel = controller.container.invoke(currentClassType);
-        controller.definition = newDefinition;
-        Object.assign(controller.viewModel, values);
-        if (controller._hydrateCustomElement) {
-          controller._hydrateCustomElement(hydrationInst, hydrationContext);
-        } else {
-          controller.hE(hydrationInst, hydrationContext);
-        }
-        h.parentNode.replaceChild(controller.host, h);
-        controller.hostController = null;
-        controller.deactivate(controller, controller.parent ?? null, 0);
-        controller.activate(controller, controller.parent ?? null, 0);
-      });
+      }
     }
   }`;
 

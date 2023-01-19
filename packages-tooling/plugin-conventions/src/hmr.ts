@@ -59,50 +59,49 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
       $$M.define(newDefinition.name, newDefinition, newDefinition);
       hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
-      const previousControllers = hot.data.controllers;
-      if(previousControllers == null || previousControllers.length === 0) {
+      const previousControllers = hot.data.controllers ?? [];
+      if(previousControllers.length === 0) {
         // @ts-ignore
-        if(hot.invalidate) hot.invalidate();
+        hot.invalidate?.();
       }
-      else{
-        // @ts-ignore
-        previousControllers.forEach(controller => {
-          const values = { ...controller.viewModel };
-          const hydrationContext = controller.container.get($$IHC)
-          const hydrationInst = hydrationContext.instruction;
 
-          const bindableNames = Object.keys(controller.definition.bindables);
-          // @ts-ignore
-          Object.keys(values).forEach(key => {
-            if (bindableNames.includes(key)) {
-              return;
-            }
-            // if there' some bindings that target the existing property
-            // @ts-ignore
-            const isTargettedByBinding = controller.bindings?.some(y =>
-              y.ast?.$kind === $$EK.AccessScope
-                && y.ast.name === key && y.targetProperty
-            );
-            if (!isTargettedByBinding) {
-              delete values[key];
-            }
-          });
-          const h = controller.host;
-          delete controller._compiledDef;
-          controller.viewModel = controller.container.invoke(currentClassType);
-          controller.definition = newDefinition;
-          Object.assign(controller.viewModel, values);
-          if (controller._hydrateCustomElement) {
-            controller._hydrateCustomElement(hydrationInst, hydrationContext);
-          } else {
-            controller.hE(hydrationInst, hydrationContext);
+      // @ts-ignore
+      previousControllers.forEach(controller => {
+        const values = { ...controller.viewModel };
+        const hydrationContext = controller.container.get($$IHC)
+        const hydrationInst = hydrationContext.instruction;
+
+        const bindableNames = Object.keys(controller.definition.bindables);
+        // @ts-ignore
+        Object.keys(values).forEach(key => {
+          if (bindableNames.includes(key)) {
+            return;
           }
-          h.parentNode.replaceChild(controller.host, h);
-          controller.hostController = null;
-          controller.deactivate(controller, controller.parent ?? null, 0);
-          controller.activate(controller, controller.parent ?? null, 0);
+          // if there' some bindings that target the existing property
+          // @ts-ignore
+          const isTargettedByBinding = controller.bindings?.some(y =>
+            y.ast?.$kind === $$EK.AccessScope
+              && y.ast.name === key && y.targetProperty
+          );
+          if (!isTargettedByBinding) {
+            delete values[key];
+          }
         });
-      }
+        const h = controller.host;
+        delete controller._compiledDef;
+        controller.viewModel = controller.container.invoke(currentClassType);
+        controller.definition = newDefinition;
+        Object.assign(controller.viewModel, values);
+        if (controller._hydrateCustomElement) {
+          controller._hydrateCustomElement(hydrationInst, hydrationContext);
+        } else {
+          controller.hE(hydrationInst, hydrationContext);
+        }
+        h.parentNode.replaceChild(controller.host, h);
+        controller.hostController = null;
+        controller.deactivate(controller, controller.parent ?? null, 0);
+        controller.activate(controller, controller.parent ?? null, 0);
+      });
     }
   }`;
 

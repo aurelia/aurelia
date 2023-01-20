@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-alpha.41",
+  "version": "2.0.0-beta.1",
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9006 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
@@ -16,17 +16,17 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0-alpha.41",
-    "@aurelia/kernel": "2.0.0-alpha.41",
-    "@aurelia/metadata": "2.0.0-alpha.41",
-    "@aurelia/route-recognizer": "2.0.0-alpha.41",
-    "@aurelia/router-lite": "2.0.0-alpha.41",
-    "@aurelia/runtime-html": "2.0.0-alpha.41",
-    "@aurelia/runtime": "2.0.0-alpha.41",
-    "aurelia": "2.0.0-alpha.41"
+    "@aurelia/fetch-client": "2.0.0-beta.1",
+    "@aurelia/kernel": "2.0.0-beta.1",
+    "@aurelia/metadata": "2.0.0-beta.1",
+    "@aurelia/route-recognizer": "2.0.0-beta.1",
+    "@aurelia/router-lite": "2.0.0-beta.1",
+    "@aurelia/runtime-html": "2.0.0-beta.1",
+    "@aurelia/runtime": "2.0.0-beta.1",
+    "aurelia": "2.0.0-beta.1"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0-alpha.41",
+    "@aurelia/webpack-loader": "2.0.0-beta.1",
     "@playwright/test": "1.27.1",
     "@types/node": "^14.18.14",
     "playwright-watch": "1.3.23",

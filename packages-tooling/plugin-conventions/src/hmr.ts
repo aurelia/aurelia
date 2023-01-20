@@ -59,10 +59,10 @@ export const getHmrCode = (className: string, moduleText: string = 'module'): st
       $$M.define(newDefinition.name, newDefinition, newDefinition);
       hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
-      const previousControllers = hot.data.controllers;
-      if(previousControllers == null || previousControllers.length === 0) {
+      const previousControllers = hot.data.controllers ?? [];
+      if(previousControllers.length === 0) {
         // @ts-ignore
-        hot.invalidate();
+        hot.invalidate?.();
       }
 
       // @ts-ignore

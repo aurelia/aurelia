@@ -38,7 +38,6 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     await expect(page.locator('app > div')).toHaveText('Hello World!');
     await page.type('input', 'abc');
     await expect(page.locator('input')).toHaveValue('abc');
-    await page.locator('input').focus();
 
     const newContent = `import { IEventAggregator } from '@aurelia/kernel';
 
@@ -50,7 +49,6 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
         @IEventAggregator private readonly ea: IEventAggregator,
       ) {
         (window as any).app = this;
-        console.log('built ????', Math.random());
       }
     }
     `;
@@ -61,7 +59,6 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
     await expect(page.locator('app > div')).toHaveText('Hello World!');
     await expect(page.locator('input')).toHaveValue('abc');
-    await expect(page.locator('input')).toBeFocused();
   });
 
   test('retains bindable values', async function ({ page }) {

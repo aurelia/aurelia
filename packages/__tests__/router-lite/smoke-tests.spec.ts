@@ -3112,12 +3112,16 @@ describe('router (smoke tests)', function () {
     await au.app({ component: Root, host }).start();
 
     assert.html.textContent(host, 'p2');
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+    assert.match(location.path, /p2$/);
 
     await router.load('p1');
     assert.html.textContent(host, 'p1');
+    assert.match(location.path, /p1$/);
 
     await router.load('foo');
     assert.html.textContent(host, 'p2');
+    assert.match(location.path, /p2$/);
 
     await au.stop();
   });

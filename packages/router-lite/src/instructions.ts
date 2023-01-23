@@ -360,7 +360,7 @@ export class ViewportInstructionTree {
     let search = this.queryParams.toString();
     search = search === '' ? '' : `?${search}`;
 
-    return `${pathname}${hash}${search}`;
+    return `${pathname}${search}${hash}`;
   }
 
   public toPath(): string {

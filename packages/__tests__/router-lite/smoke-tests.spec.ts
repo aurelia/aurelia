@@ -2476,7 +2476,7 @@ describe('router (smoke tests)', function () {
       await vmb.redirectWithQueryAndFragment();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar');
-      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar\?foo=bar$/);
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?foo=bar#foobar$/);
 
       await au.stop();
     });
@@ -2488,7 +2488,7 @@ describe('router (smoke tests)', function () {
       await vmb.redirectWithQueryAndFragmentSiblingViewport();
 
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar view-a foo: 84 | query: foo=bar | fragment: foobar');
-      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\/84#foobar\?foo=bar$/);
+      assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\/84\?foo=bar#foobar$/);
 
       await au.stop();
     });

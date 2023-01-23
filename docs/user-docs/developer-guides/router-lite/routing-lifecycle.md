@@ -36,7 +36,7 @@ export class MyComponent implements IRouteViewModel {
 Roughly speaking, using the `canLoad` and `canUnload` hooks you can determine whether to allow or prevent navigation to and from a route respectively.
 The `loading` and `unloading` hooks are meant to be used for performing setup and clean up activities respectively for a view.
 These hooks are discussed in details in the following section.
-
+Note that all of these hooks can return a promise, which will be awaited by the router-lite pipeline.
 
 {% hint style="info" %}
 In case you are looking for the global/shared routing hooks, there is a separate [documentation section](./router-hooks.md) dedicated for that.
@@ -48,7 +48,6 @@ The `canLoad` method is called upon attempting to load the component.
 It allows you to determine if the component should be loaded or not.
 If your component relies on some precondition being fulfilled before being allowed to render, this is the method you would use.
 Note that the `canLoad` method can also be asynchronous.
-That is, you can return a promise from this method, and that will be awaited.
 
 The component would be loaded if `true` (it has to be `boolean` `true` ) is returned from this method.
 To disallow loading the component you can return `false`.
@@ -154,17 +153,19 @@ You can also see the example in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-canload-sibling-nav-instructions?ctl=1&embed=1&file=src/child1.ts" %}
 
-### **load**
+## `loading`
 
-The `load` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `load` method as an object with one or more parameters as the first argument.
+The `loading` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `loading` method as an object with one or more parameters as the first argument.
 
-{% hint style="info" %}
-If you are loading data from an API based on values provided in the URL and the rendering of this view is not dependent on the data being successfully returned, you can do that inside of `load`.
-{% endhint %}
+In many ways, the `loading` method is the same as `canLoad` with the exception that `loading` cannot prevent the component from loading. Where `canLoad` can be used to redirect users away from the component, the `loading` method cannot.
 
-In many ways, the `load` method is the same as `canLoad` with the exception that `load` cannot prevent the component from loading. Where `canLoad` can be used to redirect users away from the component, the `load` method cannot.
+This lifecycle hook can be utilized to
 
-All of the above code examples for `canLoad` can be used with `load` and will work the same with exception of being able to return `true` or `false` boolean values to prevent the component being loaded (as we just mentioned).
+All of the above code examples for `canLoad` can be used with `load` and will work the same with exception of being able to return `true` or `false` boolean values to prevent the component being loaded.
+
+One of the examples is refactored using `loading` hook that is shown below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-loading?ctl=1&embed=1&file=src/child1.ts" %}
 
 ### canUnload
 

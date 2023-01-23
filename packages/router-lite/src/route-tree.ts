@@ -620,7 +620,20 @@ function createConfiguredNode(
     const redirRR = ctx.recognize(newPath);
     if (redirRR === null) throw new UnknownRouteError(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-    return createConfiguredNode(log, node, vi, rr, originalVi, redirRR.route.endpoint.route);
+    return createConfiguredNode(
+      log,
+      node,
+      ViewportInstruction.create({
+        recognizedRoute: redirRR,
+        component: newPath,
+        children: vi.children,
+        viewport: vi.viewport,
+        open: vi.open,
+        close: vi.close,
+      }) as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+      rr,
+      originalVi,
+      redirRR.route.endpoint.route);
   });
 }
 

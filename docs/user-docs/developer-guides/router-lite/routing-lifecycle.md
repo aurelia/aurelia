@@ -153,6 +153,10 @@ You can also see the example in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-canload-sibling-nav-instructions?ctl=1&embed=1&file=src/child1.ts" %}
 
+### Accessing fragment and query
+
+TODO
+
 ## `loading`
 
 The `loading` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `loading` method as an object with one or more parameters as the first argument.
@@ -167,7 +171,7 @@ One of the examples is refactored using `loading` hook that is shown below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-loading?ctl=1&embed=1&file=src/child1.ts" %}
 
-### canUnload
+## `canUnload`
 
 The `canUnload` method is called when a user attempts to leave a routed view. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route. You can return a component, boolean or string value from this method.
 

@@ -608,7 +608,7 @@ function createConfiguredNode(
 
       if (redirSeg !== null) {
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
-          newSegs.push(rr.route.params[origSeg!.component.name] as string);
+          newSegs.push(rr.route.params[origSeg!.component.parameterName] as string);
         } else {
           newSegs.push(redirSeg.raw);
         }
@@ -631,9 +631,9 @@ function createConfiguredNode(
         open: vi.open,
         close: vi.close,
       }) as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
-      rr,
+      redirRR,
       originalVi,
-      redirRR.route.endpoint.route);
+    );
   });
 }
 

@@ -3126,6 +3126,72 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
+  it('parameterized redirect', async function () {
+    @customElement({ name: 'ce-p1', template: 'p1' })
+    class P1 { }
+
+    @customElement({ name: 'ce-p2', template: `p2 \${id}` })
+    class P2 implements IRouteViewModel {
+      private id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+    @route({
+      routes: [
+        { path: '', redirectTo: 'p2' },
+        { path: 'foo', redirectTo: 'p2/42' },
+        { path: 'fizz/:bar', redirectTo: 'p2/:bar' },
+        { path: 'bar', redirectTo: 'p2/43+p2/44' },
+        { path: 'p1', component: P1, title: 'P1' },
+        { path: 'p2/:id?', component: P2, title: 'P2' },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      P1,
+      P2,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+    const router = container.get(IRouter);
+
+    await au.app({ component: Root, host }).start();
+
+    assert.html.textContent(host, 'p2');
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+    assert.match(location.path, /p2$/);
+
+    await router.load('p1');
+    assert.html.textContent(host, 'p1');
+    assert.match(location.path, /p1$/);
+
+    await router.load('foo');
+    assert.html.textContent(host, 'p2 42');
+    assert.match(location.path, /p2\/42$/);
+
+    await router.load('fizz/21');
+    assert.html.textContent(host, 'p2 21');
+    assert.match(location.path, /p2\/21$/);
+
+    try {
+      await router.load('bar');
+      assert.fail('Expected error for non-simple redirect.');
+    } catch(e) {
+      assert.match((e as Error).message, /^Unexpected expression kind/, 'Expected error due to unexpected path segment.');
+    }
+
+    await au.stop();
+  });
+
   describe('path generation', function () {
     it('at root', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {

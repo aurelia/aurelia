@@ -3192,6 +3192,52 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
+  it('parameterized redirect - parameter rearrange', async function () {
+    @customElement({ name: 'ce-p1', template: 'p1' })
+    class P1 { }
+
+    @customElement({ name: 'ce-p2', template: `p2 \${p1} \${p2}` })
+    class P2 implements IRouteViewModel {
+      private p1: string;
+      private p2: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.p1 = params.p1;
+        this.p2 = params.p2;
+      }
+    }
+    @route({
+      routes: [
+        { path: 'fizz/:foo/:bar', redirectTo: 'p2/:bar/:foo' },
+        { path: 'p2/:p1?/:p2?', component: P2, title: 'P2' },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+    container.register(
+      StandardConfiguration,
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      P1,
+      P2,
+    );
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+    const router = container.get(IRouter);
+
+    await au.app({ component: Root, host }).start();
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+
+    await router.load('fizz/1/2');
+    assert.html.textContent(host, 'p2 2 1');
+    assert.match(location.path, /p2\/2\/1$/);
+
+    await au.stop();
+  });
+
   describe('path generation', function () {
     it('at root', async function () {
       abstract class BaseRouteViewModel implements IRouteViewModel {

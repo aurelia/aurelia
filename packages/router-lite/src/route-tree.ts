@@ -608,7 +608,7 @@ function createConfiguredNode(
 
       if (redirSeg !== null) {
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
-          newSegs.push(rr.route.params[origSeg!.component.parameterName] as string);
+          newSegs.push(rr.route.params[redirSeg.component.parameterName] as string);
         } else {
           newSegs.push(redirSeg.raw);
         }

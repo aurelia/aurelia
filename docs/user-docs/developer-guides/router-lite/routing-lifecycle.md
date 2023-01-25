@@ -155,7 +155,45 @@ You can also see the example in action below.
 
 ### Accessing fragment and query
 
-TODO
+Apart from accessing the route parameter, the query and the fragment associated with the URL can also be accessed inside the `canLoad` hook.
+To this end, you can use the second argument (`next`) to this method.
+
+The following example shows that `id` query parameter is checked whether that is an even number or not.
+If that condition does not hold, then user is redirected to a different view with the query and fragment.
+
+```typescript
+import { NavigationInstruction, Params, RouteNode } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({
+  name: 'c-one',
+  template: `c1 \${id} fragment: \${fragment}`,
+})
+export class ChildOne {
+  private id: number;
+  private fragment: string;
+  public canLoad(
+    params: Params,
+    next: RouteNode
+  ): boolean | NavigationInstruction {
+    this.fragment = next.fragment;
+    const query = next.queryParams;
+    const rawId = query.get('id');
+    const redirectPath = `c2?${next.queryParams.toString()}${
+      next.fragment ? `#${next.fragment}` : ''
+    }`;
+    if (rawId === null) return redirectPath;
+    const id = Number(rawId);
+    if (!Number.isInteger(id) || id % 2 != 0) return redirectPath;
+    this.id = id;
+    return true;
+  }
+}
+```
+
+You can also see the example in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-canload-accessing-fragment-and-query?ctl=1&embed=1&file=src/child1.ts" %}
 
 ## `loading`
 

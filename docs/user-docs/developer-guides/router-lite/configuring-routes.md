@@ -308,6 +308,30 @@ You can see this action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths?ctl=1&embed=1&file=src/my-app.ts" %}
 
+You can use route parameters for `redirectTo`.
+The following example shows that the parameters from the `about-us` path is rearranged to the `about` path.
+
+```typescript
+import { route } from '@aurelia/router-lite';
+import { About } from './about';
+
+@route({
+  routes: [
+    { path: 'about-us/:foo/:bar', redirectTo: 'about/:bar/:foo' },
+    {
+      path: 'about/:p1?/:p2?',
+      component: About,
+      title: 'About',
+    },
+  ],
+})
+export class MyApp {}
+```
+
+You can see this action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-redirect-parameterized?ctl=1&embed=1&file=src/main.ts" %}
+
 ## Fallback: redirecting the unknown path
 
 We can instruct the router-lite to the users to a different configured path, whenever it sees any unknown/un-configured paths.

@@ -62,7 +62,7 @@ This example shows you some of the powerful features of the aurelia binding synt
 
 Feeling excited? Check out how to use `makes` to get started in the next section.
 
-Note: *Please keep in mind that Aurelia 2 is still in alpha.* A number of features and use cases around the public API are still untested and there will be a few more breaking changes.
+Note: *Please keep in mind that Aurelia 2 is still in beta.* A number of features and use cases around the public API are still untested and there will be a few more breaking changes.
 
 ## Getting Started
 

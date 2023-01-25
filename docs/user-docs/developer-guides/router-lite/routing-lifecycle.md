@@ -211,9 +211,16 @@ One of the examples is refactored using `loading` hook that is shown below.
 
 ## `canUnload`
 
-The `canUnload` method is called when a user attempts to leave a routed view. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route. You can return a component, boolean or string value from this method.
+The `canUnload` method is called when a user attempts to leave a routed view.
+The first argument (`next`) of this hook is a `RouteNode` which provides information about the next route.
 
-Like the `canLoad` method, this is just the inverse. It determines if we can navigate away from the current component.
+This hook is like the `canLoad` method but inverse.
+You can return a `boolean true` from this method, allowing the router-lite to navigate away from the current component.
+Returning any other value from this method will disallow the router-lite to unload this component.
+
+The following example shows that before navigating away, the
+
+TODO(sayan): add example
 
 ### **unload**
 

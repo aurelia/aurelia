@@ -330,6 +330,7 @@ export class Router {
     return this._isNavigating;
   }
 
+  /** @internal */
   private _cannotBeUnloaded: boolean = false;
 
   public constructor(

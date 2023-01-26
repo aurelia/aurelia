@@ -35,8 +35,8 @@ export class MyComponent implements IRouteViewModel {
 
 Roughly speaking, using the `canLoad` and `canUnload` hooks you can determine whether to allow or prevent navigation to and from a route respectively.
 The `loading` and `unloading` hooks are meant to be used for performing setup and clean up activities respectively for a view.
-These hooks are discussed in details in the following section.
 Note that all of these hooks can return a promise, which will be awaited by the router-lite pipeline.
+These hooks are discussed in details in the following section.
 
 {% hint style="info" %}
 In case you are looking for the global/shared routing hooks, there is a separate [documentation section](./router-hooks.md) dedicated for that.
@@ -209,6 +209,27 @@ One of the examples is refactored using `loading` hook that is shown below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-loading?ctl=1&embed=1&file=src/child1.ts" %}
 
+Following is an additional example, that shows that you can use the `next.title` property to dynamically set the route title from the `loading` hook.
+
+```typescript
+import { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({
+  name: 'c-one',
+  template: `c1 \${msg}`,
+})
+export class ChildOne implements IRouteViewModel {
+  private msg: string;
+  public loading(params: Params, next: RouteNode) {
+    this.msg = `loaded with id: ${params.id}`;
+    next.title = 'Child One';
+  }
+}
+```
+
+{% embed url="https://stackblitz.com/edit/router-lite-loading-title?ctl=1&embed=1&file=src/main.ts" %}
+
 ## `canUnload`
 
 The `canUnload` method is called when a user attempts to leave a routed view.
@@ -218,62 +239,48 @@ This hook is like the `canLoad` method but inverse.
 You can return a `boolean true` from this method, allowing the router-lite to navigate away from the current component.
 Returning any other value from this method will disallow the router-lite to unload this component.
 
-The following example shows that before navigating away, the
-
-TODO(sayan): add example
-
-### **unload**
-
-The `unload` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
-
-Like the `load` method, this is just the inverse. It is called when the component is being unloaded (provided `canUnload` wasn't false).
-
-## Loading data inside of components
-
-A common router scenario is you want to route to a specific component, say a component that displays product information based on the ID in the URL. You make a request to the API to get the information and display it.
-
-There are two asynchronous lifecycles that are perfect for dealing with loading data: `canLoad` and `load` - both supporting returning a promise (or async/await).
-
-If the component you are loading absolutely requires the data to exist on the server and be returned, the `canLoad` lifecycle method is the best place to do it. Using our example of a product page, if you couldn't load product information, the page would be useful, right?
-
-From the inside of `canLoad` you can redirect the user elsewhere or return false to throw an error.
+The following example shows that before navigating away, the user is shown a confirmation prompt.
+If the user agrees to navigate way, then the navigation is performed.
+The navigation is cancelled, if the user does not confirm.
 
 ```typescript
-import { IRouteViewModel, Parameters } from "@aurelia/router";
+import { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
+import { IPlatform } from '@aurelia/runtime-html';
 
-export class MyComponent implements IRouteViewModel {
-    async canLoad(params: Parameters) {
-        this.product = await this.api.getProduct(params.productId);
-    }
-}
-```
+export class ChildOne implements IRouteViewModel {
 
-Similarly, if you want the view to still load even if we can't get the data, you would use the `load` lifecycle callback.
+  public constructor(@IPlatform private readonly platform: IPlatform) {}
 
-```typescript
-import { IRouteViewModel, Parameters } from "@aurelia/router";
-
-export class MyComponent implements IRouteViewModel {
-    async load(params: Parameters) {
-        this.product = await this.api.getProduct(params.productId);
-    }
-}
-```
-
-When you use `load` and `async` the component will wait for the data to load before rendering.
-
-## Setting the title from within components
-
-While you would in many cases, set the title of a route in your route configuration object using the `title` property, sometimes you want the ability to specify the title property from within the routed component itself.
-
-You can achieve this from within the `canLoad` and `load` methods in your component. By setting the `next.title` property, you can override or transform the title.
-
-```typescript
-import { IRouteViewModel, Parameters, RoutingInstruction, Navigation } from "@aurelia/router";
-
-export class ProductPage implements IRouteViewModel {
-  load(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation) {
-    instruction.route.match.title = 'COOL BEANS';
+  public canUnload(next: RouteNode): boolean {
+    const path = next.computeAbsolutePath();
+    return this.platform.window.confirm(
+      `Do you want to navigate away to ${path}?`
+    );
   }
 }
 ```
+
+You can see this example in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-canunload?ctl=1&embed=1&file=src/child1.ts" %}
+
+## `unloading`
+
+The `unloading` hook is called when the user navigates away from the current component.
+The first argument (`next`) of this hook is a `RouteNode` which provides information about the next route.
+
+This hook is like the `load` method but inverse.
+
+The following example shows that a `unloading` hook logs the event of unloading the component.
+
+```typescript
+public unloading(next: RouteNode): void {
+  this.logger.log(
+    `unloading for the next route: ${next.computeAbsolutePath()}`
+  );
+}
+```
+
+This can also be seen in the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-unloading?ctl=1&embed=1&file=src/child2.ts" %}

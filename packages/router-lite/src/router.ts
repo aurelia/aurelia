@@ -330,6 +330,8 @@ export class Router {
     return this._isNavigating;
   }
 
+  private _cannotBeUnloaded: boolean = false;
+
   public constructor(
     @IContainer private readonly container: IContainer,
     @IPlatform private readonly p: IPlatform,
@@ -664,11 +666,11 @@ export class Router {
     let navigationContext = this.resolveContext(tr.options.context);
     const trChildren = tr.instructions.children;
     const nodeChildren = navigationContext.node.children;
-    const routeChanged = !this.navigated
+    const shouldProcess = !this.navigated
+      || this._cannotBeUnloaded
       || trChildren.length !== nodeChildren.length
-      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
-
-    const shouldProcess = routeChanged || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
+      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false))
+      || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
     if (!shouldProcess) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
@@ -680,6 +682,7 @@ export class Router {
       this.runNextTransition();
       return;
     }
+    this._cannotBeUnloaded = false;
 
     this.logger.trace(`run(tr:%s) - processing route`, tr);
 
@@ -751,6 +754,10 @@ export class Router {
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
           b.push(); // prevent the next step in the batch from running
+          // Note that another alternative solution can be to clear the the children of the root of the current tree
+          // and restore the children of the previous routeTree's root.
+          // However, this should be cheaper solution.
+          this._cannotBeUnloaded = tr.guardsResult === false;
           this.cancelNavigation(tr);
         }
       }).continueWith(b => {

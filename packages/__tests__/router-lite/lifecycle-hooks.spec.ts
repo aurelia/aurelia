@@ -12,10 +12,11 @@
 
 import { DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { isFirefox } from '../util.js';
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { start } from './_shared/create-fixture.js';
 
 describe('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
@@ -1584,4 +1585,82 @@ describe('lifecycle hooks', function () {
     });
   }
   // #endregion
+
+  it('navigate away -> false from canUnload -> navigate away with same path', async function () {
+    @customElement({ name: 'c-one', template: `c1` })
+    class ChildOne implements IRouteViewModel {
+      public allowUnload: boolean = false;
+      public canUnloadCalled: number = 0;
+      public canUnload(): boolean {
+        this.canUnloadCalled++;
+        return this.allowUnload;
+      }
+    }
+    @customElement({ name: 'c-two', template: `c2` })
+    class ChildTwo implements IRouteViewModel {
+      public allowUnload: boolean = false;
+      public canUnloadCalled: number = 0;
+      public canUnload(): boolean {
+        this.canUnloadCalled++;
+        return this.allowUnload;
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: ['c1/:id?'],
+          component: ChildOne,
+        },
+        {
+          path: ['', 'c2/:id?'],
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, 'c2', 'content 1');
+
+    let c2vm = CustomElement.for<ChildTwo>(host.querySelector('c-two')).viewModel;
+    assert.strictEqual(await router.load('c1/42'), false, 'expected unsuccessful load 1');
+    assert.strictEqual(c2vm.canUnloadCalled, 1, 'c2vm.canUnloadCalled 1');
+    assert.strictEqual(await router.load('c1/42'), false, 'expected unsuccessful load 2');
+    assert.strictEqual(c2vm.canUnloadCalled, 2, 'c2vm.canUnloadCalled 2');
+
+    c2vm.allowUnload = true;
+    assert.strictEqual(await router.load('c1/42'), true, 'expected successful load 1');
+    assert.strictEqual(c2vm.canUnloadCalled, 3, 'c2vm.canUnloadCalled 3');
+    assert.html.textContent(host, 'c1', 'content 2');
+
+    const c1vm = CustomElement.for<ChildTwo>(host.querySelector('c-one')).viewModel;
+    assert.strictEqual(await router.load('c2/42'), false, 'expected unsuccessful load 3');
+    assert.strictEqual(c1vm.canUnloadCalled, 1, 'c1vm.canUnloadCalled 1');
+    assert.strictEqual(await router.load('c2/42'), false, 'expected unsuccessful load 4');
+    assert.strictEqual(c1vm.canUnloadCalled, 2, 'c1vm.canUnloadCalled 2');
+
+    c1vm.allowUnload = true;
+    assert.strictEqual(await router.load('c2/42'), true, 'expected successful load 2');
+    assert.strictEqual(c1vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 3');
+    assert.html.textContent(host, 'c2', 'content 3');
+
+    // round#2
+    c2vm = CustomElement.for<ChildTwo>(host.querySelector('c-two')).viewModel;
+    c2vm.allowUnload = false;
+    assert.strictEqual(await router.load('c2/43'), false, 'expected unsuccessful load 5');
+    assert.strictEqual(c2vm.canUnloadCalled, 1, 'c2vm.canUnloadCalled 3');
+    assert.strictEqual(await router.load('c1/43'), false, 'expected unsuccessful load 6');
+    assert.strictEqual(c2vm.canUnloadCalled, 2, 'c2vm.canUnloadCalled 4');
+
+    c2vm.allowUnload = true;
+    assert.strictEqual(await router.load('c1/42'), true, 'expected successful load 3');
+    assert.strictEqual(c2vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 5');
+    assert.html.textContent(host, 'c1', 'content 4');
+
+    await au.stop();
+  });
 });

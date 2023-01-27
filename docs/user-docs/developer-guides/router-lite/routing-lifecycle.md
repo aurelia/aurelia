@@ -251,10 +251,11 @@ export class ChildOne implements IRouteViewModel {
 
   public constructor(@IPlatform private readonly platform: IPlatform) {}
 
-  public canUnload(next: RouteNode): boolean {
-    const path = next.computeAbsolutePath();
+  public canUnload(next: RouteNode, current: RouteNode): boolean {
+    const from = current.computeAbsolutePath();
+    const to = next.computeAbsolutePath();
     return this.platform.window.confirm(
-      `Do you want to navigate away to ${path}?`
+      `Do you want to navigate from '${from}' to '${to}'?`
     );
   }
 }

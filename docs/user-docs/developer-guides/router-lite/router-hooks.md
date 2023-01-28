@@ -17,6 +17,8 @@ If you worked with Aurelia 1, you might know these by their previous name: route
 
 ## Anatomy of a lifecycle hook
 
+Shared lifecycle hook logic can be defined by implementing a router lifecycle hook on a class with the `@lifecycleHooks()` decorator. This hook will be invoked for each component where this class is available as a dependency.
+
 While lifecycle hooks are indeed their own thing independent of the components you are routing to, the functions are basically same as you would use inside of an ordinary component.
 
 This is the contract for ordinary route lifecycle hooks for components:
@@ -47,12 +49,6 @@ import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aure
 
 @lifecycleHooks()
 class MySharedHooks {
-  loading(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
-  canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
-  load(viewModel, params: Params, instruction: RoutingInstruction, navigation: Navigation);
-  canUnload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
-  unloading(viewModel, instruction: RoutingInstruction, navigation: Navigation);
-  unload(viewModel, instruction: RoutingInstruction, navigation: Navigation);
   canLoad?(
     viewModel: IRouteViewModel,
     params: Params,
@@ -251,8 +247,7 @@ Aurelia
     .app(component)
     .start();
 ```
-
-Shared lifecycle hook logic can be defined by implementing a router lifecycle hook on a class with the `@lifecycleHooks()` decorator. This hook will be invoked for each component where this class is available as a dependency. This can be registered either via a global registration or via one or more component-local registrations, similar to how e.g. custom elements and value converters are registered.
+ This can be registered either via a global registration or via one or more component-local registrations, similar to how e.g. custom elements and value converters are registered.
 
 In the example above we register `NoopAuthHandler` globally which means it will be invoked for each routed component and return `true` each time, effectively changing nothing. As the global lifecycle hooks are run for each component, it is recommended to use those sparsely.
 

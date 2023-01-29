@@ -77,7 +77,7 @@ For your production code, perform due diligence to evaluate the security threats
 {% endhint %}
 
 For this example, we will create two lifecycle hooks; one for authentication and another is for authorization.
-However, before directly dive into that, let us briefly visit, how the routes are conigured.
+However, before directly dive into that, let us briefly visit, how the routes are configured.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -223,111 +223,98 @@ import { MyApp as component } from './my-app';
 ```
 
 Note that the authentication hook is registered first and then the authorization hook.
-This ensures that the authentication hook is invoked before than the authorization hook.
+This ensures that the authentication hook is invoked before than the authorization hook which is also semantically sensible.
 And that's the crux of it.
 You can see this example in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-lifecycle-hooks-auth?ctl=1&embed=1&file=src/my-app.ts" %}
 
-### Creating a custom lifecycle hook
+Note that even though in the example we limit the the hooks to only `canLoad` method, more than one lifecycle methods/hooks can also be leveraged in a shared lifecycle hook (a class decorated by the `@lifecycleHooks()` decorator).
+
+## Global registration vs local dependencies
+
+The lifecycle hooks can be registered either globally (like done in the [example](#example-authentication-and-authorization) or as [local dependencies](../../components/components.md#dependencies).
+
+The globally registered lifecycle hooks are invoked for every components.
+Thus, it is recommended to use those sparsely.
+On the other hand when a hook id registered as a dependency of a particular component, it is invoked only for that one component.
+
+This is shown in the example below, where there are two globally registered hooks, which are invoked for every components.
+
+{% embed url="https://stackblitz.com/edit/router-lite-globally-registered-hooks?ctl=1&embed=1&file=src/hooks.ts" %}
+
+Note that the globally registered hooks in the example above do nothing significant other than logging the invocations.
+This is shown below.
 
 ```typescript
-import Aurelia, { lifecycleHooks } from 'aurelia';
-import { IRouteViewModel, Params, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { ILogger } from '@aurelia/kernel';
+import { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
+import { lifecycleHooks } from '@aurelia/runtime-html';
 
 @lifecycleHooks()
-class NoopAuthHandler {
-  canLoad(viewModel: IRouteViewModel, params: Params, next: RouteNode, current: RouteNode | null) {
+export class Hook1 {
+  public static readonly scope = 'hook1';
+  private readonly logger: ILogger;
+  public constructor(@ILogger logger: ILogger) {
+    this.logger = logger.scopeTo(Hook1.scope);
+  }
+  public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode): boolean {
+    this.logger.debug(`canLoad '${next.computeAbsolutePath()}'`);
     return true;
+  }
+  public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode) {
+    this.logger.debug(`loading '${next.computeAbsolutePath()}'`);
+  }
+  public canUnload(_vm: IRouteViewModel, _next: RouteNode, current: RouteNode): boolean {
+    this.logger.debug(`canUnload '${current.computeAbsolutePath()}'`);
+    return true;
+  }
+  public unloading(_vm: IRouteViewModel, _next: RouteNode, current: RouteNode) {
+    this.logger.debug(`unloading '${current.computeAbsolutePath()}'`);
   }
 }
 
-Aurelia
-    .register(RouterConfiguration, NoopAuthHandler)
-    .app(component)
-    .start();
-```
- This can be registered either via a global registration or via one or more component-local registrations, similar to how e.g. custom elements and value converters are registered.
-
-In the example above we register `NoopAuthHandler` globally which means it will be invoked for each routed component and return `true` each time, effectively changing nothing. As the global lifecycle hooks are run for each component, it is recommended to use those sparsely.
-
-{% hint style="warning" %}
-Because lifecycle hooks are invoked for each component, it is considered best practice to ensure that you name your lifecycle hooks appropriately, especially if you're working in a team where developers might not be aware of hooks modifying global component lifecycle behaviors.
-{% endhint %}
-
-### Restricting hooks to specific components
-
-When dealing with route hooks, you might only want to apply those to specific components. Imagine an authentication workflow where you would want to allow unauthenticated users to access your login or contact page.
-
-To do this, we can specify our route hook as a dependency in the component itself via the `static dependencies` property which takes an array of one or more dependencies.
-
-```typescript
-import { IRouteableComponent } from "@aurelia/router";
-import { AuthHook } from './route-hook';
-
-export class SettingsPage implements IRouteableComponent {
-    static dependencies = [ AuthHook ];
-}
-```
-
-Whenever someone tries to route to the `SettingsPage` component, they will trigger the authentication hook you created. This per-component approach allows you to target the needed components you want behind a route hook.
-
-### Multiple hooks per component/class
-
-Shared lifecycle hooks run in parallel with (but are started _before_) component instance hooks, and multiple of the same kind can be applied per component. When multiple hooks are registered per component they are invoked in registration order.
-
-```typescript
-import { lifecycleHooks } from 'aurelia';
-
 @lifecycleHooks()
-class Log1 {
-    async load() {
-        console.log('1.start');
-        await Promise.resolve();
-        console.log('1.end');
-    }
-}
-
-@lifecycleHooks()
-class Log2 {
-    async load() {
-        console.log('2.start');
-        await Promise.resolve();
-        console.log('2.end');
-    }
-}
-
-export class MyComponent {
-    static dependencies = [Log1, Log2];
-
-    async load() {
-        console.log('3.start');
-        await Promise.resolve();
-        console.log('3.end');
-    }
-}
-
-// Will log, in order:
-// 1.start
-// 2.start
-// 3.start
-// 1.end
-// 2.end
-// 3.end
-```
-
-It is also permitted to define more than one hook per shared hook class:
-
-```typescript
-@lifecycleHooks()
-export class LifecycleLogger {
-    canLoad(viewModel, params, instruction, navigation) {
-        console.log(`invoking canLoad on ${instruction.component.name}`);
-        return true;
-    }
-
-    load(viewModel, params, instruction, navigation) {
-        console.log(`invoking load on ${instruction.component.name}`);
-    }
+export class Hook2 {
+  public static readonly scope = 'hook2';
+  private readonly logger: ILogger;
+  public constructor(@ILogger logger: ILogger) {
+    this.logger = logger.scopeTo(Hook2.scope);
+  }
+  public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode): boolean {
+    this.logger.debug(`canLoad '${next.computeAbsolutePath()}'`);
+    return true;
+  }
+  public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode) {
+    this.logger.debug(`loading '${next.computeAbsolutePath()}'`);
+  }
+  public canUnload(_vm: IRouteViewModel, _next: RouteNode, current: RouteNode): boolean {
+    this.logger.debug(`canUnload '${current.computeAbsolutePath()}'`);
+    return true;
+  }
+  public unloading(_vm: IRouteViewModel, _next: RouteNode, current: RouteNode) {
+    this.logger.debug(`unloading '${current.computeAbsolutePath()}'`);
+  }
 }
 ```
+
+The log entries are then enumerated on the view.
+One such example log entries can be as follows.
+
+```log
+2023-01-29T20:03:23.885Z [DBG hook1] canLoad ''
+2023-01-29T20:03:23.887Z [DBG hook2] canLoad ''
+2023-01-29T20:03:23.888Z [DBG hook1] loading ''
+2023-01-29T20:03:23.888Z [DBG hook2] loading ''
+2023-01-29T20:10:09.403Z [DBG hook1] canUnload ''
+2023-01-29T20:10:09.407Z [DBG hook2] canUnload ''
+2023-01-29T20:10:09.410Z [DBG hook1] canLoad 'c1/42'
+2023-01-29T20:10:09.410Z [DBG hook2] canLoad 'c1/42'
+2023-01-29T20:10:09.410Z [DBG hook1] unloading ''
+2023-01-29T20:10:09.411Z [DBG hook2] unloading ''
+2023-01-29T20:10:09.411Z [DBG hook1] loading 'c1/42'
+2023-01-29T20:10:09.411Z [DBG hook2] loading 'c1/42'
+```
+
+You may get a different log depending on your test run.
+However, it is important to observe that both `hook1` and `hook2` are invoked for every components.

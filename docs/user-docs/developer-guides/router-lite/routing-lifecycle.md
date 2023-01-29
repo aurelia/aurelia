@@ -285,3 +285,15 @@ public unloading(next: RouteNode): void {
 This can also be seen in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-unloading?ctl=1&embed=1&file=src/child2.ts" %}
+
+## Order of invocations
+
+For completeness it needs to be noted that the `canLoad` hook is invoked before `loading` and `canUnload` hook is invoked before `unloading`.
+In the context of swapping two views/components it is as follows.
+
+- `canUnload` hook (when present) of the current component is invoked.
+- `canLoad` hook (when present) of the next component (assuming that the `canUnload` returned `true`) is invoked.
+- `unloading` hook (when present) of the current component is invoked.
+- `loading` hook (when present) of the current component is invoked.
+
+Note that the last 2 steps may run in parallel, if the hooks are asynchronous.

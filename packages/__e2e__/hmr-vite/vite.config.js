@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { preprocess, preprocessHtmlTemplate } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter } from '@rollup/pluginutils';
 import path, { resolve } from 'path';
 

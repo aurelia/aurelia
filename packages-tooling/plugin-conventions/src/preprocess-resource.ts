@@ -1,6 +1,5 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
-import { getHmrCode } from './hmr';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';

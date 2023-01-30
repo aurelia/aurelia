@@ -131,22 +131,24 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
   ].filter(Boolean);
   const definition = `{ ${definitionProperties.join(', ')} }`;
 
-  // if (hmrEnabled) {
-  //   m.append(`const _e = CustomElement.define(${definition});
-  //     export function register(container) {
-  //       container.register(_e);
-  //     }`);
-  // } else {
-  // }
-  m.append(`const _e = CustomElement.define(${definition});
+  if (hmrEnabled) {
+    m.append(`const _e = CustomElement.define(${definition});
+      export function register(container) {
+        container.register(_e);
+      }`);
+  } else {
+    m.append(`let _e;
 export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define(${definition});
+  }
   container.register(_e);
 }
 `);
+  }
 
   if (hmrEnabled && options.getHmrCode) {
-    // m.append(getHmrCode('_e', options.hmrModule, [unit.path, unit.path.replace('.html', '.$au.ts')]));
-    m.append(options.getHmrCode('_e', unit.path));
+    m.append(options.getHmrCode('_e', options.hmrModule));
   }
 
   const { code, map } = m.transform();

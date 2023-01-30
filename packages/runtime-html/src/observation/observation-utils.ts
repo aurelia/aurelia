@@ -15,6 +15,7 @@ const removeListener = (target: EventTarget, name: string, handler: EventListene
 /** @internal */
 export const mixinNodeObserverUseConfig =
   <T extends INodeObserver & EventListenerObject & ISubscriberCollection & { _el: INode; _config: INodeObserverConfigBase; _listened: boolean; _start(): void; _stop?(): void }>(target: Constructable<T>) => {
+    let event: string;
     const prototype = target.prototype;
     defineHiddenProp(prototype, 'subscribe', function (this: T, subscriber: ISubscriber) {
       if (this.subs.add(subscriber) && this.subs.count === 1) {
@@ -46,7 +47,6 @@ export const mixinNodeObserverUseConfig =
       }
     });
 };
-let event: string;
 
 export const mixinNoopSubscribable = (target: Constructable) => {
   defineHiddenProp(target.prototype, 'subscribe', noop);

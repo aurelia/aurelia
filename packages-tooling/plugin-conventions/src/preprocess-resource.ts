@@ -1,6 +1,5 @@
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
-import { getHmrCode } from './hmr';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
@@ -38,6 +37,7 @@ interface IModifyResourceOptions {
   localDeps: string[];
   conventionalDecorators: [number, string][];
   customElementName?: IPos;
+  transformHtmlImportSpecifier?: (path: string) => string;
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
@@ -134,13 +134,17 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       implicitElement,
       localDeps,
       conventionalDecorators,
-      customElementName
+      customElementName,
+      transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
     });
   }
 
   if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
-    const hmr = getHmrCode(exportedClassName, options.hmrModule);
-    m.append(hmr);
+    // const hmr = getHmrCode(exportedClassName, options.hmrModule);
+    // m.append(hmr);
+    if (options.getHmrCode) {
+      m.append(options.getHmrCode(exportedClassName, unit.path));
+    }
   }
 
   return m.transform();
@@ -151,7 +155,8 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     implicitElement,
     localDeps,
     conventionalDecorators,
-    customElementName
+    customElementName,
+    transformHtmlImportSpecifier = s => s,
   } = options;
 
   if (implicitElement && unit.filePair) {
@@ -160,7 +165,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     const dec = unit.isViewPair ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
-    m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
+    m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
 
     if (localDeps.length) {
       // When in-file deps are used, move the body of custom element to end of the file,
@@ -284,7 +289,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       ts.isStringLiteral(foundType.expression.arguments[0])
     ) {
       // @customElement('custom-name')
-      const customName = foundType.expression.arguments[0] as ts.StringLiteral;
+      const customName = foundType.expression.arguments[0];
       return {
         className,
         implicitStatement: { pos: pos, end: node.end },

@@ -1,4 +1,3 @@
-import { getHmrCode } from './hmr';
 import * as path from 'path';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
@@ -45,8 +44,13 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   deps.forEach((d, i) => {
     const ext = path.extname(d);
     // All known resource types
-    if (!ext || ext === '.js' || ext === '.ts' || options.templateExtensions.includes(ext)) {
+    if (!ext || ext === '.js' || ext === '.ts') {
       statements.push(`import * as d${i} from ${s(d)};\n`);
+      viewDeps.push(`d${i}`);
+      return;
+    }
+    if (options.templateExtensions.includes(ext)) {
+      statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);
       viewDeps.push(`d${i}`);
       return;
     }
@@ -143,8 +147,8 @@ export function register(container) {
 `);
   }
 
-  if (hmrEnabled) {
-    m.append(getHmrCode('_e', options.hmrModule));
+  if (hmrEnabled && options.getHmrCode) {
+    m.append(options.getHmrCode('_e', options.hmrModule));
   }
 
   const { code, map } = m.transform();

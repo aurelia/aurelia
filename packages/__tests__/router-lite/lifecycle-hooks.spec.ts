@@ -12,10 +12,11 @@
 
 import { DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { isFirefox } from '../util.js';
 import { TestRouterConfiguration } from './_shared/configuration.js';
+import { start } from './_shared/create-fixture.js';
 
 describe('lifecycle hooks', function () {
   const IKnownScopes = DI.createInterface<string[]>();
@@ -223,7 +224,7 @@ describe('lifecycle hooks', function () {
     const router = container.get(IRouter);
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
-    eventLog.assertLog([/AuthHook\] canLoad ''/], 'init');
+    eventLog.assertLog([/AuthHook\] canLoad 'home'/], 'init');
 
     // round 2
     eventLog.clear();
@@ -295,12 +296,12 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad ''/,
-      /Hook2\] canLoad ''/,
-      /Home\] canLoad ''/,
-      /Hook1\] loading ''/,
-      /Hook2\] loading ''/,
-      /Home\] loading ''/,
+      /Hook1\] canLoad 'home'/,
+      /Hook2\] canLoad 'home'/,
+      /Home\] canLoad 'home'/,
+      /Hook1\] loading 'home'/,
+      /Hook2\] loading 'home'/,
+      /Home\] loading 'home'/,
     ], 'init');
 
     // round #2
@@ -308,15 +309,15 @@ describe('lifecycle hooks', function () {
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
-      /Hook1\] canUnload ''/,
-      /Hook2\] canUnload ''/,
-      /Home\] canUnload ''/,
+      /Hook1\] canUnload 'home'/,
+      /Hook2\] canUnload 'home'/,
+      /Home\] canUnload 'home'/,
       /Hook1\] canLoad 'foo'/,
       /Hook2\] canLoad 'foo'/,
       /Foo\] canLoad 'foo'/,
-      /Hook1\] unloading ''/,
-      /Hook2\] unloading ''/,
-      /Home\] unloading ''/,
+      /Hook1\] unloading 'home'/,
+      /Hook2\] unloading 'home'/,
+      /Home\] unloading 'home'/,
       /Hook1\] loading 'foo'/,
       /Hook2\] loading 'foo'/,
       /Foo\] loading 'foo'/,
@@ -359,19 +360,19 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
 
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Hook1\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Home\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Hook1\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Home\] loading - end 'home'/,
     ], 'init');
 
     // round #2
@@ -379,12 +380,12 @@ describe('lifecycle hooks', function () {
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
@@ -393,12 +394,12 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Hook1\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Home\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Hook1\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Home\] unloading - end 'home'/,
 
       /Hook1\] loading - start 'foo'/,
       /Hook2\] loading - start 'foo'/,
@@ -445,19 +446,19 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
 
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Hook1\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Home\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Hook1\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Home\] loading - end 'home'/,
     ], 'init');
 
     // round #2
@@ -465,12 +466,12 @@ describe('lifecycle hooks', function () {
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
@@ -479,12 +480,12 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - start 'foo'/,
       /Foo\] canLoad - end 'foo'/,
 
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Hook1\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Home\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Hook1\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Home\] unloading - end 'home'/,
 
       /Hook1\] loading - start 'foo'/,
       /Hook2\] loading - start 'foo'/,
@@ -531,20 +532,20 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - unloading');
 
     // round #2
@@ -552,12 +553,12 @@ describe('lifecycle hooks', function () {
     assert.strictEqual(await router.load('foo'), true);
     assert.html.textContent(host, 'foo');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
@@ -567,12 +568,12 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - end 'foo'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Home\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Hook1\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Home\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Hook1\] unloading - end 'home'/,
     ], 12, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
       /Hook1\] loading - start 'foo'/,
@@ -627,32 +628,32 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), false);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
@@ -703,32 +704,32 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), false);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
@@ -777,32 +778,32 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo/bar'), false, 'round#2-router#load');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo\/bar'/,
       /Hook1\] canLoad - end 'foo\/bar'/,
@@ -817,12 +818,12 @@ describe('lifecycle hooks', function () {
     eventLog.clear();
     assert.strictEqual(await router.load('foo/123'), true, 'round#3-router#load');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo\/123'/,
       /Hook1\] canLoad - end 'foo\/123'/,
@@ -832,12 +833,12 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - end 'foo\/123'/,
     ], 'round#3');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Home\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Hook1\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Home\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Hook1\] unloading - end 'home'/,
     ], 12, 'round#3 - unloading');
     eventLog.assertLogOrderInvariant([
       /Hook1\] loading - start 'foo\/123'/,
@@ -903,42 +904,42 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), true);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
 
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'bar'/,
       /Hook1\] canLoad - end 'bar'/,
@@ -948,12 +949,12 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Home\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Hook1\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Home\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Hook1\] unloading - end 'home'/,
     ], 14, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
       /Hook1\] loading - start 'bar'/,
@@ -1012,44 +1013,44 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), true);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo'/,
       /Hook1\] canLoad - end 'foo'/,
       /Hook2\] canLoad - start 'foo'/,
       /Hook2\] canLoad - end 'foo'/,
 
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'bar'/,
       /Hook1\] canLoad - end 'bar'/,
@@ -1059,12 +1060,12 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Home\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Hook1\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Home\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Hook1\] unloading - end 'home'/,
     ], 14, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
       /Hook1\] loading - start 'bar'/,
@@ -1119,32 +1120,32 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo/bar'), true, 'round#2-router#load');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'foo\/bar'/,
       /Hook1\] canLoad - end 'foo\/bar'/,
@@ -1153,12 +1154,12 @@ describe('lifecycle hooks', function () {
       /Foo\] canLoad - start 'foo\/bar'/,
       /Foo\] canLoad - end 'foo\/bar'/,
 
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
 
       /Hook1\] canLoad - start 'bar'/,
       /Hook1\] canLoad - end 'bar'/,
@@ -1168,12 +1169,12 @@ describe('lifecycle hooks', function () {
       /Bar\] canLoad - end 'bar'/,
     ], 'round#2');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] unloading - start ''/,
-      /Hook2\] unloading - start ''/,
-      /Home\] unloading - start ''/,
-      /Home\] unloading - end ''/,
-      /Hook2\] unloading - end ''/,
-      /Hook1\] unloading - end ''/,
+      /Hook1\] unloading - start 'home'/,
+      /Hook2\] unloading - start 'home'/,
+      /Home\] unloading - start 'home'/,
+      /Home\] unloading - end 'home'/,
+      /Hook2\] unloading - end 'home'/,
+      /Hook1\] unloading - end 'home'/,
     ], 24, 'round#2 - unloading');
     eventLog.assertLogOrderInvariant([
       /Hook1\] loading - start 'bar'/,
@@ -1264,28 +1265,28 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), false);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 2);
     await au.stop();
@@ -1333,30 +1334,30 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo'), false);
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 4);
     await au.stop();
@@ -1402,32 +1403,32 @@ describe('lifecycle hooks', function () {
     const eventLog = EventLog.getInstance(container);
     assert.html.textContent(host, 'home');
     eventLog.assertLog([
-      /Hook1\] canLoad - start ''/,
-      /Hook1\] canLoad - end ''/,
-      /Hook2\] canLoad - start ''/,
-      /Hook2\] canLoad - end ''/,
-      /Home\] canLoad - start ''/,
-      /Home\] canLoad - end ''/,
+      /Hook1\] canLoad - start 'home'/,
+      /Hook1\] canLoad - end 'home'/,
+      /Hook2\] canLoad - start 'home'/,
+      /Hook2\] canLoad - end 'home'/,
+      /Home\] canLoad - start 'home'/,
+      /Home\] canLoad - end 'home'/,
     ], 'init');
     eventLog.assertLogOrderInvariant([
-      /Hook1\] loading - start ''/,
-      /Hook2\] loading - start ''/,
-      /Home\] loading - start ''/,
-      /Home\] loading - end ''/,
-      /Hook2\] loading - end ''/,
-      /Hook1\] loading - end ''/,
+      /Hook1\] loading - start 'home'/,
+      /Hook2\] loading - start 'home'/,
+      /Home\] loading - start 'home'/,
+      /Home\] loading - end 'home'/,
+      /Hook2\] loading - end 'home'/,
+      /Hook1\] loading - end 'home'/,
     ], 6, 'init - loading');
 
     // round #2
     eventLog.clear();
     assert.strictEqual(await router.load('foo/bar'), false, 'round#2-router#load');
     eventLog.assertLog([
-      /Hook1\] canUnload - start ''/,
-      /Hook1\] canUnload - end ''/,
-      /Hook2\] canUnload - start ''/,
-      /Hook2\] canUnload - end ''/,
-      /Home\] canUnload - start ''/,
-      /Home\] canUnload - end ''/,
+      /Hook1\] canUnload - start 'home'/,
+      /Hook1\] canUnload - end 'home'/,
+      /Hook2\] canUnload - start 'home'/,
+      /Hook2\] canUnload - end 'home'/,
+      /Home\] canUnload - start 'home'/,
+      /Home\] canUnload - end 'home'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 6);
 
@@ -1584,4 +1585,82 @@ describe('lifecycle hooks', function () {
     });
   }
   // #endregion
+
+  it('navigate away -> false from canUnload -> navigate away with same path', async function () {
+    @customElement({ name: 'c-one', template: `c1` })
+    class ChildOne implements IRouteViewModel {
+      public allowUnload: boolean = false;
+      public canUnloadCalled: number = 0;
+      public canUnload(): boolean {
+        this.canUnloadCalled++;
+        return this.allowUnload;
+      }
+    }
+    @customElement({ name: 'c-two', template: `c2` })
+    class ChildTwo implements IRouteViewModel {
+      public allowUnload: boolean = false;
+      public canUnloadCalled: number = 0;
+      public canUnload(): boolean {
+        this.canUnloadCalled++;
+        return this.allowUnload;
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: ['c1/:id?'],
+          component: ChildOne,
+        },
+        {
+          path: ['', 'c2/:id?'],
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, 'c2', 'content 1');
+
+    let c2vm = CustomElement.for<ChildTwo>(host.querySelector('c-two')).viewModel;
+    assert.strictEqual(await router.load('c1/42'), false, 'expected unsuccessful load 1');
+    assert.strictEqual(c2vm.canUnloadCalled, 1, 'c2vm.canUnloadCalled 1');
+    assert.strictEqual(await router.load('c1/42'), false, 'expected unsuccessful load 2');
+    assert.strictEqual(c2vm.canUnloadCalled, 2, 'c2vm.canUnloadCalled 2');
+
+    c2vm.allowUnload = true;
+    assert.strictEqual(await router.load('c1/42'), true, 'expected successful load 1');
+    assert.strictEqual(c2vm.canUnloadCalled, 3, 'c2vm.canUnloadCalled 3');
+    assert.html.textContent(host, 'c1', 'content 2');
+
+    const c1vm = CustomElement.for<ChildTwo>(host.querySelector('c-one')).viewModel;
+    assert.strictEqual(await router.load('c2/42'), false, 'expected unsuccessful load 3');
+    assert.strictEqual(c1vm.canUnloadCalled, 1, 'c1vm.canUnloadCalled 1');
+    assert.strictEqual(await router.load('c2/42'), false, 'expected unsuccessful load 4');
+    assert.strictEqual(c1vm.canUnloadCalled, 2, 'c1vm.canUnloadCalled 2');
+
+    c1vm.allowUnload = true;
+    assert.strictEqual(await router.load('c2/42'), true, 'expected successful load 2');
+    assert.strictEqual(c1vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 3');
+    assert.html.textContent(host, 'c2', 'content 3');
+
+    // round#2
+    c2vm = CustomElement.for<ChildTwo>(host.querySelector('c-two')).viewModel;
+    c2vm.allowUnload = false;
+    assert.strictEqual(await router.load('c2/43'), false, 'expected unsuccessful load 5');
+    assert.strictEqual(c2vm.canUnloadCalled, 1, 'c2vm.canUnloadCalled 3');
+    assert.strictEqual(await router.load('c1/43'), false, 'expected unsuccessful load 6');
+    assert.strictEqual(c2vm.canUnloadCalled, 2, 'c2vm.canUnloadCalled 4');
+
+    c2vm.allowUnload = true;
+    assert.strictEqual(await router.load('c1/42'), true, 'expected successful load 3');
+    assert.strictEqual(c2vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 5');
+    assert.html.textContent(host, 'c1', 'content 4');
+
+    await au.stop();
+  });
 });

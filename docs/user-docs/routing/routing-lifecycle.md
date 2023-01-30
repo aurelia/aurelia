@@ -6,13 +6,13 @@ description: >-
 
 # Routing Lifecycle
 
-Inside your routable components which implement the `IRouteViewModel` interface, certain methods are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components, such as fetching data or changing the UI itself.
+Inside your routable components which implement the `IRouteableComponent` interface, certain methods are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components, such as fetching data or changing the UI itself.
 
 {% hint style="info" %}
 **Router lifecycle hook methods are all completely optional.** You only have to implement the methods you require. The router will only call a method if it has been specified inside of your routable component. All lifecycle hook methods also support returning a promise and can be asynchronous.
 {% endhint %}
 
-If you are working with components you are rendering, implementing `IRouteViewModel` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks easier.
+If you are working with components you are rendering, implementing `IRouteableComponent` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks easier.
 
 ```typescript
 import { IRouteableComponent, Parameters, Navigation, RoutingInstruction } from '@aurelia/router';

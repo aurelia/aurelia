@@ -213,31 +213,30 @@ You can build custom binding behaviors just like you can build value converters.
 Here's a custom binding behavior that calls a method on your view model each time the binding's `updateSource` / `updateTarget` and `callSource` methods are invoked.
 
 ```typescript
-const interceptMethods = ['updateTarget', 'updateSource', 'callSource'];
-  
+  const interceptMethods = ['updateTarget', 'updateSource', 'callSource'];
   export class InterceptBindingBehavior {
-    bind(binding, scope, interceptor) {
+    bind(scope, binding) {
       let i = interceptMethods.length;
       while (i--) {
-        let method = interceptMethods[i];
-        if (!binding[method]) {
+        let methodName = interceptMethods[i];
+        let method = binding[method];
+        if (!method) {
           continue;
         }
-        binding[`intercepted-${method}`] = binding[method];
-        let update = binding[method].bind(binding);
-        binding[method] = interceptor.bind(binding, method, update);
+        binding[`intercepted-${methodName}`] = method;
+        binding[methodName] = method.bind(binding);
       }
     }
   
-    unbind(binding, scope) {
+    unbind(scope, binding) {
       let i = interceptMethods.length;
       while (i--) {
-        let method = interceptMethods[i];
-        if (!binding[method]) {
+        let methodName = interceptMethods[i];
+        if (!binding[methodName]) {
           continue;
         }
-        binding[method] = binding[`intercepted-${method}`];
-        binding[`intercepted-${method}`] = null;
+        binding[methodName] = binding[`intercepted-${methodName}`];
+        binding[`intercepted-${methodName}`] = null;
       }
     }
   }

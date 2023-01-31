@@ -354,7 +354,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
               verifyInstructions(instructions[0], [
                 { toVerify: ['type', 'res', 'to'],
-                  type: TT.hydrateTemplateController, res: container.find(CustomAttribute, 'if') }
+                  type: TT.hydrateTemplateController, res: container.find(CustomAttribute, 'if', false) }
               ]);
               const templateControllerInst = instructions[0][0] as HydrateTemplateController;
               verifyInstructions(templateControllerInst.props, [
@@ -714,7 +714,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     const rawMarkup = node.outerHTML;
     const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
       type: TT.hydrateTemplateController,
-      res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
+      res: resolveRes ? ctx.container.find(CustomAttribute, target, false)! : target,
       def: {
         ...defaultCustomElementDefinitionProperties,
         name: stringOrUnnamed(target),
@@ -754,7 +754,7 @@ function createTemplateController(ctx: TestContext, resolveRes: boolean, attr: s
     }
     const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
       type: TT.hydrateTemplateController,
-      res: resolveRes ? ctx.container.find(CustomAttribute, target)! : target,
+      res: resolveRes ? ctx.container.find(CustomAttribute, target, false)! : target,
       def: {
         ...defaultCustomElementDefinitionProperties,
         name: stringOrUnnamed(target),
@@ -808,7 +808,7 @@ function createCustomElement(
     captures: [],
   };
   const def = typeof tagNameOrDef === 'string'
-    ? ctx.container.find(CustomElement, tagNameOrDef)
+    ? ctx.container.find(CustomElement, tagNameOrDef, false)
     : tagNameOrDef;
   const exprParser = ctx.container.get(IExpressionParser);
   const attrParser = ctx.container.get(IAttributeParser);
@@ -829,7 +829,7 @@ function createCustomElement(
         // if not with a binding command,
         const canStay = syntax.command === null
           // nor a custom attribute,
-          && !ctx.container.find(CustomAttribute, syntax.target)
+          && !ctx.container.find(CustomAttribute, syntax.target, false)
           // nor with interpolation
           && exprParser.parse(a[1], ExpressionType.Interpolation) === null
           // nor a bindable

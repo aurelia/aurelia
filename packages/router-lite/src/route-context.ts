@@ -166,7 +166,6 @@ export class RouteContext {
     );
 
     container.register(definition);
-    container.register(...component.dependencies);
 
     this.recognizer = new RouteRecognizer();
 

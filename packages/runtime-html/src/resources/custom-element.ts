@@ -38,7 +38,7 @@ import type { IWatchDefinition } from '../watch';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
-    find<T extends ICustomElementViewModel>(kind: CustomElementKind, name: string): CustomElementDefinition<Constructable<T>> | null;
+    find<T extends ICustomElementViewModel>(kind: CustomElementKind, name: string, searchAncestors: boolean): CustomElementDefinition<Constructable<T>> | null;
   }
 }
 

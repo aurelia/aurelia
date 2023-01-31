@@ -373,13 +373,27 @@ export class Container implements IContainer {
     disposableResolvers.clear();
   }
 
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string, searchAncestor: boolean): TDef | null {
     const key = kind.keyFrom(name);
-    let resolver = this.res[key];
-    if (resolver === void 0) {
-      resolver = this.root.res[key];
+    let resolver: IResolver | IDisposableResolver | undefined;
+    if (searchAncestor) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      let current: Container | null = this;
+      while(current !== null) {
+        resolver = current.res[key];
+        if(resolver !== void 0) break;
+        current = current.parent;
+      }
       if (resolver === void 0) {
         return null;
+      }
+    } else {
+      resolver = this.res[key];
+      if (resolver === void 0) {
+        resolver = this.root.res[key];
+        if (resolver === void 0) {
+          return null;
+        }
       }
     }
 

@@ -482,7 +482,7 @@ export class CustomElementRenderer implements IRenderer {
     const ctxContainer = renderingCtrl.container;
     switch (typeof res) {
       case 'string':
-        def = ctxContainer.find(CustomElement, res);
+        def = ctxContainer.find(CustomElement, res, false);
         if (def == null) {
           if (__DEV__)
             throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
@@ -568,7 +568,7 @@ export class CustomAttributeRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = ctxContainer.find(CustomAttribute, instruction.res, false);
         if (def == null) {
           if (__DEV__)
             throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
@@ -646,7 +646,7 @@ export class TemplateControllerRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = ctxContainer.find(CustomAttribute, instruction.res, false);
         if (def == null) {
           if (__DEV__)
             throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);

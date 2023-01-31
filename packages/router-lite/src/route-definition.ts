@@ -80,7 +80,7 @@ export class RouteDefinition {
     switch (instruction.type) {
       case NavigationInstructionType.string: {
         if (context === void 0) throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
-        const component = context.container.find(CustomElement, instruction.value);
+        const component = context.container.find(CustomElement, instruction.value, true);
         if (component === null) throw new Error(`Could not find a CustomElement named '${instruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);
         ceDef = component;
         break;

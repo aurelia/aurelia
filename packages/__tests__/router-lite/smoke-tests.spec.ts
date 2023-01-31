@@ -788,7 +788,7 @@ describe('router (smoke tests)', function () {
   });
 
   for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
-    it('will load the fallback when navigating to a non-existing route - with ${name} - viewport', async function () {
+    it(`will load the fallback when navigating to a non-existing route - with ${name} - viewport`, async function () {
       @customElement({ name: 'ce-a', template: 'a' })
       class A { }
       @route({
@@ -829,7 +829,7 @@ describe('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
 
-    it('will load the global-fallback when navigating to a non-existing route - with ${name}', async function () {
+    it(`will load the global-fallback when navigating to a non-existing route - with ${name}`, async function () {
       @customElement({ name: 'ce-a', template: 'a' })
       class A { }
       @route({

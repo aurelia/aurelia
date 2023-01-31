@@ -140,7 +140,7 @@ describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () 
         const elementInstruction = allInstructions.find(i =>
           i.type === InstructionType.hydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string) === elName
-            || (i as HEI).res === container.find(CustomElement, elName)
+            || (i as HEI).res === container.find(CustomElement, elName, false)
           )
         ) as HydrateElementInstruction;
         assert.notEqual(elementInstruction, void 0, `Instruction for element "${elName}" missing`);

@@ -220,7 +220,7 @@ class LocalTemplateTestData {
     assert.equal((definition.template as HTMLTemplateElement).querySelector('template[as-custom-element]'), null);
 
     for (const [name, info] of this.expectedResources) {
-      assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name), void 0), info, 'element info');
+      assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name, false), void 0), info, 'element info');
     }
     const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
     for (const [template, freq] of this.templateFreq) {
@@ -702,17 +702,17 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         my-app-content
         <my-le-1></my-le-1>
         <my-le-2></my-le-2>
-  
+
         <template as-custom-element="my-le-1">
           my-le-1-content
           <my-le-2></my-le-2>
         </template>
-  
+
         <template as-custom-element="my-le-2">
           my-le-2-content
           <my-le-3></my-le-3>
         </template>
-  
+
         <template as-custom-element="my-le-3">
           my-le-3-content
         </template>`;

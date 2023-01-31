@@ -1744,14 +1744,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return this.c.find(CustomElement, name, false);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return this.c.find(CustomAttribute, name, false);
   }
 
   /**

@@ -318,3 +318,75 @@ One such example log entries can be as follows.
 
 You may get a different log depending on your test run.
 However, it is important to observe that both `hook1` and `hook2` are invoked for every components.
+Depending on your use-case, that might not be optimal.
+
+To achieve a granular control on the life cycle hooks, you can register the hooks as the [`dependencies`](../../components/components.md#dependencies) for individual routed view models.
+This ensures that the lifecycle hooks are invoked only for the components where those are registered as dependencies.
+This shown in the example below where there are three hooks, and one component has two hooks registered as `dependencies` and another component has only hook registered.
+
+```typescript
+// child1.ts
+import { customElement } from '@aurelia/runtime-html';
+import { Hook1, Hook3 } from './hooks';
+
+@customElement({
+  dependencies: [Hook1, Hook3],
+})
+export class ChildOne {}
+
+// child2.ts
+import { customElement } from '@aurelia/runtime-html';
+import { Hook2 } from './hooks';
+
+@customElement({
+  dependencies: [Hook2],
+})
+export class ChildTwo {}
+```
+
+When `ChildOne` or `ChildTwo` is loaded or unloaded you can observe that only `Hook2` is invoked for `ChildTwo`, whereas both `Hook1` and `Hook2` are invoked for `ChildOne`.
+Below is an example log from one of such test runs.
+
+```log
+2023-02-01T21:59:23.525Z [DBG hook2] canLoad 'c2/43'
+2023-02-01T21:59:23.527Z [DBG hook2] loading 'c2/43'
+2023-02-01T21:59:25.353Z [DBG hook2] canUnload 'c2/43'
+2023-02-01T21:59:25.355Z [DBG hook1] canLoad 'c1/42'
+2023-02-01T21:59:25.355Z [DBG hook3] canLoad 'c1/42'
+2023-02-01T21:59:25.356Z [DBG hook2] unloading 'c2/43'
+2023-02-01T21:59:25.356Z [DBG hook1] loading 'c1/42'
+2023-02-01T21:59:25.357Z [DBG hook3] loading 'c1/42'
+```
+
+You can see the example in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-hook-as-dependencies?ctl=1&embed=1&file=src/child1.ts" %}
+
+You can of course choose to use both kind of registrations.
+The following example shows that `Hook3` is registered globally and therefore is invoked for every components whereas `Hook1` is only invoked for `ChildOne` and `Hook2` is only invoked for `ChildTwo`.
+
+{% embed url="https://stackblitz.com/edit/router-lite-hook-mixed-registration?ctl=1&embed=1&file=src/child1.ts" %}
+
+## Preemption
+
+TODO
+
+## Order of invocation
+
+TODO
+
+### Global registration vs local dependencies
+
+TODO
+
+### Parent-child
+
+TODO
+
+### Siblings
+
+TODO
+
+### Parent-child with siblings
+
+TODO

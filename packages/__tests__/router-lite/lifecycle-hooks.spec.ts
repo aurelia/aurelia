@@ -125,6 +125,28 @@ describe('lifecycle hooks', function () {
     }
   }
 
+  abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'loading' | 'canUnload' | 'unloading'> {
+    public constructor(
+      @ILogger private readonly logger: ILogger,
+    ) {
+      this.logger = logger.scopeTo(this.constructor.name);
+    }
+    public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+      this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
+      return true;
+    }
+    public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+      this.logger.trace(`loading ${(next.instruction as IViewportInstruction).component}`);
+    }
+    public canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): boolean | Promise<boolean> {
+      this.logger.trace(`canUnload ${((current ?? rn).instruction as IViewportInstruction).component}`);
+      return true;
+    }
+    public unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
+      this.logger.trace(`unloading ${((current ?? rn).instruction as IViewportInstruction).component}`);
+    }
+  }
+
   abstract class AsyncBaseViewModel implements IRouteViewModel {
     public get waitMs(): Record<Hooks, number> | number | null { return null; }
     protected getWaitTime(hook: Hooks): number | null {
@@ -242,27 +264,6 @@ describe('lifecycle hooks', function () {
   });
 
   it('multiple synchronous hooks - without preemption', async function () {
-    abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'loading' | 'canUnload' | 'unloading'> {
-      public constructor(
-        @ILogger private readonly logger: ILogger,
-      ) {
-        this.logger = logger.scopeTo(this.constructor.name);
-      }
-      public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
-        this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
-        return true;
-      }
-      public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
-        this.logger.trace(`loading ${(next.instruction as IViewportInstruction).component}`);
-      }
-      public canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): boolean | Promise<boolean> {
-        this.logger.trace(`canUnload ${((current ?? rn).instruction as IViewportInstruction).component}`);
-        return true;
-      }
-      public unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
-        this.logger.trace(`unloading ${((current ?? rn).instruction as IViewportInstruction).component}`);
-      }
-    }
     @lifecycleHooks()
     class Hook1 extends BaseHook { }
     @lifecycleHooks()
@@ -1660,6 +1661,65 @@ describe('lifecycle hooks', function () {
     assert.strictEqual(await router.load('c1/42'), true, 'expected successful load 3');
     assert.strictEqual(c2vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 5');
     assert.html.textContent(host, 'c1', 'content 4');
+
+    await au.stop();
+  });
+
+  it('lifecycle hooks as dependencies are supported', async function () {
+    @lifecycleHooks()
+    class Hook1 extends BaseHook { }
+    @lifecycleHooks()
+    class Hook2 extends BaseHook { }
+    @lifecycleHooks()
+    class Hook3 extends BaseHook { }
+    @customElement({ name: 'c-one', template: `c1`, dependencies: [Hook1, Hook3] })
+    class ChildOne { }
+    @customElement({ name: 'c-two', template: `c2`, dependencies: [Hook2] })
+    class ChildTwo { }
+
+    @route({
+      routes: [
+        {
+          path: ['c1'],
+          component: ChildOne,
+        },
+        {
+          path: ['c2'],
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await createFixture(Root,
+      Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Hook3.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+
+    // round#1
+    await router.load('c1');
+    assert.html.textContent(host, 'c1');
+    eventLog.assertLog([
+      /Hook1\] canLoad 'c1'/,
+      /Hook3\] canLoad 'c1'/,
+      /Hook1\] loading 'c1'/,
+      /Hook3\] loading 'c1'/,
+    ], 'round#1');
+
+    // round #2
+    eventLog.clear();
+    await router.load('c2');
+    assert.html.textContent(host, 'c2');
+    eventLog.assertLog([
+      /Hook1\] canUnload 'c1'/,
+      /Hook3\] canUnload 'c1'/,
+      /Hook2\] canLoad 'c2'/,
+      /Hook1\] unloading 'c1'/,
+      /Hook3\] unloading 'c1'/,
+      /Hook2\] loading 'c2'/,
+    ], 'round#2');
 
     await au.stop();
   });

@@ -375,7 +375,7 @@ export class Container implements IContainer {
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);
-    let resolver = this.res[key];
+    let  resolver = this.res[key];
     if (resolver === void 0) {
       resolver = this.root.res[key];
       if (resolver === void 0) {

@@ -788,7 +788,7 @@ describe('router (smoke tests)', function () {
   });
 
   for (const [name, fallback] of [['ce name', 'ce-a'], ['route', 'a'], ['route-id', 'r1']]) {
-    it('will load the fallback when navigating to a non-existing route - with ${name} - viewport', async function () {
+    it(`will load the fallback when navigating to a non-existing route - with ${name} - viewport`, async function () {
       @customElement({ name: 'ce-a', template: 'a' })
       class A { }
       @route({
@@ -799,15 +799,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport fallback="${fallback}">`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -829,7 +831,7 @@ describe('router (smoke tests)', function () {
       assert.areTaskQueuesEmpty();
     });
 
-    it('will load the global-fallback when navigating to a non-existing route - with ${name}', async function () {
+    it(`will load the global-fallback when navigating to a non-existing route - with ${name}`, async function () {
       @customElement({ name: 'ce-a', template: 'a' })
       class A { }
       @route({
@@ -841,15 +843,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport>`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -883,15 +887,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -929,15 +935,17 @@ describe('router (smoke tests)', function () {
     @customElement({
       name: 'root',
       template: `root<au-viewport>`,
-      dependencies: [A, NF],
     })
     class Root { }
 
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
+    container.register(
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      NF,
+    );
 
     const component = container.get(Root);
     const router = container.get(IRouter);

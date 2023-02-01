@@ -22,7 +22,7 @@ import type { IWatchDefinition } from '../watch';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
-    find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string, searchAncestors: boolean): CustomAttributeDefinition<Constructable<T>> | null;
+    find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string): CustomAttributeDefinition<Constructable<T>> | null;
   }
 }
 

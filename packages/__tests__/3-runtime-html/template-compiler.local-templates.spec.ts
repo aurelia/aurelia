@@ -220,7 +220,7 @@ class LocalTemplateTestData {
     assert.equal((definition.template as HTMLTemplateElement).querySelector('template[as-custom-element]'), null);
 
     for (const [name, info] of this.expectedResources) {
-      assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name, false), void 0), info, 'element info');
+      assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name), void 0), info, 'element info');
     }
     const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
     for (const [template, freq] of this.templateFreq) {

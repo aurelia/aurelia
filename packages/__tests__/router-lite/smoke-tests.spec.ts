@@ -799,15 +799,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport fallback="${fallback}">`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -841,15 +843,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport>`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -883,15 +887,17 @@ describe('router (smoke tests)', function () {
       @customElement({
         name: 'root',
         template: `root<au-viewport></au-viewport><au-viewport></au-viewport>`,
-        dependencies: [A],
       })
       class Root { }
 
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      container.register(TestRouterConfiguration.for(LogLevel.warn));
-      container.register(RouterConfiguration);
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        A,
+      );
 
       const component = container.get(Root);
       const router = container.get(IRouter);
@@ -929,15 +935,17 @@ describe('router (smoke tests)', function () {
     @customElement({
       name: 'root',
       template: `root<au-viewport>`,
-      dependencies: [A, NF],
     })
     class Root { }
 
     const ctx = TestContext.create();
     const { container } = ctx;
 
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
+    container.register(
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+      NF,
+    );
 
     const component = container.get(Root);
     const router = container.get(IRouter);

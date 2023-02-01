@@ -397,7 +397,7 @@ describe('3-runtime/enhance.spec.ts', function () {
     });
 
     assert.strictEqual(host.innerHTML, '<div class="au" data-id="11"></div>');
-    assert.strictEqual(container.find(ValueConverter, 'plus10', false), null, 'It should register resources with child contaienr only.');
+    assert.strictEqual(container.find(ValueConverter, 'plus10'), null, 'It should register resources with child contaienr only.');
     await controller.deactivate(controller, null, LifecycleFlags.none);
   });
 

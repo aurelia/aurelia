@@ -369,7 +369,29 @@ The following example shows that `Hook3` is registered globally and therefore is
 
 ## Preemption
 
-TODO
+When using multiple lifecycle hooks, if any hook returns a non-`true` value (either a `false` or a navigation instruction) from `canLoad` or `canUnload`, it preempts invocation of the other hooks in the routing pipeline.
+
+This is shown in the following example.
+The example shows that there are two hooks, namely `hook1` and `hook2`.
+`hook1` return `false` if the path `c1` is navigated with a non-number and non-even number; for example it denies navigation to `c1/43` but allows `c1/42`.
+
+
+You can see the example in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-hooks-preemption?ctl=1&embed=1&file=src/hooks.ts" %}
+
+If you run the example and try clicking the links, you can observe that once `hook1` returns `false`, `hook2` is not invoked.
+One such example log is shown below.
+
+```log
+2023-02-02T19:12:51.503Z [DBG hook1] canLoad 'c1/42'
+2023-02-02T19:12:51.505Z [DBG hook2] canLoad 'c1/42'
+2023-02-02T19:12:51.506Z [DBG hook1] loading 'c1/42'
+2023-02-02T19:12:51.506Z [DBG hook2] loading 'c1/42'
+2023-02-02T19:12:55.287Z [DBG hook1] canUnload 'c1/42'
+2023-02-02T19:12:55.288Z [DBG hook2] canUnload 'c1/42'
+2023-02-02T19:12:55.288Z [DBG hook1] canLoad 'c1/43'
+```
 
 ## Order of invocation
 

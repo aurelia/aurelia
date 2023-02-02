@@ -393,22 +393,16 @@ One such example log is shown below.
 2023-02-02T19:12:55.288Z [DBG hook1] canLoad 'c1/43'
 ```
 
-## Order of invocation
+## Order of invocations
 
-TODO
+The thumb rule is that the hooks are invoked in the order they are registered.
+That is if some `Hook1` is registered before `Hook2` in DI then `Hook1` will be invoked before the `Hook2`.
+You can see this in the example of [globally registered hooks](https://stackblitz.com/edit/router-lite-globally-registered-hooks?ctl=1&embed=1&file=src/hooks.ts).
 
-### Global registration vs local dependencies
+That is also true, when registering hooks as one of the `dependencies` for a custom element.
+You can see this in the example of [hooks as dependencies](https://stackblitz.com/edit/router-lite-hook-as-dependencies?ctl=1&embed=1&file=src/child1.ts).
 
-TODO
+When using both globally registered hooks as well as local dependencies, the global hooks are invoked before the locally registered hooks.
+You can see this in action in [this example](https://stackblitz.com/edit/router-lite-hook-mixed-registration?ctl=1&embed=1&file=src/child1.ts).
 
-### Parent-child
-
-TODO
-
-### Siblings
-
-TODO
-
-### Parent-child with siblings
-
-TODO
+Lastly, the shared lifecycle hooks are invoked before the instance lifecycle hooks.

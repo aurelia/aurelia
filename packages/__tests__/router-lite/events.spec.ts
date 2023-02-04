@@ -1,5 +1,5 @@
 import { Class, DI, IDisposable, LogLevel, noop } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, route, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, Params, route, RouterConfiguration } from '@aurelia/router-lite';
 import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -38,9 +38,6 @@ describe('events', function () {
     public log: string[] = [];
     public constructor(@IRouterEvents events: IRouterEvents) {
       this.subscriptions = [
-        events.subscribe('au:router:location-change', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.url}'`);
-        }),
         events.subscribe('au:router:navigation-start', (event) => {
           this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}'`);
         }),
@@ -111,6 +108,177 @@ describe('events', function () {
     assert.deepStrictEqual(service.log, [
       'au:router:navigation-start - 3 - \'c1\'',
       'au:router:navigation-end - 3 - \'c1\'',
+    ]);
+
+    await au.stop();
+  });
+
+  it('cancelled navigation - canLoad', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class ChildOne { }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class ChildTwo {
+      public canLoad(params: Params) {
+        return Number(params.id) % 2 === 0;
+      }
+    }
+
+    @route({
+      routes: [
+        { path: ['', 'c1'], component: ChildOne },
+        { path: 'c2/:id', component: ChildTwo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const service = container.get(ISomeService);
+    const router = container.get(IRouter);
+
+    // init
+    assert.html.textContent(host, 'c1');
+
+    // round#1
+    service.clear();
+    await router.load('c2/43');
+    assert.html.textContent(host, 'c1');
+    assert.deepStrictEqual(service.log, [
+      'au:router:navigation-start - 2 - \'c2/43\'',
+      'au:router:navigation-cancel - 2 - \'c2/43\' - guardsResult is false',
+    ]);
+
+    // round#2
+    service.clear();
+    await router.load('c2/42');
+    assert.html.textContent(host, 'c2');
+    assert.deepStrictEqual(service.log, [
+      'au:router:navigation-start - 3 - \'c2/42\'',
+      'au:router:navigation-end - 3 - \'c2/42\'',
+    ]);
+
+    await au.stop();
+  });
+
+  it('cancelled navigation - canUnload', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class ChildOne {
+      public canUnload() { return false; }
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class ChildTwo { }
+
+    @route({
+      routes: [
+        { path: ['', 'c1'], component: ChildOne },
+        { path: 'c2', component: ChildTwo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const service = container.get(ISomeService);
+    const router = container.get(IRouter);
+
+    // init
+    assert.html.textContent(host, 'c1');
+
+    // round#1
+    service.clear();
+    await router.load('c2');
+    assert.html.textContent(host, 'c1');
+    assert.deepStrictEqual(service.log, [
+      'au:router:navigation-start - 2 - \'c2\'',
+      'au:router:navigation-cancel - 2 - \'c2\' - guardsResult is false',
+    ]);
+
+    await au.stop();
+  });
+
+  it('cancelled navigation - unknown route', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class ChildOne { }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class ChildTwo { }
+
+    @route({
+      routes: [
+        { path: ['', 'c1'], component: ChildOne },
+        { path: 'c2', component: ChildTwo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const service = container.get(ISomeService);
+    const router = container.get(IRouter);
+
+    // init
+    assert.html.textContent(host, 'c1');
+
+    // round#1
+    service.clear();
+    try {
+      await router.load('c3');
+      assert.fail('expected error due to unknown path');
+    } catch (e) {
+      /* noop */
+    }
+    assert.html.textContent(host, 'c1');
+    assert.deepStrictEqual(service.log, [
+      'au:router:navigation-start - 2 - \'c3\'',
+      'au:router:navigation-cancel - 2 - \'c3\' - guardsResult is true',
+      'au:router:navigation-start - 3 - \'\'',
+      'au:router:navigation-end - 3 - \'\'',
+    ]);
+
+    await au.stop();
+  });
+
+  it('erred navigation', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class ChildOne { }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class ChildTwo {
+      public loading() {
+        throw new Error('synthetic test error');
+      }
+    }
+
+    @route({
+      routes: [
+        { path: ['', 'c1'], component: ChildOne },
+        { path: 'c2', component: ChildTwo },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const service = container.get(ISomeService);
+    const router = container.get(IRouter);
+
+    // init
+    assert.html.textContent(host, 'c1');
+
+    // round#1
+    service.clear();
+    try {
+      await router.load('c2');
+      assert.fail('expected error');
+    } catch (e) {
+      /* noop */
+    }
+    assert.html.textContent(host, 'c1');
+    assert.deepStrictEqual(service.log, [
+      'au:router:navigation-start - 2 - \'c2\'',
+      'au:router:navigation-error - 2 - \'c2\' - Error: synthetic test error',
     ]);
 
     await au.stop();

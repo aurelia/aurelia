@@ -18,9 +18,9 @@ describe('events', function () {
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration,
       ...registrations,
-      ISomeService,
-      AppTask.creating(ISomeService, noop), // force the service creation
-      AppTask.deactivating(ISomeService, service => service.dispose())
+      IRouterEventLoggerService,
+      AppTask.creating(IRouterEventLoggerService, noop), // force the service creation
+      AppTask.deactivating(IRouterEventLoggerService, service => service.dispose())
     );
 
     const au = new Aurelia(container);
@@ -31,9 +31,9 @@ describe('events', function () {
     return { host, au, container, rootVm };
   }
 
-  const ISomeService = DI.createInterface<ISomeService>('ISomeService', x => x.singleton(SomeService));
-  interface ISomeService extends SomeService { }
-  class SomeService implements IDisposable {
+  const IRouterEventLoggerService = DI.createInterface<IRouterEventLoggerService>('IRouterEventLoggerService', x => x.singleton(RouterEventLoggerService));
+  interface IRouterEventLoggerService extends RouterEventLoggerService { }
+  class RouterEventLoggerService implements IDisposable {
     private readonly subscriptions: IDisposable[];
     public log: string[] = [];
     public constructor(@IRouterEvents events: IRouterEvents) {
@@ -82,7 +82,7 @@ describe('events', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const service = container.get(ISomeService);
+    const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
     // init
@@ -134,7 +134,7 @@ describe('events', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const service = container.get(ISomeService);
+    const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
     // init
@@ -180,7 +180,7 @@ describe('events', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const service = container.get(ISomeService);
+    const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
     // init
@@ -215,7 +215,7 @@ describe('events', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const service = container.get(ISomeService);
+    const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
     // init
@@ -261,7 +261,7 @@ describe('events', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const service = container.get(ISomeService);
+    const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
     // init

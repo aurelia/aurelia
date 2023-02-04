@@ -233,7 +233,7 @@ export class MyCustomElement {
 Referencing our custom element, if we wanted to bind a value to our `email` property, we would do this:
 
 ```markup
-<my-custom-element email.bind="myEmail"></my-custom-element>
+<my-custom-element email="myEmail"></my-custom-element>
 ```
 
 This allows us to pass in data to custom elements cleanly and familiarly.

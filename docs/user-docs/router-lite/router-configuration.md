@@ -150,7 +150,7 @@ export class MyApp {
 {% endtab %}
 {% endtabs %}
 
-Note the `a` tags with [`external` attribute](TODO(Sayan): link docs).
+Note the `a` tags with [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute).
 Note that when you switch to a tenant, the links in the `a` tags also now includes the tenant name; for example when we switch to tenant 'foo' the 'Home' link is changed to `/foo/app/home` from `/app/home`.
 
 ## Customizing title

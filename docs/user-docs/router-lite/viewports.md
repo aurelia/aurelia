@@ -14,7 +14,7 @@ Later in this part of the documentation, we focus on the different configuration
 
 ## Hierarchical routing
 
-As seen in the ["Getting started"-tutorial](./getting-started.md), a component can define a set of children routes (using [either the `@route` decorator or the static properties](configuring-routes.md#route-configuration-basics)).
+As seen in the ["Getting started"-tutorial](./getting-started.md), a component can define a set of children routes (using [either the `@route` decorator or the static properties](./configuring-routes.md#route-configuration-basics)).
 The child routes can also in turn define children routes of there own.
 Such route configuration are commonly known as hierarchical route configuration.
 
@@ -287,7 +287,7 @@ To this end, we need to [name the viewports](#named-viewports).
 ```
 
 Although we name the viewports semantically, it is not necessary, and you are free to choose names, as you like, for the viewports.
-Lastly, we need to use the [`load` attribute](./navigating.md#html-load-attribute) in the `Products` component to construct the URL, or more accurately the routing instruction correctly, such that the details of the product is loaded on the `details` viewport.
+Lastly, we need to use the [`load` attribute](./navigating.md#using-the-load-custom-attribute) in the `Products` component to construct the URL, or more accurately the routing instruction correctly, such that the details of the product is loaded on the `details` viewport.
 
 {% code title="products.html" %}
 ```diff
@@ -345,7 +345,7 @@ In the example, clicking the first anchor loads the `products` component in the 
 The second anchor facilitates loading only the the details of the product with #{`id`} into the `details` viewport.
 
 {% hint style="info" %}
-For more details about navigating and instructions for router-lite, please refer the [documentation](navigating.md).
+For more details about navigating and instructions for router-lite, please refer the [documentation](./navigating.md).
 {% endhint %}
 
 ### Specifying a viewport name on a route

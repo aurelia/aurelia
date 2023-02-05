@@ -1,13 +1,14 @@
 # Getting started
 
 {% hint style="info" %}
-Please note that in Aurelia2 there are two routers, namely [`@aurelia/router`](../router/README.md) and `@aurelia/router-lite` (this one). As the name suggests the second one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router`. Choose your router depending on your need.
+Please note that in Aurelia2 there are two routers, namely [`@aurelia/router`](../routing/getting-started.md) and `@aurelia/router-lite` (this one).
+The second one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router`. Choose your router depending on your need.
 {% endhint %}
 
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 
 {% hint style="warning" %}
-The following getting started guide assumes you have an Aurelia application already created. If not, [consult our Quick Start](../../getting-started/quick-install-guide.md) to get Aurelia installed in minutes.
+The following getting started guide assumes you have an Aurelia application already created. If not, [consult our Quick Start](../getting-started/quick-install-guide.md) to get Aurelia installed in minutes.
 {% endhint %}
 
 Here is a basic example of routing in an Aurelia application using `router-lite`.
@@ -38,7 +39,7 @@ Aurelia
 {% endcode %}
 
 {% hint style="info" %}
-To know more about the different configuration options for router-lite, please refer the [documentation](router-configuration.md) on that topic.
+To know more about the different configuration options for router-lite, please refer the [documentation](./router-configuration.md) on that topic.
 {% endhint %}
 
 ## Create the routable components

@@ -17,7 +17,7 @@ A route is an object containing a few required properties that tell the router w
 The most usual case of defining a route configuration is by specifying the `path` and the `component` properties.
 The idea is to use the `path` property to define a pattern, which when seen in the URL path, the view model defined using the `component` property is activated by the router-lite.
 Simply put, a routing configuration is a mapping between one or more path patterns to components.
-Below is the simple example (from the [getting started section](getting-started.md)) of this.
+Below is the simple example (from the [getting started section](./getting-started.md)) of this.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -103,7 +103,7 @@ import { Product } from './product';
 export class MyApp {}
 ```
 
-When a given URL matches one such route, the parameter value is made available in the `canLoad`, and `load` [routing hooks](TODO).
+When a given URL matches one such route, the parameter value is made available in the `canLoad`, and `load` [routing hooks](./routing-lifecycle.md).
 
 ```typescript
 import { IRouteViewModel, Params } from '@aurelia/router-lite';
@@ -418,7 +418,7 @@ Our assumption is that these options are more involved and might not be used tha
 Moreover, to understand the utility of these options fully, knowledge of other parts of the route would be beneficial.
 Therefore, although this section briefly describes these options, it also provides links to the sections, describing these topics with detailed examples.
 
-* `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. Although this is not really an advanced property, the fact that a route can be uniquely identified using this `id`, it can be used in many interested ways. For example, this can be used to generate the `href`s in the view when using the [`load` custom attribute](TODO(Sayan): link to doc) or using the [`Router#load` API](TODO(Sayan): link to doc). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
+* `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. Although this is not really an advanced property, the fact that a route can be uniquely identified using this `id`, it can be used in many interested ways. For example, this can be used to generate the `href`s in the view when using the [`load` custom attribute](./navigating.md#using-the-load-custom-attribute) or using the [`Router#load` API](./navigating.md#using-the-router-api). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
 * `transitionPlan` — How to behave when the currently active component is scheduled to be loaded again in the same viewport. For more details, please refer the [documentation](./transition-plans.md).
 * `viewport` — The name of the viewport this component should be loaded into. This demands a full fledged documentation of its own. Refer to the [viewport documentation](./viewports.md#specifying-a-viewport-name-on-a-route) for more details.
 * `data` — Any custom data that should be accessible to matched components or hooks. The value of this configuration property must be an object and the object can take any shape (that is there is no pre-defined interface/class for this object). A typical use-case for the `data` property is to define the permissions, required by the users, when they attempt to navigate to this route. Refer [an example](./router-hooks.md#example-authentication-and-authorization) of this.

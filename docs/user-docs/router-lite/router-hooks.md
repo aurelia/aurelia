@@ -233,7 +233,7 @@ Note that even though in the example we limit the the hooks to only `canLoad` me
 
 ## Global registration vs local dependencies
 
-The lifecycle hooks can be registered either globally (like done in the [example](#example-authentication-and-authorization) or as [local dependencies](../../components/components.md#dependencies).
+The lifecycle hooks can be registered either globally (like done in the [example](#example-authentication-and-authorization) or as [local dependencies](../components/components.md#dependencies).
 
 The globally registered lifecycle hooks are invoked for every components.
 Thus, it is recommended to use those sparsely.
@@ -320,7 +320,7 @@ You may get a different log depending on your test run.
 However, it is important to observe that both `hook1` and `hook2` are invoked for every components.
 Depending on your use-case, that might not be optimal.
 
-To achieve a granular control on the life cycle hooks, you can register the hooks as the [`dependencies`](../../components/components.md#dependencies) for individual routed view models.
+To achieve a granular control on the life cycle hooks, you can register the hooks as the [`dependencies`](../components/components.md#dependencies) for individual routed view models.
 This ensures that the lifecycle hooks are invoked only for the components where those are registered as dependencies.
 This shown in the example below where there are three hooks, and one component has two hooks registered as `dependencies` and another component has only hook registered.
 

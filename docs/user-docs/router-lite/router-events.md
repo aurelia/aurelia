@@ -21,7 +21,7 @@ The router emits the following events.
 
 ## Subscribing to the events
 
-The events can be subscribed to using the [event aggregator](../../aurelia-packages/event-aggregator.md).
+The events can be subscribed to using the [event aggregator](../aurelia-packages/event-aggregator.md).
 However, there is another type-safe alternative to that.
 
 To this end, inject the `IRouterEvents` and use the `IRouterEvents#subscribe`.

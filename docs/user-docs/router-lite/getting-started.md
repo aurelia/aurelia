@@ -2,16 +2,13 @@
 
 {% hint style="info" %}
 Please note that in Aurelia2 there are two routers, namely [`@aurelia/router`](../routing/getting-started.md) and `@aurelia/router-lite` (this one).
-The second one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router`. Choose your router depending on your need.
+The router-lite one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router`. Choose your router depending on your need.
 {% endhint %}
 
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
-
-{% hint style="warning" %}
-The following getting started guide assumes you have an Aurelia application already created. If not, [consult our Quick Start](../getting-started/quick-install-guide.md) to get Aurelia installed in minutes.
-{% endhint %}
-
 Here is a basic example of routing in an Aurelia application using `router-lite`.
+
+The following getting started guide assumes you have an Aurelia application already created. If not, [consult our Quick Start](../getting-started/quick-install-guide.md) to get Aurelia installed in minutes.
 
 ## Installation
 
@@ -21,7 +18,8 @@ npm i @aurelia/router-lite
 
 ## Configure the `router-lite`
 
-To use the `router-lite`, we have to register it with Aurelia. We do this inside of `main.ts` — the router is then enabled after it is registered.
+To use the `router-lite`, we have to register it with Aurelia.
+We do this at the bootstrapping phase.
 
 {% code title="main.ts" %}
 ```typescript
@@ -135,14 +133,14 @@ export class MyApp {}
 There are couple of stuffs to note here.
 We start by looking at the configurations defined using the `@route` decorator where we list out the routes under the `routes` property in the configuration object in the `@route` decorator.
 The most important things in every route configurations are the `path` and the `component` properties.
-This indicates the router to use the defined `component` in the routing viewport when it sees the associated `path`.
+This instructs the router to use the defined `component` in the viewport when it sees the associated `path`.
 
 {% hint style="info" %}
-To know more about router-lite configuration, please refer to the respective [documentation](./router-configuration.md).
+To know more about configuring routes, please refer to the respective [documentation](./configuring-routes.md).
 {% endhint %}
 
-The routing viewport is specified in the view (see `my-app.html`) by using the `<au-viewport>` custom element.
-For example, the router will use this element to display the `Home` component when it sees the `/` (the empty path) or the `/home` fragments.
+The viewport is specified in the view (see `my-app.html`) by using the `<au-viewport>` custom element.
+For example, the router will use this element to display the `Home` component when it sees the `/` (the empty path) or the `/home` paths.
 
 The `nav>a` elements are added to navigate from one view to another.
 
@@ -152,9 +150,9 @@ See this in action:
 
 ## Using pushstate
 
-If you have open the demo in a preview mode (by copying the preview URL and opening in a different tab), then you can notice that the URL in the address bar or the URLs in the `nav>a` elements contains a `#` (example: `/#home`, `/#about` etc.).
+If you have opened the demo then you can notice that the URL in the address bar or the URLs in the `nav>a` elements contains a `#` (example: `/#home`, `/#about` etc.).
 Depending on your project need and esthetics you may want to get rid of the `#`-character.
-To this end, you need set the `useUrlFragmentHash` to `false`, which is also the default.
+To this end, you need set the [`useUrlFragmentHash` to `false`](./router-configuration.md#choose-between-hash-and-pushstate-routing-using-useurlfragmenthash), which is also the default.
 
 ## Live examples
 

@@ -55,8 +55,7 @@ You can also return a navigation instruction to navigate the user to a different
 These are discussed in the following sections.
 
 {% hint style="warning" %}
-Returning any value other than `boolean true`, from within the `canLoad` function will cancel the router navigation.
-<!-- TODO(Sayan): add link to router events involving canLoad -->
+Returning any value other than `boolean true`, from within the `canLoad` function will [cancel](./router-events.md#emitted-events) the router navigation.
 {% endhint %}
 
 ### Allow or disallowed loading components

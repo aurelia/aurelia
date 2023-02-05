@@ -134,9 +134,12 @@ export class MyApp {}
 
 There are couple of stuffs to note here.
 We start by looking at the configurations defined using the `@route` decorator where we list out the routes under the `routes` property in the configuration object in the `@route` decorator.
-<!-- TODO(Sayan): add link to the detailed route-configuration section -->
 The most important things in every route configurations are the `path` and the `component` properties.
 This indicates the router to use the defined `component` in the routing viewport when it sees the associated `path`.
+
+{% hint style="info" %}
+To know more about router-lite configuration, please refer to the respective [documentation](./router-configuration.md).
+{% endhint %}
 
 The routing viewport is specified in the view (see `my-app.html`) by using the `<au-viewport>` custom element.
 For example, the router will use this element to display the `Home` component when it sees the `/` (the empty path) or the `/home` fragments.

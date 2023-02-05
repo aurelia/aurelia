@@ -17,7 +17,7 @@ A route is an object containing a few required properties that tell the router w
 The most usual case of defining a route configuration is by specifying the `path` and the `component` properties.
 The idea is to use the `path` property to define a pattern, which when seen in the URL path, the view model defined using the `component` property is activated by the router-lite.
 Simply put, a routing configuration is a mapping between one or more path patterns to components.
-Below is the simple example (from the [getting started section](./getting-started.md)) of this.
+Below is the simple example (from the [getting started](./getting-started.md) section) of this.
 
 ```typescript
 import { route } from '@aurelia/router-lite';
@@ -149,7 +149,7 @@ You can see the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-optional-param?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note that there is a additional link added to the `products.html` to fetch a random product.
+Note that there is an additional link added to the `products.html` to fetch a random product.
 
 ```html
 <li>
@@ -157,7 +157,7 @@ Note that there is a additional link added to the `products.html` to fetch a ran
 </li>
 ```
 
-Because the `id` parameter is optional, even without a value for the `id` parameter, clicking the link loads the `Product` component.
+As the `id` parameter is optional, even without a value for the `id` parameter, clicking the link loads the `Product` component.
 Depending on whether or not there is a value present for the `id` parameter, the `Product` component generates a random id and loads that.
 
 ```typescript
@@ -334,11 +334,11 @@ You can see this action below.
 
 ## Fallback: redirecting the unknown path
 
-We can instruct the router-lite to the users to a different configured path, whenever it sees any unknown/un-configured paths.
+We can instruct the router-lite to redirect the users to a different configured path, whenever it sees any unknown/un-configured paths.
 To this end, we can use the `fallback` configuration option.
 Following example shows how to use this configuration option.
 
-{% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths?ctl=1&embed=1&file=src/my-app.ts" %}
+{% embed url="https://stackblitz.com/edit/router-lite-redirect-multiple-paths-ecrbxz?ctl=1&embed=1&file=src/my-app.ts" %}
 
 As the example shows, the `fallback` is configured as follows.
 
@@ -367,7 +367,7 @@ import { NotFound } from './not-found';
       title: 'Not found',
     },
   ],
-  fallback: 'notfound',
+  fallback: 'notfound', // <-- fallback configuration
 })
 export class MyApp {}
 ```
@@ -407,7 +407,25 @@ With this configuration in place, when navigation to a un-configured route ('Foo
 
 Routes can be marked as case-sensitive in the configuration, allowing the navigation to the component only when the case matches exactly the configured path.
 See the example below where the navigation to the "about" page is only successful when the casing matches.
-Any attempt with a different casing is navigated to the `fallback`.
+
+```typescript
+import { route } from '@aurelia/router-lite';
+import { About } from './about';
+
+@route({
+  routes: [
+    {
+      path: 'AbOuT',
+      component: About,
+      caseSensitive: true,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+Thus, only an attempt to the `/AbOuT` path loads the `About` component; any attempt with a different casing is navigated to the `fallback`.
+See this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-case-sensitive?ctl=1&embed=1&file=src/my-app.ts" %}
 
@@ -416,9 +434,9 @@ Any attempt with a different casing is navigated to the `fallback`.
 There are few other routing configuration which aren't discussed above.
 Our assumption is that these options are more involved and might not be used that often.
 Moreover, to understand the utility of these options fully, knowledge of other parts of the route would be beneficial.
-Therefore, although this section briefly describes these options, it also provides links to the sections, describing these topics with detailed examples.
+Therefore, this section only briefly introduces these options providing links to the sections with detailed examples.
 
-* `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. Although this is not really an advanced property, the fact that a route can be uniquely identified using this `id`, it can be used in many interested ways. For example, this can be used to generate the `href`s in the view when using the [`load` custom attribute](./navigating.md#using-the-load-custom-attribute) or using the [`Router#load` API](./navigating.md#using-the-router-api). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
+* `id` — The unique ID for this route. The router-lite implicitly generates a `id` for a given route, if an explicit value for this property is missing. Although this is not really an advanced property, due to the fact that a route can be uniquely identified with `id`, it can be used in many interesting ways. For example, this can be used to generate the `href`s in the view when using the [`load` custom attribute](./navigating.md#using-the-load-custom-attribute) or using the [`Router#load` API](./navigating.md#using-the-router-api). Using this property is also very convenient when there are multiple aliases for a single route, and we need a unique way to refer to this route.
 * `transitionPlan` — How to behave when the currently active component is scheduled to be loaded again in the same viewport. For more details, please refer the [documentation](./transition-plans.md).
 * `viewport` — The name of the viewport this component should be loaded into. This demands a full fledged documentation of its own. Refer to the [viewport documentation](./viewports.md#specifying-a-viewport-name-on-a-route) for more details.
 * `data` — Any custom data that should be accessible to matched components or hooks. The value of this configuration property must be an object and the object can take any shape (that is there is no pre-defined interface/class for this object). A typical use-case for the `data` property is to define the permissions, required by the users, when they attempt to navigate to this route. Refer [an example](./router-hooks.md#example-authentication-and-authorization) of this.
@@ -427,7 +445,7 @@ Therefore, although this section briefly describes these options, it also provid
 ## Specifying component
 
 Before finishing the section on the route configuration, we need to discuss one last topic for completeness, and that is how many different ways you can configure the `component`.
-Throughout various examples we have seen that components are configured by importing and using those in the routing configuration.
+Throughout various examples so far we have seen that components are configured by importing and using those in the routing configuration.
 However, there are many other ways in which the components can be configured.
 This section discusses those.
 

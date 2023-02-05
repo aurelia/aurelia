@@ -9,7 +9,6 @@ The router allows you to configure how it interprets and handles routing in your
 ## Choose between hash and pushState routing using `useUrlFragmentHash`
 
 If you do not provide any configuration value, the default is pushState routing.
-
 If you prefer hash-based routing to be used, you can enable this like so:
 
 ```typescript
@@ -32,7 +31,7 @@ If you are working with pushState routing, you will need a `<base>` element with
 </head>
 ```
 
-{% hint style="warning" %}
+{% hint style="info" %}
 PushState requires server-side support. This configuration is different depending on your server setup. For example, if you are using Webpack DevServer, you'll want to set the `devServer.historyApiFallback` option to `true`. If you are using ASP.NET Core, you'll want to call `routes.MapSpaFallbackRoute` in your startup code. See your preferred server technology's documentation for more information on how to allow 404s to be handled on the client with push state.
 {% endhint %}
 
@@ -59,16 +58,16 @@ Run the following example to understand how the value defined in `base#href` is 
 
 {% embed url="https://stackblitz.com/edit/router-lite-base-href?embed=1&file=src/my-app.html" %}
 
-When you open the app in a different browser, you can note that the URL in the address bar looks the `HOSTING_PREFIX/app/home` or `HOSTING_PREFIX/app/about`.
+When you open the example in a new browser tab, you can note that the URL in the address bar looks the `HOSTING_PREFIX/app/home` or `HOSTING_PREFIX/app/about`.
 This is also true for the `href` values in the `a` tags.
 This happens because `<base href="/app">` is used in the `index.ejs` (producing the index.html).
 In this case, the `router-lite` is picking up the `baseURI` information and performing the routing accordingly.
 
 This needs bit more work when you are supporting multi-tenancy for your app.
 In this case, you might want the URLs look like `https://example.com/tenant-foo/app1/view42` or `https://example.com/tenant-bar/app2/view21`.
-You cannot set the `document.baseURI` every time you start the app for a different tenant, as that value is static can readonly, read from the `base#href` value.
+You cannot set the `document.baseURI` every time you start the app for a different tenant, as that value is static and readonly, read from the `base#href` value.
 
-With `router-lite` you can support this by setting the `basePath` value to differently for each tenant, while customizing the router configuration, at bootstrapping phase.
+With `router-lite` you can support this by setting the `basePath` value differently for each tenant, while customizing the router configuration, at bootstrapping phase.
 Following is an example that implements the aforementioned URL convention.
 To better understand, open the the example in a new tab and check the URL in address bar when you switch tenants as well as the links in the `a` tags.
 
@@ -174,7 +173,7 @@ export class MyApp implements IRouteViewModel {}
 ```
 
 With this route configuration in place, when we navigate to `/home`, the default-built title will be `Home | Aurelia`.
-We can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when user is navigated to `/` or `/home` route.
+We can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when users navigate to `/` or `/home` route.
 
 ```typescript
 // main.ts
@@ -193,7 +192,7 @@ au.register(
 );
 ```
 
-Check out the following live example. You might need to open the demo in a nex tab to observe the title changes.
+Check out the following live example. You might need to open the demo in a new tab to observe the title changes.
 
 {% embed url="https://stackblitz.com/edit/router-lite-buildtitle?ctl=1&embed=1&file=src/main.ts" %}
 
@@ -277,17 +276,17 @@ The following example demonstrate the title translation.
 
 ## Enable or disable the usage of the `href` custom attribute using `useHref`
 
-The `useHref` configuration setting is something that all developers working with routing in Aurelia need to be aware of. By default, the router will allow you to use both `href` as well as `load` for specifying routes.
-
-Where this can get you into trouble is external links, mailto links and other types of links that do not route. A simple example looks like this:
+By default, the router will allow you to use both `href` as well as `load` for specifying routes.
+Where this can get you into trouble is external links, `mailto:` links and other types of links that do not route.
+A simple example looks like this:
 
 ```html
 <a href="mailto:myemail@gmail.com">Email Me</a>
 ```
 
-This seemingly innocent and common scenario by default will trigger the router and will cause an error in the console.
+This seemingly innocent and common scenario by default will trigger the router and will cause an error.
 
-You have two options when it comes to working with external links. You can specify the link as external using the `external` attribute.
+You have two options when it comes to working with external links. You can specify the link as external using the [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute).
 
 ```html
 <a href="mailto:myemail@gmail.com" external>Email Me</a>
@@ -316,7 +315,7 @@ This configuration option can take the following values: `push`, `replace`, and 
 
 This is the default strategy.
 In this mode, the router-lite will interact with Browser history to `push` a new navigation state each time a new navigation is performed.
-This enables the end users to use the back and forward buttons of the browser to navigate back and forth in an application using router-lite.
+This enables the end users to use the back and forward buttons of the browser to navigate back and forth in an application using the router-lite.
 
 Check out the following example to see this in action.
 
@@ -343,7 +342,7 @@ import { MyApp as component } from './my-app';
 })().catch(console.error);
 ```
 
-To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
+To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events to create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
 
 ```typescript
 import { IHistory } from '@aurelia/runtime-html';

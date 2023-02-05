@@ -159,3 +159,9 @@ To this end, you need set the [`useUrlFragmentHash` to `false`](./router-configu
 For the documentation of router-lite, many live examples are prepared.
 It is recommended to use the live examples as you read along the documentation.
 However, if you are feeling adventurous enough to explore the features by yourself, here is the complete [collection of the live examples](https://stackblitz.com/@Sayan751/collections/router-lite) at your disposal.
+
+{% hint style="info" %}
+The examples are created using StackBlitz.
+Sometimes, you need to open the examples in a new tab to see changes in the URL, title etc.
+To this end, copy the URL appearing on the address bar on the right pane and open that in a new tab.
+{% endhint %}

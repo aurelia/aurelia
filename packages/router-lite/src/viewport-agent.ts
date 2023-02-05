@@ -104,6 +104,8 @@ export class ViewportAgent {
   }
 
   public deactivateFromViewport(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    const tr = this.currTransition;
+    if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = false;
 
     switch (this.currState) {
@@ -419,6 +421,9 @@ export class ViewportAgent {
   }
 
   public deactivate(initiator: IHydratedController | null, tr: Transition, b: Batch): void {
+    ensureTransitionHasNotErrored(tr);
+    ensureGuardsResultIsTrue(this, tr);
+
     b.push();
 
     switch (this.currState) {
@@ -448,6 +453,8 @@ export class ViewportAgent {
         this.logger.trace(`deactivate() - already deactivating at %s`, this);
         b.pop();
         return;
+      default:
+        this.unexpectedState('deactivate');
     }
   }
 

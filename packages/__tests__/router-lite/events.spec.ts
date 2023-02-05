@@ -1,6 +1,6 @@
 import { Class, DI, IDisposable, LogLevel, noop } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, Params, route, RouterConfiguration } from '@aurelia/router-lite';
-import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
+import { IRouter, IRouterEvents, IViewport, Params, route, RouterConfiguration, Transition, ViewportAgent } from '@aurelia/router-lite';
+import { AppTask, Aurelia, CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
@@ -281,6 +281,13 @@ describe('events', function () {
       'au:router:navigation-error - 2 - \'c2\' - Error: synthetic test error',
     ]);
 
+    // workaround to clear error till the error recovery is properly implemented.
+    // TODO(Sayan): reactor later when error recovery is properly implemented.
+    const vpEl = host.querySelector('au-viewport');
+    const vpa = ViewportAgent.for(CustomElement.for<IViewport>(vpEl).viewModel, null);
+    const transition = vpa['currTransition'] as Transition;
+    transition.guardsResult = true;
+    transition.error = void 0;
     await au.stop();
   });
 });

@@ -69,12 +69,16 @@
 * [Router Recipes](routing/router-recipes.md)
 
 ## Router-lite
-* [Getting started](developer-guides/router-lite/getting-started.md)
-* [Router configuration](developer-guides/router-lite/router-configuration.md)
-* [Configuring routes](developer-guides/router-lite/configuring-routes.md)
-* [Navigation model](developer-guides/router-lite/navigation-model.md)
-* [Transition plan](developer-guides/router-lite/transition-plans.md)
-* [Viewports](developer-guides/router-lite/viewports.md)
+* [Getting started](router-lite/getting-started.md)
+* [Router configuration](router-lite/router-configuration.md)
+* [Configuring routes](router-lite/configuring-routes.md)
+* [Navigating](router-lite/navigating.md)
+* [Lifecycle hooks](router-lite/routing-lifecycle.md)
+* [Viewports](router-lite/viewports.md)
+* [Router hooks](router-lite/router-hooks.md)
+* [Router events](router-lite/router-events.md)
+* [Navigation model](router-lite/navigation-model.md)
+* [Transition plan](router-lite/transition-plans.md)
 
 ## Developer Guides
 

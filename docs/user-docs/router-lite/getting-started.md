@@ -155,3 +155,9 @@ See this in action:
 If you have open the demo in a preview mode (by copying the preview URL and opening in a different tab), then you can notice that the URL in the address bar or the URLs in the `nav>a` elements contains a `#` (example: `/#home`, `/#about` etc.).
 Depending on your project need and esthetics you may want to get rid of the `#`-character.
 To this end, you need set the `useUrlFragmentHash` to `false`, which is also the default.
+
+## Live examples
+
+For the documentation of router-lite, many live examples are prepared.
+It is recommended to use the live examples as you read along the documentation.
+However, if you are feeling adventurous enough to explore the features by yourself, here is the complete [collection of the live examples](https://stackblitz.com/@Sayan751/collections/router-lite) at your disposal.

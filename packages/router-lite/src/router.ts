@@ -3,7 +3,7 @@ import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll }
 import { CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger } from './router-events';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
@@ -647,6 +647,7 @@ export class Router {
         this.cancelNavigation(nextTr);
       } else {
         this._isNavigating = false;
+        this.events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
         const $nextTr = this.nextTr;
         // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
         if ($nextTr !== null) {

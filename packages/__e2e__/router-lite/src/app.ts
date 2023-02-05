@@ -3,6 +3,7 @@ import { customElement } from 'aurelia';
 import template from './app.html';
 // import { Auth } from './pages/auth';
 import { Home } from './pages/home';
+import { IRouterEventLoggerService } from './router-event-logger-service';
 
 @route({
   routes: [
@@ -15,12 +16,15 @@ import { Home } from './pages/home';
   template,
 })
 export class App {
-  public static inject = [IRouter];
+  public static inject = [IRouter, IRouterEventLoggerService];
   public message = 'Hello World!';
   public iframeSrc: string;
   public iframeVisible: boolean;
 
-  constructor(public router: IRouter) {
+  constructor(
+    public router: IRouter,
+    private readonly service: IRouterEventLoggerService,
+  ) {
     window['app'] = this;
   }
 

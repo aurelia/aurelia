@@ -7,3 +7,8 @@
 <hr>
 <button click.trigger="toggleIframe()">Show iframe</button>
 <iframe if.bind="iframeVisible" src.bind='iframeSrc'></iframe>
+
+<button click.trigger="service.clear()">Clear log</button>
+<div id="eventlog">
+  <div repeat.for="item of service.log">${item}</div>
+</div>

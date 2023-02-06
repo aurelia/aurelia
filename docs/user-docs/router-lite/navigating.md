@@ -1,5 +1,5 @@
 ---
-description: Learn to navigate from one view to another using the Router-Lite as well as about routing context.
+description: Learn to navigate from one view to another using the Router-Lite. Also learn about routing context.
 ---
 
 # Navigating
@@ -18,12 +18,42 @@ This can be seen in action in the live example below.
 The example shows that there are two configured routes, `home` and `about`, and in markup there are two anchor tags that points to these routes.
 Clicking those links the users can navigate to the desired components, as it is expected.
 
+{% tabs %}
+{% tab title="my-app.html" %}
 ```html
 <nav>
   <a href="home">Home</a>
   <a href="about">About</a>
 </nav>
 ```
+{% endtab %}
+{% tab title="my-app.ts" %}
+```ts
+import { customElement } from '@aurelia/runtime-html';
+import { route } from '@aurelia/router-lite';
+import template from './my-app.html';
+import { Home } from './home';
+import { About } from './about';
+
+@route({
+  routes: [
+    {
+      path: ['', 'home'],
+      component: Home,
+      title: 'Home',
+    },
+    {
+      path: 'about',
+      component: About,
+      title: 'About',
+    },
+  ],
+})
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+{% endtab %}
+{% endtabs %}
 
 You can also use the parameterized routes with the `href` attribute, exactly the same way.
 To this end, you need to put the parameter value in the path itself and use the parameterized path in the `href` attribute.

@@ -575,6 +575,11 @@ This can also be seen in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-active?ctl=1&embed=1&file=src/my-app.html" %}
 
+
+{% hint style="info" %}
+Note that the [navigation model](./navigation-model.md) also offers a [`isActive` property](./navigation-model.md#using-the-isactive-property).
+{% endhint %}
+
 ## Using the Router API
 
 Along with the custom attributes on the markup-side, the router-lite also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript is at your disposal.

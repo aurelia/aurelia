@@ -29,9 +29,7 @@ Clicking those links the users can navigate to the desired components, as it is 
 {% endtab %}
 {% tab title="my-app.ts" %}
 ```ts
-import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router-lite';
-import template from './my-app.html';
 import { Home } from './home';
 import { About } from './about';
 
@@ -40,16 +38,13 @@ import { About } from './about';
     {
       path: ['', 'home'],
       component: Home,
-      title: 'Home',
     },
     {
       path: 'about',
       component: About,
-      title: 'About',
     },
   ],
 })
-@customElement({ name: 'my-app', template })
 export class MyApp {}
 ```
 {% endtab %}
@@ -64,6 +59,8 @@ This is shown in the example below.
 The example shows two configured routes; one with an optional parameter.
 The markup has three anchor tags as follows:
 
+{% tabs %}
+{% tab title="my-app.html" %}
 ```html
 <nav>
   <a href="home">Home</a>
@@ -71,6 +68,29 @@ The markup has three anchor tags as follows:
   <a href="about/42">About/42</a>
 </nav>
 ```
+{% endtab %}
+{% tab title="my-app.ts" %}
+```ts
+import { route } from '@aurelia/router-lite';
+import { Home } from './home';
+import { About } from './about';
+
+@route({
+  routes: [
+    {
+      path: ['', 'home'],
+      component: Home,
+    },
+    {
+      path: ['about/:id?'],
+      component: About,
+    },
+  ],
+})
+export class MyApp {}
+```
+{% endtab %}
+{% endtabs %}
 
 The last `href` attribute is an example of a parameterized route.
 
@@ -83,30 +103,101 @@ This is shown in the example below.
 {% embed url="https://stackblitz.com/edit/router-lite-href-route-id?ctl=1&embed=1&file=src/my-app.ts" %}
 
 Note that the example set a route id that is different than the defined path.
-
-```typescript
-// my-app.ts
-{
-  id: 'r1',
-  path: ['', 'c1'],
-  component: ChildOne,
-},
-{
-  id: 'r2',
-  path: 'c2',
-  component: ChildTwo,
-},
-```
-
 These route-ids are later used in the markup as the values for the `href` attributes.
 
+{% tabs %}
+{% tab title="my-app.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { ChildOne } from './child1';
+import { ChildTwo } from './child2';
+
+@route({
+  routes: [
+    {
+      id: 'r1',
+      path: ['', 'c1'],
+      component: ChildOne,
+    },
+    {
+      id: 'r2',
+      path: 'c2',
+      component: ChildTwo,
+    },
+  ],
+})
+export class MyApp {}
+```
+{% endtab %}
+{% tab title="my-app.html" %}
 ```html
-<!-- my-app.html -->
 <nav>
   <a href="r1">C1</a>
   <a href="r2">C2</a>
 </nav>
 ```
+{% endtab %}
+{% tab title="child1.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-11', template: 'gc11' })
+class GrandChildOneOne {}
+
+@customElement({ name: 'gc-12', template: 'gc12' })
+class GrandChildOneTwo {}
+
+@route({
+  routes: [
+    { id: 'r1', path: ['', 'gc11'], component: GrandChildOneOne },
+    { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
+  ],
+})
+@customElement({
+  name: 'c-one',
+  template: `c1 <br>
+  <nav>
+    <a href="r1">gc11</a>
+    <a href="r2">gc12</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildOne {}
+```
+{% endtab %}
+{% tab title="child2.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-21', template: 'gc21' })
+class GrandChildTwoOne {}
+
+@customElement({ name: 'gc-22', template: 'gc22' })
+class GrandChildTwoTwo {}
+
+@route({
+  routes: [
+    { id: 'r1', path: ['', 'gc21'], component: GrandChildTwoOne },
+    { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
+  ],
+})
+@customElement({
+  name: 'c-two',
+  template: `c2 <br>
+  <nav>
+    <a href="r1">gc21</a>
+    <a href="r2">gc22</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildTwo {}
+```
+{% endtab %}
+{% endtabs %}
 
 {% hint style="warning" %}
 Note that using the route-id of a parameterized route with the `href` attribute might be limiting or in some cases non-operational as with `href` attribute there is no way to specify the parameters for the route separately.
@@ -116,7 +207,12 @@ This case is handled by the [`load` attribute](#using-the-load-custom-attribute)
 ### Targeting viewports
 
 You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
-To this end, you can use the following syntax: `{path1}[@{viewport-name}][+{path2}[@{sibling-viewport-name}]]`.
+To this end, you can use the following syntax.
+
+```
+{path1}[@{viewport-name}][+{path2}[@{sibling-viewport-name}]]
+```
+
 The following live example, demonstrates that.
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-sibling-viewport-href?ctl=1&embed=1&file=src/my-app.html" %}
@@ -147,9 +243,104 @@ This is shown in the example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport-2mcxwj?ctl=1&embed=1&file=src/main.ts" %}
 
+{% tabs %}
+{% tab title="my-app.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { ChildOne } from './child1';
+import { ChildTwo } from './child2';
+import { NotFound } from './not-found';
+
+@route({
+  routes: [
+    {
+      path: ['', 'c1'],
+      component: ChildOne,
+    },
+    {
+      path: 'c2',
+      component: ChildTwo,
+    },
+    {
+      path: 'not-found',
+      component: NotFound,
+    },
+  ],
+  fallback: 'not-found',
+})
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+{% endtab %}
+{% tab title="child1.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-11', template: 'gc11' })
+class GrandChildOneOne {}
+
+@customElement({ name: 'gc-12', template: 'gc12' })
+class GrandChildOneTwo {}
+
+@route({
+  routes: [
+    { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
+    { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+  ],
+})
+@customElement({
+  name: 'c-one',
+  template: `c1 <br>
+  <nav>
+    <a href="gc11">gc11</a>
+    <a href="gc12">gc12</a>
+    <a href="c2">c2 (doesn't work)</a>
+    <a href="../c2">../c2 (works)</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildOne {}
+```
+{% endtab %}
+{% tab title="child1.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({ name: 'gc-21', template: 'gc21' })
+class GrandChildTwoOne {}
+
+@customElement({ name: 'gc-22', template: 'gc22' })
+class GrandChildTwoTwo {}
+
+@route({
+  routes: [
+    { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
+    { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+  ],
+})
+@customElement({
+  name: 'c-two',
+  template: `c2 <br>
+  <nav>
+    <a href="gc21">gc21</a>
+    <a href="gc22">gc22</a>
+    <a href="c1">c1 (doesn't work)</a>
+    <a href="../c1">../c1 (works)</a>
+  </nav>
+  <br>
+  <au-viewport></au-viewport>`,
+})
+export class ChildTwo {}
+```
+{% endtab %}
+{% endtabs %}
+
 In the example, the root component has two child-routes (`c1`, `c2`) and every child component in turn has 2 child-routes (`gc11`, and `gc12` and `gc21`, and `gc22` respectively) of their own.
 In this case, any `href` pointing to any of the immediate child-routes (and thus configured in the current routing parent) works as expected.
-However, when an `href`, like below, is used to navigate from one child component to another child component, it does not work.
+However, when an `href`, like below (refer `child1.ts`), is used to navigate from one child component to another child component, it does not work.
 
 ```html
  <a href="c2">c2 (doesn't work)</a>
@@ -165,23 +356,23 @@ That is, you can use `../` prefix to instruct the router to point to the parent 
 The prefix can also be used multiple times to point to any ancestor routing context.
 Naturally, this does not go beyond the root routing context.
 
-Contextually, note that the [example involving route-id](#using-route-id) also demonstrates this behavior of navigating in the current context.
-There the root uses `r1`, and `r2` as route identifiers, which are the same identifiers used in the children to identify their respective child-routes.
+Contextually, note that the [example involving route-id](#using-route-id) also demonstrates the behavior of navigating in the current context.
+In that example, the root component uses `r1`, and `r2` as route identifiers, which are the same identifiers used in the children to identify their respective child-routes.
 The route-ids are used in the markup with the `href` attributes.
 Despite being the same route-ids, the navigation works because unless specified otherwise, the routing instructions are constructed under the current routing context.
 
 ### Bypassing the `href` custom attribute
 
-By default the router-lite enables usage of the `href` custom attribute, as that ensure that router-lite handles the routing instructions by default.
+By default the router-lite enables usage of the `href` custom attribute, as that ensures that the router-lite handles the routing instructions by default.
 There might be cases, where you want to avoid that.
 If you want to globally deactivate the usage of `href`, then you can customize the router configuration by setting `false` to the [`useHref` configuration option](./router-configuration.md#enable-or-disable-the-usage-of-the-href-custom-attribute-using-usehref).
 
-To disable/bypass the default handling of router-lite for any particular `href` attribute, you can avail many different ways as per your need and convenience.
+To disable/bypass the default handling of router-lite for any particular `href` attribute, you can avail couple of different ways as per your need and convenience.
 
 - Using `external` or `data-external` attribute on the `a` tag.
 - Using a non-null value for the `target`, other than the current window name, or `_self`.
 
-Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router-lite ignores the routing instruction.
+Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router-lite ignores the routing instruction and the default handling of clicking a link takes place.
 
 Following example demonstrate these options.
 
@@ -191,12 +382,12 @@ Following example demonstrate these options.
 
 Although the usage of `href` is the most natural choice, it has some limitations.
 Firstly, it allows navigating in the [current routing context](#navigate-in-current-routing-context).
-However, the bigger limitation might be that the `href` allows usage of only string values.
-This might be bit sub-optimal when the routes have parameters, as in that case you need to know the order of the parameters, the parameterized and static segments etc. to correctly compose the string path.
+However, a bigger limitation might be that the `href` allows usage of only string values.
+This might be bit sub-optimal when the routes have parameters, as in that case you need to know the order of the  parameterized and static segments etc. to correctly compose the string path.
 In case the order of those segments are changed, it may cause undesired or unexpected results if your application.
-Therefore, the router-lite offers another alternative namely the `load` attribute.
 
-Besides supporting string-instructions like the `href` attribute, the `load` attribute also offers a way to compose the routing instructions in a more structured manner.
+To support structured way to constructing URL the router-lite offers another alternative namely the `load` attribute.
+This custom attribute accepts structured routing instructions as well as string-instructions, just like the `href` attribute.
 Before starting the discussion on the features supported exclusively by the `load` attribute, let us quickly review the following example of using string-instructions with the `load` attribute.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
@@ -228,18 +419,27 @@ Following is an example where the route-id is used with bound parameters.
 {% embed url="https://stackblitz.com/edit/router-lite-load-params?ctl=1&embed=1&file=src/my-app.html" %}
 
 The example above configures a route as follows.
-
-```typescript
-// my-app.ts
-{
-  id: 'r2',
-  path: ['c2/:p1/foo/:p2?', 'c2/:p1/foo/:p2/bar/:p3'],
-  component: ChildTwo,
-}
-```
-
 The route-id is then used in the markup with the bound `params`, as shown in the example below.
 
+{% tabs %}
+{% tab title="my-app.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { ChildTwo } from './child2';
+
+@route({
+  routes: [
+    {
+      id: 'r2',
+      path: ['c2/:p1/foo/:p2?', 'c2/:p1/foo/:p2/bar/:p3'],
+      component: ChildTwo,
+    },
+  ],
+})
+export class MyApp {}
+```
+{% endtab %}
+{% tab title="my-app.html" %}
 ```html
 <!-- constructed path: /c2/1/foo/ -->
 <a load="route: r2; params.bind: {p1: 1};">C2 {p1: 1}</a>
@@ -256,12 +456,15 @@ The route-id is then used in the markup with the bound `params`, as shown in the
 <!-- constructed path: /c2/9/foo/10/bar/11?p4=awesome&p5=possum -->
 <a load="route: r2; params.bind: {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'};">C2 {p1: 9, p2: 10, p3: 11, p4: 'awesome', p5: 'possum'}</a>
 ```
+{% endtab %}
+{% endtabs %}
 
 An important thing to note here is how the URL paths are constructed for each URL.
 Based on the given set of parameters, a path is selected from the configured set of paths for the route, that maximizes the number of matched parameters at the same time meeting the parameter constraints.
 
 For example, the third instance (params: `{p1: 4, p3: 5}`) creates the path `/c2/4/foo/?p3=5` (instance of `'c2/:p1/foo/:p2?'` path) even though there is a path with `:p3` configured.
-This happens because the bound parameters-object is missing the `p2` parameter.
+This happens because the bound parameters-object is missing the `p2` required parameter in the path pattern `'c2/:p1/foo/:p2/bar/:p3'`.
+Therefore, it constructs the path using the pattern `'c2/:p1/foo/:p2?'` instead.
 
 In other case, the fourth instance provides a value for `p2` as well as a value for `p3` that results in the construction of path `/c2/6/foo/7/bar/8` (instance of `'c2/:p1/foo/:p2/bar/:p3'`).
 This case also demonstrates the aspect of "maximization of parameter matching" while path construction.
@@ -307,7 +510,7 @@ The routing works in this case, because the routes are searched in the same rout
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-current-context?ctl=1&embed=1&file=src/my-app.ts" %}
 
-However, this default behavior can be changed by binding the `context` property explicitly.
+However, this default behavior can be changed by binding the `context` property of the `load` custom attribute explicitly.
 To this end, you need to bind the instance of `IRouteContext` in which you want to perform the navigation.
 The most straightforward way to select a parent routing context is to use the `parent` property of the `IRouteContext`.
 The current `IRouteContext` can be injected using the `@IRouteContext` in the class constructor.
@@ -335,6 +538,11 @@ Note that even though the `ChildOne` defines a route with `r2` route-id, specify
 
 Using the `IRouteContext#parent` path to select the root routing context is somewhat cumbersome when you intend to target the root routing context.
 For convenience, the router-lite supports binding `null` to the `context` property which instructs the router to perform the navigation in the root routing context.
+
+```html
+<a load="route: r2; context.bind: null">Go to root c2</a>
+```
+
 This is shown in the following example.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nullroot-context?ctl=1&embed=1&file=src/child1.ts" %}

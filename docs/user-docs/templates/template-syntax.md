@@ -384,8 +384,8 @@ Ignore the `i` variable being incremented, this is only there to make Aurelia fi
 {% tab title="my-app.ts" %}
 ```
 export class MyApp {
-  fetchAdvice() {
-    return fetch("https://api.adviceslip.com/advice")
+  fetchAdvice(id: number) {
+    return fetch("https://api.adviceslip.com/advice/" + id)
       .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to fetch NASA APOD data') }))
   }
 }

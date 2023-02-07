@@ -16,7 +16,12 @@ Router lifecycle hook methods are all completely optional. You only have to impl
 If you are working with components you are rendering, implementing `IRouteViewModel` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
 
 ```typescript
-import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router-lite';
+import {
+  IRouteViewModel,
+  Params,
+  RouteNode,
+  NavigationInstruction,
+} from '@aurelia/router-lite';
 
 export class MyComponent implements IRouteViewModel {
   canLoad?(
@@ -33,7 +38,7 @@ export class MyComponent implements IRouteViewModel {
 }
 ```
 
-Roughly speaking, using the `canLoad` and `canUnload` hooks you can determine whether to allow or prevent navigation to and from a route respectively.
+Using the `canLoad` and `canUnload` hooks you can determine whether to allow or disallow navigation to and from a route respectively.
 The `loading` and `unloading` hooks are meant to be used for performing setup and clean up activities respectively for a view.
 Note that all of these hooks can return a promise, which will be awaited by the router-lite pipeline.
 These hooks are discussed in details in the following section.
@@ -47,7 +52,6 @@ In case you are looking for the global/shared routing hooks, there is a separate
 The `canLoad` method is called upon attempting to load the component.
 It allows you to determine if the component should be loaded or not.
 If your component relies on some precondition being fulfilled before being allowed to render, this is the method you would use.
-Note that the `canLoad` method can also be asynchronous.
 
 The component would be loaded if `true` (it has to be `boolean` `true` ) is returned from this method.
 To disallow loading the component you can return `false`.
@@ -118,6 +122,26 @@ You can also see this example in action below.
 
 If you prefer a more [structured navigation instructions](./navigating.md) then you can also do so.
 Following is the same example using route-id and parameters object.
+
+```typescript
+import { NavigationInstruction, Params } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({
+  name: 'c-one',
+  template: `c1 \${id}`,
+})
+export class ChildOne {
+  private id: number;
+  public canLoad(params: Params): boolean | NavigationInstruction {
+    const id = Number(params.id);
+    if (!Number.isInteger(id) || id % 2 != 0)
+      return { component: 'r2', params: { id: params.id } };
+    this.id = id;
+    return true;
+  }
+}
+```
 
 {% embed url="https://stackblitz.com/edit/router-lite-canload-routeid-nav-instruction?ctl=1&embed=1&file=src/child1.ts" %}
 
@@ -200,9 +224,9 @@ The `loading` method is called when your component is navigated to. If your rout
 
 In many ways, the `loading` method is the same as `canLoad` with the exception that `loading` cannot prevent the component from loading. Where `canLoad` can be used to redirect users away from the component, the `loading` method cannot.
 
-This lifecycle hook can be utilized to
+This lifecycle hook can be utilized to perform setup; for example, fetching data from backend API etc.
 
-All of the above code examples for `canLoad` can be used with `load` and will work the same with exception of being able to return `true` or `false` boolean values to prevent the component being loaded.
+All of the above code examples for `canLoad` can be used with `load` and will work the same with the exception of being able to return `true` or `false` boolean values to prevent the component being loaded.
 
 One of the examples is refactored using `loading` hook that is shown below.
 
@@ -238,6 +262,10 @@ This hook is like the `canLoad` method but inverse.
 You can return a `boolean true` from this method, allowing the router-lite to navigate away from the current component.
 Returning any other value from this method will disallow the router-lite to unload this component.
 
+{% hint style="warning" %}
+Returning any value other than `boolean true`, from within the `canUnload` function will [cancel](./router-events.md#emitted-events) the router navigation.
+{% endhint %}
+
 The following example shows that before navigating away, the user is shown a confirmation prompt.
 If the user agrees to navigate way, then the navigation is performed.
 The navigation is cancelled, if the user does not confirm.
@@ -269,7 +297,7 @@ You can see this example in action below.
 The `unloading` hook is called when the user navigates away from the current component.
 The first argument (`next`) of this hook is a `RouteNode` which provides information about the next route.
 
-This hook is like the `load` method but inverse.
+This hook is like the `loading` method but inverse.
 
 The following example shows that a `unloading` hook logs the event of unloading the component.
 

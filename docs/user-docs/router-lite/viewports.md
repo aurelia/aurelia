@@ -446,10 +446,10 @@ Note how clicking the links load the components also in the first viewport witho
 
 When no route is loaded into a viewport, a 'default' route is loaded into the viewport.
 For every viewport, such defaults can be configured using the `default` attribute.
-It is optional to specify a value for this attribute and by default `''` (empty string) is used as the default value for this property.
-This explains why the route with empty path (when exists) is loaded into a viewport without the `default` attribute set.
+It is optional to specify a value for this attribute and the empty string (`''`) is used as the default value for this property.
+This explains why the route with empty path (when exists) is loaded into a viewport without the `default` attribute set, as seen in the [sibling viewports example](#sibling-viewports).
 
-However, you are free to use any other path as a value for the `default` attribute.
+Another path can be used to override the default value of the `default` attribute.
 The following example shows four viewports with varied values for the `default` attribute.
 Whereas the first viewport might be the usual viewport with empty path, the other three specifies different default values.
 These components are loaded into the viewport, by default when the application is started.
@@ -483,9 +483,9 @@ To see examples of this, please refer to the [sibling viewport](#sibling-viewpor
 
 ## Specify a fallback component for a viewport
 
-If a route cannot be recognized, a fallback route is looked for and load (when configured) into the viewport.
+If a route cannot be recognized, a fallback route is looked for and loaded (when configured) into the viewport.
 Such fallback can be configured using the `fallback` property of the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path).
-`au-viewport` also offers a similar `fallback` attribute using which a fallback component can be configured for a particular viewport.
+`au-viewport` also offers a similar `fallback` attribute, using which a fallback component can be configured for a particular viewport.
 The `fallback` attribute is similar to its route configuration counterpart, with only one difference.
 The `fallback` attribute in the `au-viewport`, when configured, always takes precedence over the `fallback` route configuration option.
 This is shown in the live example below.

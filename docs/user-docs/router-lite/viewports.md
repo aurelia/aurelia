@@ -4,7 +4,7 @@ description: Learn about viewports in Router-Lite and how to configure hierarchi
 
 # Viewports
 
-The `<au-viewport>` element, or commonly referred to as viewport (not to confuse with `viewport` `meta`), is the "outlet", where the router-lite attaches/loads the components.
+The `<au-viewport>` element, or commonly referred to as viewport (not to confuse with [`viewport` meta tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag)), is the "outlet", where the router-lite attaches/loads the components.
 For a basic example of viewport, please refer the ["Getting started"-tutorial](./getting-started.md).
 Most of the examples in the preceding sections show the usage of only a single viewport.
 However, you can use multiple viewports with the sibling viewports and hierarchical routing.
@@ -251,7 +251,7 @@ If you run the example, you can immediately see a "problem" that both the viewpo
 Although it is not an error per se, with natural use-case in mind, you probably like to avoid that.
 Let us fix this "problem" first.
 
-This is happening due to the default value of the [`default` attribute](#default-attribute) of the `<au-viewport>` that is set to `''` (empty string).
+This is happening due to the default value of the [`default` attribute](#specify-a-default-component-for-a-viewport) of the `<au-viewport>` that is set to `''` (empty string).
 This default value enables loading the component associated with the empty path without any additional configuration.
 This default behavior makes sense as the usage of a single viewport at every routing hierarchy might be prevalent.
 
@@ -263,10 +263,12 @@ To this end, we can bind `null` to the `default` attribute of a viewport, which 
   <div class="content">
 -   <au-viewport></au-viewport>
 -   <au-viewport></au-viewport>
-+   <au-viewport default="products"></au-viewport> <!-- instruct the router to load the products component by default -->
++   <!-- instruct the router to load the products component by default -->
++   <au-viewport default="products"></au-viewport>
 +   <au-viewport default.bind="null"></au-viewport>
   </div>
 ```
+{% endcode %}
 
 You can see in the live example below that this fixes the duplication issue.
 
@@ -285,8 +287,9 @@ To this end, we need to [name the viewports](#named-viewports).
 +   <au-viewport name="details" default.bind="null"></au-viewport>
   </div>
 ```
+{% endcode %}
 
-Although we name the viewports semantically, it is not necessary, and you are free to choose names, as you like, for the viewports.
+Although we name the viewports semantically, it is not necessary, and you are free to choose viewport names, as you like.
 Lastly, we need to use the [`load` attribute](./navigating.md#using-the-load-custom-attribute) in the `Products` component to construct the URL, or more accurately the routing instruction correctly, such that the details of the product is loaded on the `details` viewport.
 
 {% code title="products.html" %}
@@ -298,8 +301,9 @@ Lastly, we need to use the [`load` attribute](./navigating.md#using-the-load-cus
     </li>
   </ul>
 ```
+{% endcode %}
 
-Using the `load` attribute we are instructing the router-lite to load the `product` (route-id) component, with the `id` parameter of the route set to the `id` of the current `item` in the repeater, in the `details` viewport.
+Using the `load` attribute we are instructing the router-lite to load the `Product` (using the route-id `details`) component, with the `id` parameter of the route set to the `id` of the current `item` in the repeater, in the `details` viewport.
 With the `context.bind:null`, we are instructing the router-lite to perform this routing instruction on the root routing context (refer [the documentation](./navigating.md#using-the-load-custom-attribute) for the `load` attribute for more details).
 Now, when someone clicks a product link the associated details are loaded in the `details` viewport.
 You can see this in action below.
@@ -311,7 +315,7 @@ For example, when you click a product link, the URL is `/details/42@details+prod
 
 ## Named viewports
 
-As seen in [this example](#sibling-viewports), viewports can be named.
+As seen in [the sibling viewports example](#sibling-viewports), viewports can be named.
 It is particularly useful when there are multiple [sibling viewports](#sibling-viewports) present.
 Note that specifying a value for the `name` attribute of viewport is optional, and the default value is simply `'default'`.
 
@@ -329,7 +333,12 @@ In the following example, we have the `main` viewport for our main content and t
 ### Using viewport name for routing instructions
 
 The names can be used to instruct the router-lite to load a specific component to a specific named viewport.
-To this end the path syntax is as follows: `{path}@{viewport-name}`.
+To this end the path syntax is as follows:
+
+```
+{path}@{viewport-name}
+```
+
 The live example below shows this.
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-viewport?ctl=1&embed=1&file=src/my-app.html" %}
@@ -409,7 +418,7 @@ In other words, you are instructing the router that no other components apart fr
 ```
 
 In this example, we are instructing the router-lite to reserve the first viewport for `ce-two` custom element and the reserve the second viewport for `ce-one` custom element.
-You can see this in the live example below, by clicking the various links available and observing how the components are loaded into the reserved viewports.
+You can see this in the live example below, by clicking the links and observing how the components are loaded into the reserved viewports.
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by?ctl=1&embed=1&file=src/my-app.ts" %}
 
@@ -425,7 +434,7 @@ The live example below shows this in action
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by-multiple-values?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Although it feels like a markup alternative of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration, there is a subtle difference.
+Although the `used-by` attribute feels like a markup alternative of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration, there is a subtle difference.
 Having the `used-by` property on a particular viewport set to `X` component, does not prevent a preceding viewport without any value for the `used-by` property to load the `X` component.
 This is shown in action in the example below.
 

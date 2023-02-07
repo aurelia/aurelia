@@ -582,7 +582,7 @@ Note that the [navigation model](./navigation-model.md) also offers a [`isActive
 
 ## Using the Router API
 
-Along with the custom attributes on the markup-side, the router-lite also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript is at your disposal.
+Along with the custom attributes on the markup-side, the router-lite also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript at your disposal.
 To this end, you have to first inject the router into your component.
 This can be done by using the `IRouter` decorator on your component constructor method as shown in the example below.
 
@@ -614,11 +614,12 @@ This is also shown in the example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
 
-There is a major difference regarding the context selection in the `IRouter#load` method and the `href` and `load` custom attributes.
+There is a major important difference regarding the context selection in the `IRouter#load` method and the `href` and `load` custom attributes.
 By default, the custom attributes performs the navigation in the current routing context (refer the [`href`](#navigate-in-current-and-ancestor-routing-context) and [`load` attribute](#customize-the-routing-context) documentation).
 However, the `load` method always use the root routing context to perform the navigation.
 This can be observed in the `ChildOne` and `ChildTwo` components where the `load` method is used the following way to navigate from `ChildOne` to `ChildTwo` and vice versa.
 As the `load` API uses the the root routing context by default, such routing instructions works.
+In comparison, note that with `href` we needed to use the `..` prefix or with `load` method we needed to set the context to `null.`
 
 ```typescript
 // in ChildOne
@@ -630,7 +631,7 @@ router.load('c1');
 ```
 
 However, on the other hand, you need to specify the routing context, when you want to navigate inside the current routing context.
-Most obvious use case is when you issue routing instruction for the child-routes inside a parent component.
+The most obvious use case is when you issue routing instruction for the child-routes inside a parent component.
 This can also be observed in `ChildOne` and `ChildTwo` components where a specific context is used as part of the [navigation options](#using-navigation-options) to navigate to the child routes.
 
 ```typescript
@@ -659,7 +660,7 @@ The `load` method also support non-string routing instruction.
 
 **Using custom elements**
 
-You can use the custom element classes directly for which routes have been configured.
+You can use the custom element classes directly for which the routes have been configured.
 Multiple custom element classes can be used in an array to target sibling viewports.
 
 ```typescript
@@ -673,8 +674,6 @@ This can be seen in action in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-ce?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective class, purely for convenience purpose.
-
 **Using custom element definitions**
 
 You can use the custom element definitions for which routes have been configured.
@@ -684,16 +683,20 @@ Multiple definitions can be used in an array to target sibling viewports.
 import { CustomElement } from '@aurelia/runtime-html';
 
 router.load(CustomElement.getDefinition(ChildOne));
-router.load([CustomElement.getDefinition(ChildOne), CustomElement.getDefinition(ChildTwo)]);
+router.load([
+  CustomElement.getDefinition(ChildOne),
+  CustomElement.getDefinition(ChildTwo)
+]);
 
-router.load(CustomElement.getDefinition(GrandChildOneOne), { context: this });
+router.load(
+  CustomElement.getDefinition(GrandChildOneOne),
+  { context: this }
+);
 ```
 
 This can be seen in action in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-ce-definition?ctl=1&embed=1&file=src/util.ts" %}
-
-Note that in the example we are using the utility function `idToClass` (util.ts) to map the string id to the respective custom element definitions, purely for convenience purpose.
 
 **Using a function to return the view-model class**
 
@@ -728,7 +731,7 @@ This can be seen in action in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-import?ctl=1&embed=1&file=src/child2.ts" %}
 
-Note that because the `import()` function returns a promise, you can also use a promise directly with the `load` function.
+Note that because invoking the `import()` function returns a promise, you can also use a promise directly with the `load` function.
 
 ```typescript
 router.load(Promise.resolve({ ChildOne }));
@@ -737,8 +740,8 @@ router.load(Promise.resolve({ ChildOne }));
 **Using a viewport instruction**
 
 Any kind of routing instruction used for the `load` method is converted to a viewport instruction tree.
-You can also use a (partial) viewport instruction with the `load` method.
-This offers maximum configuration, such as routing parameters, viewports, children etc.
+Therefore, you can also use a (partial) viewport instruction directly with the `load` method.
+This offers maximum flexibility in terms of configuration, such as routing parameters, viewports, children etc.
 Following are few examples, how the viewport instruction API can be used.
 
 ```typescript
@@ -801,7 +804,7 @@ This can also be seen in the action below where a random title is generated ever
 **`titleSeparator`**
 
 As the name suggests, this provides a configuration option to customize the separator for the [title parts](./configuring-routes.md#setting-the-title).
-By default router-lite uses `|` as separator.
+By default router-lite uses `|` (pipe) as separator.
 For example if the root component defines a title `'Aurelia'` and has a route `/home` with title `Home`, then the resulting title would be `Home | Aurelia` when navigating to the route `/home`.
 Using this option, you can customize the separator.
 
@@ -857,8 +860,8 @@ This can be seen in the live example below.
 **`context`**
 
 As by default, the `load` method performs the navigation relative to root context, when navigating to child routes, the context needs to be specified.
-This navigation options has also been used in various examples previously.
-Note that you can use various context types.
+This navigation option has also already been used in various examples previously.
+Various types of values can be used for the `context`.
 
 The easiest is to use the custom element **view model instance**.
 If you are reading this documentation sequentially, then you already noticed this.
@@ -910,13 +913,19 @@ export class ChildTwo {
   private id: string;
   public constructor(
     @IRouter private readonly router: IRouter,
+    // injected instance of IRouteContext
     @IRouteContext private readonly context: IRouteContext
   ) {}
 
   private load(route: string, useCurrentContext: boolean = false) {
     void this.router.load(
       route,
-      useCurrentContext ? { context: this.context } : undefined
+      useCurrentContext
+        ? {
+            // use the injected IRouteContext as navigation context.
+            context: this.context
+          }
+        : undefined
     );
   }
   public loading(params: Params) {
@@ -964,13 +973,19 @@ class GrandChildOneTwo {}
   <au-viewport></au-viewport>`,
 })
 export class ChildOne implements IHydratedCustomElementViewModel {
-  public readonly $controller: ICustomElementController<this>; // set by aurelia pipeline
+  // set by aurelia pipeline
+  public readonly $controller: ICustomElementController<this>;
   public constructor(@IRouter private readonly router: IRouter) {}
 
   private load(route: string, useCurrentContext: boolean = false) {
     void this.router.load(
       route,
-      useCurrentContext ? { context: this.$controller } : undefined
+      useCurrentContext
+        ? {
+            // use the custom element controller as navigation context
+            context: this.$controller
+          }
+        : undefined
     );
   }
 }

@@ -4,7 +4,8 @@ description: Create a navigation menu using navigation model in Router-Lite.
 
 # Navigation model
 
-The navigation model can be thought of a "view" of the configured routes, in that sense that it lists the configured routes, without providing all the of the same information, as of route configuration, again and rather adding some additional information.
+The navigation model can be thought of as view-friendly version of the configured routes.
+It provides similar information as of the configured routes with some additional data to it.
 This is typically useful when you want to create navigation menu from the already registered/configured routes in the router, without necessarily duplicating the data.
 The information takes the following shape.
 
@@ -62,12 +63,12 @@ This allows all the promises to be resolved and thereafter building the navigati
 
 {% hint style="info" %}
 Note that in the example above we aren't dealing with async routing.
-Therefore, waiting the `INavigationModel#resolve()` can be avoided.
+Therefore, *for that example* waiting the `INavigationModel#resolve()` can be avoided.
 {% endhint %}
 
 ## Using the `isActive` property
 
-The `isActive` property is `true` whe this route is currently active (loaded), and otherwise it is `false`.
+The `isActive` property is `true` when this route is currently active (loaded), and otherwise it is `false`.
 A typical use-case for this property is to apply or remove the "active" style to the links, depending on if the link is active or not.
 You can see this in the following example where a new `.active` class is added and that is bound to the `isActive` property.
 

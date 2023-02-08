@@ -7,8 +7,8 @@ description: >-
 # Router hooks
 
 Router hooks are pieces of code that can be invoked at the different stages of routing lifecycle.
-In that sense, these hooks are similar to the [lifecycle hooks](./routing-lifecycle.md) of the route view-model.
-The difference is that these hooks are shared among all the route view models.
+In that sense, these hooks are similar to the [lifecycle hooks](./routing-lifecycle.md) of the routed view models.
+The difference is that these hooks are shared among multiple routed view models.
 Therefore, even though the hook signatures are similar to that of the [lifecycle hooks](./routing-lifecycle.md), these hooks are supplied with an [additional argument](#anatomy-of-a-lifecycle-hook) that is the view model instance.
 
 {% hint style="info" %}
@@ -17,14 +17,19 @@ If you worked with Aurelia 1, you might know these by their previous name: route
 
 ## Anatomy of a lifecycle hook
 
-Shared lifecycle hook logic can be defined by implementing a router lifecycle hook on a class with the `@lifecycleHooks()` decorator. This hook will be invoked for each component where this class is available as a dependency.
+Shared lifecycle hook logic can be defined by implementing one of the router lifecycle hooks (`canLoad`, `loading` etc.) on a class with the `@lifecycleHooks()` decorator. This hook will be invoked for each component where this class is available as a dependency.
 
-While lifecycle hooks are indeed their own thing independent of the components you are routing to, the functions are basically same as you would use inside of an ordinary component.
+While the router hooks are indeed independent of the components you are routing to, the functions are basically the same as you would use inside of an ordinary component.
 
 This is the contract for ordinary route lifecycle hooks for components:
 
 ```typescript
-import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router-lite';
+import {
+  IRouteViewModel,
+  Params,
+  RouteNode,
+  NavigationInstruction,
+} from '@aurelia/router-lite';
 
 export class MyComponent implements IRouteViewModel {
   canLoad?(
@@ -35,17 +40,32 @@ export class MyComponent implements IRouteViewModel {
     | NavigationInstruction
     | NavigationInstruction[]
     | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  loading?(
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null
+  ): void | Promise<void>;
+  canUnload?(
+    next: RouteNode | null,
+    current: RouteNode
+  ): boolean | Promise<boolean>;
+  unloading?(
+    next: RouteNode | null,
+    current: RouteNode
+  ): void | Promise<void>;
 }
 ```
 
-And this is the contract for shared lifecycle hooks
+And the following is the contract for shared lifecycle hooks.
 
 ```typescript
 import { lifecycleHooks } from 'aurelia';
-import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router-lite';
+import {
+  IRouteViewModel,
+  Params,
+  RouteNode,
+  NavigationInstruction
+} from '@aurelia/router-lite';
 
 @lifecycleHooks()
 class MySharedHooks {
@@ -58,13 +78,26 @@ class MySharedHooks {
     | NavigationInstruction
     | NavigationInstruction[]
     | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  loading?(viewModel: IRouteViewModel, params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canUnload?(viewModel: IRouteViewModel, next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  unloading?(viewModel: IRouteViewModel, next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  loading?(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null
+  ): void | Promise<void>;
+  canUnload?(
+    viewModel: IRouteViewModel,
+    next: RouteNode | null,
+    current: RouteNode
+  ): boolean | Promise<boolean>;
+  unloading?(
+    viewModel: IRouteViewModel,
+    next: RouteNode | null,
+    current: RouteNode
+  ): void | Promise<void>;
 }
 ```
 
-The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance since the `this` keyword won't give you access to the component instance like it would in ordinary component methods.
+The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance since the `this` keyword won't give you access to the component instance like it would in ordinary instance hooks.
 
 ## Example: Authentication and Authorization
 
@@ -73,12 +106,13 @@ To this end, we consider the typical use-case of authorization; that is restrict
 
 {% hint style="info" %}
 The example we are going to build in this section is just a toy example.
-For your production code, perform due diligence to evaluate the security threats possible.
+For your production code, perform due diligence to evaluate the potential security threats.
 {% endhint %}
 
 For this example, we will create two lifecycle hooks; one for authentication and another is for authorization.
 However, before directly dive into that, let us briefly visit, how the routes are configured.
 
+{% code title="my-app.ts" %}
 ```typescript
 import { route } from '@aurelia/router-lite';
 import { Home } from './home';
@@ -120,17 +154,18 @@ import { Restricted } from './restricted';
 })
 export class MyApp {}
 ```
+{% endcode %}
 
 Note that the [`data` property](./configuring-routes.md#advanced-route-configuration-options) of the route configuration option is used here to define the routes' permission claim.
-These is used by the auth hooks later to determine whether to allow or disallow the navigation.
+This is used by the auth hooks later to determine whether to allow or disallow the navigation.
 With that we are now ready to discuss the hooks.
 
-The first hook will check if the current route is protected and there is a currently logged in user.
+The first hook will check if the current route is protected by a claim and there is a currently logged in user.
 When there is no logged in user, it performs a redirect to login page.
 This is shown below.
 
+{% code title="authentication-hook.ts" %}
 ```typescript
-// authentication-hook.ts
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -158,13 +193,14 @@ export class AuthenticationHook {
   }
 }
 ```
+{% endcode %}
 
 The second hook will check if the current user has the permission claims to access the route.
 Where the user does not satisfies the claims requirements the user is redirected to a forbidden page.
 This is shown below.
 
+{% code title="authorization-hook.ts" %}
 ```typescript
-// authorization-hook
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -192,11 +228,12 @@ export class AuthorizationHook {
   }
 }
 ```
+{% endcode %}
 
 Lastly, we need to register these two hooks to the DI container to bring those into action.
 
+{% code title="main.ts" %}
 ```typescript
-// main.ts
 import { RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { AuthenticationHook } from './authentication-hook';
@@ -221,9 +258,15 @@ import { MyApp as component } from './my-app';
   await au.start();
 })().catch(console.error);
 ```
+{% endcode %}
 
-Note that the authentication hook is registered first and then the authorization hook.
+Note that the authentication hook is registered before the authorization hook.
 This ensures that the authentication hook is invoked before than the authorization hook which is also semantically sensible.
+
+{% hint style="info" %}
+To know more about the order of invocation, please refer the respective [section](#order-of-invocations).
+{% endhint %}
+
 And that's the crux of it.
 You can see this example in action below.
 
@@ -233,11 +276,11 @@ Note that even though in the example we limit the the hooks to only `canLoad` me
 
 ## Global registration vs local dependencies
 
-The lifecycle hooks can be registered either globally (like done in the [example](#example-authentication-and-authorization) or as [local dependencies](../components/components.md#dependencies).
+The lifecycle hooks can be registered either globally (as it is done in the [previous example](#example-authentication-and-authorization) or as [local dependencies](../components/components.md#dependencies).
 
 The globally registered lifecycle hooks are invoked for every components.
 Thus, it is recommended to use those sparsely.
-On the other hand when a hook id registered as a dependency of a particular component, it is invoked only for that one component.
+On the other hand, when a hook is registered as a dependency of a particular component, it is invoked only for that one component.
 
 This is shown in the example below, where there are two globally registered hooks, which are invoked for every components.
 
@@ -299,7 +342,7 @@ export class Hook2 {
 ```
 
 The log entries are then enumerated on the view.
-One such example log entries can be as follows.
+The following is one such example of log entries.
 
 ```log
 2023-01-29T20:03:23.885Z [DBG hook1] canLoad ''
@@ -317,10 +360,10 @@ One such example log entries can be as follows.
 ```
 
 You may get a different log depending on your test run.
-However, it is important to observe that both `hook1` and `hook2` are invoked for every components.
+However, it can still be clearly observed that both `hook1` and `hook2` are invoked for every components.
 Depending on your use-case, that might not be optimal.
 
-To achieve a granular control on the life cycle hooks, you can register the hooks as the [`dependencies`](../components/components.md#dependencies) for individual routed view models.
+To achieve a granular control on the lifecycle hooks, you can register the hooks as the [`dependencies`](../components/components.md#dependencies) for individual routed view models.
 This ensures that the lifecycle hooks are invoked only for the components where those are registered as dependencies.
 This shown in the example below where there are three hooks, and one component has two hooks registered as `dependencies` and another component has only hook registered.
 

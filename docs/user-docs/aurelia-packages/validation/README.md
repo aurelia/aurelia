@@ -11,11 +11,11 @@ This guide explains how to validate the user input for your app using the valida
 * How to apply model-based validation rules
 {% endhint %}
 
-> Note If you have already used the `aurelia-validation` plugin previously and are migrating your existing Aurelia app to Aurelia vNext then [jump straight to the migration guide](broken-reference).
+> Note If you have already used the `aurelia-validation` plugin previously and are migrating your existing Aurelia app to Aurelia vNext then [jump straight to the migration guide](../../developer-guides/migrating-to-aurelia-2/).
 
 ### Install and register the plugin
 
-You just need to install two packages to use Aurelia validation. The core validation plugin `@aurelia/validation` and an adapter. Currently, there is only one adapter available `@aurelia/validation-html` which is for validating HTML-based applications.
+You need to install two packages to use Aurelia validation. The core validation plugin `@aurelia/validation` and an adapter. Currently, only one adapter is available for validating HTML-based applications.
 
 #### Installation
 
@@ -70,7 +70,7 @@ export class AwesomeComponent {
 }
 ```
 
-Inside of our HTML, we use the `validate` binding behavior to signal to Aurelia that we want to validate these bindings. You might notice that both `name` and `age` appear in our view-model above where we set some rules up.
+Inside our HTML, we use the `validate` binding behavior to signal to Aurelia that we want to validate these bindings. You might notice that both `name` and `age` appear in our view model above where we set some rules up.
 
 ```markup
 <form submit.delegate="submit()">
@@ -83,6 +83,6 @@ Inside of our HTML, we use the `validate` binding behavior to signal to Aurelia 
 
 ### Demo
 
-If you want to see the validation plugin in action, a playable demo can be seen below. You can try adding in new properties and playing around with the code to learn how to use the validation plugin.
+A playable demo can be seen below if you want to see the validation plugin in action. You can try adding new properties and playing around with the code to learn how to use the validation plugin.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-required" %}

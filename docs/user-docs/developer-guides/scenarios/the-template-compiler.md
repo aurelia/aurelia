@@ -1,14 +1,21 @@
+---
+description: >-
+  The template compiler is used by Aurelia under the hood to process templates
+  and provides hooks and APIs allowing you intercept and modify how this
+  behavior works in your applications.
+---
+
 # Using the template compiler
 
 ## Hooks
 
-There are scenarios where an application wants to control how to preprocess a template before it is compiled. There could be various reasons such as accessibility validation, adding debugging attributes etc...
+There are scenarios where an application wants to control how to preprocess a template before it is compiled. There could be various reasons, such as accessibility validation, adding debugging attributes etc...
 
-Aurelia supports this via template compiler hooks, that is enabled with the default template compiler. To use this features, declare and then register the desired hooks with either global (at startup) or local container (at dependencies (runtime) or `<import>` with convention).
+Aurelia supports this via template compiler hooks, enabled with the default template compiler. To use these features, declare and then register the desired hooks with either global (at startup) or local container (at dependencies (runtime) or `<import>` with convention).
 
-An example of declaring global hooks, that will be called for every template:
+An example of declaring global hooks that will be called for every template:
 
-1. With vanillajs
+### With VanillaJS
 
 ```typescript
 import Aurelia, { TemplateCompilerHooks } from 'aurelia';
@@ -21,7 +28,7 @@ Aurelia
   }))
 ```
 
-1. With decorator
+### With decorator
 
 ```typescript
 import Aurelia, { templateCompilerHooks } from 'aurelia';
@@ -41,19 +48,19 @@ Aurelia.register(MyTableHook1);
 
 ### Supported hooks
 
-* **compiling**: this hook will be invoked right before the template compiler starts the compilation of a template. Use this hooks if there needs to be some changes to a template before any compilation.
+* **compiling**: this hook will be invoked before the template compiler starts compiling a template. Use this hook if there need to be any changes to a template before any compilation.
 
 ### Hooks invocation order
 
-All hooks from local and global registrations will be invoked in order: local first then global.
+All hooks from local and global registrations will be invoked: local first, then global.
 
 ## Compilation Behavior
 
-The default compiler will remove all binding expression while compiling a temlplate. This is to make the rendered HTML is clean and increase performance of cloning compiled fragments.
+The default compiler will remove all binding expressions while compiling a template. This is to clean the rendered HTML and increase the performance of cloning compiled fragments.
 
-Though this is not always desirable for debugging, as it could be hard to figured out what element mapped to the original part of the code. To enable easier debugging experience, the default compiler has a property `debug` that when set to `true` will keep all expression intact during the compilation.
+Though this is not always desirable for debugging, it could be hard to figure out what element mapped to the original part of the code. To enable an easier debugging experience, the default compiler has a property `debug` that when set to `true` will keep all expressions intact during the compilation.
 
-This property can be set early in an application lifecycle, via `AppTask`, so that all the rendered HTML will keep their original form. An example of doing this is:
+This property can be set early in an application lifecycle via `AppTask`, so that all the rendered HTML will keep their original form. An example of doing this is:
 
 ```typescript
 import Aurelia, { AppTask, ITemplateCompiler } from 'aurelia';
@@ -94,4 +101,4 @@ The default template compiler will turn a template, either in string or already 
 * `Element.prototype.setAttribute`
 * `Element.prototype.classList.add`
 
-If it is desirable to use the default template compiler in any other environment other than HTML, make sure the template compiler can hydrate the input string or object into some object with the above APIs.
+If it is desirable to use the default template compiler in any environment other than HTML, ensure the template compiler can hydrate the input string or object into some object with the above APIs.

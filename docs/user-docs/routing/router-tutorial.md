@@ -6,6 +6,7 @@ Aurelia comes with a powerful fully-featured router without the need to install 
 
 You are here because you want to familiarize yourself with the router, so we'll make this quick. At the end of this tutorial, you will be familiar with all the concepts and APIs you need to add routing into your Aurelia applications.
 
+{% hint style="success" %}
 **While building our recipe application, we will cover the following:**
 
 * How to create and configure routes
@@ -13,6 +14,7 @@ You are here because you want to familiarize yourself with the router, so we'll 
 * Styling active links
 * Programmatically navigating using router APIs
 * Working with route parameters
+{% endhint %}
 
 A working demo and code for the following tutorial can also be found [here](https://stackblitz.com/edit/au2-conventions-n56ej9).
 
@@ -169,7 +171,7 @@ export class MyApp {
 
 In a non-tutorial application, you would have your API and server providing this data. But, for our tutorial will use a public recipe API instead. We could use mock data, but it would be a lot of data for a recipe application.
 
-The MealDB is a fantastic free meal API that can give us recipes. We will use the [Aurelia Fetch Client](broken-reference) to get this data, which wraps the native Fetch API.
+The MealDB is a fantastic free meal API that can give us recipes. We will use the [Aurelia Fetch Client](../aurelia-packages/fetch-client.md) to get this data, which wraps up the native Fetch API.
 
 In `recipes-page.ts` add the following to the component view model:
 
@@ -289,13 +291,13 @@ Inside `recipe-detail.html` we'll render our recipe:
 ```
 {% endcode %}
 
-The API we are using returns ingredients on a line-by-line basis,. so we've omitted those from this example. Now, you should be able to run your application and click on recipes to view them. A headline, image and instructions should now be visible.
+The API we use returns ingredients on a line-by-line basis, so we've omitted those from this example. Now, you should be able to run your application and click on recipes to view them. A headline, image and instructions should now be visible.
 
 As an additional step, you could add those in yourself.
 
 ## Styling active links
 
-The router automatically adds a `active` class to all route links when they are active. Because our routes all live in `my-app` We will edit `my-app.css` , and we don't even have to import it (Aurelia does that automatically for us).
+The router automatically adds a `active` class to all route links when they are active. Because our routes all live in `my-app` We will edit `my-app.css` We don't even have to import it (Aurelia does that automatically for us).
 
 {% code title="my-app.css" %}
 ```css

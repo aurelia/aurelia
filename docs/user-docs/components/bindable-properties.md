@@ -1,48 +1,53 @@
 ---
-description: How to create components that accept one or more bindable properties
+description: >-
+  How to create components that accept one or more bindable properties. You
+  might know these as "props" if you are coming from other frameworks and
+  libraries.
 ---
 
 # Bindable properties
 
 When creating components, sometimes you will want the ability for data to be passed into them. The `@bindable` decorator allows you to specify one or more bindable properties for a component.
 
-The `@bindable` attribute also can be used with custom attributes as well as custom elements.
+The `@bindable` attribute also can be used with custom attributes as well as custom elements. The decorator denotes bindable properties on components on the view model of a component.
 
-Bindable properties on components are denoted by the `@bindable` decorator on the view model of a component.
-
-{% tabs %}
-{% tab title="loader.ts" %}
+{% code title="loader-component.ts" %}
 ```typescript
 import { bindable } from 'aurelia';
 
-export class Loader {
+export class LoaderComponent {
     @bindable loading = false;
 }
 ```
-{% endtab %}
-{% endtabs %}
+{% endcode %}
 
 This will allow our component to be passed in values. Our specified bindable property here is called `loading` and can be used like this:
 
+{% code title="loader-component.html" %}
 ```html
 <loader loading.bind="true"></loader>
 ```
+{% endcode %}
 
 In the example above, we are binding the boolean literal `true` to the `loading` property.
 
 Instead of literal, you can also bind another property (`loadingVal` in the following example) to the `loading` property.
 
+{% code title="loader-component.html" %}
 ```html
 <loader loading.bind="loadingVal"></loader>
 ```
+{% endcode %}
 
-You can also bind values without the `.bind` part, as can be seen the following example.
+As seen in the following example, you can also bind values without the `loading.bind` part.
 
 ```html
 <loader loading="true"></loader>
 ```
 
-However, there is a subtle difference. In this case, Aurelia considers the attribute value as a string. Thus, instead of a boolean `true` value the string `'true'` gets bound to the `loading` property. This might cause some unexpected issues. However, you can apply coercion using a bindable setter (further below in this section) or specifying the bindable type explicitly.
+{% hint style="warning" %}
+Aurelia treats attribute values as strings. This means when working with primitives such as booleans or numbers, they won't come through in that way and need to be coerced into their primitive type using a [bindable setter](bindable-properties.md#bindable-setter) or specifying the bindable type explicitly using [bindable coercion](bindable-properties.md#bindable-coercion).
+{% endhint %}
 
 The `@bindable` decorator signals to Aurelia that a property is bindable in our custom element. Let's create a custom element where we define two bindable properties.
 
@@ -65,7 +70,7 @@ export class NameComponent {
 {% endtab %}
 {% endtabs %}
 
-You can then use the component in this way: \``<name-component first-name="John" last-name="Smith"></name-component>`
+You can then use the component in this way,\``<name-component first-name="John" last-name="Smith"></name-component>`
 
 ### Calling a change function when bindable is modified
 
@@ -89,6 +94,7 @@ export class NameComponent {
     }
     
     firstNameChanged(newVal, oldVal) {
+        console.log('Value changed');
     }
 }
 ```
@@ -97,8 +103,17 @@ export class NameComponent {
 
 Like almost everything in Aurelia, you can configure how bindable properties work.&#x20;
 
-* You can specify the binding mode using the `mode` property and passing in a valid `BindingMode` to it; `@bindable({ mode: BindingMode.twoWay})` - this determines which way changes flow in your binding. By default, this will be `BindingMode.oneWay`
-* You can change the name of the callback that is fired when a change is made `@bindable({ callback: 'propChanged' })`
+### Change the binding mode using mode
+
+You can specify the binding mode using the `mode` property and passing in a valid `BindingMode` to it; `@bindable({ mode: BindingMode.twoWay})` - this determines which way changes flow in your binding. By default, this will be `BindingMode.oneWay`
+
+{% hint style="info" %}
+Please consult the [binding modes](bindable-properties.md#one-way-binding) documentation below to learn how to change the binding modes. By default, the binding mode for bindable properties will be `one-way`
+{% endhint %}
+
+### Change the name of the change callback
+
+You can change the name of the callback that is fired when a change is made `@bindable({ callback: 'propChanged' })`
 
 {% tabs %}
 {% tab title="name-component.ts" %}
@@ -115,13 +130,15 @@ export class NameComponent {
 {% endtab %}
 {% endtabs %}
 
-Bindable properties support many different binding modes determining the direction the data is bound in as well as how it is bound.
+Bindable properties support many different binding modes determining the direction the data is bound in and how it is bound.
 
 ### One way binding
 
-By default, bindable properties will be one-way binding. This means values flow into your component, but not back out of it (hence the name, one way).
+By default, bindable properties will be one-way binding. This means values flow into your component but not back out of it (hence the name, one way).
 
-Specifying a `bindable` property without any configuration will result in it being one-way. You can also explicitly specify the binding mode.
+{% hint style="info" %}
+Bindable properties without an `mode` explicitly set will be `one-way` by default. You can also explicitly specify the binding mode.
+{% endhint %}
 
 ```typescript
 import { bindable, BindingMode } from 'aurelia';
@@ -133,7 +150,7 @@ export class Loader {
 
 ### Two-way binding
 
-Unlike the default, the two-way binding mode allows data to flow in both directions. If the value is changed with your component it flows back out and so forth.
+Unlike the default, the two-way binding mode allows data to flow in both directions. If the value is changed with your component, it flows back out.
 
 ```typescript
 import { bindable, BindingMode } from 'aurelia';
@@ -143,7 +160,7 @@ export class Loader {
 }
 ```
 
-## Two-way binding
+## Working with two-way binding
 
 Much like most facets of binding in Aurelia, two-way binding is intuitive. Instead of `.bind` you use `.two-way` if you need to be explicit, but in most instances, you will specify the type of binding relationship a bindable property is using with `@bindable` instead.
 
@@ -153,15 +170,15 @@ Much like most facets of binding in Aurelia, two-way binding is intuitive. Inste
 <input type="text" value.two-way="myVal">
 ```
 
-Whenever the text input is updated, the `myVal` variable will get a new value. Similarly, if `myVal` were updated from within the view model, the input would get the updated value.
+The `myVal` variable will get a new value whenever the text input is updated. Similarly, if `myVal` were updated from within the view model, the input would get the updated value.
 
 {% hint style="info" %}
-When using `.bind` for input/form control values such as text inputs, select dropdowns and other form elements, Aurelia will automatically create a two-way binding relationship. So, the above example using a text input can be rewritten to just be `value.bind="myVal"` and it would still be a two-way binding.
+When using `.bind` for input/form control values such as text inputs, select dropdowns and other form elements. Aurelia will automatically create a two-way binding relationship. So, the above example using a text input can be rewritten to be `value.bind="myVal"` , and it would still be a two-way binding.
 {% endhint %}
 
 ## Bindable setter
 
-In some cases, you want to make an impact on the value that is binding. For such a scenario you can use the possibility of new `set`.
+In some cases, you want to make an impact on the value that is binding. For such a scenario, you can use the possibility of new `set`.
 
 ```typescript
 @bindable({ 
@@ -171,7 +188,7 @@ In some cases, you want to make an impact on the value that is binding. For such
 })
 ```
 
-Suppose you have a `carousel` component in which you want to enable `navigator` feature for it. You probably imagine such a thing for yourself.
+Suppose you have a `carousel` component in which you want to enable `navigator` feature for it.
 
 ```markup
 <!-- Enable -->
@@ -201,7 +218,7 @@ Define your property like this:
 @bindable({ set: /* ? */, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
-For `set` part, we need functionality to check the input, If the value is one of the following, we want to return `true`, otherwise, we return the `false` value.
+For `set` part, we need functionality to check the input. If the value is one of the following, we want to return `true`, otherwise, we return the `false` value.
 
 * `''`: No input for a standalone `navigator` property.
 * `true`: When the `navigator` property set to `true`.
@@ -215,13 +232,13 @@ export function truthyDetector(value: unknown) {
 }
 ```
 
-Now, we should set `truthyDetector` function as following:
+Now, we should set `truthyDetector` function as follows:
 
 ```typescript
 @bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
-Although, there is another way to write the functionality too
+Although, there is another way to write the functionality too:
 
 ```typescript
 @bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
@@ -231,7 +248,7 @@ You can simply use any of the above four methods to enable/disable your feature.
 
 ## Bindable coercion
 
-The bindable setter section shows how to adapt the value being bound to a `@bindable` property. One common usage of the setter is to coerce the values that are bound from the view. Consider the following example.
+The bindable setter section shows how to adapt the value is bound to a `@bindable` property. One common usage of the setter is to coerce the values that are bound from the view. Consider the following example.
 
 {% tabs %}
 {% tab title="my-el.ts" %}
@@ -251,9 +268,11 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-Without any setter for the `@bindable` num we will end up with the string `'42'` as the value for `num` in `MyEl`. You can write a setter to coerce the value.
+Without any setter for the `@bindable` num we will end up with the string `'42'` as the value for `num` in `MyEl`. You can write a setter to coerce the value. However, it is a bit annoying to write setters for every `@bindable`.&#x20;
 
-However, it is bit annoying to write setters for every `@bindable`. To address this issue, Aurelia 2 supports type coercion. To maintain the backward-compatibility, automatic type-coercion is disabled by default, and it needs to be enabled explicitly.
+### Automatic type coercion
+
+To address this issue, Aurelia 2 supports type coercion. To maintain backward compatibility, automatic type coercion is disabled by default and must be enabled explicitly.
 
 ```typescript
 new Aurelia()
@@ -269,20 +288,25 @@ new Aurelia()
 
 There are two relevant configuration options.
 
-* **`enableCoercion`**: The default value is `false`; that is Aurelia 2 does not coerce the types of the `@bindable`s by default. It can be set to `true` to enable the automatic type-coercion.
-* **`coerceNullish`**: The default value is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](bindable-properties.md#coercing-nullable-values) section).
+#### enableCoercion
+
+The default value is `false`; that is Aurelia 2 does not coerce the types of the `@bindable` by default. It can be set to `true` to enable the automatic type-coercion.
+
+#### coerceNullish
+
+The default value is `false`; that is Aurelia2 does not coerce the `null` and `undefined` values. It can be set to `true` to coerce the `null` and `undefined` values as well. This property can be thought of as the global counterpart of the `nullable` property in the bindable definition (see [Coercing nullable values](bindable-properties.md#coercing-nullable-values) section).
 
 Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type coercion.
 
 ### For TypeScript development
 
-For TypeScript development, this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
+For TypeScript development, this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set, and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
 
-If for some reason you cannot do that then refer to the next section.
+If, for some reason, you cannot do that, then refer to the next section.
 
 ### For JavaScript development
 
-For JavaScript development, you need to explicitly specify the `type` in the `@bindable` definition.
+For JavaScript development, you need to specify the explicit `type` in the `@bindable` definition.
 
 ```javascript
 @customElement({ name:'my-el', template: 'not important' })
@@ -292,12 +316,12 @@ export class MyEl {
 ```
 
 {% hint style="info" %}
-The rest of the document is based on TypeScript examples. However, we trust that you can transfer that knowledge to your JavaScript codebase if need be.
+The rest of the document is based on TypeScript examples. However, we trust that you can transfer that knowledge to your JavaScript codebase if necessary.
 {% endhint %}
 
 ## Coercing primitive types
 
-Currently coercing four primitive types are supported out of the box. These are `number`, `string`, `boolean`, and `bigint`. The coercion functions for these type are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
+Currently, coercing four primitive types are supported out of the box. These are `number`, `string`, `boolean`, and `bigint`. The coercion functions for these types are respectively `Number(value)`, `String(value)`, `Boolean(value)`, and `BigInt(value)`.
 
 {% hint style="warning" %}
 Be mindful when dealing with `bigint` as the `BigInt(value)` will throw if the `value` cannot be converted to bigint; for example `null`, `undefined`, or non-numeric string literal.
@@ -309,7 +333,7 @@ It is also possible to coerce values into instances of classes. There are two wa
 
 ### Using a static `coerce` method
 
-You can define a static method named `coerce` in the class that is used as a `@bindable` type. This method will be called by Aurelia2 automatically in order to coerce the bound value.
+You can define a static method named `coerce` in the class used as a `@bindable` type. This method will be called by Aurelia2 automatically to coerce the bound value.
 
 This is shown in the following example with the `Person` class.
 
@@ -365,7 +389,7 @@ According to the `Person#coercer` implementation, for the example above `MyEl#pe
 
 ### Using the `@coercer` decorator
 
-Aurelia2 also offers a `@coercer` decorator to declare a static method in the class as the coercer. The previous example can be re-written as follows using the `@coercer` decorator.
+Aurelia2 also offers a `@coercer` decorator to declare a static method in the class as the coercer. The previous example can be rewritten as follows using the `@coercer` decorator.
 
 {% tabs %}
 {% tab title="person.ts" %}
@@ -420,11 +444,11 @@ export class MyApp { }
 {% endtab %}
 {% endtabs %}
 
-With the `@coercer` decorator you are free to name the static method as you like.
+With the `@coercer` decorator, you are free to name the static method as you like.
 
 ## Coercing nullable values
 
-To maintain backward compatibility, Aurelia2 does not attempt to coerce `null` and `undefined` values. We believe that this default choice should avoid unnecessary surprises and code-breaks when migrating to newer versions of Aurelia.
+To maintain backward compatibility, Aurelia2 does not attempt to coerce `null` and `undefined` values. We believe that this default choice should avoid unnecessary surprises and code breaks when migrating to newer versions of Aurelia.
 
 However, you can explicitly mark a `@bindable` to be not nullable.
 
@@ -441,7 +465,7 @@ When `nullable` is set to `false`, Aurelia2 will try to coerce the `null` and `u
 
 It is important to note that an explicit `set` (see [bindable setter](bindable-properties.md#bindable-setter)) function is always prioritized over the `type`. In fact, the auto-coercion is the fallback for the `set` function. Hence whenever `set` is defined, the auto-coercion becomes non-operational.
 
-However, this gives you an opportunity to:
+**However, this gives you an opportunity to:**
 
 * Override any of the default primitive type coercing behavior, or
 * Disable coercion selectively for a few selective `@bindable` by using a `noop` function for `set`.
@@ -463,7 +487,7 @@ export class MyEl {
 
 For the example above, the type metadata supplied by TypeScript will be `Object` disabling the auto-coercion.
 
-To coerce union types you can explicitly specify a `type`.
+To coerce union types, you can explicitly specify a `type`.
 
 ```typescript
 @customElement({ name:'my-el', template: 'not important' })
@@ -472,7 +496,7 @@ export class MyEl {
 }
 ```
 
-However to use a setter would be more straightforward to this end.
+However, using a setter would be more straightforward to this end.
 
 ```typescript
 @customElement({ name:'my-el', template: 'not important' })
@@ -487,9 +511,9 @@ Even though using a `noop` function for `set` function is a straightforward choi
 
 ## Attributes Transferring
 
-Attribute transferring is a way to relay the binding(s) on a custom element to it's child element(s).
+Attribute transferring is a way to relay the binding(s) on a custom element to its child element(s).
 
-As an application grows, the components inside it also grow. Something that starts simple like the following component
+As an application grows, the components inside it also grow. Something that starts simple, like the following component
 
 ```typescript
 export class FormInput {
@@ -508,7 +532,7 @@ with the template
 
 can quickly grow out of hand with a number of needs for configuration: aria, type, min, max, pattern, tooltip, validation etc...
 
-After a while, the `FormInput` component above will become more and more like a relayer to transfer the bindings from outside, to the elements inside it. This often results in the increase of the number of `@bindable`. This is completely fine except that it's quite some boilerplate code that is not always desirable:
+After a while, the `FormInput` component above will become more and more like a relayer to transfer the bindings from outside, to the elements inside it. This often results in an increase in the number of `@bindable`. While this is fine, you end up with components that have a lot of boilerplate.
 
 ```typescript
 export class FormInput {
@@ -521,7 +545,7 @@ export class FormInput {
 }
 ```
 
-And the usage of such element may look like this
+And the usage of our component would look like this:
 
 ```markup
 <form-input
@@ -539,7 +563,7 @@ to be repeated like this inside:
 </label>
 ```
 
-To juggle all the relevant pieces for such relaying task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to object spreading in JavaScript, the above template should be as simple as:
+To juggle all the relevant pieces for such a task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to object spreading in JavaScript, the above template should be as simple as:
 
 ```markup
 <label>${label}
@@ -562,7 +586,7 @@ To transfer attributes & bindings from a custom element, there are two steps:
 })
 ```
 
-Or use the `capture` decorator from `aurelia` package:
+Or use the `capture` decorator from `aurelia` package if you don't want to declare the `customElement` decorator and have to specify your name and template values.
 
 ```typescript
 import { capture } from 'aurelia';
@@ -579,25 +603,27 @@ export class MyCustomElement {
 }
 ```
 
-As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions, should be captured for future usages.
+As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions, should be captured for future usage.
 
-* Spread the captured attributes onto an element:
+#### Spread the captured attributes onto an element
 
-```markup
+Using the ellipsis syntax which you might be accustomed to from Javascript, we can spread our attributes onto an element proceeding the magic variable `$attrs`
+
+```html
 <input ...$attrs>
 ```
 
-In case you want to spread all attributes while explicitely overriding inidividual ones, make sure these come after the spread operator
+#### Spread attributes and overriding specific ones
+
+In case you want to spread all attributes while explicitly overriding individual ones, make sure these come after the spread operator.
 
 ```markup
 <input value.bind="..." ...$attrs> spread wins
 <input ...$attrs value.bind="..."> explicit wins
 ```
 
-So as a safe practice, keep attribute spreading left-most in order to avoid potentially undesired behaviors.
-
 {% hint style="warning" %}
-It's recommended that this feature should not be overused in multi level capturing & transferring. This is often known as prop-drilling in React, and could have bad effect on overall & long term maintainability of a project. It's probably healthy to limit the max level of transferring to 2.
+It's recommended that this feature should not be overused in multi-level capturing & transferring. This is often known as prop-drilling in React and could have a bad effect on the overall & long-term maintainability of an application. It's probably healthy to limit the max level of transferring to 2.
 {% endhint %}
 
 ### Usage with conventions
@@ -612,7 +638,7 @@ Aurelia conventions enable the setting of `capture` metadata from the template v
 
 ### Attribute filtering
 
-Sometimes it is desirable to capture only a certain attributes on a custom element. Aurelia supports this via 2nd form of the custom element `capture` value: a function that takes 1 parameter, which is the attribute name, and return a boolean to indicate whether it should be captured. An example is as follow:
+Sometimes it is desirable to capture only certain attributes on a custom element. Aurelia supports this via 2nd form of the custom element `capture` value: a function that takes 1 parameter, which is the attribute name, and returns a boolean to indicate whether it should be captured.
 
 ```typescript
 @customElement({
@@ -624,18 +650,19 @@ Sometimes it is desirable to capture only a certain attributes on a custom eleme
 
 #### What attributes are captured
 
-Everything except template controller and custom element bindables are captured. For the following example:
+Everything except the template controller and custom element bindables are captured.
 
-View model:
-
+{% code title="form-input.ts" %}
 ```typescript
 export class FormInput {
   @bindable label
 }
 ```
+{% endcode %}
 
-Usage:
+A usage example is as follows:
 
+{% code title="my-app.html" %}
 ```markup
 <form-input
   if.bind="needsComment"
@@ -645,6 +672,7 @@ Usage:
   style="background: var(--theme-purple)"
   tooltip="Hello, ${tooltip}">
 ```
+{% endcode %}
 
 **What is captured:**
 

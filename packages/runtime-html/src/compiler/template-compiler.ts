@@ -1786,7 +1786,18 @@ class CompilationContext {
       result = this.c.create(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
         if (__DEV__)
-          throw createError(`AUR0713: Unknown binding command: ${name}`);
+          throw createError(`AUR0713: Unknown binding command: ${name}.
+${name === 'delegate'
+  ? `The ".delegate" binding command has been removed in v2. Binding command ".trigger" should be used instead.
+If you are migrating v1 application, install compat package to add back the ".delegate" binding command for ease of migration.  
+`
+  : ''
+}${name === 'call'
+  ? `The ".call" binding command has been deprecated removed in v2.
+If you want to pass a callback that preserves the context of the function call, you can use lambda instead. Refer to lambda expression doc for more details.`
+  : ''
+}
+`);
         else
           throw createError(`AUR0713:${name}`);
       }

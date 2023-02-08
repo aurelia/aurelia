@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.1"></a>
+# 2.0.0-beta.1 (2023-01-12)
+
+### Features:
+
+* **portal:** ability to specify position ([6e78e4c](https://github.com/aurelia/aurelia/commit/6e78e4c))
+* ***:** key assignment notify changes (#1601) ([4163dd4](https://github.com/aurelia/aurelia/commit/4163dd4))
+* **repeat:** add keyed mode (#1583) ([d0c5706](https://github.com/aurelia/aurelia/commit/d0c5706))
+
+
+### Bug Fixes:
+
+* **runtime-html:** remove direct dependency on Reflect polyfill (#1610) ([5b37ff5](https://github.com/aurelia/aurelia/commit/5b37ff5))
+
+
+### Performance Improvements:
+
+* ***:** move render location creation to compiler (#1605) ([66846b1](https://github.com/aurelia/aurelia/commit/66846b1))
+
+
+### Refactorings:
+
+* ***:** move webcomponents plugin into separate package ([065a949](https://github.com/aurelia/aurelia/commit/065a949))
+* ***:** add platform & obs locator to renderers ([6763eed](https://github.com/aurelia/aurelia/commit/6763eed))
+* ***:** add expr parser to renderers via param ([06449b0](https://github.com/aurelia/aurelia/commit/06449b0))
+* ***:** remove create element API ([de5faf4](https://github.com/aurelia/aurelia/commit/de5faf4))
+* ***:** remove dialog export from aurelia pkg ([73e3078](https://github.com/aurelia/aurelia/commit/73e3078))
+* ***:** remove au render + infra ([0a18ed1](https://github.com/aurelia/aurelia/commit/0a18ed1))
+* ***:** prefix private props on bindings ([d9cfc83](https://github.com/aurelia/aurelia/commit/d9cfc83))
+* ***:** remove call command, move to compat package ([d302d72](https://github.com/aurelia/aurelia/commit/d302d72))
+* ***:** remove event delegator, move completely to compat ([cca1ce8](https://github.com/aurelia/aurelia/commit/cca1ce8))
+* **event:** remove .delegate, add .delegate to compat package ([d1539a2](https://github.com/aurelia/aurelia/commit/d1539a2))
+* **runtime:** cleanup & size opt, rename binding methods (#1582) ([2000e3b](https://github.com/aurelia/aurelia/commit/2000e3b))
+* **runtime:** remove interceptor prop from interface ([3074f54](https://github.com/aurelia/aurelia/commit/3074f54))
+* **binding-behavior:** remove binding interceptor ([767eee7](https://github.com/aurelia/aurelia/commit/767eee7))
+* **bindings:** create override fn instead of binding interceptor ([5c2ed80](https://github.com/aurelia/aurelia/commit/5c2ed80))
+* **all:** error msg code & better bundle size ([d81ec6d](https://github.com/aurelia/aurelia/commit/d81ec6d))
+* **ast:** extract evaluate into a seprate fn ([6691f7f](https://github.com/aurelia/aurelia/commit/6691f7f))
+* ***:** rename Scope.parentScope -> parent ([937d29e](https://github.com/aurelia/aurelia/commit/937d29e))
+* **templating:** cleanup commands, renderers & compiler ([099e988](https://github.com/aurelia/aurelia/commit/099e988))
+
 <a name="2.0.0-alpha.41"></a>
 # 2.0.0-alpha.41 (2022-09-22)
 

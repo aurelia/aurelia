@@ -399,6 +399,26 @@ export function createAndAppendNodes(
           // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
           // Therefore the path matches the configured empty route and puts the whole path into residue.
           if (rr === null || residue === path) {
+            // check if a route-id is used
+            const eagerResult = ctx.generateViewportInstruction({
+              component: vi.component.value,
+              params: vi.params ?? emptyObject,
+              open: vi.open,
+              close: vi.close,
+              viewport: vi.viewport,
+              children: vi.children.slice(),
+            });
+            if (eagerResult !== null) {
+              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, eagerResult.query, true);
+              return appendNode(log, node, createConfiguredNode(
+                log,
+                node,
+                eagerResult.vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+                eagerResult.vi.recognizedRoute!,
+                vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+            }
+
+            // fallback
             const name = vi.component.value;
             if (name === '') return;
             let vp = vi.viewport;
@@ -438,19 +458,29 @@ export function createAndAppendNodes(
           return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, rr, originalInstruction));
         }
       }
+    case NavigationInstructionType.Promise:
     case NavigationInstructionType.IRouteViewModel:
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
-      const rd = RouteDefinition.resolve(vi.component.value, rc.definition, null);
-      const { vi: newVi, query } = rc.generateViewportInstruction({ component: rd, params: vi.params ?? emptyObject })!;
-      (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
-      (newVi.children as NavigationInstruction[]).push(...vi.children);
-      return appendNode(log, node, createConfiguredNode(
-        log,
-        node,
-        newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
-        newVi.recognizedRoute!,
-        vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+      return onResolve(
+        RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
+        rd => {
+          const { vi: newVi, query } = rc.generateViewportInstruction({
+            component: rd,
+            params: vi.params ?? emptyObject,
+            open: vi.open,
+            close: vi.close,
+            viewport: vi.viewport,
+            children: vi.children.slice(),
+          })!;
+          (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
+          return appendNode(log, node, createConfiguredNode(
+            log,
+            node,
+            newVi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+            newVi.recognizedRoute!,
+            vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
+        });
     }
   }
 }
@@ -578,7 +608,7 @@ function createConfiguredNode(
 
       if (redirSeg !== null) {
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
-          newSegs.push(rr.route.params[origSeg!.component.name] as string);
+          newSegs.push(rr.route.params[redirSeg.component.parameterName] as string);
         } else {
           newSegs.push(redirSeg.raw);
         }
@@ -590,7 +620,20 @@ function createConfiguredNode(
     const redirRR = ctx.recognize(newPath);
     if (redirRR === null) throw new UnknownRouteError(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-    return createConfiguredNode(log, node, vi, rr, originalVi, redirRR.route.endpoint.route);
+    return createConfiguredNode(
+      log,
+      node,
+      ViewportInstruction.create({
+        recognizedRoute: redirRR,
+        component: newPath,
+        children: vi.children,
+        viewport: vi.viewport,
+        open: vi.open,
+        close: vi.close,
+      }) as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+      redirRR,
+      originalVi,
+    );
   });
 }
 

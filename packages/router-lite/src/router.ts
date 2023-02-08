@@ -1,9 +1,9 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
-import { CustomElementDefinition, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger } from './router-events';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
@@ -101,7 +101,7 @@ export class RouterOptions {
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions extends RouterOptions {
+export class NavigationOptions extends RouterOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
   public static get DEFAULT(): NavigationOptions { return NavigationOptions.create({}); }
 
   private constructor(
@@ -330,6 +330,9 @@ export class Router {
     return this._isNavigating;
   }
 
+  /** @internal */
+  private _cannotBeUnloaded: boolean = false;
+
   public constructor(
     @IContainer private readonly container: IContainer,
     @IPlatform private readonly p: IPlatform,
@@ -445,16 +448,6 @@ export class Router {
    */
   public load(componentTypes: readonly RouteType[], options?: INavigationOptions): Promise<boolean>;
   /**
-   * Loads the provided component definition. May or may not be pre-compiled.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.load({ name: 'greeter', template: 'Hello!' });
-   * ```
-   */
-  public load(componentDefinition: PartialCustomElementDefinition, options?: INavigationOptions): Promise<boolean>;
-  /**
    * Loads the provided component instance.
    *
    * Examples:
@@ -478,17 +471,6 @@ export class Router {
    * router.load({ component: ProductDetail, parameters: { id: 37 } })
    * router.load({ component: 'category', children: ['product(id=20)'] })
    * router.load({ component: 'category', children: [{ component: 'product', parameters: { id: 20 } }] })
-   * router.load({
-   *   component: CustomElement.define({
-   *     name: 'greeter',
-   *     template: 'Hello, ${name}!'
-   *   }, class {
-   *     load(instruction) {
-   *       this.name = instruction.parameters.name;
-   *     }
-   *   }),
-   *   parameters: { name: 'John' }
-   * })
    * ```
    */
   public load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): boolean | Promise<boolean>;
@@ -665,6 +647,7 @@ export class Router {
         this.cancelNavigation(nextTr);
       } else {
         this._isNavigating = false;
+        this.events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
         const $nextTr = this.nextTr;
         // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
         if ($nextTr !== null) {
@@ -685,11 +668,11 @@ export class Router {
     let navigationContext = this.resolveContext(tr.options.context);
     const trChildren = tr.instructions.children;
     const nodeChildren = navigationContext.node.children;
-    const routeChanged = !this.navigated
+    const shouldProcess = !this.navigated
+      || this._cannotBeUnloaded
       || trChildren.length !== nodeChildren.length
-      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false));
-
-    const shouldProcess = routeChanged || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
+      || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false))
+      || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
     if (!shouldProcess) {
       this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
 
@@ -701,6 +684,7 @@ export class Router {
       this.runNextTransition();
       return;
     }
+    this._cannotBeUnloaded = false;
 
     this.logger.trace(`run(tr:%s) - processing route`, tr);
 
@@ -772,6 +756,10 @@ export class Router {
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
           b.push(); // prevent the next step in the batch from running
+          // Note that another alternative solution can be to clear the the children of the root of the current tree
+          // and restore the children of the previous routeTree's root.
+          // However, this should be cheaper solution.
+          this._cannotBeUnloaded = tr.guardsResult === false;
           this.cancelNavigation(tr);
         }
       }).continueWith(b => {

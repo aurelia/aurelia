@@ -1,10 +1,22 @@
+---
+description: >-
+  Learn how to work with the @aurelia/router package to implement routing in
+  your Aurelia applications.
+---
+
 # Getting Started
 
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 
-This section is broken up into two parts—a quick introduction to the router and router configuration. If you are looking for details on configuring the router (set titles, handle unknown routes, etc.), please see the [Configuration](getting-started.md#configuration) section at the end of this guide.
+This section is broken up into two parts—a quick introduction to the router and router configuration.
 
-At present, there are two routers that ship with Aurelia: router lite and core router. This section refers to the core router package that lives in `@aurelia/router` — please see the warning note below on a caveat some developers encounter when working with the router.
+{% hint style="info" %}
+If you are looking for details on configuring the router (set titles, handle unknown routes, etc.), please see the [Configuration](getting-started.md#configuration) section at the end of this guide.
+{% endhint %}
+
+{% hint style="danger" %}
+Currently, two routers ship with Aurelia: router lite and core router. This section refers to the core router package that lives in `@aurelia/router` — please see the warning note below on a caveat some developers encounter when working with the router.
+{% endhint %}
 
 {% hint style="warning" %}
 **Before you go any further:** Please ensure you are importing from the `@aurelia/router` package. Sometimes import extensions will autocomplete your imports and import from the `aurelia` package, which currently exports the lite router. Eventually, the `aurelia` package will export the `@aurelia/router` package, but it currently does not. We have noticed, in many instances, that using the incorrect router imports is why routing is not working.
@@ -100,7 +112,7 @@ Notice how we use a standard hyperlink `<a>` tags, but they have an `load` attri
 
 `au-viewport`
 
-This tells the router where to display your components. It can go anywhere inside your HTML. It can also have a name (handy for instances where there are multiple `au-viewport` elements) and you can have more than one.
+This tells the router where to display your components. It can go anywhere inside your HTML. It can also have a name (handy for instances where there are multiple `au-viewport` elements), and you can have more than one.
 
 ## Configuration
 
@@ -127,7 +139,7 @@ Aurelia
   .start();
 ```
 
-In most instances, using the above string title is what you will want. For situations where you need to set the title or transform the title programmatically, you will want the solution below.
+In most instances, using the above string title is what you will want. You will want the solution below if you need to set the title or transform the title programmatically.
 
 ### Customizing the title
 
@@ -225,7 +237,7 @@ Aurelia
 
 ### Handling unknown components
 
-If you are using the router to render components in your application, there might be situations where a component attempts to be rendered that does not exist. This can happen while using direct routing (not configured routing)
+If you are using the router to render components in your application, there might be situations where a component attempts to be rendered that do not exist. This can happen while using direct routing (not configured routing)
 
 {% hint style="warning" %}
 This section is not for catch-all/404 routes. If you are using configured routing, you are looking for the [section on catch-all routes here](creating-routes.md#catch-all-404-not-found-route).
@@ -241,7 +253,7 @@ Let's create the `missing-page` component (this is required, or the fallback beh
 ```typescript
 export class MissingPage {
   public static parameters = ['id'];
-  public missingComponent: string ;
+  public missingComponent: string;
 
   public loading(parameters: {id: string}): void {
     this.missingComponent = parameters.id;

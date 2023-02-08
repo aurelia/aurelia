@@ -9,7 +9,8 @@ Aurelia allows you to configure the application startup in a couple of different
 The quick startup approach is what most developers will choose.
 
 ```typescript
-import Aurelia, { StyleConfiguration, RouterConfiguration } from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router';
+import Aurelia, { StyleConfiguration } from 'aurelia';
 
 import { MyRootComponent } from './my-root-component';
 
@@ -107,35 +108,3 @@ new Aurelia()
   .app({ ... })
   .start();
 ```
-
-## Enhance
-
-The startup sections showed how to start Aurelia for an empty root node. While that's the most frequent use case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia.
-
-This includes pages partially rendered from a server with nodes and attributes representing Aurelia custom elements, custom attributes, or template controllers. Another example can be where you need to add a DOM fragment on the fly to the HTML document, and then you want Aurelia to take care of the bindings in that DOM fragment. This is commonly known as enhancing, where Aurelia takes a normal DOM fragment and associates behaviours with it.
-
-The basic syntax of `enhance` matches closely that of the normal startup.
-
-```typescript
-const au = new Aurelia();
-await au.enhance({ host, component: MyComponent });
-```
-
-There are a few important points to note here.
-
-1. Every enhancement is treated as an anonymous custom element hydration, where the node being enhance is the only element inside this anonymous element template.
-2.  The component passed into `Aurelia.enhance` (`MyComponent` in our example, above) can be a custom element class, an instance of a class, or an object literal. If it's a class, then it will be instantiated by a container.
-
-    This container can be either specified by property `container` in the enhancement config object, or a new one will be created for this enhancement. `@inject` works like normal view model instantiation.
-3. The `host` is usually an existing non-enhanced (neither by `.app` nor by `.enhance`) DOM node. Note that `.enhance` does not detach or attach the `host` node to the DOM by itself. If the `host` is truly detached, then it needs to be explicitly attached to the DOM. An important consequence to note is that if there are existing event handlers attached to the `host` node or one of its successor node, then those stays as it is.
-4.  The result of an `enhance` call is an activated custom element controller. This controller needs to be deactivated manually by the application, or connected to an existing controller hierarchy to be deactivated automatically by the framework.
-
-    An example of enhancement result deactivation:
-
-```typescript
-const controller = au.enhance({ host, component });
-
-controller.deactivate(controller, null, LifecycleFlags.none);
-```
-
-That's it. Those are the main differences between enhance and the normal empty-root startup. In every other aspect, those two are same, because once a node is enhanced, all the data bindings, or change handling will work like a normal Aurelia hydrated empty-root node.

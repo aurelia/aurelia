@@ -101,6 +101,7 @@ commands:
         type: boolean
         default: true
     steps:
+      - checkout
       - when:
           condition:
             and:
@@ -117,7 +118,6 @@ commands:
           steps:
             - browser-tools/install-firefox
             - browser-tools/install-geckodriver
-      - checkout
       - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - when:
           condition: <<parameters.install>>
@@ -627,9 +627,9 @@ jobs:
       command:
         type: string
     steps:
+      - checkout
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
-      - checkout
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

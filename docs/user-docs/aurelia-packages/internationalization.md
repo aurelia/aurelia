@@ -190,31 +190,33 @@ new Aurelia()
 
 With this strategy, no translation resources get bundled with the app. Instead `i18next` instructs the registered Backend to load the translation resource using the `loadPath` pattern `'/locales/{{lng}}/{{ns}}.json'` during initialization and whenever the active locale is changed. Note that `{{lng}}`, and `{{ns}}` are placeholders for locale names and namespaces, respectively. The default namespace used by `i18next` is `translation` (which can, of course, be changed using init options). For example, for locale `en`, it is expected that the a `translation.json` is available under `/locales/en`. Thus, you have to ensure that those translation resources are accessible under the correct path.
 
-**Recipes**
+## **Recipes**
 
 This section shows some recipes to make resources available for Backend plugins.
 
-*   `webpack-dev-server`: Use `copy-webpack-plugin` to copy the `locales` src directory to the distribution directory. Then set the `devServer.contentBase` to the distribution directory.
+### Webpack dev server
 
-    ```javascript
-    const path = require('path');
-    const CopyPlugin = require('copy-webpack-plugin');
+&#x20;Use `copy-webpack-plugin` to copy the `locales` src directory to the distribution directory. Then set the `devServer.contentBase` to the distribution directory.
 
-    module.exports = function() {
-      return {
-        devServer: {
-          contentBase: path.join(__dirname, "dist"),
-        },
-        plugins: [
-          new CopyPlugin({
-            patterns: [
-              { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
-            ]
-          })
+```javascript
+const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
+
+module.exports = function() {
+  return {
+    devServer: {
+      contentBase: path.join(__dirname, "dist"),
+    },
+    plugins: [
+      new CopyPlugin({
+        patterns: [
+          { from: 'src/locales', to: 'locales' } // assumption: src/locales exists
         ]
-      }
-    }
-    ```
+      })
+    ]
+  }
+}
+```
 
 If you are using an earlier version than v6.0.0 of `copy-webpack-plugin`, use this config.
 
@@ -235,8 +237,6 @@ If you are using an earlier version than v6.0.0 of `copy-webpack-plugin`, use th
     }
   }
 ```
-
-* cli: TODO
 
 ## Using the plugin
 
@@ -261,7 +261,7 @@ export class MyDemoVm {
 ```
 
 {% hint style="info" %}
-When the active locale is changed, the `I18N`class publishes the `i18n:locale:changed` event and dispatches the `aurelia-translation-signal` signal. The i18n value converters and binding behaviors automatically subscribe to these events and update translations. This event and signal are useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
+When the active locale is changed, the `I18N`class publishes the `i18n:locale:changed` event and dispatches the `aurelia-translation-signal` signal. The i18n value converters and binding behaviors automatically subscribe to these events and update translations. This event and signal are useful tools if you want to perform your custom locale-sensitive logic when the locale is changed.
 {% endhint %}
 
 {% hint style="info" %}
@@ -274,7 +274,7 @@ The translation service provided by this plugin can be used both in view and vie
 
 #### Translation in view
 
-Aurelia uses an attribute pattern to replace the content or attribute values. (The default pattern is `t`, which can be customized by [registering aliases](internationalization.md#customize-translation-attribute-alias)). For the purpose of this discussion, the default attribute name is assumed.
+Aurelia uses an attribute pattern to replace the content or attribute values. (The default pattern is `t`, which can be customized by [registering aliases](internationalization.md#customize-translation-attribute-alias)). For this discussion, the default attribute name is assumed.
 
 **Syntax**
 
@@ -296,7 +296,7 @@ At a minimum, a `translation-key` needs to be used as the value for `t` attribut
 
 **Replace textContent**
 
-This is the most common use case, as well as the default behavior.
+This is the most common use case and the default behavior.
 
 ```javascript
 {
@@ -352,7 +352,7 @@ As mentioned above, by default, the plugin will set the `textContent` property o
 <span t="title">Title</span>
 ```
 
-Therefore, in the above example, the HTML tags will be escaped, and the output will be `&lt;b&gt;bold&lt;/b&gt;`. To allow HTML-markup to be used, the `[html]` attribute must be added before the translation key.
+Therefore, in the above example, the HTML tags will be escaped, and the output will be `&lt;b&gt;bold&lt;/b&gt;`. The `[html]` attribute must be added before the translation key to allow HTML markup.
 
 ```markup
 <span t="[html]title">Title</span>
@@ -362,7 +362,7 @@ This will set the `innerHTML` of the element instead of the `textContent` proper
 
 **\[append] or \[prepend] translations**
 
-So far, we have seen that the contents are replaced. There are two special attributes `[append]`, and `[prepend]` which can be used to append or prepend content to the existing content of the element. These also support HTML content.
+So far, we have seen that the contents are replaced. There are two special attributes, `[append]`, and `[prepend]` which can be used to append or prepend content to the element's existing content. These also support HTML content.
 
 ```javascript
 {
@@ -393,7 +393,7 @@ The plugin can be used to translate HTML-element attributes.
 
 The example sets the `[title]` attribute of the `span`. A useful example would be to use the attribute translation to set the `[alt]` or `[title]` attributes of an image. Note that the same key can also be used to target multiple attributes, for example: `<img t="[title,alt]key">`.
 
-The same syntax of attribute translation also works for translating `@bindable` properties of custom elements.
+The same syntax of attribute translation also translates `@bindable` properties of custom elements.
 
 ```typescript
 import { bindable, customElement } from '@aurelia/runtime';
@@ -427,7 +427,9 @@ Which produces the following result.
 
 **Manipulate translations with the t-params attribute**
 
-So far we have seen a simple key to value mapping. However, `i18next` supports more complex use-cases such as [interpolation](https://www.i18next.com/translation-function/interpolation), [context-specific translation](https://www.i18next.com/translation-function/context), and more. With `i18next` this is done by initializing the library with the options object. Using `@aurelia/i18n`, we use the `t-params` attribute pattern along with `t` to the same result. The object bound to `t-params` is passed on to `i18next` as-is. This means that the options-object schema supported by `i18next` for any particular operation will work as expected. Let's see how this works in Aurelia with some basic examples of this. For further details check out the `i18next` docs.
+So far, we have seen a simple key to value mapping. However, `i18next` supports more complex use cases such as [interpolation](https://www.i18next.com/translation-function/interpolation), [context-specific translation](https://www.i18next.com/translation-function/context), and more. With `i18next` this is done by initializing the library with the options object. Using `@aurelia/i18n`, we use the `t-params` attribute pattern along with `t` to the same result. The object bound to `t-params` is passed on to `i18next` as-is. This means that the options-object schema supported by `i18next` for any particular operation will work as expected.&#x20;
+
+Let's see how this works in Aurelia with some basic examples. For further details, check out the `i18next` docs.
 
 **Interpolation**
 
@@ -482,7 +484,7 @@ The above results in the following.
 
 **Interval specific translation**
 
-Sometimes, simple plural contexts are not enough, and another translation is required based on different interval. Note that this use case is not supported out of the box by `i18next`. For this, we need to use [i18next-intervalplural-postprocessor](https://github.com/i18next/i18next-intervalPlural-postProcessor) plugin and register it with the `@aurelia/i18n` as shown [here](internationalization.md#registering-the-plugin). Then define the interval translation resource as follows. (Note that the example uses [nesting](https://www.i18next.com/translation-function/nesting).)
+Sometimes, simple plural contexts are not enough, and another translation is required based on different intervals. Note that this use case is not supported out of the box by `i18next`. For this, we need to use [i18next-intervalplural-postprocessor](https://github.com/i18next/i18next-intervalPlural-postProcessor) plugin and register it with the `@aurelia/i18n` as shown [here](internationalization.md#registering-the-plugin). Then define the interval translation resource as follows. (Note that the example uses [nesting](https://www.i18next.com/translation-function/nesting).)
 
 ```javascript
 {
@@ -529,7 +531,7 @@ The example above produces `<span>foo-bar</span>`, given that `exprEvaluatedToNu
 
 **ValueConverter and BindingBehavior**
 
-In order to do translations in a more declarative way from within your HTML markup, you can use the `t` ValueConverter and BindingBehavior.
+To do translations in a more declarative way from within your HTML markup, you can use the `t` ValueConverter and BindingBehavior.
 
 ```markup
 <span> ${'itemWithCount' | t : {count: 10}} </span>
@@ -556,7 +558,9 @@ export class MyDemoVm {
 
 #### Handling missing keys
 
-If a key is missing in the translation resources, by default, the key's name will be rendered instead of the value. This is a sensible default as it immediately shows that a translation is missing for certain keys when inspecting the app. However, this can be overridden by the configuration option as shown below.
+If a key is missing in the translation resources, by default, the key's name will be rendered instead of the value. This is a sensible default as it immediately shows that a translation is missing for certain keys when inspecting the app.&#x20;
+
+However, this can be overridden by the configuration option, as shown below.
 
 ```typescript
 new Aurelia()
@@ -582,7 +586,7 @@ The `@aurelia/i18n` plugin provides number formatting using [`Intl` API](https:/
 <span> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' }} </span>
 ```
 
-The `nf` ValueConverter and BindingBehavior can be used to format numbers in a declarative way from the view. Both take two optional arguments, apart from the number being formatted, which are options, and locale, respectively. If these are omitted, the number is formatted using the default number formatting options and the currently active locale. A specific locale can be passed on to format the number as per that locale. If the input is not a number, then the original value is returned from these as-is.
+The `nf` ValueConverter and BindingBehavior can format numbers in a declarative way from the view. Both take two optional arguments, apart from the number being formatted, which are options, and locale, respectively. The number is formatted using the default number formatting options and the currently active locale if these are omitted. A specific locale can be passed on to format the number as per that locale. If the input is not a number, then the original value is returned from these as-is.
 
 The formatting options are used to affect how the number is formatted. A prominent use case for that is to format the number as currency. For a full list of options, look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_Objects/NumberFormat#Parameters).
 
@@ -624,7 +628,7 @@ This can be useful if you want to cache the `Intl.NumberFormat` instance and reu
 
 > Note The `I18N#nf` in the previous version of Aurelia matches the `I18N#createNumberFormat`, whereas `I18N#nf` provides the formatted number instead.
 
-### Un-format number via code
+#### Un-format number via code
 
 Numeric strings can be converted back to a number using the `I18N#uf` method. The method takes the numeric string as the first argument, followed by an optional second argument for the locale, as shown in the following example.
 
@@ -667,7 +671,9 @@ export class MyDemoVm {
 <span> ${ date & df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' } </span> <!-- 20.08.19 -->
 ```
 
-The `df` ValueConverter and BindingBehavior can format dates in a declarative way from the view. Both take two optional arguments, apart from the date being formatted, which are options, and locale, respectively. If these are omitted, the date is formatted using the default date formatting options and the currently active locale. A specific locale can be passed on to format the date as per that locale.
+The `df` ValueConverter and BindingBehavior can format dates in a declarative way from the view. Both take two optional arguments, apart from the date being formatted, which are options, and locale, respectively.&#x20;
+
+If these are omitted, the date is formatted using the default date formatting options and the currently active locale. A specific locale can be passed on to format the date as per that locale.
 
 The formatting options are used to affect how the date is formatted. For a full list of options, look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global\_Objects/DateTimeFormat#Parameters).
 
@@ -811,13 +817,38 @@ You can change the default `epsilon` value using the `options.initOptions.rtEpsi
 
 ## Migration Guide & Breaking Changes
 
-This section outlines the breaking changes introduced by `@aurelia/i18n` as compared to the predecessor `aurelia-i18n`. Fortunately, there are next to zero breaking changes on how the plugin is used in a view for translation or date and number formatting. However, there is a small number of breaking changes in the API which will be explained below. We hope this documentation also serves as a migration guide for the well-known use cases.
+This section outlines the breaking changes introduced by `@aurelia/i18n` as compared to the predecessor `aurelia-i18n`. Fortunately, there are close to zero breaking changes on how the plugin is used in a view for translation or date and number formatting.&#x20;
 
-* `aurelia-i18n` used `i18next@14.x.x`, whereas `@aurelia/i18n` uses `i18next@17.x.x`. Therefore all/any of the breaking changes from `i18next` also apply here.
-* The formatting methods such as `nf`, and `df` return formatted numbers and date strings in the new version of the plugin. In the previous version of Aurelia, these methods returned an instance of `Intl.NumberFormat`, and `Intl.DateFormat` respectively, which would then be used to format the number or date. However, in the new plugin the methods return the formated number or date. In case you required the old methods, those are still available under the names `createNumberFormat`, and `createDateTimeFormat` respectively. For more details, see the section on [number](internationalization.md#formatting-numbers), and [date](internationalization.md#formatting-dates) formatting.
-* All ValueConverters in `@aurelia/i18n` are now signalable as compared to `aurelia-i18n`, where no i18n value converters were signalable. This means that the associated translation or the formatting will be automatically updated when the active locale is changed.
-* Several breaking changes affect relative time formatting. Following is a short list of breaking changes; for full details see the [section on relative time formatting](internationalization.md#relative-time-formatting).
-  * The relative time formatting can now be done using the `rt` method in the `I18N` class, as compared to the full-fledged `RelativeTime` class in `aurelia-i18n`. Therefore, instead of `RelativeTime#getRelativeTime`, you can use `I18N#rt`. The class `RelativeTime` no longer exists in the new version.
-  * Registering translation resources for relative time formatting is no longer required, as the new API relies on `Intl.RelativeTimeFormat`, which use the locale data provided by the environment.
-  * There is a minor downside that arises when we dropped support for custom translation resources for relative time. The smallest time unit supported by `Intl.RelativeTimeFormat` is `second`. Therefore, any time difference that is shorter than a second is approximated to one second and formatted. Such cases where formatted in `aurelia-i18n` as a variant of "now", which is no longer possible in the new plugin.
-  * There is a new time unit "week" in `Intl.RelativeTimeFormat` API which was not present in the `RelativeTime` class under `aurelia-i18n`.
+However, there is a small number of breaking changes in the API which will be explained below. We hope this documentation also serves as a migration guide for the well-known use cases.
+
+### The version of i18next has changed
+
+`aurelia-i18n` used `i18next@14.x.x`, whereas `@aurelia/i18n` uses `i18next@17.x.x`. Therefore all/any of the breaking changes from `i18next` also apply here.
+
+### Formatting methods return formatted numbers and strings
+
+The formatting methods such as `nf`, and `df` return formatted numbers and date strings in the new version of the plugin. In the previous version of Aurelia, these methods returned an instance of `Intl.NumberFormat`, and `Intl.DateFormat` respectively, which would then be used to format the number or date. However, in the new plugin the methods return the formated number or date. In case you required the old methods, those are still available under the names `createNumberFormat`, and `createDateTimeFormat` respectively. For more details, see the section on [number](internationalization.md#formatting-numbers), and [date](internationalization.md#formatting-dates) formatting.
+
+### All value converters are now signalable
+
+All ValueConverters in `@aurelia/i18n` are now signalable as compared to `aurelia-i18n`, where no i18n value converters were signalable. This means that the associated translation or the formatting will be automatically updated when the active locale is changed.
+
+### Breaking changes affecting relative time formatting
+
+Several breaking changes affect relative time formatting. Following is a short list of breaking changes; for full details, see the [section on relative time formatting](internationalization.md#relative-time-formatting).
+
+### Relative time formatting can now be done using the rt method
+
+The relative time formatting can now be done using the `rt` method in the `I18N` class, as compared to the full-fledged `RelativeTime` class in `aurelia-i18n`. Therefore, instead of `RelativeTime#getRelativeTime`, you can use `I18N#rt`. The class `RelativeTime` no longer exists in the new version.
+
+### Translation resources no longer need to be registered for relative time formatting
+
+Registering translation resources for relative time formatting is no longer required, as the new API relies on `Intl.RelativeTimeFormat`, which uses the locale data provided by the environment.
+
+### A minor change to relative time format
+
+There is a minor downside that arises when we dropped support for custom translation resources for relative time. The smallest time unit supported by `Intl.RelativeTimeFormat` is `second`. Therefore, any time difference that is shorter than a second is approximated to one second and formatted. Such cases where formatted in `aurelia-i18n` as a variant of "now", which is no longer possible in the new plugin.
+
+### A new time unit "week" has been added
+
+There is a new time unit "week" in `Intl.RelativeTimeFormat` API which was not present in the `RelativeTime` class under `aurelia-i18n`.

@@ -5,8 +5,8 @@ import { ICustomElementViewModel, ICustomElementController, PartialCustomElement
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
 import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
-import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
-import { emptyQuery, INavigationOptions, NavigationOptions } from './router';
+import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
+import { INavigationOptions, NavigationOptions } from './router';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 
@@ -30,7 +30,7 @@ export type NavigationInstruction = string | IViewportInstruction | RouteableCom
  * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
  * - `IRouteViewModel`: an existing component instance.
  */
-export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule> | PartialCustomElementDefinition | IRouteViewModel;
+export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule> | CustomElementDefinition | IRouteViewModel;
 
 export type Params = { [key: string]: string | undefined };
 
@@ -81,7 +81,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly viewport: string | null,
     public readonly params: Params | null,
     public readonly children: ViewportInstruction[],
-  ) {}
+  ) { }
 
   public static create(instruction: NavigationInstruction): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
@@ -224,7 +224,7 @@ export class RedirectInstruction implements IRedirectInstruction {
   private constructor(
     public readonly path: string,
     public readonly redirectTo: string,
-  ) {}
+  ) { }
 
   public static create(instruction: IRedirectInstruction): RedirectInstruction {
     if (instruction instanceof RedirectInstruction) {
@@ -273,7 +273,7 @@ export class ViewportInstructionTree {
     public readonly children: ViewportInstruction[],
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-  ) {}
+  ) { }
 
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
@@ -292,17 +292,17 @@ export class ViewportInstructionTree {
       const len = instructionOrInstructions.length;
       const children = new Array(len);
       const query = new URLSearchParams($options.queryParams ?? emptyObject);
-      for(let i = 0; i<len; i++) {
+      for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
-        if(eagerVi !== null) {
+        if (eagerVi !== null) {
           children[i] = eagerVi.vi;
           mergeURLSearchParams(query, eagerVi.query, false);
         } else {
           children[i] = ViewportInstruction.create(instruction);
         }
       }
-      return new ViewportInstructionTree($options, false, children, query, null);
+      return new ViewportInstructionTree($options, false, children, query, $options.fragment);
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -311,20 +311,21 @@ export class ViewportInstructionTree {
     }
 
     const eagerVi = hasContext ? context.generateViewportInstruction(instructionOrInstructions) : null;
+    const query = new URLSearchParams($options.queryParams ?? emptyObject);
     return eagerVi !== null
       ? new ViewportInstructionTree(
         $options,
         false,
         [eagerVi.vi],
-        new URLSearchParams(eagerVi.query ?? emptyObject),
-        null,
+        mergeURLSearchParams(query, eagerVi.query, false),
+        $options.fragment,
       )
       : new ViewportInstructionTree(
         $options,
         false,
         [ViewportInstruction.create(instructionOrInstructions)],
-        emptyQuery,
-        null,
+        query,
+        $options.fragment,
       );
   }
 
@@ -352,13 +353,14 @@ export class ViewportInstructionTree {
       hash = `#${this.toPath()}`;
     } else {
       pathname = this.toPath();
-      hash = this.fragment ?? '';
+      const fragment = this.fragment;
+      hash = fragment !== null && fragment.length > 0 ? `#${fragment}` : '';
     }
 
     let search = this.queryParams.toString();
     search = search === '' ? '' : `?${search}`;
 
-    return `${pathname}${hash}${search}`;
+    return `${pathname}${search}${hash}`;
   }
 
   public toPath(): string {
@@ -387,11 +389,11 @@ export interface ITypedNavigationInstruction<
   toUrlComponent(): string;
   clone(): this;
 }
-export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> {}
-export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> {}
-export interface ITypedNavigationInstruction_CustomElementDefinition extends ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> {}
-export interface ITypedNavigationInstruction_Promise extends ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> {}
-export interface ITypedNavigationInstruction_IRouteViewModel extends ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> {}
+export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> { }
+export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> { }
+export interface ITypedNavigationInstruction_CustomElementDefinition extends ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> { }
+export interface ITypedNavigationInstruction_Promise extends ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> { }
+export interface ITypedNavigationInstruction_IRouteViewModel extends ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> { }
 
 export type ITypedNavigationInstruction_T = (
   ITypedNavigationInstruction_Component |
@@ -413,7 +415,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
   private constructor(
     public readonly type: TType,
     public readonly value: TInstruction,
-  ) {}
+  ) { }
 
   public static create(instruction: string): ITypedNavigationInstruction_string;
   public static create(instruction: IViewportInstruction): ITypedNavigationInstruction_ViewportInstruction;
@@ -448,12 +450,6 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     if (isCustomElementViewModel(instruction)) return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
-    if (isPartialCustomElementDefinition(instruction)) {
-      // If we just got a partial definition, define a new anonymous class
-      const Type = CustomElement.define(instruction);
-      const definition = CustomElement.getDefinition(Type);
-      return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
-    }
     throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
   }
 

@@ -11,7 +11,7 @@ const noRoutes = emptyArray as RouteConfig['routes'];
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
  * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
  * - `IChildRouteConfig`: a standalone child route config object.
- * - `Routeable`: see `Routeable`.
+ * - `RouteableComponent`: see `RouteableComponent`.
  *
  * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
@@ -38,8 +38,6 @@ export interface IRouteConfig {
     readonly title?: string | ((node: RouteNode) => string | null) | null;
     /**
      * The path to which to redirect when the url matches the path in this config.
-     *
-     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
      */
     readonly redirectTo?: string | null;
     /**
@@ -49,11 +47,9 @@ export interface IRouteConfig {
     /**
      * How to behave when this component scheduled to be loaded again in the same viewport:
      *
-     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed.
-     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading` (default if only the parameters have changed)
-     * - `none`: does nothing (default if nothing has changed for the viewport)
-     *
-     * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
+     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed  (default if only the parameters have changed).
+     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading`.
+     * - `none`: does nothing (default if nothing has changed for the viewport).
      */
     readonly transitionPlan?: TransitionPlanOrFunc | null;
     /**

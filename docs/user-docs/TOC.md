@@ -25,6 +25,7 @@
 * [List Rendering](templates/repeats-and-list-rendering.md)
 * [Lambda Expressions](templates/lambda-expressions.md)
 * [Local templates (inline templates)](templates/local-templates.md)
+* [Advanced Attribute Binding)](templates/advanced-attribute-binding.md)
 
 ## Components
 
@@ -38,6 +39,7 @@
 ## Getting to know Aurelia
 
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
+* [Enhance](getting-to-know-aurelia/enhance.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
 * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
 * [Observation](getting-to-know-aurelia/observation/README.md)
@@ -46,14 +48,16 @@
   * [HTML observation](getting-to-know-aurelia/observation/html-observation.md)
   * [Using observerLocator](getting-to-know-aurelia/observation/using-observerlocator.md)
 * [Watching data](getting-to-know-aurelia/watching-data.md)
-* [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di.md)
+* [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di/README.md)
+  * [What is Dependency Injection?](getting-to-know-aurelia/dependency-injection-di/what-is-dependency-injection.md)
+  * [Resolvers](getting-to-know-aurelia/dependency-injection-di/resolvers.md)
 * [App Tasks](getting-to-know-aurelia/app-tasks.md)
+* [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
 
 ## Routing
 
 * [Getting Started](routing/getting-started.md)
-* [Router Tutorial](routing/router-tutorial.md)
 * [Creating Routes](routing/creating-routes.md)
 * [Routing Lifecycle](routing/routing-lifecycle.md)
 * [Viewports](routing/viewports.md)
@@ -61,7 +65,20 @@
 * [Route hooks](routing/router-hooks.md)
 * [Router animation](routing/router-animation.md)
 * [Route Events](routing/route-events.md)
+* [Router Tutorial](routing/router-tutorial.md)
 * [Router Recipes](routing/router-recipes.md)
+
+## Router-lite
+* [Getting started](router-lite/getting-started.md)
+* [Router configuration](router-lite/router-configuration.md)
+* [Configuring routes](router-lite/configuring-routes.md)
+* [Viewports](router-lite/viewports.md)
+* [Navigating](router-lite/navigating.md)
+* [Lifecycle hooks](router-lite/routing-lifecycle.md)
+* [Router hooks](router-lite/router-hooks.md)
+* [Router events](router-lite/router-events.md)
+* [Navigation model](router-lite/navigation-model.md)
+* [Transition plan](router-lite/transition-plans.md)
 
 ## Developer Guides
 
@@ -86,10 +103,11 @@
     * [AUR0012](developer-guides/error-messages/0001-to-0015/aur0012.md)
     * [AUR0013](developer-guides/error-messages/0001-to-0015/aur0013.md)
     * [AUR0014](developer-guides/error-messages/0001-to-0015/aur0014.md)
+    * [AUR0015](developer-guides/error-messages/0001-to-0015/aur0015.md)
 * [Recipes](developer-guides/scenarios/README.md)
   * [CSS-in-JS with Emotion](developer-guides/scenarios/css-in-js-with-emotion.md)
   * [TailwindCSS integration](developer-guides/scenarios/tailwindcss-integration.md)
-  * [Strongly-typed Template](developer-guides/scenarios/strongly-typed-template.md)
+  * [Strongly-typed templates](developer-guides/scenarios/strongly-typed-template.md)
   * [DOM style injection](developer-guides/scenarios/dom-style-injection.md)
   * [Markdown integration](developer-guides/scenarios/markdown-integration.md)
   * [Securing an app](developer-guides/scenarios/securing-an-app.md)
@@ -129,8 +147,7 @@
 * [Store](aurelia-packages/store/README.md)
   * [Configuration and Setup](aurelia-packages/store/configuration-and-setup.md)
   * [Middleware](aurelia-packages/store/middleware.md)
-* [Dialog](aurelia-packages/dialog/README.md)
-  * [AUR0015](aurelia-packages/dialog/aur0015.md)
+* [Dialog](aurelia-packages/dialog.md)
 
 ## Tutorials
 

@@ -1,10 +1,10 @@
 # Viewports
 
-The `<au-viewport>` element is where all of the routing magic happens, the outlet. It supports a few different custom attributes which allow you to configure how the router renders your components. It also allows you to use multiple viewports to create different layout configurations with your routing.
+The `<au-viewport>` element is where all of the routing magic happens, the outlet. It supports a few different custom attributes, allowing you to configure how the router renders your components. It also allows you to use multiple viewports to create different layout configurations with your routing.
 
 ## Named viewports
 
-The router allows you to add in multiple viewports into your application and render components into each of those viewport elements by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one of them.
+The router allows you to add multiple viewports to your application and render components into each viewport element by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one.
 
 ```markup
 <main>
@@ -15,14 +15,14 @@ The router allows you to add in multiple viewports into your application and ren
 </aside>
 ```
 
-In this example, we have the main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered. When using viewports, think of them like iframes, independent containers that can maintain their own states.
+In this example, we have the main viewport for our main content, and another viewport called `sidebar` for our sidebar content which is dynamically rendered. When using viewports, think of them like iframes, independent containers that can maintain their own states.
 
 ## Specifying a viewport on a route
 
-Routes will load in the default viewport element by default if there are one or more viewports. However, routes can be told to load into a specific viewport.
+Routes will load in the default viewport element if there are one or more viewports. However, routes can be told to load into a specific viewport.
 
 ```typescript
-import { IRouteableComponent, routes } from "@aurelia/router";
+import { IRouteableComponent, routes } from '@aurelia/router';
 
 @routes([
     {

@@ -1,4 +1,5 @@
-import { customElement, IDisposable, IRouter, IRouterEvents, ISignaler, shadowCSS } from 'aurelia';
+import { IRouter, IRouterEvents } from '@aurelia/router-lite';
+import { customElement, IDisposable, ISignaler, shadowCSS } from 'aurelia';
 import template from './left-sidebar.html';
 import css from './left-sidebar.css';
 

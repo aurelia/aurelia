@@ -13,6 +13,7 @@ export function preprocess(
   const ext = path.extname(unit.path);
   const basename = path.basename(unit.path, ext);
   const allOptions = preprocessOptions(options);
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const base = unit.base || '';
 
   if (allOptions.enableConventions && allOptions.templateExtensions.includes(ext)) {

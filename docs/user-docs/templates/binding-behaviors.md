@@ -122,7 +122,7 @@ export class MyApp {
 }
 ```
 
-## Onetime
+## oneTime
 
 With the `oneTime` binding behavior you can specify that string interpolated bindings should happen once. Simply write:
 
@@ -152,11 +152,11 @@ The casing for binding modes is different depending on whether they appear as a 
 
 ## Self
 
-With the `self` binding behavior, you can specify that event handler will only respond to the target where the listener was attached to, not its descendants.
+With the `self` binding behavior, you can specify that the event handler will only respond to the target to which the listener was attached, not its descendants.
 
 For example, in the following markup
 
-**Self binding behavior**
+**Self-binding behavior**
 
 ```html
 <panel>
@@ -167,9 +167,9 @@ For example, in the following markup
 </panel>
 ```
 
-`onMouseDown` is your event handler and it will be called not only when user `mousedown` on header element, but also all elements inside it, which in this case are the buttons `settings` and `close`. However, this is not always desired behavior. Sometimes you want the component to only react when user click on the header itself, not the buttons. In order to achieve this, `onMouseDown` method needs some modification:
+`onMouseDown` is your event handler, and it will be called not only when user `mousedown` on header element, but also all elements inside it, which in this case are the buttons `settings` and `close`. However, this is not always desired behavior. Sometimes you want the component only to react when user clicks on the header itself, not the buttons. To achieve this, `onMouseDown` method needs some modification:
 
-**Handler without self binding behavior**
+**Handler without self-binding behavior**
 
 ```typescript
 // inside component's view model class
@@ -181,9 +181,9 @@ onMouseDown(event) {
 }
 ```
 
-This works, but now business/ component logic are mixed up with DOM event handling, which are not necessary. Using `self` binding behavior can help you achieve the same goal without filling up your methods with unnecessary code:
+This works, but now business/ component logic is mixed up with DOM event handling, which is not necessary. Using `self` binding behavior can help you achieve the same goal without filling up your methods with unnecessary code:
 
-**Using self binding behavior**
+**Using self-binding behavior**
 
 ```html
 <panel>
@@ -194,7 +194,7 @@ This works, but now business/ component logic are mixed up with DOM event handli
 </panel>
 ```
 
-**Using self binding behavior**
+**Using self-binding behavior**
 
 ```typescript
 // inside component's view model class
@@ -213,31 +213,30 @@ You can build custom binding behaviors just like you can build value converters.
 Here's a custom binding behavior that calls a method on your view model each time the binding's `updateSource` / `updateTarget` and `callSource` methods are invoked.
 
 ```typescript
-const interceptMethods = ['updateTarget', 'updateSource', 'callSource'];
-  
+  const interceptMethods = ['updateTarget', 'updateSource', 'callSource'];
   export class InterceptBindingBehavior {
-    bind(binding, scope, interceptor) {
+    bind(scope, binding) {
       let i = interceptMethods.length;
       while (i--) {
-        let method = interceptMethods[i];
-        if (!binding[method]) {
+        let methodName = interceptMethods[i];
+        let method = binding[method];
+        if (!method) {
           continue;
         }
-        binding[`intercepted-${method}`] = binding[method];
-        let update = binding[method].bind(binding);
-        binding[method] = interceptor.bind(binding, method, update);
+        binding[`intercepted-${methodName}`] = method;
+        binding[methodName] = method.bind(binding);
       }
     }
   
-    unbind(binding, scope) {
+    unbind(scope, binding) {
       let i = interceptMethods.length;
       while (i--) {
-        let method = interceptMethods[i];
-        if (!binding[method]) {
+        let methodName = interceptMethods[i];
+        if (!binding[methodName]) {
           continue;
         }
-        binding[method] = binding[`intercepted-${method}`];
-        binding[`intercepted-${method}`] = null;
+        binding[methodName] = binding[`intercepted-${methodName}`];
+        binding[`intercepted-${methodName}`] = null;
       }
     }
   }

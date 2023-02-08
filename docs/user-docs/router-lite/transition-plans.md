@@ -4,9 +4,9 @@ description: Learn how Router-Lite handles the re-entrance of the same component
 
 # Transition plan
 
-The transition plan in router-lite is meant for deciding how to process a navigation instruction that intend to load the same component that is currently loaded/active.
-Based on user-voice the router-lite uses a sensible default, and probably you never need to touch this area.
-However, it is still good to know how to change those defaults, whenever you are in need (and we all know that such needs will arise from time to time).
+The transition plan in router-lite is meant for deciding how to process a navigation instruction that intends to load the same component that is currently loaded/active.
+As the router-lite uses a sensible default based on the user-voice, probably you never need to touch this area.
+However, it is still good to know how to change those defaults, whenever you are in need to do that (and we all know that such needs will arise from time to time).
 
 Transition plan can be configured using the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options).
 The allowed values are `replace`, `invoke-lifecycles`, `none` or a function that returns one of these values.
@@ -19,11 +19,11 @@ The allowed values are `replace`, `invoke-lifecycles`, `none` or a function that
 
 The child routes inherits the `transitionPlan` from the parent.
 
-When the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options) is not configured, router-lite uses a function as sensible default to select the transition plan when the current component is attempted to be loaded again.
+When the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options) is not configured, router-lite uses a function as the sensible default to select the transition plan when the current component is attempted to be loaded again.
 The default behavior selects `replace` when the parameter changes and `none` otherwise.
 
 {% hint style="info" %}
-It might be normal to think that the default selection the `replace` transition plan when the parameter changes, to be an overkill and the default selection should have been `invoke-lifecycles` instead.
+It might be normal to think that the default selection of the `replace` transition plan when the parameter changes, to be an overkill and the default selection should have been `invoke-lifecycles` instead.
 As a matter of fact that's the default option in Aurelia1 as well as in earlier versions of Aurelia2.
 However, as understood from the user-voices that `replace` would in this case cause less surprises.
 Hence the default behavior is changed to `replace`.
@@ -77,7 +77,7 @@ See this example in action below.
 ## Use a function to dynamically select transition plan
 
 You can use a function to dynamically select transition plan based on route nodes.
-The following example shows just that where for every components, apart from the root component, `invoke-lifecycles` transition plan is selected.
+The following example shows that, where for every components, apart from the root component, `invoke-lifecycles` transition plan is selected.
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';

@@ -1446,7 +1446,8 @@ describe('lifecycle hooks', function () {
       b1: createHookTimingConfiguration(),
       b2: createHookTimingConfiguration(),
       assertLog(eventLog: EventLog) {
-        eventLog.assertLog([
+        // This cannot be reliably tested in both node and browsers, because node finishes b1 before a1 whereas the browsers don't. Hence, doing order invariant assertions.
+        eventLog.assertLogOrderInvariant([
           /A1\] canLoad - start 'a1'/,
           /B1\] canLoad - start 'b1'/,
           /A1\] canLoad - end 'a1'/,
@@ -1455,8 +1456,7 @@ describe('lifecycle hooks', function () {
           /B1\] loading - start 'b1'/,
           /A1\] loading - end 'a1'/,
           /B1\] loading - end 'b1'/,
-        ], 'loading');
-        eventLog.assertLogOrderInvariant([
+
           /A2\] canLoad - start 'a2'/,
           /B2\] canLoad - start 'b2'/,
           /B2\] canLoad - end 'b2'/,

@@ -42,11 +42,11 @@ export class SomeService implements IDisposable {
   public log: string[] = [];
   public constructor(@IRouterEvents events: IRouterEvents) {
     this.subscriptions = [
-      events.subscribe('au:router:location-change',   (event: LocationChangeEvent) =>   { /* handle event */ }),
-      events.subscribe('au:router:navigation-start',  (event: NavigationStartEvent) =>  { /* handle event */ }),
-      events.subscribe('au:router:navigation-end',    (event: NavigationEndEvent) =>    { /* handle event */ }),
+      events.subscribe('au:router:location-change',   (event: LocationChangeEvent)   => { /* handle event */ }),
+      events.subscribe('au:router:navigation-start',  (event: NavigationStartEvent)  => { /* handle event */ }),
+      events.subscribe('au:router:navigation-end',    (event: NavigationEndEvent)    => { /* handle event */ }),
       events.subscribe('au:router:navigation-cancel', (event: NavigationCancelEvent) => { /* handle event */ }),
-      events.subscribe('au:router:navigation-error',  (event: NavigationErrorEvent) =>  { /* handle event */ }),
+      events.subscribe('au:router:navigation-error',  (event: NavigationErrorEvent)  => { /* handle event */ }),
     ];
   }
   public dispose(): void {
@@ -62,6 +62,7 @@ export class SomeService implements IDisposable {
 
 Note that the event-data for every event has a different type.
 When you are using TypeScript, using `IRouterEvents` correctly types the event-data to the corresponding event type and naturally provides you with intellisense.
+This type information won't be available if you subscribe to the events using the event aggregator.
 
 The following example demonstrates the usage of router events, where the root component displays a spinner at the start of navigation, and removes it when the navigation ends.
 

@@ -101,7 +101,7 @@ export class RouterOptions {
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions extends RouterOptions {
+export class NavigationOptions extends RouterOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
   public static get DEFAULT(): NavigationOptions { return NavigationOptions.create({}); }
 
   private constructor(

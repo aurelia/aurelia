@@ -14,7 +14,6 @@ import { DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, CustomElement, customElement, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
-import { isFirefox } from '../util.js';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
@@ -35,7 +34,7 @@ describe('lifecycle hooks', function () {
       const log = this.log;
       const len = messagePatterns.length;
       for (let i = 0; i < len; i++) {
-        assert.match(log[i], messagePatterns[i], `${message} - unexpected log at index${i}; actual log: ${JSON.stringify(log, undefined, 2)}`);
+        assert.match(log[i], messagePatterns[i], `${message} - unexpected log at index${i}: ${log[i]}; actual log: ${JSON.stringify(log, undefined, 2)}`);
       }
     }
 
@@ -1439,32 +1438,53 @@ describe('lifecycle hooks', function () {
 
   // #region some migrated tests from hook-tests.specs.ts, as the tests were sometimes overly complicated, and accounting for every ticks might be bit too much
   function* getHookTestData() {
-    function assert1(adjustForFF: boolean) {
-      return function (eventLog: EventLog) {
-        if (adjustForFF) {
-          // for some reason, FF decides to run A1 to completion before B1
-          eventLog.assertLog([
-            /A1\] canLoad - start 'a1'/,
-            /B1\] canLoad - start 'b1'/,
-            /A1\] canLoad - end 'a1'/,
-            /B1\] canLoad - end 'b1'/,
-            /A1\] loading - start 'a1'/,
-            /B1\] loading - start 'b1'/,
-            /A1\] loading - end 'a1'/,
-            /B1\] loading - end 'b1'/,
-          ], 'loading');
-        } else {
-          eventLog.assertLog([
-            /A1\] canLoad - start 'a1'/,
-            /B1\] canLoad - start 'b1'/,
-            /B1\] canLoad - end 'b1'/,
-            /A1\] canLoad - end 'a1'/,
-            /A1\] loading - start 'a1'/,
-            /B1\] loading - start 'b1'/,
-            /A1\] loading - end 'a1'/,
-            /B1\] loading - end 'b1'/,
-          ], 'loading');
-        }
+    yield {
+      name: 'a1(canLoad:4)/a2+b1/b2',
+      a1: createHookTimingConfiguration({ canLoad: 4 }),
+      a2: createHookTimingConfiguration(),
+      b1: createHookTimingConfiguration(),
+      b2: createHookTimingConfiguration(),
+      assertLog(eventLog: EventLog) {
+        // This cannot be reliably tested in both node and browsers, because node finishes b1 before a1 whereas the browsers don't. Hence, doing order invariant assertions.
+        eventLog.assertLogOrderInvariant([
+          /A1\] canLoad - start 'a1'/,
+          /B1\] canLoad - start 'b1'/,
+          /A1\] canLoad - end 'a1'/,
+          /B1\] canLoad - end 'b1'/,
+          /A1\] loading - start 'a1'/,
+          /B1\] loading - start 'b1'/,
+          /A1\] loading - end 'a1'/,
+          /B1\] loading - end 'b1'/,
+
+          /A2\] canLoad - start 'a2'/,
+          /B2\] canLoad - start 'b2'/,
+          /B2\] canLoad - end 'b2'/,
+          /A2\] canLoad - end 'a2'/,
+          /A2\] loading - start 'a2'/,
+          /B2\] loading - start 'b2'/,
+          /A2\] loading - end 'a2'/,
+          /B2\] loading - end 'b2'/,
+        ], 8, 'loading part2');
+      }
+    };
+
+    yield {
+      name: 'a1(canLoad:8)/a2+b1/b2',
+      a1: createHookTimingConfiguration({ canLoad: 8 }),
+      a2: createHookTimingConfiguration(),
+      b1: createHookTimingConfiguration(),
+      b2: createHookTimingConfiguration(),
+      assertLog(eventLog: EventLog) {
+        eventLog.assertLog([
+          /A1\] canLoad - start 'a1'/,
+          /B1\] canLoad - start 'b1'/,
+          /B1\] canLoad - end 'b1'/,
+          /A1\] canLoad - end 'a1'/,
+          /A1\] loading - start 'a1'/,
+          /B1\] loading - start 'b1'/,
+          /A1\] loading - end 'a1'/,
+          /B1\] loading - end 'b1'/,
+        ], 'loading');
         eventLog.assertLogOrderInvariant([
           /A2\] canLoad - start 'a2'/,
           /B2\] canLoad - start 'b2'/,
@@ -1475,24 +1495,7 @@ describe('lifecycle hooks', function () {
           /A2\] loading - end 'a2'/,
           /B2\] loading - end 'b2'/,
         ], 8, 'loading part2');
-      };
-    }
-    yield {
-      name: 'a1(canLoad:4)/a2+b1/b2',
-      a1: createHookTimingConfiguration({ canLoad: 4 }),
-      a2: createHookTimingConfiguration(),
-      b1: createHookTimingConfiguration(),
-      b2: createHookTimingConfiguration(),
-      assertLog: assert1(isFirefox()),
-    };
-
-    yield {
-      name: 'a1(canLoad:8)/a2+b1/b2',
-      a1: createHookTimingConfiguration({ canLoad: 8 }),
-      a2: createHookTimingConfiguration(),
-      b1: createHookTimingConfiguration(),
-      b2: createHookTimingConfiguration(),
-      assertLog: assert1(false),
+      }
     };
 
     function assert2(eventLog: EventLog) {

@@ -45,17 +45,8 @@ export interface IDialogController {
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
 export const IDialogDomRenderer = createInterface<IDialogDomRenderer>('IDialogDomRenderer');
-export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
-}
-
-/**
- * An interface describing the DOM structure of a dialog
- */
-export const IDialogDom = createInterface<IDialogDom>('IDialogDom');
-export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
-  readonly contentHost: HTMLElement;
+export interface IDialogDomRenderer extends IDisposable {
+  render(dialogHost: Element, settings: IDialogLoadedSettings, controller: IDialogController): HTMLElement;
 }
 
 // export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;

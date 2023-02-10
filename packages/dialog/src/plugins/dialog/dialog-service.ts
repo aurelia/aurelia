@@ -2,7 +2,6 @@ import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
 import { AppTask, IPlatform } from '@aurelia/runtime-html';
 
 import {
-  DialogActionKey,
   DialogCloseResult,
   DialogDeactivationStatuses,
   DialogOpenResult,
@@ -104,10 +103,6 @@ export class DialogService implements IDialogService {
             dialogController.activate(loadedSettings),
             openResult => {
               if (!openResult.wasCancelled) {
-                if (this.dlgs.push(dialogController) === 1) {
-                  this.p.window.addEventListener('keydown', this);
-                }
-
                 const $removeController = () => this.remove(dialogController);
                 dialogController.closed.then($removeController, $removeController);
               }
@@ -151,28 +146,6 @@ export class DialogService implements IDialogService {
     const idx = dlgs.indexOf(controller);
     if (idx > -1) {
       this.dlgs.splice(idx, 1);
-    }
-    if (dlgs.length === 0) {
-      this.p.window.removeEventListener('keydown', this);
-    }
-  }
-
-  /** @internal */
-  public handleEvent(e: Event): void {
-    const keyEvent = e as KeyboardEvent;
-    const key = getActionKey(keyEvent);
-    if (key == null) {
-      return;
-    }
-    const top = this.top;
-    if (top === null || top.settings.keyboard.length === 0) {
-      return;
-    }
-    const keyboard = top.settings.keyboard;
-    if (key === 'Escape' && keyboard.includes(key)) {
-      void top.cancel();
-    } else if (key === 'Enter' && keyboard.includes(key)) {
-      void top.ok();
     }
   }
 }
@@ -237,14 +210,4 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
 function asDialogOpenPromise(promise: Promise<unknown>): DialogOpenPromise {
   (promise as DialogOpenPromise).whenClosed = whenClosed;
   return promise as DialogOpenPromise;
-}
-
-function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
-  if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
-    return 'Escape';
-  }
-  if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
-    return 'Enter';
-  }
-  return undefined;
 }

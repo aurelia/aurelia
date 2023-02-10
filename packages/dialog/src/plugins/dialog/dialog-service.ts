@@ -103,6 +103,7 @@ export class DialogService implements IDialogService {
             dialogController.activate(loadedSettings),
             openResult => {
               if (!openResult.wasCancelled) {
+                this.dlgs.push(dialogController);
                 const $removeController = () => this.remove(dialogController);
                 dialogController.closed.then($removeController, $removeController);
               }

@@ -1,8 +1,5 @@
 import { IPlatform } from '@aurelia/runtime-html';
-import {
-  IDialogDomRenderer,
-  IDialogGlobalSettings, DialogActionKey, IDialogLoadedSettings, IDialogController,
-} from './dialog-interfaces';
+import { IDialogDomRenderer, IDialogGlobalSettings, DialogActionKey, IDialogController } from './dialog-interfaces';
 
 import { IContainer } from '@aurelia/kernel';
 import { singletonRegistration, transientRegistration } from '../../utilities-di';
@@ -34,9 +31,6 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
   public contentHost!: HTMLElement;
 
   /** @internal */
-  protected settings!: IDialogLoadedSettings;
-
-  /** @internal */
   protected controller!: IDialogController;
 
   public constructor(private readonly p: IPlatform) {}
@@ -45,7 +39,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
     transientRegistration(IDialogDomRenderer, this).register(container);
   }
 
-  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings, controller: IDialogController): HTMLElement {
+  public render(dialogHost: HTMLElement, controller: IDialogController): HTMLElement {
     const doc = this.p.document;
     const h = (name: string, css: string): HTMLElement => {
       const el = doc.createElement(name);
@@ -57,13 +51,12 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
     const overlay = wrapper.appendChild(h('au-dialog-overlay', baseWrapperCss));
     const contentHost = wrapper.appendChild(h('div', hostCss));
 
-    overlay.addEventListener(settings.mouseEvent ?? 'click', this);
+    overlay.addEventListener(controller.settings.mouseEvent ?? 'click', this);
     wrapper.addEventListener('keydown', this);
 
     this.wrapper = wrapper;
     this.overlay = overlay;
     this.contentHost = contentHost;
-    this.settings = settings;
     this.controller = controller;
 
     return contentHost;
@@ -71,7 +64,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
 
   public dispose(): void {
     this.wrapper.removeEventListener('keydown', this);
-    this.overlay.removeEventListener(this.settings.mouseEvent ?? 'click', this);
+    this.overlay.removeEventListener(this.controller.settings.mouseEvent ?? 'click', this);
     this.wrapper.remove();
   }
 
@@ -86,7 +79,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
         return;
       }
 
-      const keyboard = this.settings.keyboard;
+      const keyboard = controller.settings.keyboard;
       if (key === 'Escape' && keyboard.includes(key)) {
         void controller.cancel();
       } else if (key === 'Enter' && keyboard.includes(key)) {
@@ -96,7 +89,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
     }
 
     // handle overlay click
-    if (/* user allows to dismiss on overlay click */this.settings.overlayDismiss
+    if (/* user allows to dismiss on overlay click */controller.settings.overlayDismiss
       && /* did not click inside the host element */!this.contentHost.contains(event.target as Element)
     ) {
       void controller.cancel();

@@ -46,7 +46,7 @@ export interface IDialogController {
  */
 export const IDialogDomRenderer = createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer extends IDisposable {
-  render(dialogHost: Element, settings: IDialogLoadedSettings, controller: IDialogController): HTMLElement;
+  render(dialogHost: Element, controller: IDialogController): HTMLElement;
 }
 
 // export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;

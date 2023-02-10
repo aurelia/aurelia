@@ -47,12 +47,13 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings, controller: IDialogController): HTMLElement {
     const doc = this.p.document;
-    const h = (name: string, css: string) => {
+    const h = (name: string, css: string): HTMLElement => {
       const el = doc.createElement(name);
       el.style.cssText = css;
       return el;
     };
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
+    wrapper.setAttribute('tabindex', '-1');
     const overlay = wrapper.appendChild(h('au-dialog-overlay', baseWrapperCss));
     const contentHost = wrapper.appendChild(h('div', hostCss));
 

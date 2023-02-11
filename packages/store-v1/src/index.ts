@@ -38,7 +38,7 @@ export const StoreConfiguration: IConfigure = {
       throw new Error("initialState must be provided via withInitialState builder method");
     }
 
-    let initState: unknown = state;
+    let initState: Partial<StateHistory<unknown>> = state;
 
     if (options?.history?.undoable && !isStateHistory(state)) {
       initState = { past: [], present: state, future: [] };

@@ -3,7 +3,7 @@ import { IContainer, ILogger } from '@aurelia/kernel';
 import { IWindow } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
+import { jump, applyLimits, HistoryOptions, isStateHistory, StateHistory } from './history';
 import { Middleware, MiddlewarePlacement, CallingAction } from './middleware';
 import { LogDefinitions, LogLevel, getLogType } from './logging';
 import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools';
@@ -64,7 +64,7 @@ export interface MiddlewareSettings {
   settings?: unknown;
 }
 
-export class Store<T> {
+export class Store<T extends Partial<StateHistory<unknown>>> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
   private devToolsAvailable: boolean = false;
@@ -413,7 +413,7 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
+export function dispatchify<T extends Partial<StateHistory<unknown>>, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
   const store = STORE.container.get<Store<T>>(Store);
 
   return async function (...params: P): Promise<void> {

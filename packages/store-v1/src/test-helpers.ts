@@ -1,10 +1,11 @@
 import { skip, take, delay } from "rxjs/operators";
+import { StateHistory } from './history';
 
 import type { Store } from './store';
 
 export type StepFn<T> = (res: T | undefined) => void | Promise<void>;
 
-export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
+export async function executeSteps<T extends Partial<StateHistory<unknown>>>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
   const logStep = (step: StepFn<T>, stepIdx: number) => async (res: T | undefined) => {
     if (shouldLogResults) {
       console.group(`Step ${stepIdx}`);

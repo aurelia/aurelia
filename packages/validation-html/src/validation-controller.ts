@@ -331,7 +331,7 @@ export class ValidationController implements IValidationController {
       []);
   }
 
-  public addError<TObject>(
+  public addError<TObject extends IValidateable>(
     message: string,
     object: TObject,
     propertyName?: string | PropertyAccessor

@@ -317,7 +317,7 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
-  public invoke<T, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
+  public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
     if (isNativeFunction(Type)) {
       throw createNativeInvocationError(Type);
     }

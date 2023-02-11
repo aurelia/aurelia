@@ -59,7 +59,7 @@ export function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPr
   };
 }
 
-export function applyLimits<T>(state: T, limit: number): T {
+export function applyLimits<T extends Partial<StateHistory<unknown>>>(state: T, limit: number): T {
   if (isStateHistory(state)) {
     if (state.past.length > limit) {
       state.past = state.past.slice(state.past.length - limit);

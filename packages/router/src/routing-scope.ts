@@ -110,7 +110,7 @@ export class RoutingScope {
     // TODO: should use a different way to detect if something is a container
     // or move this to the bottom if this else-if
     if ('res' in origin) {
-      container = origin;
+      container = origin as IContainer;
     } else {
       if ('container' in origin) {
         container = origin.container;

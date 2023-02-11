@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { Controller } from "@aurelia/runtime-html";
 import { Observable, Subscription } from 'rxjs';
+import { StateHistory } from './history';
 
 import { Store, STORE } from './store';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ConnectToSettings<T, R = T | any> {
+export interface ConnectToSettings<T extends Partial<StateHistory<unknown>>, R = T | any> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
   /**
@@ -20,14 +21,14 @@ export interface ConnectToSettings<T, R = T | any> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MultipleSelector<T, R = T | any> {
+export interface MultipleSelector<T extends Partial<StateHistory<unknown>>, R = T | any> {
   [key: string]: ((store: Store<T>) => Observable<R>);
 }
 
-const defaultSelector = <T>(store: Store<T>) => store.state;
+const defaultSelector = <T extends Partial<StateHistory<unknown>>>(store: Store<T>) => store.state;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
+export function connectTo<T extends Partial<StateHistory<unknown>>, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   const _settings: ConnectToSettings<T> = {
     selector: typeof settings === 'function' ? settings : defaultSelector,
     ...settings

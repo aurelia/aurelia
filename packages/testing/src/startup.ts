@@ -444,7 +444,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
 }
 
 createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
-createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as K);
+createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
 
 /* eslint-disable */

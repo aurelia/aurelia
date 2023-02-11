@@ -1759,7 +1759,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
 export const IController = createInterface<IController>('IController');
 
 export const IHydrationContext = createInterface<IHydrationContext>('IHydrationContext');
-export interface IHydrationContext<T = unknown> extends HydrationContext<T> {
+export interface IHydrationContext<T extends ICustomElementViewModel = ICustomElementViewModel> extends HydrationContext<T> {
 }
 
 class HydrationContext<T extends ICustomElementViewModel> {

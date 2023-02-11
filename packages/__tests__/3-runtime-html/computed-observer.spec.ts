@@ -387,7 +387,6 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     ({ only, title, template, ViewModel, assertFn }: IComputedObserverTestCase) => {
       // eslint-disable-next-line mocha/no-exclusive-tests
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $it(title, async function () {
         const { ctx, component, testHost, tearDown } = await createFixture<any>(
           template,

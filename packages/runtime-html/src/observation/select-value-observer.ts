@@ -2,14 +2,12 @@ import {
   type CollectionKind,
   subscriberCollection,
   AccessorType,
+  type ICollectionObserver,
+  type IObserverLocator,
+  type ISubscriberCollection,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
-import type {
-  ICollectionObserver,
-  IObserverLocator,
-  ISubscriberCollection,
-} from '@aurelia/runtime';
 import { createError, hasOwnProperty, isArray } from '../utilities';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';

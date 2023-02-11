@@ -1,10 +1,26 @@
-import { emptyArray, type IDisposable, InstanceProvider, type Key } from '@aurelia/kernel';
+import {
+  emptyArray,
+  type IDisposable,
+  InstanceProvider,
+  type Key,
+  type IServiceLocator,
+  type IContainer,
+  type Class,
+  type IRegistry,
+  type Constructable,
+  type IResolver,
+} from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IBinding,
   Scope,
+  type Interpolation,
+  type IsBindingBehavior,
+  type AnyBindingExpression,
+  type IObservable,
+  type ForOfStatement,
 } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
@@ -25,14 +41,6 @@ import type { AttrSyntax } from './resources/attribute-pattern';
 import { createError, defineProp, objectKeys, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 
-import type { IServiceLocator, IContainer, Class, IRegistry, Constructable, IResolver } from '@aurelia/kernel';
-import type {
-  Interpolation,
-  IsBindingBehavior,
-  AnyBindingExpression,
-  IObservable,
-  ForOfStatement,
-} from '@aurelia/runtime';
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
 import { createText, insertBefore } from './utilities-dom';

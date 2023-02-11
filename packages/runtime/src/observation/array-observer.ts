@@ -5,6 +5,10 @@ import {
   type ICollectionSubscriberCollection,
   cloneIndexMap,
   type IObserver,
+  type CollectionKind,
+  type ICollectionObserver,
+  type IndexMap,
+  type ISubscriber,
 } from '../observation';
 import {
   CollectionLengthObserver,
@@ -14,13 +18,6 @@ import {
 } from './subscriber-collection';
 import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
 import { addCollectionBatch, batching } from './subscriber-batch';
-
-import type {
-  CollectionKind,
-  ICollectionObserver,
-  IndexMap,
-  ISubscriber,
-} from '../observation';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Array object
 const lookupMetadataKey = '__au_array_obs__';

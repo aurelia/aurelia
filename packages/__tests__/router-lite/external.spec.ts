@@ -57,7 +57,7 @@ describe('router/external.spec.ts', function () {
 
       assert.strictEqual(host.textContent, '');
       internalLink.click();
-      await router['currentTr'];
+      await router['currentTr'].promise;
 
       assert.strictEqual(loadArgs.length, 1);
       assert.strictEqual(host.textContent, 'a11');
@@ -66,7 +66,7 @@ describe('router/external.spec.ts', function () {
       assert.strictEqual(loadArgs.length, 1);
       assert.strictEqual(externalLinkClick, 1);
       assert.strictEqual(host.textContent, 'a11');
-      await router['currentTr'];
+      await router['currentTr'].promise;
 
       assert.strictEqual(loadArgs.length, 1);
       assert.strictEqual(externalLinkClick, 1);

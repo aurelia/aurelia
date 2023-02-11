@@ -1,5 +1,17 @@
 import {
-  AccessorType, astBind, astEvaluate, astUnbind, connectable, type IBinding,  IObserver, IAstEvaluator, IConnectableBinding
+  AccessorType,
+  astBind,
+  astEvaluate,
+  astUnbind,
+  connectable,
+  type IBinding,
+  IObserver,
+  IAstEvaluator,
+  IConnectableBinding,
+  type ForOfStatement,
+  type IObserverLocator,
+  type IsBindingBehavior,
+  type Scope
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer';
@@ -13,12 +25,6 @@ import type {
   TaskQueue
 } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
-import type {
-  ForOfStatement,
-  IObserverLocator,
-  IsBindingBehavior,
-  Scope
-} from '@aurelia/runtime';
 import type { INode } from '../dom';
 import type { IBindingController } from './interfaces-bindings';
 

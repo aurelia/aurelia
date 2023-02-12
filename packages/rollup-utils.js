@@ -303,7 +303,7 @@ function stripInternalConstEnum (options = {}) {
 }
 
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 /**
  * @param {string} cwd
@@ -317,11 +317,11 @@ function generateNativeModulePlugin(cwd, fileName, enabled) {
    * @param {string} fileName
    */
   async function generateNativeImport(cwd, fileName) {
-    const code = await fs.readFile(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
+    const code = fs.readFileSync(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
     const regex = /from\s+(['"])@aurelia\/([-a-z]+)['"];/g;
     const transformed = code.replace(regex, `from $1../$2/dist/native-modules/${fileName}$1;`).replace(`//# sourceMappingURL=${fileName}.map`, '');
-    await fs.ensureDir(path.resolve(cwd, 'dist/native-modules'));
-    await fs.writeFile(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
+    fs.mkdirSync(path.resolve(cwd, 'dist/native-modules'), { recursive: true });
+    fs.writeFileSync(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
   }
 
   return {

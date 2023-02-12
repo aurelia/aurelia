@@ -64,7 +64,7 @@ export interface MiddlewareSettings {
   settings?: unknown;
 }
 
-export class Store<T extends Partial<StateHistory<unknown>>> {
+export class Store<T> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
   private devToolsAvailable: boolean = false;
@@ -269,7 +269,7 @@ export class Store<T extends Partial<StateHistory<unknown>>> {
     }
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    let resultingState = await this.executeMiddlewares(
+    let resultingState: false | T | Partial<StateHistory<T>> = await this.executeMiddlewares(
       result,
       MiddlewarePlacement.After,
       callingAction
@@ -282,12 +282,12 @@ export class Store<T extends Partial<StateHistory<unknown>>> {
       return;
     }
 
-    if (isStateHistory(resultingState) &&
+    if (isStateHistory(resultingState as Partial<StateHistory<T>>) &&
       this.options.history?.limit) {
-      resultingState = applyLimits(resultingState, this.options.history.limit);
+      resultingState = applyLimits(resultingState as Partial<StateHistory<T>>, this.options.history.limit);
     }
 
-    this._state.next(resultingState);
+    this._state.next(resultingState as T);
     STORE.container.get(IWindow).performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
@@ -314,7 +314,7 @@ export class Store<T extends Partial<StateHistory<unknown>>> {
     STORE.container.get(IWindow).performance.clearMarks();
     STORE.container.get(IWindow).performance.clearMeasures();
 
-    this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
+    this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState as T);
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
@@ -413,7 +413,7 @@ export class Store<T extends Partial<StateHistory<unknown>>> {
   }
 }
 
-export function dispatchify<T extends Partial<StateHistory<unknown>>, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
+export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
   const store = STORE.container.get<Store<T>>(Store);
 
   return async function (...params: P): Promise<void> {

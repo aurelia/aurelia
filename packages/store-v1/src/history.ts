@@ -59,18 +59,19 @@ export function nextStateHistory<T>(presentStateHistory: StateHistory<T>, nextPr
   };
 }
 
-export function applyLimits<T extends Partial<StateHistory<unknown>>>(state: T, limit: number): T {
-  if (isStateHistory(state)) {
-    if (state.past.length > limit) {
-      state.past = state.past.slice(state.past.length - limit);
+export function applyLimits<T>(state: T | Partial<StateHistory<T>>, limit: number): T {
+  // the TS type guard is working really funny here
+  if (isStateHistory(state as Partial<StateHistory<T>>)) {
+    if ((state as StateHistory<T>).past.length > limit) {
+      (state as StateHistory<T>).past = (state as StateHistory<T>).past.slice((state as StateHistory<T>).past.length - limit);
     }
 
-    if (state.future.length > limit) {
-      state.future = state.future.slice(0, limit);
+    if ((state as StateHistory<T>).future.length > limit) {
+      (state as StateHistory<T>).future = (state as StateHistory<T>).future.slice(0, limit);
     }
   }
 
-  return state;
+  return state as T;
 }
 
 export function isStateHistory<T>(history: Partial<StateHistory<T>>): history is StateHistory<T> {

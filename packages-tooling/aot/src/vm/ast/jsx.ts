@@ -415,7 +415,7 @@ export class $JsxAttribute implements I$Node {
       if (node.initializer.kind === SyntaxKind.StringLiteral) {
         this.$initializer = new $StringLiteral(node.initializer, this, ctx, -1);
       } else {
-        this.$initializer = new $JsxExpression(node.initializer, this, ctx, -1);
+        this.$initializer = new $JsxExpression(node.initializer as JsxExpression, this, ctx, -1);
       }
     }
   }

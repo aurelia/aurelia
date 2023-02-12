@@ -238,8 +238,8 @@ function isExported(node: ts.Node): boolean {
 const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function findDecoratedResourceType(node: ts.Node): IFoundDecorator | void {
-  if (!node.decorators) return;
-  for (const d of node.decorators) {
+  if (!ts.canHaveDecorators(node)) return;
+  for (const d of ts.getDecorators(node)!) {
     if (!ts.isCallExpression(d.expression)) return;
     const exp = d.expression.expression;
     if (ts.isIdentifier(exp)) {

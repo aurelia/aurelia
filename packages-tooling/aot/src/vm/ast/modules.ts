@@ -1,8 +1,10 @@
 import {
+  canHaveModifiers,
   ExportAssignment,
   ExportDeclaration,
   ExportSpecifier,
   ExternalModuleReference,
+  getModifiers,
   ImportClause,
   ImportDeclaration,
   ImportEqualsDeclaration,
@@ -2746,7 +2748,7 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.NamespaceExportDeclaration`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     this.$name = $identifier(node.name, this, ctx, -1);
   }

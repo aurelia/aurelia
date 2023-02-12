@@ -8,6 +8,8 @@ import {
   OmittedExpression,
   SpreadElement,
   SyntaxKind,
+  getModifiers,
+  canHaveModifiers,
 } from 'typescript';
 import {
   emptyArray,
@@ -506,7 +508,7 @@ export class $BindingElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.BindingElement`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : void 0);
     this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
 
     ctx = clearBit(ctx, Context.IsBindingName);

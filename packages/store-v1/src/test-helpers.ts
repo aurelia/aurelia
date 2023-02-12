@@ -37,7 +37,7 @@ export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean
         skip(currentStep),
         take(1),
         delay(0)
-      ).subscribe(void tryStep(logStep(step, currentStep), reject));
+      ).subscribe(tryStep(logStep(step, currentStep), reject));
       currentStep++;
     });
 
@@ -45,6 +45,6 @@ export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean
       skip(currentStep),
       take(1)
     ).subscribe(
-      void lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
+      lastStep(tryStep(logStep(steps[steps.length - 1], currentStep), reject), resolve));
   });
 }

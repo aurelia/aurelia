@@ -94,7 +94,7 @@ export function runPostbuildScript(...scripts) {
 /**
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
- * @param {(env: NormalizedEnvVars) => import('rollup-plugin-terser').Options} [configureTerser]
+ * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
  *  a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */

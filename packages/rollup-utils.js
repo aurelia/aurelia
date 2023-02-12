@@ -1,7 +1,7 @@
 // @ts-check
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
-import { terser }  from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import { terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
 import esbuild from 'rollup-plugin-esbuild';
@@ -61,7 +61,7 @@ export function rollupTypeScript(overrides, isDevMode) {
 }
 
 /**
- * @param {import('rollup-plugin-terser').Options} [overrides]
+ * @param {import('terser').MinifyOptions} [overrides]
  */
 export function rollupTerser(overrides) {
   return terser({
@@ -122,7 +122,7 @@ export function runPostbuildScript(...scripts) {
 /**
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
- * @param {(env: NormalizedEnvVars) => import('rollup-plugin-terser').Options} [configureTerser]
+ * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
  *  a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */
@@ -294,7 +294,7 @@ function stripInternalConstEnum (options = {}) {
       indexPairs.forEach(([startIndex, endIndex]) => {
         s.overwrite(startIndex, endIndex + '_END_CONST_ENUM();'.length, '');
       })
-      
+
       const map = s.generateMap({ hires: true })
 
       return { code: s.toString(), map };

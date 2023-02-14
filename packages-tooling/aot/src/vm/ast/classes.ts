@@ -1,7 +1,6 @@
 import {
   ClassDeclaration,
   ClassExpression,
-  createIdentifier,
   ExpressionWithTypeArguments,
   HeritageClause,
   ModifierFlags,
@@ -9,14 +8,10 @@ import {
   PropertyDeclaration,
   SemicolonClassElement,
   SyntaxKind,
-  createConstructor,
-  createParameter,
-  createToken,
-  createBlock,
-  createExpressionStatement,
-  createCall,
-  createSuper,
-  createSpread,
+  canHaveModifiers,
+  getModifiers,
+  factory,
+  Modifier,
 } from 'typescript';
 import {
   emptyArray,
@@ -222,7 +217,7 @@ export class $ClassExpression implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     const $name = this.$name = $identifier(node.name, this, ctx, -1);
     const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
@@ -386,7 +381,7 @@ export class $ClassDeclaration implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
@@ -601,26 +596,24 @@ export class $ClassDeclaration implements I$Node {
       if (this.ClassHeritage !== void 0) {
         // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
         constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
-            void 0,
-            void 0,
+          factory.createConstructorDeclaration(
+            [] as readonly Modifier[],
             [
-              createParameter(
+              factory.createParameterDeclaration(
                 void 0,
-                void 0,
-                createToken(SyntaxKind.DotDotDotToken),
-                createIdentifier('args'),
+                factory.createToken(SyntaxKind.DotDotDotToken),
+                factory.createIdentifier('args'),
               ),
             ],
-            createBlock(
+            factory.createBlock(
               [
-                createExpressionStatement(
-                  createCall(
-                    createSuper(),
+                factory.createExpressionStatement(
+                  factory.createCallExpression(
+                    factory.createSuper(),
                     void 0,
                     [
-                      createSpread(
-                        createIdentifier('args'),
+                      factory.createSpreadElement(
+                        factory.createIdentifier('args'),
                       ),
                     ],
                   ),
@@ -637,11 +630,10 @@ export class $ClassDeclaration implements I$Node {
       else {
         // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
         constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
-            void 0,
-            void 0,
+          factory.createConstructorDeclaration(
             [],
-            createBlock([]),
+            [],
+            factory.createBlock([]),
           ),
           this,
           this.ctx,
@@ -842,7 +834,7 @@ export class $PropertyDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.PropertyDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);

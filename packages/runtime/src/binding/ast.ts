@@ -389,7 +389,7 @@ export class ArrowFunction {
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T>(name: string): ValueConverterInstance<T> | undefined;
+  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
   /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T>(name: string): BindingBehaviorInstance<T> | undefined;
+  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
 }

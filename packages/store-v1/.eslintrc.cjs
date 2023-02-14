@@ -9,4 +9,7 @@ module.exports = {
     project: path.join(thisDir, 'tsconfig.json'),
     tsconfigRootDir: thisDir,
   },
+  rules: {
+    '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }],
+  }
 };

@@ -3,17 +3,15 @@ import {
   SetterObserver,
   subscriberCollection,
   AccessorType,
+  type ICollectionObserver,
+  type ISubscriberCollection,
+  type IObserverLocator,
 } from '@aurelia/runtime';
 import { getCollectionObserver, INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { hasOwnProperty, isArray } from '../utilities';
 
 import type { INode } from '../dom';
 import type { ValueAttributeObserver } from './value-attribute-observer';
-import type {
-  ICollectionObserver,
-  ISubscriberCollection,
-  IObserverLocator,
-} from '@aurelia/runtime';
 import { mixinNodeObserverUseConfig } from './observation-utils';
 
 export interface IInputElement extends HTMLInputElement {

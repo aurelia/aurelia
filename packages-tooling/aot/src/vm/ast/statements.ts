@@ -31,6 +31,8 @@ import {
   WithStatement,
   Expression,
   CaseOrDefaultClause,
+  canHaveModifiers,
+  getModifiers,
 } from 'typescript';
 import {
   emptyArray,
@@ -339,7 +341,7 @@ export class $VariableDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.VariableDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     if (hasBit(ctx, Context.InVariableStatement)) {
       this.combinedModifierFlags = modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;

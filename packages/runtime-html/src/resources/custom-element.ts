@@ -638,7 +638,7 @@ type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
-export function processContent<TClass>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+export function processContent<TClass extends {}>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
   return hook === void 0
     ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
       defineMetadata(pcHookMetadataProperty, ensureHook(target, propertyKey), target);

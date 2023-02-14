@@ -1,8 +1,7 @@
-import { type BindingBehaviorInstance } from '@aurelia/runtime';
+import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { ListenerBinding } from '../../binding/listener-binding';
 import { bindingBehavior } from '../binding-behavior';
 
-import type { Scope } from '@aurelia/runtime';
 import { createError } from '../../utilities';
 
 export class SelfBindingBehavior implements BindingBehaviorInstance {

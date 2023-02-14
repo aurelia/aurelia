@@ -1,11 +1,10 @@
 import { IPlatform } from '@aurelia/kernel';
-import { AccessorType, type IObserver, type ISubscriberCollection } from '../observation';
+import { AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { createError, createInterface, safeString } from '../utilities-objects';
 
 import type { ITask, QueueTaskOptions } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';
-import type { IObservable, ISubscriber } from '../observation';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));

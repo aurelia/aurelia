@@ -1,9 +1,11 @@
 import {
   ArrowFunction,
   Block,
+  canHaveModifiers,
   ConstructorDeclaration,
   FunctionDeclaration,
   FunctionExpression,
+  getModifiers,
   ModifierFlags,
   ParameterDeclaration,
   SyntaxKind,
@@ -1745,7 +1747,7 @@ export class $ParameterDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ParameterDeclaration`,
   ) {
-    this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     ctx |= Context.InParameterDeclaration;
 

@@ -1,5 +1,7 @@
 import {
+  canHaveModifiers,
   GetAccessorDeclaration,
+  getModifiers,
   MethodDeclaration,
   ModifierFlags,
   SetAccessorDeclaration,
@@ -122,7 +124,7 @@ export class $MethodDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.MethodDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
@@ -293,7 +295,7 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.GetAccessorDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
@@ -419,7 +421,7 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.SetAccessorDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);

@@ -3,7 +3,7 @@ import { IContainer, ILogger } from '@aurelia/kernel';
 import { IWindow } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
+import { jump, applyLimits, HistoryOptions, isStateHistory, StateHistory } from './history';
 import { Middleware, MiddlewarePlacement, CallingAction } from './middleware';
 import { LogDefinitions, LogLevel, getLogType } from './logging';
 import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools';
@@ -269,7 +269,7 @@ export class Store<T> {
     }
 
     // eslint-disable-next-line @typescript-eslint/await-thenable
-    let resultingState = await this.executeMiddlewares(
+    let resultingState: false | T | Partial<StateHistory<T>> = await this.executeMiddlewares(
       result,
       MiddlewarePlacement.After,
       callingAction
@@ -282,12 +282,12 @@ export class Store<T> {
       return;
     }
 
-    if (isStateHistory(resultingState) &&
+    if (isStateHistory(resultingState as Partial<StateHistory<T>>) &&
       this.options.history?.limit) {
-      resultingState = applyLimits(resultingState, this.options.history.limit);
+      resultingState = applyLimits(resultingState as Partial<StateHistory<T>>, this.options.history.limit);
     }
 
-    this._state.next(resultingState);
+    this._state.next(resultingState as T);
     STORE.container.get(IWindow).performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
@@ -314,7 +314,7 @@ export class Store<T> {
     STORE.container.get(IWindow).performance.clearMarks();
     STORE.container.get(IWindow).performance.clearMeasures();
 
-    this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
+    this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState as T);
   }
 
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {

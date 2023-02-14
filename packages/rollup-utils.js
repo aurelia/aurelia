@@ -1,7 +1,7 @@
 // @ts-check
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
-import { terser }  from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import { terserNameCache } from "./mangle-namecache";
 import { execSync } from 'child_process';
 import esbuild from 'rollup-plugin-esbuild';
@@ -61,7 +61,7 @@ export function rollupTypeScript(overrides, isDevMode) {
 }
 
 /**
- * @param {import('rollup-plugin-terser').Options} [overrides]
+ * @param {import('terser').MinifyOptions} [overrides]
  */
 export function rollupTerser(overrides) {
   return terser({
@@ -122,7 +122,7 @@ export function runPostbuildScript(...scripts) {
 /**
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
- * @param {(env: NormalizedEnvVars) => import('rollup-plugin-terser').Options} [configureTerser]
+ * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
  *  a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */
@@ -294,7 +294,7 @@ function stripInternalConstEnum (options = {}) {
       indexPairs.forEach(([startIndex, endIndex]) => {
         s.overwrite(startIndex, endIndex + '_END_CONST_ENUM();'.length, '');
       })
-      
+
       const map = s.generateMap({ hires: true })
 
       return { code: s.toString(), map };
@@ -303,7 +303,7 @@ function stripInternalConstEnum (options = {}) {
 }
 
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 /**
  * @param {string} cwd
@@ -317,11 +317,11 @@ function generateNativeModulePlugin(cwd, fileName, enabled) {
    * @param {string} fileName
    */
   async function generateNativeImport(cwd, fileName) {
-    const code = await fs.readFile(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
+    const code = fs.readFileSync(path.resolve(cwd, `dist/esm/${fileName}`), { encoding: 'utf-8' });
     const regex = /from\s+(['"])@aurelia\/([-a-z]+)['"];/g;
     const transformed = code.replace(regex, `from $1../$2/dist/native-modules/${fileName}$1;`).replace(`//# sourceMappingURL=${fileName}.map`, '');
-    await fs.ensureDir(path.resolve(cwd, 'dist/native-modules'));
-    await fs.writeFile(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
+    fs.mkdirSync(path.resolve(cwd, 'dist/native-modules'), { recursive: true });
+    fs.writeFileSync(path.resolve(cwd, `dist/native-modules/${fileName}`), transformed, { encoding: 'utf-8' });
   }
 
   return {

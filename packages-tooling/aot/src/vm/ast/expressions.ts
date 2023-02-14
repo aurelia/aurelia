@@ -4,10 +4,12 @@ import {
   AwaitExpression,
   BinaryExpression,
   CallExpression,
+  canHaveModifiers,
   ConditionalExpression,
   Decorator,
   DeleteExpression,
   ElementAccessExpression,
+  getModifiers,
   Identifier,
   MetaProperty,
   ModifierFlags,
@@ -629,7 +631,7 @@ export class $PropertyAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.PropertyAssignment`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);

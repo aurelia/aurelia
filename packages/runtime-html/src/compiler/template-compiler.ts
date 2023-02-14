@@ -1789,7 +1789,7 @@ class CompilationContext {
           throw createError(`AUR0713: Unknown binding command: ${name}.
 ${name === 'delegate'
   ? `The ".delegate" binding command has been removed in v2. Binding command ".trigger" should be used instead.
-If you are migrating v1 application, install compat package to add back the ".delegate" binding command for ease of migration.  
+If you are migrating v1 application, install compat package to add back the ".delegate" binding command for ease of migration.
 `
   : ''
 }${name === 'call'
@@ -1977,7 +1977,7 @@ export interface ITemplateCompilerHooks {
   compiling?(template: HTMLElement): void;
 }
 
-const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<unknown>>();
+const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<{}>>();
 const hooksBaseName = getResourceKeyFor('compiler-hooks');
 
 export const TemplateCompilerHooks = objectFreeze({
@@ -1993,7 +1993,7 @@ export const TemplateCompilerHooks = objectFreeze({
   }
 });
 
-class TemplateCompilerHooksDefinition<T> implements ResourceDefinition<Constructable<T>, ITemplateCompilerHooks> {
+class TemplateCompilerHooksDefinition<T extends {}> implements ResourceDefinition<Constructable<T>, ITemplateCompilerHooks> {
   public get name(): string { return ''; }
 
   public constructor(

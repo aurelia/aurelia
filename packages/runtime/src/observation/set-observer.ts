@@ -1,13 +1,8 @@
-import { createIndexMap, AccessorType, type ICollectionSubscriberCollection } from '../observation';
+import { createIndexMap, AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, type CollectionKind } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { def, defineMetadata, getOwnMetadata } from '../utilities-objects';
 import { batching, addCollectionBatch } from './subscriber-batch';
-
-import type {
-  ICollectionObserver,
-  CollectionKind,
-} from '../observation';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Set object
 const lookupMetadataKey = '__au_set_obs__';

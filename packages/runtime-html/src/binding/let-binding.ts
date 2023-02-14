@@ -1,13 +1,19 @@
-import { astBind, astEvaluate, astUnbind, connectable, type IAstEvaluator, type IBinding, type IConnectableBinding } from '@aurelia/runtime';
+import {
+  astBind,
+  astEvaluate,
+  astUnbind,
+  connectable,
+  type IAstEvaluator,
+  type IBinding,
+  type IConnectableBinding,
+  type IObservable,
+  type IObserverLocator,
+  type IsExpression,
+  type Scope
+} from '@aurelia/runtime';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type {
-  IObservable,
-  IObserverLocator,
-  IsExpression,
-  Scope
-} from '@aurelia/runtime';
 export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class LetBinding implements IBinding {

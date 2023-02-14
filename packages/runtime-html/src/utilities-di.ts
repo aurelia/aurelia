@@ -1,12 +1,16 @@
 import {
-  DI, Injectable, Registration,
+  DI,
+  Injectable,
+  Registration,
   type IResolver,
   type Key,
-  type Resolved
+  type Resolved,
+  type Constructable,
+  type IContainer,
+  type IResourceKind,
+  type ResourceDefinition,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-
-import type { Constructable, IContainer, IResourceKind, ResourceDefinition } from '@aurelia/kernel';
 
 export const resource = function <T extends Key>(key: T) {
   function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {

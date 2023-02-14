@@ -18,6 +18,8 @@ import {
   State,
   mixinAstEvaluator,
   mixingBindingLimited,
+  type IHydratableController,
+  type INode
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -31,7 +33,6 @@ import type {
   IObserverLocator,
   IAccessor,
 } from '@aurelia/runtime';
-import type { IHydratableController, INode } from '@aurelia/runtime-html';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 

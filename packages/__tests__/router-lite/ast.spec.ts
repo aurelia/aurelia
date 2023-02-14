@@ -1,5 +1,5 @@
 import { assert } from '@aurelia/testing';
-import { RouteExpression, AST, NavigationOptions } from '@aurelia/router-lite';
+import { RouteExpression, AST, NavigationOptions, RouterOptions } from '@aurelia/router-lite';
 
 const {
   CompositeSegmentExpression,
@@ -410,7 +410,7 @@ describe('route-expression', function () {
     it(path, function () {
       const actual = RouteExpression.parse(path, false);
       assert.deepStrictEqual(actual, expected[0]);
-      assert.strictEqual(actual.toInstructionTree(NavigationOptions.create({})).toUrl(), expected[1]);
+      assert.strictEqual(actual.toInstructionTree(NavigationOptions.create(RouterOptions.create({}), {})).toUrl(), expected[1]);
     });
   }
 

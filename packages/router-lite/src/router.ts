@@ -32,6 +32,8 @@ function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionT
   return valueOrFunc;
 }
 
+/** @internal */
+export const _IRouterOptions = DI.createInterface<RouterOptions>('RouterOptions');
 export interface IRouterOptions extends Partial<RouterOptions> {
   /**
    * Set a custom routing root by setting this path.
@@ -40,8 +42,6 @@ export interface IRouterOptions extends Partial<RouterOptions> {
   basePath?: string | null;
 }
 export class RouterOptions {
-  public static get DEFAULT(): RouterOptions { return RouterOptions.create({}); }
-
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
@@ -72,12 +72,9 @@ export class RouterOptions {
       input.buildTitle ?? null,
     );
   }
-  /** @internal */
-  public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
-    return valueOrFuncToValue(instructions, this.historyStrategy);
-  }
 
-  protected stringifyProperties(): string {
+  /** @internal */
+  public _stringifyProperties(): string {
     return ([
       ['historyStrategy', 'history'],
     ] as const).map(([key, name]) => {
@@ -96,16 +93,21 @@ export class RouterOptions {
   }
 
   public toString(): string {
-    return `RO(${this.stringifyProperties()})`;
+    return `RO(${this._stringifyProperties()})`;
   }
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions extends RouterOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
-  public static get DEFAULT(): NavigationOptions { return NavigationOptions.create({}); }
-
+export class NavigationOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
   private constructor(
-    routerOptions: RouterOptions,
+    public readonly routerOptions: RouterOptions,
+    /**
+     * Same as `RouterOptions#historyStrategy` but can override the historyStrategy in RouterOptions.
+     * Meant for internal use only.
+     *
+     * @internal
+     */
+    public readonly _historyStrategy: ValueOrFunc<HistoryStrategy>,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly titleSeparator: string,
     /**
@@ -130,18 +132,12 @@ export class NavigationOptions extends RouterOptions { // TODO(sayan): remove th
      * Specify any kind of state to be stored together with the history entry for this navigation.
      */
     public readonly state: Params | null,
-  ) {
-    super(
-      routerOptions.useUrlFragmentHash,
-      routerOptions.useHref,
-      routerOptions.historyStrategy,
-      routerOptions.buildTitle,
-    );
-  }
+  ) { }
 
-  public static create(input: INavigationOptions): NavigationOptions {
+  public static create(routerOptions: RouterOptions, input: Omit<INavigationOptions, 'routerOptions'>): NavigationOptions {
     return new NavigationOptions(
-      RouterOptions.create(input),
+      routerOptions,
+      input._historyStrategy ?? routerOptions.historyStrategy,
       input.title ?? null,
       input.titleSeparator ?? ' | ',
       input.context ?? null,
@@ -153,7 +149,8 @@ export class NavigationOptions extends RouterOptions { // TODO(sayan): remove th
 
   public clone(): NavigationOptions {
     return new NavigationOptions(
-      super.clone(),
+      this.routerOptions,
+      this._historyStrategy,
       this.title,
       this.titleSeparator,
       this.context,
@@ -164,7 +161,12 @@ export class NavigationOptions extends RouterOptions { // TODO(sayan): remove th
   }
 
   public toString(): string {
-    return `NO(${super.stringifyProperties()})`;
+    return `NO(${this.routerOptions._stringifyProperties()})`;
+  }
+
+  /** @internal */
+  public _getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
+    return valueOrFuncToValue(instructions, this._historyStrategy);
   }
 }
 
@@ -268,7 +270,7 @@ export class Router {
       // Doing it here instead of in the constructor to delay it until we have the context.
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
-        NavigationOptions.create({ ...this.options }),
+        NavigationOptions.create(this.options, { }),
         emptyQuery,
         null,
         RouteNode.create({
@@ -295,7 +297,7 @@ export class Router {
         finalInstructions: this.instructions,
         instructionsChanged: true,
         trigger: 'api',
-        options: NavigationOptions.DEFAULT,
+        options: NavigationOptions.create(this.options, {}),
         managedState: null,
         previousRouteTree: this.routeTree.clone(),
         routeTree: this.routeTree,
@@ -312,12 +314,10 @@ export class Router {
     this._currentTr = value;
   }
 
-  public options: RouterOptions = RouterOptions.DEFAULT;
-
   private navigated: boolean = false;
   private navigationId: number = 0;
 
-  private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
+  private instructions: ViewportInstructionTree;
 
   private nextTr: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
@@ -339,8 +339,10 @@ export class Router {
     @ILogger private readonly logger: ILogger,
     @IRouterEvents private readonly events: IRouterEvents,
     @ILocationManager private readonly locationMgr: ILocationManager,
+    @_IRouterOptions public readonly options: RouterOptions,
   ) {
     this.logger = logger.root.scopeTo('Router');
+    this.instructions = ViewportInstructionTree.create('', options);
   }
 
   /**
@@ -359,16 +361,6 @@ export class Router {
     return RouteContext.resolve(this.ctx, context);
   }
 
-  /**
-   * Only for internal usage as the options are supposed to be set only once at the beginning.
-   * At present no use-case for dynamic routing configuration can be imagined; hence it is limited to as a bootstrapping activity.
-   *
-   * @internal
-   */
-  public _setOptions(routerOptions: IRouterOptions) {
-    this.options = RouterOptions.create(routerOptions);
-  }
-
   public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
@@ -381,11 +373,9 @@ export class Router {
       this.p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
-        const options = NavigationOptions.create({
-          ...this.options,
-          historyStrategy: 'replace',
-        });
-        const instructions = ViewportInstructionTree.create(e.url, options, this.ctx);
+        const routerOptions = this.options;
+        const options = NavigationOptions.create(routerOptions, { _historyStrategy: 'replace' });
+        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this.ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -396,7 +386,7 @@ export class Router {
     });
 
     if (!this.navigated && performInitialNavigation) {
-      return this.load(this.locationMgr.getPath(), { historyStrategy: 'replace' });
+      return this.load(this.locationMgr.getPath(), { _historyStrategy: 'replace' });
     }
   }
 
@@ -559,9 +549,11 @@ export class Router {
         }
       }
     }
+    const routerOptions = this.options;
     return ViewportInstructionTree.create(
       instructionOrInstructions,
-      NavigationOptions.create({ ...this.options, ...options, context }),
+      routerOptions,
+      NavigationOptions.create(routerOptions, { ...options, context }),
       this.ctx
     );
   }
@@ -800,7 +792,7 @@ export class Router {
 
         // apply history state
         const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
-        switch (tr.options.getHistoryStrategy(this.instructions)) {
+        switch (tr.options._getHistoryStrategy(this.instructions)) {
           case 'none':
             // do nothing
             break;

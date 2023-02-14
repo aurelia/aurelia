@@ -3,7 +3,7 @@ import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
-import { IRouterOptions, IRouter } from './router';
+import { IRouterOptions, IRouter, _IRouterOptions, RouterOptions } from './router';
 
 import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
@@ -48,6 +48,7 @@ function configure(container: IContainer, options?: IRouterOptions): IContainer 
   } else {
     options = {};
   }
+  const routerOptions = RouterOptions.create(options);
   return container.register(
     Registration.cachedCallback(IBaseHref, (handler, _, __) => {
       const window = handler.get(IWindow);
@@ -55,7 +56,7 @@ function configure(container: IContainer, options?: IRouterOptions): IContainer 
       url.pathname = normalizePath(basePath ?? url.pathname);
       return url;
     }),
-    AppTask.hydrated(IRouter, router => router._setOptions(options!)),
+    Registration.instance(_IRouterOptions, routerOptions),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {

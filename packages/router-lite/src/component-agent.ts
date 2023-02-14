@@ -5,7 +5,7 @@ import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
 import { IRouteContext } from './route-context';
 import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
-import { Transition } from './router';
+import { RouterOptions, Transition, _IRouterOptions } from './router';
 import { Batch } from './util';
 import { IRouteConfig } from './route';
 
@@ -44,6 +44,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     public readonly definition: RouteDefinition,
     public readonly routeNode: RouteNode,
     public readonly ctx: IRouteContext,
+    private readonly routerOptions: RouterOptions,
   ) {
     this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
@@ -74,7 +75,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
       componentAgentLookup.set(
         componentInstance,
-        componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx)
+        componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx, container.get(_IRouterOptions))
       );
     }
 
@@ -170,7 +171,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this.instance, next.params, next, this.routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
           }
           b.pop();
           res();
@@ -189,7 +190,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this.instance.canLoad!(next.params, next, this.routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
           }
           b.pop();
         });

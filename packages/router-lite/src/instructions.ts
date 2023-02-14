@@ -6,7 +6,7 @@ import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
 import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
-import { INavigationOptions, NavigationOptions } from './router';
+import { INavigationOptions, NavigationOptions, RouterOptions } from './router';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 
@@ -277,10 +277,11 @@ export class ViewportInstructionTree {
 
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    routerOptions: RouterOptions,
     options?: INavigationOptions,
     rootCtx?: IRouteContext | null,
   ): ViewportInstructionTree {
-    const $options = NavigationOptions.create({ ...options });
+    const $options = NavigationOptions.create(routerOptions, { ...options });
 
     let context = $options.context as RouteContext;
     if (!(context instanceof RouteContext) && rootCtx != null) {
@@ -306,7 +307,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions, $options.useUrlFragmentHash);
+      const expr = RouteExpression.parse(instructionOrInstructions, $options.routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }
 

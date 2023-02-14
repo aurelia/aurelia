@@ -1,4 +1,4 @@
-import type { BindingBehaviorInstance, Scope } from '@aurelia/runtime';
+import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { type BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters } from '../utils';
 
 import { bindingBehavior } from '@aurelia/runtime-html';

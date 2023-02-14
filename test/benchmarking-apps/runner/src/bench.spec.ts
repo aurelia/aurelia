@@ -4,7 +4,7 @@
 import { BrowserType, browserTypes, Measurement, Measurements, WritableMeasurementKeys } from "@benchmarking-apps/storage";
 import { strict as assert } from 'assert';
 import { performance } from 'perf_hooks';
-import type { ElementHandle, Page } from 'playwright';
+import { type ElementHandle, type Page } from 'playwright';
 import * as playwright from 'playwright';
 import { URL } from 'url';
 

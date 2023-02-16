@@ -1,11 +1,11 @@
-import { Constructable, ILogger } from '@aurelia/kernel';
-import { LifecycleFlags, ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { ILogger } from '@aurelia/kernel';
+import { LifecycleFlags, ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
 import { IRouteContext } from './route-context';
 import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
-import { RouterOptions, Transition, _IRouterOptions } from './router';
+import { RouterOptions, Transition } from './router';
 import { Batch } from './util';
 import { IRouteConfig } from './route';
 
@@ -18,8 +18,6 @@ export interface IRouteViewModel extends ICustomElementViewModel {
 }
 
 // type IHooksFn<T, Fn extends (...args: any[]) => unknown> = (vm: T, ...args: Parameters<Fn>) => ReturnType<Fn>;
-
-const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
 /**
  * A component agent handles an instance of a routed view-model (a component).
@@ -59,27 +57,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._hasLoad = 'loading' in instance;
     this._hasCanUnload = 'canUnload' in instance;
     this._hasUnload = 'unloading' in instance;
-  }
-
-  public static for<T extends IRouteViewModel>(
-    componentInstance: T,
-    hostController: ICustomElementController<T>,
-    routeNode: RouteNode,
-    ctx: IRouteContext,
-  ): ComponentAgent<T> {
-    let componentAgent = componentAgentLookup.get(componentInstance);
-    if (componentAgent === void 0) {
-      const container = ctx.container;
-      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, ctx.definition, null);
-      const controller = Controller.$el(container, componentInstance, hostController.host, null);
-
-      componentAgentLookup.set(
-        componentInstance,
-        componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx, container.get(_IRouterOptions))
-      );
-    }
-
-    return componentAgent as ComponentAgent<T>;
   }
 
   public activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {

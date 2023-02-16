@@ -1,6 +1,6 @@
 import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
 import { Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
-import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { Controller, CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
 import { ITypedNavigationInstruction_string, IViewportInstruction, NavigationInstruction, NavigationInstructionType, Params, ViewportInstruction } from './instructions';
@@ -342,13 +342,17 @@ export class RouteContext {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
-    const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
+    const container = this.container;
+    const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
+    const parentDefinition = this.definition;
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     if (!this._childRoutesConfigured) {
-      const routeDef = RouteDefinition.resolve(componentInstance, this.definition, routeNode);
+      const routeDef = RouteDefinition.resolve(componentInstance, parentDefinition, routeNode);
       this.processDefinition(routeDef);
     }
-    const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
+    const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, parentDefinition, null);
+    const controller = Controller.$el(container, componentInstance, hostController.host, null);
+    const componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, this, this._router.options);
 
     this.hostControllerProvider.dispose();
 

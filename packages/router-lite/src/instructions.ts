@@ -307,7 +307,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions, $options.routerOptions.useUrlFragmentHash);
+      const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }
 

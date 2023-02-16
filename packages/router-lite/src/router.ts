@@ -98,16 +98,12 @@ export class RouterOptions {
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
+export class NavigationOptions implements INavigationOptions {
   private constructor(
-    public readonly routerOptions: RouterOptions,
     /**
-     * Same as `RouterOptions#historyStrategy` but can override the historyStrategy in RouterOptions.
-     * Meant for internal use only.
-     *
-     * @internal
+     * Same as `RouterOptions#historyStrategy`.
      */
-    public readonly _historyStrategy: ValueOrFunc<HistoryStrategy>,
+    public readonly historyStrategy: ValueOrFunc<HistoryStrategy>,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly titleSeparator: string,
     /**
@@ -134,10 +130,9 @@ export class NavigationOptions { // TODO(sayan): remove this inheritance as Rout
     public readonly state: Params | null,
   ) { }
 
-  public static create(routerOptions: RouterOptions, input: Omit<INavigationOptions, 'routerOptions'>): NavigationOptions {
+  public static create(routerOptions: RouterOptions, input: INavigationOptions): NavigationOptions {
     return new NavigationOptions(
-      routerOptions,
-      input._historyStrategy ?? routerOptions.historyStrategy,
+      input.historyStrategy ?? routerOptions.historyStrategy,
       input.title ?? null,
       input.titleSeparator ?? ' | ',
       input.context ?? null,
@@ -149,8 +144,7 @@ export class NavigationOptions { // TODO(sayan): remove this inheritance as Rout
 
   public clone(): NavigationOptions {
     return new NavigationOptions(
-      this.routerOptions,
-      this._historyStrategy,
+      this.historyStrategy,
       this.title,
       this.titleSeparator,
       this.context,
@@ -160,13 +154,9 @@ export class NavigationOptions { // TODO(sayan): remove this inheritance as Rout
     );
   }
 
-  public toString(): string {
-    return `NO(${this.routerOptions._stringifyProperties()})`;
-  }
-
   /** @internal */
   public _getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
-    return valueOrFuncToValue(instructions, this._historyStrategy);
+    return valueOrFuncToValue(instructions, this.historyStrategy);
   }
 }
 
@@ -270,7 +260,7 @@ export class Router {
       // Doing it here instead of in the constructor to delay it until we have the context.
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
-        NavigationOptions.create(this.options, { }),
+        NavigationOptions.create(this.options, {}),
         emptyQuery,
         null,
         RouteNode.create({
@@ -374,7 +364,7 @@ export class Router {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
         const routerOptions = this.options;
-        const options = NavigationOptions.create(routerOptions, { _historyStrategy: 'replace' });
+        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this.ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
@@ -386,7 +376,7 @@ export class Router {
     });
 
     if (!this.navigated && performInitialNavigation) {
-      return this.load(this.locationMgr.getPath(), { _historyStrategy: 'replace' });
+      return this.load(this.locationMgr.getPath(), { historyStrategy: 'replace' });
     }
   }
 
@@ -477,7 +467,7 @@ export class Router {
     const ctx = this.resolveContext(context);
     const instructions = instructionOrInstructions instanceof ViewportInstructionTree
       ? instructionOrInstructions
-      : this.createViewportInstructions(instructionOrInstructions, { context: ctx });
+      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 

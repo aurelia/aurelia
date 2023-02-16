@@ -1,13 +1,18 @@
 import { ILogger } from '@aurelia/kernel';
-import { LifecycleFlags, ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import type { LifecycleFlags, ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition';
-import { RouteNode } from './route-tree';
-import { IRouteContext } from './route-context';
-import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
-import { RouterOptions, Transition } from './router';
+import type { RouteDefinition } from './route-definition';
+import type { RouteNode } from './route-tree';
+import type { IRouteContext } from './route-context';
+import {
+  type Params,
+  type NavigationInstruction,
+  ViewportInstructionTree
+} from './instructions';
+import type { Transition } from './router';
 import { Batch } from './util';
-import { IRouteConfig } from './route';
+import type { IRouteConfig } from './route';
+import type { RouterOptions } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig;

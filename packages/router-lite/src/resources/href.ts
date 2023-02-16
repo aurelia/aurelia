@@ -1,4 +1,14 @@
-import { BindingMode, customAttribute, bindable, ICustomAttributeViewModel, ICustomAttributeController, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
+import {
+  BindingMode,
+  customAttribute,
+  bindable,
+  type ICustomAttributeViewModel,
+  type ICustomAttributeController,
+  IEventTarget,
+  INode,
+  IWindow,
+  getRef, CustomAttribute
+} from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';

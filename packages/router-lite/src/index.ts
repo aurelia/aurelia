@@ -77,13 +77,16 @@ export {
   toManagedState,
   IRouter,
   Router,
+  Transition,
+} from './router';
+
+export {
   type IRouterOptions,
   type INavigationOptions,
   RouterOptions,
   NavigationOptions,
-  Transition,
   type HistoryStrategy,
-} from './router';
+} from './options';
 
 export {
   AuNavId,

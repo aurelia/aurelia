@@ -1,4 +1,4 @@
-import { ICustomElementController } from '@aurelia/runtime-html';
+import { type ICustomElementController } from '@aurelia/runtime-html';
 import { DI } from '@aurelia/kernel';
 
 class ScrollState {

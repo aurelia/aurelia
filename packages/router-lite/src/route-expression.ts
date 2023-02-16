@@ -5,8 +5,9 @@
 // const componentTerminal = [...actionTerminal, '.'];
 // const paramTerminal = ['=', ',', ')'];
 
-import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
-import { emptyQuery, NavigationOptions } from './router';
+import { ViewportInstructionTree, ViewportInstruction, type Params } from './instructions';
+import { type NavigationOptions } from './options';
+import { emptyQuery } from './router';
 import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.

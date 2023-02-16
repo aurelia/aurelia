@@ -1,9 +1,9 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, emptyArray, Protocol, ResourceType } from '@aurelia/kernel';
+import { type Constructable, emptyArray, Protocol, type ResourceType } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals } from './validation';
-import { RouteableComponent } from './instructions';
-import { RouteNode } from './route-tree';
+import type { RouteableComponent } from './instructions';
+import type { RouteNode } from './route-tree';
 
 const noRoutes = emptyArray as RouteConfig['routes'];
 

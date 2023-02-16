@@ -1,18 +1,49 @@
-import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
-import { Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
-import { Controller, CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import {
+  type Constructable,
+  DI,
+  type IContainer,
+  ILogger,
+  type IModule,
+  IModuleLoader,
+  InstanceProvider,
+  noop,
+  onResolve,
+  Protocol,
+  Registration,
+  type ResourceDefinition
+} from '@aurelia/kernel';
+import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
+import {
+  Controller,
+  CustomElement,
+  type CustomElementDefinition,
+  IAppRoot,
+  IController,
+  type ICustomElementController,
+  IPlatform,
+  isCustomElementController,
+  isCustomElementViewModel,
+  type PartialCustomElementDefinition,
+} from '@aurelia/runtime-html';
 
-import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { ITypedNavigationInstruction_string, IViewportInstruction, NavigationInstruction, NavigationInstructionType, Params, ViewportInstruction } from './instructions';
-import { IViewport } from './resources/viewport';
-import { IChildRouteConfig, Routeable, RouteType } from './route';
+import { ComponentAgent, type IRouteViewModel } from './component-agent';
+import {
+  type ITypedNavigationInstruction_string,
+  type IViewportInstruction,
+  type NavigationInstruction,
+  NavigationInstructionType,
+  type Params,
+  ViewportInstruction,
+} from './instructions';
+import type { IViewport } from './resources/viewport';
+import type { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
-import { RouteNode } from './route-tree';
+import type { RouteNode } from './route-tree';
 import { IRouter } from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
-import { ViewportAgent, ViewportRequest } from './viewport-agent';
+import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');

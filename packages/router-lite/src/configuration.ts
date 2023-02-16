@@ -3,7 +3,7 @@ import { IContainer, type IRegistry, Registration } from '@aurelia/kernel';
 import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
-import { type IRouterOptions, _IRouterOptions, RouterOptions } from './options';
+import { type IRouterOptions as $IRouterOptions, IRouterOptions, RouterOptions } from './options';
 import { IRouter } from './router';
 
 import { ViewportCustomElement } from './resources/viewport';
@@ -42,10 +42,18 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-function configure(container: IContainer, options?: IRouterOptions): IContainer {
+export interface IRouterConfigurationOptions extends $IRouterOptions {
+  /**
+   * Set a custom routing root by setting this path.
+   * When not set, path from the `document.baseURI` is used by default.
+   */
+  basePath?: string | null;
+}
+
+function configure(container: IContainer, options?: IRouterConfigurationOptions): IContainer {
   let basePath: string | null = null;
   if (isObject(options)) {
-    basePath = (options as IRouterOptions).basePath ?? null;
+    basePath = (options as IRouterConfigurationOptions).basePath ?? null;
   } else {
     options = {};
   }
@@ -57,7 +65,7 @@ function configure(container: IContainer, options?: IRouterOptions): IContainer 
       url.pathname = normalizePath(basePath ?? url.pathname);
       return url;
     }),
-    Registration.instance(_IRouterOptions, routerOptions),
+    Registration.instance(IRouterOptions, routerOptions),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {
@@ -77,7 +85,7 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(options?: IRouterOptions): IRegistry {
+  customize(options?: IRouterConfigurationOptions): IRegistry {
     return {
       register(container: IContainer): IContainer {
         return configure(container, options);

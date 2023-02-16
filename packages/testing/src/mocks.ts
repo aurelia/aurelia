@@ -355,6 +355,10 @@ export class MockBrowserHistoryLocation {
     }
   }
 
+  public back() { this.go(-1); }
+
+  public forward() { this.go(1); }
+
   private notifyChange() {
     if (this.changeCallback) {
       this.changeCallback(null as any).catch((error: Error) => { throw error; });

@@ -19,12 +19,6 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          AppTask.hydrating(ILocationManager, locationManager => {
-            mockBrowserHistoryLocation.changeCallback = (_ev: PopStateEvent) => {
-              locationManager['onPopState']({ state: mockBrowserHistoryLocation.state });
-              return Promise.resolve();
-            };
-          }),
         );
       },
     };

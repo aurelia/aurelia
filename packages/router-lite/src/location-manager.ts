@@ -1,6 +1,6 @@
 import { DI, ILogger } from '@aurelia/kernel';
 import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
-import { type RouterOptions, _IRouterOptions } from './options';
+import { type RouterOptions, IRouterOptions } from './options';
 
 import { IRouterEvents, LocationChangeEvent } from './router-events';
 
@@ -21,7 +21,7 @@ export interface ILocationManager extends BrowserLocationManager {}
 export class BrowserLocationManager {
   private eventId: number = 0;
   /** @internal */
-  private readonly _useHash: boolean;
+  private readonly _event: 'hashchange' | 'popstate';
 
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -30,30 +30,30 @@ export class BrowserLocationManager {
     @ILocation private readonly location: ILocation,
     @IWindow private readonly window: IWindow,
     @IBaseHref private readonly baseHref: URL,
-    @_IRouterOptions routerOptions: Readonly<RouterOptions>,
+    @IRouterOptions routerOptions: Readonly<RouterOptions>,
   ) {
     logger = this.logger = logger.root.scopeTo('LocationManager');
     logger.debug(`baseHref set to path: ${baseHref.href}`);
-    this._useHash = routerOptions.useUrlFragmentHash;
+    this._event = routerOptions.useUrlFragmentHash ? 'hashchange' : 'popstate';
   }
 
   public startListening(): void {
     this.logger.trace(`startListening()`);
 
-    this.window.addEventListener(this._useHash ? 'hashchange' : 'popstate', this, false);
+    this.window.addEventListener(this._event, this, false);
   }
 
   public stopListening(): void {
     this.logger.trace(`stopListening()`);
 
-    this.window.removeEventListener(this._useHash ? 'hashchange' : 'popstate', this, false);
+    this.window.removeEventListener(this._event, this, false);
   }
 
   public handleEvent(event: IPopStateEvent | IHashChangeEvent): void {
     this.events.publish(new LocationChangeEvent(
       ++this.eventId,
       this.getPath(),
-      this._useHash ? 'hashchange' : 'popstate',
+      this._event,
       'state' in event ? event.state : null,
     ));
   }

@@ -13,6 +13,7 @@ export {
   LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
+  IRouterConfigurationOptions,
 } from './configuration';
 
 export {
@@ -81,7 +82,7 @@ export {
 } from './router';
 
 export {
-  type IRouterOptions,
+  IRouterOptions,
   type INavigationOptions,
   RouterOptions,
   NavigationOptions,

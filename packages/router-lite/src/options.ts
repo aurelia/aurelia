@@ -12,15 +12,8 @@ function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionT
   return valueOrFunc;
 }
 
-/** @internal */
-export const _IRouterOptions = DI.createInterface<Readonly<RouterOptions>>('RouterOptions');
-export interface IRouterOptions extends Partial<RouterOptions> {
-  /**
-   * Set a custom routing root by setting this path.
-   * When not set, path from the `document.baseURI` is used by default.
-   */
-  basePath?: string | null;
-}
+export const IRouterOptions = DI.createInterface<Readonly<RouterOptions>>('RouterOptions');
+export interface IRouterOptions extends Partial<RouterOptions> {}
 export class RouterOptions {
   protected constructor(
     public readonly useUrlFragmentHash: boolean,

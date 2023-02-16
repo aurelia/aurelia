@@ -12,7 +12,7 @@ import { type IViewportInstruction, type NavigationInstruction, type RouteContex
 import { Batch, mergeDistinct, type UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
-import { type INavigationOptions, NavigationOptions, type RouterOptions, _IRouterOptions } from './options';
+import { type INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -193,7 +193,7 @@ export class Router {
     @ILogger private readonly logger: ILogger,
     @IRouterEvents private readonly events: IRouterEvents,
     @ILocationManager private readonly locationMgr: ILocationManager,
-    @_IRouterOptions public readonly options: Readonly<RouterOptions>,
+    @IRouterOptions public readonly options: Readonly<RouterOptions>,
   ) {
     this.logger = logger.root.scopeTo('Router');
     this.instructions = ViewportInstructionTree.create('', options);

@@ -69,6 +69,8 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
+  
+
   docker_release:
     working_directory: *working_dir
     resource_class: large
@@ -360,6 +362,34 @@ jobs:
                 when: always
             - store_test_results:
                 path: packages/__tests__/coverage
+
+  unit_test_esm_safari:
+    macos:
+      xcode: 14.2.0
+    steps:
+      - checkout_install:
+          install_chrome: <<parameters.install_chrome>>
+          install_firefox: <<parameters.install_firefox>>
+          install: false
+      # instead of doing the following 2 commands
+      # # - checkout_install
+      # # - run: npm run build
+      # just restore some cache from previous steps
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          key: cache-{{ .Revision }}-build-false
+      - run:
+          name: "Split test glob"
+          command: |
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings) > packages/__tests__/tests.txt
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages/__tests__
+            npm run test
+          no_output_timeout: "3m"
 
   unit_test_esm_node:
     executor: docker_circleci
@@ -797,6 +827,11 @@ workflows:
       #     coverage: false
       #     requires:
       #       - build_dev
+      - unit_test_esm_safari:
+          <<: *filter_ignore_develop_release
+          name: test_safari
+          requires:
+            - build_dev
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           name: test_node

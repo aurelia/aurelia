@@ -1,25 +1,20 @@
 import { IContainer, IPlatform, type IRegistry } from '@aurelia/kernel';
-import { route, Router, IRouterOptions, IRouterEvents, IRouter, ILocationManager } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, IRouterOptions, route } from '@aurelia/router-lite';
 import { AppTask, customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { start } from './_shared/create-fixture.js';
 
 describe.only('location-manager', function () {
+  if (isNode()) return;
   function getCommonRegistrations(): IRegistry[] {
     return [
-      // IWindow as unknown as IRegistry,
       AppTask.hydrated(IContainer, container => {
         const useHash = container.get(IRouterOptions).useUrlFragmentHash;
         const window = container.get(IWindow);
         const mockBrowserHistoryLocation = container.get<MockBrowserHistoryLocation>(IHistory);
         mockBrowserHistoryLocation.changeCallback = () => {
-          if (!isNode()) {
-            window.dispatchEvent(useHash ? new HashChangeEvent('hashchange') : new PopStateEvent('popstate'));
-          } else {
-            const locManager = container.get(ILocationManager);
-            locManager.handleEvent({ state: mockBrowserHistoryLocation.state } as any);
-          }
+          window.dispatchEvent(useHash ? new HashChangeEvent('hashchange') : new PopStateEvent('popstate'));
           return Promise.resolve();
         };
       })

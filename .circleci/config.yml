@@ -368,8 +368,8 @@ jobs:
       xcode: 14.2.0
     steps:
       - checkout_install:
-          install_chrome: <<parameters.install_chrome>>
-          install_firefox: <<parameters.install_firefox>>
+          install_chrome: false
+          install_firefox: false
           install: false
       # instead of doing the following 2 commands
       # # - checkout_install

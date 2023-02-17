@@ -370,15 +370,16 @@ jobs:
       - checkout_install:
           install_chrome: false
           install_firefox: false
-          install: false
+          install: true
       # instead of doing the following 2 commands
       # # - checkout_install
       # # - run: npm run build
       # just restore some cache from previous steps
-      - restore_cache:
-          key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          key: cache-{{ .Revision }}-build-false
+      # - restore_cache:
+      #     key: cache-{{ checksum "package-lock.json" }}-install
+      # - restore_cache:
+      #     key: cache-{{ .Revision }}-build-false
+      - run: npm run build
       - run:
           name: "Split test glob"
           command: |

@@ -1,0 +1,43 @@
+{
+  "name": "create-aurelia",
+  "version": "2.0.0-alpha.41",
+  "description": "A tool to help scaffold and aurelia 2 project",
+  "bin": "./dist/cjs/index.cjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aurelia/aurelia.git",
+    "directory": "packages/create-aurelia"
+  },
+  "keywords": [
+    "aurelia",
+    "create-aurelia",
+    "aurelia_2",
+    "au2",
+    "au2",
+    "au2-new"
+  ],
+  "author": "Aurelia Core",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "homepage": "https://github.com/aurelia/aurelia#readme",
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "devDependencies": {
+    "typescript": "4.7.3"
+  },
+  "dependencies": {},
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages": "npm run rollup"
+  }
+}

@@ -1,4 +1,4 @@
-import { IPlatform } from '@aurelia/runtime-html';
+import { ICustomElementController, IPlatform } from '@aurelia/runtime-html';
 import { IDialogDomRenderer, IDialogGlobalSettings, DialogActionKey, IDialogController } from './dialog-interfaces';
 
 import { IContainer } from '@aurelia/kernel';
@@ -22,7 +22,7 @@ const hostCss = 'position:relative;margin:auto;';
 export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListenerObject {
 
   /** @internal */
-  protected static inject = [IPlatform];
+  protected static inject = [IPlatform, IDialogController];
 
   public wrapper!: HTMLElement;
 
@@ -30,47 +30,46 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
 
   public contentHost!: HTMLElement;
 
-  /** @internal */
-  protected controller!: IDialogController;
-
-  public constructor(private readonly p: IPlatform) {}
+  public constructor(private readonly platform: IPlatform, private readonly dialogController: IDialogController) {}
 
   public static register(container: IContainer) {
     transientRegistration(IDialogDomRenderer, this).register(container);
   }
 
-  public render(dialogHost: HTMLElement, controller: IDialogController): HTMLElement {
-    const doc = this.p.document;
+  public render(componentController: ICustomElementController) {
+    const { document } = this.platform;
+    const { settings } = this.dialogController;
+    const dialogHost = settings.host ?? document.body;
+
     const h = (name: string, css: string): HTMLElement => {
-      const el = doc.createElement(name);
+      const el = document.createElement(name);
       el.style.cssText = css;
       return el;
     };
+
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     wrapper.setAttribute('tabindex', '-1');
     const overlay = wrapper.appendChild(h('au-dialog-overlay', baseWrapperCss));
-    const contentHost = wrapper.appendChild(h('div', hostCss));
+    const contentHost = wrapper.appendChild(componentController.host);
+    contentHost.style.cssText = hostCss;
 
-    overlay.addEventListener(controller.settings.mouseEvent ?? 'click', this);
+    overlay.addEventListener(settings.mouseEvent ?? 'click', this);
     wrapper.addEventListener('keydown', this);
 
     this.wrapper = wrapper;
     this.overlay = overlay;
     this.contentHost = contentHost;
-    this.controller = controller;
-
-    return contentHost;
   }
 
   public dispose(): void {
     this.wrapper.removeEventListener('keydown', this);
-    this.overlay.removeEventListener(this.controller.settings.mouseEvent ?? 'click', this);
+    this.overlay.removeEventListener(this.dialogController.settings.mouseEvent ?? 'click', this);
     this.wrapper.remove();
   }
 
   /** @internal */
   public handleEvent(event: KeyboardEvent | MouseEvent): void {
-    const { controller } = this;
+    const { dialogController } = this;
 
     // handle wrapper keydown
     if (event.type === 'keydown') {
@@ -79,20 +78,20 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListen
         return;
       }
 
-      const keyboard = controller.settings.keyboard;
+      const keyboard = dialogController.settings.keyboard;
       if (key === 'Escape' && keyboard.includes(key)) {
-        void controller.cancel();
+        void dialogController.cancel();
       } else if (key === 'Enter' && keyboard.includes(key)) {
-        void controller.ok();
+        void dialogController.ok();
       }
       return;
     }
 
     // handle overlay click
-    if (/* user allows to dismiss on overlay click */controller.settings.overlayDismiss
+    if (/* user allows to dismiss on overlay click */dialogController.settings.overlayDismiss
       && /* did not click inside the host element */!this.contentHost.contains(event.target as Element)
     ) {
-      void controller.cancel();
+      void dialogController.cancel();
     }
   }
 }

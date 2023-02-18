@@ -73,32 +73,36 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
-    this.settings = settings;
+    const { model, template, rejectOnCancel } = settings;
+
+    // TODO: use CEs name if provided?
+    const contentHost = document.createElement('div');
 
     const container = this.ctn.createChild();
-    const { model, template, rejectOnCancel } = settings;
-    const dialogTargetHost = settings.host ?? this.p.document.body;
-    const renderer = container.get(IDialogDomRenderer);
-    const contentHost = renderer.render(dialogTargetHost, this);
-    const rootEventTarget = container.has(IEventTarget, true)
-      ? container.get(IEventTarget) as Element
-      : null;
+    container.register(instanceRegistration(IDialogController, this));
 
-    this.renderer = renderer;
+    const renderer = container.get(IDialogDomRenderer);
+    container.register(instanceRegistration(IDialogDomRenderer, renderer));
+
+    // moved to renderer
+    // const dialogTargetHost = settings.host ?? this.p.document.body;
+
+    // delegate binding has been removed, so don't need this any more?
     // application root host may be a different element with the dialog root host
     // example:
     // <body>
     //   <my-app>
     //   <au-dialog-container>
     // when it's different, needs to ensure delegate bindings work
-    if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
-      container.register(instanceRegistration(IEventTarget, dialogTargetHost));
-    }
+    // const rootEventTarget = container.has(IEventTarget, true)
+    //   ? container.get(IEventTarget) as Element
+    //   : null;
+    // if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
+    //   container.register(instanceRegistration(IEventTarget, dialogTargetHost));
+    // }
 
-    container.register(
-      instanceRegistration(INode, contentHost),
-      instanceRegistration(IDialogDomRenderer, renderer),
-    );
+    this.settings = settings;
+    this.renderer = renderer;
 
     return new Promise(r => {
         const cmp = Object.assign(this.cmp = this.getOrCreateVm(container, settings, contentHost), { $dialog: this });
@@ -106,7 +110,6 @@ export class DialogController implements IDialogController {
       })
       .then(canActivate => {
         if (canActivate !== true) {
-          renderer.dispose();
           if (rejectOnCancel) {
             throw createDialogCancelError(null, 'Dialog activation rejected');
           }
@@ -116,7 +119,7 @@ export class DialogController implements IDialogController {
         const cmp = this.cmp;
 
         return onResolve(cmp.activate?.(model), () => {
-          const ctrlr = this.controller = Controller.$el(
+          const controller = this.controller = Controller.$el(
             container,
             cmp,
             contentHost,
@@ -125,13 +128,12 @@ export class DialogController implements IDialogController {
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )
           ) as ICustomElementController;
-          return onResolve(ctrlr.activate(ctrlr, null, LifecycleFlags.fromBind), () => {
-            return DialogOpenResult.create(false, this);
+          return onResolve(renderer.render(controller), () => {
+            return onResolve(controller.activate(controller, null, LifecycleFlags.fromBind), () => {
+              return DialogOpenResult.create(false, this);
+            });
           });
         });
-      }, e => {
-        renderer.dispose();
-        throw e;
       });
   }
 

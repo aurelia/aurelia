@@ -81,7 +81,7 @@ export class DialogController implements IDialogController {
     const container = this.ctn.createChild();
     container.register(instanceRegistration(IDialogController, this));
 
-    const renderer = container.get(IDialogDomRenderer);
+    const renderer = this.ctn.get(IDialogDomRenderer);
     container.register(instanceRegistration(IDialogDomRenderer, renderer));
 
     // moved to renderer

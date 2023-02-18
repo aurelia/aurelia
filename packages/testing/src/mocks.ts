@@ -315,7 +315,12 @@ export class MockBrowserHistoryLocation {
     const path = this.path;
     try {
       const url = new URL(path);
-      return [url.pathname, url.search || undefined, url.hash || undefined] as any[];
+      let hash = url.hash;
+      if (hash.length > 1) {
+        hash = hash.substring(1);
+      }
+      const search = url.search;
+      return [url.pathname, search.length > 1 ? search : undefined, hash.length ? hash : undefined] as any[];
     } catch (e) {
       const parts = [];
       const ph = this.path.split('#');

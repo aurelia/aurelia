@@ -514,8 +514,10 @@ export class Router {
     let navigationContext = this.resolveContext(tr.options.context);
     const trChildren = tr.instructions.children;
     const nodeChildren = navigationContext.node.children;
+    const useHash = this.options.useUrlFragmentHash;
     const shouldProcess = !this.navigated
       || this._cannotBeUnloaded
+      || tr.trigger === (useHash ? 'hashchange' : 'popstate')
       || trChildren.length !== nodeChildren.length
       || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false))
       || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
@@ -645,7 +647,7 @@ export class Router {
         this._isNavigating = false;
 
         // apply history state
-        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
+        const newUrl = tr.finalInstructions.toUrl(useHash);
         switch (tr.options._getHistoryStrategy(this.instructions)) {
           case 'none':
             // do nothing

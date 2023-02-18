@@ -311,27 +311,33 @@ export class MockBrowserHistoryLocation {
   public activate(): void { return; }
   public deactivate(): void { return; }
 
-  // TODO: Fix a better split
   private get parts(): string[] {
-    const parts = [];
-    const ph = this.path.split('#');
-    if (ph.length > 1) {
-      parts.unshift(ph.pop());
-    } else {
-      parts.unshift(undefined);
+    const path = this.path;
+    try {
+      const url = new URL(path);
+      let hash = url.hash;
+      if (hash.length > 1) {
+        hash = hash.substring(1);
+      }
+      const search = url.search;
+      return [url.pathname, search.length > 1 ? search : undefined, hash.length ? hash : undefined] as any[];
+    } catch (e) {
+      const parts = [];
+      const ph = this.path.split('#');
+      if (ph.length > 1) {
+        parts.unshift(ph.pop());
+      } else {
+        parts.unshift(undefined);
+      }
+      const pq = ph[0].split('?');
+      if (pq.length > 1) {
+        parts.unshift(pq.pop());
+      } else {
+        parts.unshift(undefined);
+      }
+      parts.unshift(pq[0]);
+      return parts as string[];
     }
-    const pq = ph[0].split('?');
-    if (pq.length > 1) {
-      parts.unshift(pq.pop());
-    } else {
-      parts.unshift(undefined);
-    }
-    parts.unshift(pq[0]);
-    // const parts: (string | boolean)[] = this.path.split(/[#?]/);
-    // let search = this.path.indexOf('?') >= 0 ? this.path.indexOf('?') : 99999;
-    // let hash = this.path.indexOf('#') >= 0 ? this.path.indexOf('#') : 99999;
-    // parts.unshift(hash < search);
-    return parts as string[];
   }
 
   public pushState(data: Record<string, unknown>, title: string, path: string) {
@@ -354,6 +360,10 @@ export class MockBrowserHistoryLocation {
       this.notifyChange();
     }
   }
+
+  public back() { this.go(-1); }
+
+  public forward() { this.go(1); }
 
   private notifyChange() {
     if (this.changeCallback) {

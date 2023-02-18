@@ -1,6 +1,6 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
-import { CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
+import { type CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
@@ -8,10 +8,11 @@ import { ILocationManager } from './location-manager';
 import { RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
-import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params, ViewportInstruction } from './instructions';
+import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
-import { ViewportAgent } from './viewport-agent';
+import { type ViewportAgent } from './viewport-agent';
+import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -21,151 +22,6 @@ export function isManagedState(state: {} | null): state is ManagedState {
 }
 export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };
-}
-
-export type HistoryStrategy = 'none' | 'replace' | 'push';
-export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
-function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
-  if (typeof valueOrFunc === 'function') {
-    return valueOrFunc(instructions);
-  }
-  return valueOrFunc;
-}
-
-export interface IRouterOptions extends Partial<RouterOptions> {
-  /**
-   * Set a custom routing root by setting this path.
-   * When not set, path from the `document.baseURI` is used by default.
-   */
-  basePath?: string | null;
-}
-export class RouterOptions {
-  public static get DEFAULT(): RouterOptions { return RouterOptions.create({}); }
-
-  protected constructor(
-    public readonly useUrlFragmentHash: boolean,
-    public readonly useHref: boolean,
-    /**
-     * The strategy to use for interacting with the browser's `history` object (if applicable).
-     *
-     * - `none`: do not interact with the `history` object at all.
-     * - `replace`: replace the current state in history
-     * - `push`: push a new state onto the history (default)
-     * - A function that returns one of the 3 above values based on the navigation.
-     *
-     * Default: `push`
-     */
-    public readonly historyStrategy: ValueOrFunc<HistoryStrategy>,
-    /**
-     * An optional handler to build the title.
-     * When configured, the work of building the title string is completely handed over to this function.
-     * If this function returns `null`, the title is not updated.
-     */
-    public readonly buildTitle: ((transition: Transition) => string | null) | null,
-  ) { }
-
-  public static create(input: IRouterOptions): RouterOptions {
-    return new RouterOptions(
-      input.useUrlFragmentHash ?? false,
-      input.useHref ?? true,
-      input.historyStrategy ?? 'push',
-      input.buildTitle ?? null,
-    );
-  }
-  /** @internal */
-  public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
-    return valueOrFuncToValue(instructions, this.historyStrategy);
-  }
-
-  protected stringifyProperties(): string {
-    return ([
-      ['historyStrategy', 'history'],
-    ] as const).map(([key, name]) => {
-      const value = this[key];
-      return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
-    }).join(',');
-  }
-
-  public clone(): RouterOptions {
-    return new RouterOptions(
-      this.useUrlFragmentHash,
-      this.useHref,
-      this.historyStrategy,
-      this.buildTitle,
-    );
-  }
-
-  public toString(): string {
-    return `RO(${this.stringifyProperties()})`;
-  }
-}
-
-export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions extends RouterOptions { // TODO(sayan): remove this inheritance as RouterOptions is practically singleton and readonly
-  public static get DEFAULT(): NavigationOptions { return NavigationOptions.create({}); }
-
-  private constructor(
-    routerOptions: RouterOptions,
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly titleSeparator: string,
-    /**
-     * Specify a context to use for relative navigation.
-     *
-     * - `null` (or empty): navigate relative to the root (absolute navigation)
-     * - `IRouteContext`: navigate relative to specifically this RouteContext (advanced users).
-     * - `HTMLElement`: navigate relative to the routeable component (page) that directly or indirectly contains this element.
-     * - `ICustomElementViewModel` (the `this` object when working from inside a view model): navigate relative to this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
-     * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
-     */
-    public readonly context: RouteContextLike | null,
-    /**
-     * Specify an object to be serialized to a query string, and then set to the query string of the new URL.
-     */
-    public readonly queryParams: Params | null,
-    /**
-     * Specify the hash fragment for the new URL.
-     */
-    public readonly fragment: string,
-    /**
-     * Specify any kind of state to be stored together with the history entry for this navigation.
-     */
-    public readonly state: Params | null,
-  ) {
-    super(
-      routerOptions.useUrlFragmentHash,
-      routerOptions.useHref,
-      routerOptions.historyStrategy,
-      routerOptions.buildTitle,
-    );
-  }
-
-  public static create(input: INavigationOptions): NavigationOptions {
-    return new NavigationOptions(
-      RouterOptions.create(input),
-      input.title ?? null,
-      input.titleSeparator ?? ' | ',
-      input.context ?? null,
-      input.queryParams ?? null,
-      input.fragment ?? '',
-      input.state ?? null,
-    );
-  }
-
-  public clone(): NavigationOptions {
-    return new NavigationOptions(
-      super.clone(),
-      this.title,
-      this.titleSeparator,
-      this.context,
-      { ...this.queryParams },
-      this.fragment,
-      this.state === null ? null : { ...this.state },
-    );
-  }
-
-  public toString(): string {
-    return `NO(${super.stringifyProperties()})`;
-  }
 }
 
 /** @internal */
@@ -268,7 +124,7 @@ export class Router {
       // Doing it here instead of in the constructor to delay it until we have the context.
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
-        NavigationOptions.create({ ...this.options }),
+        NavigationOptions.create(this.options, {}),
         emptyQuery,
         null,
         RouteNode.create({
@@ -295,7 +151,7 @@ export class Router {
         finalInstructions: this.instructions,
         instructionsChanged: true,
         trigger: 'api',
-        options: NavigationOptions.DEFAULT,
+        options: NavigationOptions.create(this.options, {}),
         managedState: null,
         previousRouteTree: this.routeTree.clone(),
         routeTree: this.routeTree,
@@ -312,12 +168,10 @@ export class Router {
     this._currentTr = value;
   }
 
-  public options: RouterOptions = RouterOptions.DEFAULT;
-
   private navigated: boolean = false;
   private navigationId: number = 0;
 
-  private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
+  private instructions: ViewportInstructionTree;
 
   private nextTr: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
@@ -339,8 +193,10 @@ export class Router {
     @ILogger private readonly logger: ILogger,
     @IRouterEvents private readonly events: IRouterEvents,
     @ILocationManager private readonly locationMgr: ILocationManager,
+    @IRouterOptions public readonly options: Readonly<RouterOptions>,
   ) {
     this.logger = logger.root.scopeTo('Router');
+    this.instructions = ViewportInstructionTree.create('', options);
   }
 
   /**
@@ -359,16 +215,6 @@ export class Router {
     return RouteContext.resolve(this.ctx, context);
   }
 
-  /**
-   * Only for internal usage as the options are supposed to be set only once at the beginning.
-   * At present no use-case for dynamic routing configuration can be imagined; hence it is limited to as a bootstrapping activity.
-   *
-   * @internal
-   */
-  public _setOptions(routerOptions: IRouterOptions) {
-    this.options = RouterOptions.create(routerOptions);
-  }
-
   public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
@@ -381,11 +227,9 @@ export class Router {
       this.p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
-        const options = NavigationOptions.create({
-          ...this.options,
-          historyStrategy: 'replace',
-        });
-        const instructions = ViewportInstructionTree.create(e.url, options, this.ctx);
+        const routerOptions = this.options;
+        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this.ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -487,7 +331,7 @@ export class Router {
     const ctx = this.resolveContext(context);
     const instructions = instructionOrInstructions instanceof ViewportInstructionTree
       ? instructionOrInstructions
-      : this.createViewportInstructions(instructionOrInstructions, { context: ctx });
+      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
@@ -559,9 +403,11 @@ export class Router {
         }
       }
     }
+    const routerOptions = this.options;
     return ViewportInstructionTree.create(
       instructionOrInstructions,
-      NavigationOptions.create({ ...this.options, ...options, context }),
+      routerOptions,
+      NavigationOptions.create(routerOptions, { ...options, context }),
       this.ctx
     );
   }
@@ -668,8 +514,10 @@ export class Router {
     let navigationContext = this.resolveContext(tr.options.context);
     const trChildren = tr.instructions.children;
     const nodeChildren = navigationContext.node.children;
+    const useHash = this.options.useUrlFragmentHash;
     const shouldProcess = !this.navigated
       || this._cannotBeUnloaded
+      || tr.trigger === (useHash ? 'hashchange' : 'popstate')
       || trChildren.length !== nodeChildren.length
       || trChildren.some((x, i) => !(nodeChildren[i]?.originalInstruction!.equals(x) ?? false))
       || this.ctx.definition.config.getTransitionPlan(tr.previousRouteTree.root, tr.routeTree.root) === 'replace';
@@ -799,8 +647,8 @@ export class Router {
         this._isNavigating = false;
 
         // apply history state
-        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
-        switch (tr.options.getHistoryStrategy(this.instructions)) {
+        const newUrl = tr.finalInstructions.toUrl(useHash);
+        switch (tr.options._getHistoryStrategy(this.instructions)) {
           case 'none':
             // do nothing
             break;

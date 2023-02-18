@@ -1,9 +1,17 @@
 import { ILogger } from '@aurelia/kernel';
-import { LifecycleFlags, bindable, customElement, ICustomElementViewModel, IHydratedController, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
+import {
+  type LifecycleFlags,
+  bindable,
+  customElement,
+  ICustomElementViewModel,
+  IHydratedController,
+  ICustomElementController,
+  ICompiledCustomElementController
+} from '@aurelia/runtime-html';
 
-import { ViewportAgent } from '../viewport-agent';
+import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
-import { defaultViewportName } from '../route-definition';
+import { defaultViewportName } from '../instructions';
 
 export interface IViewport {
   readonly name: string;

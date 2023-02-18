@@ -1,5 +1,6 @@
-import { bound, DI, ILogger } from '@aurelia/kernel';
+import { DI, ILogger } from '@aurelia/kernel';
 import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
+import { type RouterOptions, IRouterOptions } from './options';
 
 import { IRouterEvents, LocationChangeEvent } from './router-events';
 
@@ -19,6 +20,8 @@ export interface ILocationManager extends BrowserLocationManager {}
  */
 export class BrowserLocationManager {
   private eventId: number = 0;
+  /** @internal */
+  private readonly _event: 'hashchange' | 'popstate';
 
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -27,46 +30,31 @@ export class BrowserLocationManager {
     @ILocation private readonly location: ILocation,
     @IWindow private readonly window: IWindow,
     @IBaseHref private readonly baseHref: URL,
+    @IRouterOptions routerOptions: Readonly<RouterOptions>,
   ) {
     logger = this.logger = logger.root.scopeTo('LocationManager');
     logger.debug(`baseHref set to path: ${baseHref.href}`);
+    this._event = routerOptions.useUrlFragmentHash ? 'hashchange' : 'popstate';
   }
 
   public startListening(): void {
     this.logger.trace(`startListening()`);
 
-    this.window.addEventListener('popstate', this.onPopState, false);
-    this.window.addEventListener('hashchange', this.onHashChange, false);
+    this.window.addEventListener(this._event, this, false);
   }
 
   public stopListening(): void {
     this.logger.trace(`stopListening()`);
 
-    this.window.removeEventListener('popstate', this.onPopState, false);
-    this.window.removeEventListener('hashchange', this.onHashChange, false);
+    this.window.removeEventListener(this._event, this, false);
   }
 
-  @bound
-  private onPopState(event: IPopStateEvent): void {
-    this.logger.trace(`onPopState()`);
-
+  public handleEvent(event: IPopStateEvent | IHashChangeEvent): void {
     this.events.publish(new LocationChangeEvent(
       ++this.eventId,
       this.getPath(),
-      'popstate',
-      event.state,
-    ));
-  }
-
-  @bound
-  private onHashChange(_event: IHashChangeEvent): void {
-    this.logger.trace(`onHashChange()`);
-
-    this.events.publish(new LocationChangeEvent(
-      ++this.eventId,
-      this.getPath(),
-      'hashchange',
-      null,
+      this._event,
+      'state' in event ? event.state : null,
     ));
   }
 

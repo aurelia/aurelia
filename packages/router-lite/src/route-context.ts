@@ -1,18 +1,49 @@
-import { Constructable, DI, IContainer, ILogger, IModule, IModuleLoader, InstanceProvider, noop, onResolve, Protocol, Registration, ResourceDefinition } from '@aurelia/kernel';
-import { Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
-import { CustomElement, CustomElementDefinition, IAppRoot, IController, ICustomElementController, IPlatform, isCustomElementController, isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import {
+  Constructable,
+  DI,
+  type IContainer,
+  ILogger,
+  IModule,
+  IModuleLoader,
+  InstanceProvider,
+  noop,
+  onResolve,
+  Protocol,
+  Registration,
+  ResourceDefinition
+} from '@aurelia/kernel';
+import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
+import {
+  Controller,
+  CustomElement,
+  type CustomElementDefinition,
+  IAppRoot,
+  IController,
+  ICustomElementController,
+  IPlatform,
+  isCustomElementController,
+  isCustomElementViewModel,
+  PartialCustomElementDefinition,
+} from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { ITypedNavigationInstruction_string, IViewportInstruction, NavigationInstruction, NavigationInstructionType, Params, ViewportInstruction } from './instructions';
+import {
+  ITypedNavigationInstruction_string,
+  IViewportInstruction,
+  NavigationInstruction,
+  NavigationInstructionType,
+  Params,
+  ViewportInstruction,
+} from './instructions';
 import { IViewport } from './resources/viewport';
 import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
-import { RouteNode } from './route-tree';
+import type { RouteNode } from './route-tree';
 import { IRouter } from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
-import { ViewportAgent, ViewportRequest } from './viewport-agent';
+import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
@@ -342,13 +373,17 @@ export class RouteContext {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
-    const componentInstance = this.container.get<IRouteViewModel>(routeNode.component.key);
+    const container = this.container;
+    const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
+    const parentDefinition = this.definition;
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     if (!this._childRoutesConfigured) {
-      const routeDef = RouteDefinition.resolve(componentInstance, this.definition, routeNode);
+      const routeDef = RouteDefinition.resolve(componentInstance, parentDefinition, routeNode);
       this.processDefinition(routeDef);
     }
-    const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
+    const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, parentDefinition, null);
+    const controller = Controller.$el(container, componentInstance, hostController.host, null);
+    const componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, this, this._router.options);
 
     this.hostControllerProvider.dispose();
 

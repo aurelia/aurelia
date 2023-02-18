@@ -1,15 +1,28 @@
 import { isObject } from '@aurelia/metadata';
-import { Constructable, emptyObject, IModule, isArrayIndex } from '@aurelia/kernel';
-import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
+import {
+  Constructable,
+  emptyObject,
+  IModule,
+  isArrayIndex,
+} from '@aurelia/kernel';
+import {
+  ICustomElementViewModel,
+  ICustomElementController,
+  PartialCustomElementDefinition,
+  isCustomElementViewModel,
+  CustomElement,
+  CustomElementDefinition
+} from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
-import { $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
+import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
-import { INavigationOptions, NavigationOptions } from './router';
+import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 
+export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
 
 /**
@@ -168,7 +181,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
-    const viewport = component.length === 0 || this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
+    const vp = this.viewport;
+    const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
     const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {
@@ -277,10 +291,11 @@ export class ViewportInstructionTree {
 
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    routerOptions: RouterOptions,
     options?: INavigationOptions,
     rootCtx?: IRouteContext | null,
   ): ViewportInstructionTree {
-    const $options = NavigationOptions.create({ ...options });
+    const $options = NavigationOptions.create(routerOptions, { ...options });
 
     let context = $options.context as RouteContext;
     if (!(context instanceof RouteContext) && rootCtx != null) {
@@ -306,7 +321,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions, $options.useUrlFragmentHash);
+      const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }
 

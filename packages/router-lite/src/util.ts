@@ -1,4 +1,4 @@
-import type { Params } from './instructions';
+import { Params } from './instructions';
 import type { RouteNode } from './route-tree';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;

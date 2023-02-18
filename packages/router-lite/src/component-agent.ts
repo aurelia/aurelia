@@ -3,15 +3,15 @@ import type { LifecycleFlags, ICustomElementController, IHydratedController, ICu
 
 import type { RouteDefinition } from './route-definition';
 import type { RouteNode } from './route-tree';
-import type { IRouteContext } from './route-context';
+import { IRouteContext } from './route-context';
 import {
-  type Params,
-  type NavigationInstruction,
+  Params,
+  NavigationInstruction,
   ViewportInstructionTree
 } from './instructions';
 import type { Transition } from './router';
 import { Batch } from './util';
-import type { IRouteConfig } from './route';
+import { IRouteConfig } from './route';
 import type { RouterOptions } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {

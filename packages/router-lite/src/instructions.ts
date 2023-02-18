@@ -1,24 +1,24 @@
 import { isObject } from '@aurelia/metadata';
 import {
-  type Constructable,
+  Constructable,
   emptyObject,
-  type IModule,
+  IModule,
   isArrayIndex,
 } from '@aurelia/kernel';
 import {
-  type ICustomElementViewModel,
-  type ICustomElementController,
-  type PartialCustomElementDefinition,
+  ICustomElementViewModel,
+  ICustomElementController,
+  PartialCustomElementDefinition,
   isCustomElementViewModel,
   CustomElement,
   CustomElementDefinition
 } from '@aurelia/runtime-html';
 
-import type { IRouteViewModel } from './component-agent';
-import type { RouteType } from './route';
-import { type $RecognizedRoute, type IRouteContext, RouteContext } from './route-context';
+import { IRouteViewModel } from './component-agent';
+import { RouteType } from './route';
+import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
-import { type INavigationOptions, NavigationOptions, type RouterOptions } from './options';
+import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 

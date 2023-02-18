@@ -2,10 +2,10 @@ import { Metadata } from '@aurelia/metadata';
 import {
   emptyObject,
   type IContainer,
-  type IModule,
+  IModule,
   onResolve,
   Protocol,
-  type Writable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   type CustomElementDefinition,
@@ -15,16 +15,16 @@ import {
 import {
   TypedNavigationInstruction,
   NavigationInstructionType,
-  type ITypedNavigationInstruction_Component,
+  ITypedNavigationInstruction_Component,
   defaultViewportName,
 } from './instructions';
 import {
   RouteConfig,
-  type IChildRouteConfig,
-  type Routeable,
-  type RouteType,
+  IChildRouteConfig,
+  Routeable,
+  RouteType,
   Route,
-  type IRedirectRouteConfig,
+  IRedirectRouteConfig,
 } from './route';
 import type {
   IRouteContext,

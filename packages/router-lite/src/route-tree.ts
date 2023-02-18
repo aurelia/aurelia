@@ -3,7 +3,7 @@ import {
   type ILogger,
   onResolve,
   resolveAll,
-  type Writable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   ConfigurableRoute,
@@ -15,11 +15,11 @@ import type {
   CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
-  type ITypedNavigationInstruction_ResolvedComponent,
-  type ITypedNavigationInstruction_string,
-  type NavigationInstruction,
+  ITypedNavigationInstruction_ResolvedComponent,
+  ITypedNavigationInstruction_string,
+  NavigationInstruction,
   NavigationInstructionType,
-  type Params,
+  Params,
   ViewportInstruction,
   ViewportInstructionTree,
   defaultViewportName,

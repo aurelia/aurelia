@@ -3,10 +3,10 @@ import {
   type LifecycleFlags,
   bindable,
   customElement,
-  type ICustomElementViewModel,
-  type IHydratedController,
-  type ICustomElementController,
-  type ICompiledCustomElementController
+  ICustomElementViewModel,
+  IHydratedController,
+  ICustomElementController,
+  ICompiledCustomElementController
 } from '@aurelia/runtime-html';
 
 import type { ViewportAgent } from '../viewport-agent';

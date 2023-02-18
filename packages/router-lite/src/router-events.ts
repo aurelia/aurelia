@@ -1,4 +1,4 @@
-import { DI, IEventAggregator, type IDisposable, ILogger } from '@aurelia/kernel';
+import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
 import type { ViewportInstructionTree } from './instructions';
 

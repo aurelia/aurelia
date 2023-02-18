@@ -1,18 +1,18 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, type IDisposable, onResolve, type Writable, resolveAll } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
 import { type CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, type ManagedState, AuNavId, type RoutingTrigger, NavigationErrorEvent } from './router-events';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
-import type { RouteType } from './route';
-import type { IRouteViewModel } from './component-agent';
+import { RouteType } from './route';
+import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
-import { type IViewportInstruction, type NavigationInstruction, type RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
-import { Batch, mergeDistinct, type UnwrapPromise } from './util';
+import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
+import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { RouteDefinition } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
-import { type INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
+import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());

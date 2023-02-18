@@ -1,9 +1,9 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, type IRegistry, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
-import { type IRouterOptions as $IRouterOptions, IRouterOptions, RouterOptions } from './options';
+import { IRouterOptions as $IRouterOptions, IRouterOptions, RouterOptions } from './options';
 import { IRouter } from './router';
 
 import { ViewportCustomElement } from './resources/viewport';

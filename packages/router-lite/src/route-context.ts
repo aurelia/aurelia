@@ -1,16 +1,16 @@
 import {
-  type Constructable,
+  Constructable,
   DI,
   type IContainer,
   ILogger,
-  type IModule,
+  IModule,
   IModuleLoader,
   InstanceProvider,
   noop,
   onResolve,
   Protocol,
   Registration,
-  type ResourceDefinition
+  ResourceDefinition
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -19,24 +19,24 @@ import {
   type CustomElementDefinition,
   IAppRoot,
   IController,
-  type ICustomElementController,
+  ICustomElementController,
   IPlatform,
   isCustomElementController,
   isCustomElementViewModel,
-  type PartialCustomElementDefinition,
+  PartialCustomElementDefinition,
 } from '@aurelia/runtime-html';
 
-import { ComponentAgent, type IRouteViewModel } from './component-agent';
+import { ComponentAgent, IRouteViewModel } from './component-agent';
 import {
-  type ITypedNavigationInstruction_string,
-  type IViewportInstruction,
-  type NavigationInstruction,
+  ITypedNavigationInstruction_string,
+  IViewportInstruction,
+  NavigationInstruction,
   NavigationInstructionType,
-  type Params,
+  Params,
   ViewportInstruction,
 } from './instructions';
-import type { IViewport } from './resources/viewport';
-import type { IChildRouteConfig, Routeable, RouteType } from './route';
+import { IViewport } from './resources/viewport';
+import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
 import type { RouteNode } from './route-tree';
 import { IRouter } from './router';

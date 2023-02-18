@@ -16,6 +16,7 @@ import {
   TypedNavigationInstruction,
   NavigationInstructionType,
   type ITypedNavigationInstruction_Component,
+  defaultViewportName,
 } from './instructions';
 import {
   RouteConfig,
@@ -39,7 +40,6 @@ import {
 import type { IRouteViewModel } from './component-agent';
 import type { RouteNode } from './route-tree';
 
-export const defaultViewportName = 'default';
 export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
   public readonly caseSensitive: boolean;

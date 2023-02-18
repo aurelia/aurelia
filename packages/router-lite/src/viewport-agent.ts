@@ -11,8 +11,7 @@ import type { NavigationOptions } from './options';
 import type { Transition } from './router';
 import type { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
-import { defaultViewportName } from './route-definition';
-import { ViewportInstruction } from './instructions';
+import { ViewportInstruction, defaultViewportName } from './instructions';
 
 export class ViewportRequest {
   public constructor(

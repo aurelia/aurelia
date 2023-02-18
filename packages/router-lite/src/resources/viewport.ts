@@ -11,7 +11,7 @@ import {
 
 import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
-import { defaultViewportName } from '../route-definition';
+import { defaultViewportName } from '../instructions';
 
 export interface IViewport {
   readonly name: string;

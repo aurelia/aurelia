@@ -356,37 +356,41 @@ export class Router {
     componentInstance: IRouteViewModel | null,
     container: IContainer,
     parentDefinition: RouteDefinition | null,
-  ): IRouteContext {
+  ): IRouteContext | Promise<IRouteContext> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-    const routeDefinition = RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null);
-    let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
-    if (routeDefinitionLookup === void 0) {
-      this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
-    }
+    return onResolve(
+      RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null),
+      routeDefinition => {
+        let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
+        if (routeDefinitionLookup === void 0) {
+          this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
+        }
 
-    let routeContext = routeDefinitionLookup.get(routeDefinition);
-    if (routeContext !== void 0) {
-      logger.trace(`returning existing RouteContext for %s`, routeDefinition);
-      return routeContext;
-    }
-    logger.trace(`creating new RouteContext for %s`, routeDefinition);
+        let routeContext = routeDefinitionLookup.get(routeDefinition);
+        if (routeContext !== void 0) {
+          logger.trace(`returning existing RouteContext for %s`, routeDefinition);
+          return routeContext;
+        }
+        logger.trace(`creating new RouteContext for %s`, routeDefinition);
 
-    const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+        const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
-    routeDefinitionLookup.set(
-      routeDefinition,
-      routeContext = new RouteContext(
-        viewportAgent,
-        parent,
-        componentDefinition,
-        routeDefinition,
-        container,
-        this,
-      ),
+        routeDefinitionLookup.set(
+          routeDefinition,
+          routeContext = new RouteContext(
+            viewportAgent,
+            parent,
+            componentDefinition,
+            routeDefinition,
+            container,
+            this,
+          ),
+        );
+        return routeContext;
+      }
     );
-    return routeContext;
   }
 
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {

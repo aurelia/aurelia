@@ -489,11 +489,12 @@ describe('router config', function () {
     class P implements IRouteViewModel {
       public getRouteConfigCalled: number = 0;
 
-      public getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig {
+      public async getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): Promise<IRouteConfig> {
         assert.notEqual(parentDefinition, null, 'P parentDefinition');
         assert.notEqual(routeNode, null, 'P routeNode');
         assert.strictEqual(this.getRouteConfigCalled, 0);
         this.getRouteConfigCalled++;
+        await new Promise((resolve) => setTimeout(resolve, 10));
         return {
           routes:[
             { path:'c1', component: C1 },

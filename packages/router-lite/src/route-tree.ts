@@ -512,35 +512,39 @@ function createConfiguredNode(
       ));
 
       const router = ctx.container.get(IRouter);
-      const childCtx = router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition);
+      return onResolve(
+        router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition),
+        childCtx => {
 
-      log.trace('createConfiguredNode setting the context node');
-      const $node = childCtx.node = RouteNode.create({
-        path: rr.route.endpoint.route.path,
-        finalPath: route.path,
-        context: childCtx,
-        instruction: vi,
-        originalInstruction: originalVi,
-        params: {
-          ...rr.route.params,
-        },
-        queryParams: rt.queryParams,
-        fragment: rt.fragment,
-        data: $handler.data,
-        viewport: vpName,
-        component: ced,
-        title: $handler.config.title,
-        residue: [
-          // TODO(sayan): this can be removed; need to inspect more.
-          ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
-          ...vi.children,
-        ],
-      });
-      $node.setTree(node.tree);
+          log.trace('createConfiguredNode setting the context node');
+          const $node = childCtx.node = RouteNode.create({
+            path: rr.route.endpoint.route.path,
+            finalPath: route.path,
+            context: childCtx,
+            instruction: vi,
+            originalInstruction: originalVi,
+            params: {
+              ...rr.route.params,
+            },
+            queryParams: rt.queryParams,
+            fragment: rt.fragment,
+            data: $handler.data,
+            viewport: vpName,
+            component: ced,
+            title: $handler.config.title,
+            residue: [
+              // TODO(sayan): this can be removed; need to inspect more.
+              ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
+              ...vi.children,
+            ],
+          });
+          $node.setTree(node.tree);
 
-      log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
+          log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
 
-      return $node;
+          return $node;
+        }
+      );
     }
 
     // Migrate parameters to the redirect

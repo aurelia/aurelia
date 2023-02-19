@@ -382,11 +382,22 @@ Ignore the `i` variable being incremented, this is only there to make Aurelia fi
 {% endtab %}
 
 {% tab title="my-app.ts" %}
-```
+```typescript
 export class MyApp {
   fetchAdvice() {
-    return fetch("https://api.adviceslip.com/advice")
-      .then(r => r.ok ? r.json() : (() => { throw new Error('Unable to fetch NASA APOD data') }))
+    return fetch(
+        "https://api.adviceslip.com/advice",
+        {
+          // This is not directly related to promise template controller.
+          // This is simply to ensure that the example demonstrates the
+          // change in data in every browser, without any confusion.
+          cache: 'no-store'
+        }
+      )
+      .then(r => r.ok
+        ? r.json()
+        : (() => { throw new Error('Unable to fetch NASA APOD data') })
+      )
   }
 }
 ```
@@ -396,6 +407,10 @@ export class MyApp {
 {% hint style="info" %}
 The parameter `i` passed to the method `fetchAdvice()` call in the template is for refreshing binding purposes. It is not used in the method itself. This is because method calls in Aurelia are considered pure, and will only be called again if any of its parameters have changed.
 {% endhint %}
+
+This example can also be seen in action below.
+
+{% embed url="https://stackblitz.com/edit/au2-promise-binding-using-functions?ctl=1&embed=1&file=src/my-app.ts" %}
 
 ### Promise bind scope
 

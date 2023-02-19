@@ -256,8 +256,14 @@ export class ViewportAgent {
             case 'invoke-lifecycles':
               return this.curCA!.canLoad(tr, this.nextNode!, b1);
             case 'replace':
-              this.nextCA = this.nextNode!.context.createComponentAgent(this.hostController, this.nextNode!);
-              return this.nextCA.canLoad(tr, this.nextNode!, b1);
+              b1.push();
+              void onResolve(
+                this.nextNode!.context.createComponentAgent(this.hostController, this.nextNode!),
+                ca => {
+                  (this.nextCA = ca).canLoad(tr, this.nextNode!, b1);
+                  b1.pop();
+                }
+              );
           }
         case State.nextIsEmpty:
           this.logger.trace(`canLoad() - nothing to load at %s`, this);

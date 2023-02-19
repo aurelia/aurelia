@@ -15,7 +15,7 @@ import { IRouteConfig } from './route';
 import type { RouterOptions } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
-  getRouteConfig?(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig;
+  getRouteConfig?(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
   canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;

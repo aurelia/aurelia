@@ -272,7 +272,7 @@ export class RouteContext {
    *
    * @param container - The container from which to resolve the `IAppRoot` and in which to register the `RouteContext`
    */
-  public static setRoot(container: IContainer): void {
+  public static setRoot(container: IContainer): void | Promise<void> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     if (!container.has(IAppRoot, true)) {
@@ -289,9 +289,13 @@ export class RouteContext {
     }
 
     const router = container.get(IRouter);
-    const routeContext = router.getRouteContext(null, controller.definition, controller.viewModel, controller.container, null);
-    container.register(Registration.instance(IRouteContext, routeContext));
-    routeContext.node = router.routeTree.root;
+    return onResolve(
+      router.getRouteContext(null, controller.definition, controller.viewModel, controller.container, null),
+      routeContext => {
+        container.register(Registration.instance(IRouteContext, routeContext));
+        routeContext.node = router.routeTree.root;
+      }
+    );
   }
 
   public static resolve(root: IRouteContext, context: unknown): IRouteContext {
@@ -369,7 +373,7 @@ export class RouteContext {
    * @param hostController - The `ICustomElementController` whose component (typically `au-viewport`) will host this component.
    * @param routeNode - The routeNode that describes the component + state.
    */
-  public createComponentAgent(hostController: ICustomElementController, routeNode: RouteNode): ComponentAgent {
+  public createComponentAgent(hostController: ICustomElementController, routeNode: RouteNode): ComponentAgent | Promise<ComponentAgent> {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
@@ -377,17 +381,21 @@ export class RouteContext {
     const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
     const parentDefinition = this.definition;
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
-    if (!this._childRoutesConfigured) {
-      const routeDef = RouteDefinition.resolve(componentInstance, parentDefinition, routeNode);
-      this.processDefinition(routeDef);
-    }
-    const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, parentDefinition, null);
-    const controller = Controller.$el(container, componentInstance, hostController.host, null);
-    const componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, this, this._router.options);
+    const task: Promise<void> | void = this._childRoutesConfigured
+      ? void 0
+      : onResolve(
+        RouteDefinition.resolve(componentInstance, parentDefinition, routeNode),
+        routeDef => this.processDefinition(routeDef)
+      );
+    return onResolve(task, () => {
+      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, parentDefinition, null) as RouteDefinition;
+      const controller = Controller.$el(container, componentInstance, hostController.host, null);
+      const componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, this, this._router.options);
 
-    this.hostControllerProvider.dispose();
+      this.hostControllerProvider.dispose();
 
-    return componentAgent;
+      return componentAgent;
+    });
   }
 
   public registerViewport(viewport: IViewport): ViewportAgent {

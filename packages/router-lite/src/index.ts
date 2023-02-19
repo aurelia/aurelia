@@ -13,6 +13,7 @@ export {
   LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
+  IRouterConfigurationOptions,
 } from './configuration';
 
 export {
@@ -77,13 +78,16 @@ export {
   toManagedState,
   IRouter,
   Router,
-  type IRouterOptions,
+  Transition,
+} from './router';
+
+export {
+  IRouterOptions,
   type INavigationOptions,
   RouterOptions,
   NavigationOptions,
-  Transition,
   type HistoryStrategy,
-} from './router';
+} from './options';
 
 export {
   AuNavId,

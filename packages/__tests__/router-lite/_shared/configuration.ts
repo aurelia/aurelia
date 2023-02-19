@@ -1,7 +1,6 @@
 import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions, ConsoleSink, ISink, Class } from '@aurelia/kernel';
 import { MockBrowserHistoryLocation } from '@aurelia/testing';
-import { ILocationManager } from '@aurelia/router-lite';
-import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
+import { IHistory, ILocation } from '@aurelia/runtime-html';
 
 export const TestRouterConfiguration = {
   for(logLevel: LogLevel = LogLevel.warn, sinks: Class<ISink>[] = [ConsoleSink]): IRegistry {
@@ -19,12 +18,6 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          AppTask.hydrating(ILocationManager, locationManager => {
-            mockBrowserHistoryLocation.changeCallback = (_ev: PopStateEvent) => {
-              locationManager['onPopState']({ state: mockBrowserHistoryLocation.state });
-              return Promise.resolve();
-            };
-          }),
         );
       },
     };

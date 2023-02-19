@@ -389,7 +389,7 @@ jobs:
           name: "Run unit tests"
           command: |
             cd packages/__tests__
-            npm run test
+            npm run test-safari
           no_output_timeout: "3m"
 
   unit_test_esm_node:
@@ -832,7 +832,7 @@ workflows:
           <<: *filter_ignore_develop_release
           name: test_safari
           requires:
-            - build_dev
+            - check_doc_abort
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           name: test_node

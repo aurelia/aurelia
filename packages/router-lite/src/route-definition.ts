@@ -1,14 +1,14 @@
 import { Metadata } from '@aurelia/metadata';
 import {
   emptyObject,
-  IContainer,
+  type IContainer,
   IModule,
   onResolve,
   Protocol,
   Writable,
 } from '@aurelia/kernel';
 import {
-  CustomElementDefinition,
+  type CustomElementDefinition,
   CustomElement,
 } from '@aurelia/runtime-html';
 
@@ -16,16 +16,17 @@ import {
   TypedNavigationInstruction,
   NavigationInstructionType,
   ITypedNavigationInstruction_Component,
+  defaultViewportName,
 } from './instructions';
 import {
   RouteConfig,
   IChildRouteConfig,
-  type Routeable,
+  Routeable,
   RouteType,
   Route,
   IRedirectRouteConfig,
 } from './route';
-import {
+import type {
   IRouteContext,
 } from './route-context';
 import {
@@ -36,10 +37,9 @@ import {
   ensureArrayOfStrings,
   ensureString,
 } from './util';
-import { IRouteViewModel } from './component-agent';
-import { RouteNode } from './route-tree';
+import type { IRouteViewModel } from './component-agent';
+import type { RouteNode } from './route-tree';
 
-export const defaultViewportName = 'default';
 export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
   public readonly caseSensitive: boolean;

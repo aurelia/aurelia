@@ -3,7 +3,8 @@ import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
-import { IRouterOptions, IRouter } from './router';
+import { IRouterOptions as $IRouterOptions, IRouterOptions, RouterOptions } from './options';
+import { IRouter } from './router';
 
 import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
@@ -41,13 +42,22 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-function configure(container: IContainer, options?: IRouterOptions): IContainer {
+export interface IRouterConfigurationOptions extends $IRouterOptions {
+  /**
+   * Set a custom routing root by setting this path.
+   * When not set, path from the `document.baseURI` is used by default.
+   */
+  basePath?: string | null;
+}
+
+function configure(container: IContainer, options?: IRouterConfigurationOptions): IContainer {
   let basePath: string | null = null;
   if (isObject(options)) {
-    basePath = (options as IRouterOptions).basePath ?? null;
+    basePath = (options as IRouterConfigurationOptions).basePath ?? null;
   } else {
     options = {};
   }
+  const routerOptions = RouterOptions.create(options);
   return container.register(
     Registration.cachedCallback(IBaseHref, (handler, _, __) => {
       const window = handler.get(IWindow);
@@ -55,7 +65,7 @@ function configure(container: IContainer, options?: IRouterOptions): IContainer 
       url.pathname = normalizePath(basePath ?? url.pathname);
       return url;
     }),
-    AppTask.hydrated(IRouter, router => router._setOptions(options!)),
+    Registration.instance(IRouterOptions, routerOptions),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {
@@ -75,7 +85,7 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(options?: IRouterOptions): IRegistry {
+  customize(options?: IRouterConfigurationOptions): IRegistry {
     return {
       register(container: IContainer): IContainer {
         return configure(container, options);

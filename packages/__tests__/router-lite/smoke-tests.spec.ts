@@ -2215,6 +2215,7 @@ describe('router (smoke tests)', function () {
     await au.stop();
   });
 
+  // #region location URL generation
   {
     @customElement({ name: 'vm-a', template: `view-a foo: \${params.foo} | query: \${query.toString()} | fragment: \${fragment}` })
     class VmA {
@@ -2527,9 +2528,47 @@ describe('router (smoke tests)', function () {
 
       await au.stop();
     });
-
-    // TODO(sayan): add more tests for title involving children and sibling routes
   }
+  // TODO(sayan): add more tests for title involving children and sibling routes
+
+  it('root/child/grandchild/great-grandchild', async function () {
+    @customElement({ name: 'gcc-1', template: `gcc1` })
+    class GGC1 { }
+
+    @route({
+      routes: [
+        { path: '', component: GGC1 },
+      ],
+    })
+    @customElement({ name: 'gc-1', template: `<au-viewport></au-viewport>`, })
+    class GC1 { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'gc1' },
+        { id: 'gc1', path: 'gc1', component: GC1 },
+      ],
+    })
+    @customElement({ name: 'c-1', template: `<au-viewport></au-viewport>`, })
+    class C1 { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'c1' },
+        { path: 'c1', component: C1, },
+      ],
+    })
+    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>`, })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+
+    assert.html.textContent(host, 'gcc1');
+    assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /c1\/gc1$/);
+
+    await au.stop();
+  });
+  // #endregion
 
   // TODO(sayan): add tests here for the location URL building in relation for sibling, parent/children relationship and viewport name
 

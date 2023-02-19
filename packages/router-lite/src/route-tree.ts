@@ -1,6 +1,6 @@
 import {
   emptyObject,
-  ILogger,
+  type ILogger,
   onResolve,
   resolveAll,
   Writable,
@@ -11,7 +11,7 @@ import {
   RecognizedRoute,
   RESIDUE,
 } from '@aurelia/route-recognizer';
-import {
+import type {
   CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
@@ -22,27 +22,29 @@ import {
   Params,
   ViewportInstruction,
   ViewportInstructionTree,
+  defaultViewportName,
 } from './instructions';
 import {
   $RecognizedRoute,
-  IRouteContext,
+  type IRouteContext,
 } from './route-context';
 import {
-  defaultViewportName,
   RouteDefinition,
 } from './route-definition';
 import {
   ExpressionKind,
   RouteExpression,
-  ScopedSegmentExpression,
-  SegmentExpression,
+  type ScopedSegmentExpression,
+  type SegmentExpression,
 } from './route-expression';
 import {
   emptyQuery,
   IRouter,
-  NavigationOptions,
   UnknownRouteError,
 } from './router';
+import {
+  type NavigationOptions,
+} from './options';
 import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,

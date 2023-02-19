@@ -110,13 +110,13 @@ export class MyApp {
   items = [1, 2, 3];
 
   message = 'hello world!';
-  
+
   // Inject an instance of Aurelia into our component
   constructor(@IAurelia private readonly au: Aurelia) {}
 
   attached() {
     const itemList = document.getElementById('item-list');
-    
+
     itemList.innerHTML = "<div repeat.for='item of items'>${item}</div>";
 
     // Call the enhance API
@@ -124,7 +124,7 @@ export class MyApp {
       // The component is our view model, we specify an object with an array of items
       component: { items: this.items },
       // The element to enhance
-      host: element,
+      host: itemList,
     });
   }
 }

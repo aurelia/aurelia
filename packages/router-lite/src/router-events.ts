@@ -1,6 +1,6 @@
 import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
-import { ViewportInstructionTree } from './instructions';
+import type { ViewportInstructionTree } from './instructions';
 
 export type RoutingTrigger = 'popstate' | 'hashchange' | 'api';
 

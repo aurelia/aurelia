@@ -3,7 +3,7 @@ import { Constructable, emptyArray, Protocol, ResourceType } from '@aurelia/kern
 
 import { validateRouteConfig, expectType, shallowEquals } from './validation';
 import { RouteableComponent } from './instructions';
-import { RouteNode } from './route-tree';
+import type { RouteNode } from './route-tree';
 
 const noRoutes = emptyArray as RouteConfig['routes'];
 

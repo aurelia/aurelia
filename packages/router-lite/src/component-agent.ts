@@ -1,13 +1,18 @@
-import { Constructable, ILogger } from '@aurelia/kernel';
-import { LifecycleFlags, ICustomElementController, Controller, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { ILogger } from '@aurelia/kernel';
+import type { LifecycleFlags, ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition';
-import { RouteNode } from './route-tree';
+import type { RouteDefinition } from './route-definition';
+import type { RouteNode } from './route-tree';
 import { IRouteContext } from './route-context';
-import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
-import { Transition } from './router';
+import {
+  Params,
+  NavigationInstruction,
+  ViewportInstructionTree
+} from './instructions';
+import type { Transition } from './router';
 import { Batch } from './util';
 import { IRouteConfig } from './route';
+import type { RouterOptions } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig;
@@ -18,8 +23,6 @@ export interface IRouteViewModel extends ICustomElementViewModel {
 }
 
 // type IHooksFn<T, Fn extends (...args: any[]) => unknown> = (vm: T, ...args: Parameters<Fn>) => ReturnType<Fn>;
-
-const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 
 /**
  * A component agent handles an instance of a routed view-model (a component).
@@ -44,6 +47,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     public readonly definition: RouteDefinition,
     public readonly routeNode: RouteNode,
     public readonly ctx: IRouteContext,
+    private readonly routerOptions: RouterOptions,
   ) {
     this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
@@ -58,27 +62,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._hasLoad = 'loading' in instance;
     this._hasCanUnload = 'canUnload' in instance;
     this._hasUnload = 'unloading' in instance;
-  }
-
-  public static for<T extends IRouteViewModel>(
-    componentInstance: T,
-    hostController: ICustomElementController<T>,
-    routeNode: RouteNode,
-    ctx: IRouteContext,
-  ): ComponentAgent<T> {
-    let componentAgent = componentAgentLookup.get(componentInstance);
-    if (componentAgent === void 0) {
-      const container = ctx.container;
-      const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable, ctx.definition, null);
-      const controller = Controller.$el(container, componentInstance, hostController.host, null);
-
-      componentAgentLookup.set(
-        componentInstance,
-        componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx)
-      );
-    }
-
-    return componentAgent as ComponentAgent<T>;
   }
 
   public activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
@@ -170,7 +153,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this.instance, next.params, next, this.routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
           }
           b.pop();
           res();
@@ -189,7 +172,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this.instance.canLoad!(next.params, next, this.routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
           }
           b.pop();
         });

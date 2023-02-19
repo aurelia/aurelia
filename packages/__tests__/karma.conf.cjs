@@ -180,6 +180,7 @@ module.exports =
       'karma-min-reporter',
       'karma-mocha-reporter',
       'karma-chrome-launcher',
+      'karma-safari-launcher',
       // @ts-ignore
       ...(() => {
         let runId = 0;

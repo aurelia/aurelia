@@ -5,7 +5,7 @@
   "description": "Common test result data contracts and storage services.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "typings": "dist/types/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc -b && tsc -b ./tsconfig.cjs.json",
     "test": "echo \"Error: no test specified\" && exit 1"

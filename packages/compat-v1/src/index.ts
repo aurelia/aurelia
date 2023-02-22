@@ -42,3 +42,7 @@ export {
   ListenerBindingRenderer,
   delegateSyntax,
 } from './compat-delegate';
+
+export {
+  BindingEngine,
+} from './compat-binding-engine';

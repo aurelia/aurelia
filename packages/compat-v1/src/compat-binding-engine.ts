@@ -22,9 +22,7 @@ export class BindingEngine {
         };
         observer.subscribe(subscriber);
         return {
-          dispose: () => {
-            observer.unsubscribe(subscriber);
-          },
+          dispose: () => observer.unsubscribe(subscriber)
         };
       },
     };
@@ -39,9 +37,7 @@ export class BindingEngine {
         };
         observer?.subscribe(subscriber);
         return {
-          dispose: () => {
-            observer?.unsubscribe(subscriber);
-          }
+          dispose: () => observer?.unsubscribe(subscriber)
         };
       }
     };
@@ -54,9 +50,7 @@ export class BindingEngine {
         const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, ExpressionType.IsProperty), callback);
         observer.bind();
         return {
-          dispose: () => {
-            observer.unbind();
-          }
+          dispose: () => observer.unbind()
         };
       }
     };

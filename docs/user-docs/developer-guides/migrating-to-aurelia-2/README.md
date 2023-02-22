@@ -99,6 +99,18 @@ Change it to:
 <div if="value.bind: yes">
 ```
 
+## Binding Engine
+
+* `BindingEngine` has been removed in v2, but can still be imported from `@aurelia/compat-v1` package for ease of migration. The `collectionObserver` method on the compat package of `BindingEngine` is not the same with v1, per the follow comparison:
+  v2
+  ```ts
+  collectionObserver(collection): { subscribe: (callback: (collection, indexMap)) => { dispose(): void } }
+  ```
+  v1
+  ```ts
+  collectionObserver(collection): { subscribe: (callback: (collection, splices)) => { dispose(): void } }
+  ```
+
 ## General changes
 
 * Templates no longer need to have `<template>` tags as the start and ending tags. Templates can be pure HTML with enhanced Aurelia markup but `<template>` doesn't need to be explicitly defined.

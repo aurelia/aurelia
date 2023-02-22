@@ -158,7 +158,15 @@ export class RouteNode implements IRouteNode {
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
         for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
-          if (i + j < ii && (nodeChildren[i + j].originalInstruction?.contains(instructionChildren[j]) ?? false)) {
+          const instructionChild = instructionChildren[j];
+          const instructionEndpoint = instructionChild.recognizedRoute?.route.endpoint;
+          const nodeChild = nodeChildren[i + j];
+          if (i + j < ii
+            && (
+              (instructionEndpoint != null && nodeChild.instruction?.recognizedRoute?.route.endpoint === instructionEndpoint)
+              || (nodeChild.originalInstruction?.contains(instructionChild) ?? false)
+            )
+          ) {
             if (j + 1 === jj) {
               return true;
             }
@@ -456,6 +464,7 @@ export function createAndAppendNodes(
             (vi as Writable<ViewportInstruction>).viewport = child.viewport;
             (vi as Writable<ViewportInstruction>).children = child.children;
           }
+          (vi as Writable<ViewportInstruction>).recognizedRoute = rr;
           log.trace('createNode after adjustment vi:%s', vi);
           return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, rr, originalInstruction));
         }

@@ -10,7 +10,8 @@ import {
   onResolve,
   Protocol,
   Registration,
-  ResourceDefinition
+  ResourceDefinition,
+  emptyObject,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -34,12 +35,19 @@ import {
   NavigationInstructionType,
   Params,
   ViewportInstruction,
+  ViewportInstructionTree,
 } from './instructions';
+import {
+  NavigationOptions,
+} from './options';
 import { IViewport } from './resources/viewport';
 import { IChildRouteConfig, Routeable, RouteType } from './route';
 import { RouteDefinition } from './route-definition';
 import type { RouteNode } from './route-tree';
-import { IRouter } from './router';
+import {
+  emptyQuery,
+  IRouter,
+} from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
@@ -152,7 +160,8 @@ export class RouteContext {
   private readonly moduleLoader: IModuleLoader;
   private readonly logger: ILogger;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
-  private readonly recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
+  /** @internal */
+  public readonly _recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
   private _childRoutesConfigured: boolean = false;
 
   private readonly _navigationModel: NavigationModel;
@@ -198,7 +207,7 @@ export class RouteContext {
 
     container.register(definition);
 
-    this.recognizer = new RouteRecognizer();
+    this._recognizer = new RouteRecognizer();
 
     const navModel = this._navigationModel = new NavigationModel([]);
     // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
@@ -427,7 +436,7 @@ export class RouteContext {
     let _continue = true;
     let result: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>> | null = null;
     while (_continue) {
-      result = _current.recognizer.recognize(path);
+      result = _current._recognizer.recognize(path);
       if (result === null) {
         if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
@@ -462,7 +471,7 @@ export class RouteContext {
   }
 
   private $addRoute(path: string, caseSensitive: boolean, handler: RouteDefinition | Promise<RouteDefinition>): void {
-    this.recognizer.add({
+    this._recognizer.add({
       path,
       caseSensitive,
       handler,
@@ -518,7 +527,7 @@ export class RouteContext {
       throwError = true;
     } else if (typeof component === 'string') {
       def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
-    } else if((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
+    } else if ((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
       def = (this.childRoutes as RouteDefinition[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
@@ -527,7 +536,7 @@ export class RouteContext {
     if (def === void 0) return null;
 
     const params = instruction.params;
-    const recognizer = this.recognizer;
+    const recognizer = this._recognizer;
     const paths = def.path;
     const numPaths = paths.length;
     const errors: string[] = [];
@@ -536,7 +545,7 @@ export class RouteContext {
       const result = core(paths[0]);
       if (result === null) {
         const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
-        if(throwError) throw new Error(message);
+        if (throwError) throw new Error(message);
         this.logger.debug(message);
         return null;
       }
@@ -567,7 +576,7 @@ export class RouteContext {
 
     if (result === null) {
       const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
-      if(throwError) throw new Error(message);
+      if (throwError) throw new Error(message);
       this.logger.debug(message);
       return null;
     }
@@ -733,6 +742,7 @@ export interface INavigationRoute {
 // Usage of classical interface pattern is intentional.
 class NavigationRoute implements INavigationRoute {
   private _isActive!: boolean;
+  private vits: ViewportInstructionTree[] | null = null;
   private constructor(
     public readonly id: string,
     public readonly path: string[],
@@ -756,6 +766,22 @@ class NavigationRoute implements INavigationRoute {
 
   /** @internal */
   public setIsActive(router: IRouter, context: IRouteContext): void {
-    this._isActive = this.path.some(path => router.isActive(path, context));
+    const routerOptions = router.options;
+    const vits = this.vits ??= this.path.map(p => {
+      const ep = context._recognizer.getEndpoint(p);
+      if (ep === null) throw new Error(`No endpoint found for path '${p}'`);
+      const vi = ViewportInstruction.create({
+        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+        component: p,
+      });
+      return new ViewportInstructionTree(
+        NavigationOptions.create(routerOptions, { context }),
+        false,
+        [vi],
+        emptyQuery,
+        null
+      );
+    });
+    this._isActive = vits.some(vit => router.routeTree.contains(vit));
   }
 }

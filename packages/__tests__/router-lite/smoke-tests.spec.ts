@@ -2589,15 +2589,15 @@ describe('router (smoke tests)', function () {
 
       @customElement({
         name: 'nav-bar',
-        template: `<nav>
+        template: `<nav if.bind="navModel">
         <ul>
           <li repeat.for="route of navModel.routes${includeRedirection ? '' : '.filter(r => !r.redirectTo)'}"><a href.bind="route.path | firstNonEmpty" active.class="route.isActive">\${route.title}</a></li>
         </ul>
-      </nav>`,
+      </nav><template else>no nav model</template>`,
         dependencies: [FirstNonEmpty]
       })
       class NavBar implements ICustomElementViewModel {
-        private readonly navModel: INavigationModel;
+        private readonly navModel: INavigationModel | null;
         public constructor(
           @IRouteContext routeCtx: IRouteContext,
           @INode private readonly node: INode,
@@ -2606,7 +2606,7 @@ describe('router (smoke tests)', function () {
         }
 
         public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
-          if (hasAsyncRouteConfig) return this.navModel.resolve();
+          if (hasAsyncRouteConfig) return this.navModel?.resolve();
         }
 
         public assert(expected: { href: string; text: string; active?: boolean }[], message: string = ''): void {
@@ -3311,6 +3311,50 @@ describe('router (smoke tests)', function () {
       await router.load('foo/42');
       await queue.yield();
       rootNavbar.assert([{ href: 'p1/:id', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#2 root');
+
+      await au.stop();
+    });
+
+    it('can be deactivated', async function () {
+      @customElement({ name: 'ce-c11', template: 'c11' })
+      class C11 { }
+
+      @route({
+        routes: [
+          { path: ['', 'c11'], component: C11, title: 'C11' },
+        ]
+      })
+      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      class P1 { }
+
+      @route({
+        routes: [
+          { path: ['', 'p1'], component: P1, title: 'P1' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      const navBarCe = getNavBarCe();
+      container.register(
+        StandardConfiguration,
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration.customize({ useNavigationModel: false }),
+        navBarCe
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      await queue.yield();
+      assert.html.textContent(host, 'no nav model root no nav model p1 c11');
 
       await au.stop();
     });

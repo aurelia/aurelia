@@ -164,8 +164,8 @@ export class RouteContext {
   public readonly _recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
   private _childRoutesConfigured: boolean = false;
 
-  private readonly _navigationModel: NavigationModel;
-  public get navigationModel(): INavigationModel {
+  private readonly _navigationModel: NavigationModel | null;
+  public get navigationModel(): INavigationModel | null {
     return this._navigationModel;
   }
 
@@ -209,13 +209,17 @@ export class RouteContext {
 
     this._recognizer = new RouteRecognizer();
 
-    const navModel = this._navigationModel = new NavigationModel([]);
-    // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
-    // Also considering that in a realistic app the number of configured routes are limited in number, this subscription and keeping the routes' active property in sync should not create much issue.
-    // If need be we can optimize it later.
-    container
-      .get(IRouterEvents)
-      .subscribe('au:router:navigation-end', () => navModel.setIsActive(_router, this));
+    if(_router.options.useNavigationModel) {
+      const navModel = this._navigationModel = new NavigationModel([]);
+      // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
+      // Also considering that in a realistic app the number of configured routes are limited in number, this subscription and keeping the routes' active property in sync should not create much issue.
+      // If need be we can optimize it later.
+      container
+        .get(IRouterEvents)
+        .subscribe('au:router:navigation-end', () => navModel.setIsActive(_router, this));
+    } else {
+      this._navigationModel = null;
+    }
     this.processDefinition(definition);
   }
 
@@ -230,6 +234,7 @@ export class RouteContext {
       return;
     }
     const navModel = this._navigationModel;
+    const hasNavModel = navModel !== null;
     let i = 0;
     for (; i < len; i++) {
       const child = children[i];
@@ -249,14 +254,18 @@ export class RouteContext {
             return this.childRoutes[idx] = resolvedRouteDef;
           });
           this.childRoutes.push(p);
-          navModel.addRoute(p);
+          if(hasNavModel) {
+            navModel.addRoute(p);
+          }
           allPromises.push(p.then(noop));
         } else {
           for (const path of routeDef.path) {
             this.$addRoute(path, routeDef.caseSensitive, routeDef);
           }
           this.childRoutes.push(routeDef);
-          navModel.addRoute(routeDef);
+          if(hasNavModel) {
+            navModel.addRoute(routeDef);
+          }
         }
       }
     }
@@ -465,7 +474,7 @@ export class RouteContext {
       for (const path of routeDef.path) {
         this.$addRoute(path, routeDef.caseSensitive, routeDef);
       }
-      this._navigationModel.addRoute(routeDef);
+      this._navigationModel?.addRoute(routeDef);
       this.childRoutes.push(routeDef);
     });
   }
@@ -742,7 +751,7 @@ export interface INavigationRoute {
 // Usage of classical interface pattern is intentional.
 class NavigationRoute implements INavigationRoute {
   private _isActive!: boolean;
-  private vits: ViewportInstructionTree[] | null = null;
+  private _trees: ViewportInstructionTree[] | null = null;
   private constructor(
     public readonly id: string,
     public readonly path: string[],
@@ -768,22 +777,26 @@ class NavigationRoute implements INavigationRoute {
 
   /** @internal */
   public setIsActive(router: IRouter, context: IRouteContext): void {
-    const routerOptions = router.options;
-    const vits = this.vits ??= this.path.map(p => {
-      const ep = context._recognizer.getEndpoint(p);
-      if (ep === null) throw new Error(`No endpoint found for path '${p}'`);
-      const vi = ViewportInstruction.create({
-        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
-        component: p,
+    let trees = this._trees;
+    if (trees === null) {
+      const routerOptions = router.options;
+      trees = this._trees = this.path.map(p => {
+        const ep = context._recognizer.getEndpoint(p);
+        if (ep === null) throw new Error(`No endpoint found for path '${p}'`);
+        return new ViewportInstructionTree(
+          NavigationOptions.create(routerOptions, { context }),
+          false,
+          [
+            ViewportInstruction.create({
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+              component: p,
+            })
+          ],
+          emptyQuery,
+          null
+        );
       });
-      return new ViewportInstructionTree(
-        NavigationOptions.create(routerOptions, { context }),
-        false,
-        [vi],
-        emptyQuery,
-        null
-      );
-    });
-    this._isActive = vits.some(vit => router.routeTree.contains(vit, true));
+    }
+    this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
   }
 }

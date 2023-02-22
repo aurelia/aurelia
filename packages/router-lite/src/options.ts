@@ -35,6 +35,11 @@ export class RouterOptions {
      * If this function returns `null`, the title is not updated.
      */
     public readonly buildTitle: ((transition: Transition) => string | null) | null,
+    /**
+     * When set to `false`, the navigation model won't be generated.
+     * The default value is `true`.
+     */
+    public readonly useNavigationModel: boolean,
   ) { }
 
   public static create(input: IRouterOptions): RouterOptions {
@@ -43,6 +48,7 @@ export class RouterOptions {
       input.useHref ?? true,
       input.historyStrategy ?? 'push',
       input.buildTitle ?? null,
+      input.useNavigationModel ?? true,
     );
   }
 
@@ -54,15 +60,6 @@ export class RouterOptions {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
     }).join(',');
-  }
-
-  public clone(): RouterOptions {
-    return new RouterOptions(
-      this.useUrlFragmentHash,
-      this.useHref,
-      this.historyStrategy,
-      this.buildTitle,
-    );
   }
 
   public toString(): string {

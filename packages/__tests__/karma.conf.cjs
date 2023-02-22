@@ -7,7 +7,7 @@ const basePath = path.resolve(__dirname, '..', '..');
 const smsPath = path.dirname(require.resolve('source-map-support'));
 
 
-const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --browsers=Firefox --single-run --coverage --watch-extensions js,html --bail --reporter=mocha --no-auto-watch'.split(' ');
+const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --browsers=Firefox --browsers=Safari --single-run --coverage --watch-extensions js,html --bail --reporter=mocha --no-auto-watch'.split(' ');
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 

@@ -782,6 +782,6 @@ class NavigationRoute implements INavigationRoute {
         null
       );
     });
-    this._isActive = vits.some(vit => router.routeTree.contains(vit));
+    this._isActive = vits.some(vit => router.routeTree.contains(vit, true));
   }
 }

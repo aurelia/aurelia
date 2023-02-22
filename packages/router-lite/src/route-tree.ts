@@ -152,14 +152,14 @@ export class RouteNode implements IRouteNode {
     );
   }
 
-  public contains(instructions: ViewportInstructionTree): boolean {
+  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
     if (this.context === instructions.options.context) {
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
         for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
           const instructionChild = instructionChildren[j];
-          const instructionEndpoint = instructionChild.recognizedRoute?.route.endpoint;
+          const instructionEndpoint = preferEndpointMatch ? instructionChild.recognizedRoute?.route.endpoint : null;
           const nodeChild = nodeChildren[i + j];
           if (i + j < ii
             && (
@@ -178,7 +178,7 @@ export class RouteNode implements IRouteNode {
     }
 
     return this.children.some(function (x) {
-      return x.contains(instructions);
+      return x.contains(instructions, preferEndpointMatch);
     });
   }
 
@@ -308,8 +308,8 @@ export class RouteTree {
     public root: RouteNode,
   ) { }
 
-  public contains(instructions: ViewportInstructionTree): boolean {
-    return this.root.contains(instructions);
+  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
+    return this.root.contains(instructions, preferEndpointMatch);
   }
 
   public clone(): RouteTree {

@@ -2967,7 +2967,7 @@ describe('router (smoke tests)', function () {
       @route({
         routes: [
           { path: ['', 'c11'], component: C11, title: 'C11' },
-          { path: 'c12', component: C12, title: 'C12' },
+          { path: ['c12/:id', 'c12'], component: C12, title: 'C12' },
         ]
       })
       @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
@@ -2975,7 +2975,7 @@ describe('router (smoke tests)', function () {
 
       @route({
         routes: [
-          { path: 'c21', component: C21, title: 'C21' },
+          { path: ['c21', 'c21/:id'], component: C21, title: 'C21' },
           { path: ['', 'c22'], component: C22, title: 'C22' },
         ]
       })
@@ -3016,7 +3016,7 @@ describe('router (smoke tests)', function () {
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'start root');
       let childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
-      childNavBar.assert([{ href: 'c11', text: 'C11', active: true }, { href: 'c12', text: 'C12', active: false }], 'start child navbar');
+      childNavBar.assert([{ href: 'c11', text: 'C11', active: true }, { href: 'c12/:id', text: 'C12', active: false }], 'start child navbar');
 
       // Round#2
       await router.load('p2/42');
@@ -3030,7 +3030,7 @@ describe('router (smoke tests)', function () {
       await queue.yield();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
-      childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 child navbar');
+      childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12/:id', text: 'C12', active: true }], 'round#2 child navbar');
 
       // Round#3
       await router.load('p2');
@@ -3040,14 +3040,14 @@ describe('router (smoke tests)', function () {
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#3 child navbar');
 
       // Round#4
-      await router.load('p1');
+      await router.load('p1/c12/42');
       await queue.yield();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#4 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
-      childNavBar.assert([{ href: 'c11', text: 'C11', active: true }, { href: 'c12', text: 'C12', active: false }], 'round#4 child navbar');
+      childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12/:id', text: 'C12', active: true }], 'round#4 child navbar');
 
       // Round#5
-      await router.load('p2/42/C21');
+      await router.load('p2/42/C21/21');
       await queue.yield();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: true }], 'round#5 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;

@@ -746,6 +746,7 @@ class NavigationRoute implements INavigationRoute {
   private constructor(
     public readonly id: string,
     public readonly path: string[],
+    public readonly redirectTo: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Record<string, unknown>,
   ) { }
@@ -755,6 +756,7 @@ class NavigationRoute implements INavigationRoute {
     return new NavigationRoute(
       routeDef.id,
       routeDef.path,
+      routeDef.redirectTo,
       routeDef.config.title,
       routeDef.data,
     );

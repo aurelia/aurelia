@@ -336,7 +336,7 @@ export class Router {
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
     // TODO: incorporate potential context offset by `../` etc in the instructions
-    return this.routeTree.contains(instructions);
+    return this.routeTree.contains(instructions, false);
   }
 
   private readonly vpaLookup: ViewportAgentLookup = new Map();

@@ -11,6 +11,7 @@ test.describe('router', () => {
   });
 
   test('works on safari', async ({ page }) => {
+    console.log('User agent is: \n', await page.evaluate(() => navigator.userAgent));
     await expect(page.locator('select')).toHaveValue('1');
   });
 });

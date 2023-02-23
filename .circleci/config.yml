@@ -69,6 +69,8 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
+  
+
   docker_release:
     working_directory: *working_dir
     resource_class: large
@@ -535,6 +537,34 @@ jobs:
             npm run test
           no_output_timeout: "1m"
 
+  e2e_safari:
+    macos:
+      xcode: 14.2.0
+    parameters:
+      path:
+        type: string
+    steps:
+      - checkout_install:
+          install_chrome: false
+          install_firefox: false
+          install: true
+      # instead of doing the following 2 commands
+      # - checkout_install
+      - run: npm run build
+      # just restore some cache from previous steps
+      # - run: chown -R $USER:$USER /home/circleci
+      # - restore_cache:
+      #     key: cache-{{ checksum "package-lock.json" }}-install
+      # - restore_cache:
+      #     key: cache-{{ .Revision }}-build-false
+      - run:
+          name: "Run e2e script"
+          working_directory: << parameters.path >>
+          command: |
+            npx playwright install chrome webkit
+            npm run test
+          no_output_timeout: "1m"
+
   # Standalone playwright test jobs
   e2e_playwright:
     executor: docker_circleci
@@ -835,6 +865,12 @@ workflows:
           requires:
             - build_release
 
+      - e2e_safari:
+          <<: *filter_ignore_develop_release
+          name: safari16_select
+          path: "packages/__e2e__/select-safari16"
+          requires:
+            - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack

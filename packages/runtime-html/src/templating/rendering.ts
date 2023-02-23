@@ -82,34 +82,42 @@ export class Rendering {
       return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
+    let needsImportNode = false;
     const cache = this._fragmentCache;
+    const p = this._platform;
+    const doc = p.document;
     if (cache.has(definition)) {
       fragment = cache.get(definition);
     } else {
-      const p = this._platform;
-      const doc = p.document;
       const template = definition.template;
       let tpl: HTMLTemplateElement;
       if (template === null) {
         fragment = null;
       } else if (template instanceof p.Node) {
         if (template.nodeName === 'TEMPLATE') {
-          fragment = doc.adoptNode((template as HTMLTemplateElement).content);
+          fragment = (template as HTMLTemplateElement).content;
+          needsImportNode = true;
         } else {
-          (fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template.cloneNode(true));
+          (fragment = doc.createDocumentFragment()).appendChild(template.cloneNode(true));
         }
       } else {
         tpl = doc.createElement('template');
         if (isString(template)) {
           tpl.innerHTML = template;
         }
-        doc.adoptNode(fragment = tpl.content);
+        fragment = tpl.content;
+        needsImportNode = true;
       }
       cache.set(definition, fragment);
     }
     return fragment == null
       ? this._empty
-      : new FragmentNodeSequence(this._platform, fragment.cloneNode(true) as DocumentFragment);
+      : new FragmentNodeSequence(
+        this._platform,
+        needsImportNode
+          ? doc.importNode(fragment, true)
+          : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment)
+        );
   }
 
   public render(

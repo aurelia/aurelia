@@ -644,11 +644,7 @@ describe('AccessMemberExpression', function () {
       if (canHaveProperty) {
         assert.strictEqual(actual, value, `actual`);
       } else {
-        if (obj === null) {
-          assert.strictEqual(actual, null, `actual`);
-        } else {
-          assert.strictEqual(actual, undefined, `actual`);
-        }
+        assert.strictEqual(actual, undefined, `actual`);
       }
       const binding = new MockBinding();
       astEvaluate(sut, scope, dummyLocator, binding);

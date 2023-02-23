@@ -145,7 +145,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       let ret: unknown;
       if (e?.strict) {
         if (instance == null) {
-          return instance;
+          return undefined;
         }
         if (c !== null) {
           c.observe(instance, ast.name);

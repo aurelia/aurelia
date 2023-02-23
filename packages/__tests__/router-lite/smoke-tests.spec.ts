@@ -2764,7 +2764,8 @@ describe('router (smoke tests)', function () {
 
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public async getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): Promise<IRouteConfig> {
+          await new Promise((resolve) => setTimeout(resolve, 10));
           return {
             routes: [
               { path: ['', 'p1'], component: P1, title: 'P1' },

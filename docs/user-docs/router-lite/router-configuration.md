@@ -383,3 +383,7 @@ Note that the following example is identical with the previous example, with the
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-none?ctl=1&embed=1&file=src/main.ts" %}
 
 As you interact with this example, you can see that there is absolutely no change in the history information, indicating non-interaction with the history object.
+
+### Override configured history strategy
+
+You can use the [navigation options](./navigating.md#using-navigation-options) to override the configured history strategy for individual routing instructions.

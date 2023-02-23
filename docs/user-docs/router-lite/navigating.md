@@ -1000,6 +1000,25 @@ Following is live example of this.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-element?ctl=1&embed=1&file=src/child1.ts" %}
 
+**historyStrategy**
+
+Using this navigation option, you can override the [configured history strategy](./router-configuration.md#configure-browser-history-strategy).
+Let us consider the example where three routes `c1`, `c2`, and `c3` are configured with the `push` history strategy.
+Let us also assume that the following navigation instructions have already taken place.
+
+```typescript
+router.load('c1');
+router.load('c2');
+```
+
+After this, if we issue the following instruction,
+
+```typescript
+router.load('c3', { historyStrategy: 'replace' })
+```
+
+then performing a `history.back()` should load the `c1` route, as the state for `c2` is replaced.
+
 ## Redirection and unknown paths
 
 For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.

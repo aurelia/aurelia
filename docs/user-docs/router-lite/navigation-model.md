@@ -17,6 +17,7 @@ interface INavigationModel {
   readonly routes: readonly {
     readonly id: string;
     readonly path: string[];
+    readonly redirectTo: string | null;
     readonly title: string | ((node: RouteNode) => string | null) | null;
     readonly data: Record<string, unknown>;
     readonly isActive: boolean;
@@ -128,3 +129,8 @@ export class MyApp {}
 You see this in action in the example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-navigation-model-exclusion?ctl=1&embed=1&file=src/my-app.ts" %}
+
+## Disabling navigation model
+
+If you are not creating a menu using the navigation model, you can also deactivate the navigation model by setting `false` to the `useNavigationModel` [router option](./router-configuration.md).
+Doing so, will set the `IRouteContext#navigationModel` to `null` and skip further processing.

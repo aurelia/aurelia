@@ -1793,7 +1793,7 @@ If you are migrating v1 application, install compat package to add back the ".de
 `
   : ''
 }${name === 'call'
-  ? `The ".call" binding command has been deprecated removed in v2.
+  ? `The ".call" binding command has been removed in v2.
 If you want to pass a callback that preserves the context of the function call, you can use lambda instead. Refer to lambda expression doc for more details.`
   : ''
 }

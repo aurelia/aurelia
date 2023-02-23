@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+test.use({
+  browserName: 'webkit',
+});
+
 test.describe('router', () => {
-  test.use({
-    browserName: 'webkit',
-  });
 
   test.beforeEach(async ({ page, baseURL }) => {
     await page.goto(baseURL);

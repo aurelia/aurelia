@@ -41,6 +41,7 @@ const validE2e = [
   'router-lite',
   'hmr-vite',
   'hmr-webpack',
+  'select-safari16',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 

@@ -2128,13 +2128,12 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     class Child {
       constructor($parent: Parent) {
         parent = $parent;
-        debugger;
       }
     }
 
     createFixture(
       '<parent view-model.ref=parent><child>',
-      class App { parent: Parent; },
+      class App { },
       [Parent, Child]
     );
 

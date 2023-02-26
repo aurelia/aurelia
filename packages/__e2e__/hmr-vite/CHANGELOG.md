@@ -3,10 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-<a name="2.0.0-alpha.41"></a>
-# 2.0.0-alpha.41 (2022-09-22)
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
 
-### Refactorings:
+### Features:
 
-* **hmr:** retain bindable state closes #1550 ([e71026a](https://github.com/aurelia/aurelia/commit/e71026a))
+* ***:** add vite plugin (#1651) ([5f3a88d](https://github.com/aurelia/aurelia/commit/5f3a88d))
 

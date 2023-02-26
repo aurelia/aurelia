@@ -3,6 +3,55 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Features:
+
+* **router-lite:** useNavigationModel ([542d564](https://github.com/aurelia/aurelia/commit/542d564))
+* **compat:** add binding engine (#1679) ([a6dd0de](https://github.com/aurelia/aurelia/commit/a6dd0de))
+* **router-lite:** async getRouteConfig ([da650fb](https://github.com/aurelia/aurelia/commit/da650fb))
+* add vite plugin (#1651) ([5f3a88d](https://github.com/aurelia/aurelia/commit/5f3a88d))
+
+
+### Bug Fixes:
+
+* **dom:** broken in safari16 (#1680) ([62321a7](https://github.com/aurelia/aurelia/commit/62321a7))
+* **templating:** ensure fragment always have proper owner document ([62321a7](https://github.com/aurelia/aurelia/commit/62321a7))
+* **router-lite:** nav model isActive for parameterized route ([91cc2cc](https://github.com/aurelia/aurelia/commit/91cc2cc))
+* **docs:** fix enhance example code ([8bbf6f2](https://github.com/aurelia/aurelia/commit/8bbf6f2))
+* **router-lite:** location URL generation with redirectTo ([39ec38f](https://github.com/aurelia/aurelia/commit/39ec38f))
+* **router-lite:** history state navigation ([40d7440](https://github.com/aurelia/aurelia/commit/40d7440))
+* **router-lite:** lifecycle hooks were invoked twice (#1664) ([5aeaa54](https://github.com/aurelia/aurelia/commit/5aeaa54))
+* **ast:** correctly resolves access keyed on primitve (#1662) ([0eae2ce](https://github.com/aurelia/aurelia/commit/0eae2ce))
+* **router-lite:** routeTree adjustment - canUnload ([3c9ee4b](https://github.com/aurelia/aurelia/commit/3c9ee4b))
+* **router-lite:** redirectTo parameter remapping ([9687178](https://github.com/aurelia/aurelia/commit/9687178))
+* **router-lite:** parameterized redirectTo ([591f89c](https://github.com/aurelia/aurelia/commit/591f89c))
+* **router-lite:** redirectTo URL adjustment ([37f1dfc](https://github.com/aurelia/aurelia/commit/37f1dfc))
+* **hmr:** no invalidate on parcel (#1647) ([843ca70](https://github.com/aurelia/aurelia/commit/843ca70))
+* **router-lite:** fragment to URL (#1645) ([4f29e66](https://github.com/aurelia/aurelia/commit/4f29e66))
+* **router-lite:** queryParams and fragment propagation from nav option (#1643) ([8ad1c52](https://github.com/aurelia/aurelia/commit/8ad1c52))
+* **router-lite:** various overloads for the load method (#1642) ([fad763e](https://github.com/aurelia/aurelia/commit/fad763e))
+* **router-lite:** `null` binding for default attribute of viewport ([e1a49f1](https://github.com/aurelia/aurelia/commit/e1a49f1))
+* **router-lite:** handling hash in load, href CAs ([8489a10](https://github.com/aurelia/aurelia/commit/8489a10))
+
+
+### Refactorings:
+
+* **router-lite:** redirectTo in nav model ([cc0f71b](https://github.com/aurelia/aurelia/commit/cc0f71b))
+* **router-lite:** instance registration of RouterOptions in DI ([5993a8b](https://github.com/aurelia/aurelia/commit/5993a8b))
+* **router-lite:** transition plan ([186da90](https://github.com/aurelia/aurelia/commit/186da90))
+* **router-lite:** removed SameUrlStrategy ([54efabf](https://github.com/aurelia/aurelia/commit/54efabf))
+
+
+### Deprecated:
+
+The `@aurelia/store-v1` package is deprecated in favor of [`@aurelia/state`](https://www.npmjs.com/package/@aurelia/state).
+There will be no further development for this package and this is planned to be removed in the `v2.0.0-beta.3` release.
+Note that this does not affect the Aurelia v1 in any way (the Aurelia v1 plugin can be found at https://github.com/aurelia/store).
+
+
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

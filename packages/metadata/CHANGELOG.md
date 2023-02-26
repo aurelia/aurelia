@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Bug Fixes:
+
+* ***:** linting errors ([e6010d0](https://github.com/aurelia/aurelia/commit/e6010d0))
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

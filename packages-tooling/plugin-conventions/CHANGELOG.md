@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Features:
+
+* ***:** add vite plugin (#1651) ([5f3a88d](https://github.com/aurelia/aurelia/commit/5f3a88d))
+
+
+### Bug Fixes:
+
+* ***:** toolings tests ([bc7e8e0](https://github.com/aurelia/aurelia/commit/bc7e8e0))
+* **hmr:** no invalidate on parcel (#1647) ([843ca70](https://github.com/aurelia/aurelia/commit/843ca70))
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

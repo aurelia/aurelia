@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Features:
+
+* **compat:** add binding engine (#1679) ([a6dd0de](https://github.com/aurelia/aurelia/commit/a6dd0de))
+
+
+### Bug Fixes:
+
+* **dom:** broken in safari16 (#1680) ([62321a7](https://github.com/aurelia/aurelia/commit/62321a7))
+* **templating:** ensure fragment always have proper owner document ([62321a7](https://github.com/aurelia/aurelia/commit/62321a7))
+* ***:** linting errors ([e6010d0](https://github.com/aurelia/aurelia/commit/e6010d0))
+* **ast:** correctly resolves access keyed on primitve (#1662) ([0eae2ce](https://github.com/aurelia/aurelia/commit/0eae2ce))
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

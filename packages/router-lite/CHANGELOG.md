@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Features:
+
+* **router-lite:** useNavigationModel ([542d564](https://github.com/aurelia/aurelia/commit/542d564))
+* **router-lite:** async getRouteConfig ([da650fb](https://github.com/aurelia/aurelia/commit/da650fb))
+
+
+### Bug Fixes:
+
+* **router-lite:** failing test for load CA ([bd52286](https://github.com/aurelia/aurelia/commit/bd52286))
+* **router-lite:** nav model isActive param route ([91cc2cc](https://github.com/aurelia/aurelia/commit/91cc2cc))
+* **router-lite:** location URL generation with redirectTo ([39ec38f](https://github.com/aurelia/aurelia/commit/39ec38f))
+* **router-lite:** history state navigation ([40d7440](https://github.com/aurelia/aurelia/commit/40d7440))
+* **router-lite:** lifecycle hooks were invoked twice (#1664) ([5aeaa54](https://github.com/aurelia/aurelia/commit/5aeaa54))
+* **router-lite:** lifecycle hooks were invoked twice ([5aeaa54](https://github.com/aurelia/aurelia/commit/5aeaa54))
+* **router-lite:** routeTree adjustment - canUnload ([3c9ee4b](https://github.com/aurelia/aurelia/commit/3c9ee4b))
+* **router-lite:** redirectTo parameter remapping ([9687178](https://github.com/aurelia/aurelia/commit/9687178))
+* **s the following use case of `{ path: 'fizz/:foo/:bar', redirectTo: 'p2/:bar:** foo' }`. ([9687178](https://github.com/aurelia/aurelia/commit/9687178))
+* **router-lite:** parameterized redirectTo ([591f89c](https://github.com/aurelia/aurelia/commit/591f89c))
+* **router-lite:** redirectTo URL adjustment ([37f1dfc](https://github.com/aurelia/aurelia/commit/37f1dfc))
+* **router-lite:** fragment to url ([732ab3f](https://github.com/aurelia/aurelia/commit/732ab3f))
+* **router-lite:** fragment to URL (#1645) ([4f29e66](https://github.com/aurelia/aurelia/commit/4f29e66))
+* **router-lite:** queryParams and fragment propagation from nav option (#1643) ([8ad1c52](https://github.com/aurelia/aurelia/commit/8ad1c52))
+* **router-lite:** various overloads for the load method (#1642) ([fad763e](https://github.com/aurelia/aurelia/commit/fad763e))
+* **router-lite/viewport:** null default binding ([e1a49f1](https://github.com/aurelia/aurelia/commit/e1a49f1))
+* **router-lite:** deepscan issue ([0bf36d1](https://github.com/aurelia/aurelia/commit/0bf36d1))
+* **router-lite:** handling hash in load, href CAs ([8489a10](https://github.com/aurelia/aurelia/commit/8489a10))
+
+
+### Refactorings:
+
+* **router-lite:** redirectTo in nav model ([cc0f71b](https://github.com/aurelia/aurelia/commit/cc0f71b))
+* ***:** router-lite ([0646607](https://github.com/aurelia/aurelia/commit/0646607))
+* ***:** router-lite ([5386fd8](https://github.com/aurelia/aurelia/commit/5386fd8))
+* **router-lite:** instance regn RouterOptions ([5993a8b](https://github.com/aurelia/aurelia/commit/5993a8b))
+* **router-lite:** restored error guard ([556e396](https://github.com/aurelia/aurelia/commit/556e396))
+* **router-lite:** transition plan ([186da90](https://github.com/aurelia/aurelia/commit/186da90))
+* **router-lite:** removed SameUrlStrategy ([54efabf](https://github.com/aurelia/aurelia/commit/54efabf))
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

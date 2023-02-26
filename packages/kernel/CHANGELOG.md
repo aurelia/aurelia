@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.2"></a>
+# 2.0.0-beta.2 (2023-02-26)
+
+### Bug Fixes:
+
+* **router-lite:** lifecycle hooks were invoked twice (#1664) ([5aeaa54](https://github.com/aurelia/aurelia/commit/5aeaa54))
+* **router-lite:** lifecycle hooks were invoked twice ([5aeaa54](https://github.com/aurelia/aurelia/commit/5aeaa54))
+
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)
 

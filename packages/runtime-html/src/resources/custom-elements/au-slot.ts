@@ -6,10 +6,11 @@ import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 
-import type { Writable } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable } from '@aurelia/kernel';
 import type { LifecycleFlags, ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
+import { registerResolver } from '../../utilities-di';
 
 @customElement({
   name: 'au-slot',
@@ -37,13 +38,20 @@ export class AuSlot implements ICustomElementViewModel {
     rendering: IRendering,
   ) {
     let factory: IViewFactory;
+    let container: IContainer;
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     if (projection == null) {
       factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
       this._hasProjection = false;
     } else {
-      factory = rendering.getViewFactory(projection, hdrContext.parent!.controller.container);
+      container = hdrContext.parent!.controller.container.createChild();
+      registerResolver(
+        container,
+        hdrContext.controller.definition.Type,
+        new InstanceProvider(void 0, hdrContext.controller.viewModel)
+      );
+      factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
     }
     this._hdrContext = hdrContext;

@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, inject } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
@@ -2108,5 +2108,36 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
     assertText('p', 'my-el content: hello');
     assertHtml('p > a', 'hello');
+  });
+
+  it('injects the right parent component', async function () {
+    let id = 0;
+    @customElement({
+      name: 'parent',
+      template: '<au-slot>'
+    })
+    class Parent {
+      id = ++id;
+    }
+
+    let parent: Parent | null = null;
+    @inject(Parent)
+    @customElement({
+      name: 'child'
+    })
+    class Child {
+      constructor($parent: Parent) {
+        parent = $parent;
+      }
+    }
+
+    createFixture(
+      '<parent view-model.ref=parent><child>',
+      class App { },
+      [Parent, Child]
+    );
+
+    assert.instanceOf(parent, Parent);
+    assert.strictEqual(parent.id, 1);
   });
 });

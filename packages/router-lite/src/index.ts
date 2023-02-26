@@ -27,6 +27,13 @@ export {
   type NavigationInstruction,
   IViewportInstruction,
   type Params,
+  type ViewportInstruction,
+  ITypedNavigationInstruction,
+  ITypedNavigationInstruction_string,
+  ITypedNavigationInstruction_ViewportInstruction,
+  ITypedNavigationInstruction_CustomElementDefinition,
+  ITypedNavigationInstruction_Promise,
+  ITypedNavigationInstruction_IRouteViewModel,
 } from './instructions';
 
 export {

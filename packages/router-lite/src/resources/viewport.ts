@@ -11,10 +11,10 @@ import {
 
 import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
-import { defaultViewportName, IViewportInstruction } from '../instructions';
+import { defaultViewportName, type ViewportInstruction } from '../instructions';
 import { type RouteNode } from '../route-tree';
 
-export type FallbackFunction = (viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext) => string | null;
+export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext) => string | null;
 
 export interface IViewport {
   readonly name: string;
@@ -22,7 +22,7 @@ export interface IViewport {
   readonly default: string;
   readonly fallback: string | FallbackFunction;
   /** @internal */
-  _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null;
+  _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -45,7 +45,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   /** @internal */
-  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
+  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
     const fallback = this.fallback;
     return typeof fallback === 'function'
       ? fallback(viewportInstruction, routeNode, context)

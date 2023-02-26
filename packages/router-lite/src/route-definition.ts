@@ -17,7 +17,7 @@ import {
   NavigationInstructionType,
   ITypedNavigationInstruction_Component,
   defaultViewportName,
-  IViewportInstruction,
+  type ViewportInstruction,
 } from './instructions';
 import {
   RouteConfig,
@@ -68,7 +68,7 @@ export class RouteDefinition {
   }
 
   /** @internal */
-  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
+  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
     const fallback = this.fallback;
     return typeof fallback === 'function'
       ? fallback(viewportInstruction, routeNode, context)

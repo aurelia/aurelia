@@ -77,7 +77,6 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
       case 'id':
       case 'viewport':
       case 'redirectTo':
-      case 'fallback':
         if (typeof value !== 'string') {
           expectType('string', path, value);
         }
@@ -142,6 +141,15 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
             break;
           default:
             expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
+        }
+        break;
+      case 'fallback':
+        switch(typeof value) {
+          case 'string':
+          case 'function':
+            break;
+          default:
+            expectType('string or function', path, value);
         }
         break;
       default:

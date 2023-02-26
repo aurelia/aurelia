@@ -11,13 +11,18 @@ import {
 
 import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
-import { defaultViewportName } from '../instructions';
+import { defaultViewportName, IViewportInstruction } from '../instructions';
+import { type RouteNode } from '../route-tree';
+
+export type FallbackFunction = (viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext) => string | null;
 
 export interface IViewport {
   readonly name: string;
   readonly usedBy: string;
   readonly default: string;
-  readonly fallback: string;
+  readonly fallback: string | FallbackFunction;
+  /** @internal */
+  _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -25,7 +30,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   @bindable public name: string = defaultViewportName;
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
-  @bindable public fallback: string = '';
+  @bindable public fallback: string | FallbackFunction = '';
 
   private agent: ViewportAgent = (void 0)!;
   private controller: ICustomElementController = (void 0)!;
@@ -37,6 +42,14 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
 
     this.logger.trace('constructor()');
+  }
+
+  /** @internal */
+  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
+    const fallback = this.fallback;
+    return typeof fallback === 'function'
+      ? fallback(viewportInstruction, routeNode, context)
+      : fallback;
   }
 
   public hydrated(controller: ICompiledCustomElementController): void {

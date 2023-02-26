@@ -17,6 +17,7 @@ import {
   NavigationInstructionType,
   ITypedNavigationInstruction_Component,
   defaultViewportName,
+  IViewportInstruction,
 } from './instructions';
 import {
   RouteConfig,
@@ -39,6 +40,7 @@ import {
 } from './util';
 import type { IRouteViewModel } from './component-agent';
 import type { RouteNode } from './route-tree';
+import { FallbackFunction } from './resources/viewport';
 
 export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
@@ -48,7 +50,7 @@ export class RouteDefinition {
   public readonly viewport: string;
   public readonly id: string;
   public readonly data: Record<string, unknown>;
-  public readonly fallback: string | null;
+  public readonly fallback: string | FallbackFunction | null;
 
   public constructor(
     public readonly config: RouteConfig,
@@ -63,6 +65,14 @@ export class RouteDefinition {
     this.id = ensureString(config.id ?? this.path);
     this.data = config.data ?? {};
     this.fallback = config.fallback ?? parentDefinition?.fallback ?? null;
+  }
+
+  /** @internal */
+  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
+    const fallback = this.fallback;
+    return typeof fallback === 'function'
+      ? fallback(viewportInstruction, routeNode, context)
+      : fallback;
   }
 
   // Note on component instance: it is non-null for the root, and when the component agent is created via the route context (if the child routes are not yet configured).

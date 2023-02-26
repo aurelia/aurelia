@@ -1,5 +1,6 @@
 export {
   type IViewport,
+  FallbackFunction,
 } from './resources/viewport';
 
 export {

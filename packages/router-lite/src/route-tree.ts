@@ -434,7 +434,9 @@ export function createAndAppendNodes(
             let vp = vi.viewport;
             if (vp === null || vp.length === 0) vp = defaultViewportName;
             const vpa = ctx.getFallbackViewportAgent(vp);
-            const fallback = vpa !== null ? vpa.viewport.fallback : ctx.definition.fallback;
+            const fallback = vpa !== null
+              ? vpa.viewport._getFallback(vi, node, ctx)
+              : ctx.definition._getFallback(vi, node, ctx);
             if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
             // fallback: id -> route -> CEDefn (Route definition)

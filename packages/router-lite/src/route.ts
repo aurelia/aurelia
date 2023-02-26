@@ -4,6 +4,7 @@ import { Constructable, emptyArray, Protocol, ResourceType } from '@aurelia/kern
 import { validateRouteConfig, expectType, shallowEquals } from './validation';
 import { RouteableComponent } from './instructions';
 import type { RouteNode } from './route-tree';
+import { FallbackFunction } from './resources/viewport';
 
 const noRoutes = emptyArray as RouteConfig['routes'];
 
@@ -69,7 +70,7 @@ export interface IRouteConfig {
      * When set, will be used to redirect unknown/unconfigured routes to this route.
      * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
      */
-    readonly fallback?: string | null;
+    readonly fallback?: string | FallbackFunction | null;
     /**
      * When set to `false`, the routes won't be included in the navigation model.
      *
@@ -107,7 +108,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly viewport: string | null,
     public readonly data: Record<string, unknown>,
     public readonly routes: readonly Routeable[],
-    public readonly fallback: string | null,
+    public readonly fallback: string | FallbackFunction | null,
     public readonly component: Routeable,
     public readonly nav: boolean,
   ) { }

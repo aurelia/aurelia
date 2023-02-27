@@ -491,3 +491,55 @@ The `fallback` attribute in the `au-viewport`, when configured, always takes pre
 This is shown in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-fallback?ctl=1&embed=1&file=src/my-app.html" %}
+
+A function for the value of `fallback` is also supported.
+An example looks like as follows, where the example redirects the user to `NF1` component if an attempt to load a path `/foo` is made.
+Every other attempt to load an unknown path is results loading the `NF2` component.
+
+```typescript
+import { customElement } from '@aurelia/runtime-html';
+import {
+  IRouteContext,
+  ITypedNavigationInstruction_string,
+  route,
+  RouteNode,
+  ViewportInstruction,
+} from '@aurelia/router-lite';
+import template from './my-app.html';
+
+@customElement({ name: 'ce-a', template: 'a' })
+class A {}
+
+@customElement({ name: 'n-f-1', template: 'nf1' })
+class NF1 {}
+
+@customElement({ name: 'n-f-2', template: 'nf2' })
+class NF2 {}
+
+@route({
+  routes: [
+    { id: 'r1', path: ['', 'a'], component: A },
+    { id: 'r2', path: ['nf1'], component: NF1 },
+    { id: 'r3', path: ['nf2'], component: NF2 },
+  ],
+})
+@customElement({
+  name: 'my-app',
+  template: `<nav>
+  <a href="a">A</a>
+  <a href="foo">Foo</a>
+  <a href="bar">Bar</a>
+</nav>
+
+<au-viewport fallback.bind></au-viewport>`
+})
+export class MyApp {
+  fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+    return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
+  }
+}
+```
+
+You can also see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-fallback-using-function-vafyn8?ctl=1&embed=1&file=src/my-app.html" %}

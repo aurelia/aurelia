@@ -468,6 +468,64 @@ With this configuration in place, when navigation to a un-configured route ('Foo
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-hierarchical?ctl=1&embed=1&file=src/my-app.ts" %}
 
+A function can be used for `fallback`.
+The function takes the following signature.
+
+```typescript
+fallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string;
+```
+
+An example can look like below, where the example redirects the user to `NF1` component if an attempt to load a path `/foo` is made.
+Every other attempt to load an unknown path is results loading the `NF2` component.
+
+```typescript
+import { customElement } from '@aurelia/runtime-html';
+import {
+  IRouteContext,
+  ITypedNavigationInstruction_string,
+  route,
+  RouteNode,
+  ViewportInstruction,
+} from '@aurelia/router-lite';
+
+@customElement({ name: 'ce-a', template: 'a' })
+class A {}
+
+@customElement({ name: 'n-f-1', template: 'nf1' })
+class NF1 {}
+
+@customElement({ name: 'n-f-2', template: 'nf2' })
+class NF2 {}
+
+@route({
+  routes: [
+    { id: 'r1', path: ['', 'a'], component: A },
+    { id: 'r2', path: ['nf1'], component: NF1 },
+    { id: 'r3', path: ['nf2'], component: NF2 },
+  ],
+  fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+    return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
+  },
+})
+@customElement({
+  name: 'my-app',
+  template: `
+  <nav>
+  <a href="a">A</a>
+  <a href="foo">Foo</a>
+  <a href="bar">Bar</a>
+</nav>
+
+<au-viewport></au-viewport>`
+})
+export class MyApp {}
+```
+
+You can also see this in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-fallback-using-function?ctl=1&embed=1&file=src/my-app.html" %}
+
+
 ## Case sensitive routes
 
 Routes can be marked as case-sensitive in the configuration, allowing the navigation to the component only when the case matches exactly the configured path.

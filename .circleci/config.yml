@@ -553,7 +553,7 @@ jobs:
       # - run: npm run build
       # just restore some cache from previous steps
       - run: |
-          chown -R $(whoami) ~/home/circleci
+          chown -R $(whoami) ../../
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:

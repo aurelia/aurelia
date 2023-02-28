@@ -947,6 +947,11 @@ workflows:
           dist_file_name: merge_and_dist_topic
           requires:
             - build_release
+            
+      - request_publish_dev:
+          <<: *filter_only_master
+          type: approval
+          no_output_timeout: 20m
       - publish_npm:
           <<: *filter_only_master
           name: publish_npm_dev
@@ -954,7 +959,9 @@ workflows:
           branch: develop
           swap: true
           requires:
+            - request_publish_dev
             - merge_and_dist_master
+          
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

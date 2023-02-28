@@ -547,14 +547,14 @@ jobs:
       - checkout_install:
           install_chrome: false
           install_firefox: false
-          install: true
+          install: false
       # instead of doing the following 2 commands
       # - checkout_install
       # - run: npm run build
       # just restore some cache from previous steps
       - run: chown -R $(whoami) home/circleci
-      # - restore_cache:
-      #     key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           key: cache-{{ .Revision }}-build-false
       - run:
@@ -870,7 +870,6 @@ workflows:
           name: safari16_select
           path: "packages/__e2e__/select-safari16"
           requires:
-            - check_doc_abort
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release

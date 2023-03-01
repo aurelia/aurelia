@@ -242,16 +242,22 @@ export class BindableDefinition {
     public readonly primary: boolean,
     public readonly property: string,
     public readonly set: InterceptorFunc,
+    public readonly type?: PropertyType,
+    public readonly nullable?: boolean,
   ) { }
 
   public static create(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}): BindableDefinition {
+    const type = def.type ?? Metadata.get('design:type', target, prop);
+
     return new BindableDefinition(
       firstDefined(def.attribute, kebabCase(prop)),
       firstDefined(def.callback, `${prop}Changed`),
       firstDefined(def.mode, BindingMode.toView),
       firstDefined(def.primary, false),
       firstDefined(def.property, prop),
-      firstDefined(def.set, getInterceptor(prop, target, def)),
+      firstDefined(def.set, getInterceptor(type, def.nullable)),
+      type,
+      def.nullable
     );
   }
 }
@@ -345,8 +351,7 @@ const Coercer = {
   }
 };
 
-function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  const type: PropertyType | null = def.type ?? Metadata.get('design:type', target, prop) ?? null;
+function getInterceptor(type?: PropertyType, nullable?: boolean) {
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;
   switch (type) {
@@ -367,13 +372,13 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
   }
   return coercer === noop
     ? coercer
-    : createCoercer(coercer, def.nullable);
+    : createCoercer(coercer, nullable);
 }
 
 function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
   return function (value: TInput, coercionConfiguration: ICoercionConfiguration | null): TOutput {
     if (!coercionConfiguration?.enableCoercion) return value as unknown as TOutput;
-    return ((nullable ?? ((coercionConfiguration?.coerceNullish ?? false) ? false : true)) && value == null)
+    return ((nullable ?? !(coercionConfiguration?.coerceNullish ?? false)) && value == null)
       ? value as unknown as TOutput
       : coercer(value, coercionConfiguration);
   };

@@ -26,6 +26,7 @@
 * [Lambda Expressions](templates/lambda-expressions.md)
 * [Local templates (inline templates)](templates/local-templates.md)
 * [Advanced Attribute Binding)](templates/advanced-attribute-binding.md)
+* [SVG](templates/svg.md)
 
 ## Components
 

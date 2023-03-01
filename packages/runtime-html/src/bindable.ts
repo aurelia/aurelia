@@ -8,7 +8,7 @@ import { isString, objectFreeze, objectKeys } from './utilities';
 import type { Constructable, Writable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 
-type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
+type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | typeof Array | typeof Object | typeof Function | { coercer: InterceptorFunc } | Class<unknown>;
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;

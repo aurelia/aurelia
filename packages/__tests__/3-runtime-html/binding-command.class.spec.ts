@@ -1,12 +1,40 @@
-import { Constructable } from '@aurelia/kernel';
-import { BindingMode, Aurelia, StandardConfiguration, CustomElement, IPlatform } from '@aurelia/runtime-html';
-import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
+import { Aurelia, BindingMode, cssModules, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
 // TemplateCompiler - Binding Commands integration
 describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', function () {
+  describe('with cssModule', function () {
+    it('works - github #1684', function () {
+      const template = `<p class="strike" selected.class="isSelected">
+I am green if I am selected and red if I am not
+</p>
+<p selected.class="isSelected">
+I am green if I am selected and red if I am not
+</p>
+<pre>\${isSelected}</pre>
+<button type="button" click.trigger="toggle()">Toggle selected state</button>`;
+
+      @customElement({
+        name: 'component',
+        template,
+        dependencies: [cssModules({ selected: 'a_' })]
+      })
+      class Component {
+        isSelected = true;
+      }
+      const { assertAttr } = createFixture(
+        '<component>',
+        void 0,
+        [Component]
+      );
+
+      assertAttr('p:nth-child(1)', 'class', 'au a_ strike');
+    });
+  });
+
   const falsyValues = [0, false, null, undefined, ''];
-  const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/}, Number, new Proxy({}, {})];
+  const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/ }, Number, new Proxy({}, {})];
 
   const classNameTests: string[] = [
     'background',
@@ -62,12 +90,12 @@ describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', func
         <child repeat.for="i of 5" value.bind="value"></child>
       `;
       },
-      assert: async (au, platform, host, component, testCase, className) => {
+      assert: (au, platform, host, component, testCase, className) => {
         const childEls = host.querySelectorAll('child');
 
         assert.strictEqual(childEls.length, 6, `childEls.length`);
 
-        await eachCartesianJoinAsync(
+        eachCartesianJoin(
           [falsyValues, truthyValues],
           (falsyValue, truthyValue) => {
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
@@ -127,79 +155,71 @@ describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', func
   eachCartesianJoin(
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
-      it(testCase.title(className, callIndex), async function () {
-        const { ctx, au, platform, host, component, tearDown } = createFixture(
+      it(`[UNIT] ${testCase.title(className, callIndex)}`, async function () {
+        const { ctx, au, platform, appHost, component } = createFixture(
           testCase.template(className),
           class App {
             public value: unknown = true;
           },
-          ClassAttributePattern,
-          StandardConfiguration,
-          CustomElement.define(
-            {
-              name: 'child',
-              template: `<template ${className}.class="value"></template>`
-            },
-            class Child {
-              public static bindables = {
-                value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
-              };
-              public value = true;
-            }
-          )
+          [
+            ClassAttributePattern,
+            CustomElement.define(
+              {
+                name: 'child',
+                template: `<template ${className}.class="value"></template>`
+              },
+              class Child {
+                public static bindables = {
+                  value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+                };
+                public value = true;
+              }
+            )
+          ]
         );
-        au.app({ host, component });
-        await au.start();
-        try {
-          const els = typeof testCase.selector === 'string'
-            ? host.querySelectorAll(testCase.selector)
-            : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
-          for (let i = 0, ii = els.length; ii > i; ++i) {
-            const el = els[i];
-            assert.contains(
-              el.classList,
-              className.toLowerCase(),
-              `[true]${el.className}.contains(${className}) 1`
-            );
-          }
-
-          await eachCartesianJoinAsync(
-            [falsyValues, truthyValues],
-            (falsyValue, truthyValue) => {
-              component.value = falsyValue;
-
-              platform.domWriteQueue.flush();
-
-              for (let i = 0, ii = els.length; ii > i; ++i) {
-                const el = els[i];
-                assert.notContains(
-                  el.classList,
-                  className.toLowerCase(),
-                  `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
-                );
-              }
-
-              component.value = truthyValue;
-
-              platform.domWriteQueue.flush();
-
-              for (let i = 0, ii = els.length; ii > i; ++i) {
-                const el = els[i];
-                assert.contains(
-                  el.classList,
-                  className.toLowerCase(),
-                  `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
-                );
-              }
-            }
+        const els = typeof testCase.selector === 'string'
+          ? appHost.querySelectorAll(testCase.selector)
+          : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
+        for (let i = 0, ii = els.length; ii > i; ++i) {
+          const el = els[i];
+          assert.contains(
+            el.classList,
+            className.toLowerCase(),
+            `[true]${el.className}.contains(${className}) 1`
           );
-          await testCase.assert(au, platform, host, component, testCase, className);
-        } finally {
-          tearDown();
-          await au.stop();
-
-          au.dispose();
         }
+
+        eachCartesianJoin(
+          [falsyValues, truthyValues],
+          (falsyValue, truthyValue) => {
+            component.value = falsyValue;
+
+            platform.domWriteQueue.flush();
+
+            for (let i = 0, ii = els.length; ii > i; ++i) {
+              const el = els[i];
+              assert.notContains(
+                el.classList,
+                className.toLowerCase(),
+                `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
+              );
+            }
+
+            component.value = truthyValue;
+
+            platform.domWriteQueue.flush();
+
+            for (let i = 0, ii = els.length; ii > i; ++i) {
+              const el = els[i];
+              assert.contains(
+                el.classList,
+                className.toLowerCase(),
+                `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
+              );
+            }
+          }
+        );
+        testCase.assert(au, platform, appHost, component, testCase, className);
       });
     }
   );
@@ -212,22 +232,6 @@ describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', func
     selector: string | ((document: Document) => ArrayLike<Element>);
     title(...args: unknown[]): string;
     template(...args: string[]): string;
-    assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, testCase: ITestCase, className: string): void | Promise<void>;
-  }
-
-  function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
-    const ctx = TestContext.create();
-    const { container, platform, observerLocator } = ctx;
-    container.register(...registrations);
-    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
-    const au = new Aurelia(container);
-    const App = CustomElement.define({ name: 'app', template }, $class);
-    const component = new App();
-
-    function tearDown() {
-      ctx.doc.body.removeChild(host);
-    }
-
-    return { container, platform, ctx, host, au, component, observerLocator, tearDown };
+    assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, testCase: ITestCase, className: string): void;
   }
 });

@@ -1,7 +1,7 @@
 import { IContainer, noop } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
-import { INode } from '../dom';
-import { getClassesToAdd } from '../observation/class-attribute-accessor';
+import { ICssModulesMapping, INode } from '../dom';
+import { ClassAttributeAccessor } from '../observation/class-attribute-accessor';
 import { IPlatform } from '../platform';
 import { defineAttribute } from '../resources/custom-attribute';
 import { createInterface, instanceRegistration } from '../utilities-di';
@@ -26,11 +26,15 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       noMultiBindings: true,
     }, class CustomAttributeClass {
       public static inject: unknown[] = [INode];
+      /** @internal */
+      private readonly _accessor: ClassAttributeAccessor;
 
       public value!: string;
       public constructor(
-        private readonly element: INode<HTMLElement>,
-      ) {}
+        private readonly _element: INode<HTMLElement>,
+      ) {
+        this._accessor = new ClassAttributeAccessor(_element);
+      }
 
       public binding() {
         this.valueChanged();
@@ -38,15 +42,18 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
       public valueChanged() {
         if (!this.value) {
-          this.element.className = '';
+          this._element.className = '';
           return;
         }
 
-        this.element.className = getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
+        this._accessor.setValue(this.value.split(/\s+/g).map(x => classLookup[x] || x));
       }
     });
 
-    container.register(ClassCustomAttribute);
+    container.register(
+      ClassCustomAttribute,
+      instanceRegistration(ICssModulesMapping, classLookup),
+    );
   }
 }
 

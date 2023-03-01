@@ -32,7 +32,7 @@ import { ListenerBinding, ListenerBindingOptions } from './binding/listener-bind
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
-import { convertToRenderLocation, IRenderLocation, INode, setRef } from './dom';
+import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
@@ -960,6 +960,19 @@ export class AttributeBindingRenderer implements IRenderer {
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
+    // if there's a class custom attribute
+    // and this attribute binding is targeting class attribute
+    // then its targetted class should be re-mapped
+    // solution 1: ...
+    // if (renderingCtrl.container.find(CustomAttribute, 'class'))
+
+    // solution 2:
+    // add a css module interface registration token somewhere
+    // and let css module register that when they are registered
+    let classMapping: Record<string, string> | null = null;
+    if (renderingCtrl.container.has(ICssModulesMapping, false)) {
+      classMapping = renderingCtrl.container.get(ICssModulesMapping);
+    }
     renderingCtrl.addBinding(new AttributeBinding(
       renderingCtrl,
       renderingCtrl.container,
@@ -968,7 +981,9 @@ export class AttributeBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
       target,
       instruction.attr/* targetAttribute */,
-      instruction.to/* targetKey */,
+      classMapping == null
+        ? instruction.to/* targetKey */
+        : instruction.to.split(/\s/g).map(c => classMapping![c] ?? c).join(' '),
       BindingMode.toView,
     ));
   }

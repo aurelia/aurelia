@@ -5071,5 +5071,25 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #3');
 
     await au.stop();
+  describe.only('multiple configurations for same component', function () {
+    it('multiple configuration on the same root', async function () {
+      @customElement({ name: 'c-1', template: 'c1' })
+      class C1 { }
+
+      @route({
+        routes: [
+          { path: '', component: C1, title: 't1' },
+          { path: 'c1', component: C1, title: 't2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host } = await start({ appRoot: Root });
+
+      assert.html.textContent(host, 'c1');
+
+      await au.stop();
+    });
   });
 });

@@ -37,6 +37,8 @@ export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
 };
 
+export const ICssModulesMapping = createInterface<Record<string, string>>('CssModules');
+
 /**
  * Represents a DocumentFragment
  */

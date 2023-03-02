@@ -111,6 +111,11 @@ Change it to:
   collectionObserver(collection): { subscribe: (callback: (collection, splices)) => { dispose(): void } }
   ```
 
+## Binding commands
+
+- `.delegate` command has been removed, use `.trigger` instead. With shadow DOM, even though `.delegate` works, it doesn't feel as natural as `.trigger`, and the performance benefits `.delegate` command used to give when browsers were slow adding many event listeners is no longer as big.
+- `.call` command has been removed, use lambda functions instead to create function that preserves the `this` context. Refer to [lambda expression](../../templates/lambda-expressions.md)
+
 ## General changes
 
 * Templates no longer need to have `<template>` tags as the start and ending tags. Templates can be pure HTML with enhanced Aurelia markup but `<template>` doesn't need to be explicitly defined.

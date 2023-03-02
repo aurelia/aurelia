@@ -151,6 +151,13 @@ export function createFixture<T extends object>(
       assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
     }
   }
+  function assertClass(selector: string, ...classes: string[]) {
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to assert className contains "${classes}"`);
+    }
+    classes.forEach(c => assert.contains(el.classList, c));
+  }
   function assertAttr(selector: string, name: string, value: string | null) {
     const el = queryBy(selector);
     if (el === null) {
@@ -262,6 +269,7 @@ export function createFixture<T extends object>(
     public queryBy = queryBy;
     public assertText = assertText;
     public assertHtml = assertHtml;
+    public assertClass = assertClass;
     public assertAttr = assertAttr;
     public assertAttrNS = assertAttrNS;
     public assertValue = assertValue;
@@ -333,6 +341,10 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertHtml(selector: string, html: string): void;
+  /**
+   * Assert an element based on the given selector has the given css classes
+   */
+  assertClass(selector: string, ...classes: string[]): void;
   /**
    * Assert the attribute value of an element matching the given selector inside the application host equals to a given string.
    *

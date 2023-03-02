@@ -1,7 +1,7 @@
 import { IContainer, noop } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
-import { INode } from '../dom';
-import { getClassesToAdd } from '../observation/class-attribute-accessor';
+import { ICssModulesMapping, INode } from '../dom';
+import { ClassAttributeAccessor } from '../observation/class-attribute-accessor';
 import { IPlatform } from '../platform';
 import { defineAttribute } from '../resources/custom-attribute';
 import { createInterface, instanceRegistration } from '../utilities-di';
@@ -19,6 +19,11 @@ export class CSSModulesProcessorRegistry implements IRegistry {
   ) {}
 
   public register(container: IContainer): void {
+    // it'd be nice to be able to register a template compiler hook instead
+    // so that it's lighter weight on the creation of a custom element with css module
+    // also it'll be more consitent in terms as CSS class output
+    // if custom attribute is used, the class controlled by custom attribute may come after
+    // other bindings, regardless what their declaration order is in the template
     const classLookup = objectAssign({}, ...this.modules) as Record<string, string>;
     const ClassCustomAttribute = defineAttribute({
       name: 'class',
@@ -26,27 +31,29 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       noMultiBindings: true,
     }, class CustomAttributeClass {
       public static inject: unknown[] = [INode];
+      /** @internal */
+      private readonly _accessor: ClassAttributeAccessor;
 
       public value!: string;
       public constructor(
-        private readonly element: INode<HTMLElement>,
-      ) {}
+        element: INode<HTMLElement>,
+      ) {
+        this._accessor = new ClassAttributeAccessor(element);
+      }
 
       public binding() {
         this.valueChanged();
       }
 
       public valueChanged() {
-        if (!this.value) {
-          this.element.className = '';
-          return;
-        }
-
-        this.element.className = getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
+        this._accessor.setValue(this.value?.split(/\s+/g).map(x => classLookup[x] || x) ?? '');
       }
     });
 
-    container.register(ClassCustomAttribute);
+    container.register(
+      ClassCustomAttribute,
+      instanceRegistration(ICssModulesMapping, classLookup),
+    );
   }
 }
 

@@ -960,22 +960,14 @@ export class AttributeBindingRenderer implements IRenderer {
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    // if there's a class custom attribute
-    // and this attribute binding is targeting class attribute
-    // then its targetted class should be re-mapped
-    // solution 1: ...
-    // if (renderingCtrl.container.find(CustomAttribute, 'class'))
-
-    // solution 2:
-    // add a css module interface registration token somewhere
-    // and let css module register that when they are registered
-    let classMapping: Record<string, string> | null = null;
-    if (renderingCtrl.container.has(ICssModulesMapping, false)) {
-      classMapping = renderingCtrl.container.get(ICssModulesMapping);
-    }
+    const container = renderingCtrl.container;
+    const classMapping =
+      container.has(ICssModulesMapping, false)
+        ? container.get(ICssModulesMapping)
+        : null;
     renderingCtrl.addBinding(new AttributeBinding(
       renderingCtrl,
-      renderingCtrl.container,
+      container,
       observerLocator,
       platform.domWriteQueue,
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
@@ -983,7 +975,7 @@ export class AttributeBindingRenderer implements IRenderer {
       instruction.attr/* targetAttribute */,
       classMapping == null
         ? instruction.to/* targetKey */
-        : instruction.to.split(/\s/g).map(c => classMapping![c] ?? c).join(' '),
+        : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '),
       BindingMode.toView,
     ));
   }

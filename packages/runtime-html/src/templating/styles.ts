@@ -19,6 +19,11 @@ export class CSSModulesProcessorRegistry implements IRegistry {
   ) {}
 
   public register(container: IContainer): void {
+    // it'd be nice to be able to register a template compiler hook instead
+    // so that it's lighter weight on the creation of a custom element with css module
+    // also it'll be more consitent in terms as CSS class output
+    // if custom attribute is used, the class controlled by custom attribute may come after
+    // other bindings, regardless what their declaration order is in the template
     const classLookup = objectAssign({}, ...this.modules) as Record<string, string>;
     const ClassCustomAttribute = defineAttribute({
       name: 'class',
@@ -31,9 +36,9 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
       public value!: string;
       public constructor(
-        private readonly _element: INode<HTMLElement>,
+        element: INode<HTMLElement>,
       ) {
-        this._accessor = new ClassAttributeAccessor(_element);
+        this._accessor = new ClassAttributeAccessor(element);
       }
 
       public binding() {
@@ -41,12 +46,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       }
 
       public valueChanged() {
-        if (!this.value) {
-          this._element.className = '';
-          return;
-        }
-
-        this._accessor.setValue(this.value.split(/\s+/g).map(x => classLookup[x] || x));
+        this._accessor.setValue(this.value?.split(/\s+/g).map(x => classLookup[x] || x) ?? '');
       }
     });
 

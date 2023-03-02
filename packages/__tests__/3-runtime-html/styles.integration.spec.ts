@@ -61,7 +61,7 @@ describe('styles', function () {
     });
 
     it('works with colon in classes when there is NO matching css', async function () {
-      const { appHost, startPromise } = createFixture('<my-el>', undefined, [
+      const { assertClass } = createFixture('<my-el>', undefined, [
         CustomElement.define({
           name: 'my-el',
           template: '<div class="hover:bg-white">',
@@ -69,13 +69,11 @@ describe('styles', function () {
         })
       ]);
 
-      await startPromise;
-
-      assert.deepStrictEqual(appHost.querySelector('div').className, 'hover:bg-white');
+      assertClass('div', 'hover:bg-white');
     });
 
     it('works with colon in classes when there is matching css', async function () {
-      const { appHost, startPromise } = createFixture('<my-el>', undefined, [
+      const { assertClass } = createFixture('<my-el>', undefined, [
         CustomElement.define({
           name: 'my-el',
           template: '<div class="hover:bg-white">',
@@ -83,9 +81,32 @@ describe('styles', function () {
         })
       ]);
 
-      await startPromise;
+      assertClass('div', 'abc');
+    });
 
-      assert.deepStrictEqual(appHost.querySelector('div').className, 'abc');
+    it('works with class binding command - github #1684', function () {
+      const template = `<p class="strike" selected.class="isSelected">
+I am green if I am selected and red if I am not
+</p>
+<p selected.class="isSelected">
+I am green if I am selected and red if I am not
+</p>
+<pre>\${isSelected}</pre>
+<button type="button" click.trigger="toggle()">Toggle selected state</button>`;
+
+      const { assertClass } = createFixture(
+        '<component>',
+        void 0,
+        [CustomElement.define({
+          name: 'component',
+          template,
+          dependencies: [cssModules({ selected: 'a_' })]
+        }, class Component {
+          isSelected = true;
+        })]
+      );
+
+      assertClass('p:nth-child(1)', 'au', 'a_', 'strike');
     });
   });
 });

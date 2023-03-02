@@ -1,37 +1,9 @@
-import { Aurelia, BindingMode, cssModules, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { Aurelia, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
 // TemplateCompiler - Binding Commands integration
 describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', function () {
-  describe('with cssModule', function () {
-    it('works - github #1684', function () {
-      const template = `<p class="strike" selected.class="isSelected">
-I am green if I am selected and red if I am not
-</p>
-<p selected.class="isSelected">
-I am green if I am selected and red if I am not
-</p>
-<pre>\${isSelected}</pre>
-<button type="button" click.trigger="toggle()">Toggle selected state</button>`;
-
-      @customElement({
-        name: 'component',
-        template,
-        dependencies: [cssModules({ selected: 'a_' })]
-      })
-      class Component {
-        isSelected = true;
-      }
-      const { assertAttr } = createFixture(
-        '<component>',
-        void 0,
-        [Component]
-      );
-
-      assertAttr('p:nth-child(1)', 'class', 'au a_ strike');
-    });
-  });
 
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/ }, Number, new Proxy({}, {})];

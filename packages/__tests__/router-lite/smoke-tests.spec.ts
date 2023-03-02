@@ -5072,7 +5072,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop();
   describe.only('multiple configurations for same component', function () {
-    it('multiple configuration on the same root', async function () {
+    it('multiple configurations for the same component under the same parent', async function () {
       @customElement({ name: 'c-1', template: 'c1' })
       class C1 { }
 
@@ -5088,6 +5088,50 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const { au, host } = await start({ appRoot: Root });
 
       assert.html.textContent(host, 'c1');
+
+      await au.stop();
+    });
+
+    it('same component is added under different parents', async function () {
+      @customElement({ name: 'c-1', template: 'c1' })
+      class C1 { }
+
+      @route({
+        routes: [
+          { path: '', component: C1, title: 'p1c1' }
+        ]
+      })
+      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      class P1 { }
+
+      @route({
+        routes: [
+          { path: '', component: C1, title: 'p2c1' }
+        ]
+      })
+      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      class P2 { }
+
+      @route({
+        routes: [
+          { path: ['', 'p1'], component: P1 },
+          { path: 'p2', component: P2 },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root });
+      const doc = container.get(IPlatform).document;
+      const router = container.get(IRouter);
+
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 'p1c1');
+
+      await router.load('p2');
+
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 'p2c1');
 
       await au.stop();
     });

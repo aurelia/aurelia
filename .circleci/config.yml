@@ -216,7 +216,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ checksum "package-lock.json" }}-install
+          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -544,20 +544,17 @@ jobs:
       path:
         type: string
     steps:
-      - checkout_install:
+      - checkout_install_cache:
           install_chrome: false
           install_firefox: false
           install: false
       # instead of doing the following 2 commands
       # - checkout_install
-      # - run: npm run build
       # just restore some cache from previous steps
-      - run: |
-          chown -R $(whoami) ../../
-      - restore_cache:
-          key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          key: cache-{{ .Revision }}-build-false
+      # - run: chown -R $USER:$USER /home/circleci
+      - run: npm run build
+      # - restore_cache:
+      #     key: cache-{{ .Revision }}-build-false
       - run:
           name: "Run e2e script"
           working_directory: << parameters.path >>

@@ -555,7 +555,7 @@ jobs:
             npm ci
           fi
       - save_cache:
-          key: cache-{{ checksum "package-lock.json" }}-install
+          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
           paths:
             - node_modules
             - packages/__tests__/node_modules
@@ -581,7 +581,7 @@ jobs:
           name: "Run e2e script"
           working_directory: << parameters.path >>
           command: |
-            npx playwright install chrome webkit
+            npx playwright install webkit
             npm run test
           no_output_timeout: "1m"
 

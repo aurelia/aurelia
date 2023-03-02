@@ -216,7 +216,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ checksum "package-lock.json" }}-install
+          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -544,24 +544,44 @@ jobs:
       path:
         type: string
     steps:
-      - checkout_install:
-          install_chrome: false
-          install_firefox: false
-          install: true
+      - checkout
+      - restore_cache:
+          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+      - run: |
+          # cache restored
+          if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
+            exit 0
+          else
+            npm ci
+          fi
+      - save_cache:
+          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          paths:
+            - node_modules
+            - packages/__tests__/node_modules
+
+            - packages-tooling/__tests__/node_modules
+            - packages-tooling/aot/node_modules
+            - packages-tooling/au/node_modules
+            - packages-tooling/babel-jest/node_modules
+            - packages-tooling/http-server/node_modules
+            - packages-tooling/parcel-transformer/node_modules
+            - packages-tooling/plugin-conventions/node_modules
+            - packages-tooling/plugin-gulp/node_modules
+            - packages-tooling/ts-jest/node_modules
+            - packages-tooling/webpack-loader/node_modules
       # instead of doing the following 2 commands
       # - checkout_install
-      - run: npm run build
       # just restore some cache from previous steps
       # - run: chown -R $USER:$USER /home/circleci
-      # - restore_cache:
-      #     key: cache-{{ checksum "package-lock.json" }}-install
+      - run: npm run build
       # - restore_cache:
       #     key: cache-{{ .Revision }}-build-false
       - run:
           name: "Run e2e script"
           working_directory: << parameters.path >>
           command: |
-            npx playwright install chrome webkit
+            npx playwright install webkit
             npm run test
           no_output_timeout: "1m"
 
@@ -947,6 +967,11 @@ workflows:
           dist_file_name: merge_and_dist_topic
           requires:
             - build_release
+            
+      - request_publish_dev:
+          <<: *filter_only_master
+          type: approval
+          no_output_timeout: 20m
       - publish_npm:
           <<: *filter_only_master
           name: publish_npm_dev
@@ -954,7 +979,9 @@ workflows:
           branch: develop
           swap: true
           requires:
+            - request_publish_dev
             - merge_and_dist_master
+          
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

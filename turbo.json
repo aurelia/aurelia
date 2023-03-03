@@ -2,7 +2,6 @@
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
     "lint": {
-      "dependsOn": ["lint"],
       "inputs": [
         "src/**/*.ts",
         "./eslintrc.cjs",

@@ -8,7 +8,7 @@ import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
 import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
 
-describe('ModuleLoader', function () {
+describe('1-kernel/module-loader.spec.ts', function () {
   function createFixture() {
     const container = DI.createContainer();
     return container.get(IModuleLoader);

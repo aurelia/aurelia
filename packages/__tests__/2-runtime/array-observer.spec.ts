@@ -54,7 +54,7 @@ public constructor(
   }
 }
 
-describe(`ArrayObserver`, function () {
+describe(`2-runtime/array-observer.spec.ts`, function () {
   let sut: ArrayObserver;
 
   // eslint-disable-next-line mocha/no-hooks

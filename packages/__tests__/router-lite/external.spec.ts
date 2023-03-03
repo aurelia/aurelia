@@ -4,7 +4,7 @@ import { assert } from '@aurelia/testing';
 import { createFixture } from './_shared/create-fixture.js';
 import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 
-describe('router/external.spec.ts', function () {
+describe('router-lite/external.spec.ts', function () {
   for (const attr of ['external', 'data-external']) {
     it(`recognizes "${attr}" attribute`, async function () {
       @customElement({ name: 'a11', template: `a11${vp(1)}` })

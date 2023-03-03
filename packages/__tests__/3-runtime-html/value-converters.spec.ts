@@ -8,7 +8,7 @@ import {
 import { assert, createFixture } from '@aurelia/testing';
 
 // TemplateCompiler - value converter integration
-describe('value-converters', function () {
+describe('3-runtime-html/value-converters', function () {
   // custom elements
   describe('01. Aliases', function () {
 

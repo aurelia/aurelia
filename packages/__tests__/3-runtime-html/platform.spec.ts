@@ -1,7 +1,7 @@
 import { assert, TestContext } from '@aurelia/testing';
 import { isNode } from '../util.js';
 
-describe('IPlatform', function () {
+describe('3-runtime-html/platform.spec.ts', function () {
   it('setups platform', function () {
     const ctx = TestContext.create();
 

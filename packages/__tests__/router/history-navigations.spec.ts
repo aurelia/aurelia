@@ -3,7 +3,7 @@ import { RouterConfiguration, IRouter, IRouterOptions, NavigationFlags, RouterNa
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
-describe('History navigations', function () {
+describe('router/history-navigations.spec.ts', function () {
   async function createFixture(routerOptions: IRouterOptions, App, components) {
     const ctx = TestContext.create();
     const { container, platform, doc } = ctx;

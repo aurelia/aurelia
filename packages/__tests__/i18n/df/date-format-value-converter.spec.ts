@@ -3,7 +3,7 @@ import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
 
-describe('df', function () {
+describe('i18n/t/date-format-value-converter.spec.ts', function () {
 
   async function createFixture() {
     const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());

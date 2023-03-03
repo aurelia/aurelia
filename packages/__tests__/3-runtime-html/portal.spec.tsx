@@ -10,9 +10,9 @@ import {
   createFixture,
 } from '@aurelia/testing';
 
-describe('portal.spec.tsx 🚪-🔁-🚪', function () {
+describe('3-runtime-html/portal.spec.tsx', function () {
 
-  it('portals to "beforebegin" position', function () {
+  it('portals to "beforebegin" position 🚪-🔁-🚪', function () {
     const { assertHtml } = createFixture(
       <>
         <div id="d1">hello</div>

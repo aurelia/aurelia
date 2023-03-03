@@ -1,7 +1,7 @@
 import { Char } from '../util.js';
 import { assert } from '@aurelia/testing';
 
-describe('[UNIT]3-runtime-html/has-multi-bindings.unit.spec.ts', function () {
+describe('3-runtime-html/has-multi-bindings.unit.spec.ts', function () {
   interface IBindingSpec {
     target: string;
     rawValue: string;
@@ -297,7 +297,7 @@ describe('[UNIT]3-runtime-html/has-multi-bindings.unit.spec.ts', function () {
   ];
 
   for (const { attrValue, expectedBindings } of specs) {
-    it(`attr="${attrValue}"`, function () {
+    it(`[UNIT] attr="${attrValue}"`, function () {
       if (hasInlineBindings(attrValue)) {
         parse(attrValue).forEach((pair) => {
           const expectedBinding = expectedBindings.find(eb => eb.target === pair.target);

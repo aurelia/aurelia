@@ -22,7 +22,7 @@ import {
 } from '@aurelia/testing';
 import { Writable } from '@aurelia/kernel';
 
-describe(`Repeat`, function () {
+describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   function runActivateLifecycle(sut: Repeat, flags: LifecycleFlags, scope: Scope): void {
     void sut.$controller.activate(sut.$controller, null, flags, scope);
   }

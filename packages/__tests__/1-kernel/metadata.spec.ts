@@ -2,7 +2,7 @@ import { Metadata, metadata } from '@aurelia/metadata';
 import { singleton } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe('Metadata', function () {
+describe('1-kernel/metadata.spec.ts', function () {
   describe('define', function () {
     it('throws TypeError on invalid target', function () {
       assert.throws(() => Metadata.define('key', 'value', void 0, void 0), TypeError);

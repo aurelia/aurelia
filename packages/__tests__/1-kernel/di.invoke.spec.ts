@@ -1,7 +1,7 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe('DI.invoke', function () {
+describe('1-kernel/di.invoke.spec.ts', function () {
   let container: IContainer;
 
   // eslint-disable-next-line mocha/no-hooks

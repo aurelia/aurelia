@@ -46,7 +46,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('promise template-controller', function () {
+describe('3-runtime-html/promise.spec.ts', function () {
 
   const phost = 'pending-host';
   const fhost = 'fulfilled-host';

@@ -25,7 +25,7 @@ function createFixture() {
   return { mgr, p, au, host };
 }
 
-describe('controller.hook-timings.integration', function () {
+describe('3-runtime-html/controller.hook-timings.integration.spec.ts', function () {
   const allSyncSpecs: IDelayedInvokerSpec = {
     binding: (mgr, p) => DelayedInvoker.binding(mgr, p),
     bound: (mgr, p) => DelayedInvoker.bound(mgr, p),

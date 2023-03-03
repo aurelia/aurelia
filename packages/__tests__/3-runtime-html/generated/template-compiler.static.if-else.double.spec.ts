@@ -1,7 +1,7 @@
 import { Aurelia, CustomElement } from "@aurelia/runtime-html";
 import { TestContext, assert } from "@aurelia/testing";
 
-describe("generated.template-compiler.static.if-else.double", function () {
+describe("3-runtime-html/generated/template-compiler.static.if-else.double.spec.ts", function () {
     function createFixture() {
         const ctx = TestContext.create();
         const au = new Aurelia(ctx.container);

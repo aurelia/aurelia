@@ -15,7 +15,7 @@ const {
 
 const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
 
-describe('route-expression', function () {
+describe('router-lite/ast.spec.ts', function () {
   const specs: Record<string, [RouteExpression, string]> = {};
 
   const emptyQuerystring: Readonly<URLSearchParams> = Object.freeze(new URLSearchParams());

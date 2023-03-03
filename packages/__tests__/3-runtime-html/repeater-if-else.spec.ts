@@ -12,9 +12,7 @@ import {
   createFixture,
 } from '@aurelia/testing';
 
-const spec = 'repeater-if-else';
-
-describe(spec, function () {
+describe('3-runtime-html/repeater-if-else.spec.ts', function () {
   type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;

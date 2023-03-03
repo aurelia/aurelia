@@ -26,7 +26,7 @@ import {
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
 
-describe('validation/expression-serialization.spec.ts/expression-de/serialization', function () {
+describe('validation/expression-serialization.spec.ts', function () {
   function setup() {
     const ctx = TestContext.create();
     return ctx.container.get(IExpressionParser);

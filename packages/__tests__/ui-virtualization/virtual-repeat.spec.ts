@@ -1,7 +1,7 @@
 import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualRepeatConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 
-describe('virtual-repeat', function () {
+describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (typeof process !== 'undefined') {
     return;
   }

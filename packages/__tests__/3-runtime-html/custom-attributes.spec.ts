@@ -7,7 +7,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
-describe('custom-attributes', function () {
+describe('3-runtime-html/custom-attributes.spec.ts', function () {
   // custom elements
   describe('01. Aliases', function () {
 

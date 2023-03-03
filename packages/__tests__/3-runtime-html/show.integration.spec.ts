@@ -9,7 +9,7 @@ function createFixture() {
   return { au, host, p };
 }
 
-describe('show.integration.spec.ts', function () {
+describe('3-runtime-html/show.integration.spec.ts', function () {
   describe('show/hide alias works properly', function () {
     it('show + hide', async function () {
       const { au, host, p } = createFixture();

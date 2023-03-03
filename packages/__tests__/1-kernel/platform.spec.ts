@@ -37,7 +37,7 @@ const stringCases = [
   ['\t\tfoo\t\tbar\t\t', 'fooBar', 'foo-bar']
 ];
 
-describe(`The PLATFORM object`, function () {
+describe(`1-kernel/platform.spec.ts`, function () {
   describe(`camelCase()`, function () {
     for (const [input, expected] of stringCases) {
       it(`${input} -> ${expected}`, function () {

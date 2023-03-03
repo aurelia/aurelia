@@ -966,7 +966,7 @@ type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition
 
 type Bindables = { [pdName: string]: BindableDefinition };
 
-describe(`TemplateCompiler - combinations`, function () {
+describe(`3-runtime-html/template-compiler.spec.ts`, function () {
   function createFixture(ctx: TestContext, ...globals: any[]) {
     const container = ctx.container;
     container.register(...globals, delegateSyntax);
@@ -974,7 +974,7 @@ describe(`TemplateCompiler - combinations`, function () {
     return { container, sut };
   }
 
-  describe('plain attributes', function () {
+  describe('TemplateCompiler - combinations -- plain attributes', function () {
     eachCartesianJoinFactory([
       [
         TestContext.create
@@ -1103,7 +1103,7 @@ describe(`TemplateCompiler - combinations`, function () {
     }
   });
 
-  describe('custom attributes', function () {
+  describe('TemplateCompiler - combinations -- custom attributes', function () {
     eachCartesianJoinFactory([
       [
         TestContext.create
@@ -1184,7 +1184,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('custom attributes with multiple bindings', function () {
+  describe('TemplateCompiler - combinations -- custom attributes with multiple bindings', function () {
     eachCartesianJoinFactory([
       [
         TestContext.create
@@ -1277,7 +1277,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('nested template controllers (one per element)', function () {
+  describe('TemplateCompiler - combinations -- nested template controllers (one per element)', function () {
     const Foo = CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {});
     const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {});
     const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {});
@@ -1349,7 +1349,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('nested template controllers (multiple per element)', function () {
+  describe('TemplateCompiler - combinations -- nested template controllers (multiple per element)', function () {
     const Foo = CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {});
     const Bar = CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {});
     const Baz = CustomAttribute.define({ name: 'baz',  isTemplateController: true }, class Baz {});
@@ -1413,7 +1413,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('sibling template controllers', function () {
+  describe('TemplateCompiler - combinations -- sibling template controllers', function () {
     const Foo = CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {});
     const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {});
     const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {});
@@ -1497,7 +1497,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('attributes on custom elements', function () {
+  describe('TemplateCompiler - combinations -- attributes on custom elements', function () {
     eachCartesianJoinFactory([
       [
         TestContext.create
@@ -1600,7 +1600,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('custom elements', function () {
+  describe('TemplateCompiler - combinations -- custom elements', function () {
     const Foo = CustomElement.define({ name: 'foo' }, class Foo {});
     const Bar = CustomElement.define({ name: 'bar' }, class Bar {});
     const Baz = CustomElement.define({ name: 'baz' }, class Baz {});
@@ -1659,7 +1659,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('captures & ...$attrs', function () {
+  describe('TemplateCompiler - combinations -- captures & ...$attrs', function () {
     const MyElement = CustomElement.define({
       name: 'my-element',
       capture: true,
@@ -1746,7 +1746,7 @@ describe(`TemplateCompiler - combinations`, function () {
     });
   });
 
-  describe('with attribute patterns', function () {
+  describe('TemplateCompiler - combinations -- with attribute patterns', function () {
     // all tests are using pattern that is `my-attr`
     // and the template will have an element with an attribute `my-attr`
     const createPattern = (createSyntax: (rawName: string, rawValue: string, parts: string[]) => AttrSyntax) => {

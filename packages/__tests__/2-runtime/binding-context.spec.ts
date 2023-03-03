@@ -1,7 +1,7 @@
 import { Scope } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe('Scope', function () {
+describe('2-runtime/binding-context.spec.ts', function () {
   describe('create', function () {
     it('throws on null/undefined context', function () {
       assert.throws(() => Scope.create(undefined, undefined));

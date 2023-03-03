@@ -8,7 +8,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe('@attributePattern', function () {
+describe('3-runtime-html/attribute-pattern.spec.ts', function () {
   for (const [defs, tests] of [
     [
       [

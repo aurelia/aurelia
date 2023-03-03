@@ -3,7 +3,7 @@ import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
-describe('href custom-attribute', function () {
+describe('router-lite/resources/href.spec.ts', function () {
 
   it('allow navigating to route defined in parent context using ../ prefix', async function () {
     @customElement({ name: 'pro-duct', template: `product \${id} <a href="../products"></a>` })

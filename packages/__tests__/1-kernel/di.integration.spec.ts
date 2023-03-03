@@ -1,7 +1,7 @@
 import { DI, IContainer, inject, InterfaceSymbol, Registration, singleton } from '@aurelia/kernel';
 import { assert, createSpy, ISpy } from '@aurelia/testing';
 
-describe('DI.singleton', function () {
+describe('1-kernel/di.integration.spec.ts', function () {
   describe('registerInRequester', function () {
     class Foo {
     }

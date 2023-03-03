@@ -3,7 +3,7 @@ import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
-describe('load custom-attribute', function () {
+describe('router-lite/resources/load.spec.ts', function () {
 
   function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = ''): void {
     const len = anchors.length;

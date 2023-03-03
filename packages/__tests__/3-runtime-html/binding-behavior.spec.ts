@@ -9,7 +9,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/binding-behaviors.spec.ts', function () {
+describe('3-runtime-html/binding-behavior.spec.ts', function () {
   // custom elements
   describe('01. Aliases', function () {
 

@@ -528,7 +528,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe('router hooks', function () {
+describe('router-lite/hook-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     for (const ticks of [
       0,

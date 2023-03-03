@@ -5,7 +5,7 @@ import { TestContext, hJsx, assert } from '@aurelia/testing';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe('[repeat] -- funny cases', function () {
+describe('3-runtime-html/repeat_weird.spec.tsx', function () {
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [
       [

@@ -4,7 +4,7 @@ import { AppTask, Aurelia, CustomElement, customElement } from '@aurelia/runtime
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
-describe('events', function () {
+describe('router-lite/events.spec.ts', function () {
   type RouterTestStartOptions<TAppRoot> = {
     appRoot: Class<TAppRoot>;
     registrations?: any[];

@@ -3,7 +3,7 @@ import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, cu
 import { assert, PLATFORMRegistration, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('bindable-coercer.spec.ts', function () {
+describe('3-runtime-html/bindable-coercer.spec.ts', function () {
   interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];

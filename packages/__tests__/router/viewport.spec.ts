@@ -4,7 +4,7 @@ import { assert } from '@aurelia/testing';
 
 import { createFixture } from './_shared/create-fixture.js';
 
-describe('Viewport', function () {
+describe('router/viewport.spec.ts', function () {
   it('can be created', async function () {
     const App = CustomElement.define({ name: 'app', template: '<au-viewport></au-viewport>' });
 

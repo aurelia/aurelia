@@ -2,7 +2,7 @@
 import { ITemplateElementFactory } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe('TemplateElementFactory', function () {
+describe('3-runtime-html/template-element-factory.spec.ts', function () {
   let sut: ITemplateElementFactory;
   let ctx: TestContext;
 

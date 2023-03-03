@@ -23,7 +23,7 @@ function getMetadataAsObject(target: any): Record<string, any> {
   }, {});
 }
 
-describe('CustomAttribute', function () {
+describe('3-runtime-html/resources.spec.ts', function () {
   it('works in the most basic scenario', function () {
     let created = false;
 

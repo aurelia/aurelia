@@ -1,8 +1,8 @@
-import { IRouter, RouterConfiguration, RoutingInstruction, InstructionParameters } from '@aurelia/router';
+import { IRouter, RouterConfiguration, RoutingInstruction } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('RoutingInstruction parsing', function () {
+describe('router/instruction-parser.spec.ts', function () {
   async function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;
@@ -46,7 +46,7 @@ describe('RoutingInstruction parsing', function () {
 
     const ctx = TestContext.create();
     const container = ctx.container;
-    const router = container.get(IRouter);
+    /* const router =  */container.get(IRouter);
 
     const instructions: InstructionTest[] = [
       { instruction: '-', parsed: [{ "component": "-" }], clean: '-' },
@@ -309,10 +309,10 @@ describe('RoutingInstruction parsing', function () {
     }
 
     for (const test of instructions) {
-      const { instruction, routingInstruction, parsed, clean } = test;
+      const { instruction, routingInstruction, clean } = test;
 
       it(`parses routing instruction: ${instruction} => ${clean ?? routingInstruction}`, async function () {
-        const { host, router, tearDown } = await createFixture();
+        const { router, tearDown } = await createFixture();
 
         let routingInstructions;
         let error = '';

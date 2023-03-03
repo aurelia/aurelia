@@ -26,6 +26,7 @@ import {
   RouteType,
   Route,
   IRedirectRouteConfig,
+  TransitionPlanOrFunc,
 } from './route';
 import type {
   IRouteContext,
@@ -42,27 +43,66 @@ import type { IRouteViewModel } from './component-agent';
 import type { RouteNode } from './route-tree';
 import { FallbackFunction } from './resources/viewport';
 
+// TODO(sayan): cleanup so many configuration
+// Configuration used in route definition.
+export class RouteDefinitionConfiguration {
+  private constructor(
+    public readonly id: string,
+    public readonly path: string[],
+    public readonly redirectTo: string | null,
+    public readonly caseSensitive: boolean,
+    public readonly viewport: string,
+    public readonly data: Record<string, unknown>,
+    public readonly fallback: string | FallbackFunction | null,
+    public readonly transitionPlan: TransitionPlanOrFunc | null,
+  ) { }
+
+  public static create(config: RouteConfig, definition: RouteDefinition) {
+    const path = ensureArrayOfStrings(config.path ?? definition.component!.name);
+    return new RouteDefinitionConfiguration(
+      ensureString(config.id ?? path),
+      path,
+      config.redirectTo ?? null,
+      config.caseSensitive,
+      config.viewport ?? defaultViewportName,
+      config.data ?? {},
+      config.fallback ?? definition.fallback ?? null,
+      config.transitionPlan ?? definition.transitionPlan ?? null,
+    );
+  }
+}
+
 export class RouteDefinition {
-  public readonly caseSensitive: boolean;
-  public readonly path: string[];
-  public readonly redirectTo: string | null;
-  public readonly viewport: string;
-  public readonly id: string;
-  public readonly data: Record<string, unknown>;
-  public readonly fallback: string | FallbackFunction | null;
+  /** @internal */
+  private readonly _configurations: WeakMap<IRouteContext, RouteDefinitionConfiguration[]> = new WeakMap<IRouteContext, RouteDefinitionConfiguration[]>();
 
   private constructor(
-    public readonly config: RouteConfig,
     public readonly component: CustomElementDefinition | null,
-    parentDefinition: RouteDefinition | null,
-  ) {
-    this.caseSensitive = config.caseSensitive;
-    this.path = ensureArrayOfStrings(config.path ?? component!.name);
-    this.redirectTo = config.redirectTo ?? null;
-    this.viewport = config.viewport ?? defaultViewportName;
-    this.id = ensureString(config.id ?? this.path);
-    this.data = config.data ?? {};
-    this.fallback = config.fallback ?? parentDefinition?.fallback ?? null;
+    public readonly fallback: string | FallbackFunction | null,
+    public readonly transitionPlan: TransitionPlanOrFunc | null,
+  ) { }
+
+  /** @internal */
+  private _addConfiguration(context: IRouteContext, config: RouteConfig) {
+    if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+
+    let configurations = this._configurations.get(context);
+    if (configurations === void 0) {
+      this._configurations.set(context, configurations = []);
+    }
+
+    configurations.push(RouteDefinitionConfiguration.create(config, this));
+  }
+
+  /** @internal */
+  private _getConfigurations(context: IRouteContext): RouteDefinitionConfiguration[] | null {
+    return this._configurations.get(context) ?? null;
+  }
+
+  /** @internal */
+  private _hasConfigurations(context: IRouteContext): boolean {
+    const configurations =  this._configurations.get(context);
+    return configurations != null && configurations.length > 0;
   }
 
   /** @internal */
@@ -80,8 +120,12 @@ export class RouteDefinition {
   public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): RouteDefinition | Promise<RouteDefinition>;
   public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
   public static resolve(routeable: Routeable, parentDefinition: RouteDefinition | null, routeNode: RouteNode | null, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
-    const parentConfig = parentDefinition?.config ?? null;
-    if (isPartialRedirectRouteConfig(routeable)) return new RouteDefinition(RouteConfig._create(routeable, null, parentConfig), null, parentDefinition);
+    if (isPartialRedirectRouteConfig(routeable)) {
+      if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+      const routeDefinition = new RouteDefinition(null, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
+      routeDefinition._addConfiguration(context, RouteConfig._create(routeable, null/* , parentConfig */));
+      return routeDefinition;
+    }
 
     const instruction = this.createNavigationInstruction(routeable);
     let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
@@ -112,25 +156,33 @@ export class RouteDefinition {
     return onResolve(ceDef, def => {
       let routeDefinition = $RouteDefinition.get(def);
       const hasRouteConfigHook = instruction.type === NavigationInstructionType.IRouteViewModel && typeof (routeable as IRouteViewModel).getRouteConfig === 'function';
+
       if (routeDefinition === null) {
         const type = def.Type;
+
         if (hasRouteConfigHook) return onResolve(
           (routeable as IRouteViewModel).getRouteConfig!(parentDefinition, routeNode),
           (value) => {
-            const config = RouteConfig._create(value ?? emptyObject, type, parentConfig);
-            routeDefinition = new RouteDefinition(config, def, parentDefinition);
+            if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+            routeDefinition = new RouteDefinition(def, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
             $RouteDefinition.define(routeDefinition, def);
+            routeDefinition._addConfiguration(context, RouteConfig._create(value ?? emptyObject, type/* , parentConfig */));
             return routeDefinition;
           });
-        const config = isPartialChildRouteConfig(routeable)
-          ? Route.isConfigured(type)
-            ? Route.getConfig(type).applyChildRouteConfig(routeable, parentConfig)
-            : RouteConfig._create(routeable, type, parentConfig)
-          : Route.getConfig(def.Type);
 
-        routeDefinition = new RouteDefinition(config, def, parentDefinition);
+        if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+
+        routeDefinition = new RouteDefinition(def, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
         $RouteDefinition.define(routeDefinition, def);
-      } else if (routeDefinition.config.routes.length === 0 && hasRouteConfigHook) {
+        routeDefinition._addConfiguration(context,
+          isPartialChildRouteConfig(routeable)
+            ? Route.isConfigured(type)
+              ? Route.getConfig(type).applyChildRouteConfig(routeable/* , parentConfig */)
+              : RouteConfig._create(routeable, type/* , parentConfig */)
+            : Route.getConfig(def.Type)
+        );
+
+      } else if (!routeDefinition._hasConfigurations(context) && hasRouteConfigHook) {
         return onResolve((routeable as IRouteViewModel).getRouteConfig?.(parentDefinition, routeNode), value => {
           routeDefinition!.applyChildRouteConfig(value ?? emptyObject);
           return routeDefinition!;

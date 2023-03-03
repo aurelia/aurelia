@@ -35,8 +35,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint": "eslint --cache --ext .js,.ts --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",

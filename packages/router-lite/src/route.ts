@@ -138,7 +138,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         data,
         children,
         Type?.fallback ?? null,
-        null!, // TODO(sayan): find a TS-wise clearer way to deal with this.
+        Type as Routeable,
         Type?.nav ?? true,
       );
     } else if (typeof configOrPath === 'object') {

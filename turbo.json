@@ -13,7 +13,7 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/*"
+        "dist/**/*"
       ]
     },
     "build:release": {
@@ -28,7 +28,7 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/*"
+        "dist/**/*"
       ]
     },
     "rollup": {
@@ -43,7 +43,7 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/*"
+        "dist/**/*"
       ]
     }
   }

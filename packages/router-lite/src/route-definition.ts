@@ -52,7 +52,7 @@ export class RouteDefinition {
   public readonly data: Record<string, unknown>;
   public readonly fallback: string | FallbackFunction | null;
 
-  public constructor(
+  private constructor(
     public readonly config: RouteConfig,
     public readonly component: CustomElementDefinition | null,
     parentDefinition: RouteDefinition | null,

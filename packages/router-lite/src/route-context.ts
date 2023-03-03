@@ -226,8 +226,8 @@ export class RouteContext {
   private processDefinition(definition: RouteDefinition): void {
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
-    const children = definition.config.routes;
-    const len = children.length;
+    const childrenRoutes = definition.config.routes;
+    const len = childrenRoutes.length;
     if (len === 0) {
       const getRouteConfig = (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
@@ -237,17 +237,17 @@ export class RouteContext {
     const hasNavModel = navModel !== null;
     let i = 0;
     for (; i < len; i++) {
-      const child = children[i];
-      if (child instanceof Promise) {
-        const p = this.addRoute(child);
+      const childRoute = childrenRoutes[i];
+      if (childRoute instanceof Promise) {
+        const p = this.addRoute(childRoute);
         promises.push(p);
         allPromises.push(p);
       } else {
-        const routeDef = RouteDefinition.resolve(child, definition, null, this);
+        const routeDef = RouteDefinition.resolve(childRoute, definition, null, this);
         if (routeDef instanceof Promise) {
-          if (!isPartialChildRouteConfig(child) || child.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
-          for (const path of ensureArrayOfStrings(child.path)) {
-            this.$addRoute(path, child.caseSensitive ?? false, routeDef);
+          if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
+          for (const path of ensureArrayOfStrings(childRoute.path)) {
+            this.$addRoute(path, childRoute.caseSensitive ?? false, routeDef);
           }
           const idx = this.childRoutes.length;
           const p = routeDef.then(resolvedRouteDef => {

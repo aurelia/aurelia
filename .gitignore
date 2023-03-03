@@ -32,3 +32,5 @@ test/benchmarking-apps/runner/cosmos.config.json
 **/.angular
 **/webdriver-ts/results
 **/webdriver-ts/traces
+
+.turbo

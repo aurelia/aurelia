@@ -216,7 +216,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -339,7 +339,7 @@ jobs:
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
-          key: cache-{{ .Revision }}-build-false
+          key: cache-{{ .Revision }}-build-true
       - run:
           name: "Split test glob"
           command: |
@@ -376,7 +376,7 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-false
+          key: cache-{{ .Revision }}-build-true
       - run:
           name: "Split test glob"
           command: |
@@ -406,7 +406,7 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-false
+          key: cache-{{ .Revision }}-build-true
       # - run: npm run build
       # - run: npm run change-tsconfigs:invert
       # - run: npm run build
@@ -436,7 +436,7 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npm run lint:packages:ci
+      - run: npx turbo lint --filter=@aurelia/*
       - run: npm run lint:other:ci
 
   merge_and_dist:
@@ -546,7 +546,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-mac-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -555,7 +555,7 @@ jobs:
             npm ci
           fi
       - save_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-mac-{{ checksum "package-lock.json" }}-install
           paths:
             - node_modules
             - packages/__tests__/node_modules
@@ -574,9 +574,7 @@ jobs:
       # - checkout_install
       # just restore some cache from previous steps
       # - run: chown -R $USER:$USER /home/circleci
-      - run: npm run build
-      # - restore_cache:
-      #     key: cache-{{ .Revision }}-build-false
+      - run: npm run build:release
       - run:
           name: "Run e2e script"
           working_directory: << parameters.path >>
@@ -820,11 +818,11 @@ workflows:
           name: checkout_install
           requires:
               - check_doc_abort
-      - build_and_cache:
-          <<: *filter_ignore_develop_release
-          name: build_dev
-          requires:
-              - checkout_install
+      # - build_and_cache:
+      #     <<: *filter_ignore_develop_release
+      #     name: build_dev
+      #     requires:
+      #         - checkout_install
       - build_and_cache:
           <<: *filter_ignore_develop_release
           name: build_release
@@ -838,7 +836,7 @@ workflows:
           npm_command: "test-chrome"
           install_chrome: true
           requires:
-            - build_dev
+            - build_release
       # - unit_test_esm:
       #     <<: *filter_ignore_develop_release
       #     name: test_firefox
@@ -846,18 +844,18 @@ workflows:
       #     install_firefox: true
       #     coverage: false
       #     requires:
-      #       - build_dev
+      #       - build_release
       - unit_test_esm_node:
           <<: *filter_ignore_develop_release
           name: test_node
           requires:
-            - build_dev
+            - build_release
       - unit_test_cjs:
           <<: *filter_ignore_develop_release
           name: test_toolings
           npm_command: "test-node"
           requires:
-            - build_dev
+            - build_release
       #- unit_test_aot:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
@@ -990,11 +988,11 @@ workflows:
       - checkout_install_cache:
           <<: *filter_only_tag
           name: checkout_install
-      - build_and_cache:
-          <<: *filter_only_tag
-          name: build_dev
-          requires:
-            - checkout_install
+      # - build_and_cache:
+      #     <<: *filter_only_tag
+      #     name: build_release
+      #     requires:
+      #       - checkout_install
       - build_and_cache:
           <<: *filter_only_tag
           name: build_release
@@ -1008,7 +1006,7 @@ workflows:
           npm_command: "test-chrome"
           install_chrome: true
           requires:
-            - build_dev
+            - build_release
       # - unit_test_esm:
       #     <<: *filter_only_tag
       #     name: test_firefox
@@ -1016,18 +1014,18 @@ workflows:
       #     install_firefox: true
       #     coverage: false
       #     requires:
-      #       - build_dev
+      #       - build_release
       - unit_test_esm_node:
           <<: *filter_only_tag
           name: test_node
           requires:
-            - build_dev
+            - build_release
       - unit_test_cjs:
           <<: *filter_only_tag
           name: test_toolings
           npm_command: "test-node"
           requires:
-            - build_dev
+            - build_release
 
       - e2e_test:
           <<: *filter_ignore_develop_release

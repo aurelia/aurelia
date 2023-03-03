@@ -43,7 +43,6 @@ import type { RouteNode } from './route-tree';
 import { FallbackFunction } from './resources/viewport';
 
 export class RouteDefinition {
-  public readonly hasExplicitPath: boolean;
   public readonly caseSensitive: boolean;
   public readonly path: string[];
   public readonly redirectTo: string | null;
@@ -57,7 +56,6 @@ export class RouteDefinition {
     public readonly component: CustomElementDefinition | null,
     parentDefinition: RouteDefinition | null,
   ) {
-    this.hasExplicitPath = config.path !== null;
     this.caseSensitive = config.caseSensitive;
     this.path = ensureArrayOfStrings(config.path ?? component!.name);
     this.redirectTo = config.redirectTo ?? null;
@@ -151,7 +149,6 @@ export class RouteDefinition {
   /** @internal */
   private applyChildRouteConfig(config: IChildRouteConfig) {
     (this as Writable<RouteDefinition>).config = config = this.config.applyChildRouteConfig(config, null);
-    (this as Writable<RouteDefinition>).hasExplicitPath = config.path !== null;
     (this as Writable<RouteDefinition>).caseSensitive = config.caseSensitive ?? this.caseSensitive;
     (this as Writable<RouteDefinition>).path = ensureArrayOfStrings(config.path ?? this.path);
     (this as Writable<RouteDefinition>).redirectTo = config.redirectTo ?? null;

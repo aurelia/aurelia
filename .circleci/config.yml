@@ -436,7 +436,7 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npm run lint:packages:ci
+      - run: npx turbo lint:ci
       - run: npm run lint:other:ci
 
   merge_and_dist:

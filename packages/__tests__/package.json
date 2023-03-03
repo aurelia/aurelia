@@ -8,7 +8,6 @@
   },
   "type": "module",
   "scripts": {
-    "prelint": "node z-scripts/lint-tests.cjs",
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js  --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js dist/esm/__tests__/setup-node.js",
@@ -34,6 +33,7 @@
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
     "test-safari": "karma start karma.conf.cjs --browsers=Safari --single-run --reporter=mocha",
     "test:debugger": "npm run test-chrome:debugger",
+    "pretest": "node z-scripts/lint-tests.cjs",
     "test": "npm run test-chrome",
     "build": "tsc --build",
     "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",

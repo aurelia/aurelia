@@ -48,7 +48,7 @@ describe('router/hook-tests.spec.ts', function () {
     }
   }
 
-  export class HookSpecs {
+  class HookSpecs {
     private constructor(
       public readonly binding: DelayedInvokerFactory<'binding'>,
       public readonly bound: DelayedInvokerFactory<'bound'>,
@@ -478,12 +478,12 @@ describe('router/hook-tests.spec.ts', function () {
       }
     }
   }
-  export interface Iopts {
+  interface Iopts {
     resolutionMode: ResolutionMode;
     swapStrategy: SwapStrategy;
   }
 
-  export interface IComponentSpec {
+  interface IComponentSpec {
     kind: 'all-sync' | 'all-async';
     hookSpec: HookSpecs;
   }

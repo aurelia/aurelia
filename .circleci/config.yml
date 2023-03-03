@@ -216,7 +216,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -546,7 +546,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-mac-{{ checksum "package-lock.json" }}-install
       - run: |
           # cache restored
           if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
@@ -555,7 +555,7 @@ jobs:
             npm ci
           fi
       - save_cache:
-          key: cache-{{ arch }}-{{ checksum "package-lock.json" }}-install
+          key: cache-mac-{{ checksum "package-lock.json" }}-install
           paths:
             - node_modules
             - packages/__tests__/node_modules

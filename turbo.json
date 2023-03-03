@@ -1,0 +1,50 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "rollup.config.js",
+        "../global.d.ts",
+        "../mangle-namecache.js",
+        "../rollup-utils.js",
+        "../tsconfig-build.json",
+        "../tsconfig.json"
+      ],
+      "outputs": [
+        "dist/*"
+      ]
+    },
+    "build:release": {
+      "dependsOn": ["^build:release"],
+      "inputs": [
+        "src/**/*.ts",
+        "rollup.config.js",
+        "../global.d.ts",
+        "../mangle-namecache.js",
+        "../rollup-utils.js",
+        "../tsconfig-build.json",
+        "../tsconfig.json"
+      ],
+      "outputs": [
+        "dist/*"
+      ]
+    },
+    "rollup": {
+      "dependsOn": ["^rollup"],
+      "inputs": [
+        "src/**/*.ts",
+        "rollup.config.js",
+        "../global.d.ts",
+        "../mangle-namecache.js",
+        "../rollup-utils.js",
+        "../tsconfig-build.json",
+        "../tsconfig.json"
+      ],
+      "outputs": [
+        "dist/*"
+      ]
+    }
+  }
+}

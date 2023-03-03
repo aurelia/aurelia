@@ -10,7 +10,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('3-runtime-html/templating-compiler.hooks.spec.ts', function () {
+describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
   it('compiles with child hooks', async function () {
     const { appHost, startPromise, tearDown } = createFixture(
       `<my-el>`,

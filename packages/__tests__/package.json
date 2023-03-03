@@ -8,6 +8,7 @@
   },
   "type": "module",
   "scripts": {
+    "prelint": "node z-scripts/lint-tests.cjs",
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js  --exclude dist/esm/__tests__/integration/**/*.spec.js --exclude dist/esm/__tests__/store-v1/**/*.spec.js dist/esm/__tests__/setup-node.js",

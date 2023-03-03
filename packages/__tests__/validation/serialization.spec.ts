@@ -24,7 +24,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe('validation/serialization.spec.ts/validation de/serialization', function () {
+describe('validation/serialization.spec.ts', function () {
 
   describe('validation de/serialization', function () {
     function setup() {

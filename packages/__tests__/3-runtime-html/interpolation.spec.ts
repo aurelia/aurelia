@@ -30,7 +30,7 @@ const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated 
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 
-describe('3-runtime/interpolation.spec.ts', function () {
+describe('3-runtime-html/interpolation.spec.ts', function () {
   describe('[UNIT]interpolation', function () {
     const cases: CaseType[] = [
       {

@@ -306,12 +306,6 @@ module.exports =
       // see https://github.com/monounity/karma-coverage-istanbul-instrumenter/blob/master/test/es6-native/karma.conf.js
       esModules: true,
     };
-    // @ts-ignore
-    options.junitReporter = {
-      outputDir: 'coverage',
-      outputFile: 'test-results.xml',
-      useBrowserName: false,
-    };
   }
 
   config.set(options);

@@ -8,7 +8,7 @@ import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing'
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe('2-runtime-html/property-observation.spec.ts', function () {
+describe('2-runtime/property-observation.spec.ts', function () {
   function createFixture(obj: Primitive, key: PropertyKey) {
     const sut = new PrimitiveObserver(obj, key);
 

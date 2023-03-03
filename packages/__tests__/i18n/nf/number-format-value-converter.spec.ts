@@ -3,7 +3,7 @@ import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
 
-describe('i18n/t/number-format-value-converter.spec.ts', function () {
+describe('i18n/nf/number-format-value-converter.spec.ts', function () {
   function createFixture() {
     const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
     const sut = new NumberFormatValueConverter(i18n);

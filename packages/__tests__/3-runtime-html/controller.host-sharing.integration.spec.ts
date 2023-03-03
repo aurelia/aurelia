@@ -13,7 +13,7 @@ import {
 
 import { assert, TestContext } from '@aurelia/testing';
 
-describe('controller.host-sharing.integration.spec.ts', function () {
+describe('3-runtime-html/controller.host-sharing.integration.spec.ts', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const { container } = ctx;

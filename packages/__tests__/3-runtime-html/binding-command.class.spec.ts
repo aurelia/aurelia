@@ -3,7 +3,7 @@ import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
 // TemplateCompiler - Binding Commands integration
-describe('3-runtime-html/binding-commands.class.spec.ts', function () {
+describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/ }, Number, new Proxy({}, {})];

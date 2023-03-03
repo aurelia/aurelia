@@ -28,7 +28,7 @@ function createFixture() {
   return { ctx, container, observerLocator };
 }
 
-describe('3-runtime-html/target-observer.spec.ts', function () {
+describe('3-runtime-html/target-observers.spec.ts', function () {
 
   describe('[UNIT] AttributeNSAccessor', function () {
     let sut: AttributeNSAccessor;

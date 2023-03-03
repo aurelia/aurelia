@@ -2,7 +2,7 @@ import { ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe.skip('ValueAttributeObserver', function () {
+describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
   const eventDefaults = { bubbles: true };
 
   for (const { inputType, nullValues, validValues } of [

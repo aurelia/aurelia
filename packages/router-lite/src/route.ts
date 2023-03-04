@@ -6,7 +6,7 @@ import { RouteableComponent } from './instructions';
 import type { RouteNode } from './route-tree';
 import { FallbackFunction } from './resources/viewport';
 
-const noRoutes = emptyArray as RouteConfig['routes'];
+export const noRoutes = emptyArray as RouteConfig['routes'];
 
 /**
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
@@ -21,62 +21,62 @@ const noRoutes = emptyArray as RouteConfig['routes'];
 export type Routeable = string | IChildRouteConfig | IRedirectRouteConfig | RouteableComponent;
 
 export interface IRouteConfig {
-    /**
-     * The id for this route, which can be used in the view for generating hrefs.
-     */
-    readonly id?: string | null;
-    /**
-     * The path to match against the url.
-     *
-     * If left blank, the path will be derived from the component's static `path` property (if it exists).
-     */
-    readonly path?: string | string[] | null;
-    /**
-     * The title to use for this route when matched.
-     *
-     * If left blank, this route will not contribute to the generated title.
-     */
-    readonly title?: string | ((node: RouteNode) => string | null) | null;
-    /**
-     * The path to which to redirect when the url matches the path in this config.
-     */
-    readonly redirectTo?: string | null;
-    /**
-     * Whether the `path` should be case sensitive.
-     */
-    readonly caseSensitive?: boolean;
-    /**
-     * How to behave when this component scheduled to be loaded again in the same viewport:
-     *
-     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed  (default if only the parameters have changed).
-     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading`.
-     * - `none`: does nothing (default if nothing has changed for the viewport).
-     */
-    readonly transitionPlan?: TransitionPlanOrFunc | null;
-    /**
-     * The name of the viewport this component should be loaded into.
-     */
-    readonly viewport?: string | null;
-    /**
-     * Any custom data that should be accessible to matched components or hooks.
-     */
-    readonly data?: Record<string, unknown>;
-    /**
-     * The child routes that can be navigated to from this route. See `Routeable` for more information.
-     */
-    readonly routes?: readonly Routeable[];
+  /**
+   * The id for this route, which can be used in the view for generating hrefs.
+   */
+  readonly id?: string | null;
+  /**
+   * The path to match against the url.
+   *
+   * If left blank, the path will be derived from the component's static `path` property (if it exists).
+   */
+  readonly path?: string | string[] | null;
+  /**
+   * The title to use for this route when matched.
+   *
+   * If left blank, this route will not contribute to the generated title.
+   */
+  readonly title?: string | ((node: RouteNode) => string | null) | null;
+  /**
+   * The path to which to redirect when the url matches the path in this config.
+   */
+  readonly redirectTo?: string | null;
+  /**
+   * Whether the `path` should be case sensitive.
+   */
+  readonly caseSensitive?: boolean;
+  /**
+   * How to behave when this component scheduled to be loaded again in the same viewport:
+   *
+   * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed  (default if only the parameters have changed).
+   * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading`.
+   * - `none`: does nothing (default if nothing has changed for the viewport).
+   */
+  readonly transitionPlan?: TransitionPlanOrFunc | null;
+  /**
+   * The name of the viewport this component should be loaded into.
+   */
+  readonly viewport?: string | null;
+  /**
+   * Any custom data that should be accessible to matched components or hooks.
+   */
+  readonly data?: Record<string, unknown>;
+  /**
+   * The child routes that can be navigated to from this route. See `Routeable` for more information.
+   */
+  readonly routes?: readonly Routeable[];
 
-    /**
-     * When set, will be used to redirect unknown/unconfigured routes to this route.
-     * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
-     */
-    readonly fallback?: string | FallbackFunction | null;
-    /**
-     * When set to `false`, the routes won't be included in the navigation model.
-     *
-     * @default true
-     */
-    readonly nav?: boolean;
+  /**
+   * When set, will be used to redirect unknown/unconfigured routes to this route.
+   * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
+   */
+  readonly fallback?: string | FallbackFunction | null;
+  /**
+   * When set to `false`, the routes won't be included in the navigation model.
+   *
+   * @default true
+   */
+  readonly nav?: boolean;
 }
 export interface IChildRouteConfig extends IRouteConfig {
   /**
@@ -98,6 +98,8 @@ function defaultReentryBehavior(current: RouteNode, next: RouteNode): Transition
 
 // Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
+  // /** @internal */
+  // public readonly _definedByComponent: boolean;
   protected constructor(
     public readonly id: string | null,
     public readonly path: string | string[] | null,
@@ -111,10 +113,17 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly fallback: string | FallbackFunction | null,
     public readonly component: Routeable,
     public readonly nav: boolean,
+    /** @internal */
+    public readonly _definedByComponent: boolean,
   ) { }
 
   /** @internal */
-  public static _create(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: RouteType | null/* , parentConfig: RouteConfig | null */): RouteConfig {
+  public static _create(
+    configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
+    Type: RouteType | null,
+    definedByComponent: boolean,
+    /* , parentConfig: RouteConfig | null */
+  ): RouteConfig {
     if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
       const path = configOrPath;
 
@@ -140,6 +149,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         Type?.fallback ?? null,
         Type as Routeable,
         Type?.nav ?? true,
+        definedByComponent,
       );
     } else if (typeof configOrPath === 'object') {
       const config = configOrPath;
@@ -171,8 +181,9 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         data,
         children,
         config.fallback ?? Type?.fallback ?? null,
-        (config as IChildRouteConfig).component ?? null,
+        (config as IChildRouteConfig).component ?? Type ?? null,
         config.nav ?? true,
+        definedByComponent,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -202,6 +213,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.fallback ?? this.fallback,
       config.component ?? this.component,
       config.nav ?? this.nav,
+      true, // Rationale: this is supposed to be invoked when a component defines its own children.
     );
   }
 
@@ -222,8 +234,12 @@ export const Route = {
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
-  configure<T extends RouteType>(configOrPath: IRouteConfig | IChildRouteConfig | string | string[], Type: T): T {
-    const config = RouteConfig._create(configOrPath, Type/* , null */);
+  configure<T extends RouteType>(
+    configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
+    Type: T,
+    isDefinedByType: boolean
+  ): T {
+    const config = RouteConfig._create(configOrPath, Type, isDefinedByType/* , null */);
     Metadata.define(Route.name, config, Type);
 
     return Type;
@@ -235,7 +251,7 @@ export const Route = {
     if (!Route.isConfigured(Type)) {
       // This means there was no @route decorator on the class.
       // However there might still be static properties, and this API provides a unified way of accessing those.
-      Route.configure({}, Type);
+      Route.configure({}, Type, false);
     }
 
     return Metadata.getOwn(Route.name, Type) as RouteConfig;
@@ -271,6 +287,6 @@ export function route(config: IRouteConfig): RouteDecorator;
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
   return function (target) {
-    return Route.configure(configOrPath, target);
+    return Route.configure(configOrPath, target, true);
   };
 }

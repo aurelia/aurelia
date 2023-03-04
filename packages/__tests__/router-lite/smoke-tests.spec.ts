@@ -5071,7 +5071,9 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #3');
 
     await au.stop();
-  describe.only('multiple configurations for same component', function () {
+  });
+
+  describe('multiple configurations for same component', function () {
     it('multiple configurations for the same component under the same parent', async function () {
       @customElement({ name: 'c-1', template: 'c1' })
       class C1 { }

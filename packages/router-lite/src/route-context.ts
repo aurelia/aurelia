@@ -12,6 +12,7 @@ import {
   Registration,
   ResourceDefinition,
   emptyObject,
+  emptyArray,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -41,8 +42,8 @@ import {
   NavigationOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
-import { IChildRouteConfig, Routeable, RouteType } from './route';
-import { RouteDefinition } from './route-definition';
+import { IChildRouteConfig, noRoutes, Routeable, RouteType } from './route';
+import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
 import type { RouteNode } from './route-tree';
 import {
   emptyQuery,
@@ -110,7 +111,7 @@ export class RouteContext {
   /**
    * The (fully resolved) configured child routes of this context's `RouteDefinition`
    */
-  public readonly childRoutes: (RouteDefinition | Promise<RouteDefinition>)[] = [];
+  public readonly childRoutes: (RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>)[] = [];
 
   /** @internal */
   private _resolved: Promise<void> | null = null;
@@ -209,7 +210,7 @@ export class RouteContext {
 
     this._recognizer = new RouteRecognizer();
 
-    if(_router.options.useNavigationModel) {
+    if (_router.options.useNavigationModel) {
       const navModel = this._navigationModel = new NavigationModel([]);
       // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
       // Also considering that in a realistic app the number of configured routes are limited in number, this subscription and keeping the routes' active property in sync should not create much issue.
@@ -226,7 +227,7 @@ export class RouteContext {
   private processDefinition(definition: RouteDefinition): void {
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
-    const childrenRoutes = definition.config.routes;
+    const childrenRoutes = definition._directConfiguration?.routes ?? noRoutes;
     const len = childrenRoutes.length;
     if (len === 0) {
       const getRouteConfig = (definition.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
@@ -243,27 +244,28 @@ export class RouteContext {
         promises.push(p);
         allPromises.push(p);
       } else {
-        const routeDef = RouteDefinition.resolve(childRoute, definition, null, this);
-        if (routeDef instanceof Promise) {
+        const rdResolution = RouteDefinition.resolve(childRoute, definition, null, this) as [RouteDefinition, RouteDefinitionConfiguration] | Promise<[RouteDefinition, RouteDefinitionConfiguration]>;
+        if (rdResolution instanceof Promise) {
           if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
           for (const path of ensureArrayOfStrings(childRoute.path)) {
-            this.$addRoute(path, childRoute.caseSensitive ?? false, routeDef);
+            this.$addRoute(path, childRoute.caseSensitive ?? false, rdResolution.then(([def]) => def));
           }
           const idx = this.childRoutes.length;
-          const p = routeDef.then(resolvedRouteDef => {
-            return this.childRoutes[idx] = resolvedRouteDef;
+          const p = rdResolution.then(([, rdConfig]) => {
+            return this.childRoutes[idx] = rdConfig;
           });
           this.childRoutes.push(p);
-          if(hasNavModel) {
+          if (hasNavModel) {
             navModel.addRoute(p);
           }
           allPromises.push(p.then(noop));
         } else {
-          for (const path of routeDef.path) {
-            this.$addRoute(path, routeDef.caseSensitive, routeDef);
+          const rdConfig = routeDef._directConfiguration;
+          for (const path of rdConfig?.path ?? emptyArray) {
+            this.$addRoute(path, rdConfig!.caseSensitive, routeDef);
           }
           this.childRoutes.push(routeDef);
-          if(hasNavModel) {
+          if (hasNavModel) {
             navModel.addRoute(routeDef);
           }
         }
@@ -308,7 +310,13 @@ export class RouteContext {
 
     const router = container.get(IRouter);
     return onResolve(
-      router.getRouteContext(null, controller.definition, controller.viewModel, controller.container, null),
+      router.getRouteContext(
+        null,
+        controller.definition,
+        controller.viewModel,
+        controller.container,
+        null,
+      ),
       routeContext => {
         container.register(Registration.instance(IRouteContext, routeContext));
         routeContext.node = router.routeTree.root;
@@ -454,16 +462,12 @@ export class RouteContext {
       }
     }
 
-    let residue: string | null;
-    if (Reflect.has(result!.params, RESIDUE)) {
-      residue = result!.params[RESIDUE] ?? null;
-      // TODO(sayan): Fred did this to fix some issue in lazy-loading. Inspect if this is really needed.
-      // Reflect.deleteProperty(result.params, RESIDUE);
-    } else {
-      residue = null;
-    }
-
-    return new $RecognizedRoute(result!, residue);
+    return new $RecognizedRoute(
+      result!,
+      Reflect.has(result!.params, RESIDUE)
+        ? (result!.params[RESIDUE] ?? null)
+        : null
+    );
   }
 
   private addRoute(routeable: Promise<IModule>): Promise<void>;
@@ -471,8 +475,9 @@ export class RouteContext {
   private addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
     return onResolve(RouteDefinition.resolve(routeable, this.definition, null, this), routeDef => {
-      for (const path of routeDef.path) {
-        this.$addRoute(path, routeDef.caseSensitive, routeDef);
+      const rdConfig = routeDef._directConfiguration;
+      for (const path of rdConfig?.path ?? emptyArray) {
+        this.$addRoute(path, rdConfig!.caseSensitive, routeDef);
       }
       this._navigationModel?.addRoute(routeDef);
       this.childRoutes.push(routeDef);
@@ -535,9 +540,9 @@ export class RouteContext {
       def = component;
       throwError = true;
     } else if (typeof component === 'string') {
-      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === component);
+      def = (this.childRoutes as RouteDefinition[]).find(x => x._directConfiguration?.id === component);
     } else if ((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
-      def = (this.childRoutes as RouteDefinition[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
+      def = (this.childRoutes as RouteDefinition[]).find(x => x._directConfiguration?.id === (component as ITypedNavigationInstruction_string).value);
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
       def = RouteDefinition.resolve(component, null, null, this) as RouteDefinition;
@@ -546,7 +551,7 @@ export class RouteContext {
 
     const params = instruction.params;
     const recognizer = this._recognizer;
-    const paths = def.path;
+    const paths = def._directConfiguration?.path ?? emptyArray;
     const numPaths = paths.length;
     const errors: string[] = [];
     let result: ReturnType<typeof core> = null;
@@ -715,11 +720,11 @@ class NavigationModel implements INavigationModel {
   }
 
   /** @internal */
-  public addRoute(routeDef: RouteDefinition | Promise<RouteDefinition>): void {
+  public addRoute(route: RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>): void {
     const routes = this.routes;
-    if (!(routeDef instanceof Promise)) {
-      if (routeDef.config.nav) {
-        routes.push(NavigationRoute.create(routeDef));
+    if (!(route instanceof Promise)) {
+      if (route.nav ?? false) {
+        routes.push(NavigationRoute.create(route));
       }
       return;
     }
@@ -727,9 +732,9 @@ class NavigationModel implements INavigationModel {
     routes.push((void 0)!); // reserve the slot
     let promise: void | Promise<void> = void 0;
     promise = this._promise = onResolve(this._promise, () =>
-      onResolve(routeDef, $routeDef => {
-        if ($routeDef.config.nav) {
-          routes[index] = NavigationRoute.create($routeDef);
+      onResolve(route, rdConfig => {
+        if (rdConfig.nav) {
+          routes[index] = NavigationRoute.create(rdConfig);
         } else {
           routes.splice(index, 1);
         }
@@ -761,13 +766,13 @@ class NavigationRoute implements INavigationRoute {
   ) { }
 
   /** @internal */
-  public static create(routeDef: RouteDefinition) {
+  public static create(rdConfig: RouteDefinitionConfiguration) {
     return new NavigationRoute(
-      routeDef.id,
-      routeDef.path,
-      routeDef.redirectTo,
-      routeDef.config.title,
-      routeDef.data,
+      rdConfig.id,
+      rdConfig.path,
+      rdConfig.redirectTo,
+      rdConfig.title,
+      rdConfig.data,
     );
   }
 

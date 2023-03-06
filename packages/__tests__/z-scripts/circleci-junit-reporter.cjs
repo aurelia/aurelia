@@ -56,6 +56,7 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper, for
   var NEWXML
   // We need one global variable for the tag <file> to be visible to functions
   var exposee
+  /** @type {import('xmlbuilder').XMLElement[]} */
   var suites = []
   var pendingFileWritings = 0
   var fileWritingFinished = function () { }
@@ -95,11 +96,11 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper, for
     var timestamp = (new Date()).toISOString().substr(0, 19)
     var suite
     if (NEWXML) {
-      suite = suites[browser.id] = builder.create('unitTest')
-      suite.att('version', '1')
+      suite = suites[browser.id] = builder.create('unitTest', { version: '2.0' })
+      suite.att('version', '2.0')
       exposee = suite.ele('file', { 'path': 'fixedString' })
     } else {
-      suite = suites[browser.id] = builder.create('testsuite')
+      suite = suites[browser.id] = builder.create('testsuite', { version: '2.0' })
       suite.att('name', suiteNameFormatter(browser))
         .att('package', pkgName)
         .att('timestamp', timestamp)

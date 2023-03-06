@@ -180,8 +180,16 @@ module.exports =
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
+      // ===============================
+      // when enabling junit report and teach circle CI about the timing of the tests
+      // CircleCI is able to split the test with very even timing across all processes
+      // though somehow all test around array observation got broken, as if there was no observation possible at all
+      // it is quite difficult to observe/debug
+      // so disabling for now, if at any point we have the capacity to figure this out
+      // this should be enable so that circleCI can use timing of each test to split them better
       // @ts-ignore
-      junitCircleCi,
+      // junitCircleCi,
+      // ===============================
       'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-safari-launcher',
@@ -299,7 +307,7 @@ module.exports =
   };
 
   if (config.coverage) {
-    options.reporters = ['coverage-istanbul', 'junit-circleci', ...options.reporters ?? []];
+    options.reporters = ['coverage-istanbul', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
       // something wrong with cobertura on circleCI

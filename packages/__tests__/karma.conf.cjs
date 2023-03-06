@@ -320,7 +320,7 @@ module.exports =
         if (!suite.getAttribute('file')) {
           // xml builder is weird
           // @ts-ignore
-          suite.att('file', `packages/__tests__/dist/esm/__tests__/${result.suite[0]}`);
+          suite.att('file', `packages/__tests__/dist/esm/__tests__/${result.suite[0].replace(/\.ts$/, '.js')}`);
         }
       },
       nameFormatter: (browser, result, spec) => {

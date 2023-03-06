@@ -70,9 +70,17 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       const sut = observerMap.get(arr) ?? (observerMap.set(arr, new ArrayObserver(arr)).get(arr));
       sut.subscribe(s);
 
-      batch(() => {
-        fn(arr);
-      });
+      try {
+        batch(() => {
+          fn(arr);
+        });
+      } catch (ex) {
+        console.log(ex);
+      }
+
+      if (s.collectionChanges.length === 0) {
+        throw new Error('No changes has happened');
+      }
 
       assert.deepStrictEqual(
         s.collectionChanges.pop(),

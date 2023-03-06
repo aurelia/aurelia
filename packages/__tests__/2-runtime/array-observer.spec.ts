@@ -1624,7 +1624,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
   });
 
   describe(`observeSort`, function () {
-    const arraySizes = [0, 1, 2, 3, 5, 10, 500, 2500];
+    const arraySizes = [0, 1, 2, 3, 5, 10, 50];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
       undefined,

@@ -343,8 +343,12 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
+            # the following 2 lines work, but the test break on this mode, not in local though
+            # it's quite hard to debug on this mode so not using for now
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=filename)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=filename) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |
@@ -360,9 +364,6 @@ jobs:
                 command: |
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
-            - store_artifacts:
-                path: packages/__tests__/coverage/test-results.xml
-                destination: test-results
             - store_test_results:
                 path: packages/__tests__/coverage
 
@@ -384,8 +385,10 @@ jobs:
           name: "Split test glob"
           command: |
             cd packages/__tests__
-            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
-            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > tests.txt
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=filename)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=filename) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |

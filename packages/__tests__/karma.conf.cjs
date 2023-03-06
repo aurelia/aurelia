@@ -11,6 +11,8 @@ const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
+const junitCircleCi = require('./z-scripts/circleci-junit-reporter.cjs');
+
 module.exports =
 /** @param {import('karma').Config & { browsers?: string[]; coverage?: any; }} config */ function (config) {
   /**
@@ -178,6 +180,8 @@ module.exports =
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
+      // @ts-ignore
+      junitCircleCi,
       'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-safari-launcher',
@@ -295,7 +299,7 @@ module.exports =
   };
 
   if (config.coverage) {
-    options.reporters = ['coverage-istanbul', ...options.reporters ?? []];
+    options.reporters = ['coverage-istanbul', 'junit-circleci', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
       reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
@@ -305,6 +309,22 @@ module.exports =
     options.coverageIstanbulInstrumenter = {
       // see https://github.com/monounity/karma-coverage-istanbul-instrumenter/blob/master/test/es6-native/karma.conf.js
       esModules: true,
+    };
+    // @ts-ignore
+    options.junitReporter = {
+      outputDir: './packages/__tests__/coverage',
+      outputFile: 'test-results.xml',
+      useBrowserName: false,
+      specFormatter: (spec, result, suite) => {
+        if (!suite.getAttribute('file')) {
+          // xml builder is weird
+          // @ts-ignore
+          suite.att('file', result.suite[0]);
+        }
+      },
+      nameFormatter: (browser, result, spec) => {
+        return result.suite.slice(1).join(' ') + ' ' + result.description;
+      },
     };
   }
 

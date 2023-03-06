@@ -320,7 +320,7 @@ module.exports =
         if (!suite.getAttribute('file')) {
           // xml builder is weird
           // @ts-ignore
-          suite.att('file', result.suite[0]);
+          suite.att('file', `packages/__tests__/${result.suite[0]}`);
         }
       },
       nameFormatter: (browser, result, spec) => {

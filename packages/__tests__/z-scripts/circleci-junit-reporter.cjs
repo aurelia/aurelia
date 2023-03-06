@@ -96,11 +96,11 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper, for
     var timestamp = (new Date()).toISOString().substr(0, 19)
     var suite
     if (NEWXML) {
-      suite = suites[browser.id] = builder.create('unitTest', { version: '2.0' })
+      suite = suites[browser.id] = builder.create('unitTest', { version: '1.2' })
       suite.att('version', '2.0')
       exposee = suite.ele('file', { 'path': 'fixedString' })
     } else {
-      suite = suites[browser.id] = builder.create('testsuite', { version: '2.0' })
+      suite = suites[browser.id] = builder.create('testsuite', { version: '1.2' })
       suite.att('name', suiteNameFormatter(browser))
         .att('package', pkgName)
         .att('timestamp', timestamp)

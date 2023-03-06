@@ -302,7 +302,8 @@ module.exports =
     options.reporters = ['coverage-istanbul', 'junit-circleci', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
-      reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
+      // something wrong with cobertura on circleCI
+      reports: ['html', 'text-summary', 'json', 'lcovonly'/* , 'cobertura' */],
       dir: 'coverage',
     };
     // @ts-ignore

@@ -22,9 +22,11 @@ export interface JUnitReporterConfiguration {
   suite?: string | undefined;
   /** add browser name to report and classes names */
   useBrowserName?: boolean | undefined;
-  /** function (browser, result) to customize the name attribute in xml testcase element */
+  /** function (browser, result) to customize the name attribute in xml <testcase> element */
   nameFormatter?: ((browser: any, result: TestResult, spec: Element) => string) | undefined;
-  // /** function (browser, result) to customize the classname attribute in xml testcase element */
+  /** Customize the filename to set on the file attribute of each <testcase> element */
+  fileFormatter?: (result: TestResult) => string | undefined;
+  // /** function (browser, result) to customize the classname attribute in xml <testcase> element */
   // classNameFormatter?: ((browser: any, result: TestResult, spec: Element) => string) | undefined;
   /** customize xml node representing the current spec */
   specFormatter?: (spec: Element, result: TestResult, suite: Element) => void;

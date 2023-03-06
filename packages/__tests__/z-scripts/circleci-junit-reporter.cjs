@@ -50,6 +50,7 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper, for
   var suiteNameFormatter = reporterConfig.suiteNameFormatter || defaultSuiteNameFormatter
   var properties = reporterConfig.properties
   var specFormatter = reporterConfig.specFormatter;
+  var fileFormatter = reporterConfig.fileFormatter;
   // The below two variables have to do with adding support for new SonarQube XML format
   var XMLconfigValue = reporterConfig.xmlVersion
   var NEWXML
@@ -281,6 +282,13 @@ var JUnitReporter = function (baseReporterDecorator, config, logger, helper, for
           spec.ele('failure', { message: formatError(err) })
         }
       })
+    }
+
+    if (fileFormatter) {
+      const file = fileFormatter(result);
+      if (file) {
+        spec.att('file', file);
+      }
     }
 
     if (specFormatter) {

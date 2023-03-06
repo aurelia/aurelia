@@ -360,6 +360,9 @@ jobs:
                 command: |
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
+            - store_artifacts:
+                path: packages/__tests__/coverage/test-results.xml
+                destination: test-results
             - store_test_results:
                 path: packages/__tests__/coverage
 

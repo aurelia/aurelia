@@ -20,14 +20,15 @@ import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } fro
 import { addCollectionBatch, batching } from './subscriber-batch';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Array object
-const lookupMetadataKey = '__au_array_obs__';
-const observerLookup = (() => {
-  let lookup: WeakMap<unknown[], ArrayObserver> = getOwnMetadata(lookupMetadataKey, Array);
-  if (lookup == null) {
-    defineMetadata(lookupMetadataKey, lookup = new WeakMap<unknown[], ArrayObserver>(), Array);
-  }
-  return lookup;
-})();
+// const lookupMetadataKey = '__au_array_obs__';
+// const observerLookup = (() => {
+//   let lookup: WeakMap<unknown[], ArrayObserver> = getOwnMetadata(lookupMetadataKey, Array);
+//   if (lookup == null) {
+//     defineMetadata(lookupMetadataKey, lookup = new WeakMap<unknown[], ArrayObserver>(), Array);
+//   }
+//   return lookup;
+// })();
+const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {

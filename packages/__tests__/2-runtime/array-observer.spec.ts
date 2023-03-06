@@ -102,7 +102,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     }
 
     describe('empty array', function () {
-      it.skip('2x push', function () {
+      it('2x push', function () {
         verifyChanges([], arr => {
           arr.push(1);
           arr.push(2);

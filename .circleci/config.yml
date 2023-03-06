@@ -384,11 +384,10 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            cd packages/__tests__
             # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
             # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
             echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name)
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > tests.txt
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |

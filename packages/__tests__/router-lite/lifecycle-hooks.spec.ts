@@ -17,7 +17,7 @@ import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
-describe('lifecycle hooks', function () {
+describe('router-lite/lifecycle-hooks.spec.ts', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];

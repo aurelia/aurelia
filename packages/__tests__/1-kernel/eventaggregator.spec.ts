@@ -6,7 +6,7 @@ type EA = IEventAggregator & {
   messageHandlers: any[];
 };
 
-describe('event aggregator', function () {
+describe('1-kernel/eventaggregator.spec.ts', function () {
 
   describe('subscribe', function () {
 

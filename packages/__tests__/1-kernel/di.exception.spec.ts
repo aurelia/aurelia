@@ -1,7 +1,7 @@
 import { DI, optional } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe('Exception', function () {
+describe('1-kernel/di.exception.spec.ts', function () {
   it('No registration for interface', function () {
     const container = DI.createContainer();
 

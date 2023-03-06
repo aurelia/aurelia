@@ -17,7 +17,7 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 }
 
 // TemplateCompiler - Binding Commands integration
-describe('3-runtime-html/binding-commands.style.spec.ts', function () {
+describe('3-runtime-html/binding-command.style.spec.ts', function () {
   it('updates style on collection change', function () {
     const { component, flush, assertAttr } = createFixture
       .component({ paddings: ['20px', '15px', '10px', '5px'] })

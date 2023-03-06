@@ -11,7 +11,7 @@
 //   json
 // } from '@aurelia/fetch-client';
 
-// describe('HttpClient', function () {
+// describe('fetch-client/http-client.spec.ts', function () {
 //   let ctx: HTMLTestContext;
 //   let originalFetch: (input: string | Request, init?: RequestInit) => Promise<Response>;
 //   let client: HttpClient;

@@ -82,7 +82,7 @@ export abstract class SimpleActivityTrackingVMBase {
   }
 }
 
-describe('router config', function () {
+describe('router-lite/config-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     const componentSpecs: IComponentSpec[] = [
       {

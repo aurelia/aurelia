@@ -11,6 +11,8 @@ const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
+const junitCircleCi = require('./z-scripts/circleci-junit-reporter.cjs');
+
 module.exports =
 /** @param {import('karma').Config & { browsers?: string[]; coverage?: any; }} config */ function (config) {
   /**
@@ -178,6 +180,16 @@ module.exports =
       'karma-coverage-istanbul-instrumenter',
       'karma-coverage-istanbul-reporter',
       'karma-min-reporter',
+      // ===============================
+      // when enabling junit report and teach circle CI about the timing of the tests
+      // CircleCI is able to split the test with very even timing across all processes
+      // though somehow all test around array observation got broken, as if there was no observation possible at all
+      // it is quite difficult to observe/debug
+      // so disabling for now, if at any point we have the capacity to figure this out
+      // this should be enable so that circleCI can use timing of each test to split them better
+      // @ts-ignore
+      // junitCircleCi,
+      // ===============================
       'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-safari-launcher',
@@ -298,7 +310,8 @@ module.exports =
     options.reporters = ['coverage-istanbul', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
-      reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
+      // something wrong with cobertura on circleCI
+      reports: ['html', 'text-summary', 'json', 'lcovonly'/* , 'cobertura' */],
       dir: 'coverage',
     };
     // @ts-ignore
@@ -308,9 +321,20 @@ module.exports =
     };
     // @ts-ignore
     options.junitReporter = {
-      outputDir: 'coverage',
+      outputDir: './packages/__tests__/coverage',
       outputFile: 'test-results.xml',
       useBrowserName: false,
+      // specFormatter: (spec, result, suite) => {
+      //   if (!suite.getAttribute('file')) {
+      //     // xml builder is weird
+      //     // @ts-ignore
+      //     suite.att('file', spec.getAttribute('file'));
+      //   }
+      // },
+      fileFormatter: (result) => `packages/__tests__/dist/esm/__tests__/${result.suite[0].replace(/\.tsx?$/, '.js')}`,
+      nameFormatter: (browser, result, spec) => {
+        return result.suite.slice(1).join(' ') + ' ' + result.description;
+      },
     };
   }
 

@@ -33,7 +33,7 @@ function reportTask(task: any) {
   return `id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
 }
 
-describe('Scheduler', function () {
+describe('2-runtime/scheduler.spec.ts', function () {
   // There is only ever one global platform, so we might as well store it here instead of initializing all extra boilerplate each test
   const platform = TestContext.create().platform;
 

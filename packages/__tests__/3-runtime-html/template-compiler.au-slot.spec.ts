@@ -11,7 +11,7 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-describe('[UNIT] 3-runtime-html/template-compiler.au-slot.spec.ts', function () {
+describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;

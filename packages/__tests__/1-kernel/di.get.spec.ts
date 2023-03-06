@@ -1,7 +1,7 @@
 import { all, Constructable, DI, factory, IContainer, inject, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe('DI.get', function () {
+describe('1-kernel/di.get.spec.ts', function () {
   let container: IContainer;
 
   // eslint-disable-next-line mocha/no-hooks

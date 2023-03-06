@@ -3,7 +3,7 @@ import { valueConverter, bindingBehavior, Aurelia, CustomElement, ICustomElement
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('repeat value-converter integration', function () {
+describe('3-runtime-html/repeat.vc.bb.spec.ts', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];

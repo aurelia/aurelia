@@ -11,7 +11,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe(`[repeat.contextual-prop.spec.ts]`, function () {
+describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;

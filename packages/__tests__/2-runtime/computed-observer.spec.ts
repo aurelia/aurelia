@@ -10,7 +10,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
+describe('2-runtime/computed-observer.spec.ts', function () {
   function createFixture() {
     const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const nodeLocator = {
@@ -72,7 +72,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
   ];
 
   eachCartesianJoin([propSpecs, depSpecs], (propSpec, depSpec) => {
-    it(`propSpec ${propSpec.t}, depSpec ${depSpec.t}`, function () {
+    it(`[UNIT] propSpec ${propSpec.t}, depSpec ${depSpec.t}`, function () {
       const { locator } = createFixture();
       const { initialValue: propInitialValue, newValue: propNewValue, descriptor: propDescriptor } = propSpec;
       const { initialValue: depInitialValue, newValue: depNewValue, descriptor: depDescriptor } = depSpec;
@@ -186,7 +186,7 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
 
   });
 
-  it(`complex nested dependencies`, function () {
+  it(`[UNIT] complex nested dependencies`, function () {
     this.timeout(30000);
     const { locator } = createFixture();
 

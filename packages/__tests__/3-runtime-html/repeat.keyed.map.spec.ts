@@ -1,7 +1,7 @@
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 
-describe("3-runtime-html/repeat.keyed.spec.ts", function () {
+describe("3-runtime-html/repeat.keyed.map.spec.ts", function () {
   function $(k: number) {
     return new Item(`${k}`);
   }

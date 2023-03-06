@@ -6,8 +6,10 @@ import { isNode } from '../util.js';
 import { getLocationChangeHandlerRegistration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
-(isNode() ? describe.skip : describe)('location-manager', function () {
-
+describe('router-lite/location-manager.spec.ts', function () {
+  if (isNode()) {
+    return;
+  }
   for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {
     it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash}`, async function () {
       @customElement({ name: 'c-1', template: 'c1' })

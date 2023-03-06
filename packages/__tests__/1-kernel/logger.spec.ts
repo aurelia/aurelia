@@ -92,7 +92,7 @@ const levels = [
   ] as const,
 ] as const;
 
-describe('Logger', function () {
+describe('1-kernel/logger.spec.ts', function () {
   function createFixture(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[], deactivateConsoleLog = false) {
     const container = DI.createContainer();
     const mock = new ConsoleMock();

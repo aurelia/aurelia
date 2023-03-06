@@ -1,6 +1,6 @@
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
+describe('3-runtime-html/binding-behavior.attr.spec.ts', function () {
   // it('unbind() should clear the DataAttributeObserver from the binding', function () {
   //   // TODO: it doesn't actually do, and it should
   // });

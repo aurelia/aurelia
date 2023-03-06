@@ -2,7 +2,7 @@ import { RouterConfiguration, IRouter, IRouterOptions } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
-describe('LinkHandler', function () {
+describe('router/link-handler.spec.ts', function () {
   async function createFixture(routerOptions: IRouterOptions, App) {
     const ctx = TestContext.create();
     const { container, platform, doc } = ctx;

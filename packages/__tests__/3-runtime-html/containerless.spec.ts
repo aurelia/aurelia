@@ -3,7 +3,7 @@ import { Aurelia, containerless, customElement, IPlatform } from '@aurelia/runti
 import { assert, TestContext } from '@aurelia/testing';
 import { TestExecutionContext, TestFunction, $TestSetupContext, createSpecFunction } from '../util.js';
 
-describe('containerless', function () {
+describe('3-runtime-html/containerless.spec.ts', function () {
 
   interface TestSetupContext<TApp> extends $TestSetupContext {
     appType: Class<TApp>;

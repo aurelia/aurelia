@@ -9,7 +9,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 
-describe('3-runtime-html/template-compiler.convention.spec.ts \n\thtml convention', function () {
+describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
 
   type IAttrMappingConventionCombo = [
     /* tag */string,

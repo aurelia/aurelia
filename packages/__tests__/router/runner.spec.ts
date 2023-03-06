@@ -15,7 +15,7 @@ const createTimedPromise = (value, time: number, previousValue?, reject = false)
   });
 };
 
-describe('Runner', function () {
+describe('router/runner.spec.ts', function () {
   this.timeout(30000);
 
   const oneTests = [

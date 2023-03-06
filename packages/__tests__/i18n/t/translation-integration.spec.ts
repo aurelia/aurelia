@@ -5,7 +5,7 @@ import { Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/run
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
-describe('translation-integration', function () {
+describe('i18n/t/translation-integration.spec.ts', function () {
   @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
   class CustomMessage {
     @bindable public message: string;

@@ -2,7 +2,7 @@ import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigati
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 
-describe('RoutingHook', function () {
+describe('router/routing-hook.spec.ts', function () {
   this.timeout(5000);
 
   async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {

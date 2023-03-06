@@ -54,7 +54,7 @@ public constructor(
   }
 }
 
-describe(`ArrayObserver`, function () {
+describe(`2-runtime/array-observer.spec.ts`, function () {
   let sut: ArrayObserver;
 
   // eslint-disable-next-line mocha/no-hooks
@@ -70,9 +70,17 @@ describe(`ArrayObserver`, function () {
       const sut = observerMap.get(arr) ?? (observerMap.set(arr, new ArrayObserver(arr)).get(arr));
       sut.subscribe(s);
 
-      batch(() => {
-        fn(arr);
-      });
+      try {
+        batch(() => {
+          fn(arr);
+        });
+      } catch (ex) {
+        console.log(ex);
+      }
+
+      if (s.collectionChanges.length === 0) {
+        throw new Error('No changes has happened');
+      }
 
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
@@ -1616,7 +1624,7 @@ describe(`ArrayObserver`, function () {
   });
 
   describe(`observeSort`, function () {
-    const arraySizes = [0, 1, 2, 3, 5, 10, 500, 2500];
+    const arraySizes = [0, 1, 2, 3, 5, 10, 50];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
       undefined,

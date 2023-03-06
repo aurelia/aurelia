@@ -3,7 +3,7 @@ import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
-describe('viewport', function () {
+describe('router-lite/resources/viewport.spec.ts', function () {
 
   function assertText(vps: Element[], expected: string[]) {
     for (let i = 0; i < expected.length; i++) {

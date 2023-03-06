@@ -8,6 +8,13 @@
         "../../eslintrc.cjs"
       ]
     },
+    "lint:ci": {
+      "inputs": [
+        "src/**/*.ts",
+        "./eslintrc.cjs",
+        "../../eslintrc.cjs"
+      ]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": [

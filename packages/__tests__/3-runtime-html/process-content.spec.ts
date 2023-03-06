@@ -3,7 +3,7 @@ import { LifecycleFlags, Aurelia, BindingMode, bindable, CustomElement, customEl
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
-describe('processContent', function () {
+describe('3-runtime-html/process-content.spec.ts', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];

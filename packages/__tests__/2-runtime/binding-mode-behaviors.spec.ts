@@ -21,7 +21,7 @@ const tests = [
   { Behavior: TwoWayBindingBehavior, mode: BindingMode.twoWay }
 ];
 
-describe('2-runtime/binding-mode-behavior.spec.ts', function () {
+describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
   const container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;

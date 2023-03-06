@@ -72,7 +72,8 @@ export function createUndoableTestStore() {
     future: []
   };
   const options = { history: { undoable: true } };
-  const { logger, storeWindow } = createDI();
+  const { container, logger, storeWindow } = createDI();
+  STORE.container = container;
   const store = new Store(initialState, logger, storeWindow, options);
 
   return { initialState, store };

@@ -1,7 +1,7 @@
 import { ContainerConfiguration, DefaultResolver, DI, IContainer } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe('IContainerConfiguration', function () {
+describe('1-kernel/di.containerconfiguration.spec.ts', function () {
   let container0: IContainer;
   let container1: IContainer;
   let container2: IContainer;

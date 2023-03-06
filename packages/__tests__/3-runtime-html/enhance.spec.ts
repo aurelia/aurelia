@@ -19,7 +19,7 @@ import { assert, TestContext, createFixture } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 import { delegateSyntax } from '@aurelia/compat-v1';
 
-describe('3-runtime/enhance.spec.ts', function () {
+describe('3-runtime-html/enhance.spec.ts', function () {
   interface TestSetupContext {
     getComponent: () => Constructable | ICustomElementViewModel;
     template: string;

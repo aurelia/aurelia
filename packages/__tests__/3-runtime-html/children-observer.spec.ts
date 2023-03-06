@@ -2,7 +2,7 @@ import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElem
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
 
-describe('ChildrenObserver', function () {
+describe('3-runtime-html/children-observer.spec.ts', function () {
   describe('populates', function () {
     it('[without shadow DOM] static plain elements', async function () {
       @customElement({ name: 'my-el', template: '<slot>', shadowOptions: { mode: 'open' } })

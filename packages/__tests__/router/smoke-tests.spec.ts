@@ -72,7 +72,7 @@ function assertIsActive(
   assert.strictEqual(isActive, expected, `expected isActive to return ${expected} (assertId ${assertId})`);
 }
 
-describe('router (smoke tests)', function () {
+describe('router/smoke-tests.spec.ts', function () {
   describe('without any configuration, deps registered globally', function () {
     @customElement({ name: name(A01), template: `${name(A01)}${vp(0)}` })
     class A01 { }

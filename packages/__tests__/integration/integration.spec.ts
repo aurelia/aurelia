@@ -8,7 +8,7 @@ import { RandomGenerator } from './app/molecules/random-generator/random-generat
 import { $it, assertCalls, getViewModel } from './util.js';
 import { ComponentMode } from './app/startup.js';
 
-describe('app', function () {
+describe('integration/integration.spec.ts', function () {
   eachCartesianJoin([
     ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],

@@ -229,227 +229,227 @@ class LocalTemplateTestData {
   }
 }
 
-describe('[UNIT] 3-runtime-html/template-compiler.local-templates.spec.ts', function () {
+describe('3-runtime-html/template-compiler.local-templates.spec.ts', function () {
 
-  function* getLocalTemplateTestData() {
-    yield new LocalTemplateTestData(
-      `<template as-custom-element="foo-bar">static</template>
+  describe('[UNIT]', function () {
+    function* getLocalTemplateTestData() {
+      yield new LocalTemplateTestData(
+        `<template as-custom-element="foo-bar">static</template>
         <foo-bar></foo-bar>`,
-      new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
-      new Map([['foo-bar', 1]]),
-      'static'
-    );
-    yield new LocalTemplateTestData(
-      `<foo-bar></foo-bar>
+        new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
+        new Map([['foo-bar', 1]]),
+        'static'
+      );
+      yield new LocalTemplateTestData(
+        `<foo-bar></foo-bar>
         <template as-custom-element="foo-bar">static</template>`,
-      new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
-      new Map([['foo-bar', 1]]),
-      'static'
-    );
-    yield new LocalTemplateTestData(
-      `<foo-bar></foo-bar>
+        new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
+        new Map([['foo-bar', 1]]),
+        'static'
+      );
+      yield new LocalTemplateTestData(
+        `<foo-bar></foo-bar>
         <template as-custom-element="foo-bar">static</template>
         <foo-bar></foo-bar>`,
-      new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
-      new Map([['foo-bar', 2]]),
-      'static static'
-    );
-    yield new LocalTemplateTestData(
-      `<template as-custom-element="foo-bar">static foo-bar</template>
+        new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)]]),
+        new Map([['foo-bar', 2]]),
+        'static static'
+      );
+      yield new LocalTemplateTestData(
+        `<template as-custom-element="foo-bar">static foo-bar</template>
         <template as-custom-element="fiz-baz">static fiz-baz</template>
         <fiz-baz></fiz-baz>
         <foo-bar></foo-bar>`,
-      new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)], ['fiz-baz', new ElementInfo('fiz-baz', void 0, false)]]),
-      new Map([['foo-bar', 1], ['fiz-baz', 1]]),
-      'static fiz-baz static foo-bar'
-    );
-    const bindingModeMap = new Map([
-      ['oneTime', BindingMode.oneTime],
-      ['toView', BindingMode.toView],
-      ['fromView', BindingMode.fromView],
-      ['twoWay', BindingMode.twoWay],
-      ['default', BindingMode.toView],
-    ]);
-    for (const [bindingMode, props, attributeName] of generateCartesianProduct([
-      [...bindingModeMap.keys(), void 0],
-      [['prop'], ['prop', 'camelProp']],
-      ['fiz-baz', undefined],
-    ])) {
-      const ei = new ElementInfo('foo-bar', void 0, false);
-      const mode = bindingModeMap.get(bindingMode) ?? BindingMode.toView;
-      let bindables = '';
-      let templateBody = '';
-      let attrExpr = '';
-      let renderedContent = '';
-      const value = "awesome possum";
-      for (let i = 0, ii = props.length; i < ii; i++) {
-        const prop = props[i];
-        const bi = new BindableInfo(prop, mode);
-        const attr = kebabCase(attributeName !== void 0 ? `${attributeName}${i + 1}` : prop);
-        ei.bindables[attr] = bi;
+        new Map([['foo-bar', new ElementInfo('foo-bar', void 0, false)], ['fiz-baz', new ElementInfo('fiz-baz', void 0, false)]]),
+        new Map([['foo-bar', 1], ['fiz-baz', 1]]),
+        'static fiz-baz static foo-bar'
+      );
+      const bindingModeMap = new Map([
+        ['oneTime', BindingMode.oneTime],
+        ['toView', BindingMode.toView],
+        ['fromView', BindingMode.fromView],
+        ['twoWay', BindingMode.twoWay],
+        ['default', BindingMode.toView],
+      ]);
+      for (const [bindingMode, props, attributeName] of generateCartesianProduct([
+        [...bindingModeMap.keys(), void 0],
+        [['prop'], ['prop', 'camelProp']],
+        ['fiz-baz', undefined],
+      ])) {
+        const ei = new ElementInfo('foo-bar', void 0, false);
+        const mode = bindingModeMap.get(bindingMode) ?? BindingMode.toView;
+        let bindables = '';
+        let templateBody = '';
+        let attrExpr = '';
+        let renderedContent = '';
+        const value = "awesome possum";
+        for (let i = 0, ii = props.length; i < ii; i++) {
+          const prop = props[i];
+          const bi = new BindableInfo(prop, mode);
+          const attr = kebabCase(attributeName !== void 0 ? `${attributeName}${i + 1}` : prop);
+          ei.bindables[attr] = bi;
 
-        bindables += `<bindable property='${prop}'${bindingMode !== void 0 ? ` mode="${bindingMode}"` : ''}${attributeName !== void 0 ? ` attribute="${attr}"` : ''}></bindable>`;
-        templateBody += ` \${${prop}}`;
-        const content = `${value}${i + 1}`;
-        attrExpr += ` ${attr}="${content}"`;
-        renderedContent += ` ${content}`;
-      }
+          bindables += `<bindable property='${prop}'${bindingMode !== void 0 ? ` mode="${bindingMode}"` : ''}${attributeName !== void 0 ? ` attribute="${attr}"` : ''}></bindable>`;
+          templateBody += ` \${${prop}}`;
+          const content = `${value}${i + 1}`;
+          attrExpr += ` ${attr}="${content}"`;
+          renderedContent += ` ${content}`;
+        }
 
-      yield new LocalTemplateTestData(
-        `<template as-custom-element="foo-bar">
+        yield new LocalTemplateTestData(
+          `<template as-custom-element="foo-bar">
               ${bindables}
               ${templateBody}
             </template>
             <foo-bar ${attrExpr}></foo-bar>`,
-        new Map([['foo-bar', ei]]),
-        new Map([['foo-bar', 1]]),
-        renderedContent.trim()
-      );
+          new Map([['foo-bar', ei]]),
+          new Map([['foo-bar', 1]]),
+          renderedContent.trim()
+        );
+      }
     }
-  }
-  for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
-    it(template, function () {
+    for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
+      it(template, function () {
+        const { container, sut } = createFixture();
+        sut.resolveResources = false;
+        const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
+        verifyDefinition(definition, container);
+      });
+      if (template.includes(`mode="fromView"`)) { continue; }
+      it(`${template} - content`, async function () {
+        const { ctx, container } = createFixture();
+        const host = ctx.doc.createElement('div');
+        ctx.doc.body.appendChild(host);
+        const au = new Aurelia(container)
+          .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
+
+        await au.start();
+
+        assert.html.textContent(host, expectedContent);
+
+        await au.stop();
+        ctx.doc.body.removeChild(host);
+        au.dispose();
+      });
+    }
+
+    it('throws error if a root template is a local template', function () {
+      const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
       const { container, sut } = createFixture();
-      sut.resolveResources = false;
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
-      verifyDefinition(definition, container);
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The root cannot be a local template itself.');
     });
-    if (template.includes(`mode="fromView"`)) { continue; }
-    it(`${template} - content`, async function () {
-      const { ctx, container } = createFixture();
-      const host = ctx.doc.createElement('div');
-      ctx.doc.body.appendChild(host);
-      const au = new Aurelia(container)
-        .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-      await au.start();
-
-      assert.html.textContent(host, expectedContent);
-
-      await au.stop();
-      ctx.doc.body.removeChild(host);
-      au.dispose();
-    });
-  }
-
-  it('throws error if a root template is a local template', function () {
-    const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The root cannot be a local template itself.');
-  });
-
-  it('throws error if the custom element has only local templates', function () {
-    const template = `
+    it('throws error if the custom element has only local templates', function () {
+      const template = `
       <template as-custom-element="foo-bar">Does this work?</template>
       <template as-custom-element="fiz-baz">Of course not!</template>
       `;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The custom element does not have any content other than local template(s).');
-  });
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The custom element does not have any content other than local template(s).');
+    });
 
-  it('throws error if a local template is not under root', function () {
-    const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Local templates needs to be defined directly under root.');
-  });
+    it('throws error if a local template is not under root', function () {
+      const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Local templates needs to be defined directly under root.');
+    });
 
-  it('throws error if a local template does not have name', function () {
-    const template = `<template as-custom-element="">foo-bar</template><div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The value of "as-custom-element" attribute cannot be empty for local template');
-  });
+    it('throws error if a local template does not have name', function () {
+      const template = `<template as-custom-element="">foo-bar</template><div></div>`;
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The value of "as-custom-element" attribute cannot be empty for local template');
+    });
 
-  it('throws error if a duplicate local templates are found', function () {
-    const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Duplicate definition of the local template named foo-bar');
-  });
+    it('throws error if a duplicate local templates are found', function () {
+      const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Duplicate definition of the local template named foo-bar');
+    });
 
-  it('throws error if bindable is not under root', function () {
-    const template = `<template as-custom-element="foo-bar">
+    it('throws error if bindable is not under root', function () {
+      const template = `<template as-custom-element="foo-bar">
         <div>
           <bindable property="prop"></bindable>
         </div>
       </template>
       <div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Bindable properties of local templates needs to be defined directly under root.');
-  });
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Bindable properties of local templates needs to be defined directly under root.');
+    });
 
-  it('throws error if bindable property is missing', function () {
-    const template = `<template as-custom-element="foo-bar">
+    it('throws error if bindable property is missing', function () {
+      const template = `<template as-custom-element="foo-bar">
         <bindable attribute="prop"></bindable>
       </template>
       <div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
-  });
+      const { container, sut } = createFixture();
+      assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
+    });
 
-  it('throws error if duplicate bindable properties are found', function () {
-    const template = `<template as-custom-element="foo-bar">
+    it('throws error if duplicate bindable properties are found', function () {
+      const template = `<template as-custom-element="foo-bar">
         <bindable property="prop" attribute="bar"></bindable>
         <bindable property="prop" attribute="baz"></bindable>
       </template>
       <div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
-      'Bindable property and attribute needs to be unique; found property: prop, attribute: '
-    );
-  });
+      const { container, sut } = createFixture();
+      assert.throws(
+        () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
+        'Bindable property and attribute needs to be unique; found property: prop, attribute: '
+      );
+    });
 
-  it('throws error if duplicate bindable attributes are found', function () {
-    const template = `<template as-custom-element="foo-bar">
+    it('throws error if duplicate bindable attributes are found', function () {
+      const template = `<template as-custom-element="foo-bar">
         <bindable property="prop1" attribute="bar"></bindable>
         <bindable property="prop2" attribute="bar"></bindable>
       </template>
       <div></div>`;
-    const { container, sut } = createFixture();
-    assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
-      'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
-    );
-  });
+      const { container, sut } = createFixture();
+      assert.throws(
+        () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
+        'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
+      );
+    });
 
-  for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
-    it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
-      const template = `<template as-custom-element="foo-bar" ${attr}>
+    for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
+      it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
+        const template = `<template as-custom-element="foo-bar" ${attr}>
         <bindable property="prop1" attribute="bar"></bindable>
       </template>
       <foo-bar></foo-bar>`;
-      const { ctx, container } = createFixture();
+        const { ctx, container } = createFixture();
 
-      assert.throws(() =>
-        new Aurelia(container)
-          .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
-        `Template controller ${attr.split('.')[0]} is invalid on surrogate`
-      );
-    });
-  }
+        assert.throws(() =>
+          new Aurelia(container)
+            .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
+          `Template controller ${attr.split('.')[0]} is invalid on surrogate`
+        );
+      });
+    }
 
-  it('warns if bindable element has more attributes other than the allowed', function () {
-    const template = `<template as-custom-element="foo-bar">
+    it('warns if bindable element has more attributes other than the allowed', function () {
+      const template = `<template as-custom-element="foo-bar">
         <bindable property="prop" unknown-attr who-cares="no one"></bindable>
       </template>
       <div></div>`;
-    const { container, sut } = createFixture();
+      const { container, sut } = createFixture();
 
-    sut.compile({ name: 'lorem-ipsum', template }, container, null);
-    if (__DEV__) {
-      const sinks = container.get(DefaultLogger).sinks;
-      const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
-      assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
-      const event = eventLog.log[0];
-      assert.strictEqual(event.severity, LogLevel.warn);
-      assert.includes(
-        event.toString(),
-        'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
-      );
-    }
+      sut.compile({ name: 'lorem-ipsum', template }, container, null);
+      if (__DEV__) {
+        const sinks = container.get(DefaultLogger).sinks;
+        const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+        assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+        const event = eventLog.log[0];
+        assert.strictEqual(event.severity, LogLevel.warn);
+        assert.includes(
+          event.toString(),
+          'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
+        );
+      }
+    });
   });
-});
 
-describe('3-runtime-html/template-compiler.local-templates.spec.ts', function () {
   it('works with if', async function () {
     const template = `<template as-custom-element="foo-bar">
       <bindable property='prop'></bindable>

@@ -1,7 +1,7 @@
 import { CustomElement, Aurelia, cssModules } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
-describe('styles', function () {
+describe('3-runtime-html/styles.integration.spec.ts', function () {
 
   describe('css module', function () {
     it(`CSS Modules don't inherit from parent`, async function () {

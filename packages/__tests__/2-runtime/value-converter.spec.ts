@@ -2,7 +2,7 @@ import { DI, IContainer } from '@aurelia/kernel';
 import { valueConverter, ValueConverter } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
-describe(`@valueConverter('foo')`, function () {
+describe(`2-runtime/value-converter.spec.ts`, function () {
   let container: IContainer;
 
   // eslint-disable-next-line mocha/no-hooks

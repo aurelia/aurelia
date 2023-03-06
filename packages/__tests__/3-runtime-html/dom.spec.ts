@@ -1,7 +1,7 @@
 import { FragmentNodeSequence } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe('FragmentNodeSequence', function () {
+describe('3-runtime-html/dom.spec.ts', function () {
   const ctx = TestContext.create();
   let sut: FragmentNodeSequence;
 

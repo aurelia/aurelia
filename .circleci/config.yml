@@ -343,8 +343,12 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings)
-            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings) > packages/__tests__/tests.txt
+            # the following 2 lines work, but the test break on this mode, not in local though
+            # it's quite hard to debug on this mode so not using for now
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name)
+            echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > packages/__tests__/tests.txt
       - run:
           name: "Run unit tests"
           command: |
@@ -380,6 +384,10 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
+            # # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
+            # # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name)
+            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > packages/__tests__/tests.txt
             cd packages/__tests__
             echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings)
             echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings) > tests.txt
@@ -436,7 +444,7 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npx turbo lint --filter=@aurelia/*
+      - run: npx turbo lint:ci --filter=@aurelia/*
       - run: npm run lint:other:ci
 
   merge_and_dist:

@@ -6,9 +6,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-const spec = 'repeater';
-
-describe(spec, function () {
+describe('3-runtime-html/repeater.spec.ts', function () {
   interface Spec {
     t: string;
   }

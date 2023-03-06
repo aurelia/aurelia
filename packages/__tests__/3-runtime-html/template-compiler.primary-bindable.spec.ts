@@ -18,7 +18,7 @@ import {
   ValueConverter,
 } from '@aurelia/runtime-html';
 
-describe('template-compiler.primary-bindable.spec.ts', function () {
+describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function () {
 
   interface IPrimaryBindableTestCase {
     title: string;

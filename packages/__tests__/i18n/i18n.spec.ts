@@ -11,7 +11,7 @@ const translation = {
   }
 };
 
-describe('I18N', function () {
+describe('i18n/i18n.spec.ts', function () {
   async function createFixture(options: I18nInitOptions = {}) {
     const i18nextSpy = new Spy();
     const eaSpy: Spy = new Spy();

@@ -316,14 +316,14 @@ module.exports =
       outputDir: './packages/__tests__/coverage',
       outputFile: 'test-results.xml',
       useBrowserName: false,
-      specFormatter: (spec, result, suite) => {
-        if (!suite.getAttribute('file')) {
-          // xml builder is weird
-          // @ts-ignore
-          suite.att('file', spec.getAttribute('file'));
-        }
-      },
-      fileFormatter: (result) => `packages/__tests__/dist/esm/__tests__/${result.suite[0].replace(/\.ts$/, '.js')}`,
+      // specFormatter: (spec, result, suite) => {
+      //   if (!suite.getAttribute('file')) {
+      //     // xml builder is weird
+      //     // @ts-ignore
+      //     suite.att('file', spec.getAttribute('file'));
+      //   }
+      // },
+      fileFormatter: (result) => `packages/__tests__/dist/esm/__tests__/${result.suite[0].replace(/\.tsx?$/, '.js')}`,
       nameFormatter: (browser, result, spec) => {
         return result.suite.slice(1).join(' ') + ' ' + result.description;
       },

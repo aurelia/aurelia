@@ -116,6 +116,26 @@ Change it to:
 - `.delegate` command has been removed, use `.trigger` instead. With shadow DOM, even though `.delegate` works, it doesn't feel as natural as `.trigger`, and the performance benefits `.delegate` command used to give when browsers were slow adding many event listeners is no longer as big.
 - `.call` command has been removed, use lambda functions instead to create function that preserves the `this` context. Refer to [lambda expression](../../templates/lambda-expressions.md)
 
+## Compose
+
+- `<compose>` has been renamed to `<au-compose>`. The bindable properties of this component have also been changed:
+  - viewModel -> component
+  - view -> template
+  - model remains the same
+
+- Examples migration fix:
+  ```html
+  v1:
+  <compose view.bind="...">
+  <compose view-model.bind="...">
+
+  v2:
+  <au-compose template.bind="...">
+  <au-compose component.bind="...">
+  ```
+
+  Read more about dynamic composition in v2 in this [dynamic composition doc](../../getting-to-know-aurelia/dynamic-composition.md) and [dynamic ui composition doc](../../app-basics/dynamic-ui-composition.md).
+
 ## General changes
 
 * Templates no longer need to have `<template>` tags as the start and ending tags. Templates can be pure HTML with enhanced Aurelia markup but `<template>` doesn't need to be explicitly defined.

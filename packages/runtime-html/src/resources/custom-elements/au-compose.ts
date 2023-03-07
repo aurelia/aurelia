@@ -22,11 +22,11 @@ export interface IDynamicComponentActivate<T> {
 }
 
 type MaybePromise<T> = T | Promise<T>;
-type ChangeSource = 'view' | 'viewModel' | 'model' | 'scopeBehavior';
+type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior'>;
 
 // Desired usage:
-// <au-component view.bind="Promise<string>" view-model.bind="" model.bind="" />
-// <au-component view.bind="<string>" model.bind="" />
+// <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
+// <au-component template.bind="<string>" model.bind="" />
 //
 export class AuCompose {
 
@@ -37,16 +37,23 @@ export class AuCompose {
 
   /* determine what template used to compose the component */
   @bindable
-  public view?: string | Promise<string>;
+  public template?: string | Promise<string>;
 
-  /* determine the view model instance used to compose the component */
+  /* determine the component instance used to compose the component */
   @bindable
-  public viewModel?: Constructable | object | Promise<Constructable | object>;
+  public component?: Constructable | object | Promise<Constructable | object>;
 
   /* the model used to pass to activate lifecycle of the component */
   @bindable
   public model?: unknown;
 
+  /**
+   * Control scoping behavior of the view created by the au-compose.
+   * This only affects template-only composition. Does not have effects on custom element composition.
+   *
+   * auto = inherit parent scope
+   * scoped = do not inherit parent scope
+   */
   @bindable({
     set: v => {
       if (v === 'scoped' || v === 'auto') {
@@ -97,7 +104,7 @@ export class AuCompose {
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
     return this._pending = onResolve(
-      this.queue(new ChangeInfo(this.view, this.viewModel, this.model, void 0), initiator),
+      this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
         if (this._contextFactory.isCurrent(context)) {
           this._pending = void 0;
@@ -123,7 +130,7 @@ export class AuCompose {
     }
     this._pending = onResolve(this._pending, () =>
       onResolve(
-        this.queue(new ChangeInfo(this.view, this.viewModel, this.model, name), void 0),
+        this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
         (context) => {
           if (this._contextFactory.isCurrent(context)) {
             this._pending = void 0;
@@ -141,7 +148,7 @@ export class AuCompose {
     return onResolve(
       factory.create(change),
       context => {
-        // Don't compose [stale] view/view model
+        // Don't compose [stale] template/component
         // by always ensuring that the composition context is the latest one
         if (factory.isCurrent(context)) {
           return onResolve(this.compose(context), (result) => {
@@ -185,12 +192,12 @@ export class AuCompose {
     let comp: IDynamicComponentActivate<unknown>;
     let compositionHost: HTMLElement | IRenderLocation;
     let removeCompositionHost: () => void;
-    // todo: when both view model and view are empty
+    // todo: when both component and template are empty
     //       should it throw or try it best to proceed?
     //       current: proceed
-    const { view, viewModel, model } = context.change;
+    const { _template: template, _component: component, _model: model } = context.change;
     const { _container: container, host, $controller, _location: loc } = this;
-    const vmDef = this.getDef(viewModel);
+    const vmDef = this.getDef(component);
     const childCtn: IContainer = container.createChild();
     const parentNode = loc == null ? host.parentNode : loc.parentNode;
 
@@ -214,12 +221,12 @@ export class AuCompose {
           compositionHost.remove();
         };
       }
-      comp = this.getVm(childCtn, viewModel, compositionHost);
+      comp = this._getComp(childCtn, component, compositionHost);
     } else {
       compositionHost = loc == null
         ? host
         : loc;
-      comp = this.getVm(childCtn, viewModel, compositionHost);
+      comp = this._getComp(childCtn, component, compositionHost);
     }
     const compose: () => ICompositionController = () => {
       // custom element based composition
@@ -235,7 +242,7 @@ export class AuCompose {
         return new CompositionController(
           controller,
           (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, $controller.scope.parent!),
-          // todo: call deactivate on the component view model
+          // todo: call deactivate on the component component
           (deactachInitiator) => onResolve(
             controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
             removeCompositionHost
@@ -248,7 +255,7 @@ export class AuCompose {
       } else {
         const targetDef = CustomElementDefinition.create({
           name: CustomElement.generateName(),
-          template: view,
+          template: template,
         });
         const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
         const controller = Controller.$view(
@@ -268,7 +275,7 @@ export class AuCompose {
         return new CompositionController(
           controller,
           (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, scope),
-          // todo: call deactivate on the component view model
+          // todo: call deactivate on the component
           // a difference with composing custom element is that we leave render location/host alone
           // as they all share the same host/render location
           (detachInitiator) => controller.deactivate(detachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
@@ -289,7 +296,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  private getVm(container: IContainer, comp: Constructable | object | undefined, host: HTMLElement | IRenderLocation): IDynamicComponentActivate<unknown> {
+  private _getComp(container: IContainer, comp: Constructable | object | undefined, host: HTMLElement | IRenderLocation): IDynamicComponentActivate<unknown> {
     if (comp == null) {
       return new EmptyComponent();
     }
@@ -315,7 +322,7 @@ export class AuCompose {
     );
 
     const instance = container.invoke(comp);
-    registerResolver(container, comp, new InstanceProvider('au-compose.viewModel', instance));
+    registerResolver(container, comp, new InstanceProvider('au-compose.component', instance));
 
     return instance;
   }
@@ -367,31 +374,31 @@ class CompositionContextFactory {
 
 class ChangeInfo {
   public constructor(
-    public readonly view: MaybePromise<string> | undefined,
-    public readonly viewModel: MaybePromise<Constructable | object> | undefined,
-    public readonly model: unknown | undefined,
-    public readonly src: ChangeSource | undefined,
+    public readonly _template: MaybePromise<string> | undefined,
+    public readonly _component: MaybePromise<Constructable | object> | undefined,
+    public readonly _model: unknown | undefined,
+    public readonly _src: ChangeSource | undefined,
   ) { }
 
   public load(): MaybePromise<LoadedChangeInfo> {
-    if (isPromise(this.view) || isPromise(this.viewModel)) {
+    if (isPromise(this._template) || isPromise(this._component)) {
       return Promise
-        .all([this.view, this.viewModel])
-        .then(([view, viewModel]) => {
-          return new LoadedChangeInfo(view, viewModel, this.model, this.src);
+        .all([this._template, this._component])
+        .then(([template, component]) => {
+          return new LoadedChangeInfo(template, component, this._model, this._src);
         });
     } else {
-      return new LoadedChangeInfo(this.view, this.viewModel, this.model, this.src);
+      return new LoadedChangeInfo(this._template, this._component, this._model, this._src);
     }
   }
 }
 
 class LoadedChangeInfo {
   public constructor(
-    public readonly view: string | undefined,
-    public readonly viewModel: Constructable | object | undefined,
-    public readonly model: unknown | undefined,
-    public readonly src: ChangeSource | undefined,
+    public readonly _template: string | undefined,
+    public readonly _component: Constructable | object | undefined,
+    public readonly _model: unknown | undefined,
+    public readonly _src: ChangeSource | undefined,
   ) { }
 }
 

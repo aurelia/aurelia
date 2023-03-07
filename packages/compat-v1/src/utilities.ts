@@ -31,6 +31,7 @@ export const defineHiddenProp = <T>(obj: object, key: PropertyKey, value: T): T 
   return value;
 };
 
+/** @internal */
 export const ensureExpression = <TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> => {
   if (isString(srcOrExpr)) {
     return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;

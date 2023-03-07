@@ -14,7 +14,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   describe('view', function () {
     it('works with literal string', async function () {
       const { appHost, startPromise, tearDown } = createFixture(
-        '<au-compose view="<div>hello world</div>">'
+        '<au-compose template="<div>hello world</div>">'
       );
 
       await startPromise;
@@ -30,7 +30,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     // Instead of the bindings getting notified by the changes in the view model
     it('works with dynamic view + interpolation', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view="<div>\${message}</div>">`,
+        `<au-compose template="<div>\${message}</div>">`,
         class App {
           public message = 'hello world';
         }
@@ -42,7 +42,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       component.message = 'hello';
       const auComponentVm = CustomElement.for(appHost.querySelector('au-compose')).viewModel as AuCompose;
 
-      assert.strictEqual(auComponentVm.view, '<div>hello</div>');
+      assert.strictEqual(auComponentVm.template, '<div>hello</div>');
       assert.strictEqual(appHost.textContent, 'hello');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
@@ -54,7 +54,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('works with view string from view model', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        '<au-compose view.bind="view">',
+        '<au-compose template.bind="view">',
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
@@ -77,7 +77,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('understands non-inherit scope config', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        '<au-compose view.bind="view" scope-behavior="scoped">',
+        '<au-compose template.bind="view" scope-behavior="scoped">',
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
@@ -106,7 +106,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('understands view promise', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        '<au-compose view.bind="getView()" scope-behavior="scoped">',
+        '<au-compose template.bind="getView()" scope-behavior="scoped">',
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
@@ -139,7 +139,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('throws on invalid scope-behavior value', async function () {
       const { component, startPromise, tearDown } = createFixture(
-        '<au-compose view.bind="view" scope-behavior.bind="behavior">',
+        '<au-compose template.bind="view" scope-behavior.bind="behavior">',
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
@@ -155,10 +155,10 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
   });
 
-  describe('view-model', function () {
+  describe('.component', function () {
     it('works with literal object', async function () {
       const { appHost, tearDown } = createFixture(
-        `\${message}<au-compose view-model.bind="{ activate }">`,
+        `\${message}<au-compose component.bind="{ activate }">`,
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
@@ -179,7 +179,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('works with custom element', async function () {
       let activateCallCount = 0;
       const { appHost, tearDown } = createFixture(
-        '<au-compose view-model.bind="fieldVm">',
+        '<au-compose component.bind="fieldVm">',
         class App {
           public message = 'hello world';
           public fieldVm = CustomElement.define(
@@ -206,7 +206,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('works with promise of custom element', async function () {
       let activateCallCount = 0;
       const { appHost, tearDown } = await createFixture(
-        '<au-compose view-model.bind="getVm()">',
+        '<au-compose component.bind="getVm()">',
         class App {
           public getVm() {
             return Promise.resolve(CustomElement.define(
@@ -235,7 +235,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       const models: unknown[] = [];
       const model = { a: 1, b: Symbol() };
       createFixture(
-        `<au-compose view-model.bind="{ activate }" model.bind="model">`,
+        `<au-compose component.bind="{ activate }" model.bind="model">`,
         class App {
           public model = model;
           public activate = (model: unknown) => {
@@ -251,7 +251,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       let resolve: (v?: unknown) => unknown;
       let attachedCallCount = 0;
       const { startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="{ activate }" view.bind="view">`,
+        `<au-compose component.bind="{ activate }" template.bind="view">`,
         class App {
           public activate = () => {
             return new Promise<unknown>(r => {
@@ -294,7 +294,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       }
       const { ctx, component } = createFixture(
-        `<au-compose view-model.bind="vm" model.bind="model">`,
+        `<au-compose component.bind="vm" model.bind="model">`,
         class App {
           public model = model;
           public vm = PlainViewModelClass;
@@ -318,7 +318,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   describe('integration with repeat', function () {
     it('works with repeat in view only composition', function () {
       const { appHost } = createFixture(
-        `<au-compose repeat.for="i of 5" view.bind="getView()">`,
+        `<au-compose repeat.for="i of 5" template.bind="getView()">`,
         class App {
           public getMessage(i: number) {
             return `Hello ${i}`;
@@ -339,7 +339,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('works with repeat in literal object composition', function () {
       const models: unknown[] = [];
       createFixture(
-        `<au-compose repeat.for="i of 5" view-model.bind="{ activate }" model.bind="{ index: i }">`,
+        `<au-compose repeat.for="i of 5" component.bind="{ activate }" model.bind="{ index: i }">`,
         class App {
           public activate = (model: unknown) => {
             models.push(model);
@@ -352,7 +352,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('deactivates when collection changes', async function () {
       const { component, appHost } = createFixture(
-        `<au-compose repeat.for="i of items" view.bind="getView()">`,
+        `<au-compose repeat.for="i of items" template.bind="getView()">`,
         class App {
           public items = 5;
           public getMessage(i: number) {
@@ -382,13 +382,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   describe('multi au-compose', function () {
     it('composes au-compose', async function () {
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose repeat.for="i of 5" view.bind="getView()">`,
+        `<au-compose repeat.for="i of 5" template.bind="getView()">`,
         class App {
           public getMessage(i: number) {
             return `Hello ${i}`;
           }
           public getView() {
-            return `<au-compose view.bind="getInnerView()">`;
+            return `<au-compose template.bind="getInnerView()">`;
           }
           public getInnerView() {
             return `<div>div \${i}: \${getMessage(i)}</div>`;
@@ -426,7 +426,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
 
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
@@ -463,7 +463,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
 
       const { ctx, appHost, component, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = Child;
         }
@@ -499,7 +499,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
 
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" view="<div>Hello</div>" model.bind="{ index: 0 }">`,
+        `<au-compose component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }">`,
         class App {
           public El = El;
         }
@@ -528,7 +528,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
 
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" view="<div>Hello</div>" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
@@ -553,7 +553,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('works with containerless on the host element', async function () {
       const models: unknown[] = [];
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="{ activate }" view="<div>Hello world</div>" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="{ activate }" template="<div>Hello world</div>" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {
             models.push(model);
@@ -573,7 +573,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('composes non-custom element mutiple times', async function () {
       const models: unknown[] = [];
       const { appHost, component, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="{ activate }" view.bind="view" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="{ activate }" template.bind="view" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {
             models.push(model);
@@ -605,7 +605,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       class El { }
 
       const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
@@ -633,7 +633,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       class Parent { }
 
       const { appHost, ctx, component, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = Child;
         }
@@ -661,7 +661,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       class El { }
 
       const { appHost, start } = createFixture(
-        `<au-compose view-model.bind="El" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         },
@@ -696,7 +696,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       class Parent { }
 
       const { appHost, ctx, component, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" view.bind="view" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" template.bind="view" model.bind="{ index: 0 }" containerless>`,
         class App {
           public message = 'app';
           public El: unknown = { message: 'POJO' };
@@ -730,7 +730,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('discards stale composition', async function () {
       const { appHost, ctx, component, startPromise, tearDown } = createFixture(
-        `<au-compose view-model.bind="El" view.bind="\`<div>$\\{text}</div>\`" model.bind="{ index: 0 }" containerless>`,
+        `<au-compose component.bind="El" template.bind="\`<div>$\\{text}</div>\`" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = { text: 'Hello' };
         }
@@ -756,7 +756,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       const baseTimeout = 75;
       let timeout = baseTimeout;
       const { appHost, component, startPromise, tearDown } = createFixture(
-        `\${message}<au-compose view-model.bind="{ activate, value: i }" view.bind="view" view-model.ref="auCompose" containerless>`,
+        `\${message}<au-compose component.bind="{ activate, value: i }" template.bind="view" view-model.ref="auCompose" containerless>`,
         class App {
           public i = 0;
           public message = 'hello world';
@@ -830,7 +830,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
     });
     const { appHost, component, startPromise, tearDown } = createFixture(
-      `\${message}<au-compose view-model.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      `\${message}<au-compose component.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
       class App {
         public i = 0;
         public message = 'hello world';
@@ -918,7 +918,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
     });
     const { appHost, component, startPromise, tearDown } = createFixture(
-      `\${message}<au-compose view-model.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      `\${message}<au-compose component.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
       class App {
         public i = 0;
         public message = 'hello world';
@@ -995,7 +995,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       template: `<p><au-slot>`
     }, class Element1 {});
     const { appHost, startPromise, tearDown } = createFixture(
-      `<au-compose view-model.bind="vm"><input value.bind="message" au-slot>`,
+      `<au-compose component.bind="vm"><input value.bind="message" au-slot>`,
       class App {
         public message = 'Aurelia';
         public vm: any = El1;
@@ -1015,7 +1015,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       template: `<p><au-slot>`
     }, class Element1 {});
     const { appHost, startPromise } = createFixture(
-      `<au-compose repeat.for="i of 3" view-model.bind="vm"><input value.to-view="message + i" au-slot>`,
+      `<au-compose repeat.for="i of 3" component.bind="vm"><input value.to-view="message + i" au-slot>`,
       class App {
         public message = 'Aurelia';
         public vm: any = El1;
@@ -1045,7 +1045,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       });
       const { component, startPromise, tearDown } = createFixture(
-        `<au-compose repeat.for="vm of components" view-model.bind="vm">`,
+        `<au-compose repeat.for="vm of components" component.bind="vm">`,
         class App {
           public message = 'Aurelia';
           public components: any[] = [];

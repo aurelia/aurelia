@@ -9,10 +9,13 @@ import type {
   ICollectionSubscriberCollection,
 } from '../observation';
 import { batching, addCollectionBatch } from './subscriber-batch';
+import { IIndexable } from '@aurelia/kernel';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Map object
 const lookupMetadataKey = Symbol.for('__au_map_obs__');
-const observerLookup = defineHiddenProp(Map, lookupMetadataKey, new WeakMap<Map<unknown, unknown>, MapObserver>());
+const observerLookup = ((Map as IIndexable<typeof Map>)[lookupMetadataKey]
+  ?? defineHiddenProp(Map, lookupMetadataKey, new WeakMap())
+) as WeakMap<Map<unknown, unknown>, MapObserver>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };

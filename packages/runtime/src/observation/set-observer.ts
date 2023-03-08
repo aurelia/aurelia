@@ -3,10 +3,13 @@ import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities-objects';
 import { batching, addCollectionBatch } from './subscriber-batch';
+import { IIndexable } from '@aurelia/kernel';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Set object
 const lookupMetadataKey = Symbol.for('__au_set_obs__');
-const observerLookup = defineHiddenProp(Set, lookupMetadataKey, new WeakMap<Set<unknown>, SetObserver>());
+const observerLookup = ((Set as IIndexable<typeof Set>)[lookupMetadataKey]
+  ?? defineHiddenProp(Set, lookupMetadataKey, new WeakMap())
+) as WeakMap<Set<unknown>, SetObserver>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };

@@ -62,6 +62,17 @@ describe('2-runtime/property-observation.spec.ts', function () {
     });
   });
 
+  class Foo { }
+
+  function createObjectArr(): any[] {
+    return [
+      // eslint-disable-next-line no-new-wrappers, no-new-wrappers
+      {}, Object.create(null), new Number(), new Boolean(), new String(),
+      new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse('{}'),
+      /asdf/, function () { return; }, Promise.resolve(), new Proxy({}, {})
+    ];
+  }
+
   describe('SetterObserver', function () {
     function createFixture(obj: IIndexable, key: string) {
       const ctx = TestContext.create();
@@ -276,14 +287,3 @@ describe('2-runtime/property-observation.spec.ts', function () {
     });
   });
 });
-
-class Foo { }
-
-function createObjectArr(): any[] {
-  return [
-    // eslint-disable-next-line no-new-wrappers, no-new-wrappers
-    {}, Object.create(null), new Number(), new Boolean(), new String(),
-    new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse('{}'),
-    /asdf/, function () { return; }, Promise.resolve(), new Proxy({}, {})
-  ];
-}

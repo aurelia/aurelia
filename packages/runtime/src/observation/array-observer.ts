@@ -18,16 +18,13 @@ import {
 } from './subscriber-collection';
 import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
 import { addCollectionBatch, batching } from './subscriber-batch';
+import { IIndexable } from '@aurelia/kernel';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Array object
-const lookupMetadataKey = '__au_array_obs__';
-const observerLookup = (() => {
-  let lookup: WeakMap<unknown[], ArrayObserver> = getOwnMetadata(lookupMetadataKey, Array);
-  if (lookup == null) {
-    defineMetadata(lookupMetadataKey, lookup = new WeakMap<unknown[], ArrayObserver>(), Array);
-  }
-  return lookup;
-})();
+const lookupMetadataKey = Symbol.for('__au_arr_obs__');
+const observerLookup = ((Array as IIndexable<typeof Array>)[lookupMetadataKey]
+  ?? defineHiddenProp(Array, lookupMetadataKey, new WeakMap())
+) as WeakMap<unknown[], ArrayObserver>;
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {

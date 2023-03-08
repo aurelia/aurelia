@@ -40,8 +40,8 @@ module.exports = {
     'no-await-in-loop': 'off',
     'require-atomic-updates': 'off',
 
-    // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:
-    'mocha/max-top-level-suites': 'off',
+    // can only allow 1, to produce proper junit test format for later consumption
+    "mocha/max-top-level-suites": ['error', {limit: 1}],
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off',
 

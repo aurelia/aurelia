@@ -366,6 +366,9 @@ jobs:
                 when: always
             - store_test_results:
                 path: packages/__tests__/coverage
+            - store_artifacts:
+                path: packages/__tests__/coverage/test-results.xml
+                destination: test-results
 
   unit_test_esm_node:
     executor: docker_circleci

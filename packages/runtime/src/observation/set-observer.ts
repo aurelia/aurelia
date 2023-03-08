@@ -1,18 +1,12 @@
 import { createIndexMap, AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, type CollectionKind } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineMetadata, getOwnMetadata } from '../utilities-objects';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities-objects';
 import { batching, addCollectionBatch } from './subscriber-batch';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Set object
-const lookupMetadataKey = '__au_set_obs__';
-const observerLookup = (() => {
-  let lookup: WeakMap<Set<unknown>, SetObserver> = getOwnMetadata(lookupMetadataKey, Set);
-  if (lookup == null) {
-    defineMetadata(lookupMetadataKey, lookup = new WeakMap<Set<unknown>, SetObserver>(), Set);
-  }
-  return lookup;
-})();
+const lookupMetadataKey = Symbol.for('__au_set_obs__');
+const observerLookup = defineHiddenProp(Set, lookupMetadataKey, new WeakMap<Set<unknown>, SetObserver>());
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };

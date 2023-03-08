@@ -1,4 +1,3 @@
-import { type IIndexable } from '@aurelia/kernel';
 import {
   createIndexMap,
   AccessorType,
@@ -21,15 +20,8 @@ import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } fro
 import { addCollectionBatch, batching } from './subscriber-batch';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Array object
-const lookupMetadataKey = Symbol.for('__au_array_obs__');
-const observerLookup = ((Array as IIndexable<typeof Array>)[lookupMetadataKey] ??= new WeakMap()) as WeakMap<unknown[], ArrayObserver>;
-// [] (() => {
-//   let lookup: WeakMap<unknown[], ArrayObserver> = getOwnMetadata(lookupMetadataKey, Array);
-//   if (lookup == null) {
-//     defineMetadata(lookupMetadataKey, lookup = new WeakMap<unknown[], ArrayObserver>(), Array);
-//   }
-//   return lookup;
-// })();
+const lookupMetadataKey = Symbol.for('__au_arr_obs__');
+const observerLookup = defineHiddenProp(Array, lookupMetadataKey, new WeakMap<unknown[], ArrayObserver>());
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {

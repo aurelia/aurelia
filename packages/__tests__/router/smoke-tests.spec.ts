@@ -1,8 +1,6 @@
 import {
-  LogLevel,
   Constructable,
   kebabCase,
-  ILogConfig,
 } from '@aurelia/kernel';
 import {
   assert,
@@ -358,7 +356,7 @@ describe('router/smoke-tests.spec.ts', function () {
     });
 
     it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
-      const { router, host, tearDown, startTracing, stopTracing } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
+      const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load(`a11/a01`);
       assertComponentsVisible(host, [Root1, A11, A01]);

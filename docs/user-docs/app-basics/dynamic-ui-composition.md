@@ -7,14 +7,14 @@ description: An overview of Aurelia's dynamic template composition functionality
 
 In this section, we are going to be learning how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality.
 
-When using Aurelia's `<au-compose>` element, inside of the view-model being used, you have access to all of Aurelia's standard view lifecycle events, as well as an extra `activate`.
+When using Aurelia's `<au-compose>` element, inside of the component being used, you have access to all of Aurelia's standard view lifecycle events, as well as an extra `activate`.
 
 ## Basic Composition
 
-The `au-compose` element can be used to render any custom element given to its `view-model` property. A basic example is:
+The `au-compose` element can be used to render any custom element given to its `component` property. A basic example is:
 
 ```html
-<au-compose view-model.bind="MyField"></au-compose>
+<au-compose component.bind="MyField"></au-compose>
 ```
 
 ```javascript
@@ -46,14 +46,14 @@ Inside of our template, we are using the `<au-compose>` element and passing thro
 
 During a composition, this html string is processed by Aurelia template compiler to produce necessary parts for UI composition and renders it inside the `<au-compose>` element.
 
-Combining simple view and literal object as view model, we can also have powerful rendering without boilerplate:
+Combining simple template and literal object as view model, we can also have powerful rendering without boilerplate:
 
 ```html
-<au-compose repeat.for="i of 5" view-model.bind="{ value: i }" view="<div>\\${value}</div>"></au-compose>
+<au-compose repeat.for="i of 5" component.bind="{ value: i }" template="<div>\\${value}</div>"></au-compose>
 ```
 
 {% hint style="info" %}
-When composing without a custom element as view-model, the result component will use parent scope as its scope, unless `scope-behavior` is set to `scoped`
+When composing without a custom element as component, the result component will use parent scope as its scope, unless `scope-behavior` is set to `scoped`
 {% endhint %}
 
 ## Passing Through Data
@@ -62,12 +62,13 @@ When composing without a custom element as view-model, the result component will
 
 ## Migration from v1:
 
-- `view`/`view-model` (BREAKING CHANGE): passing a string to either view/ view model no longer means module name. The composer only understands string as template for view and objects and classes for view-model now. Though if it's still possible to turn treat string as module name, with the help of value converter:
+- `view`/`view-model` have been renamed to `template`/`component`.
+- `template`/`component` (BREAKING CHANGE): passing a string to either template/component no longer means module name. The composer only understands string as template for view and objects and classes for component now. Though if it's still possible to turn treat string as module name, with the help of value converter:
     ```html
-    <au-compose view="https://my-server.com/views/${componentName} | loadView">
+    <au-compose template="https://my-server.com/template/${componentName} | loadTemplate">
     ```
     ```js
-    class LoadViewValueConverter {
+    class LoadTemplateValueConverter {
       toView(v) { return fetch(v).then(r => r.text()) }
     }
     ```

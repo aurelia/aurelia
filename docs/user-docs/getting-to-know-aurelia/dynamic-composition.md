@@ -8,11 +8,11 @@ The `<au-compose>` element allows us to compose view/view model pairs and just v
 
 ## Basic Composition
 
-The `au-compose` element can be used to render any custom element given to its `view-model` property. A basic example is:
+The `au-compose` element can be used to render any custom element given to its `component` property. A basic example is:
 
 {% code title="my-app.html" %}
 ```markup
-<au-compose view-model.bind="MyField"></au-compose>
+<au-compose component.bind="MyField"></au-compose>
 ```
 {% endcode %}
 
@@ -37,10 +37,10 @@ With a custom element as a view model, all standard lifecycles, and `activate` w
 
 Composing using a custom element definition is not always necessary or convenient. The `au-compose` can also work with a slightly simpler composition: either using view only or view and simple view model combination.
 
-An example of view-only composition:
+An example of template-only composition:
 
 ```markup
-<au-compose view="<p>Hello world</p>"></au-compose>
+<au-compose template="<p>Hello world</p>"></au-compose>
 ```
 
 Inside our template, we use the `<au-compose>` element and pass through a view to be rendered. The view is just a plain HTML string.
@@ -50,7 +50,7 @@ During a composition, this HTML string is processed by the Aurelia template comp
 Combining simple view and literal object as view model, we can also have powerful rendering without boilerplate:
 
 ```markup
-<au-compose repeat.for="i of 5" view-model.bind="{ value: i }" view="<div>\\${value}</div>"></au-compose>
+<au-compose repeat.for="i of 5" component.bind="{ value: i }" template="<div>\\${value}</div>"></au-compose>
 ```
 
 {% hint style="info" %}
@@ -118,21 +118,25 @@ We can now do calling methods inside our composed view model and other tasks you
 
 The composition in Aurelia 2 is fundamentally different than Aurelia 1. The same ease of use is still there, but the way in which some things worked in v1 does not work the same in v2.
 
-### View and view model-breaking changes
+### Template and component-breaking changes
 
-In Aurelia 2, passing a string to the view or view-model properties no longer means module name. In Aurelia 1, the module would be resolved to a file. In v2, the view property only understands string values, and the view-model property only understands objects and classes.
+1. In aurelia 2, `view` and `view-model` properties have been renamed to `template` and `component` respectively.
+
+    If you were having `view.bind` or `view-model.bind`, change them to `template.bind` or `component.bind` respectively.
+
+2. In Aurelia 2, passing a string to the view or view-model properties no longer means module name. In Aurelia 1, the module would be resolved to a file. In v2, the view property only understands string values, and the view-model property only understands objects and classes.
 
 If you still want a view supporting a dynamically loaded module, you can create a value converter that achieves this.
 
 {% code title="my-component.html" %}
 ```markup
-  <au-compose view="https://my-server.com/views/${componentName} | loadView">
+  <au-compose template="https://my-server.com/templates/${componentName} | loadTemplate">
 ```
 {% endcode %}
 
-{% code title="load-view.ts" %}
+{% code title="load-template.ts" %}
 ```javascript
-  class LoadViewValueConverter {
+  class LoadTemplateValueConverter {
     toView(v) { return fetch(v).then(r => r.text()) }
   }
 ```

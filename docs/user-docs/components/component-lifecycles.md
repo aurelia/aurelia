@@ -201,3 +201,7 @@ export class MyComponent {
 ## Lifecycle Hooks
 
 The lifecycle hooks API supports all of the above lifecycle methods. Using the `lifecycleHooks` decorator, you can perform actions at various points of the component lifecycle. Because the router uses lifecycle hooks, they are documented [here](component-lifecycles.md#lifecycle-hooks) in the router section, but do not require the use of the router to use (except for router-specific hooks).
+
+## Others
+
+**For `<au-compose>`**, there are extra lifecycle hooks that are `activate`/`deactivate`. Refers to [dynamic composition doc](../getting-to-know-aurelia/dynamic-composition.md) for more details.

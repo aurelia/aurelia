@@ -263,7 +263,7 @@ The missing piece is now adding the actual dynamic composition to our view. Open
 ```markup
 <div class="container">
     <template repeat.for="component of components">
-        <au-compose containerless view-model.bind="component"></au-compose>
+        <au-compose containerless component.bind="component"></au-compose>
     </template>
 </div>
 ```

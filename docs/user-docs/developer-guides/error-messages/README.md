@@ -102,7 +102,7 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | AUR0803    | This happens when `& updateTrigger` binding behavior is used on binding without view -> view model observation                |
 | AUR0804    | This happens when `& updateTrigger` binding behavior is used on binding that does not target a DOM element                    |
 | AUR0805    | This happens when `<au-compose>` `scopeBehavior` property is assigned a value that is not either `auto` or `scoped`           |
-| AUR0806    | This happens when `<au-compose>` `view-model` binding is used with a custom element with `containerless = true`               |
+| AUR0806    | This happens when `<au-compose>` `component` binding is used with a custom element with `containerless = true`               |
 | AUR0807    | This happens when there's a corrupted internal state of `<au-compose>` and activation is called twice                         |
 | AUR0808    | This happens when there's a corrupted internal state of `<au-compose>` and deactivation is called twice                       |
 | AUR0809    | This happens when `<au-render>` `component` binding is given a string value, and there's no custom element with matching name |

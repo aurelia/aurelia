@@ -41,7 +41,7 @@ module.exports = {
     'require-atomic-updates': 'off',
 
     // Things we maybe need to fix some day, so are marked as off for now as they're quite noisy:
-    'mocha/max-top-level-suites': 'off',
+    "mocha/max-top-level-suites": ['error', {limit: 2}],
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off',
 

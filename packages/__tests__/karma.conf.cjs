@@ -188,7 +188,7 @@ module.exports =
       // so disabling for now, if at any point we have the capacity to figure this out
       // this should be enable so that circleCI can use timing of each test to split them better
       // @ts-ignore
-      // junitCircleCi,
+      junitCircleCi,
       // ===============================
       'karma-mocha-reporter',
       'karma-chrome-launcher',
@@ -307,7 +307,7 @@ module.exports =
   };
 
   if (config.coverage) {
-    options.reporters = ['coverage-istanbul', ...options.reporters ?? []];
+    options.reporters = ['coverage-istanbul', 'junit-circleci', ...options.reporters ?? []];
     // @ts-ignore
     options.coverageIstanbulReporter = {
       // something wrong with cobertura on circleCI

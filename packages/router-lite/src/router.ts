@@ -511,6 +511,17 @@ export class Router {
     this.currentTr = tr;
     this.nextTr = null;
 
+    /**
+     * Future optimization scope:
+     * Can we devise a plan to ignore a transition?
+     * The idea is to deterministically identify that the given transition is already active.
+     * In that case, we only choose to execute the transition if the transitionPlan is set to replace. (this check is currently done in the viewport agent).
+     *
+     * Solution idea:
+     * The root RouteNode needs to be consistently updated, even when children nodes are lazily added.
+     * When done, the instruction can be compared starting with the root node.
+     */
+
     this._isNavigating = true;
     let navigationContext = this.resolveContext(tr.options.context);
 

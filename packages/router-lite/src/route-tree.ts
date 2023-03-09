@@ -29,7 +29,7 @@ import {
   type IRouteContext,
 } from './route-context';
 import {
-  RouteDefinition,
+  RouteDefinition, RouteDefinitionConfiguration,
 } from './route-definition';
 import {
   ExpressionKind,
@@ -278,7 +278,7 @@ export class RouteNode implements IRouteNode {
       props.push(`c:'${component}'`);
     }
 
-    const path = this.context?.definition.config.path ?? '';
+    const path = this.context?.definition.path ?? '';
     if (path.length > 0) {
       props.push(`path:'${path}'`);
     }
@@ -442,7 +442,7 @@ export function createAndAppendNodes(
             // fallback: id -> route -> CEDefn (Route definition)
             // look for a route first
             log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-            const rd = (ctx.childRoutes as RouteDefinition[]).find(x => x.id === fallback);
+            const rd = (ctx.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === fallback);
             if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
 
             log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
@@ -504,7 +504,7 @@ function createConfiguredNode(
   vi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
   rr: $RecognizedRoute,
   originalVi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
-  route: ConfigurableRoute<RouteDefinition | Promise<RouteDefinition>> = rr.route.endpoint.route,
+  route: ConfigurableRoute<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
   const rt = node.tree;
@@ -542,7 +542,7 @@ function createConfiguredNode(
             data: $handler.data,
             viewport: vpName,
             component: ced,
-            title: $handler.config.title,
+            title: $handler.title,
             residue: [
               // TODO(sayan): this can be removed; need to inspect more.
               ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
@@ -671,7 +671,7 @@ function appendNode(
  */
 function createFallbackNode(
   log: ILogger,
-  rd: RouteDefinition,
+  rd: RouteDefinitionConfiguration,
   node: RouteNode,
   vi: ViewportInstruction<ITypedNavigationInstruction_string>,
 ): RouteNode | Promise<RouteNode> {

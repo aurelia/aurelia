@@ -10,7 +10,7 @@ import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
-import { RouteDefinition } from './route-definition';
+import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
@@ -98,7 +98,7 @@ export class Transition {
   }
 }
 
-type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
+type RouteDefinitionLookup = WeakMap<RouteDefinitionConfiguration, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
 
 export interface IRouter extends Router { }
@@ -133,7 +133,7 @@ export class Router {
           context: ctx,
           instruction: null,
           component: ctx.definition.component!,
-          title: ctx.definition.config.title,
+          title: ctx.definition.title,
         }),
       );
     }
@@ -352,35 +352,35 @@ export class Router {
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
     container: IContainer,
-    parentDefinition: RouteDefinition | null,
+    parentDefinition: RouteDefinitionConfiguration | null,
   ): IRouteContext | Promise<IRouteContext> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
     return onResolve(
       RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null),
-      routeDefinition => {
+      rdConfig => {
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
         if (routeDefinitionLookup === void 0) {
           this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
         }
 
-        let routeContext = routeDefinitionLookup.get(routeDefinition);
+        let routeContext = routeDefinitionLookup.get(rdConfig);
         if (routeContext !== void 0) {
-          logger.trace(`returning existing RouteContext for %s`, routeDefinition);
+          logger.trace(`returning existing RouteContext for %s`, rdConfig);
           return routeContext;
         }
-        logger.trace(`creating new RouteContext for %s`, routeDefinition);
+        logger.trace(`creating new RouteContext for %s`, rdConfig);
 
         const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
         routeDefinitionLookup.set(
-          routeDefinition,
+          rdConfig,
           routeContext = new RouteContext(
             viewportAgent,
             parent,
             componentDefinition,
-            routeDefinition,
+            rdConfig,
             container,
             this,
           ),

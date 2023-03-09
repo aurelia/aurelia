@@ -217,6 +217,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     );
   }
 
+  /** @deprecated */
   public getTransitionPlan(cur: RouteNode, next: RouteNode) {
     const plan = this.transitionPlan ?? defaultReentryBehavior;
     return typeof plan === 'function' ? plan(cur, next) : plan;

@@ -2,7 +2,7 @@ import { InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
 import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
-import { LifecycleFlags, Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
@@ -77,7 +77,7 @@ export class AppRoot implements IDisposable {
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
       return onResolve(this._runAppTasks('activating'), () => {
-        return onResolve(this.controller.activate(this.controller, null, LifecycleFlags.fromBind, void 0), () => {
+        return onResolve(this.controller.activate(this.controller, null, void 0), () => {
           return this._runAppTasks('activated');
         });
       });
@@ -86,7 +86,7 @@ export class AppRoot implements IDisposable {
 
   public deactivate(): void | Promise<void> {
     return onResolve(this._runAppTasks('deactivating'), () => {
-      return onResolve(this.controller.deactivate(this.controller, null, LifecycleFlags.none), () => {
+      return onResolve(this.controller.deactivate(this.controller, null, false), () => {
         return this._runAppTasks('deactivated');
       });
     });

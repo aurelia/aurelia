@@ -1,5 +1,5 @@
 import { ILogger } from '@aurelia/kernel';
-import type { LifecycleFlags, ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import type { ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import type { RouteDefinition } from './route-definition';
 import type { RouteNode } from './route-tree';
@@ -64,26 +64,26 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this._hasUnload = 'unloading' in instance;
   }
 
-  public activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
       this._logger.trace(`activate() - initial`);
-      return this.controller.activate(this.controller, parent, flags);
+      return this.controller.activate(this.controller, parent);
     }
 
     this._logger.trace(`activate()`);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.activate(initiator, parent, flags);
+    void this.controller.activate(initiator, parent);
   }
 
-  public deactivate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null, parent: IHydratedController, dispose: boolean): void | Promise<void> {
     if (initiator === null) {
       this._logger.trace(`deactivate() - initial`);
-      return this.controller.deactivate(this.controller, parent, flags);
+      return this.controller.deactivate(this.controller, parent, dispose);
     }
 
     this._logger.trace(`deactivate()`);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.deactivate(initiator, parent, flags);
+    void this.controller.deactivate(initiator, parent, dispose);
   }
 
   public dispose(): void {

@@ -4,7 +4,7 @@ import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
 import { IEventTarget, INode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
-import { LifecycleFlags, Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
+import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
 import { createError, isFunction, isPromise } from './utilities';
 import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
@@ -111,7 +111,7 @@ export class Aurelia implements IDisposable {
       CustomElementDefinition.create({ name: generateElementName(), template: host, enhance: true }),
     );
     return onResolve(
-      view.activate(view, parentController, LifecycleFlags.fromBind),
+      view.activate(view, parentController),
       () => view
     );
   }

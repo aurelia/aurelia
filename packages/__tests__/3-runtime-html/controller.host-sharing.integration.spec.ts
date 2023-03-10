@@ -1,5 +1,4 @@
 import {
-  LifecycleFlags,
   Aurelia,
   customElement,
   ICustomElementController,
@@ -70,16 +69,16 @@ describe('3-runtime-html/controller.host-sharing.integration.spec.ts', function 
               }
               public attaching(initiator: IHydratedController): void {
                 // No async hooks so all of these are synchronous.
-                void this.childController.activate(initiator, this.$controller, LifecycleFlags.none);
+                void this.childController.activate(initiator, this.$controller);
               }
               public detaching(initiator: IHydratedController): void {
-                void this.childController.deactivate(initiator, this.$controller, LifecycleFlags.none);
+                void this.childController.deactivate(initiator, this.$controller, false);
               }
               public activateChild(): void {
-                void this.childController.activate(this.childController, this.$controller, LifecycleFlags.none);
+                void this.childController.activate(this.childController, this.$controller);
               }
               public deactivateChild(): void {
-                void this.childController.deactivate(this.childController, this.$controller, LifecycleFlags.none);
+                void this.childController.deactivate(this.childController, this.$controller, false);
               }
             }
 

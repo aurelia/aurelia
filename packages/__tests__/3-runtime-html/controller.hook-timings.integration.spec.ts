@@ -1,6 +1,5 @@
 import { Registration, Writable, DI } from '@aurelia/kernel';
 import {
-  LifecycleFlags as LF,
   Aurelia,
   customElement,
   ICustomElementController,
@@ -1716,20 +1715,20 @@ abstract class TestVM implements IViewModel {
     this.disposeDI = dispose(mgr, p);
   }
 
-  public binding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.bindingDI.invoke(this, () => { this.$binding(i, p, f); }); }
-  public bound(i: HC, p: HPC, f: LF): void | Promise<void> { return this.boundDI.invoke(this, () => { this.$bound(i, p, f); }); }
-  public attaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.attachingDI.invoke(this, () => { this.$attaching(i, p, f); }); }
-  public attached(i: HC, f: LF): void | Promise<void> { return this.attachedDI.invoke(this, () => { this.$attached(i, f); }); }
-  public detaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.detachingDI.invoke(this, () => { this.$detaching(i, p, f); }); }
-  public unbinding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.unbindingDI.invoke(this, () => { this.$unbinding(i, p, f); }); }
+  public binding(i: HC, p: HPC): void | Promise<void> { return this.bindingDI.invoke(this, () => { this.$binding(i, p); }); }
+  public bound(i: HC, p: HPC): void | Promise<void> { return this.boundDI.invoke(this, () => { this.$bound(i, p); }); }
+  public attaching(i: HC, p: HPC): void | Promise<void> { return this.attachingDI.invoke(this, () => { this.$attaching(i, p); }); }
+  public attached(i: HC): void | Promise<void> { return this.attachedDI.invoke(this, () => { this.$attached(i); }); }
+  public detaching(i: HC, p: HPC): void | Promise<void> { return this.detachingDI.invoke(this, () => { this.$detaching(i, p); }); }
+  public unbinding(i: HC, p: HPC): void | Promise<void> { return this.unbindingDI.invoke(this, () => { this.$unbinding(i, p); }); }
   public dispose(): void { void this.disposeDI.invoke(this, () => { this.$dispose(); }); }
 
-  protected $binding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $bound(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $attaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $attached(_i: HC, _f: LF): void { /* do nothing */ }
-  protected $detaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $unbinding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
+  protected $binding(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $bound(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $attaching(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $attached(_i: HC): void { /* do nothing */ }
+  protected $detaching(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $unbinding(_i: HC, _p: HPC): void { /* do nothing */ }
   protected $dispose(this: Partial<Writable<this>>): void {
     this.bindingDI = void 0;
     this.boundDI = void 0;

@@ -2,7 +2,6 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
   CustomElement,
   ICustomElementViewModel,
   IPlatform,
@@ -67,7 +66,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     await testFunction(new EnhanceTestExecutionContext(ctx, container, host, app, child));
 
     await au.stop();
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
     ctx.doc.body.removeChild(host);
     au.dispose();
   }
@@ -148,7 +147,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
         host.innerHTML = template;
         component = CustomElement.define('app', App2);
         const controller = await au.enhance({ host, component });
-        dispose = () => controller.deactivate(controller, null, LifecycleFlags.none);
+        dispose = () => controller.deactivate(controller, null, false);
       }
 
       assert.html.textContent('div', message, 'div', host);
@@ -188,7 +187,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     const controller = await au.enhance({ host, component });
 
     await au.stop();
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
     ctx.doc.body.removeChild(host);
 
     assert.deepStrictEqual(component.eventLog, [
@@ -243,7 +242,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
       // The inverse order of the stop and detaching is intentional
       public async detaching() {
-        await this.enhanceView.deactivate(this.enhanceView, null, LifecycleFlags.none);
+        await this.enhanceView.deactivate(this.enhanceView, null, false);
         assert.html.innerEqual(this.enhancedHost, '<my-element class="au"></my-element>', 'enhanced.innerHtml');
         assert.html.innerEqual(this.container, '<div><my-element class="au"></my-element></div>', 'enhanced.innerHtml');
       }
@@ -284,10 +283,10 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     assert.html.textContent(host, '012');
     assert.strictEqual(host.querySelectorAll('div').length, 3);
 
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
     assert.html.textContent(host, '');
 
-    await controller.activate(controller, null, LifecycleFlags.none);
+    await controller.activate(controller, null);
     assert.html.textContent(host, '012');
     assert.strictEqual(host.querySelectorAll('div').length, 3);
   });
@@ -328,7 +327,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
           }
 
           public detaching() {
-            void this.enhancedView.deactivate(this.enhancedView, null, LifecycleFlags.none);
+            void this.enhancedView.deactivate(this.enhancedView, null, false);
             parentController = void 0;
           }
         }),
@@ -370,7 +369,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     });
 
     assert.strictEqual(host.innerHTML, '<div class="au" data-id="12"></div>');
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
   });
 
   it('uses resources given in the container', async function () {
@@ -398,7 +397,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
     assert.strictEqual(host.innerHTML, '<div class="au" data-id="11"></div>');
     assert.strictEqual(container.find(ValueConverter, 'plus10'), null, 'It should register resources with child contaienr only.');
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
   });
 
   it('throws on template with a predefined "au"', async function () {
@@ -428,7 +427,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     const controller = await au.enhance({ host, component: { id: 1 } });
     assert.html.textContent(host, '012');
     assert.throws(() => au.enhance({ host, component: {} }));
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller.deactivate(controller, null, false);
   });
 
   it('does not throw on enhancement that did not result in "au" class', async function () {
@@ -441,7 +440,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     const controller = await au.enhance({ host, component: { id: 1 } });
     assert.html.textContent(host, '012');
     const controller2 = await au.enhance({ host, component: {} });
-    await controller2.deactivate(controller2, null, LifecycleFlags.none);
-    await controller.deactivate(controller, null, LifecycleFlags.none);
+    await controller2.deactivate(controller2, null, false);
+    await controller.deactivate(controller, null, false);
   });
 });

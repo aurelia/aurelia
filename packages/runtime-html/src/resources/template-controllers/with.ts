@@ -40,20 +40,18 @@ export class With implements ICustomAttributeViewModel {
 
   public attaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
     const { $controller, value } = this;
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, flags, scope);
+    return this.view.activate(initiator, $controller, scope);
   }
 
   public detaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.deactivate(initiator, this.$controller, flags);
+    return this.view.deactivate(initiator, this.$controller, false);
   }
 
   public dispose(): void {

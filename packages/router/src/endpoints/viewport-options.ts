@@ -30,6 +30,7 @@ export class ViewportOptions implements IEndpointOptions {
      * The default component that's loaded if the viewport is created
      * without having a component specified (in that navigation).
      */
+    // eslint-disable-next-line default-param-last
     _default: string = '',
 
     /**

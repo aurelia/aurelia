@@ -30,7 +30,7 @@ import { areEqual, createError, isArray, isPromise, baseObjectPrototype, rethrow
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
-import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -109,7 +109,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     const bindings = this._parent.bindings as PropertyBinding[];
     const ii = bindings.length;
@@ -143,7 +142,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public attaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._normalizeToArray();
 
@@ -153,7 +151,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public detaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
 
@@ -163,7 +160,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public unbinding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._scopeMap.clear();
     this._keyMap.clear();
@@ -454,7 +450,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
-      ret = view.activate(initiator ?? view, $controller, 0, viewScope);
+      ret = view.activate(initiator ?? view, $controller, viewScope);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -482,7 +478,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; ii > i; ++i) {
       view = views[i];
       view.release();
-      ret = view.deactivate(initiator ?? view, $controller, 0);
+      ret = view.deactivate(initiator ?? view, $controller, false);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -511,7 +507,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; deletedLen > i; ++i) {
       view = views[deleted[i]];
       view.release();
-      ret = view.deactivate(view, $controller, 0);
+      ret = view.deactivate(view, $controller, false);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -580,7 +576,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(_location);
 
-        ret = view.activate(view, $controller, 0, viewScope);
+        ret = view.activate(view, $controller, viewScope);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }

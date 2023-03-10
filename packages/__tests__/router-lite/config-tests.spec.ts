@@ -259,7 +259,7 @@ describe('router-lite/config-tests.spec.ts', function () {
                       component: A02,
                     },
                   ],
-                }, Root2);
+                }, Root2, true);
               },
             },
           ];

@@ -531,28 +531,27 @@ export class RouteContext {
   public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
     if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
-    let def: RouteDefinitionConfiguration[] | undefined;
+    let paths: string[] | undefined;
     let throwError: boolean = false;
     if (component instanceof RouteDefinitionConfiguration) {
-      def = [component];
+      paths = component.path;
       throwError = true;
     } else if (typeof component === 'string') {
       const $rdConfig = (this.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === component);
       if ($rdConfig === void 0) return null;
-      def = [$rdConfig];
+      paths = $rdConfig.path;
     } else if ((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
       const $rdConfig = (this.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
       if ($rdConfig === void 0) return null;
-      def = [$rdConfig];
+      paths = $rdConfig.path;
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
-      def = RouteDefinition.resolve(component, null, null, this);
+      paths = RouteDefinition.resolve(component, null, null, this).flatMap(rdc => rdc.path);
     }
-    if (def === void 0) return null;
+    if (paths === void 0) return null;
 
     const params = instruction.params;
     const recognizer = this._recognizer;
-    const paths = def._directConfiguration?.path ?? emptyArray;
     const numPaths = paths.length;
     const errors: string[] = [];
     let result: ReturnType<typeof core> = null;
@@ -609,7 +608,7 @@ export class RouteContext {
 
     type EagerResolutionResult = {
       path: string;
-      endpoint: Endpoint<RouteDefinition | Promise<RouteDefinition>>;
+      endpoint: Endpoint<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>>;
       consumed: Params;
       query: Params;
     };

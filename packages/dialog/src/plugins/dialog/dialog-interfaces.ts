@@ -1,7 +1,7 @@
 import { createInterface } from '../../utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { ICustomElementViewModel } from '@aurelia/runtime-html';
+import type { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
  * The dialog service for composing view & view model into a dialog
@@ -45,17 +45,8 @@ export interface IDialogController {
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
 export const IDialogDomRenderer = createInterface<IDialogDomRenderer>('IDialogDomRenderer');
-export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
-}
-
-/**
- * An interface describing the DOM structure of a dialog
- */
-export const IDialogDom = createInterface<IDialogDom>('IDialogDom');
-export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
-  readonly contentHost: HTMLElement;
+export interface IDialogDomRenderer extends IDisposable {
+  render(componentController: ICustomElementController): void | Promise<void>;
 }
 
 // export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;

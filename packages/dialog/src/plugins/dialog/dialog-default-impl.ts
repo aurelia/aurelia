@@ -1,12 +1,8 @@
-import { IPlatform } from '@aurelia/runtime-html';
-import {
-  IDialogDomRenderer,
-  IDialogDom,
-  IDialogGlobalSettings,
-} from './dialog-interfaces';
+import { ICustomElementController, IPlatform } from '@aurelia/runtime-html';
+import { IDialogDomRenderer, IDialogGlobalSettings, DialogActionKey, IDialogController } from './dialog-interfaces';
 
 import { IContainer } from '@aurelia/kernel';
-import { singletonRegistration } from '../../utilities-di';
+import { singletonRegistration, transientRegistration } from '../../utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 
@@ -20,45 +16,92 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 }
 
 const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
+const wrapperCss = `${baseWrapperCss}display:flex;`;
+const hostCss = 'position:relative;margin:auto;';
 
-export class DefaultDialogDomRenderer implements IDialogDomRenderer {
+export class DefaultDialogDomRenderer implements IDialogDomRenderer, EventListenerObject {
 
   /** @internal */
-  protected static inject = [IPlatform];
+  protected static inject = [IPlatform, IDialogController];
 
-  public constructor(private readonly p: IPlatform) {}
+  public wrapper!: HTMLElement;
+
+  public overlay!: HTMLElement;
+
+  public contentHost!: HTMLElement;
+
+  public constructor(private readonly platform: IPlatform, private readonly dialogController: IDialogController) {}
 
   public static register(container: IContainer) {
-    singletonRegistration(IDialogDomRenderer, this).register(container);
+    transientRegistration(IDialogDomRenderer, this).register(container);
   }
 
-  private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;
-  private readonly overlayCss: string = baseWrapperCss;
-  private readonly hostCss: string = 'position:relative;margin:auto;';
+  public render(componentController: ICustomElementController) {
+    const { document } = this.platform;
+    const { settings } = this.dialogController;
+    const dialogHost = settings.host ?? document.body;
 
-  public render(dialogHost: HTMLElement): IDialogDom {
-    const doc = this.p.document;
-    const h = (name: string, css: string) => {
-      const el = doc.createElement(name);
+    const h = (name: string, css: string): HTMLElement => {
+      const el = document.createElement(name);
       el.style.cssText = css;
       return el;
     };
-    const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
-    const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
-    const host = wrapper.appendChild(h('div', this.hostCss));
-    return new DefaultDialogDom(wrapper, overlay, host);
-  }
-}
 
-export class DefaultDialogDom implements IDialogDom {
-  public constructor(
-    public readonly wrapper: HTMLElement,
-    public readonly overlay: HTMLElement,
-    public readonly contentHost: HTMLElement,
-  ) {
+    const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
+    wrapper.setAttribute('tabindex', '-1');
+    const overlay = wrapper.appendChild(h('au-dialog-overlay', baseWrapperCss));
+    const contentHost = wrapper.appendChild(componentController.host);
+    contentHost.style.cssText = hostCss;
+
+    overlay.addEventListener(settings.mouseEvent ?? 'click', this);
+    wrapper.addEventListener('keydown', this);
+
+    this.wrapper = wrapper;
+    this.overlay = overlay;
+    this.contentHost = contentHost;
   }
 
   public dispose(): void {
+    this.wrapper.removeEventListener('keydown', this);
+    this.overlay.removeEventListener(this.dialogController.settings.mouseEvent ?? 'click', this);
     this.wrapper.remove();
   }
+
+  /** @internal */
+  public handleEvent(event: KeyboardEvent | MouseEvent): void {
+    const { dialogController } = this;
+
+    // handle wrapper keydown
+    if (event.type === 'keydown') {
+      const key = getActionKey(event as KeyboardEvent);
+      if (key == null) {
+        return;
+      }
+
+      const keyboard = dialogController.settings.keyboard;
+      if (key === 'Escape' && keyboard.includes(key)) {
+        void dialogController.cancel();
+      } else if (key === 'Enter' && keyboard.includes(key)) {
+        void dialogController.ok();
+      }
+      return;
+    }
+
+    // handle overlay click
+    if (/* user allows to dismiss on overlay click */dialogController.settings.overlayDismiss
+      && /* did not click inside the host element */!this.contentHost.contains(event.target as Element)
+    ) {
+      void dialogController.cancel();
+    }
+  }
+}
+
+function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
+  if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
+    return 'Escape';
+  }
+  if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
+    return 'Enter';
+  }
+  return undefined;
 }

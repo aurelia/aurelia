@@ -11,3 +11,6 @@ export const instanceRegistration = Registration.instance;
 
 /** @internal */
 export const callbackRegistration = Registration.callback;
+
+/** @internal */
+export const transientRegistration = Registration.transient;

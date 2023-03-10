@@ -8,7 +8,6 @@ export {
   IDialogService,
   IDialogController,
   IDialogDomRenderer,
-  IDialogDom,
 
   // dialog results
   DialogCloseResult,
@@ -46,7 +45,6 @@ export {
 } from './plugins/dialog/dialog-configuration';
 
 export {
-  DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
 } from './plugins/dialog/dialog-default-impl';

@@ -4,7 +4,6 @@ import {
   DialogDeactivationStatuses,
   IDialogController,
   IDialogDomRenderer,
-  IDialogDom,
   DialogOpenResult,
   DialogCloseResult,
   DialogCancelError,
@@ -47,9 +46,9 @@ export class DialogController implements IDialogController {
   public readonly closed: Promise<DialogCloseResult>;
 
   /**
-   * The dom structure created to support the dialog associated with this controller
+   * The renderer used to create dialog DOM
    */
-  private dom!: IDialogDom;
+  private renderer!: IDialogDomRenderer;
 
   /**
    * The component controller associated with this dialog controller
@@ -74,31 +73,36 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
-    const container = this.ctn.createChild();
     const { model, template, rejectOnCancel } = settings;
-    const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
-    const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = hostRenderer.render(dialogTargetHost, settings);
-    const rootEventTarget = container.has(IEventTarget, true)
-      ? container.get(IEventTarget) as Element
-      : null;
-    const contentHost = dom.contentHost;
 
-    this.settings = settings;
+    // TODO: use CEs name if provided?
+    const contentHost = document.createElement('div');
+
+    const container = this.ctn.createChild();
+    container.register(instanceRegistration(IDialogController, this));
+
+    const renderer = this.ctn.get(IDialogDomRenderer);
+    container.register(instanceRegistration(IDialogDomRenderer, renderer));
+
+    // moved to renderer
+    // const dialogTargetHost = settings.host ?? this.p.document.body;
+
+    // delegate binding has been removed, so don't need this any more?
     // application root host may be a different element with the dialog root host
     // example:
     // <body>
     //   <my-app>
     //   <au-dialog-container>
     // when it's different, needs to ensure delegate bindings work
-    if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
-      container.register(instanceRegistration(IEventTarget, dialogTargetHost));
-    }
+    // const rootEventTarget = container.has(IEventTarget, true)
+    //   ? container.get(IEventTarget) as Element
+    //   : null;
+    // if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
+    //   container.register(instanceRegistration(IEventTarget, dialogTargetHost));
+    // }
 
-    container.register(
-      instanceRegistration(INode, contentHost),
-      instanceRegistration(IDialogDom, dom),
-    );
+    this.settings = settings;
+    this.renderer = renderer;
 
     return new Promise(r => {
         const cmp = Object.assign(this.cmp = this.getOrCreateVm(container, settings, contentHost), { $dialog: this });
@@ -106,7 +110,6 @@ export class DialogController implements IDialogController {
       })
       .then(canActivate => {
         if (canActivate !== true) {
-          dom.dispose();
           if (rejectOnCancel) {
             throw createDialogCancelError(null, 'Dialog activation rejected');
           }
@@ -116,7 +119,7 @@ export class DialogController implements IDialogController {
         const cmp = this.cmp;
 
         return onResolve(cmp.activate?.(model), () => {
-          const ctrlr = this.controller = Controller.$el(
+          const controller = this.controller = Controller.$el(
             container,
             cmp,
             contentHost,
@@ -125,14 +128,12 @@ export class DialogController implements IDialogController {
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )
           ) as ICustomElementController;
-          return onResolve(ctrlr.activate(ctrlr, null, LifecycleFlags.fromBind), () => {
-            dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
-            return DialogOpenResult.create(false, this);
+          return onResolve(renderer.render(controller), () => {
+            return onResolve(controller.activate(controller, null, LifecycleFlags.fromBind), () => {
+              return DialogOpenResult.create(false, this);
+            });
           });
         });
-      }, e => {
-        dom.dispose();
-        throw e;
       });
   }
 
@@ -143,7 +144,7 @@ export class DialogController implements IDialogController {
     }
 
     let deactivating = true;
-    const { controller, dom, cmp, settings: { mouseEvent, rejectOnCancel }} = this;
+    const { controller, renderer, cmp, settings: { rejectOnCancel }} = this;
     const dialogResult = DialogCloseResult.create(status, value);
 
     const promise: Promise<DialogCloseResult<T>> = new Promise<DialogCloseResult<T>>(r => {
@@ -162,8 +163,7 @@ export class DialogController implements IDialogController {
           return onResolve(cmp.deactivate?.(dialogResult),
             () => onResolve(controller.deactivate(controller, null, LifecycleFlags.fromUnbind),
               () => {
-                dom.dispose();
-                dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
+                renderer.dispose();
                 if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
                   this._resolve(dialogResult);
                 } else {
@@ -217,21 +217,11 @@ export class DialogController implements IDialogController {
       () => onResolve(
         this.controller.deactivate(this.controller, null, LifecycleFlags.fromUnbind),
         () => {
-          this.dom.dispose();
+          this.renderer.dispose();
           this._reject(closeError);
         }
       )
     )));
-  }
-
-  /** @internal */
-  public handleEvent(event: MouseEvent): void {
-    if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
-      && /* did not click inside the host element */!this.dom.contentHost.contains(event.target as Element)
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.cancel();
-    }
   }
 
   private getOrCreateVm(container: IContainer, settings: IDialogLoadedSettings, host: HTMLElement): IDialogComponent<object> {

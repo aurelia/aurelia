@@ -353,12 +353,13 @@ export class Router {
     componentInstance: IRouteViewModel | null,
     container: IContainer,
     parentDefinition: RouteDefinitionConfiguration | null,
+    parentContext: IRouteContext | null,
   ): IRouteContext | Promise<IRouteContext> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
     return onResolve(
-      RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null),
+      RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null, parentContext),
       rdConfig => {
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
         if (routeDefinitionLookup === void 0) {

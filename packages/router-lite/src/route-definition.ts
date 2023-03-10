@@ -199,13 +199,13 @@ export class RouteDefinition {
   }
 
   // Note on component instance: it is non-null for the root, and when the component agent is created via the route context (if the child routes are not yet configured).
-  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinitionConfiguration;
+  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
+  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration;
   public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null): never;
   public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: Routeable, parentDefinition: null, routeNode: null, context: IRouteContext): RouteDefinitionConfiguration[];
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context?: IRouteContext): RouteDefinitionConfiguration | RouteDefinitionConfiguration[] | Promise<RouteDefinitionConfiguration | RouteDefinitionConfiguration[]> {
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
+  public static resolve(routeable: Routeable, parentDefinition: null, routeNode: null, context: IRouteContext | null): RouteDefinitionConfiguration[];
+  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context?: IRouteContext | null): RouteDefinitionConfiguration | RouteDefinitionConfiguration[] | Promise<RouteDefinitionConfiguration | RouteDefinitionConfiguration[]> {
     if (isPartialRedirectRouteConfig(routeable)) {
       if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
       const routeDefinition = new RouteDefinition(null, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
@@ -216,7 +216,7 @@ export class RouteDefinition {
     let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
     switch (instruction.type) {
       case NavigationInstructionType.string: {
-        if (context === void 0) throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
+        if (context == null) throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
         const component = context.container.find(CustomElement, instruction.value);
         if (component === null) throw new Error(`Could not find a CustomElement named '${instruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);
         ceDef = component;
@@ -230,7 +230,7 @@ export class RouteDefinition {
         ceDef = CustomElement.getDefinition(instruction.value.constructor as RouteType);
         break;
       case NavigationInstructionType.Promise:
-        if (context === void 0) throw new Error(`RouteContext must be provided when resolving an imported module`);
+        if (context == null) throw new Error(`RouteContext must be provided when resolving an imported module`);
         ceDef = context.resolveLazy(instruction.value);
         break;
     }
@@ -271,11 +271,19 @@ export class RouteDefinition {
           const directConfig = routeDefinition._addConfiguration(context ?? null, Route.getConfig(type), true);
           if (context == null) return directConfig;
         }
-        if (isPartialChildRouteConfig(routeable)) {
-          // The component is configured as a child in a parent route configuration.
-          if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
-          return routeDefinition._addConfiguration(context, RouteConfig._create(routeable as string | string[] | IRouteConfig, type, false/* , parentConfig */), false);
-        }
+        if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+         return routeDefinition._addConfiguration(
+          context,
+          RouteConfig._create(
+            // The component is configured as a child in a parent route configuration.
+            isPartialChildRouteConfig(routeable)
+              ? routeable as string | string[] | IRouteConfig
+              : {},
+            type,
+            false
+            /* , parentConfig */
+          ),
+          false);
       } else if (!routeDefinition._hasChildRoutes() && hasRouteConfigHook) {
         return onResolve((routeable as IRouteViewModel).getRouteConfig?.(parentDefinition, routeNode), value => {
           if (value == null) {

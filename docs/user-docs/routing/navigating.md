@@ -63,7 +63,7 @@ The router instance `load` method allows you to specify different properties on 
 A list of available load options can be found below:
 
 * `title` — Sets the title of the component being loaded
-* `queryParams` — Specify an object to be serialized to a query string and then set to the query string of the new URL.
+* `parameters` — Specify an object to be serialized to a query string and then set to the query string of the new URL.
 * `fragment` — Specify the hash fragment for the new URL.
 
 These option values can be specified as follows and when needed:
@@ -79,7 +79,7 @@ export class MyComponent implements IRouteableComponent {
     async viewProduct() {
         await this.router.load('products', {
             title: 'My product',
-            queryParams: {
+            parameters: {
                 prop1: 'val',
                 tracking: 'asdasdjaks232'
             },

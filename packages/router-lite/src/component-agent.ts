@@ -75,15 +75,15 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     void this.controller.activate(initiator, parent);
   }
 
-  public deactivate(initiator: IHydratedController | null, parent: IHydratedController, dispose: boolean): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
       this._logger.trace(`deactivate() - initial`);
-      return this.controller.deactivate(this.controller, parent, dispose);
+      return this.controller.deactivate(this.controller, parent);
     }
 
     this._logger.trace(`deactivate()`);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.deactivate(initiator, parent, dispose);
+    void this.controller.deactivate(initiator, parent);
   }
 
   public dispose(): void {

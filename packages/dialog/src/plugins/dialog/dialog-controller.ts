@@ -160,7 +160,7 @@ export class DialogController implements IDialogController {
             return DialogCloseResult.create(DialogDeactivationStatuses.Abort as T);
           }
           return onResolve(cmp.deactivate?.(dialogResult),
-            () => onResolve(controller.deactivate(controller, null, false),
+            () => onResolve(controller.deactivate(controller, null),
               () => {
                 dom.dispose();
                 dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
@@ -215,7 +215,7 @@ export class DialogController implements IDialogController {
     return new Promise(r => r(onResolve(
       this.cmp.deactivate?.(DialogCloseResult.create(DialogDeactivationStatuses.Error, closeError)),
       () => onResolve(
-        this.controller.deactivate(this.controller, null, false),
+        this.controller.deactivate(this.controller, null),
         () => {
           this.dom.dispose();
           this._reject(closeError);

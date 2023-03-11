@@ -478,7 +478,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; ii > i; ++i) {
       view = views[i];
       view.release();
-      ret = view.deactivate(initiator ?? view, $controller, false);
+      ret = view.deactivate(initiator ?? view, $controller);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -507,7 +507,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; deletedLen > i; ++i) {
       view = views[deleted[i]];
       view.release();
-      ret = view.deactivate(view, $controller, false);
+      ret = view.deactivate(view, $controller);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
       }

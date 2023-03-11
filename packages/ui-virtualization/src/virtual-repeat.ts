@@ -195,7 +195,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       // todo: no async supported
       for (i = 0; currViewCount > i; ++i) {
         view = views[i];
-        void view.deactivate(controller, controller, false);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
       }
       views.length = 0;
@@ -206,7 +206,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     if (currViewCount > maxViewsRequired) {
       while (currViewCount > maxViewsRequired) {
         view = views[currViewCount - 1];
-        void view.deactivate(controller, controller, false);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
         --currViewCount;
       }
@@ -216,7 +216,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       // remove views from bottom to top
       while (currViewCount > itemCount) {
         view = views[currViewCount - 1];
-        void view.deactivate(controller, controller, false);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
         --currViewCount;
       }

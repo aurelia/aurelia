@@ -580,7 +580,7 @@ export class ViewportContent extends EndpointContent {
 
         this.contentStates.delete('activated');
         this.contentStates.delete('activating');
-        return this.controller?.deactivate(initiator ?? this.controller, parent, false);
+        return this.controller?.deactivate(initiator ?? this.controller, parent);
       }
     ) as Step<void>;
   }

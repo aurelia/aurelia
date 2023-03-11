@@ -86,7 +86,7 @@ export class AppRoot implements IDisposable {
 
   public deactivate(): void | Promise<void> {
     return onResolve(this._runAppTasks('deactivating'), () => {
-      return onResolve(this.controller.deactivate(this.controller, null, false), () => {
+      return onResolve(this.controller.deactivate(this.controller, null), () => {
         return this._runAppTasks('deactivated');
       });
     });

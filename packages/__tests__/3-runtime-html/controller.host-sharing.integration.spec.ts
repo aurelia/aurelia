@@ -72,13 +72,13 @@ describe('3-runtime-html/controller.host-sharing.integration.spec.ts', function 
                 void this.childController.activate(initiator, this.$controller);
               }
               public detaching(initiator: IHydratedController): void {
-                void this.childController.deactivate(initiator, this.$controller, false);
+                void this.childController.deactivate(initiator, this.$controller);
               }
               public activateChild(): void {
                 void this.childController.activate(this.childController, this.$controller);
               }
               public deactivateChild(): void {
-                void this.childController.deactivate(this.childController, this.$controller, false);
+                void this.childController.deactivate(this.childController, this.$controller);
               }
             }
 

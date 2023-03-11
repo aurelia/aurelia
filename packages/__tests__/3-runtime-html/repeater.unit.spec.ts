@@ -26,7 +26,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     void sut.$controller.activate(sut.$controller, null, scope);
   }
   function runDeactivateLifecycle(sut: Repeat): void {
-    void sut.$controller.deactivate(sut.$controller, null, false);
+    void sut.$controller.deactivate(sut.$controller, null);
   }
 
   interface Spec {

@@ -91,7 +91,7 @@ export class AuSlot implements ICustomElementViewModel {
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.deactivate(initiator, this.$controller, false);
+    return this.view.deactivate(initiator, this.$controller);
   }
 
   public exposeChanged(v: object): void {

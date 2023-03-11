@@ -129,7 +129,7 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
 
       public disconnectedCallback() {
         // eslint-disable-next-line
-        this.auCtrl.deactivate(this.auCtrl, null, false);
+        this.auCtrl.deactivate(this.auCtrl, null);
       }
 
       public adoptedCallback() {

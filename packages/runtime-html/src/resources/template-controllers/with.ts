@@ -51,7 +51,7 @@ export class With implements ICustomAttributeViewModel {
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.deactivate(initiator, this.$controller, false);
+    return this.view.deactivate(initiator, this.$controller);
   }
 
   public dispose(): void {

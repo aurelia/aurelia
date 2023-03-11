@@ -66,7 +66,7 @@ export class Switch implements ICustomAttributeViewModel {
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
     this.queue(() => {
       const view = this.view;
-      return view.deactivate(initiator, this.$controller, false);
+      return view.deactivate(initiator, this.$controller);
     });
     return this.promise;
   }
@@ -333,7 +333,7 @@ export class Case implements ICustomAttributeViewModel {
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {
     const view = this.view;
     if (view === void 0 || !view.isActive) { return; }
-    return view.deactivate(initiator ?? view, this.$controller, false);
+    return view.deactivate(initiator ?? view, this.$controller);
   }
 
   public dispose(): void {

@@ -94,7 +94,7 @@ export class If implements ICustomAttributeViewModel {
       this._wantsDeactivate = false;
       this.pending = void 0;
       // Promise return values from user VM hooks are awaited by the initiator
-      void this.view?.deactivate(initiator, this.$controller, false);
+      void this.view?.deactivate(initiator, this.$controller);
     });
   }
 
@@ -124,7 +124,7 @@ export class If implements ICustomAttributeViewModel {
     let view: ISyntheticView | undefined;
     return onResolve(this.pending,
       () => this.pending = onResolve(
-        currView?.deactivate(currView, ctrl, false),
+        currView?.deactivate(currView, ctrl),
         () => {
           if (!isCurrent()) {
             return;

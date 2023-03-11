@@ -768,12 +768,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._leaveActivating();
   }
 
-  /** @internal */
-  public _disposing: boolean = false;
   public deactivate(
     initiator: IHydratedController,
-    parent: IHydratedController | null,
-    dispose: boolean
+    _parent: IHydratedController | null,
   ): void | Promise<void> {
     switch ((this.state & ~State.released)) {
       case State.activated:
@@ -796,7 +793,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
 
     this.$initiator = initiator;
-    this._disposing = dispose;
 
     if (initiator === this) {
       this._enterDetaching();
@@ -816,7 +812,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.children !== null) {
       for (i = 0; i < this.children.length; ++i) {
         // Child promise results are tracked by enter/leave combo's
-        void this.children[i].deactivate(initiator, this as IHydratedController, dispose);
+        void this.children[i].deactivate(initiator, this as IHydratedController);
       }
     }
 
@@ -924,10 +920,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    if (this._disposing && this.$initiator === this) {
-      this.dispose();
-    }
-    this.state = (this.state & State.disposed) | State.deactivated;
+    this.state |= State.deactivated;
     this.$initiator = null!;
     this._resolve();
   }
@@ -1589,7 +1582,6 @@ export interface ISyntheticView extends IHydratableController {
   deactivate(
     initiator: IHydratedController,
     parent: IHydratedController,
-    dispose: boolean,
   ): void | Promise<void>;
   /**
    * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
@@ -1669,7 +1661,6 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
   deactivate(
     initiator: IHydratedController,
     parent: IHydratedController,
-    dispose: boolean,
   ): void | Promise<void>;
 }
 
@@ -1747,7 +1738,6 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
   deactivate(
     initiator: IHydratedController,
     parent: IHydratedController | null,
-    dispose: boolean,
   ): void | Promise<void>;
 }
 

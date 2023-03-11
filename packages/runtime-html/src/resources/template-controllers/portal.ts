@@ -199,7 +199,7 @@ export class Portal implements ICustomAttributeViewModel {
       view.nodes.remove();
     } else {
       return onResolve(
-        view.deactivate(initiator, $controller, false),
+        view.deactivate(initiator, $controller),
         () => {
           return this._deactivated(target);
         },

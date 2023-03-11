@@ -153,7 +153,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     this.preSettledTask?.cancel();
     this.postSettledTask?.cancel();
     this.preSettledTask = this.postSettledTask = null;
-    return this.view.deactivate(initiator, this.$controller, false);
+    return this.view.deactivate(initiator, this.$controller);
   }
 
   public dispose(): void {
@@ -196,7 +196,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
     const view = this.view;
     if (view === void 0 || !view.isActive) { return; }
-    return view.deactivate(view, this.$controller, false);
+    return view.deactivate(view, this.$controller);
   }
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
@@ -244,7 +244,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
     const view = this.view;
     if (view === void 0 || !view.isActive) { return; }
-    return view.deactivate(view, this.$controller, false);
+    return view.deactivate(view, this.$controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -292,7 +292,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
     const view = this.view;
     if (view === void 0 || !view.isActive) { return; }
-    return view.deactivate(view, this.$controller, false);
+    return view.deactivate(view, this.$controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {

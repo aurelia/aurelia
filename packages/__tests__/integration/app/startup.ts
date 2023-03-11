@@ -63,7 +63,7 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
     await au.start();
   } else {
     const controller = (await au.enhance({ host, component }));
-    $deactivate = () => controller.deactivate(controller, null, false);
+    $deactivate = () => controller.deactivate(controller, null);
   }
 
   async function tearDown() {

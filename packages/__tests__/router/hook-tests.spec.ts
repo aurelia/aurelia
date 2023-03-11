@@ -1,6 +1,5 @@
 import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
-  LifecycleFlags as LF,
   CustomElement,
   customElement,
   ICustomElementController,
@@ -151,24 +150,24 @@ describe('router/hook-tests.spec.ts', function () {
       this.disposeDI = specs.dispose.create(mgr, p);
     }
 
-    public binding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.bindingDI.invoke(this, () => { return this.$binding(i, p, f); }); }
-    public bound(i: HC, p: HPC, f: LF): void | Promise<void> { return this.boundDI.invoke(this, () => { return this.$bound(i, p, f); }); }
-    public attaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.attachingDI.invoke(this, () => { return this.$attaching(i, p, f); }); }
-    public attached(i: HC, f: LF): void | Promise<void> { return this.attachedDI.invoke(this, () => { return this.$attached(i, f); }); }
-    public detaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.detachingDI.invoke(this, () => { return this.$detaching(i, p, f); }); }
-    public unbinding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p, f); }); }
+    public binding(i: HC, p: HPC): void | Promise<void> { return this.bindingDI.invoke(this, () => { return this.$binding(i, p); }); }
+    public bound(i: HC, p: HPC): void | Promise<void> { return this.boundDI.invoke(this, () => { return this.$bound(i, p); }); }
+    public attaching(i: HC, p: HPC): void | Promise<void> { return this.attachingDI.invoke(this, () => { return this.$attaching(i, p); }); }
+    public attached(i: HC): void | Promise<void> { return this.attachedDI.invoke(this, () => { return this.$attached(i); }); }
+    public detaching(i: HC, p: HPC): void | Promise<void> { return this.detachingDI.invoke(this, () => { return this.$detaching(i, p); }); }
+    public unbinding(i: HC, p: HPC): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p); }); }
     public canLoad(p: P, n: Navigation, c: Navigation | null): boolean | RoutingInstruction | RoutingInstruction[] | Promise<boolean | RoutingInstruction | RoutingInstruction[]> { return this.canLoadDI.invoke(this, () => { return this.$canLoad(p, n, c); }); }
     public loading(p: P, n: Navigation, c: Navigation | null): void | Promise<void> { return this.loadingDI.invoke(this, () => { return this.$loading(p, n, c); }); }
     public canUnload(n: Navigation | null, c: Navigation): boolean | Promise<boolean> { return this.canUnloadDI.invoke(this, () => { return this.$canUnload(n, c); }); }
     public unloading(n: Navigation | null, c: Navigation): void | Promise<void> { return this.unloadingDI.invoke(this, () => { return this.$unloading(n, c); }); }
     public dispose(): void { void this.disposeDI.invoke(this, () => { this.$dispose(); }); }
 
-    protected $binding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-    protected $bound(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-    protected $attaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-    protected $attached(_i: HC, _f: LF): void { /* do nothing */ }
-    protected $detaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-    protected $unbinding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
+    protected $binding(_i: HC, _p: HPC): void { /* do nothing */ }
+    protected $bound(_i: HC, _p: HPC): void { /* do nothing */ }
+    protected $attaching(_i: HC, _p: HPC): void { /* do nothing */ }
+    protected $attached(_i: HC): void { /* do nothing */ }
+    protected $detaching(_i: HC, _p: HPC): void { /* do nothing */ }
+    protected $unbinding(_i: HC, _p: HPC): void { /* do nothing */ }
     protected $canLoad(_p: P, _n: Navigation, _c: Navigation | null): boolean | RoutingInstruction | RoutingInstruction[] | Promise<boolean | RoutingInstruction | RoutingInstruction[]> { return true; }
     protected $loading(_p: P, _n: Navigation, _c: Navigation | null): void | Promise<void> { /* do nothing */ }
     protected $canUnload(_n: Navigation | null, _c: Navigation): boolean | Promise<boolean> { return true; }

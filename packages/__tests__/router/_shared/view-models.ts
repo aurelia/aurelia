@@ -1,5 +1,5 @@
 import { Writable } from '@aurelia/kernel';
-import { LifecycleFlags, ICustomElementController, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
+import { ICustomElementController, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport, RoutingInstruction } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
@@ -9,13 +9,13 @@ export interface ITestRouteViewModel extends IRouteableComponent {
   readonly name: string;
   viewport: Viewport;
 
-  binding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-  bound(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-  attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-  attached(initiator: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
+  binding(initiator: IHydratedController, parent: IHydratedParentController): void | Promise<void>;
+  bound(initiator: IHydratedController, parent: IHydratedParentController): void | Promise<void>;
+  attaching(initiator: IHydratedController, parent: IHydratedParentController): void | Promise<void>;
+  attached(initiator: IHydratedController): void | Promise<void>;
 
-  detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-  unbinding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+  detaching(initiator: IHydratedController, parent: IHydratedParentController): void | Promise<void>;
+  unbinding(initiator: IHydratedController, parent: IHydratedParentController): void | Promise<void>;
 
   canLoad(
     params: Parameters,
@@ -142,8 +142,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public binding(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    parent: IHydratedParentController
   ): void | Promise<void> {
     // this.hia.binding.notify(`${this.viewport?.name}:${this.name}`);
     // this.hia.binding.notify(`${this.viewport?.name}.${this.name}`);
@@ -151,7 +150,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
       this,
       () => {
         // this.hia.binding.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$binding(initiator, parent, flags);
+        return this.$binding(initiator, parent);
       },
       this.hia.binding,
     );
@@ -160,14 +159,13 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public bound(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     // this.hia.bound.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.bound.invoke(
       this,
       () => {
         // this.hia.bound.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$bound(initiator, parent, flags);
+        return this.$bound(initiator, parent);
       },
       this.hia.bound,
     );
@@ -176,7 +174,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     // this.hia.attaching.notify(`${this.viewport?.name}:${this.name}`);
     // this.hia.attaching.notify(`${this.viewport?.name}.${this.name}`);
@@ -184,7 +181,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
       this,
       () => {
         // this.hia.attaching.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$attaching(initiator, parent, flags);
+        return this.$attaching(initiator, parent);
       },
       this.hia.attaching,
     );
@@ -192,14 +189,13 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public attached(
     initiator: IHydratedController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     // this.hia.attached.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.attached.invoke(
       this,
       () => {
         // this.hia.attached.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$attached(initiator, flags);
+        return this.$attached(initiator);
       },
       this.hia.attached,
     );
@@ -208,14 +204,13 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     // this.hia.detaching.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.detaching.invoke(
       this,
       () => {
         // this.hia.detaching.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$detaching(initiator, parent, flags);
+        return this.$detaching(initiator, parent);
       },
       this.hia.detaching,
     );
@@ -224,7 +219,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     // console.log(`unbinding ${this.name} ${this.$controller.host.outerHTML}`);
     // this.hia.unbinding.notify(`${this.viewport?.name}.${this.name}`);
@@ -232,7 +226,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
       this,
       () => {
         // this.hia.unbinding.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$unbinding(initiator, parent, flags);
+        return this.$unbinding(initiator, parent);
       },
       this.hia.unbinding,
     );
@@ -338,7 +332,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
@@ -346,7 +339,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $bound(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
@@ -354,14 +346,12 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $attaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $attached(
     _initiator: IHydratedController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
@@ -369,7 +359,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $detaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
@@ -377,7 +366,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $unbinding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }

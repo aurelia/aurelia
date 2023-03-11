@@ -2881,7 +2881,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
           this.navModel = routeCtx.navigationModel;
         }
 
-        public binding(_initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
+        public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
           if (hasAsyncRouteConfig) return this.navModel?.resolve();
         }
 

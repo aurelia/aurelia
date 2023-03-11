@@ -1,5 +1,5 @@
 import { Writable } from '@aurelia/kernel';
-import { LifecycleFlags, ICustomElementController, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
+import { ICustomElementController, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router-lite';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
@@ -140,13 +140,12 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public bound(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.specs.bound.invoke(
       this,
       () => {
         this.hia.bound.notify(this.name);
-        return this.$bound(initiator, parent, flags);
+        return this.$bound(initiator, parent);
       },
     );
   }
@@ -154,26 +153,24 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.specs.attaching.invoke(
       this,
       () => {
         this.hia.attaching.notify(this.name);
-        return this.$attaching(initiator, parent, flags);
+        return this.$attaching(initiator, parent);
       },
     );
   }
 
   public attached(
     initiator: IHydratedController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.specs.attached.invoke(
       this,
       () => {
         this.hia.attached.notify(this.name);
-        return this.$attached(initiator, flags);
+        return this.$attached(initiator);
       },
     );
   }
@@ -181,13 +178,12 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.specs.detaching.invoke(
       this,
       () => {
         this.hia.detaching.notify(this.name);
-        return this.$detaching(initiator, parent, flags);
+        return this.$detaching(initiator, parent);
       },
     );
   }
@@ -195,13 +191,12 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.specs.unbinding.invoke(
       this,
       () => {
         this.hia.unbinding.notify(this.name);
-        return this.$unbinding(initiator, parent, flags);
+        return this.$unbinding(initiator, parent);
       },
     );
   }

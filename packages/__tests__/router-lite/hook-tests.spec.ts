@@ -1,6 +1,5 @@
 import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
-  LifecycleFlags as LF,
   CustomElement,
   customElement,
   ICustomElementController,
@@ -152,24 +151,24 @@ abstract class TestVM implements IViewModel {
     this.disposeDI = specs.dispose.create(mgr, p);
   }
 
-  public binding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.bindingDI.invoke(this, () => { return this.$binding(i, p, f); }); }
-  public bound(i: HC, p: HPC, f: LF): void | Promise<void> { return this.boundDI.invoke(this, () => { return this.$bound(i, p, f); }); }
-  public attaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.attachingDI.invoke(this, () => { return this.$attaching(i, p, f); }); }
-  public attached(i: HC, f: LF): void | Promise<void> { return this.attachedDI.invoke(this, () => { return this.$attached(i, f); }); }
-  public detaching(i: HC, p: HPC, f: LF): void | Promise<void> { return this.detachingDI.invoke(this, () => { return this.$detaching(i, p, f); }); }
-  public unbinding(i: HC, p: HPC, f: LF): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p, f); }); }
+  public binding(i: HC, p: HPC): void | Promise<void> { return this.bindingDI.invoke(this, () => { return this.$binding(i, p); }); }
+  public bound(i: HC, p: HPC): void | Promise<void> { return this.boundDI.invoke(this, () => { return this.$bound(i, p); }); }
+  public attaching(i: HC, p: HPC): void | Promise<void> { return this.attachingDI.invoke(this, () => { return this.$attaching(i, p); }); }
+  public attached(i: HC): void | Promise<void> { return this.attachedDI.invoke(this, () => { return this.$attached(i); }); }
+  public detaching(i: HC, p: HPC): void | Promise<void> { return this.detachingDI.invoke(this, () => { return this.$detaching(i, p); }); }
+  public unbinding(i: HC, p: HPC): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p); }); }
   public canLoad(p: P, n: RN, c: RN | null): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return this.canLoadDI.invoke(this, () => { return this.$canLoad(p, n, c); }); }
   public loading(p: P, n: RN, c: RN | null): void | Promise<void> { return this.loadDI.invoke(this, () => { return this.$loading(p, n, c); }); }
   public canUnload(n: RN | null, c: RN): boolean | Promise<boolean> { return this.canUnloadDI.invoke(this, () => { return this.$canUnload(n, c); }); }
   public unloading(n: RN | null, c: RN): void | Promise<void> { return this.unloadDI.invoke(this, () => { return this.$unloading(n, c); }); }
   public dispose(): void { void this.disposeDI.invoke(this, () => { this.$dispose(); }); }
 
-  protected $binding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $bound(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $attaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $attached(_i: HC, _f: LF): void { /* do nothing */ }
-  protected $detaching(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
-  protected $unbinding(_i: HC, _p: HPC, _f: LF): void { /* do nothing */ }
+  protected $binding(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $bound(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $attaching(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $attached(_i: HC): void { /* do nothing */ }
+  protected $detaching(_i: HC, _p: HPC): void { /* do nothing */ }
+  protected $unbinding(_i: HC, _p: HPC): void { /* do nothing */ }
   protected $canLoad(_p: P, _n: RN, _c: RN | null): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return true; }
   protected $loading(_p: P, _n: RN, _c: RN | null): void | Promise<void> { /* do nothing */ }
   protected $canUnload(_n: RN | null, _c: RN): boolean | Promise<boolean> { return true; }

@@ -311,8 +311,8 @@ export class TranslationBinding implements IConnectableBinding {
     const template = this._prepareTemplate(content, marker, fallBackContents);
 
     // difficult to use the set property approach in this case, as most of the properties of Node is readonly
-    // const observer = this.oL.getAccessor(LifecycleFlags.none, this.target, '??');
-    // observer.setValue(??, flags);
+    // const observer = this.oL.getAccessor(this.target, '??');
+    // observer.setValue(??);
 
     this.target.innerHTML = '';
     for (const child of toArray(template.content.childNodes)) {

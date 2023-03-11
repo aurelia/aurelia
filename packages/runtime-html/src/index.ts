@@ -401,7 +401,6 @@ export {
   ViewModelKind,
   HooksDefinition,
   State,
-  LifecycleFlags,
   type ControllerVisitor,
   type IViewModel,
   IController,

@@ -437,7 +437,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
     // TODO: should existing value (either connected node, or a string)
     // be removed when this binding is unbound?
-    // this.updateTarget('', flags);
+    // this.updateTarget('');
     this._scope = void 0;
     this.obs.clearAll();
     this._task?.cancel();

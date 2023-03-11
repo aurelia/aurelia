@@ -54,15 +54,6 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
-export const enum LifecycleFlags {
-  none                          = 0b0_00_00,
-  // Bitmask for flags that need to be stored on a binding during bind for mutation
-  // callbacks outside of bind
-  fromBind                      = 0b0_00_01,
-  fromUnbind                    = 0b0_00_10,
-  dispose                       = 0b0_01_00,
-}
-
 export const enum MountTarget {
   none = 0,
   host = 1,
@@ -149,7 +140,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public get hooks(): HooksDefinition {
     return this._hooks;
   }
-  public flags: LifecycleFlags = LifecycleFlags.none;
 
   /** @internal */
   public _vm: BindingContext<C> | null;
@@ -366,7 +356,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const container = this.container;
-    const flags = this.flags;
     const instance = this._vm!;
     let definition = this.definition as CustomElementDefinition;
 
@@ -375,7 +364,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, container, definition, instance);
     }
-    createObservers(this, definition, flags, instance);
+    createObservers(this, definition, instance);
     this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
 
     if (this._hooks.hasDefine) {
@@ -497,7 +486,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this, definition, this.flags, instance);
+    createObservers(this, definition, instance);
 
     (instance as Writable<C>).$controller = this;
     this._lifecycleHooks = LifecycleHooks.resolve(this.container);
@@ -524,7 +513,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private $initiator: IHydratedController = null!;
-  // private $flags: LifecycleFlags = LifecycleFlags.none;
   public activate(
     initiator: IHydratedController,
     parent: IHydratedController | null,
@@ -1236,8 +1224,6 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 function createObservers(
   controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  // deepscan-disable-next-line
-  _flags: LifecycleFlags,
   instance: object,
 ): void {
   const bindables = definition.bindables;
@@ -1479,7 +1465,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
    */
   readonly name: string;
   readonly container: IContainer;
-  readonly flags: LifecycleFlags;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
   readonly host: HTMLElement | null;

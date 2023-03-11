@@ -429,7 +429,6 @@ export {
 } from '@aurelia/runtime';
 
 export {
-  LifecycleFlags,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,

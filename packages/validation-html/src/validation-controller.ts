@@ -15,7 +15,6 @@ import {
   // IsBindingBehavior
 } from '@aurelia/runtime';
 import {
-  LifecycleFlags,
   IPlatform,
   PropertyBinding,
 } from '@aurelia/runtime-html';
@@ -122,7 +121,7 @@ class PropertyInfo {
   ) { }
 }
 
-export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, _flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
+export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo): PropertyInfo | undefined {
   let propertyInfo = info.propertyInfo;
   if (propertyInfo !== void 0) {
     return propertyInfo;
@@ -369,7 +368,7 @@ export class ValidationController implements IValidationController {
   }
 
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
-    const { object: obj, objectTag, flags } = instruction ?? {};
+    const { object: obj, objectTag } = instruction ?? {};
     let instructions: ValidateInstruction[];
     if (obj !== void 0) {
       instructions = [new ValidateInstruction(
@@ -388,7 +387,7 @@ export class ValidationController implements IValidationController {
         ...(!objectTag ? Array.from(this.bindings.entries()) : [])
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {
-              const propertyInfo = getPropertyInfo(binding, info, flags);
+              const propertyInfo = getPropertyInfo(binding, info);
               if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
                 acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
               }

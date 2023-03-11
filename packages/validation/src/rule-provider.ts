@@ -14,7 +14,6 @@ import {
 } from '@aurelia/runtime';
 import {
   mixinAstEvaluator,
-  LifecycleFlags,
 } from '@aurelia/runtime-html';
 import {
   ValidationRuleAlias,
@@ -148,7 +147,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public async validate(
     object?: IValidateable,
     tag?: string,
-    _flags?: LifecycleFlags,
     scope?: Scope
   ): Promise<ValidationResult[]> {
     if (scope === void 0) {

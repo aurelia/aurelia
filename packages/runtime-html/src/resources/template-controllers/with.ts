@@ -3,7 +3,7 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, LifecycleFlags } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 export class With implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
@@ -24,7 +24,6 @@ export class With implements ICustomAttributeViewModel {
   public valueChanged(
     newValue: unknown,
     _oldValue: unknown,
-    _flags: LifecycleFlags,
   ): void {
     const $controller = this.$controller;
     const bindings = this.view.bindings;

@@ -9,9 +9,6 @@ import {
   ExpressionKind,
   IRateLimitOptions,
 } from '@aurelia/runtime';
-import {
-  LifecycleFlags,
-} from '@aurelia/runtime-html';
 
 import type {
   IContainer,
@@ -404,7 +401,6 @@ export class ChangeSet implements IDisposable {
 
 export class ProxyChangeSet implements IDisposable {
   public readonly index: number;
-  public readonly flags: LifecycleFlags;
   public readonly key: PropertyKey;
 
   public get newValue(): any {
@@ -419,13 +415,11 @@ export class ProxyChangeSet implements IDisposable {
 
   public constructor(
     index: number,
-    flags: LifecycleFlags,
     key: PropertyKey,
     newValue: any,
     oldValue: any,
   ) {
     this.index = index;
-    this.flags = flags;
     this.key = key;
 
     this._newValue = newValue;
@@ -467,12 +461,6 @@ export class SpySubscriber implements IDisposable {
       return [];
     }
     return this._changes;
-  }
-  public get proxyChanges(): ProxyChangeSet[] {
-    if (this._proxyChanges === void 0) {
-      return [];
-    }
-    return this._proxyChanges;
   }
   public get collectionChanges(): CollectionChangeSet[] {
     if (this._collectionChanges === void 0) {

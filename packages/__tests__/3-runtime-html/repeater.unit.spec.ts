@@ -515,10 +515,8 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
       it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { items: $items, flush, mutations } = bindSpec;
-        // const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         const items = $items.slice();
-        // const baseFlags: LifecycleFlags = LifecycleFlags.none;
 
         const host = PLATFORM.document.createElement('div');
         const loc = PLATFORM.document.createComment('au-end') as IRenderLocation;

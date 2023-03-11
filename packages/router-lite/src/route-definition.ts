@@ -106,6 +106,10 @@ export class RouteDefinitionConfiguration {
       ? fallback(viewportInstruction, routeNode, context)
       : fallback;
   }
+
+  public toString() {
+    return `RDC(id: ${this.id}, c: ${this.component?.Type.name}, path: ${this.path})`;
+  }
 }
 
 // 1. Create one route definition per class.
@@ -119,13 +123,13 @@ export class RouteDefinitionConfiguration {
 export class RouteDefinition {
   /**
    * These route configurations are defined for the current component.
-   * Depending on the routing context there can be multiple configurations for the same component.
+   * Depending on the parent route definition configuration there can be multiple configurations for the same component.
    * Example: the same component being used as child under multiple parent components,
    * or there are multiple configurations for the same component under same parent.
    *
    * @internal
    */
-  private readonly _configurations: WeakMap<IRouteContext, RouteDefinitionConfiguration[]> = new WeakMap<IRouteContext, RouteDefinitionConfiguration[]>();
+  private readonly _configurations: Map<RouteDefinitionConfiguration, RouteDefinitionConfiguration[]> = new Map<RouteDefinitionConfiguration, RouteDefinitionConfiguration[]>();
 
   /** @internal */
   public _directConfiguration: RouteDefinitionConfiguration | null = null;
@@ -137,7 +141,7 @@ export class RouteDefinition {
   ) { }
 
   /** @internal */
-  private _addConfiguration(context: IRouteContext | null, config: RouteConfig, overrideDirectConfig: boolean): RouteDefinitionConfiguration {
+  private _addConfiguration(parent: RouteDefinitionConfiguration | null, config: RouteConfig, overrideDirectConfig: boolean): RouteDefinitionConfiguration {
     let $config: RouteDefinitionConfiguration | undefined;
     if (config._definedByComponent) {
       if (this._directConfiguration !== null && !overrideDirectConfig) throw new Error('Unexpected state; the direct configuration is already present.');
@@ -157,14 +161,14 @@ export class RouteDefinition {
         (existing as Writable<RouteDefinitionConfiguration>).transitionPlan = $config.transitionPlan ?? existing.transitionPlan;
         (existing as Writable<RouteDefinitionConfiguration>).nav = $config.nav ?? existing.nav;
       }
-      if (context == null) return $config;
+      if (parent == null) return $config;
     }
 
-    if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+    if (parent == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
 
-    let configurations = this._configurations.get(context);
+    let configurations = this._configurations.get(parent);
     if (configurations === void 0) {
-      this._configurations.set(context, configurations = []);
+      this._configurations.set(parent, configurations = []);
     }
 
     configurations.push($config ??= RouteDefinitionConfiguration.create(config, this));
@@ -172,16 +176,10 @@ export class RouteDefinition {
   }
 
   /** @internal */
-  private _getConfigurations(context?: IRouteContext | null): RouteDefinitionConfiguration[] | null {
-    return context == null
+  private _getConfigurations(parent?: RouteDefinitionConfiguration | null): RouteDefinitionConfiguration[] | null {
+    return parent == null
       ? null
-      : (this._configurations.get(context) ?? null);
-  }
-
-  /** @internal */
-  private _hasConfigurations(context: IRouteContext): boolean {
-    const configurations = this._configurations.get(context);
-    return configurations != null && configurations.length > 0;
+      : (this._configurations.get(parent) ?? null);
   }
 
   /** @internal */
@@ -199,17 +197,17 @@ export class RouteDefinition {
   }
 
   // Note on component instance: it is non-null for the root, and when the component agent is created via the route context (if the child routes are not yet configured).
-  public static resolve(routeable: Promise<IModule>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: string | IChildRouteConfig, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration;
-  public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null): never;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
-  public static resolve(routeable: Routeable, parentDefinition: null, routeNode: null, context: IRouteContext | null): RouteDefinitionConfiguration[];
-  public static resolve(routeable: Routeable, parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null, context?: IRouteContext | null): RouteDefinitionConfiguration | RouteDefinitionConfiguration[] | Promise<RouteDefinitionConfiguration | RouteDefinitionConfiguration[]> {
+  public static resolve(routeable: string,          parent: RouteDefinitionConfiguration,         routeNode: RouteNode | null): never;
+  public static resolve(routeable: string,          parent: RouteDefinitionConfiguration,         routeNode: null,              context: IRouteContext): RouteDefinitionConfiguration;
+  public static resolve(routeable: IRouteViewModel, parent: RouteDefinitionConfiguration,         routeNode: RouteNode): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
+  public static resolve(routeable: Routeable,       parent: RouteDefinitionConfiguration,         routeNode: null,              context: IRouteContext): RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>;
+  public static resolve(routeable: Routeable,       parent: null,                                 routeNode: null,              context: IRouteContext): RouteDefinitionConfiguration[];
+  public static resolve(routeable: Routeable,       parent: RouteDefinitionConfiguration | null,  routeNode: null,              context: IRouteContext | null,  rdConfig: RouteDefinitionConfiguration | null): RouteDefinitionConfiguration;
+  public static resolve(routeable: Routeable,       parent: RouteDefinitionConfiguration | null,  routeNode: RouteNode | null,  context?: IRouteContext | null, rdConfig?: RouteDefinitionConfiguration | null): RouteDefinitionConfiguration | RouteDefinitionConfiguration[] | Promise<RouteDefinitionConfiguration | RouteDefinitionConfiguration[]> {
     if (isPartialRedirectRouteConfig(routeable)) {
-      if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
-      const routeDefinition = new RouteDefinition(null, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
-      return routeDefinition._addConfiguration(context, RouteConfig._create(routeable, null, false/* , parentConfig */), false);
+      if (parent == null) throw new Error('When adding route configuration to definition, a parent must be provided.');
+      const routeDefinition = new RouteDefinition(null, parent?.fallback ?? null, parent?.transitionPlan ?? null);
+      return routeDefinition._addConfiguration(parent, RouteConfig._create(routeable, null, false/* , parentConfig */), false);
     }
 
     const instruction = this._createNavigationInstruction(routeable);
@@ -247,13 +245,13 @@ export class RouteDefinition {
 
         // typical use case: root component without the @route deco.
         if (hasRouteConfigHook) return onResolve(
-          (routeable as IRouteViewModel).getRouteConfig!(parentDefinition, routeNode),
+          (routeable as IRouteViewModel).getRouteConfig!(parent, routeNode),
           (value) => {
-            if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
-            routeDefinition = new RouteDefinition($ceDef, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
+            if (parent == null) throw new Error('When adding route configuration to definition, a parent must be provided.');
+            routeDefinition = new RouteDefinition($ceDef, parent?.fallback ?? null, parent?.transitionPlan ?? null);
             $RouteDefinition.define(routeDefinition, $ceDef);
             return routeDefinition._addConfiguration(
-              context,
+              parent,
               RouteConfig._create(
                 value ?? emptyObject,
                 type,
@@ -264,16 +262,16 @@ export class RouteDefinition {
             );
           });
 
-        routeDefinition = new RouteDefinition($ceDef, parentDefinition?.fallback ?? null, parentDefinition?.transitionPlan ?? null);
+        routeDefinition = new RouteDefinition($ceDef, parent?.fallback ?? null, parent?.transitionPlan ?? null);
         $RouteDefinition.define(routeDefinition, $ceDef);
-        if (Route.isConfigured(type)) {
+        if (!isPartialChildRouteConfig(routeable) && Route.isConfigured(type)) {
           // this means that this component defines it's own child configuration using @route deco.
-          const directConfig = routeDefinition._addConfiguration(context ?? null, Route.getConfig(type), true);
-          if (context == null) return directConfig;
+          return /* const directConfig = */ routeDefinition._addConfiguration(null, Route.getConfig(type), true);
+          // if (parent == null) return directConfig;
         }
-        if (context == null) throw new Error('When adding route configuration to definition, a route context must be provided.');
+        if (parent == null) throw new Error('When adding route configuration to definition, a parent must be provided.');
          return routeDefinition._addConfiguration(
-          context,
+          parent,
           RouteConfig._create(
             // The component is configured as a child in a parent route configuration.
             isPartialChildRouteConfig(routeable)
@@ -284,20 +282,39 @@ export class RouteDefinition {
             /* , parentConfig */
           ),
           false);
-      } else if (!routeDefinition._hasChildRoutes() && hasRouteConfigHook) {
-        return onResolve((routeable as IRouteViewModel).getRouteConfig?.(parentDefinition, routeNode), value => {
-          if (value == null) {
-            const configurations = routeDefinition!._getConfigurations(context) ?? routeDefinition!._directConfiguration;
-            if (configurations !== null) return configurations;
-            throw new Error(`No route is configured for the component '${routeDefinition?.component?.name}' for the given context '${context?.friendlyPath}'`);
-          }
-          return routeDefinition!._addConfiguration(context ?? null, RouteConfig._create(value, type, true), true);
-        });
+      } else if (!routeDefinition._hasChildRoutes()) {
+        if(hasRouteConfigHook) {
+          return onResolve((routeable as IRouteViewModel).getRouteConfig?.(parent, routeNode), value => {
+            return value == null
+              ? getRouteDefinitionConfiguration(routeDefinition!)
+              : routeDefinition!._addConfiguration(parent, RouteConfig._create(value, type, true), true);
+          });
+        }
+        if (!isPartialChildRouteConfig(routeable) && Route.isConfigured(type)) {
+          // this means that this component defines it's own child configuration using @route deco.
+          return /* const directConfig = */ routeDefinition._addConfiguration(null, Route.getConfig(type), true);
+          // if (parent == null) return directConfig;
+        }
       }
-      const configurations = routeDefinition._getConfigurations(context) ?? routeDefinition._directConfiguration;
-      if (configurations !== null) return configurations;
-      throw new Error(`No route is configured for the component '${routeDefinition?.component?.name}' for the given context '${context?.friendlyPath}'`);
+      return getRouteDefinitionConfiguration(routeDefinition);
+      // let configurations: RouteDefinitionConfiguration | RouteDefinitionConfiguration [] | null = routeDefinition._getConfigurations(parent);
+      // if (configurations !== null) {
+      //   return rdConfig != null && configurations.includes(rdConfig) ? rdConfig : configurations;
+      // }
+      // configurations = routeDefinition._directConfiguration;
+      // if (configurations !== null) return configurations;
+      // throw new Error(`No route is configured for the component '${routeDefinition?.component?.name}' for the given context '${context?.friendlyPath}'`);
     });
+
+    function getRouteDefinitionConfiguration(routeDefinition: RouteDefinition): RouteDefinitionConfiguration | RouteDefinitionConfiguration [] {
+      let configurations: RouteDefinitionConfiguration | RouteDefinitionConfiguration [] | null = routeDefinition._getConfigurations(parent);
+      if (configurations !== null) return rdConfig != null && configurations.includes(rdConfig) ? rdConfig : configurations;
+
+      configurations = routeDefinition._directConfiguration;
+      if (configurations !== null) return configurations;
+
+      throw new Error(`No route is configured for the component '${routeDefinition?.component?.name}' for the given context '${context?.friendlyPath}'`);
+    }
   }
 
   /** @internal */

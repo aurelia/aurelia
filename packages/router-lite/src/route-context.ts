@@ -316,6 +316,7 @@ export class RouteContext {
         controller.container,
         null,
         null,
+        null,
       ),
       routeContext => {
         container.register(Registration.instance(IRouteContext, routeContext));

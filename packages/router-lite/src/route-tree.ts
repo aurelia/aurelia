@@ -511,7 +511,7 @@ function createConfiguredNode(
   return onResolve(route.handler, $handler => {
     route.handler = $handler;
 
-    log.trace(`creatingConfiguredNode(rd:%s, vi:%s)`, $handler, vi);
+    log.trace(`creatingConfiguredNode(rdc:%s, vi:%s)`, $handler, vi);
 
     if ($handler.redirectTo === null) {
       const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
@@ -524,7 +524,7 @@ function createConfiguredNode(
 
       const router = ctx.container.get(IRouter);
       return onResolve(
-        router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition, ctx),
+        router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition, ctx, $handler),
         childCtx => {
 
           log.trace('createConfiguredNode setting the context node');

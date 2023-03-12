@@ -64,7 +64,7 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('My basic test', function() {
     it('should pass test', async function() {
       const { appHost, startPromise, tearDown } = createFixture(
-        '<au-compose template="<div>hello world</div>The ">'
+        '<au-compose template="<div>hello world</div>">'
       );
 
       await startPromise;

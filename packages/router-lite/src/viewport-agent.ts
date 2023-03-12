@@ -114,7 +114,7 @@ export class ViewportAgent {
         return;
       case State.currIsActive:
         this.logger.trace(`deactivateFromViewport() - deactivating existing componentAgent at %s`, this);
-        return onResolve(this.curCA!.deactivate(initiator, parent), () => this.curCA!.dispose());
+        return this.curCA!.deactivate(initiator, parent);
       case State.currDeactivate:
         // This will happen with bottom-up deactivation because the child is already deactivated, the parent
         // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
@@ -444,7 +444,7 @@ export class ViewportAgent {
           case 'replace': {
             const controller = this.hostController;
             tr.run(() => {
-              return onResolve(this.curCA!.deactivate(initiator, controller), () => this.curCA!.dispose());
+              return this.curCA!.deactivate(initiator, controller);
             }, () => {
               b.pop();
             });

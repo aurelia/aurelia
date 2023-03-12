@@ -1,16 +1,16 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
-import { type CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
-import { RouteType } from './route';
+import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
-import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
+// import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
@@ -98,7 +98,7 @@ export class Transition {
   }
 }
 
-type RouteDefinitionLookup = WeakMap<RouteDefinitionConfiguration, IRouteContext>;
+type RouteDefinitionLookup = WeakMap<RouteConfig, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
 
 export interface IRouter extends Router { }
@@ -132,7 +132,7 @@ export class Router {
           finalPath: '',
           context: ctx,
           instruction: null,
-          component: ctx.definition.component!,
+          component: CustomElement.getDefinition(ctx.definition.component as RouteType),
           title: ctx.definition.title,
         }),
       );
@@ -352,19 +352,29 @@ export class Router {
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
     container: IContainer,
-    parentDefinition: RouteDefinitionConfiguration | null,
+    parentDefinition: RouteConfig | null,
     parentContext: IRouteContext | null,
-    $rdConfig: RouteDefinitionConfiguration | null,
+    $rdConfig: RouteConfig | null,
   ): IRouteContext | Promise<IRouteContext> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-    return onResolve(RouteDefinition.resolve(
-      typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-      parentDefinition,
-      null,
-      parentContext,
-      $rdConfig),
+    return onResolve(
+      $rdConfig instanceof RouteConfig
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentDefinition,
+          null,
+          parentContext
+        ),
+        // : RouteDefinition.resolve(
+        // typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+        // parentDefinition,
+        // null,
+        // parentContext,
+        // $rdConfig),
       rdConfig => {
         let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
         if (routeDefinitionLookup === void 0) {

@@ -1,7 +1,7 @@
 import { ILogger } from '@aurelia/kernel';
 import type { ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import type { RouteDefinitionConfiguration } from './route-definition';
+// import type { RouteDefinitionConfiguration } from './route-definition';
 import type { RouteNode } from './route-tree';
 import { IRouteContext } from './route-context';
 import {
@@ -15,7 +15,7 @@ import { IRouteConfig } from './route';
 import type { RouterOptions } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
-  getRouteConfig?(parentDefinition: RouteDefinitionConfiguration | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
+  getRouteConfig?(parentDefinition: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
   canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;

@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, RouteDefinition, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -2793,7 +2793,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     it('respects custom buildTitle', async function () {
       const { host, au, container } = await start((tr) => {
         const root = tr.routeTree.root;
-        return `${root.context.definition.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
+        return `${root.context.definition.title} - ${root.children.map(c => c.title).join(' - ')}`;
       });
       assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
@@ -3017,7 +3017,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
       class P1 implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
               { path: ['', 'c11'], component: C11, title: 'C11' },
@@ -3029,7 +3029,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
       class P2 implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
               { path: 'c21', component: C21, title: 'C21' },
@@ -3043,7 +3043,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root implements IRouteViewModel {
-        public async getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): Promise<IRouteConfig> {
+        public async getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): Promise<IRouteConfig> {
           await new Promise((resolve) => setTimeout(resolve, 10));
           return {
             routes: [
@@ -3131,7 +3131,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
       class P1 implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
               { path: ['', 'c11'], component: Promise.resolve({ C11 }), title: 'C11' },
@@ -3143,7 +3143,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
       class P2 implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
               { path: 'c21', component: Promise.resolve({ 'default': C21 }), title: 'C21' },
@@ -3158,7 +3158,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root implements IRouteViewModel {
-        public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+        public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
             routes: [
               { path: ['', 'p1'], component: Promise.resolve({ P1, 'default': { foo: 'bar' }, 'fizz': 'buzz' }).then(x => x.P1), title: 'P1' },
@@ -3651,7 +3651,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       it(`async configuration - invalid module - ${name}`, async function () {
         @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
         class Root implements IRouteViewModel {
-          public getRouteConfig(_parentDefinition: RouteDefinition, _routeNode: RouteNode): IRouteConfig {
+          public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
             return {
               routes: [
                 { path: '', component, title: 'P1' },

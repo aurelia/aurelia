@@ -11,7 +11,8 @@ import {
   RecognizedRoute,
   RESIDUE,
 } from '@aurelia/route-recognizer';
-import type {
+import {
+  CustomElement,
   CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
@@ -28,9 +29,9 @@ import {
   $RecognizedRoute,
   type IRouteContext,
 } from './route-context';
-import {
-  RouteDefinition, RouteDefinitionConfiguration,
-} from './route-definition';
+// import {
+//   RouteDefinition, RouteDefinitionConfiguration,
+// } from './route-definition';
 import {
   ExpressionKind,
   RouteExpression,
@@ -49,6 +50,7 @@ import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
+import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 
 export interface IRouteNode {
   path: string;
@@ -273,7 +275,7 @@ export class RouteNode implements IRouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = this.context?.definition.component?.name ?? '';
+    const component = (this.context?.definition.component as RouteType)?.name ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }
@@ -442,7 +444,7 @@ export function createAndAppendNodes(
             // fallback: id -> route -> CEDefn (Route definition)
             // look for a route first
             log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-            const rd = (ctx.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === fallback);
+            const rd = (ctx.childRoutes as RouteConfig[]).find(x => x.id === fallback);
             if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
 
             log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
@@ -451,7 +453,11 @@ export function createAndAppendNodes(
 
             // fallback is not recognized as a configured route; treat as CE and look for a route definition.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-            return appendNode(log, node, createFallbackNode(log, RouteDefinition.resolve(fallback, ctx.definition, null, ctx), node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
+            return appendNode(log, node, createFallbackNode(log,
+              // RouteDefinition.resolve(fallback, ctx.definition, null, ctx),
+              resolveRouteConfiguration(fallback, false, ctx.definition, null, ctx) as RouteConfig, // TODO: fix the typing by adding overloads.
+              node,
+              vi as ViewportInstruction<ITypedNavigationInstruction_string>));
           }
 
           // readjust the children wrt. the residue
@@ -476,7 +482,8 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       return onResolve(
-        RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
+        // RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
+        resolveRouteConfiguration(vi.component.value, false, rc.definition, null, rc),
         rd => {
           const { vi: newVi, query } = rc.generateViewportInstruction({
             component: rd,
@@ -504,7 +511,7 @@ function createConfiguredNode(
   vi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
   rr: $RecognizedRoute,
   originalVi: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
-  route: ConfigurableRoute<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>> = rr.route.endpoint.route,
+  route: ConfigurableRoute<RouteConfig | Promise<RouteConfig>> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
   const rt = node.tree;
@@ -515,7 +522,7 @@ function createConfiguredNode(
 
     if ($handler.redirectTo === null) {
       const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
-      const ced = $handler.component!;
+      const ced = CustomElement.getDefinition($handler.component as RouteType);
 
       const vpa = ctx.resolveViewportAgent(new ViewportRequest(
         vpName,
@@ -671,7 +678,7 @@ function appendNode(
  */
 function createFallbackNode(
   log: ILogger,
-  rd: RouteDefinitionConfiguration,
+  rd: RouteConfig,
   node: RouteNode,
   vi: ViewportInstruction<ITypedNavigationInstruction_string>,
 ): RouteNode | Promise<RouteNode> {

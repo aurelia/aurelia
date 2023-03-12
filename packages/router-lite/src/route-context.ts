@@ -30,6 +30,7 @@ import {
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
 import {
+  ITypedNavigationInstruction_Component,
   ITypedNavigationInstruction_string,
   IViewportInstruction,
   NavigationInstruction,
@@ -42,8 +43,8 @@ import {
   NavigationOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
-import { IChildRouteConfig, noRoutes, Routeable, RouteType } from './route';
-import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
+import { IChildRouteConfig, noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, Routeable, RouteConfig, RouteType } from './route';
+// import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
 import type { RouteNode } from './route-tree';
 import {
   emptyQuery,
@@ -60,7 +61,7 @@ export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 
 export type EagerInstruction = {
-  component: string | RouteDefinition | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
+  component: string | RouteConfig | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
   params: Params;
 };
 
@@ -111,7 +112,7 @@ export class RouteContext {
   /**
    * The (fully resolved) configured child routes of this context's `RouteDefinition`
    */
-  public readonly childRoutes: (RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>)[] = [];
+  public readonly childRoutes: (RouteConfig | Promise<RouteConfig>)[] = [];
 
   /** @internal */
   private _resolved: Promise<void> | null = null;
@@ -162,7 +163,7 @@ export class RouteContext {
   private readonly logger: ILogger;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
   /** @internal */
-  public readonly _recognizer: RouteRecognizer<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>>;
+  public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   private _childRoutesConfigured: boolean = false;
 
   private readonly _navigationModel: NavigationModel | null;
@@ -174,7 +175,7 @@ export class RouteContext {
     viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
-    public readonly definition: RouteDefinitionConfiguration,
+    public readonly definition: RouteConfig,
     public readonly parentContainer: IContainer,
     private readonly _router: IRouter,
   ) {
@@ -224,13 +225,13 @@ export class RouteContext {
     this.processDefinition(definition);
   }
 
-  private processDefinition(routeDefinitionConfiguration: RouteDefinitionConfiguration): void {
+  private processDefinition(routeDefinitionConfiguration: RouteConfig): void {
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
     const childrenRoutes = routeDefinitionConfiguration.routes ?? noRoutes;
     const len = childrenRoutes.length;
     if (len === 0) {
-      const getRouteConfig = (routeDefinitionConfiguration.component?.Type.prototype as IRouteViewModel)?.getRouteConfig;
+      const getRouteConfig = ((routeDefinitionConfiguration.component as RouteType).prototype as IRouteViewModel)?.getRouteConfig;
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
       return;
     }
@@ -244,22 +245,27 @@ export class RouteContext {
         promises.push(p);
         allPromises.push(p);
       } else {
-        const rdResolution = RouteDefinition.resolve(childRoute, routeDefinitionConfiguration, null, this);
+        // const rdResolution = RouteDefinition.resolve(childRoute, routeDefinitionConfiguration, null, this);
+        const rdResolution = resolveRouteConfiguration(childRoute, true, routeDefinitionConfiguration, null, this);
         if (rdResolution instanceof Promise) {
           if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
           for (const path of ensureArrayOfStrings(childRoute.path)) {
             this.$addRoute(path, childRoute.caseSensitive ?? false, rdResolution);
           }
-          const idx = this.childRoutes.length;
+          const idx1 = this.childRoutes.length;
+          const idx2 = routeDefinitionConfiguration._children.length;
           const p = rdResolution.then((rdConfig) => {
-            return this.childRoutes[idx] = rdConfig;
+            routeDefinitionConfiguration._children[idx2] = rdConfig;
+            return this.childRoutes[idx1] = rdConfig;
           });
           this.childRoutes.push(p);
+          routeDefinitionConfiguration._children.push(null!);
           if (hasNavModel) {
             navModel.addRoute(p);
           }
           allPromises.push(p.then(noop));
         } else {
+          routeDefinitionConfiguration._children.push(rdResolution);
           for (const path of rdResolution.path ?? emptyArray) {
             this.$addRoute(path, rdResolution.caseSensitive, rdResolution);
           }
@@ -411,7 +417,8 @@ export class RouteContext {
     const task: Promise<void> | void = this._childRoutesConfigured
       ? void 0
       : onResolve(
-        RouteDefinition.resolve(componentInstance, parentDefinition, routeNode),
+        // RouteDefinition.resolve(componentInstance, parentDefinition, routeNode),
+        resolveRouteConfiguration(componentInstance, false, parentDefinition, routeNode, null),
         routeDef => this.processDefinition(routeDef)
       );
     return onResolve(task, () => {
@@ -451,7 +458,7 @@ export class RouteContext {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteContext = this;
     let _continue = true;
-    let result: RecognizedRoute<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>> | null = null;
+    let result: RecognizedRoute<RouteConfig | Promise<RouteConfig>> | null = null;
     while (_continue) {
       result = _current._recognizer.recognize(path);
       if (result === null) {
@@ -474,16 +481,19 @@ export class RouteContext {
   private addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   private addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
-    return onResolve(RouteDefinition.resolve(routeable, this.definition, null, this), rdConfig => {
-      for (const path of rdConfig.path ?? emptyArray) {
-        this.$addRoute(path, rdConfig.caseSensitive, rdConfig);
-      }
-      this._navigationModel?.addRoute(rdConfig);
-      this.childRoutes.push(rdConfig);
-    });
+    return onResolve(
+      // RouteDefinition.resolve(routeable, this.definition, null, this),
+      resolveRouteConfiguration(routeable, true, this.definition, null, this),
+      rdConfig => {
+        for (const path of rdConfig.path ?? emptyArray) {
+          this.$addRoute(path, rdConfig.caseSensitive, rdConfig);
+        }
+        this._navigationModel?.addRoute(rdConfig);
+        this.childRoutes.push(rdConfig);
+      });
   }
 
-  private $addRoute(path: string, caseSensitive: boolean, handler: RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>): void {
+  private $addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
     this._recognizer.add({
       path,
       caseSensitive,
@@ -527,7 +537,7 @@ export class RouteContext {
   }
 
   /** @internal */
-  public generateViewportInstruction(instruction: { component: RouteDefinition; params: Params }): PathGenerationResult;
+  public generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
   public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
   public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
   public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
@@ -535,20 +545,27 @@ export class RouteContext {
     const component = instruction.component;
     let paths: string[] | undefined;
     let throwError: boolean = false;
-    if (component instanceof RouteDefinitionConfiguration) {
+    if (component instanceof RouteConfig) {
       paths = component.path;
       throwError = true;
     } else if (typeof component === 'string') {
-      const $rdConfig = (this.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === component);
+      const $rdConfig = (this.childRoutes as RouteConfig[]).find(x => x.id === component);
       if ($rdConfig === void 0) return null;
       paths = $rdConfig.path;
     } else if ((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
-      const $rdConfig = (this.childRoutes as RouteDefinitionConfiguration[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
+      const $rdConfig = (this.childRoutes as RouteConfig[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
       if ($rdConfig === void 0) return null;
       paths = $rdConfig.path;
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
-      paths = RouteDefinition.resolve(component, null, null, this).flatMap(rdc => rdc.path);
+      // paths = RouteDefinition.resolve(component, null, null, this).flatMap(rdc => rdc.path);
+      const ced = (resolveCustomElementDefinition(component, this) as [ITypedNavigationInstruction_Component, CustomElementDefinition])[1];
+      paths = this.definition._children.reduce((acc, x) => {
+        if (x.component === ced.Type) {
+          acc.push(...x.path);
+        }
+        return acc;
+      }, [] as string[]);
     }
     if (paths === void 0) return null;
 
@@ -610,7 +627,7 @@ export class RouteContext {
 
     type EagerResolutionResult = {
       path: string;
-      endpoint: Endpoint<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>>;
+      endpoint: Endpoint<RouteConfig | Promise<RouteConfig>>;
       consumed: Params;
       query: Params;
     };
@@ -679,7 +696,7 @@ function isCustomElementDefinition(value: ResourceDefinition): value is CustomEl
 
 export class $RecognizedRoute {
   public constructor(
-    public readonly route: RecognizedRoute<RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>>,
+    public readonly route: RecognizedRoute<RouteConfig | Promise<RouteConfig>>,
     public readonly residue: string | null,
   ) { }
 
@@ -722,7 +739,7 @@ class NavigationModel implements INavigationModel {
   }
 
   /** @internal */
-  public addRoute(route: RouteDefinitionConfiguration | Promise<RouteDefinitionConfiguration>): void {
+  public addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
       if (route.nav ?? false) {
@@ -749,7 +766,7 @@ class NavigationModel implements INavigationModel {
 }
 
 export interface INavigationRoute {
-  readonly id: string;
+  readonly id: string | null;
   readonly path: string[];
   readonly title: string | ((node: RouteNode) => string | null) | null;
   readonly data: Record<string, unknown>;
@@ -760,7 +777,7 @@ class NavigationRoute implements INavigationRoute {
   private _isActive!: boolean;
   private _trees: ViewportInstructionTree[] | null = null;
   private constructor(
-    public readonly id: string,
+    public readonly id: string | null,
     public readonly path: string[],
     public readonly redirectTo: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
@@ -768,10 +785,10 @@ class NavigationRoute implements INavigationRoute {
   ) { }
 
   /** @internal */
-  public static create(rdConfig: RouteDefinitionConfiguration) {
+  public static create(rdConfig: RouteConfig) {
     return new NavigationRoute(
       rdConfig.id,
-      rdConfig.path,
+      ensureArrayOfStrings(rdConfig.path ?? emptyArray),
       rdConfig.redirectTo,
       rdConfig.title,
       rdConfig.data,

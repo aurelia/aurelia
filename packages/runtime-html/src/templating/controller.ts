@@ -908,7 +908,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    this.state |= State.deactivated;
+    this.state = State.deactivated;
     this.$initiator = null!;
     this._resolve();
   }

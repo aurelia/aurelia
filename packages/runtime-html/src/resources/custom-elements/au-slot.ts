@@ -7,7 +7,7 @@ import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 
 import { IContainer, InstanceProvider, Writable } from '@aurelia/kernel';
-import type { LifecycleFlags, ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
 import { registerResolver } from '../../utilities-di';
@@ -61,7 +61,6 @@ export class AuSlot implements ICustomElementViewModel {
   public binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this._parentScope = this.$controller.scope.parent!;
     let outerScope: Scope;
@@ -79,23 +78,20 @@ export class AuSlot implements ICustomElementViewModel {
 
   public attaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
     return this.view.activate(
       initiator,
       this.$controller,
-      flags,
       this._hasProjection ? this._outerScope! : this._parentScope!,
     );
   }
 
   public detaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.deactivate(initiator, this.$controller, flags);
+    return this.view.deactivate(initiator, this.$controller);
   }
 
   public exposeChanged(v: object): void {

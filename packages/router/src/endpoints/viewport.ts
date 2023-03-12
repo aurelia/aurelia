@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { LifecycleFlags, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
+import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces';
 import { IRouter } from '../router';
 import { arrayRemove } from '../utilities/utils';
@@ -677,7 +677,7 @@ export class Viewport extends Endpoint {
    * @param coordinator - The navigation coordinator
    */
   public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
-    return this.activate(step, null, this.connectedController, LifecycleFlags.none, coordinator);
+    return this.activate(step, null, this.connectedController, coordinator);
   }
 
   /**
@@ -701,7 +701,6 @@ export class Viewport extends Endpoint {
         innerStep,
         null,
         this.connectedController,
-        manualDispose ? LifecycleFlags.none : LifecycleFlags.dispose
       ),
       () => manualDispose ? this.dispose() : void 0,
     ) as Step<void>;
@@ -718,7 +717,7 @@ export class Viewport extends Endpoint {
    * @param flags - The lifecycle flags for `activate`
    * @param coordinator - The navigation coordinator
    */
-  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, coordinator: NavigationCoordinator | undefined): void | Step<void> {
+  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, coordinator: NavigationCoordinator | undefined): void | Step<void> {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
       return Runner.run(step,
         () => (this.activeContent as ViewportContent).canLoad(), // Only acts if not already checked
@@ -727,7 +726,6 @@ export class Viewport extends Endpoint {
           innerStep,
           initiator,
           parent as ICustomElementController,
-          flags,
           this.connectedCE!,
           // TODO: This also needs to be added when coordinator isn't active (and
           // this method isn't called)
@@ -746,7 +744,7 @@ export class Viewport extends Endpoint {
    * @param parent - The parent controller
    * @param flags - The lifecycle flags for `deactivate`
    */
-  public deactivate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public deactivate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null): void | Promise<void> {
     const content = this.getContent();
     if (content?.componentInstance != null &&
       !content.reload &&
@@ -756,7 +754,6 @@ export class Viewport extends Endpoint {
         step,
         initiator,
         parent as ICustomElementController,
-        flags,
         this.connectedCE!,
         this.router.statefulHistory || this.options.stateful
       ) as Promise<void>;

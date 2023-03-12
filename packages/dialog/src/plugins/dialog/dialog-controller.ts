@@ -1,5 +1,5 @@
 import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
-import { LifecycleFlags, Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
+import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   DialogDeactivationStatuses,
   IDialogController,
@@ -125,7 +125,7 @@ export class DialogController implements IDialogController {
               this.getDefinition(cmp) ?? { name: CustomElement.generateName(), template }
             )
           ) as ICustomElementController;
-          return onResolve(ctrlr.activate(ctrlr, null, LifecycleFlags.fromBind), () => {
+          return onResolve(ctrlr.activate(ctrlr, null), () => {
             dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
             return DialogOpenResult.create(false, this);
           });
@@ -160,7 +160,7 @@ export class DialogController implements IDialogController {
             return DialogCloseResult.create(DialogDeactivationStatuses.Abort as T);
           }
           return onResolve(cmp.deactivate?.(dialogResult),
-            () => onResolve(controller.deactivate(controller, null, LifecycleFlags.fromUnbind),
+            () => onResolve(controller.deactivate(controller, null),
               () => {
                 dom.dispose();
                 dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
@@ -215,7 +215,7 @@ export class DialogController implements IDialogController {
     return new Promise(r => r(onResolve(
       this.cmp.deactivate?.(DialogCloseResult.create(DialogDeactivationStatuses.Error, closeError)),
       () => onResolve(
-        this.controller.deactivate(this.controller, null, LifecycleFlags.fromUnbind),
+        this.controller.deactivate(this.controller, null),
         () => {
           this.dom.dispose();
           this._reject(closeError);

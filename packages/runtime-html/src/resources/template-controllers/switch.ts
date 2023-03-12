@@ -18,7 +18,7 @@ import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
 import { createError, isArray } from '../../utilities';
 
-import type { LifecycleFlags, Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
+import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
 import type { IInstruction } from '../../renderer';
 
@@ -54,19 +54,19 @@ export class Switch implements ICustomAttributeViewModel {
     this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
-  public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
     const view = this.view;
     const $controller = this.$controller;
 
-    this.queue(() => view.activate(initiator, $controller, flags, $controller.scope));
+    this.queue(() => view.activate(initiator, $controller, $controller.scope));
     this.queue(() => this.swap(initiator, this.value));
     return this.promise;
   }
 
-  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
     this.queue(() => {
       const view = this.view;
-      return view.deactivate(initiator, this.$controller, flags);
+      return view.deactivate(initiator, this.$controller);
     });
     return this.promise;
   }
@@ -176,10 +176,10 @@ export class Switch implements ICustomAttributeViewModel {
 
     // most common case
     if (length === 1) {
-      return cases[0].activate(initiator, 0, scope);
+      return cases[0].activate(initiator, scope);
     }
 
-    return resolveAll(...cases.map(($case) => $case.activate(initiator, 0, scope)));
+    return resolveAll(...cases.map(($case) => $case.activate(initiator, scope)));
   }
 
   /** @internal */
@@ -193,7 +193,7 @@ export class Switch implements ICustomAttributeViewModel {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
         cases.length = 0;
-        return firstCase.deactivate(initiator, 0);
+        return firstCase.deactivate(initiator);
       }
       return;
     }
@@ -201,7 +201,7 @@ export class Switch implements ICustomAttributeViewModel {
     return onResolve(
       resolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
         if (!newActiveCases.includes($case)) {
-          acc.push($case.deactivate(initiator, 0));
+          acc.push($case.deactivate(initiator));
         }
         return acc;
       }, [])),
@@ -291,8 +291,8 @@ export class Case implements ICustomAttributeViewModel {
     }
   }
 
-  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    return this.deactivate(initiator, flags);
+  public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
+    return this.deactivate(initiator);
   }
 
   public isMatch(value: unknown): boolean {
@@ -321,19 +321,19 @@ export class Case implements ICustomAttributeViewModel {
     this.$switch.caseChanged(this);
   }
 
-  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if(view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
-    return view.activate(initiator ?? view, this.$controller, flags, scope);
+    return view.activate(initiator ?? view, this.$controller, scope);
   }
 
-  public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null): void | Promise<void> {
     const view = this.view;
     if (view === void 0 || !view.isActive) { return; }
-    return view.deactivate(initiator ?? view, this.$controller, flags);
+    return view.deactivate(initiator ?? view, this.$controller);
   }
 
   public dispose(): void {

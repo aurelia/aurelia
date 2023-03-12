@@ -1,7 +1,7 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
 import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
-import { LifecycleFlags, type IHydratedController, type ICustomElementController, Controller } from '@aurelia/runtime-html';
+import { type IHydratedController, type ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import type { IViewport } from './resources/viewport';
 import type { ComponentAgent } from './component-agent';
@@ -72,7 +72,7 @@ export class ViewportAgent {
     return viewportAgent;
   }
 
-  public activateFromViewport(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public activateFromViewport(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
     const tr = this.currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = true;
@@ -85,7 +85,7 @@ export class ViewportAgent {
             return;
           case State.currIsActive:
             this.logger.trace(`activateFromViewport() - activating existing componentAgent at %s`, this);
-            return this.curCA!.activate(initiator, parent, flags);
+            return this.curCA!.activate(initiator, parent);
           default:
             this.unexpectedState('activateFromViewport 1');
         }
@@ -103,7 +103,7 @@ export class ViewportAgent {
     }
   }
 
-  public deactivateFromViewport(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public deactivateFromViewport(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
     const tr = this.currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = false;
@@ -114,7 +114,7 @@ export class ViewportAgent {
         return;
       case State.currIsActive:
         this.logger.trace(`deactivateFromViewport() - deactivating existing componentAgent at %s`, this);
-        return this.curCA!.deactivate(initiator, parent, flags);
+        return this.curCA!.deactivate(initiator, parent);
       case State.currDeactivate:
         // This will happen with bottom-up deactivation because the child is already deactivated, the parent
         // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
@@ -444,7 +444,7 @@ export class ViewportAgent {
           case 'replace': {
             const controller = this.hostController;
             tr.run(() => {
-              return this.curCA!.deactivate(initiator, controller, LifecycleFlags.dispose);
+              return this.curCA!.deactivate(initiator, controller);
             }, () => {
               b.pop();
             });
@@ -497,10 +497,9 @@ export class ViewportAgent {
               return;
             case 'replace': {
               const controller = this.hostController;
-              const activateFlags = LifecycleFlags.none;
               tr.run(() => {
                 b1.push();
-                return this.nextCA!.activate(initiator, controller, activateFlags);
+                return this.nextCA!.activate(initiator, controller);
               }, () => {
                 b1.pop();
               });
@@ -565,14 +564,14 @@ export class ViewportAgent {
         Batch.start(b1 => {
           tr.run(() => {
             b1.push();
-            return curCA.deactivate(null, controller, LifecycleFlags.dispose);
+            return onResolve(curCA.deactivate(null, controller), () => curCA.dispose());
           }, () => {
             b1.pop();
           });
         }).continueWith(b1 => {
           tr.run(() => {
             b1.push();
-            return nextCA.activate(null, controller, LifecycleFlags.none);
+            return nextCA.activate(null, controller);
           }, () => {
             b1.pop();
           });
@@ -720,7 +719,7 @@ export class ViewportAgent {
         break;
       case State.nextLoad:
       case State.nextActivate: {
-        this._cancellationPromise = onResolve(this.nextCA?.deactivate(null, this.hostController, LifecycleFlags.none), () => {
+        this._cancellationPromise = onResolve(this.nextCA?.deactivate(null, this.hostController), () => {
           this.nextCA?.dispose();
           this.$plan = 'replace';
           this.nextState = State.nextIsEmpty;

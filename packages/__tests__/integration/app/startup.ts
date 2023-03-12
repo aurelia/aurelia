@@ -1,4 +1,4 @@
-import { LifecycleFlags, Aurelia, CustomElement, CustomElementType } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, CustomElementType } from '@aurelia/runtime-html';
 import { CallCollection, TestContext } from '@aurelia/testing';
 import { App } from './app.js';
 import { appTemplate as template } from './app-template.js';
@@ -63,7 +63,7 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
     await au.start();
   } else {
     const controller = (await au.enhance({ host, component }));
-    $deactivate = () => controller.deactivate(controller, null, LifecycleFlags.none);
+    $deactivate = () => controller.deactivate(controller, null);
   }
 
   async function tearDown() {

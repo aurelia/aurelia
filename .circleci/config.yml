@@ -894,12 +894,14 @@ workflows:
           requires:
             - build_release
 
-      - e2e_safari:
-          <<: *filter_ignore_develop_release
-          name: safari16_select
-          path: "packages/__e2e__/select-safari16"
-          requires:
-            - check_doc_abort
+      # no longer necessary since the changes related to fragment adoption has been reverted
+      # though keeping it around for a bit longer in case there's a need again
+      # - e2e_safari:
+      #     <<: *filter_ignore_develop_release
+      #     name: safari16_select
+      #     path: "packages/__e2e__/select-safari16"
+      #     requires:
+      #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack

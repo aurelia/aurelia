@@ -5,7 +5,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
 
-import type { LifecycleFlags, ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
 import { createError } from '../../utilities';
@@ -42,7 +42,7 @@ export class If implements ICustomAttributeViewModel {
     this._location = location;
   }
 
-  public attaching(initiator: IHydratedController, parent: IHydratedController, f: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     let view: ISyntheticView | undefined;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -77,7 +77,7 @@ export class If implements ICustomAttributeViewModel {
 
       // Promise return values from user VM hooks are awaited by the initiator
       this.pending = onResolve(
-        view.activate(initiator, ctrl, f, ctrl.scope),
+        view.activate(initiator, ctrl, ctrl.scope),
         () => {
           if (isCurrent()) {
             this.pending = void 0;
@@ -88,17 +88,17 @@ export class If implements ICustomAttributeViewModel {
     });
   }
 
-  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
     this._wantsDeactivate = true;
     return onResolve(this.pending, () => {
       this._wantsDeactivate = false;
       this.pending = void 0;
       // Promise return values from user VM hooks are awaited by the initiator
-      void this.view?.deactivate(initiator, this.$controller, flags);
+      void this.view?.deactivate(initiator, this.$controller);
     });
   }
 
-  public valueChanged(newValue: unknown, oldValue: unknown, f: LifecycleFlags): void | Promise<void> {
+  public valueChanged(newValue: unknown, oldValue: unknown): void | Promise<void> {
     if (!this.$controller.isActive) {
       return;
     }
@@ -124,7 +124,7 @@ export class If implements ICustomAttributeViewModel {
     let view: ISyntheticView | undefined;
     return onResolve(this.pending,
       () => this.pending = onResolve(
-        currView?.deactivate(currView, ctrl, f),
+        currView?.deactivate(currView, ctrl),
         () => {
           if (!isCurrent()) {
             return;
@@ -149,7 +149,7 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always the if
           view.setLocation(this._location);
           return onResolve(
-            view.activate(view, ctrl, f, ctrl.scope),
+            view.activate(view, ctrl, ctrl.scope),
             () => {
               if (isCurrent()) {
                 this.pending = void 0;

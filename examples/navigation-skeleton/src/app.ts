@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unassigned-import */
 import { IRouter, HookTypes } from '@aurelia/router';
-import { customElement, IObserverLocator, LifecycleFlags } from '@aurelia/runtime-html';
+import { customElement, IObserverLocator } from '@aurelia/runtime-html';
 import html from './app.html';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -45,7 +45,7 @@ export class App {
 
   public binding(): void {
     const observerLocator = this.router.container.get(IObserverLocator);
-    const observer = observerLocator.getArrayObserver(LifecycleFlags.none, this.windows) as any;
+    const observer = observerLocator.getArrayObserver(this.windows) as any;
     observer.subscribeToCollection(this);
   }
 

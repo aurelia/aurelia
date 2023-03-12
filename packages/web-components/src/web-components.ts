@@ -8,7 +8,6 @@ import {
   INode,
   IPlatform,
   IRendering,
-  LifecycleFlags,
   type PartialCustomElementDefinition,
   setRef
 } from '@aurelia/runtime-html';
@@ -125,12 +124,12 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
       public connectedCallback() {
         this.auInit();
         // eslint-disable-next-line
-        this.auCtrl.activate(this.auCtrl, null, LifecycleFlags.none);
+        this.auCtrl.activate(this.auCtrl, null);
       }
 
       public disconnectedCallback() {
         // eslint-disable-next-line
-        this.auCtrl.deactivate(this.auCtrl, null, LifecycleFlags.none);
+        this.auCtrl.deactivate(this.auCtrl, null);
       }
 
       public adoptedCallback() {

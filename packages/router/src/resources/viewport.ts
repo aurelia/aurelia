@@ -1,6 +1,5 @@
 import { IContainer, IEventAggregator } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
   bindable,
   INode,
   customElement,
@@ -148,7 +147,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     ) as void | Promise<void>;
   }
 
-  public binding(initiator: IHydratedController, _parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public binding(initiator: IHydratedController, _parent: IHydratedParentController | null): void | Promise<void> {
     this.isBound = true;
     return Runner.run(null,
       // The first viewport(s) might be bound before the router is started
@@ -170,22 +169,22 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       },
       () => {
         if (this.endpoint !== null && this.endpoint.getNextContent() === null) {
-          return (this.endpoint.activate(null, initiator, this.controller, flags, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
+          return (this.endpoint.activate(null, initiator, this.controller, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
           // TODO: Restore scroll state (in attaching/attached)
         }
       },
     ) as void | Promise<void>;
   }
 
-  public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null): void | Promise<void> {
     if (this.endpoint !== null) {
       // TODO: Save scroll state before detach
       this.isBound = false;
-      return this.endpoint.deactivate(null, initiator, parent, flags);
+      return this.endpoint.deactivate(null, initiator, parent);
     }
   }
 
-  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null): void | Promise<void> {
     if (this.endpoint !== null) {
       // TODO: Don't unload when stateful, instead save to cache. Something like
       // this.viewport.cacheContent();

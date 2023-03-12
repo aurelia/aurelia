@@ -588,28 +588,6 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
     });
   });
 
-  // TODO: fix throttle
-  // it(`throttleBindingBehavior - input.value`, done => {
-  //   const { au, lifecycle, host, component } = createFixture(`<template><input value.to-view="message & throttle:50"></template>`);
-  //   au.app({ host, component }).start();
-  //   assert.strictEqual(host.firstChild['value'], '', `host.firstChild['value']`);
-  //   component.message = 'hello!';
-  //   lifecycle.flush(LifecycleFlags.none);
-  //   assert.strictEqual(host.firstChild['value'], 'hello!', `host.firstChild['value']`);
-  //   component.message = 'hello!!';
-  //   lifecycle.flush(LifecycleFlags.none);
-  //   assert.strictEqual(host.firstChild['value'], 'hello!', `host.firstChild['value']`);
-  //   component.message = 'hello!!!';
-  //   lifecycle.flush(LifecycleFlags.none);
-  //   assert.strictEqual(host.firstChild['value'], 'hello!', `host.firstChild['value']`);
-  //   setTimeout(() => {
-  //     component.message = 'hello!!!!';
-  //     lifecycle.flush(LifecycleFlags.none);
-  //     assert.strictEqual(host.firstChild['value'], 'hello!!!!', `host.firstChild['value']`);
-  //     done();
-  //   }, 75);
-  // });
-
   it('works with updateTrigger', async function () {
     const { ctx, component, startPromise, tearDown } = createFixture(
       `<input ref="inputEl" value.bind="value & updateTrigger:'blur'" />`,

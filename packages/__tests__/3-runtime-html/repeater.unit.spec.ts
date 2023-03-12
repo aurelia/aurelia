@@ -1,6 +1,5 @@
 import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
 import {
-  LifecycleFlags,
   Repeat,
   Controller,
   CustomElementDefinition,
@@ -23,11 +22,11 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
-  function runActivateLifecycle(sut: Repeat, flags: LifecycleFlags, scope: Scope): void {
-    void sut.$controller.activate(sut.$controller, null, flags, scope);
+  function runActivateLifecycle(sut: Repeat, scope: Scope): void {
+    void sut.$controller.activate(sut.$controller, null, scope);
   }
-  function runDeactivateLifecycle(sut: Repeat, flags: LifecycleFlags): void {
-    void sut.$controller.deactivate(sut.$controller, null, flags);
+  function runDeactivateLifecycle(sut: Repeat): void {
+    void sut.$controller.deactivate(sut.$controller, null);
   }
 
   interface Spec {
@@ -79,13 +78,6 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     items: unknown[];
     mutations: MutationSpec[];
     flush: boolean;
-  }
-  interface FlagsSpec extends Spec {
-    activateFlags1: LifecycleFlags;
-    deactivateFlags1: LifecycleFlags;
-
-    activateFlags2: LifecycleFlags;
-    deactivateFlags2: LifecycleFlags;
   }
 
   function applyMutations(sut: Repeat, specs: MutationSpec[]): void {
@@ -503,15 +495,6 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     ] }
   ];
 
-  const none = LifecycleFlags.none;
-  const bind = LifecycleFlags.fromBind;
-  const unbind = LifecycleFlags.fromUnbind;
-
-  const flagsSpecs: FlagsSpec[] = [
-    { t: '1', activateFlags1: none,            deactivateFlags1: none,              activateFlags2: none,            deactivateFlags2: none,              },
-    { t: '2', activateFlags1: bind,            deactivateFlags1: unbind,            activateFlags2: bind,            deactivateFlags2: unbind,            },
-  ];
-
   const container = createContainer().register(
     INodeObserverLocatorRegistration,
     PropertyBindingRenderer,
@@ -527,15 +510,13 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   textTemplate.content.append(createStartLocation(), createEndLocation(), marker, text);
 
   eachCartesianJoin(
-    [duplicateOperationSpecs, bindSpecs, flagsSpecs],
-    (duplicateOperationSpec, bindSpec, flagsSpec) => {
-      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
+    [duplicateOperationSpecs, bindSpecs],
+    (duplicateOperationSpec, bindSpec) => {
+      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { items: $items, flush, mutations } = bindSpec;
-        const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         const items = $items.slice();
-        const baseFlags: LifecycleFlags = LifecycleFlags.none;
 
         const host = PLATFORM.document.createElement('div');
         const loc = PLATFORM.document.createComment('au-end') as IRenderLocation;
@@ -576,10 +557,10 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         sut.items = items;
         const expectedText1 = sut.items ? sut.items.join('') : '';
 
-        runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
+        runActivateLifecycle(sut, scope);
 
         if (activateTwice) {
-          runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
+          runActivateLifecycle(sut, scope);
         }
 
         assert.strictEqual(host.textContent, expectedText1, 'host.textContent #1');
@@ -601,9 +582,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           }
         }
 
-        runDeactivateLifecycle(sut, baseFlags | deactivateFlags1);
+        runDeactivateLifecycle(sut);
         if (deactivateTwice) {
-          runDeactivateLifecycle(sut, baseFlags | deactivateFlags1);
+          runDeactivateLifecycle(sut);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
@@ -613,9 +594,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         sut.items = items;
         const expectedText3 = sut.items ? sut.items.join('') : '';
 
-        runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
+        runActivateLifecycle(sut, scope);
         if (activateTwice) {
-          runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
+          runActivateLifecycle(sut, scope);
         }
 
         assert.strictEqual(host.textContent, expectedText3, 'host.textContent #7');
@@ -637,9 +618,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           }
         }
 
-        runDeactivateLifecycle(sut, baseFlags | deactivateFlags2);
+        runDeactivateLifecycle(sut);
         if (deactivateTwice) {
-          runDeactivateLifecycle(sut, baseFlags | deactivateFlags2);
+          runDeactivateLifecycle(sut);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #12');

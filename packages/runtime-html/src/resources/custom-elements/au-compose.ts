@@ -4,7 +4,7 @@ import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
-import { LifecycleFlags, Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
+import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { createError, isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
@@ -102,7 +102,7 @@ export class AuCompose {
     this._contextFactory = contextFactory;
   }
 
-  public attaching(initiator: IHydratedController, _parent: IHydratedController, _flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._pending = onResolve(
       this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
@@ -166,7 +166,7 @@ export class AuCompose {
                 } else {
                   // the stale controller should be deactivated
                   return onResolve(
-                    result.controller.deactivate(result.controller, this.$controller, LifecycleFlags.fromUnbind),
+                    result.controller.deactivate(result.controller, this.$controller),
                     // todo: do we need to deactivate?
                     () => {
                       result.controller.dispose();
@@ -241,10 +241,10 @@ export class AuCompose {
 
         return new CompositionController(
           controller,
-          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, $controller.scope.parent!),
+          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, $controller.scope.parent!),
           // todo: call deactivate on the component component
           (deactachInitiator) => onResolve(
-            controller.deactivate(deactachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
+            controller.deactivate(deactachInitiator ?? controller, $controller),
             removeCompositionHost
           ),
           // casting is technically incorrect
@@ -274,11 +274,11 @@ export class AuCompose {
 
         return new CompositionController(
           controller,
-          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, LifecycleFlags.fromBind, scope),
+          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, scope),
           // todo: call deactivate on the component
           // a difference with composing custom element is that we leave render location/host alone
           // as they all share the same host/render location
-          (detachInitiator) => controller.deactivate(detachInitiator ?? controller, $controller, LifecycleFlags.fromUnbind),
+          (detachInitiator) => controller.deactivate(detachInitiator ?? controller, $controller),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
           (model) => comp.activate?.(model) as MaybePromise<void>,

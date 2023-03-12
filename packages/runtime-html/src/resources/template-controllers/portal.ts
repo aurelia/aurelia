@@ -6,7 +6,7 @@ import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
 import { createError, isPromise, isString, rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
-import type { LifecycleFlags, ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget = string | Element | null | undefined;
 type ResolvedTarget = Element;
@@ -69,8 +69,6 @@ export class Portal implements ICustomAttributeViewModel {
 
   public attaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope.bindingContext;
@@ -78,15 +76,13 @@ export class Portal implements ICustomAttributeViewModel {
     const newTarget = this._resolvedTarget = this._getTarget();
     this._moveLocation(newTarget, this.position);
 
-    return this._activating(initiator, newTarget, flags);
+    return this._activating(initiator, newTarget);
   }
 
   public detaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this._deactivating(initiator, this._resolvedTarget, flags);
+    return this._deactivating(initiator, this._resolvedTarget);
   }
 
   public targetChanged(): void {
@@ -104,10 +100,10 @@ export class Portal implements ICustomAttributeViewModel {
 
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
-      this._deactivating(null, newTarget, $controller.flags),
+      this._deactivating(null, newTarget),
       () => {
         this._moveLocation(newTarget, this.position);
-        return this._activating(null, newTarget, $controller.flags);
+        return this._activating(null, newTarget);
       },
     );
     if (isPromise(ret)) { ret.catch(rethrow); }
@@ -120,10 +116,10 @@ export class Portal implements ICustomAttributeViewModel {
     }
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
-      this._deactivating(null, _resolvedTarget, $controller.flags),
+      this._deactivating(null, _resolvedTarget),
       () => {
         this._moveLocation(_resolvedTarget, this.position);
-        return this._activating(null, _resolvedTarget, $controller.flags);
+        return this._activating(null, _resolvedTarget);
       },
     );
     if (isPromise(ret)) { ret.catch(rethrow); }
@@ -133,7 +129,6 @@ export class Portal implements ICustomAttributeViewModel {
   private _activating(
     initiator: IHydratedController | null,
     target: ResolvedTarget,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     const { activating, callbackContext, view } = this;
 
@@ -142,7 +137,7 @@ export class Portal implements ICustomAttributeViewModel {
     return onResolve(
       activating?.call(callbackContext, target, view),
       () => {
-        return this._activate(initiator, target, flags);
+        return this._activate(initiator, target);
       },
     );
   }
@@ -151,7 +146,6 @@ export class Portal implements ICustomAttributeViewModel {
   private _activate(
     initiator: IHydratedController | null,
     target: ResolvedTarget,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller, view } = this;
 
@@ -160,7 +154,7 @@ export class Portal implements ICustomAttributeViewModel {
     } else {
       // TODO(fkleuver): fix and test possible race condition
       return onResolve(
-        view.activate(initiator ?? view, $controller, flags, $controller.scope),
+        view.activate(initiator ?? view, $controller, $controller.scope),
         () => {
           return this._activated(target);
         },
@@ -183,14 +177,13 @@ export class Portal implements ICustomAttributeViewModel {
   private _deactivating(
     initiator: IHydratedController | null,
     target: ResolvedTarget,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     const { deactivating, callbackContext, view } = this;
 
     return onResolve(
       deactivating?.call(callbackContext, target, view),
       () => {
-        return this._deactivate(initiator, target, flags);
+        return this._deactivate(initiator, target);
       },
     );
   }
@@ -199,7 +192,6 @@ export class Portal implements ICustomAttributeViewModel {
   private _deactivate(
     initiator: IHydratedController | null,
     target: ResolvedTarget,
-    flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller, view } = this;
 
@@ -207,7 +199,7 @@ export class Portal implements ICustomAttributeViewModel {
       view.nodes.remove();
     } else {
       return onResolve(
-        view.deactivate(initiator, $controller, flags),
+        view.deactivate(initiator, $controller),
         () => {
           return this._deactivated(target);
         },

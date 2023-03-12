@@ -1,6 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
   CustomAttribute,
   CustomElement,
   INode,
@@ -209,7 +208,7 @@ describe('3-runtime-html/styles.spec.ts', function () {
       const component = new FooBar();
       const controller = Controller.$el(ctx.container.createChild(), component, host, null, null);
 
-      void controller.activate(controller, null, LifecycleFlags.none);
+      void controller.activate(controller, null);
 
       assert.strictEqual(controller.shadowRoot.firstElementChild.innerHTML, css);
     });

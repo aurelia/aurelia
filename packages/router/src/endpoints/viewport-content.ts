@@ -1,5 +1,5 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { LifecycleFlags, Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
+import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';
@@ -505,7 +505,8 @@ export class ViewportContent extends EndpointContent {
    * @param boundCallback - A callback that's called when the content's component has been bound
    * @param attachPromise - A promise that th content's component controller will await before attaching
    */
-  public activateComponent(step: Step<void>, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public activateComponent(step: Step<void>, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent), // TODO: It might be possible to refactor this away
@@ -518,7 +519,6 @@ export class ViewportContent extends EndpointContent {
         return this.controller?.activate(
           initiator ?? this.controller,
           parent,
-          flags,
           void 0 /* , boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */) as Promise<void>;
       },
       () => {
@@ -552,7 +552,7 @@ export class ViewportContent extends EndpointContent {
    * @param connectedCE - The viewport's connectd custom element
    * @param stateful - Whether the content's component is stateful and shouldn't be disposed
    */
-  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
+  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null,  connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
     if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
       return;
     }
@@ -580,7 +580,7 @@ export class ViewportContent extends EndpointContent {
 
         this.contentStates.delete('activated');
         this.contentStates.delete('activating');
-        return this.controller?.deactivate(initiator ?? this.controller, parent, flags);
+        return this.controller?.deactivate(initiator ?? this.controller, parent);
       }
     ) as Step<void>;
   }
@@ -619,7 +619,7 @@ export class ViewportContent extends EndpointContent {
   public freeContent(step: Step<void>, connectedCE: IConnectedCustomElement | null, navigation: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Step<void> {
     return Runner.run(step,
       () => this.unload(navigation),
-      (innerStep: Step<void>) => this.deactivateComponent(innerStep, null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful),
+      (innerStep: Step<void>) => this.deactivateComponent(innerStep, null, connectedCE!.controller, connectedCE!, stateful),
       () => this.disposeComponent(connectedCE!, cache, stateful),
     ) as Step<void>;
   }

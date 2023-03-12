@@ -1,5 +1,5 @@
 import { IContainer, noop, toArray } from '@aurelia/kernel';
-import { LifecycleFlags, Aurelia, BindingMode, bindable, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
+import { Aurelia, BindingMode, bindable, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
@@ -41,7 +41,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         host.innerHTML = template;
         const controller = await au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
         app = controller.viewModel;
-        stop = () => controller.deactivate(controller, null, LifecycleFlags.none);
+        stop = () => controller.deactivate(controller, null);
       } else {
         await au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) })
           .start();

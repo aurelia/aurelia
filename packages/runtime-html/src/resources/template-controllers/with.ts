@@ -3,7 +3,7 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, LifecycleFlags } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 export class With implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
@@ -24,7 +24,6 @@ export class With implements ICustomAttributeViewModel {
   public valueChanged(
     newValue: unknown,
     _oldValue: unknown,
-    _flags: LifecycleFlags,
   ): void {
     const $controller = this.$controller;
     const bindings = this.view.bindings;
@@ -40,20 +39,18 @@ export class With implements ICustomAttributeViewModel {
 
   public attaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
     const { $controller, value } = this;
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, flags, scope);
+    return this.view.activate(initiator, $controller, scope);
   }
 
   public detaching(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.deactivate(initiator, this.$controller, flags);
+    return this.view.deactivate(initiator, this.$controller);
   }
 
   public dispose(): void {

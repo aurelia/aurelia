@@ -1,6 +1,5 @@
 import { ILogger } from '@aurelia/kernel';
 import {
-  type LifecycleFlags,
   bindable,
   customElement,
   ICustomElementViewModel,
@@ -59,16 +58,16 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     this.agent = this.ctx.registerViewport(this);
   }
 
-  public attaching(initiator: IHydratedController, _parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     this.logger.trace('attaching()');
 
-    return this.agent.activateFromViewport(initiator, this.controller, flags);
+    return this.agent.activateFromViewport(initiator, this.controller);
   }
 
-  public detaching(initiator: IHydratedController, _parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     this.logger.trace('detaching()');
 
-    return this.agent.deactivateFromViewport(initiator, this.controller, flags);
+    return this.agent.deactivateFromViewport(initiator, this.controller);
   }
 
   public dispose(): void {

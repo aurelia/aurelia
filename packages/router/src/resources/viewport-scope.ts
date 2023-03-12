@@ -5,7 +5,6 @@
  *
  */
 import {
-  LifecycleFlags,
   bindable,
   INode,
   customElement,
@@ -80,7 +79,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   public hydrated(controller: ICompiledCustomElementController): void {
     this.controller = controller as ICustomElementController;
   }
-  public bound(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void {
+  public bound(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
@@ -90,7 +89,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
       this.viewportScope.binding();
     }
   }
-  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null): void | Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.unbinding();
     }

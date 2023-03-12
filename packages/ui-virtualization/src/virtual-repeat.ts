@@ -17,7 +17,6 @@ import {
   IInstruction,
   IController,
   IViewFactory,
-  LifecycleFlags,
   HydrateTemplateController,
   IHydratedComponentController,
   IteratorBindingInstruction,
@@ -196,7 +195,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       // todo: no async supported
       for (i = 0; currViewCount > i; ++i) {
         view = views[i];
-        void view.deactivate(controller, controller, LifecycleFlags.fromUnbind);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
       }
       views.length = 0;
@@ -207,7 +206,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     if (currViewCount > maxViewsRequired) {
       while (currViewCount > maxViewsRequired) {
         view = views[currViewCount - 1];
-        void view.deactivate(controller, controller, LifecycleFlags.fromUnbind);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
         --currViewCount;
       }
@@ -217,7 +216,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       // remove views from bottom to top
       while (currViewCount > itemCount) {
         view = views[currViewCount - 1];
-        void view.deactivate(controller, controller, LifecycleFlags.fromUnbind);
+        void view.deactivate(controller, controller);
         view.nodes.remove();
         --currViewCount;
       }
@@ -264,7 +263,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = itemCount;
         enhanceOverrideContext(scope.overrideContext);
-        void view.activate(controller, controller, LifecycleFlags.fromBind, scope);
+        void view.activate(controller, controller, scope);
       }
     }
 
@@ -505,7 +504,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     enhanceOverrideContext(itemScope.overrideContext);
     firstView.nodes.insertBefore(this.dom.bottom);
     // todo: maybe state upfront that async lifecycle aren't supported with virtual-repeat
-    void firstView.activate(repeatController, repeatController, LifecycleFlags.none, itemScope);
+    void firstView.activate(repeatController, repeatController, itemScope);
 
     return firstView;
   }

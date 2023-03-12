@@ -106,9 +106,15 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public _configurationFromHookApplied: boolean = false;
   /** @internal */
   public readonly _children: RouteConfig[] = [];
+  public get path(): string[] {
+    const path = this._path;
+    if (path.length > 0) return path;
+    return this._path = [CustomElement.getDefinition(this.component as RouteType).name];
+  }
   protected constructor(
     public readonly id: string,
-    public readonly path: string[],
+    /** @internal */
+    public _path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly redirectTo: string | null,
     public readonly caseSensitive: boolean,
@@ -161,7 +167,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       const config = configOrPath;
       validateRouteConfig(config, '');
 
-      const path = ensureArrayOfStrings(config.path ?? Type?.path ?? CustomElement.getDefinition(Type!).name);
+      const path = ensureArrayOfStrings(config.path ?? Type?.path ?? emptyArray);
       const title = config.title ?? Type?.title ?? null;
       const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
       const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
@@ -245,7 +251,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
         // the value from the hook takes precedence
         (this as Writable<RouteConfig>).id = value.id ?? this.id;
-        (this as Writable<RouteConfig>).path = ensureArrayOfStrings(value.path ?? this.path);
+        (this as Writable<RouteConfig>)._path = ensureArrayOfStrings(value.path ?? this.path);
         (this as Writable<RouteConfig>).title = value.title ?? this.title;
         (this as Writable<RouteConfig>).redirectTo = value.redirectTo ?? this.redirectTo;
         (this as Writable<RouteConfig>).caseSensitive = value.caseSensitive ?? this.caseSensitive;

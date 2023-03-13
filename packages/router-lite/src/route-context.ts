@@ -566,6 +566,7 @@ export class RouteContext {
         }
         return acc;
       }, [] as string[]);
+      throwError = true;
     }
     if (paths === void 0) return null;
 

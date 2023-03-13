@@ -211,9 +211,10 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
    */
   public applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
     validateRouteConfig(config, this.path[0] ?? '');
+    const path = ensureArrayOfStrings(config.path ?? this.path);
     return new RouteConfig(
-      config.id ?? this.id,
-      ensureArrayOfStrings(config.path ?? this.path),
+      ensureString(config.id ?? this.id ?? path),
+      path,
       config.title ?? this.title,
       config.redirectTo ?? this.redirectTo,
       config.caseSensitive ?? this.caseSensitive,
@@ -221,7 +222,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.viewport ?? this.viewport,
       config.data ?? this.data,
       config.routes ?? this.routes,
-      config.fallback ?? this.fallback,
+      config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null,
       config.component ?? this.component,
       config.nav ?? this.nav,
     );

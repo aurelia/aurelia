@@ -50,7 +50,7 @@ import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
-import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 
 export interface IRouteNode {
   path: string;
@@ -483,10 +483,10 @@ export function createAndAppendNodes(
       const rc = node.context;
       return onResolve(
         // RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
-        resolveRouteConfiguration(vi.component.value, false, rc.definition, null, rc),
-        rd => {
+        resolveCustomElementDefinition(vi.component.value, rc)[1],
+        ced => {
           const { vi: newVi, query } = rc.generateViewportInstruction({
-            component: rd,
+            component: ced,
             params: vi.params ?? emptyObject,
             open: vi.open,
             close: vi.close,
@@ -522,47 +522,51 @@ function createConfiguredNode(
 
     if ($handler.redirectTo === null) {
       const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
-      const ced = CustomElement.getDefinition($handler.component as RouteType);
-
-      const vpa = ctx.resolveViewportAgent(new ViewportRequest(
-        vpName,
-        ced.name,
-      ));
-
-      const router = ctx.container.get(IRouter);
       return onResolve(
-        router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition, ctx, $handler),
-        childCtx => {
+        resolveCustomElementDefinition($handler.component, ctx)[1],
+        ced => {
 
-          log.trace('createConfiguredNode setting the context node');
-          const $node = childCtx.node = RouteNode.create({
-            path: rr.route.endpoint.route.path,
-            finalPath: route.path,
-            context: childCtx,
-            instruction: vi,
-            originalInstruction: originalVi,
-            params: {
-              ...rr.route.params,
-            },
-            queryParams: rt.queryParams,
-            fragment: rt.fragment,
-            data: $handler.data,
-            viewport: vpName,
-            component: ced,
-            title: $handler.title,
-            residue: [
-              // TODO(sayan): this can be removed; need to inspect more.
-              ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
-              ...vi.children,
-            ],
-          });
-          $node.setTree(node.tree);
+          const vpa = ctx.resolveViewportAgent(new ViewportRequest(
+            vpName,
+            ced.name,
+          ));
 
-          log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
+          const router = ctx.container.get(IRouter);
+          return onResolve(
+            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition, ctx, $handler),
+            childCtx => {
 
-          return $node;
-        }
-      );
+              log.trace('createConfiguredNode setting the context node');
+              const $node = childCtx.node = RouteNode.create({
+                path: rr.route.endpoint.route.path,
+                finalPath: route.path,
+                context: childCtx,
+                instruction: vi,
+                originalInstruction: originalVi,
+                params: {
+                  ...rr.route.params,
+                },
+                queryParams: rt.queryParams,
+                fragment: rt.fragment,
+                data: $handler.data,
+                viewport: vpName,
+                component: ced,
+                title: $handler.title,
+                residue: [
+                  // TODO(sayan): this can be removed; need to inspect more.
+                  ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
+                  ...vi.children,
+                ],
+              });
+              $node.setTree(node.tree);
+
+              log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
+
+              return $node;
+            }
+          );
+
+        });
     }
 
     // Migrate parameters to the redirect

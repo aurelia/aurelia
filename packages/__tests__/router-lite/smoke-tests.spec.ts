@@ -2793,7 +2793,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     it('respects custom buildTitle', async function () {
       const { host, au, container } = await start((tr) => {
         const root = tr.routeTree.root;
-        return `${root.context.definition.title} - ${root.children.map(c => c.title).join(' - ')}`;
+        return `${root.context.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
       });
       assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;

@@ -12,7 +12,6 @@ import {
   RESIDUE,
 } from '@aurelia/route-recognizer';
 import {
-  CustomElement,
   CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
@@ -29,9 +28,6 @@ import {
   $RecognizedRoute,
   type IRouteContext,
 } from './route-context';
-// import {
-//   RouteDefinition, RouteDefinitionConfiguration,
-// } from './route-definition';
 import {
   ExpressionKind,
   RouteExpression,
@@ -275,12 +271,12 @@ export class RouteNode implements IRouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = (this.context?.definition.component as RouteType)?.name ?? '';
+    const component = (this.context?.config.component as RouteType)?.name ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }
 
-    const path = this.context?.definition.path ?? '';
+    const path = this.context?.config.path ?? '';
     if (path.length > 0) {
       props.push(`path:'${path}'`);
     }
@@ -438,24 +434,23 @@ export function createAndAppendNodes(
             const vpa = ctx.getFallbackViewportAgent(vp);
             const fallback = vpa !== null
               ? vpa.viewport._getFallback(vi, node, ctx)
-              : ctx.definition._getFallback(vi, node, ctx);
+              : ctx.config._getFallback(vi, node, ctx);
             if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-            // fallback: id -> route -> CEDefn (Route definition)
+            // fallback: id -> route -> CEDefn (Route configuration)
             // look for a route first
             log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
             const rd = (ctx.childRoutes as RouteConfig[]).find(x => x.id === fallback);
             if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
 
-            log.trace(`No route definition for the fallback '${fallback}' is found; trying to recognize the route.`);
+            log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
             const rr = ctx.recognize(fallback, true);
             if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
 
-            // fallback is not recognized as a configured route; treat as CE and look for a route definition.
+            // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
             return appendNode(log, node, createFallbackNode(log,
-              // RouteDefinition.resolve(fallback, ctx.definition, null, ctx),
-              resolveRouteConfiguration(fallback, false, ctx.definition, null, ctx) as RouteConfig, // TODO: fix the typing by adding overloads.
+              resolveRouteConfiguration(fallback, false, ctx.config, null, ctx) as RouteConfig, // TODO: fix the typing by adding overloads.
               node,
               vi as ViewportInstruction<ITypedNavigationInstruction_string>));
           }
@@ -482,7 +477,6 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       return onResolve(
-        // RouteDefinition.resolve(vi.component.value, rc.definition, null, rc),
         resolveCustomElementDefinition(vi.component.value, rc)[1],
         ced => {
           const { vi: newVi, query } = rc.generateViewportInstruction({
@@ -533,7 +527,7 @@ function createConfiguredNode(
 
           const router = ctx.container.get(IRouter);
           return onResolve(
-            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.definition, ctx, $handler),
+            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.config, ctx, $handler),
             childCtx => {
 
               log.trace('createConfiguredNode setting the context node');
@@ -678,11 +672,11 @@ function appendNode(
 }
 
 /**
- * Creates route node from the given RouteDefinition `rd` for a unknown path (non-configured route).
+ * Creates route node from the given RouteConfig `rc` for a unknown path (non-configured route).
  */
 function createFallbackNode(
   log: ILogger,
-  rd: RouteConfig,
+  rc: RouteConfig,
   node: RouteNode,
   vi: ViewportInstruction<ITypedNavigationInstruction_string>,
 ): RouteNode | Promise<RouteNode> {
@@ -690,7 +684,7 @@ function createFallbackNode(
   const rr = new $RecognizedRoute(
     new RecognizedRoute(
       new Endpoint(
-        new ConfigurableRoute(rd.path[0], rd.caseSensitive, rd),
+        new ConfigurableRoute(rc.path[0], rc.caseSensitive, rc),
         []
       ),
       emptyObject

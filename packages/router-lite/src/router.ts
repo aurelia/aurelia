@@ -10,7 +10,6 @@ import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
-// import { RouteDefinition, RouteDefinitionConfiguration } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
@@ -98,8 +97,8 @@ export class Transition {
   }
 }
 
-type RouteDefinitionLookup = WeakMap<RouteConfig, IRouteContext>;
-type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
+type RouteConfigLookup = WeakMap<RouteConfig, IRouteContext>;
+type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigLookup>;
 
 export interface IRouter extends Router { }
 export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
@@ -132,8 +131,8 @@ export class Router {
           finalPath: '',
           context: ctx,
           instruction: null,
-          component: CustomElement.getDefinition(ctx.definition.component as RouteType),
-          title: ctx.definition.title,
+          component: CustomElement.getDefinition(ctx.config.component as RouteType),
+          title: ctx.config.title,
         }),
       );
     }
@@ -352,7 +351,7 @@ export class Router {
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
     container: IContainer,
-    parentDefinition: RouteConfig | null,
+    parentRouteConfig: RouteConfig | null,
     parentContext: IRouteContext | null,
     $rdConfig: RouteConfig | null,
   ): IRouteContext | Promise<IRouteContext> {
@@ -365,23 +364,17 @@ export class Router {
         : resolveRouteConfiguration(
           typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
           false,
-          parentDefinition,
+          parentRouteConfig,
           null,
           parentContext
         ),
-        // : RouteDefinition.resolve(
-        // typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-        // parentDefinition,
-        // null,
-        // parentContext,
-        // $rdConfig),
       rdConfig => {
-        let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
-        if (routeDefinitionLookup === void 0) {
-          this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
+        let routeConfigLookup = this.vpaLookup.get(viewportAgent);
+        if (routeConfigLookup === void 0) {
+          this.vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());
         }
 
-        let routeContext = routeDefinitionLookup.get(rdConfig);
+        let routeContext = routeConfigLookup.get(rdConfig);
         if (routeContext !== void 0) {
           logger.trace(`returning existing RouteContext for %s`, rdConfig);
           return routeContext;
@@ -390,7 +383,7 @@ export class Router {
 
         const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
-        routeDefinitionLookup.set(
+        routeConfigLookup.set(
           rdConfig,
           routeContext = new RouteContext(
             viewportAgent,

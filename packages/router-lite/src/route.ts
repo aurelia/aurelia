@@ -104,8 +104,6 @@ function defaultReentryBehavior(current: RouteNode, next: RouteNode): Transition
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   /** @internal */
   public _configurationFromHookApplied: boolean = false;
-  /** @internal */
-  public readonly _children: RouteConfig[] = [];
   public get path(): string[] {
     const path = this._path;
     if (path.length > 0) return path;
@@ -228,7 +226,6 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     );
   }
 
-  /** @deprecated */
   public getTransitionPlan(cur: RouteNode, next: RouteNode) {
     const plan = this.transitionPlan ?? defaultReentryBehavior;
     return typeof plan === 'function' ? plan(cur, next) : plan;
@@ -394,7 +391,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
   let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
   switch (instruction.type) {
     case NavigationInstructionType.string: {
-      if (context == null) throw new Error(`When retrieving the RouteDefinition for a component name, a RouteContext (that can resolve it) must be provided`);
+      if (context == null) throw new Error(`When retrieving the RouteConfig for a component name, a RouteContext (that can resolve it) must be provided`);
 
       const component = context.container.find(CustomElement, instruction.value);
       if (component === null) throw new Error(`Could not find a CustomElement named '${instruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);

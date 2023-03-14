@@ -223,7 +223,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.data ?? this.data,
       config.routes ?? this.routes,
       config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null,
-      config.component ?? this.component,
+      this.component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
       config.nav ?? this.nav,
     );
   }

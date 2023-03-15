@@ -12,7 +12,7 @@ describe('3-runtime-html/custom-elements.decorator.spec.ts', function () {
     });
 
     it('retries capture on class annotated with filter function', function () {
-      const filter = attr => true;
+      const filter = () => true;
       @capture(filter)
       class El {}
 

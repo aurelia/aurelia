@@ -1,5 +1,5 @@
 import { DI, IEventAggregator } from '@aurelia/kernel';
-import { ISignaler } from '@aurelia/runtime';
+import { ISignaler, nowrap } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
@@ -104,7 +104,7 @@ export interface ILocalChangeSubscriber {
  * Translation service class.
  */
 export class I18nService implements I18N {
-
+  @nowrap
   public i18next: i18nextCore.i18n;
   /**
    * This is used for i18next initialization and awaited for before the bind phase.

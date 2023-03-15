@@ -315,673 +315,673 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
       }
     };
   }
-});
 
-type ObservedInputElement = HTMLInputElement & {
-  $observers: Record<string, IObserver>;
-  model: any;
-  children: HTMLCollectionOf<ObservedInputElement>;
-  matcher(a: any, b: any): boolean;
-};
+  type ObservedInputElement = HTMLInputElement & {
+    $observers: Record<string, IObserver>;
+    model: any;
+    children: HTMLCollectionOf<ObservedInputElement>;
+    matcher(a: any, b: any): boolean;
+  };
 
-const eventDefaults = { bubbles: true };
+  const eventDefaults = { bubbles: true };
 
-describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function () {
+  describe('[UNIT]', function () {
 
-  // eslint-disable-next-line mocha/no-hooks
-  before(function () {
-    enableArrayObservation();
-  });
+    // eslint-disable-next-line mocha/no-hooks
+    before(function () {
+      enableArrayObservation();
+    });
 
-  describe('setValue() - primitive - type="checkbox"', function () {
-    function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
-      ctx.doc.body.appendChild(el);
+    describe('setValue() - primitive - type="checkbox"', function () {
+      function createFixture(hasSubscriber: boolean) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+        ctx.doc.body.appendChild(el);
 
-      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      ctx.observerLocator.getObserver(el, 'value');
+        const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
+        ctx.observerLocator.getObserver(el, 'value');
 
-      const subscriber = { handleChange: createSpy() };
-      if (hasSubscriber) {
-        sut.subscribe(subscriber);
-      }
-
-      return { ctx, container, observerLocator, el, sut, subscriber, platform };
-    }
-
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
-
-    for (const hasSubscriber of [true, false]) {
-      for (const checkedBefore of [true, false]) {
-        for (const checkedAfter of [true, false]) {
-          for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [false, '', undefined, null, 0, 1, 'true'] : [null]) {
-            for (const checkedValue of ((checkedBefore || checkedAfter) ? [true] : [null])) {
-
-              const propValue = checkedBefore ? checkedValue : uncheckedValue;
-              const newValue = checkedAfter ? checkedValue : uncheckedValue;
-
-              it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
-
-                // const expectedPropValue = propValue === undefined ? null : propValue;
-                // const expectedNewValue = newValue === undefined ? null : newValue;
-
-                // const changeCountBefore = expectedPropValue !== null ? 1 : 0;
-                // const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
-
-                const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
-
-                sut.setValue(propValue);
-                // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-                assert.strictEqual(el.checked, checkedBefore, 'el.checked 1');
-                assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
-
-                sut.setValue(newValue);
-                assert.strictEqual(el.checked, checkedAfter, 'el.checked 2');
-                assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
-                // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-
-                if (hasSubscriber) {
-                  const allCallArguments = [];
-                  if (propValue !== undefined) {
-                    allCallArguments.push([propValue, void 0]);
-                  }
-                  if (newValue !== propValue) {
-                    allCallArguments.push([newValue, propValue]);
-                  }
-                  assert.deepStrictEqual(
-                    subscriber.handleChange.calls,
-                    allCallArguments,
-                    `subscriber.handleChange`,
-                  );
-                } else {
-                  assert.deepStrictEqual(
-                    subscriber.handleChange.calls,
-                    [],
-                    `NO subscriber.handleChange()`,
-                  );
-                }
-
-                tearDown({ ctx, sut, el });
-              });
-            }
-          }
+        const subscriber = { handleChange: createSpy() };
+        if (hasSubscriber) {
+          sut.subscribe(subscriber);
         }
-      }
-    }
-  });
 
-  describe('handleEvent() - primitive - type="checkbox"', function () {
-    function createFixture() {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
-      ctx.doc.body.appendChild(el);
-
-      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
-
-      const subscriber = { handleChange: createSpy() };
-      sut.subscribe(subscriber);
-
-      return { ctx, container, observerLocator, el, sut, subscriber, platform };
-    }
-
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
-
-    for (const checkedBefore of [true, false]) {
-      for (const checkedAfter of [true, false]) {
-        for (const event of ['change', 'input']) {
-          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
-
-            const { ctx, sut, el, subscriber } = createFixture();
-
-            el.checked = checkedBefore;
-            el.dispatchEvent(new ctx.Event(event, eventDefaults));
-            assert.strictEqual(sut.getValue(), checkedBefore, 'sut.getValue() 1');
-            assert.deepStrictEqual(
-              subscriber.handleChange.calls,
-              [
-                [checkedBefore, undefined],
-              ],
-              `subscriber.handleChange (1)`,
-            );
-
-            el.checked = checkedAfter;
-            el.dispatchEvent(new ctx.Event(event, eventDefaults));
-            assert.strictEqual(sut.getValue(), checkedAfter, 'sut.getValue() 2');
-
-            assert.deepStrictEqual(
-              subscriber.handleChange.calls,
-              [
-                [checkedBefore, undefined],
-                [checkedAfter, checkedBefore],
-              ],
-              `subscriber.handleChange (2)`,
-            );
-
-            tearDown({ ctx, sut, el });
-          });
-        }
-      }
-    }
-  });
-
-  describe('setValue() - primitive - type="radio"', function () {
-    function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
-
-      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
-      ctx.doc.body.appendChild(elA);
-      ctx.doc.body.appendChild(elB);
-      ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
-      observerLocator.getObserver(elA, 'value');
-      observerLocator.getObserver(elB, 'value');
-      observerLocator.getObserver(elC, 'value');
-
-      const subscriberA = { handleChange: createSpy() };
-      const subscriberB = { handleChange: createSpy() };
-      const subscriberC = { handleChange: createSpy() };
-      if (hasSubscriber) {
-        sutA.subscribe(subscriberA);
-        sutB.subscribe(subscriberB);
-        sutC.subscribe(subscriberC);
+        return { ctx, container, observerLocator, el, sut, subscriber, platform };
       }
 
-      return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(elA);
-      ctx.doc.body.removeChild(elB);
-      ctx.doc.body.removeChild(elC);
-    }
-
-    for (const hasSubscriber of [true, false]) {
-      for (const checkedBefore of ['A', 'B', 'C', null, undefined]) {
-        for (const checkedAfter of ['A', 'B', 'C', null, undefined]) {
-
-          it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function () {
-
-            // const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
-            // const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
-
-            // const changeCountBefore = expectedPropValue != null ? 3 : 0;
-            // const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
-
-            const { ctx, sutA, sutB, sutC, elA, elB, elC, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
-
-            sutA.setValue(checkedBefore);
-            sutB.setValue(checkedBefore);
-            sutC.setValue(checkedBefore);
-            // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-
-            assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
-            assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
-            assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
-            assert.strictEqual(sutA.getValue(), checkedBefore, 'sutA.getValue() 1');
-            assert.strictEqual(sutB.getValue(), checkedBefore, 'sutB.getValue() 1');
-            assert.strictEqual(sutC.getValue(), checkedBefore, 'sutC.getValue() 1');
-
-            sutA.setValue(checkedAfter);
-            sutB.setValue(checkedAfter);
-            sutC.setValue(checkedAfter);
-            assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 2');
-            assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 2');
-            assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 2');
-            assert.strictEqual(sutA.getValue(), checkedAfter, 'sutA.getValue() 2');
-            assert.strictEqual(sutB.getValue(), checkedAfter, 'sutB.getValue() 2');
-            assert.strictEqual(sutC.getValue(), checkedAfter, 'sutC.getValue() 2');
-            // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-
-            if (hasSubscriber) {
-              const allSubACallArguments = [];
-              const allSubBCallArguments = [];
-              const allSubCCallArguments = [];
-              if (checkedBefore !== undefined) {
-                allSubACallArguments.push([checkedBefore, void 0]);
-                allSubBCallArguments.push([checkedBefore, void 0]);
-                allSubCCallArguments.push([checkedBefore, void 0]);
-              }
-              if (checkedAfter !== checkedBefore) {
-                allSubACallArguments.push([checkedAfter, checkedBefore]);
-                allSubBCallArguments.push([checkedAfter, checkedBefore]);
-                allSubCCallArguments.push([checkedAfter, checkedBefore]);
-              }
-              assert.deepStrictEqual(
-                subscriberA.handleChange.calls,
-                allSubACallArguments,
-                `subscriberA.handleChange`,
-              );
-              assert.deepStrictEqual(
-                subscriberB.handleChange.calls,
-                allSubBCallArguments,
-                `subscriberB.handleChange`,
-              );
-              assert.deepStrictEqual(
-                subscriberC.handleChange.calls,
-                allSubCCallArguments,
-                `subscriberC.handleChange`,
-              );
-            } else {
-              assert.deepStrictEqual(subscriberA.handleChange.calls, [], `subscriberA.handleChange`);
-              assert.deepStrictEqual(subscriberB.handleChange.calls, [], `subscriberB.handleChange`);
-              assert.deepStrictEqual(subscriberC.handleChange.calls, [], `subscriberC.handleChange`);
-            }
-
-            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
-          });
-        }
-      }
-    }
-  });
-
-  describe('handleEvent() - primitive - type="radio"', function () {
-    function createFixture() {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
-
-      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
-      ctx.doc.body.appendChild(elA);
-      ctx.doc.body.appendChild(elB);
-      ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
-      const subscriberA = { handleChange: createSpy() };
-      const subscriberB = { handleChange: createSpy() };
-      const subscriberC = { handleChange: createSpy() };
-      sutA.subscribe(subscriberA);
-      sutB.subscribe(subscriberB);
-      sutC.subscribe(subscriberC);
-
-      return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(elA);
-      ctx.doc.body.removeChild(elB);
-      ctx.doc.body.removeChild(elC);
-    }
-
-    for (const checkedBefore of ['A', 'B', 'C']) {
-      for (const checkedAfter of ['A', 'B', 'C']) {
-        for (const event of ['change', 'input']) {
-
-          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
-
-            const { ctx, sutA, sutB, sutC, elA, elB, elC } = createFixture();
-
-            elA.checked = checkedBefore === 'A';
-            elB.checked = checkedBefore === 'B';
-            elC.checked = checkedBefore === 'C';
-            elA.dispatchEvent(new ctx.Event(event, eventDefaults));
-            elB.dispatchEvent(new ctx.Event(event, eventDefaults));
-            elC.dispatchEvent(new ctx.Event(event, eventDefaults));
-            assert.strictEqual(sutA.getValue(), checkedBefore === 'A' ? 'A' : undefined, 'sutA.getValue() 1');
-            assert.strictEqual(sutB.getValue(), checkedBefore === 'B' ? 'B' : undefined, 'sutB.getValue() 1');
-            assert.strictEqual(sutC.getValue(), checkedBefore === 'C' ? 'C' : undefined, 'sutC.getValue() 1');
-            assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
-            assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
-            assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
-
-            elA.checked = checkedAfter === 'A';
-            elB.checked = checkedAfter === 'B';
-            elC.checked = checkedAfter === 'C';
-            elA.dispatchEvent(new ctx.Event(event, eventDefaults));
-            elB.dispatchEvent(new ctx.Event(event, eventDefaults));
-            elC.dispatchEvent(new ctx.Event(event, eventDefaults));
-            assert.strictEqual(sutA.getValue(), checkedBefore === 'A' || checkedAfter === 'A' ? 'A' : undefined, 'sutA.getValue() 2');
-            assert.strictEqual(sutB.getValue(), checkedBefore === 'B' || checkedAfter === 'B' ? 'B' : undefined, 'sutB.getValue() 2');
-            assert.strictEqual(sutC.getValue(), checkedBefore === 'C' || checkedAfter === 'C' ? 'C' : undefined, 'sutC.getValue() 2');
-            assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 2');
-            assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 2');
-            assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 2');
-
-            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
-          });
-        }
-      }
-    }
-  });
-
-  // eslint-disable-next-line mocha/no-skipped-tests
-  describe.skip('setValue() - array - type="checkbox"', function () {
-    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
-
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
-      el[prop] = value;
-      ctx.doc.body.appendChild(el);
-
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(el, prop);
-
-      const subscriber = { handleChange: createSpy() };
-      if (hasSubscriber) {
-        sut.subscribe(subscriber);
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
       }
 
-      return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
-    }
+      for (const hasSubscriber of [true, false]) {
+        for (const checkedBefore of [true, false]) {
+          for (const checkedAfter of [true, false]) {
+            for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [false, '', undefined, null, 0, 1, 'true'] : [null]) {
+              for (const checkedValue of ((checkedBefore || checkedAfter) ? [true] : [null])) {
 
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
+                const propValue = checkedBefore ? checkedValue : uncheckedValue;
+                const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-    for (const hasSubscriber of [true, false]) {
-      for (const prop of ['value', 'model']) {
-        for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+                it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value !== undefined);
+                  // const expectedPropValue = propValue === undefined ? null : propValue;
+                  // const expectedNewValue = newValue === undefined ? null : newValue;
 
-          for (const checkedBefore of [true, false]) {
-            for (const checkedAfter of [true, false]) {
-              for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [[], [!value ? 'foo' : '']] : [[]]) {
-                for (const checkedValue of ((checkedBefore || checkedAfter) ? [[value, '']] : [[]])) {
+                  // const changeCountBefore = expectedPropValue !== null ? 1 : 0;
+                  // const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                  const propValue = checkedBefore ? checkedValue : uncheckedValue;
-                  const newValue = checkedAfter ? checkedValue : uncheckedValue;
+                  const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
 
-                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                  sut.setValue(propValue);
+                  // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
+                  assert.strictEqual(el.checked, checkedBefore, 'el.checked 1');
+                  assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
-                    // const changeCountBefore = 1;
-                    // const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
+                  sut.setValue(newValue);
+                  assert.strictEqual(el.checked, checkedAfter, 'el.checked 2');
+                  assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
+                  // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
 
-                    const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
-
-                    sut.setValue(propValue);
-                    // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 1');
-                    assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
-
-                    sut.setValue(newValue);
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
-                    assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
-                    // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 3');
+                  if (hasSubscriber) {
+                    const allCallArguments = [];
+                    if (propValue !== undefined) {
+                      allCallArguments.push([propValue, void 0]);
+                    }
+                    if (newValue !== propValue) {
+                      allCallArguments.push([newValue, propValue]);
+                    }
                     assert.deepStrictEqual(
-                      subscriber.handleChange,
-                      [],
+                      subscriber.handleChange.calls,
+                      allCallArguments,
                       `subscriber.handleChange`,
                     );
+                  } else {
+                    assert.deepStrictEqual(
+                      subscriber.handleChange.calls,
+                      [],
+                      `NO subscriber.handleChange()`,
+                    );
+                  }
 
-                    tearDown({ ctx, sut, el });
-                  });
-                }
+                  tearDown({ ctx, sut, el });
+                });
               }
             }
           }
         }
       }
-    }
-  });
+    });
 
-  describe('mutate collection - array - type="checkbox"', function () {
-    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
+    describe('handleEvent() - primitive - type="checkbox"', function () {
+      function createFixture() {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+        ctx.doc.body.appendChild(el);
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
-      el[prop] = value;
-      ctx.doc.body.appendChild(el);
+        const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(el, prop);
-
-      const subscriber = { handleChange: createSpy() };
-      if (hasSubscriber) {
+        const subscriber = { handleChange: createSpy() };
         sut.subscribe(subscriber);
+
+        return { ctx, container, observerLocator, el, sut, subscriber, platform };
       }
 
-      return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
-    }
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
+      }
 
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
+      for (const checkedBefore of [true, false]) {
+        for (const checkedAfter of [true, false]) {
+          for (const event of ['change', 'input']) {
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-    for (const hasSubscriber of [true, false]) {
-      for (const prop of ['value', 'model']) {
-        for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+              const { ctx, sut, el, subscriber } = createFixture();
 
-          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
-
-          it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
-
-            const array = [];
-
-            const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
-
-            sut.setValue(array);
-
-            assert.strictEqual(el.checked, false, 'el.checked 1');
-            assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
-
-            array.push(value);
-            assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 2');
-
-            array.pop();
-            assert.strictEqual(el.checked, false, 'el.checked 3');
-
-            if (hasSubscriber) {
+              el.checked = checkedBefore;
+              el.dispatchEvent(new ctx.Event(event, eventDefaults));
+              assert.strictEqual(sut.getValue(), checkedBefore, 'sut.getValue() 1');
               assert.deepStrictEqual(
                 subscriber.handleChange.calls,
                 [
-                  [[], undefined],
+                  [checkedBefore, undefined],
                 ],
-                `subscriber.handleChange`,
+                `subscriber.handleChange (1)`,
               );
-            } else {
+
+              el.checked = checkedAfter;
+              el.dispatchEvent(new ctx.Event(event, eventDefaults));
+              assert.strictEqual(sut.getValue(), checkedAfter, 'sut.getValue() 2');
+
               assert.deepStrictEqual(
                 subscriber.handleChange.calls,
-                [],
-                `subscriber.handleChange`,
+                [
+                  [checkedBefore, undefined],
+                  [checkedAfter, checkedBefore],
+                ],
+                `subscriber.handleChange (2)`,
               );
-            }
 
-            tearDown({ ctx, sut, el });
-          });
+              tearDown({ ctx, sut, el });
+            });
+          }
         }
       }
-    }
-  });
+    });
 
-  describe('handleEvent() - array - type="checkbox"', function () {
-    function createFixture(value: any, prop: string) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
+    describe('setValue() - primitive - type="radio"', function () {
+      function createFixture(hasSubscriber: boolean) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
-      el[prop] = value;
-      ctx.doc.body.appendChild(el);
+        const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+        const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+        const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+        ctx.doc.body.appendChild(elA);
+        ctx.doc.body.appendChild(elB);
+        ctx.doc.body.appendChild(elC);
+        const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+        const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+        const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
+        observerLocator.getObserver(elA, 'value');
+        observerLocator.getObserver(elB, 'value');
+        observerLocator.getObserver(elC, 'value');
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+        const subscriberA = { handleChange: createSpy() };
+        const subscriberB = { handleChange: createSpy() };
+        const subscriberC = { handleChange: createSpy() };
+        if (hasSubscriber) {
+          sutA.subscribe(subscriberA);
+          sutB.subscribe(subscriberB);
+          sutC.subscribe(subscriberC);
+        }
 
-      const subscriber = { handleChange: createSpy() };
-      sut.subscribe(subscriber);
+        return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      }
 
-      return { ctx, value, container, observerLocator, el, sut, subscriber, platform };
-    }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(elA);
+        ctx.doc.body.removeChild(elB);
+        ctx.doc.body.removeChild(elC);
+      }
 
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
+      for (const hasSubscriber of [true, false]) {
+        for (const checkedBefore of ['A', 'B', 'C', null, undefined]) {
+          for (const checkedAfter of ['A', 'B', 'C', null, undefined]) {
 
-    for (const prop of ['value', 'model']) {
-      for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+            it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function () {
 
-        for (const checkedBefore of [true, false]) {
-          for (const checkedAfter of [true, false]) {
-            for (const event of ['change', 'input']) {
+              // const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
+              // const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
 
-              it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+              // const changeCountBefore = expectedPropValue != null ? 3 : 0;
+              // const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-                const { ctx, sut, el, subscriber } = createFixture(value, prop);
-                const checkboxValue = prop === 'model'
-                  ? value
-                  : value === null
-                    ? ''
-                    : String(value);
-                const array = [];
-                sut.setValue(array);
-                // 1. at this point, the array is still empty
+              const { ctx, sutA, sutB, sutC, elA, elB, elC, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
+
+              sutA.setValue(checkedBefore);
+              sutB.setValue(checkedBefore);
+              sutC.setValue(checkedBefore);
+              // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
+
+              assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
+              assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
+              assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
+              assert.strictEqual(sutA.getValue(), checkedBefore, 'sutA.getValue() 1');
+              assert.strictEqual(sutB.getValue(), checkedBefore, 'sutB.getValue() 1');
+              assert.strictEqual(sutC.getValue(), checkedBefore, 'sutC.getValue() 1');
+
+              sutA.setValue(checkedAfter);
+              sutB.setValue(checkedAfter);
+              sutC.setValue(checkedAfter);
+              assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 2');
+              assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 2');
+              assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 2');
+              assert.strictEqual(sutA.getValue(), checkedAfter, 'sutA.getValue() 2');
+              assert.strictEqual(sutB.getValue(), checkedAfter, 'sutB.getValue() 2');
+              assert.strictEqual(sutC.getValue(), checkedAfter, 'sutC.getValue() 2');
+              // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
+
+              if (hasSubscriber) {
+                const allSubACallArguments = [];
+                const allSubBCallArguments = [];
+                const allSubCCallArguments = [];
+                if (checkedBefore !== undefined) {
+                  allSubACallArguments.push([checkedBefore, void 0]);
+                  allSubBCallArguments.push([checkedBefore, void 0]);
+                  allSubCCallArguments.push([checkedBefore, void 0]);
+                }
+                if (checkedAfter !== checkedBefore) {
+                  allSubACallArguments.push([checkedAfter, checkedBefore]);
+                  allSubBCallArguments.push([checkedAfter, checkedBefore]);
+                  allSubCCallArguments.push([checkedAfter, checkedBefore]);
+                }
+                assert.deepStrictEqual(
+                  subscriberA.handleChange.calls,
+                  allSubACallArguments,
+                  `subscriberA.handleChange`,
+                );
+                assert.deepStrictEqual(
+                  subscriberB.handleChange.calls,
+                  allSubBCallArguments,
+                  `subscriberB.handleChange`,
+                );
+                assert.deepStrictEqual(
+                  subscriberC.handleChange.calls,
+                  allSubCCallArguments,
+                  `subscriberC.handleChange`,
+                );
+              } else {
+                assert.deepStrictEqual(subscriberA.handleChange.calls, [], `subscriberA.handleChange`);
+                assert.deepStrictEqual(subscriberB.handleChange.calls, [], `subscriberB.handleChange`);
+                assert.deepStrictEqual(subscriberC.handleChange.calls, [], `subscriberC.handleChange`);
+              }
+
+              tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
+            });
+          }
+        }
+      }
+    });
+
+    describe('handleEvent() - primitive - type="radio"', function () {
+      function createFixture() {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+
+        const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
+        const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
+        const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+        ctx.doc.body.appendChild(elA);
+        ctx.doc.body.appendChild(elB);
+        ctx.doc.body.appendChild(elC);
+        const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+        const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+        const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
+        const subscriberA = { handleChange: createSpy() };
+        const subscriberB = { handleChange: createSpy() };
+        const subscriberC = { handleChange: createSpy() };
+        sutA.subscribe(subscriberA);
+        sutB.subscribe(subscriberB);
+        sutC.subscribe(subscriberC);
+
+        return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(elA);
+        ctx.doc.body.removeChild(elB);
+        ctx.doc.body.removeChild(elC);
+      }
+
+      for (const checkedBefore of ['A', 'B', 'C']) {
+        for (const checkedAfter of ['A', 'B', 'C']) {
+          for (const event of ['change', 'input']) {
+
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+
+              const { ctx, sutA, sutB, sutC, elA, elB, elC } = createFixture();
+
+              elA.checked = checkedBefore === 'A';
+              elB.checked = checkedBefore === 'B';
+              elC.checked = checkedBefore === 'C';
+              elA.dispatchEvent(new ctx.Event(event, eventDefaults));
+              elB.dispatchEvent(new ctx.Event(event, eventDefaults));
+              elC.dispatchEvent(new ctx.Event(event, eventDefaults));
+              assert.strictEqual(sutA.getValue(), checkedBefore === 'A' ? 'A' : undefined, 'sutA.getValue() 1');
+              assert.strictEqual(sutB.getValue(), checkedBefore === 'B' ? 'B' : undefined, 'sutB.getValue() 1');
+              assert.strictEqual(sutC.getValue(), checkedBefore === 'C' ? 'C' : undefined, 'sutC.getValue() 1');
+              assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
+              assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
+              assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
+
+              elA.checked = checkedAfter === 'A';
+              elB.checked = checkedAfter === 'B';
+              elC.checked = checkedAfter === 'C';
+              elA.dispatchEvent(new ctx.Event(event, eventDefaults));
+              elB.dispatchEvent(new ctx.Event(event, eventDefaults));
+              elC.dispatchEvent(new ctx.Event(event, eventDefaults));
+              assert.strictEqual(sutA.getValue(), checkedBefore === 'A' || checkedAfter === 'A' ? 'A' : undefined, 'sutA.getValue() 2');
+              assert.strictEqual(sutB.getValue(), checkedBefore === 'B' || checkedAfter === 'B' ? 'B' : undefined, 'sutB.getValue() 2');
+              assert.strictEqual(sutC.getValue(), checkedBefore === 'C' || checkedAfter === 'C' ? 'C' : undefined, 'sutC.getValue() 2');
+              assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 2');
+              assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 2');
+              assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 2');
+
+              tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
+            });
+          }
+        }
+      }
+    });
+
+    // eslint-disable-next-line mocha/no-skipped-tests
+    describe.skip('setValue() - array - type="checkbox"', function () {
+      function createFixture(hasSubscriber: boolean, value: any, prop: string) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+        el[prop] = value;
+        ctx.doc.body.appendChild(el);
+
+        const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+        observerLocator.getObserver(el, prop);
+
+        const subscriber = { handleChange: createSpy() };
+        if (hasSubscriber) {
+          sut.subscribe(subscriber);
+        }
+
+        return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
+      }
+
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
+      }
+
+      for (const hasSubscriber of [true, false]) {
+        for (const prop of ['value', 'model']) {
+          for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+
+            const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value !== undefined);
+
+            for (const checkedBefore of [true, false]) {
+              for (const checkedAfter of [true, false]) {
+                for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [[], [!value ? 'foo' : '']] : [[]]) {
+                  for (const checkedValue of ((checkedBefore || checkedAfter) ? [[value, '']] : [[]])) {
+
+                    const propValue = checkedBefore ? checkedValue : uncheckedValue;
+                    const newValue = checkedAfter ? checkedValue : uncheckedValue;
+
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+
+                      // const changeCountBefore = 1;
+                      // const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
+
+                      const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
+
+                      sut.setValue(propValue);
+                      // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
+
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 1');
+                      assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
+
+                      sut.setValue(newValue);
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
+                      assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
+                      // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
+
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 3');
+                      assert.deepStrictEqual(
+                        subscriber.handleChange,
+                        [],
+                        `subscriber.handleChange`,
+                      );
+
+                      tearDown({ ctx, sut, el });
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    describe('mutate collection - array - type="checkbox"', function () {
+      function createFixture(hasSubscriber: boolean, value: any, prop: string) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+        el[prop] = value;
+        ctx.doc.body.appendChild(el);
+
+        const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+        observerLocator.getObserver(el, prop);
+
+        const subscriber = { handleChange: createSpy() };
+        if (hasSubscriber) {
+          sut.subscribe(subscriber);
+        }
+
+        return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
+      }
+
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
+      }
+
+      for (const hasSubscriber of [true, false]) {
+        for (const prop of ['value', 'model']) {
+          for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+
+            const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
+
+            it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
+
+              const array = [];
+
+              const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
+
+              sut.setValue(array);
+
+              assert.strictEqual(el.checked, false, 'el.checked 1');
+              assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
+
+              array.push(value);
+              assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 2');
+
+              array.pop();
+              assert.strictEqual(el.checked, false, 'el.checked 3');
+
+              if (hasSubscriber) {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
                     [[], undefined],
                   ],
-                  `subscriber.handleChange (1)`,
+                  `subscriber.handleChange`,
                 );
-                el.checked = checkedBefore;
-                el.dispatchEvent(new ctx.Event(event, eventDefaults));
-                if (checkedBefore) {
-                  assert.deepStrictEqual(
-                    // 2. at this point, it's still the same array above,
-                    // though the array has been mutated with the value of the input
-                    subscriber.handleChange.calls,
-                    [
-                      [[checkboxValue], undefined],
-                    ],
-                    `subscriber.handleChange (2)`,
-                  );
-                }
-                let actual = sut.getValue() as IInputElement[];
+              } else {
+                assert.deepStrictEqual(
+                  subscriber.handleChange.calls,
+                  [],
+                  `subscriber.handleChange`,
+                );
+              }
 
-                if (checkedBefore) {
-                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
-                } else {
-                  assert.strictEqual(actual, array, `actual`);
-                }
+              tearDown({ ctx, sut, el });
+            });
+          }
+        }
+      }
+    });
 
-                el.checked = checkedAfter;
-                el.dispatchEvent(new ctx.Event(event, eventDefaults));
-                actual = sut.getValue() as IInputElement[];
-                if (checkedAfter) {
-                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
-                } else {
-                  assert.strictEqual(actual, array, `actual`);
-                }
-                // 3. if the checkbox is unchecked
-                // then the value of the checkbox should be removed from the array
-                // and vice versa
-                if (checkedAfter) {
-                  assert.deepStrictEqual(
-                    subscriber.handleChange.calls,
-                    [
-                      [[checkboxValue], undefined],
-                    ],
-                    `subscriber.handleChange (3)`,
-                  );
-                } else {
+    describe('handleEvent() - array - type="checkbox"', function () {
+      function createFixture(value: any, prop: string) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
+
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+        el[prop] = value;
+        ctx.doc.body.appendChild(el);
+
+        const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+
+        const subscriber = { handleChange: createSpy() };
+        sut.subscribe(subscriber);
+
+        return { ctx, value, container, observerLocator, el, sut, subscriber, platform };
+      }
+
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
+      }
+
+      for (const prop of ['value', 'model']) {
+        for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+
+          for (const checkedBefore of [true, false]) {
+            for (const checkedAfter of [true, false]) {
+              for (const event of ['change', 'input']) {
+
+                it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+
+                  const { ctx, sut, el, subscriber } = createFixture(value, prop);
+                  const checkboxValue = prop === 'model'
+                    ? value
+                    : value === null
+                      ? ''
+                      : String(value);
+                  const array = [];
+                  sut.setValue(array);
+                  // 1. at this point, the array is still empty
                   assert.deepStrictEqual(
                     subscriber.handleChange.calls,
                     [
                       [[], undefined],
                     ],
-                    `subscriber.handleChange (3)`,
+                    `subscriber.handleChange (1)`,
                   );
-                }
-                tearDown({ ctx, sut, el });
-              });
+                  el.checked = checkedBefore;
+                  el.dispatchEvent(new ctx.Event(event, eventDefaults));
+                  if (checkedBefore) {
+                    assert.deepStrictEqual(
+                      // 2. at this point, it's still the same array above,
+                      // though the array has been mutated with the value of the input
+                      subscriber.handleChange.calls,
+                      [
+                        [[checkboxValue], undefined],
+                      ],
+                      `subscriber.handleChange (2)`,
+                    );
+                  }
+                  let actual = sut.getValue() as IInputElement[];
+
+                  if (checkedBefore) {
+                    assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
+                  } else {
+                    assert.strictEqual(actual, array, `actual`);
+                  }
+
+                  el.checked = checkedAfter;
+                  el.dispatchEvent(new ctx.Event(event, eventDefaults));
+                  actual = sut.getValue() as IInputElement[];
+                  if (checkedAfter) {
+                    assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
+                  } else {
+                    assert.strictEqual(actual, array, `actual`);
+                  }
+                  // 3. if the checkbox is unchecked
+                  // then the value of the checkbox should be removed from the array
+                  // and vice versa
+                  if (checkedAfter) {
+                    assert.deepStrictEqual(
+                      subscriber.handleChange.calls,
+                      [
+                        [[checkboxValue], undefined],
+                      ],
+                      `subscriber.handleChange (3)`,
+                    );
+                  } else {
+                    assert.deepStrictEqual(
+                      subscriber.handleChange.calls,
+                      [
+                        [[], undefined],
+                      ],
+                      `subscriber.handleChange (3)`,
+                    );
+                  }
+                  tearDown({ ctx, sut, el });
+                });
+              }
             }
           }
         }
       }
-    }
-  });
+    });
 
-  // eslint-disable-next-line mocha/no-skipped-tests
-  describe.skip('SelectValueObserver.setValue() - array - type="checkbox"', function () {
-    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.create();
-      const { container, observerLocator, platform } = ctx;
+    // eslint-disable-next-line mocha/no-skipped-tests
+    describe.skip('SelectValueObserver.setValue() - array - type="checkbox"', function () {
+      function createFixture(hasSubscriber: boolean, value: any, prop: string) {
+        const ctx = TestContext.create();
+        const { container, observerLocator, platform } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
-      ctx.doc.body.appendChild(el);
+        const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+        ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IObserver;
+        const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+        const valueOrModelObserver = observerLocator.getObserver(el, prop) as IObserver;
 
-      const subscriber = { handleChange: createSpy() };
-      if (hasSubscriber) {
-        sut.subscribe(subscriber);
+        const subscriber = { handleChange: createSpy() };
+        if (hasSubscriber) {
+          sut.subscribe(subscriber);
+        }
+
+        return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver };
       }
 
-      return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver };
-    }
+      function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
+        ctx.doc.body.removeChild(el);
+      }
 
-    function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
-      ctx.doc.body.removeChild(el);
-    }
+      for (const hasSubscriber of [true, false]) {
+        for (const prop of ['value', 'model']) {
+          for (const value of ['foo', 'bar', 42, null, undefined, '']) {
 
-    for (const hasSubscriber of [true, false]) {
-      for (const prop of ['value', 'model']) {
-        for (const value of ['foo', 'bar', 42, null, undefined, '']) {
+            const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
 
-          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
+            for (const checkedBefore of [true, false]) {
+              for (const checkedAfter of [true, false]) {
+                for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [[], [!value ? 'foo' : '']] : [[]]) {
+                  for (const checkedValue of ((checkedBefore || checkedAfter) ? [[value, '']] : [[]])) {
 
-          for (const checkedBefore of [true, false]) {
-            for (const checkedAfter of [true, false]) {
-              for (const uncheckedValue of (!(checkedBefore && checkedAfter)) ? [[], [!value ? 'foo' : '']] : [[]]) {
-                for (const checkedValue of ((checkedBefore || checkedAfter) ? [[value, '']] : [[]])) {
+                    const propValue = checkedBefore ? checkedValue : uncheckedValue;
+                    const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                  const propValue = checkedBefore ? checkedValue : uncheckedValue;
-                  const newValue = checkedAfter ? checkedValue : uncheckedValue;
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                      const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
 
-                    const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
+                      sut.setValue(propValue);
 
-                    sut.setValue(propValue);
+                      assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
-                    assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
+                      assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
+                      valueOrModelObserver.setValue(value);
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
 
-                    assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
-                    valueOrModelObserver.setValue(value);
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
 
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
+                      sut.setValue(newValue);
 
-                    sut.setValue(newValue);
+                      assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
 
-                    assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
+                      valueOrModelObserver.setValue(newValue);
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
 
-                    valueOrModelObserver.setValue(newValue);
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
+                      assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');
+                      assert.deepStrictEqual(
+                        subscriber.handleChange,
+                        [],
+                        `subscriber.handleChange`,
+                      );
 
-                    assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');
-                    assert.deepStrictEqual(
-                      subscriber.handleChange,
-                      [],
-                      `subscriber.handleChange`,
-                    );
-
-                    tearDown({ ctx, sut, el });
-                  });
+                      tearDown({ ctx, sut, el });
+                    });
+                  }
                 }
               }
             }
           }
         }
       }
-    }
+    });
   });
 });

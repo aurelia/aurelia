@@ -6,10 +6,16 @@ import { connecting, currentConnectable, _connectable } from './connectable-swit
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
+/** @internal */
+export const nowrapClassKey = Symbol.for('__au_nw__');
+/** @internal */
+export const nowrapPropKey = '__au_nw';
 
 function canWrap(obj: unknown): obj is object {
   switch (toStringTag.call(obj)) {
     case '[object Object]':
+      // enable inheritance decoration
+      return ((obj as object).constructor as IIndexable<() => unknown>)[nowrapClassKey] !== true;
     case '[object Array]':
     case '[object Map]':
     case '[object Set]':
@@ -25,31 +31,39 @@ function canWrap(obj: unknown): obj is object {
 
 export const rawKey = '__raw__';
 
+/** @internal */
 export function wrap<T>(v: T): T {
   return canWrap(v) ? getProxy(v) : v;
 }
+/** @internal */
 export function getProxy<T extends object>(obj: T): T {
   // deepscan-disable-next-line
   return proxyMap.get(obj) as T ?? createProxy(obj);
 }
 
+/** @internal */
 export function getRaw<T extends object>(obj: T): T {
   // todo: get in a weakmap if null/undef
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
+/** @internal */
 export function unwrap<T>(v: T): T {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 
-function doNotCollect(key: PropertyKey): boolean {
+function doNotCollect(object: object, key: PropertyKey): boolean {
   return key === 'constructor'
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
     // __o__ is shorters & less chance of conflict with other libs as well
     || key === '$observers'
     || key === Symbol.toPrimitive
-    || key === Symbol.toStringTag;
+    || key === Symbol.toStringTag
+    // limit to string first
+    // symbol can be added later
+    // looking up from the constructor means inheritance is supported
+    || typeof key === 'string' && (object.constructor as IIndexable<() => unknown>)[Symbol.for(`${nowrapPropKey}_${key}__`)] === true;
 }
 
 function createProxy<T extends object>(obj: T): T {
@@ -74,7 +88,7 @@ const objectHandler: ProxyHandler<object> = {
 
     const connectable = currentConnectable();
 
-    if (!connecting || doNotCollect(key) || connectable == null) {
+    if (!connecting || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -92,7 +106,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
       return target;
     }
 
-    if (!connecting || doNotCollect(key) || _connectable == null) {
+    if (!connecting || doNotCollect(target, key) || _connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -309,7 +323,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     const connectable = currentConnectable();
 
-    if (!connecting || doNotCollect(key) || connectable == null) {
+    if (!connecting || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 

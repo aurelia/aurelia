@@ -137,6 +137,9 @@ export {
   ProxyObservable,
 } from './observation/proxy-observation';
 export {
+  nowrap,
+} from './observation/proxy-decorators';
+export {
   SetterObserver,
 } from './observation/setter-observer';
 export {

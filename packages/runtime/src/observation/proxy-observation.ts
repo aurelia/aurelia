@@ -1,13 +1,13 @@
 import { IIndexable } from '@aurelia/kernel';
 import { Collection, IConnectable } from '../observation';
-import { isArray, isMap, isSet } from '../utilities-objects';
+import { isArray, isMap, isSet, safeString } from '../utilities-objects';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
 /** @internal */
-export const nowrapClassKey = Symbol.for('__au_nw__');
+export const nowrapClassKey = '__au_nw__';
 /** @internal */
 export const nowrapPropKey = '__au_nw';
 
@@ -63,7 +63,7 @@ function doNotCollect(object: object, key: PropertyKey): boolean {
     // limit to string first
     // symbol can be added later
     // looking up from the constructor means inheritance is supported
-    || typeof key === 'string' && (object.constructor as IIndexable<() => unknown>)[Symbol.for(`${nowrapPropKey}_${key}__`)] === true;
+    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${safeString(key)}__`] === true;
 }
 
 function createProxy<T extends object>(obj: T): T {

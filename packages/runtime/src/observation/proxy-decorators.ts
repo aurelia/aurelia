@@ -66,7 +66,7 @@ export function nowrap(
       defineHiddenProp(target, nowrapClassKey, true);
     } else {
       // defining on the constructor means inheritance lookup is supported
-      defineHiddenProp((target as object).constructor, Symbol.for(`${nowrapPropKey}_${safeString(key)}__`), true);
+      defineHiddenProp((target as object).constructor, `${nowrapPropKey}_${safeString(key)}__`, true);
     }
   }
 }

@@ -71,7 +71,7 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     m.i18n;
     ConnectableSwitcher.exit(connectable);
-    assert.strictEqual(count, 1);
+    assert.strictEqual(count, 0);
   });
 
   it('does not wrap PROP marked from parent', function () {
@@ -92,6 +92,6 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     m.i18n;
     ConnectableSwitcher.exit(connectable);
-    assert.strictEqual(count, 1);
+    assert.strictEqual(count, 0);
   });
 });

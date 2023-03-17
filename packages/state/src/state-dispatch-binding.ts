@@ -14,7 +14,6 @@ import {
 } from '@aurelia/runtime';
 import { mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
-  IAction,
   type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
@@ -60,10 +59,7 @@ export class StateDispatchBinding implements IBinding {
     scope.overrideContext.$event = e;
     const value = astEvaluate(this.ast, scope, this, null);
     delete scope.overrideContext.$event;
-    if (!this.isAction(value)) {
-      throw new Error(`Invalid dispatch value from expression on ${this._target} on event: "${e.type}"`);
-    }
-    void this._store.dispatch(value.type, ...(value.params instanceof Array ? value.params : []));
+    void this._store.dispatch(value);
   }
 
   public handleEvent(e: Event) {
@@ -97,13 +93,6 @@ export class StateDispatchBinding implements IBinding {
     const scope = this._scope!;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
     scope.bindingContext = overrideContext.bindingContext = state;
-  }
-
-  /** @internal */
-  private isAction(value: unknown): value is IAction {
-    return value != null
-      && typeof value === 'object'
-      && 'type' in value;
   }
 }
 

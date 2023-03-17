@@ -1,7 +1,7 @@
 import { all, IContainer, ILogger, MaybePromise, optional, Registration } from '@aurelia/kernel';
-import { IAction, IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
+import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
 
-export class Store<T extends object> implements IStore<T> {
+export class Store<T extends object, TAction = unknown> implements IStore<T> {
   public static register(c: IContainer) {
     Registration.singleton(IStore, this).register(c);
   }
@@ -13,11 +13,11 @@ export class Store<T extends object> implements IStore<T> {
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _handlers: IActionHandler<T>[];
   /** @internal */ private _dispatching = 0;
-  /** @internal */ private readonly _dispatchQueues: IAction[] = [];
+  /** @internal */ private readonly _dispatchQueues: TAction[] = [];
 
-  public constructor(initialState: T | null, reducers: IActionHandler<T>[], logger: ILogger) {
+  public constructor(initialState: T | null, actionHandlers: IActionHandler<T>[], logger: ILogger) {
     this._state = initialState ?? new State() as T;
-    this._handlers = reducers;
+    this._handlers = actionHandlers;
     this._logger = logger;
   }
 
@@ -55,9 +55,9 @@ export class Store<T extends object> implements IStore<T> {
     return this._state;
   }
 
-  public dispatch(type: unknown, ...params: any[]): void | Promise<void> {
+  public dispatch(action: TAction): void | Promise<void> {
     if (this._dispatching > 0) {
-      this._dispatchQueues.push({ type, params });
+      this._dispatchQueues.push(action);
       return;
     }
 
@@ -116,19 +116,19 @@ export class Store<T extends object> implements IStore<T> {
 
     // return dispatch(action, params);
 
-    let $$action: IAction;
-    const reduce = ($state: T | Promise<T>, $action: unknown, params?: unknown[]) =>
+    let $$action: TAction;
+    const reduce = ($state: T | Promise<T>, $action: unknown) =>
       this._handlers.reduce(($state, handler) => {
         if ($state instanceof Promise) {
-          return $state.then($ => handler($, $action, ...params ?? []));
+          return $state.then($ => handler($, $action));
         }
-        return handler($state, $action, ...params ?? []) as T | Promise<T>;
+        return handler($state, $action) as T | Promise<T>;
       }, $state);
 
     const afterDispatch = ($state: MaybePromise<T>): void | Promise<void> => {
       if (this._dispatchQueues.length > 0) {
         $$action = this._dispatchQueues.shift()!;
-        const newState = reduce($state, $$action.type, $$action.params);
+        const newState = reduce($state, $$action);
         if (newState instanceof Promise) {
           return newState.then($ => afterDispatch($));
         } else {
@@ -136,7 +136,7 @@ export class Store<T extends object> implements IStore<T> {
         }
       }
     };
-    const newState = reduce(this._state, type, params);
+    const newState = reduce(this._state, action);
 
     if (newState instanceof Promise) {
       return newState.then($state => {
@@ -170,3 +170,15 @@ class StateProxyHandler<T extends object> implements ProxyHandler<T> {
     return true;
   }
 }
+
+/* eslint-disable */
+function typingsTest() {
+  let store: IStore<{ a: number }, { type: 'edit'; value: string } | { type: 'clear' }> = null!;
+
+  store.dispatch({ type: 'clear' });
+  // @ts-expect-error
+  store.dispatch({ type: 'edit' });
+  // @ts-expect-error
+  store.dispatch({ type: 'hello' });
+}
+/* eslint-enable */

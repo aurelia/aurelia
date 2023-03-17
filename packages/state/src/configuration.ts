@@ -26,16 +26,16 @@ const standardRegistrations = [
   Store,
 ];
 
-const createConfiguration = <T>(initialState: T, reducers: IActionHandler<T>[]) => {
+const createConfiguration = <T>(initialState: T, actionHandlers: IActionHandler<T>[]) => {
   return {
     register: (c: IContainer) => {
       c.register(
         Registration.instance(IState, initialState),
         ...standardRegistrations,
-        ...reducers.map(ActionHandler.define),
+        ...actionHandlers.map(ActionHandler.define),
       );
     },
-    init: <T1>(state: T1, ...reducers: IActionHandler<T1>[]) => createConfiguration(state, reducers),
+    init: <T1>(state: T1, ...actionHandlers: IActionHandler<T1>[]) => createConfiguration(state, actionHandlers),
   };
 };
 

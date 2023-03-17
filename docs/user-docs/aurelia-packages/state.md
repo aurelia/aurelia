@@ -49,15 +49,15 @@ This state will be stored in the global state container for bindings to use in t
 The initial state above aren't meant to be mutated directly. In order to produce a state change, an mutation request should be dispatched instead. An action handler is a function that is supposed to combine the current state of the state container and the action parameters of the function call to produce a new state:
 
 ```js
-const actionHandler = (state, action, ...parameters) => newState
+const actionHandler = (state, action) => newState
 ```
 
 An example of a action handler that produce a new state with updated keyword on a `keyword` action:
 
 ```ts
-export function keywordsHandler(currentState, action, newKeyword) {
-  return action === 'newKeywords'
-    ? { ...currentState, keywords: newKeyword }
+export function keywordsHandler(currentState, action) {
+  return action.type === 'newKeywords'
+    ? { ...currentState, keywords: action.value }
     : currentState
 }
 ```
@@ -107,7 +107,7 @@ The Aurelia State Plugin provides `state` and `dispatch` binding commands that s
 
 // bind value property of the input to `keywords` property on the global state
 // and dispatch an action with type `newKeywords` on input event
-<input value.state="keywords" input.dispatch="{ type: 'newKeywords', params: [$event.target.value] }">
+<input value.state="keywords" input.dispatch="{ type: 'newKeywords', value: $event.target.value }">
 ```
 
 ### With `& state` binding behavior
@@ -151,4 +151,33 @@ As mentioned at the start of this guide, action handlers are the way to handle m
 
 Action handlers can be either synchronous or asyncchronous. An application may have one or more action handlers, and if one action handler is asynchronous, a promise will be returned for the `dispatch` call.
 
-An action handler should return the existing state (first parameters) if the action type is not of its interest.
+An action handler should return the existing state (first parameters) if the action is not of its interest.
+
+## Example of type declaration for application stores
+
+Applications can enforce strict typings with view model based `dispatch` call via 2nd type parameter of the store.
+
+For example, if the store only accepts 2 type of actions that has the following type:
+
+```ts
+export type EditAction = { type: 'edit'; value: string }
+export type ClearAction = { type: 'clear' }
+```
+
+Then the store can be declared like this:
+```ts
+import { IStore } from '@aurelia/state';
+
+@inject(IStore)
+class MyEl {
+  constructor(store: IStore<{}, EditAction | ClearAction>) {
+    this.store = store;
+  }
+
+  onSomeUserAction() {
+    this.store.dispatch({ type: 'edit', value: 'hi' }); // good
+    this.store.dispatch({ type: 'edit' }); // error 💥
+    this.store.dispatch({ type: 'clear' }); // good
+  }
+}
+```

@@ -120,7 +120,7 @@ class StateProxyHandler<T extends object> implements ProxyHandler<T> {
 
 /* eslint-disable */
 function typingsTest() {
-  let store: IStore<{ a: number }, { type: 'edit'; value: string } | { type: 'clear' }> = null!;
+  const store = {} as unknown as IStore<{ a: number }, { type: 'edit'; value: string } | { type: 'clear' }>;
 
   store.dispatch({ type: 'clear' });
   // @ts-expect-error

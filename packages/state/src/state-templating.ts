@@ -123,11 +123,10 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IExpressionParser, IStore];
+  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sd';
 
   public constructor(
-    /** @internal */ private readonly _exprParser: IExpressionParser,
     /** @internal */ private readonly _stateContainer: IStore<object>,
   ) {}
 
@@ -135,8 +134,10 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     renderingCtrl: IHydratableController,
     target: HTMLElement,
     instruction: DispatchBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(this._exprParser, instruction.ast, ExpressionType.IsProperty);
+    const expr = ensureExpression(exprParser, instruction.ast, ExpressionType.IsProperty);
     renderingCtrl.addBinding(new StateDispatchBinding(
       renderingCtrl.container,
       expr,

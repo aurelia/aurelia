@@ -182,9 +182,9 @@ describe('state/state.spec.ts', function () {
 
     it('updates text when state changes', async function () {
       const { trigger, flush, getBy } = await createFixture
-        .html`<input value.bind="text & state" input.dispatch="{ type: '', params: [$event.target.value] }">`
+        .html`<input value.bind="text & state" input.dispatch="$event.target.value">`
         .component({ text: 'from view model' })
-        .deps(StateDefaultConfiguration.init({ text: '1' }, (s, a, v) => ({ text: s.text + v })))
+        .deps(StateDefaultConfiguration.init({ text: '1' }, (s, a) => ({ text: s.text + a })))
         .build().started;
 
       trigger('input', 'input');
@@ -195,7 +195,7 @@ describe('state/state.spec.ts', function () {
     it('updates repeat when state changes', async function () {
       const { trigger, assertText } = await createFixture
         .html`
-          <button click.dispatch="{ type: '' }">change</button>
+          <button click.dispatch="''">change</button>
           <center><div repeat.for="item of items & state">\${item}`
         .deps(StateDefaultConfiguration.init({ items: [1, 2, 3] }, () => ({ items: [4, 5, 6] })))
         .build().started;
@@ -213,11 +213,11 @@ describe('state/state.spec.ts', function () {
     it('dispatches action', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] }">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, action: unknown, v: string) =>
-            action === 'event' ? { text: s.text + v } : s
+          (s, { type, v }: { type: string; v: string }) =>
+            type === 'event' ? { text: s.text + v } : s
         ))
         .build().started;
 
@@ -228,19 +228,19 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '11');
     });
 
-    it('handles multiple action type in a single reducer', async function () {
+    it('handles multiple action types in a single reducer', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
         .html`
-          <input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] }">
+          <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'clear' }">Clear</button>
         `
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, action: unknown, v: string) =>
-            action === 'event'
+          (s, { type, v}: { type: string; v: string }) =>
+            type === 'event'
               ? { text: s.text + v }
-              : action === 'clear'
+              : type === 'clear'
                 ? { text: '' }
                 : s
         ))
@@ -260,11 +260,11 @@ describe('state/state.spec.ts', function () {
     it('does not throw on unreged action type', async function () {
       const state = { text: '1' };
       const { trigger, flush, getBy } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'no-reg', params: [$event.target.value] }">`
+        .html`<input value.state="text" input.dispatch="{ type: 'no-reg', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, action: unknown, v: string) =>
-            action === 'event' ? { text: s.text + v } : s
+          (s, { type, v }: { type: string; v: string }) =>
+            type === 'event' ? { text: s.text + v } : s
         ))
         .build().started;
 
@@ -276,11 +276,11 @@ describe('state/state.spec.ts', function () {
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger, flush } = createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] } & debounce:1">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:1">`
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, action: unknown, v: string) =>
-            action === 'event' ? { text: s.text + v } : s
+          (s, { type, v }: { type: string; v: string }) =>
+            type === 'event' ? { text: s.text + v } : s
         ))
         .build();
 
@@ -297,11 +297,11 @@ describe('state/state.spec.ts', function () {
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger, flush } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', params: [$event.target.value] } & throttle:1">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:1">`
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, action: unknown, v: string) => {
-            if (action === 'event') {
+          (s, { type, v }: { type: string; v: string }) => {
+            if (type === 'event') {
               actionCallCount++;
               return { text: s.text + v };
             }
@@ -363,7 +363,7 @@ describe('state/state.spec.ts', function () {
     });
 
     it('updates when state changed', async function () {
-      @customElement({ name: 'my-el', template: `<input value.bind="text" input.dispatch="{ type: 'input', params: [$event.target.value] }">` })
+      @customElement({ name: 'my-el', template: `<input value.bind="text" input.dispatch="{ type: 'input', v: $event.target.value }">` })
       class MyEl {
         @fromState<typeof state>(s => s.text)
         text: string;
@@ -372,7 +372,7 @@ describe('state/state.spec.ts', function () {
       const state = { text: '1' };
       const { trigger, flush, getBy } = await createFixture
         .html`<my-el>`
-        .deps(MyEl, StateDefaultConfiguration.init(state, (s, type, value) => ({ text: s.text + value })))
+        .deps(MyEl, StateDefaultConfiguration.init(state, (s, { v }) => ({ text: s.text + v })))
         .build().started;
 
       trigger('input', 'input');

@@ -8,8 +8,7 @@ export {
   IStore,
   type IStoreSubscriber,
   IActionHandler,
-  type IRegistrableReducer,
-  type IAction,
+  type IRegistrableAction,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';

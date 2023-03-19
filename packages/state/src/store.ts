@@ -62,59 +62,6 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     }
 
     this._dispatching++;
-    // const dispatch = ($actionType: unknown, $params: any[]): void | Promise<void> => {
-    //   const $$reducer = this._reducers;
-    //   if ($$reducer.length === 0) {
-    //     if (__DEV__) {
-    //       this._logger.warn(`No reducers registered.`);
-    //     }
-    //     return;
-    //   }
-
-    //   let newState: T | Promise<T> | undefined = void 0;
-    //   try {
-    //     newState = $$reducer(this._state, $actionType, ...$params);
-    //   } catch (ex) {
-    //     this._publishing--;
-    //     throw ex;
-    //   }
-
-    //   if (newState instanceof Promise) {
-    //     return newState.then(s => {
-    //       this._setState(s);
-
-    //       return afterDispatch();
-    //     }).then(() => {
-    //       this._publishing--;
-    //     }, ex => {
-    //       this._publishing--;
-    //       throw ex;
-    //     });
-    //   } else {
-    //     this._setState(newState);
-
-    //     const res = afterDispatch();
-    //     if (res instanceof Promise) {
-    //       return res.then(() => {
-    //         this._publishing--;
-    //       }, ex => {
-    //         this._publishing--;
-    //         throw ex;
-    //       });
-    //     } else {
-    //       this._publishing--;
-    //     }
-    //   }
-    // };
-
-    // const afterDispatch = (): void | Promise<void> => {
-    //   if (this._dispatchQueues.length > 0) {
-    //     const queuedItem = this._dispatchQueues.shift()!;
-    //     return dispatch(queuedItem.action, queuedItem.params);
-    //   }
-    // };
-
-    // return dispatch(action, params);
 
     let $$action: TAction;
     const reduce = ($state: T | Promise<T>, $action: unknown) =>
@@ -178,6 +125,8 @@ function typingsTest() {
   store.dispatch({ type: 'clear' });
   // @ts-expect-error
   store.dispatch({ type: 'edit' });
+  // @ts-expect-error
+  store.dispatch({ type: 'edit', value: 5 });
   // @ts-expect-error
   store.dispatch({ type: 'hello' });
 }

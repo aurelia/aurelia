@@ -443,8 +443,14 @@ export class ViewportAgent {
             return;
           case 'replace': {
             const controller = this.hostController;
+            const nextState = this.nextState;
+            const curCa = this.curCA!;
             tr.run(() => {
-              return this.curCA!.deactivate(initiator, controller);
+              return onResolve(curCa.deactivate(initiator, controller), ()=> {
+                if(nextState === State.nextIsEmpty) {
+                  curCa.dispose();
+                }
+              });
             }, () => {
               b.pop();
             });

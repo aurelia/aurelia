@@ -1592,13 +1592,14 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
   class SiblingHookTestData {
     public readonly name: string;
     public constructor(
+      ticks: number,
       public readonly root: Class<unknown>,
       public readonly scopes: string[],
       public readonly assertStartLog: (eventLog: EventLog) => void,
       public readonly phases: [instruction: string, assertion: (eventLog: EventLog) => void][],
       public readonly assertStopLog: (eventLog: EventLog) => void,
     ) {
-      this.name = Array.from(phases.map(x => x[0])).join(' -> ');
+      this.name = `ticks: ${ticks} - ${Array.from(phases.map(x => x[0])).join(' -> ')}`;
     }
   }
 
@@ -1693,3694 +1694,4444 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
         /Root\] attached - end ro-ot/,
       ], 'start');
     }
-    // #region tick: 0
-    let [root, scopes] = createRoot(0);
-
-    // #region only vp $0 changes with every nav
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A03\] detaching - start a03/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A03\] detaching - end a03/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A03\] unbinding - start a03/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A03\] unbinding - end a03/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A03\] dispose - a03/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A03\] detaching - start a03/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A03\] detaching - end a03/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A03\] unbinding - start a03/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A03\] unbinding - end a03/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A03\] dispose - a03/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-    // #endregion
-
-    // #region only vp $1 changes with every nav
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A03\] detaching - start a03/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A03\] detaching - end a03/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A03\] unbinding - start a03/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A03\] unbinding - end a03/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A03\] dispose - a03/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A03\] detaching - start a03/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A03\] detaching - end a03/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A03\] unbinding - start a03/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A03\] unbinding - end a03/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A03\] dispose - a03/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] canLoad - end a01/,
-
-              /A01\] loading - start a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] loading - end a01/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] canLoad - end a01/,
-
-              /A01\] loading - start a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] loading - end a01/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-    // #endregion
-
-    // #endregion
-
-    // #region tick: 1
-    [root, scopes] = createRoot(1);
-
-    // #region only vp $0 changes with every nav
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A03\] detaching - start a03/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A03\] detaching - end a03/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A03\] unbinding - start a03/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A03\] unbinding - end a03/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A03\] dispose - a03/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a03@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A03\] detaching - start a03/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A03\] detaching - end a03/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A03\] unbinding - start a03/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A03\] unbinding - end a03/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A03\] dispose - a03/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] canLoad - end a02/,
-
-              /A02\] loading - start a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a02@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-    // #endregion
-
-    // #region only vp $1 changes with every nav
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A03\] detaching - start a03/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A03\] detaching - end a03/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A03\] unbinding - start a03/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A03\] unbinding - end a03/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A03\] dispose - a03/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canUnload - start a03/,
-              /A03\] canUnload - end a03/,
-
-              /A03\] unloading - start a03/,
-              /A03\] unloading - end a03/,
-
-              /A03\] detaching - start a03/,
-              /A03\] detaching - end a03/,
-              /A03\] unbinding - start a03/,
-              /A03\] unbinding - end a03/,
-              /A03\] dispose - a03/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a03@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A03\] canLoad - start a03/,
-              /A03\] canLoad - end a03/,
-
-              /A03\] loading - start a03/,
-              /A03\] loading - end a03/,
-
-              /A03\] binding - start a03/,
-              /A03\] binding - end a03/,
-              /A03\] bound - start a03/,
-              /A03\] bound - end a03/,
-              /A03\] attaching - start a03/,
-              /A03\] attaching - end a03/,
-              /A03\] attached - start a03/,
-              /A03\] attached - end a03/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A03\] detaching - start a03/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A03\] detaching - end a03/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A03\] unbinding - start a03/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A03\] unbinding - end a03/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A03\] dispose - a03/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A02\] canLoad - start a02/,
-              /A01\] canLoad - end a01/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] loading - start a01/,
-              /A02\] loading - start a02/,
-              /A01\] loading - end a01/,
-              /A02\] loading - end a02/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase1');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] canLoad - end a01/,
-
-              /A01\] loading - start a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] loading - end a01/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-        ], 'stop');
-      },
-    );
-
-    yield new SiblingHookTestData(
-      root,
-      scopes,
-      assertStartLog,
-      [
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-              /A01\] canLoad - end a01/,
-
-              /A01\] loading - start a01/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-              /A01\] loading - end a01/,
-            ], 'phase1.1');
-
-            eventLog.assertLogOrderInvariant([
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 9, 'phase1.2');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase2');
-          },
-        ],
-        [
-          'a01@$0+a01@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A02\] canUnload - start a02/,
-              /A02\] canUnload - end a02/,
-              /A01\] canLoad - start a01/,
-              /A01\] canLoad - end a01/,
-
-              /A02\] unloading - start a02/,
-              /A02\] unloading - end a02/,
-              /A01\] loading - start a01/,
-              /A01\] loading - end a01/,
-
-              /A02\] detaching - start a02/,
-              /A02\] detaching - end a02/,
-              /A02\] unbinding - start a02/,
-              /A02\] unbinding - end a02/,
-              /A02\] dispose - a02/,
-
-              /A01\] binding - start a01/,
-              /A01\] binding - end a01/,
-              /A01\] bound - start a01/,
-              /A01\] bound - end a01/,
-              /A01\] attaching - start a01/,
-              /A01\] attaching - end a01/,
-              /A01\] attached - start a01/,
-              /A01\] attached - end a01/,
-            ], 'phase3');
-          },
-        ],
-        [
-          'a01@$0+a02@$1',
-          (eventLog: EventLog) => {
-            eventLog.assertLog([
-              /A01\] canUnload - start a01/,
-              /A01\] canUnload - end a01/,
-              /A02\] canLoad - start a02/,
-              /A02\] canLoad - end a02/,
-
-              /A01\] unloading - start a01/,
-              /A01\] unloading - end a01/,
-              /A02\] loading - start a02/,
-              /A02\] loading - end a02/,
-
-              /A01\] detaching - start a01/,
-              /A01\] detaching - end a01/,
-              /A01\] unbinding - start a01/,
-              /A01\] unbinding - end a01/,
-              /A01\] dispose - a01/,
-
-              /A02\] binding - start a02/,
-              /A02\] binding - end a02/,
-              /A02\] bound - start a02/,
-              /A02\] bound - end a02/,
-              /A02\] attaching - start a02/,
-              /A02\] attaching - end a02/,
-              /A02\] attached - start a02/,
-              /A02\] attached - end a02/,
-            ], 'phase4');
-          },
-        ],
-      ],
-      (eventLog: EventLog) => {
-        eventLog.assertLog([
-          /A01\] detaching - start a01/,
-          /A02\] detaching - start a02/,
-          /Root\] detaching - start ro-ot/,
-          /A01\] detaching - end a01/,
-          /A02\] detaching - end a02/,
-          /Root\] detaching - end ro-ot/,
-
-          /A01\] unbinding - start a01/,
-          /A02\] unbinding - start a02/,
-          /Root\] unbinding - start ro-ot/,
-          /A01\] unbinding - end a01/,
-          /A02\] unbinding - end a02/,
-          /Root\] unbinding - end ro-ot/,
-
-          /Root\] dispose - ro-ot/,
-          /A01\] dispose - a01/,
-          /A02\] dispose - a02/,
-        ], 'stop');
-      },
-    );
-    // #endregion
-
-    // #endregion
+    for (const ticks of [0, 1]) {
+      const [root, scopes] = createRoot(ticks);
+
+      // #region only vp $0 changes with every nav
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a03@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A03\] canUnload - end a03/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A03\] unloading - start a03/,
+                /A03\] unloading - end a03/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a03@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a03@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A03\] canUnload - end a03/,
+
+                /A03\] unloading - start a03/,
+                /A03\] unloading - end a03/,
+
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a03@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a02@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+      // #endregion
+
+      // #region only vp $1 changes with every nav
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0+a03@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A03\] canUnload - end a03/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A03\] unloading - start a03/,
+                /A03\] unloading - end a03/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a03@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A03\] detaching - start a03/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A03\] detaching - end a03/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A03\] unbinding - start a03/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A03\] unbinding - end a03/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A03\] dispose - a03/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a01@$0+a03@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A03\] canUnload - end a03/,
+
+                /A03\] unloading - start a03/,
+                /A03\] unloading - end a03/,
+
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a03@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A03\] detaching - start a03/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A03\] detaching - end a03/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A03\] unbinding - start a03/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A03\] unbinding - end a03/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A03\] dispose - a03/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] loading - start a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] loading - end a01/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] loading - start a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] loading - end a01/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase2');
+            },
+          ],
+          [
+            'a01@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase3');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase4');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+      // #endregion
+
+      // #region both vp $0 and $1 change with every nav
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 9, 'phase1.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 17, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A04\] canUnload - start a04/,
+                /A03\] canUnload - end a03/,
+                /A04\] canUnload - end a04/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A03\] unloading - start a03/,
+                /A04\] unloading - start a04/,
+                /A03\] unloading - end a03/,
+                /A04\] unloading - end a04/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 17, 'phase3.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 17, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /A04\] detaching - start a04/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /A04\] detaching - end a04/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /A04\] unbinding - start a04/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /A04\] unbinding - end a04/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+            /A04\] dispose - a04/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 4, 'phase1.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A04\] canUnload - start a04/,
+                /A03\] canUnload - end a03/,
+                /A04\] canUnload - end a04/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A03\] unloading - start a03/,
+                /A04\] unloading - start a04/,
+                /A03\] unloading - end a03/,
+                /A04\] unloading - end a04/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /A04\] detaching - start a04/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /A04\] detaching - end a04/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /A04\] unbinding - start a04/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /A04\] unbinding - end a04/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+            /A04\] dispose - a04/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 4, 'phase1.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A04\] canUnload - start a04/,
+                /A03\] canUnload - end a03/,
+                /A04\] canUnload - end a04/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A03\] unloading - start a03/,
+                /A04\] unloading - start a04/,
+                /A03\] unloading - end a03/,
+                /A04\] unloading - end a04/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a03@$0+a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A03\] canLoad - start a03/,
+                /A04\] canLoad - start a04/,
+                /A03\] canLoad - end a03/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A03\] loading - start a03/,
+                /A04\] loading - start a04/,
+                /A03\] loading - end a03/,
+                /A04\] loading - end a04/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /A04\] detaching - start a04/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /A04\] detaching - end a04/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /A04\] unbinding - start a04/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /A04\] unbinding - end a04/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+            /A04\] dispose - a04/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A04\] loading - end a04/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A04\] canUnload - start a04/,
+                /A04\] canUnload - end a04/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A04\] unloading - start a04/,
+                /A04\] unloading - end a04/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a04@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A04\] canLoad - end a04/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A04\] loading - end a04/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A04\] detaching - start a04/,
+            /Root\] detaching - start ro-ot/,
+            /A04\] detaching - end a04/,
+            /Root\] detaching - end ro-ot/,
+
+            /A04\] unbinding - start a04/,
+            /Root\] unbinding - start ro-ot/,
+            /A04\] unbinding - end a04/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A04\] dispose - a04/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a03@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A03\] canUnload - start a03/,
+                /A03\] canUnload - end a03/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A03\] unloading - start a03/,
+                /A03\] unloading - end a03/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A03\] detaching - start a03/,
+                /A03\] detaching - end a03/,
+                /A03\] unbinding - start a03/,
+                /A03\] unbinding - end a03/,
+                /A03\] dispose - a03/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a03@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A03\] canLoad - start a03/,
+                /A03\] canLoad - end a03/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A03\] loading - start a03/,
+                /A03\] loading - end a03/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A03\] binding - start a03/,
+                /A03\] binding - end a03/,
+                /A03\] bound - start a03/,
+                /A03\] bound - end a03/,
+                /A03\] attaching - start a03/,
+                /A03\] attaching - end a03/,
+                /A03\] attached - start a03/,
+                /A03\] attached - end a03/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A03\] detaching - start a03/,
+            /Root\] detaching - start ro-ot/,
+            /A03\] detaching - end a03/,
+            /Root\] detaching - end ro-ot/,
+
+            /A03\] unbinding - start a03/,
+            /Root\] unbinding - start ro-ot/,
+            /A03\] unbinding - end a03/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A03\] dispose - a03/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 16, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - end a02/,
+                /A01\] canUnload - end a01/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A01\] unloading - start a01/,
+                /A02\] unloading - end a02/,
+                /A01\] unloading - end a01/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 16, 'phase3.2');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 16, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 4, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - end a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A01\] unloading - start a01/,
+                /A02\] unloading - end a02/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - end a02/,
+                /A01\] canUnload - end a01/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A01\] unloading - start a01/,
+                /A02\] unloading - end a02/,
+                /A01\] unloading - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a02@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - end a02/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - end a02/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a02@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a02@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A02\] detaching - start a02/,
+            /Root\] detaching - start ro-ot/,
+            /A02\] detaching - end a02/,
+            /Root\] detaching - end ro-ot/,
+
+            /A02\] unbinding - start a02/,
+            /Root\] unbinding - start ro-ot/,
+            /A02\] unbinding - end a02/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A02\] dispose - a02/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase1.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 8, 'phase1.2');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 16, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0+a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A04\] canUnload - start a04/,
+                /A01\] canUnload - start a01/,
+                /A04\] canUnload - end a04/,
+                /A01\] canUnload - end a01/,
+                /A01\] canLoad - start a01/,
+                /A02\] canLoad - start a02/,
+                /A01\] canLoad - end a01/,
+                /A02\] canLoad - end a02/,
+
+                /A04\] unloading - start a04/,
+                /A01\] unloading - start a01/,
+                /A04\] unloading - end a04/,
+                /A01\] unloading - end a01/,
+                /A01\] loading - start a01/,
+                /A02\] loading - start a02/,
+                /A01\] loading - end a01/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 16, 'phase3.2');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A02\] canUnload - start a02/,
+                /A01\] canUnload - end a01/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A02\] unloading - start a02/,
+                /A01\] unloading - end a01/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 16, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A04\] detaching - start a04/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A04\] detaching - end a04/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A04\] unbinding - start a04/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A04\] unbinding - end a04/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A04\] dispose - a04/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a02@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A04\] canUnload - start a04/,
+                /A01\] canUnload - start a01/,
+                /A04\] canUnload - end a04/,
+                /A01\] canUnload - end a01/,
+                /A02\] canLoad - start a02/,
+                /A02\] canLoad - end a02/,
+
+                /A04\] unloading - start a04/,
+                /A01\] unloading - start a01/,
+                /A04\] unloading - end a04/,
+                /A01\] unloading - end a01/,
+                /A02\] loading - start a02/,
+                /A02\] loading - end a02/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A02\] binding - start a02/,
+                /A02\] binding - end a02/,
+                /A02\] bound - start a02/,
+                /A02\] bound - end a02/,
+                /A02\] attaching - start a02/,
+                /A02\] attaching - end a02/,
+                /A02\] attached - start a02/,
+                /A02\] attached - end a02/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A02\] canUnload - start a02/,
+                /A02\] canUnload - end a02/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A02\] unloading - start a02/,
+                /A02\] unloading - end a02/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A02\] detaching - start a02/,
+                /A02\] detaching - end a02/,
+                /A02\] unbinding - start a02/,
+                /A02\] unbinding - end a02/,
+                /A02\] dispose - a02/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A04\] detaching - start a04/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A04\] detaching - end a04/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A04\] unbinding - start a04/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A04\] unbinding - end a04/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A04\] dispose - a04/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+
+      yield new SiblingHookTestData(
+        ticks,
+        root,
+        scopes,
+        assertStartLog,
+        [
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 'phase1');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 2.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase2.2');
+            },
+          ],
+          [
+            'a01@$0',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A04\] canUnload - start a04/,
+                /A01\] canUnload - start a01/,
+                /A04\] canUnload - end a04/,
+                /A01\] canUnload - end a01/,
+                /A01\] canLoad - start a01/,
+                /A01\] canLoad - end a01/,
+
+                /A04\] unloading - start a04/,
+                /A01\] unloading - start a01/,
+                /A04\] unloading - end a04/,
+                /A01\] unloading - end a01/,
+                /A01\] loading - start a01/,
+                /A01\] loading - end a01/,
+              ], 'phase 3.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A04\] detaching - start a04/,
+                /A04\] detaching - end a04/,
+                /A04\] unbinding - start a04/,
+                /A04\] unbinding - end a04/,
+                /A04\] dispose - a04/,
+
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase3.2');
+            },
+          ],
+          [
+            'a04@$0+a01@$1',
+            (eventLog: EventLog) => {
+              eventLog.assertLog([
+                /A01\] canUnload - start a01/,
+                /A01\] canUnload - end a01/,
+                /A04\] canLoad - start a04/,
+                /A01\] canLoad - start a01/,
+                /A04\] canLoad - end a04/,
+                /A01\] canLoad - end a01/,
+
+                /A01\] unloading - start a01/,
+                /A01\] unloading - end a01/,
+                /A04\] loading - start a04/,
+                /A01\] loading - start a01/,
+                /A04\] loading - end a04/,
+                /A01\] loading - end a01/,
+              ], 'phase 4.1');
+
+              eventLog.assertLogOrderInvariant([
+                /A01\] detaching - start a01/,
+                /A01\] detaching - end a01/,
+                /A01\] unbinding - start a01/,
+                /A01\] unbinding - end a01/,
+                /A01\] dispose - a01/,
+
+                /A04\] binding - start a04/,
+                /A04\] binding - end a04/,
+                /A04\] bound - start a04/,
+                /A04\] bound - end a04/,
+                /A04\] attaching - start a04/,
+                /A04\] attaching - end a04/,
+                /A04\] attached - start a04/,
+                /A04\] attached - end a04/,
+
+                /A01\] binding - start a01/,
+                /A01\] binding - end a01/,
+                /A01\] bound - start a01/,
+                /A01\] bound - end a01/,
+                /A01\] attaching - start a01/,
+                /A01\] attaching - end a01/,
+                /A01\] attached - start a01/,
+                /A01\] attached - end a01/,
+              ], 12, 'phase4.2');
+            },
+          ],
+        ],
+        (eventLog: EventLog) => {
+          eventLog.assertLog([
+            /A04\] detaching - start a04/,
+            /A01\] detaching - start a01/,
+            /Root\] detaching - start ro-ot/,
+            /A04\] detaching - end a04/,
+            /A01\] detaching - end a01/,
+            /Root\] detaching - end ro-ot/,
+
+            /A04\] unbinding - start a04/,
+            /A01\] unbinding - start a01/,
+            /Root\] unbinding - start ro-ot/,
+            /A04\] unbinding - end a04/,
+            /A01\] unbinding - end a01/,
+            /Root\] unbinding - end ro-ot/,
+
+            /Root\] dispose - ro-ot/,
+            /A04\] dispose - a04/,
+            /A01\] dispose - a01/,
+          ], 'stop');
+        },
+      );
+      // #endregion
+    }
   }
   for (const data of getSiblingHookTestData()) {
     it.only(`siblings - hook timing - ${data.name}`, async function () {

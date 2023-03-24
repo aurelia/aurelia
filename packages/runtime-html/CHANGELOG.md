@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.3"></a>
+# 2.0.0-beta.3 (2023-03-24)
+
+### Features:
+
+* **style:** add warning messages when binding number to ambiguous properties (#1702) ([0937b63](https://github.com/aurelia/aurelia/commit/0937b63))
+
+
+### Bug Fixes:
+
+* **css-modules:** class command css module (#1690) ([b6606d4](https://github.com/aurelia/aurelia/commit/b6606d4))
+* **au-slot:** register the right view model instance for injection (#1685) ([b42d52f](https://github.com/aurelia/aurelia/commit/b42d52f))
+
+
+### Refactorings:
+
+* **controller:** remove lifecycle flags (#1707) ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **ci:** remove e2e safari from pipeline ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **tests:** disable hook tests ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **compose:** rename props and add compat layer (#1699) ([2e7ce43](https://github.com/aurelia/aurelia/commit/2e7ce43))
+* **build:** use turbo to boost build speed (#1692) ([d99b136](https://github.com/aurelia/aurelia/commit/d99b136))
+
 <a name="2.0.0-beta.2"></a>
 # 2.0.0-beta.2 (2023-02-26)
 

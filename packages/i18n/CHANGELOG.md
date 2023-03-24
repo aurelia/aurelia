@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.3"></a>
+# 2.0.0-beta.3 (2023-03-24)
+
+### Features:
+
+* **proxy:** add nowrap decorator (#1708) ([6edddab](https://github.com/aurelia/aurelia/commit/6edddab))
+* **proxy:** add nowrap decorator ([6edddab](https://github.com/aurelia/aurelia/commit/6edddab))
+* **i18n:** do not wrap i18next ([6edddab](https://github.com/aurelia/aurelia/commit/6edddab))
+
+
+### Refactorings:
+
+* **controller:** remove lifecycle flags (#1707) ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **ci:** remove e2e safari from pipeline ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **tests:** disable hook tests ([a31cd75](https://github.com/aurelia/aurelia/commit/a31cd75))
+* **build:** use turbo to boost build speed (#1692) ([d99b136](https://github.com/aurelia/aurelia/commit/d99b136))
+
 <a name="2.0.0-beta.2"></a>
 # 2.0.0-beta.2 (2023-02-26)
 

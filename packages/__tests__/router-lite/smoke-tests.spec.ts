@@ -5076,31 +5076,55 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   describe('multiple configurations for same component', function () {
     it('multiple configurations for the same component under the same parent', async function () {
       @customElement({ name: 'c-1', template: 'c1' })
-      class C1 { }
+      class C1 implements IRouteViewModel {
+        public data: Record<string, unknown>;
+        public loading(_params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.data = next.data;
+        }
+      }
 
       @route({
         routes: [
-          { path: '', component: C1, title: 't1' },
-          { path: 'c1', component: C1, title: 't2' },
-        ]
+          { path: '', component: C1, title: 't1', data: { foo: 'bar' } },
+          { path: 'c1', component: C1, title: 't2', data: { awesome: 'possum' } },
+        ],
+        transitionPlan: 'replace'
       })
       @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, host } = await start({ appRoot: Root });
+      const { au, host, container } = await start({ appRoot: Root });
+      const doc = container.get(IPlatform).document;
+      const router = container.get(IRouter);
 
       assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 't1');
+
+      let ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+      assert.deepStrictEqual(ce.data, { foo: 'bar' });
+
+      await router.load('c1');
+
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 't2');
+
+      ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+      assert.deepStrictEqual(ce.data, { awesome: 'possum' });
 
       await au.stop();
     });
 
     it('same component is added under different parents', async function () {
       @customElement({ name: 'c-1', template: 'c1' })
-      class C1 { }
-
+      class C1 implements IRouteViewModel {
+        public data: Record<string, unknown>;
+        public loading(_params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.data = next.data;
+        }
+      }
       @route({
         routes: [
-          { path: '', component: C1, title: 'p1c1' }
+          { path: '', component: C1, title: 'p1c1', data: { foo: 'bar' } }
         ]
       })
       @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
@@ -5108,7 +5132,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       @route({
         routes: [
-          { path: '', component: C1, title: 'p2c1' }
+          { path: '', component: C1, title: 'p2c1', data: { awesome: 'possum' } }
         ]
       })
       @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
@@ -5130,10 +5154,16 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'c1');
       assert.strictEqual(doc.title, 'p1c1');
 
+      let ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+      assert.deepStrictEqual(ce.data, { foo: 'bar' });
+
       await router.load('p2');
 
       assert.html.textContent(host, 'c1');
       assert.strictEqual(doc.title, 'p2c1');
+
+      ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+      assert.deepStrictEqual(ce.data, { awesome: 'possum' });
 
       await au.stop();
     });

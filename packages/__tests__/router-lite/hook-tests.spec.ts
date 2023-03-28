@@ -527,7 +527,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe.skip('router-lite/hook-tests.spec.ts', function () {
+describe('router-lite/hook-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     for (const ticks of [
       0,
@@ -673,6 +673,8 @@ describe.skip('router-lite/hook-tests.spec.ts', function () {
             });
           }
         });
+
+        // the siblings tests has been migrated to lifecycle-hooks.spec.ts
 
         describe('parent-child', function () {
           @customElement({ name: 'a01', template: null })

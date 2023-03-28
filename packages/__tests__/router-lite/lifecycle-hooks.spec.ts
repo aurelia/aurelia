@@ -11,7 +11,7 @@
  */
 
 import { Class, DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
-import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, Routeable, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -6134,7 +6134,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     }
   }
   for (const data of getSiblingHookTestData()) {
-    it.only(`siblings - hook timing - ${data.name}`, async function () {
+    it(`siblings - hook timing - ${data.name}`, async function () {
       const { au, container } = await createFixture(data.root,
         Registration.instance(IKnownScopes, data.scopes)
       );

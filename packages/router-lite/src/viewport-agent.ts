@@ -126,7 +126,7 @@ export class ViewportAgent {
           throw new Error(`Unexpected viewport deactivation outside of a transition context at ${this}`);
         }
         this.logger.trace(`deactivateFromViewport() - running ordinary deactivate at %s`, this);
-        const b = Batch.start(b1 => { this.deactivate(initiator, this.currTransition!, b1); });
+        const b = Batch.start(b1 => { this._deactivate(initiator, this.currTransition!, b1); });
         const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
         return b.start().done ? void 0 : p;
       }
@@ -426,7 +426,7 @@ export class ViewportAgent {
     }).start();
   }
 
-  public deactivate(initiator: IHydratedController | null, tr: Transition, b: Batch): void {
+  private _deactivate(initiator: IHydratedController | null, tr: Transition, b: Batch): void {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
@@ -446,8 +446,9 @@ export class ViewportAgent {
             const nextState = this.nextState;
             const curCa = this.curCA!;
             tr.run(() => {
-              return onResolve(curCa.deactivate(initiator, controller), ()=> {
-                if(nextState === State.nextIsEmpty) {
+              return onResolve(curCa.deactivate(initiator, controller), () => {
+                // Call dispose if initiator is null. If there is an initiator present, then the curCa will be disposed when the initiator is disposed.
+                if (initiator === null) {
                   curCa.dispose();
                 }
               });
@@ -534,7 +535,7 @@ export class ViewportAgent {
     }
     if (this.nextState === State.nextIsEmpty) {
       this.logger.trace(`swap() - running deactivate on current instead, because there is nothing to activate at %s`, this);
-      this.deactivate(null, tr, b);
+      this._deactivate(null, tr, b);
       return;
     }
 

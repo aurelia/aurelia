@@ -61,20 +61,20 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     this.logger.trace('attaching()');
 
-    return this.agent.activateFromViewport(initiator, this.controller);
+    return this.agent._activateFromViewport(initiator, this.controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     this.logger.trace('detaching()');
 
-    return this.agent.deactivateFromViewport(initiator, this.controller);
+    return this.agent._deactivateFromViewport(initiator, this.controller);
   }
 
   public dispose(): void {
     this.logger.trace('dispose()');
 
     this.ctx.unregisterViewport(this);
-    this.agent.dispose();
+    this.agent._dispose();
     this.agent = (void 0)!;
   }
 

@@ -54,7 +54,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     a2.active = false;
     assertAnchors(anchors, [a1, a2], 'round#3');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('un-configured parameters are added to the querystring', async function () {
@@ -78,7 +78,7 @@ describe('router-lite/resources/load.spec.ts', function () {
 
     const anchor = host.querySelector('a');
     assert.match(anchor.href, /foo\/3\?a=2/);
-    await au.stop();
+    await au.stop(true);
   });
 
   it('the most matched path is generated', async function () {
@@ -110,7 +110,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'foo');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow navigating to route defined in parent context using ../ prefix', async function () {
@@ -164,7 +164,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'products');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow navigating to route defined in parent context using explicit routing context', async function () {
@@ -226,7 +226,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'products');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
@@ -273,7 +273,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow navigating to route defined in grand-parent context using explicit routing context', async function () {
@@ -332,7 +332,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow explicitly binding the routing context to null to perform navigation from root', async function () {
@@ -421,7 +421,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
@@ -473,6 +473,6 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'ce2');
 
-    await au.stop();
+    await au.stop(true);
   });
 });

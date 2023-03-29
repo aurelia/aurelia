@@ -1,5 +1,5 @@
 import { Aurelia, CustomElement, customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouteConfig, IRouter, IRouteViewModel, route, Route, RouteDefinition, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouteConfig, IRouter, IRouteViewModel, route, Route, RouteConfig, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
@@ -489,7 +489,7 @@ describe('router-lite/config-tests.spec.ts', function () {
     class P implements IRouteViewModel {
       public getRouteConfigCalled: number = 0;
 
-      public async getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): Promise<IRouteConfig> {
+      public async getRouteConfig(parentDefinition: RouteConfig | null, routeNode: RouteNode | null): Promise<IRouteConfig> {
         assert.notEqual(parentDefinition, null, 'P parentDefinition');
         assert.notEqual(routeNode, null, 'P routeNode');
         assert.strictEqual(this.getRouteConfigCalled, 0);
@@ -508,7 +508,7 @@ describe('router-lite/config-tests.spec.ts', function () {
     class Root implements IRouteViewModel {
       public getRouteConfigCalled: number = 0;
 
-      public getRouteConfig(parentDefinition: RouteDefinition | null, routeNode: RouteNode | null): IRouteConfig {
+      public getRouteConfig(parentDefinition: RouteConfig | null, routeNode: RouteNode | null): IRouteConfig {
         assert.strictEqual(parentDefinition, null, 'root parentDefinition');
         assert.strictEqual(routeNode, null, 'root routeNode');
         assert.strictEqual(this.getRouteConfigCalled, 0);
@@ -548,7 +548,7 @@ describe('router-lite/config-tests.spec.ts', function () {
     assert.strictEqual((au.root.controller.viewModel as Root).getRouteConfigCalled, 1);
     assert.strictEqual(CustomElement.for<P>(host.querySelector('ce-p')).viewModel.getRouteConfigCalled, 1);
 
-    await au.stop();
+    await au.stop(true);
   });
 });
 

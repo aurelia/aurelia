@@ -58,10 +58,6 @@ export {
 } from './route-context';
 
 export {
-  RouteDefinition,
-} from './route-definition';
-
-export {
   AST,
   RouteExpression,
   CompositeSegmentExpression,

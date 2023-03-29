@@ -1,16 +1,15 @@
 import { isObject } from '@aurelia/metadata';
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
-import { type CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
-import { RouteType } from './route';
+import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
-import { RouteDefinition } from './route-definition';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 
@@ -98,8 +97,8 @@ export class Transition {
   }
 }
 
-type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
-type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
+type RouteConfigLookup = WeakMap<RouteConfig, IRouteContext>;
+type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigLookup>;
 
 export interface IRouter extends Router { }
 export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
@@ -132,8 +131,8 @@ export class Router {
           finalPath: '',
           context: ctx,
           instruction: null,
-          component: ctx.definition.component!,
-          title: ctx.definition.config.title,
+          component: CustomElement.getDefinition(ctx.config.component as RouteType),
+          title: ctx.config.title,
         }),
       );
     }
@@ -352,35 +351,45 @@ export class Router {
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
     container: IContainer,
-    parentDefinition: RouteDefinition | null,
+    parentRouteConfig: RouteConfig | null,
+    parentContext: IRouteContext | null,
+    $rdConfig: RouteConfig | null,
   ): IRouteContext | Promise<IRouteContext> {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
     return onResolve(
-      RouteDefinition.resolve(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, parentDefinition, null),
-      routeDefinition => {
-        let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
-        if (routeDefinitionLookup === void 0) {
-          this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
+      $rdConfig instanceof RouteConfig
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentRouteConfig,
+          null,
+          parentContext
+        ),
+      rdConfig => {
+        let routeConfigLookup = this.vpaLookup.get(viewportAgent);
+        if (routeConfigLookup === void 0) {
+          this.vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());
         }
 
-        let routeContext = routeDefinitionLookup.get(routeDefinition);
+        let routeContext = routeConfigLookup.get(rdConfig);
         if (routeContext !== void 0) {
-          logger.trace(`returning existing RouteContext for %s`, routeDefinition);
+          logger.trace(`returning existing RouteContext for %s`, rdConfig);
           return routeContext;
         }
-        logger.trace(`creating new RouteContext for %s`, routeDefinition);
+        logger.trace(`creating new RouteContext for %s`, rdConfig);
 
         const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
-        routeDefinitionLookup.set(
-          routeDefinition,
+        routeConfigLookup.set(
+          rdConfig,
           routeContext = new RouteContext(
             viewportAgent,
             parent,
             componentDefinition,
-            routeDefinition,
+            rdConfig,
             container,
             this,
           ),
@@ -590,7 +599,7 @@ export class Router {
       Batch.start(b => {
         this.logger.trace(`run() - invoking canUnload on ${prev.length} nodes`);
         for (const node of prev) {
-          node.context.vpa.canUnload(tr, b);
+          node.context.vpa._canUnload(tr, b);
         }
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
@@ -600,7 +609,7 @@ export class Router {
       }).continueWith(b => {
         this.logger.trace(`run() - invoking canLoad on ${next.length} nodes`);
         for (const node of next) {
-          node.context.vpa.canLoad(tr, b);
+          node.context.vpa._canLoad(tr, b);
         }
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
@@ -610,23 +619,23 @@ export class Router {
       }).continueWith(b => {
         this.logger.trace(`run() - invoking unloading on ${prev.length} nodes`);
         for (const node of prev) {
-          node.context.vpa.unloading(tr, b);
+          node.context.vpa._unloading(tr, b);
         }
       }).continueWith(b => {
         this.logger.trace(`run() - invoking loading on ${next.length} nodes`);
         for (const node of next) {
-          node.context.vpa.loading(tr, b);
+          node.context.vpa._loading(tr, b);
         }
       }).continueWith(b => {
         this.logger.trace(`run() - invoking swap on ${all.length} nodes`);
         for (const node of all) {
-          node.context.vpa.swap(tr, b);
+          node.context.vpa._swap(tr, b);
         }
       }).continueWith(() => {
         this.logger.trace(`run() - finalizing transition`);
         // order doesn't matter for this operation
         all.forEach(function (node) {
-          node.context.vpa.endTransition();
+          node.context.vpa._endTransition();
         });
         this.navigated = true;
 
@@ -687,7 +696,7 @@ export class Router {
     const all = mergeDistinct(prev, next);
     // order doesn't matter for this operation
     all.forEach(function (node) {
-      node.context.vpa.cancelUpdate();
+      node.context.vpa._cancelUpdate();
     });
 
     this.instructions = tr.prevInstructions;
@@ -740,7 +749,7 @@ function updateNode(
   node.fragment = vit.fragment;
 
   if (!node.context.isRoot) {
-    node.context.vpa.scheduleUpdate(node.tree.options, node);
+    node.context.vpa._scheduleUpdate(node.tree.options, node);
   }
   if (node.context === ctx) {
     // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)

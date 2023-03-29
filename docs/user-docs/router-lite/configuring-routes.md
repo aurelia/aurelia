@@ -81,12 +81,12 @@ Apart from the static API including the `@route` decorator, there is also an ins
 This is shown in the example below.
 
 ```typescript
-import { IRouteConfig, RouteDefinition, RouteNode } from '@aurelia/router-lite';
+import { IRouteConfig, RouteNode } from '@aurelia/router-lite';
 import { Home } from './home';
 import { About } from './about';
 
 export class MyApp {
-  public getRouteConfig(_parentDefinition: RouteDefinition | null, _routeNode: RouteNode | null): IRouteConfig {
+  public getRouteConfig(_parentConfig: IRouteConfig | null, _routeNode: RouteNode | null): IRouteConfig {
     return {
       routes: [
         {
@@ -109,17 +109,17 @@ See this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-getrouteconfig-hook?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note that the hook is also supplied with a parent route definition, and the new route node.
-These values can be nullable; for example, for root node there is no parent route definition.
+Note that the hook is also supplied with a parent route configuration, and the new route node.
+These values can be nullable; for example, for root node there is no parent route configuration.
 
 The `getRouteConfig` can also be `async`.
 This is shown in the example below.
 
 ```typescript
-import { IRouteConfig, RouteDefinition, RouteNode } from '@aurelia/router-lite';
+import { IRouteConfig, RouteNode } from '@aurelia/router-lite';
 
 export class MyApp {
-  public getRouteConfig(_parentDefinition: RouteDefinition | null, _routeNode: RouteNode | null): IRouteConfig {
+  public getRouteConfig(_parentConfig: IRouteConfig | null, _routeNode: RouteNode | null): IRouteConfig {
     return {
       routes: [
         {

@@ -56,7 +56,7 @@ describe('router-lite/resources/href.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'products');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
@@ -103,7 +103,7 @@ describe('router-lite/resources/href.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   // slightly more complex use-case
@@ -193,7 +193,7 @@ describe('router-lite/resources/href.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
@@ -284,6 +284,6 @@ describe('router-lite/resources/href.spec.ts', function () {
     await queue.yield();
     assert.html.textContent(host, 'ce3 ce3child');
 
-    await au.stop();
+    await au.stop(true);
   });
 });

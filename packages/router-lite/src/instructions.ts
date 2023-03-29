@@ -58,8 +58,6 @@ export interface IViewportInstruction {
    * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
    * - `IRouteViewModel`: an existing component instance.
    *
-   * For a string component route-recognizer of the 'resolved' `RoutingContext` will be employed.
-   * Whereas for non-sting components, a `RouteDefinition` will be resolved, and a (new) `ViewportInstruction` will be created out of that.
    */
   readonly component: string | RouteableComponent;
   /**

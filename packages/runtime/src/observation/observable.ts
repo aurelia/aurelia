@@ -30,7 +30,7 @@ type SetterObserverOwningObject = IIndexable<IBindingContext, IObserver>;
 //    class {
 //      @observable prop
 //    }
-export function observable(target: Constructable['prototype'], key: PropertyKey, descriptor?: PropertyDescriptor & { initializer?: () => unknown }): void;
+export function observable(target: object, key: PropertyKey, descriptor?: PropertyDescriptor & { initializer?: () => unknown }): void;
 // for
 //    @observable({...})
 //    class {}
@@ -38,7 +38,7 @@ export function observable(target: Constructable['prototype'], key: PropertyKey,
 //    class {
 //      @observable({...}) prop
 //    }
-export function observable(config: IObservableDefinition): (target: Constructable | Constructable['prototype'], ...args: unknown[]) => void;
+export function observable(config: IObservableDefinition): (target: Constructable | object, ...args: unknown[]) => void;
 // for
 //    @observable('') class {}
 //    @observable(5) class {}
@@ -51,7 +51,7 @@ export function observable(key: PropertyKey): ClassDecorator;
 export function observable(): PropertyDecorator;
 // impl, wont be seen
 export function observable(
-  targetOrConfig?: Constructable | Constructable['prototype'] | PropertyKey | IObservableDefinition,
+  targetOrConfig?: Constructable | object | PropertyKey | IObservableDefinition,
   key?: PropertyKey,
   descriptor?: PropertyDescriptor
 ): ClassDecorator | PropertyDecorator {
@@ -78,7 +78,7 @@ export function observable(
   return deco(targetOrConfig, key, descriptor) as PropertyDecorator;
 
   function deco(
-    target: Constructable | Constructable['prototype'],
+    target: Constructable | object | PropertyKey | undefined,
     key?: PropertyKey,
     descriptor?: PropertyDescriptor & { initializer?: CallableFunction },
     config?: PropertyKey | IObservableDefinition,

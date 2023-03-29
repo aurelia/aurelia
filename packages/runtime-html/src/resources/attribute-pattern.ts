@@ -516,7 +516,7 @@ export function attributePattern(...patternDefs: AttributePatternDefinition[]): 
   } as AttributePatternDecorator;
 }
 
-export class AttributePatternResourceDefinition implements ResourceDefinition<Constructable, IAttributePattern> {
+export class AttributePatternResourceDefinition implements ResourceDefinition<Constructable, Partial<IAttributePattern>> {
   public name: string = (void 0)!;
 
   public constructor(

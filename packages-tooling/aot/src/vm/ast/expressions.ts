@@ -10,6 +10,7 @@ import {
   DeleteExpression,
   ElementAccessExpression,
   getModifiers,
+  HasModifiers,
   Identifier,
   MetaProperty,
   ModifierFlags,
@@ -709,7 +710,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ShorthandPropertyAssignment`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node as unknown as HasModifiers));
 
     const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx, -1);

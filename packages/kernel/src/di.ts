@@ -16,7 +16,7 @@ import { instanceRegistration, singletonRegistration, transientRegistation, call
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
-export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+export type InterfaceSymbol<K = any> = (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index?: number) => void;
 
 // This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
 // Otherwise IServiceLocator references IResolver, which references IContainer, which extends IServiceLocator.
@@ -137,6 +137,7 @@ export type Resolved<K> = (
 );
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
+export type AbstractInjectable<T = {}> = (abstract new (...args: any[]) => T) & { inject?: Key[] };
 
 const cloneArrayWithPossibleProps = <T>(source: readonly T[]): T[] => {
   const clone = source.slice();
@@ -302,12 +303,12 @@ export const createInterface = <K extends Key>(configureOrName?: string | ((buil
  const configure = isFunction(configureOrName) ? configureOrName : configuror;
  const friendlyName = isString(configureOrName) ? configureOrName : undefined;
 
- const Interface = function (target: Injectable<K>, property: string, index: number): void {
+ const Interface = function (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index: number | undefined): void {
    if (target == null || new.target !== undefined) {
     throw createNoRegistrationError(Interface.friendlyName);
    }
-   const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
-   annotationParamtypes[index] = Interface;
+   const annotationParamtypes = getOrCreateAnnotationParamTypes(target as Injectable);
+   annotationParamtypes[index!] = Interface;
  };
  Interface.$isInterface = true;
  Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;

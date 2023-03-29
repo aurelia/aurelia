@@ -162,7 +162,7 @@ export class $VariableStatement implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     ctx |= Context.InVariableStatement;
 
@@ -1744,7 +1744,7 @@ export class $SwitchStatement implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
 
     const { $caseBlock: { $clauses: clauses } } = this;
-    const { undefined: $undefined, empty } = realm['[[Intrinsics]]'];
+    const { undefined: $undefined } = realm['[[Intrinsics]]'];
     // CaseBlock : { }
     // 1. Return NormalCompletion(undefined).
     if (clauses.length === 0) {

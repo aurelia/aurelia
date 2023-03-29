@@ -2099,7 +2099,7 @@ export class $ModuleDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ModuleDeclaration`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (node.name.kind === SyntaxKind.Identifier) {
       this.$name = new $Identifier(node.name, this, ctx, -1);
@@ -2175,7 +2175,7 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ImportEqualsDeclaration`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     this.$name = $identifier(node.name, this, ctx, -1);
     switch (node.moduleReference.kind) {
@@ -2229,7 +2229,7 @@ export class $ImportDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ImportDeclaration`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx, -1);
 
@@ -2502,7 +2502,7 @@ export class $ExportAssignment implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
@@ -2558,7 +2558,7 @@ export class $ExportDeclaration implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     let moduleSpecifier: $String | $Null;
     if (node.moduleSpecifier === void 0) {

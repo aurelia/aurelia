@@ -377,7 +377,7 @@ export class RouteContext {
   public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
     this.logger.trace(`resolveViewportAgent(req:%s)`, req);
 
-    const agent = this.childViewportAgents.find(x => { return x.handles(req); });
+    const agent = this.childViewportAgents.find(x => { return x._handles(req); });
 
     if (agent === void 0) {
       throw new Error(`Failed to resolve ${req} at:\n${this.printTree()}`);
@@ -387,11 +387,11 @@ export class RouteContext {
   }
 
   public getAvailableViewportAgents(): readonly ViewportAgent[] {
-    return this.childViewportAgents.filter(x => x.isAvailable());
+    return this.childViewportAgents.filter(x => x._isAvailable());
   }
 
   public getFallbackViewportAgent(name: string): ViewportAgent | null {
-    return this.childViewportAgents.find(x => x.isAvailable() && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
+    return this.childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
   }
 
   /**

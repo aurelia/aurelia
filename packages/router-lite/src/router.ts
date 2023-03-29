@@ -599,7 +599,7 @@ export class Router {
       Batch.start(b => {
         this.logger.trace(`run() - invoking canUnload on ${prev.length} nodes`);
         for (const node of prev) {
-          node.context.vpa.canUnload(tr, b);
+          node.context.vpa._canUnload(tr, b);
         }
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
@@ -609,7 +609,7 @@ export class Router {
       }).continueWith(b => {
         this.logger.trace(`run() - invoking canLoad on ${next.length} nodes`);
         for (const node of next) {
-          node.context.vpa.canLoad(tr, b);
+          node.context.vpa._canLoad(tr, b);
         }
       }).continueWith(b => {
         if (tr.guardsResult !== true) {
@@ -619,23 +619,23 @@ export class Router {
       }).continueWith(b => {
         this.logger.trace(`run() - invoking unloading on ${prev.length} nodes`);
         for (const node of prev) {
-          node.context.vpa.unloading(tr, b);
+          node.context.vpa._unloading(tr, b);
         }
       }).continueWith(b => {
         this.logger.trace(`run() - invoking loading on ${next.length} nodes`);
         for (const node of next) {
-          node.context.vpa.loading(tr, b);
+          node.context.vpa._loading(tr, b);
         }
       }).continueWith(b => {
         this.logger.trace(`run() - invoking swap on ${all.length} nodes`);
         for (const node of all) {
-          node.context.vpa.swap(tr, b);
+          node.context.vpa._swap(tr, b);
         }
       }).continueWith(() => {
         this.logger.trace(`run() - finalizing transition`);
         // order doesn't matter for this operation
         all.forEach(function (node) {
-          node.context.vpa.endTransition();
+          node.context.vpa._endTransition();
         });
         this.navigated = true;
 
@@ -696,7 +696,7 @@ export class Router {
     const all = mergeDistinct(prev, next);
     // order doesn't matter for this operation
     all.forEach(function (node) {
-      node.context.vpa.cancelUpdate();
+      node.context.vpa._cancelUpdate();
     });
 
     this.instructions = tr.prevInstructions;
@@ -749,7 +749,7 @@ function updateNode(
   node.fragment = vit.fragment;
 
   if (!node.context.isRoot) {
-    node.context.vpa.scheduleUpdate(node.tree.options, node);
+    node.context.vpa._scheduleUpdate(node.tree.options, node);
   }
   if (node.context === ctx) {
     // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)

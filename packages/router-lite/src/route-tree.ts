@@ -188,7 +188,7 @@ export class RouteNode implements IRouteNode {
   public clearChildren(): void {
     for (const c of this.children) {
       c.clearChildren();
-      c.context.vpa.cancelUpdate();
+      c.context.vpa._cancelUpdate();
     }
     this.children.length = 0;
   }
@@ -667,7 +667,7 @@ function appendNode(
   return onResolve(childNode, $childNode => {
     log.trace(`appendNode($childNode:%s)`, $childNode);
     node.appendChild($childNode);
-    return $childNode.context.vpa.scheduleUpdate(node.tree.options, $childNode);
+    return $childNode.context.vpa._scheduleUpdate(node.tree.options, $childNode);
   });
 }
 

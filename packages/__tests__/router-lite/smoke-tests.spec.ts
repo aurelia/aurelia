@@ -5167,5 +5167,226 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.stop();
     });
+
+    for (const config of ['c1', { path: 'c1' }]) {
+      it(`component defines its own path - with redirect - config: ${JSON.stringify(config)}`, async function () {
+        @route(config as IRouteConfig)
+        @customElement({ name: 'c-1', template: '${parent}/c1' })
+        class C1 {
+          private readonly parent: string;
+          public constructor(
+            @IRouteContext ctx: IRouteContext
+          ) {
+            this.parent = ctx.parent.component.name;
+          }
+        }
+        @route({
+          routes: [
+            { path: '', redirectTo: 'c1' },
+            C1,
+          ]
+        })
+        @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+        class P1 { }
+
+        @route({
+          routes: [
+            { path: '', redirectTo: 'c1' },
+            C1,
+          ]
+        })
+        @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+        class P2 { }
+
+        @route({
+          routes: [
+            { path: ['', 'p1'], component: P1 },
+            { path: 'p2', component: P2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
+
+        const { au, host, container } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+
+        assert.html.textContent(host, 'p-1/c1');
+
+        await router.load('p2');
+
+        assert.html.textContent(host, 'p-2/c1');
+
+        await au.stop();
+
+      });
+
+      it(`component defines its own path - without redirect - config: ${JSON.stringify(config)}`, async function () {
+        @route(config as IRouteConfig)
+        @customElement({ name: 'c-1', template: '${parent}/c1' })
+        class C1 {
+          private readonly parent: string;
+          public constructor(
+            @IRouteContext ctx: IRouteContext
+          ) {
+            this.parent = ctx.parent.component.name;
+          }
+        }
+        @route({
+          routes: [
+            C1,
+          ]
+        })
+        @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+        class P1 { }
+
+        @route({
+          routes: [
+            C1,
+          ]
+        })
+        @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+        class P2 { }
+
+        @route({
+          routes: [
+            { path: ['', 'p1'], component: P1 },
+            { path: 'p2', component: P2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
+
+        const { au, host, container } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+
+        await router.load('p1/c1');
+        assert.html.textContent(host, 'p-1/c1');
+
+        await router.load('p2/c1');
+        assert.html.textContent(host, 'p-2/c1');
+
+        await au.stop();
+
+      });
+    }
+
+    it(`component defines transition plan - parent overloads`, async function () {
+      @route({ path: 'c1/:id', transitionPlan: 'replace' })
+      @customElement({ name: 'c-1', template: '${parent}/c1 - ${routeId} - ${instanceId} - ${activationId}' })
+      class C1 {
+        private static instanceId: number = 0;
+        private static activationId: number = 0;
+        private readonly instanceId: number = ++C1.instanceId;
+        private activationId: number = 0;
+        private readonly parent: string;
+        private routeId: string;
+        public constructor(
+          @IRouteContext ctx: IRouteContext
+        ) {
+          this.parent = ctx.parent.component.name;
+        }
+
+        public canLoad(params: Params): boolean {
+          this.activationId = ++C1.activationId;
+          this.routeId = params.id;
+          return true;
+        }
+      }
+      @route({
+        routes: [
+          C1,
+        ]
+      })
+      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      class P1 { }
+
+      @route({
+        routes: [
+          { component: C1, transitionPlan: 'invoke-lifecycles' },
+        ]
+      })
+      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      class P2 { }
+
+      @route({
+        routes: [
+          { path: ['', 'p1'], component: P1 },
+          { path: 'p2', component: P2 },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+
+      await router.load('p1/c1/42');
+      assert.html.textContent(host, 'p-1/c1 - 42 - 1 - 1');
+
+      await router.load('p1/c1/24');
+      assert.html.textContent(host, 'p-1/c1 - 24 - 2 - 2');
+
+      await router.load('p2/c1/42');
+      assert.html.textContent(host, 'p-2/c1 - 42 - 3 - 3');
+
+      await router.load('p2/c1/24');
+      await container.get(IPlatform).domWriteQueue.yield();
+      assert.html.textContent(host, 'p-2/c1 - 24 - 3 - 4');
+
+      await au.stop(true);
+    });
+
+    it('distributed configuration', async function () {
+      @route('c1')
+      @customElement({ name: 'c-1', template: '${parent}/c1' })
+      class C1 implements IRouteViewModel {
+        private readonly parent: string;
+        public constructor(
+          @IRouteContext ctx: IRouteContext
+        ) {
+          this.parent = ctx.parent.component.name;
+        }
+      }
+      @route('p1')
+      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      class P1 implements IRouteViewModel {
+        public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig | Promise<IRouteConfig> {
+          return {
+            routes: [C1]
+          };
+        }
+      }
+
+      @route('p2')
+      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      class P2 implements IRouteViewModel {
+        public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig | Promise<IRouteConfig> {
+          return {
+            routes: [C1]
+          };
+        }
+      }
+
+      @route({
+        routes: [
+          P1,
+          P2,
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+
+      await router.load('p1/c1');
+      assert.html.textContent(host, 'p-1/c1');
+
+      await router.load('p2/c1');
+
+      assert.html.textContent(host, 'p-2/c1');
+
+      await au.stop();
+    });
   });
 });

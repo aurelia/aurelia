@@ -374,7 +374,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
     ) {
       return onResolve(routeConfig._applyFromConfigurationHook(routeable, parent, routeNode), () => routeConfig);
     }
-    return isChild ? routeConfig._clone() : routeConfig;
+    return routeConfig;
   });
 }
 

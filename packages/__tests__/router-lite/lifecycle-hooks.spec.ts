@@ -259,7 +259,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     assert.html.textContent(host, 'foo list');
     eventLog.assertLog([/AuthHook\] canLoad 'foo'/], 'round#3');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple synchronous hooks - without preemption', async function () {
@@ -323,7 +323,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Foo\] loading 'foo'/,
     ], 'round#2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - same timing - without preemption', async function () {
@@ -409,7 +409,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Foo\] loading - end 'foo'/,
     ], 'round#2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - varied timing monotonically increasing - without preemption', async function () {
@@ -495,7 +495,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Foo\] loading - end 'foo'/,
     ], 'round#2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - varied timing monotonically decreasing - without preemption', async function () {
@@ -584,7 +584,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook1\] loading - end 'foo'/,
     ], 18, 'round#2 - loading');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   // #region - preemption - first preemption always wins
@@ -659,7 +659,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook1\] canLoad - end 'foo'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 8);
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - second canLoad hook preempts with false', async function () {
@@ -737,7 +737,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook2\] canLoad - end 'foo'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 10);
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - view-model canLoad hook preempts with false', async function () {
@@ -850,7 +850,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     ], 18, 'round#3 - loading');
     assert.strictEqual(eventLog.log.length, 24);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - first canLoad hook preempts with navigation instruction', async function () {
@@ -964,7 +964,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook2\] loading - end 'bar'/,
       /Hook1\] loading - end 'bar'/,
     ], 20, 'round#2 - loading');
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - second canLoad hook preempts with navigation instruction', async function () {
@@ -1075,7 +1075,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook2\] loading - end 'bar'/,
       /Hook1\] loading - end 'bar'/,
     ], 20, 'round#2 - loading');
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - view-model canLoad hook preempts with navigation instruction', async function () {
@@ -1222,7 +1222,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     ], 18, 'round#3 - load');
     assert.strictEqual(eventLog.log.length, 24);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - first canUnload hook preempts with false', async function () {
@@ -1289,7 +1289,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook1\] canUnload - end 'home'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 2);
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - second canUnload hook preempts with false', async function () {
@@ -1360,7 +1360,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook2\] canUnload - end 'home'/,
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 4);
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple asynchronous hooks - view-model canUnload hook preempts with false', async function () {
@@ -1432,7 +1432,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     ], 'round#2');
     assert.strictEqual(eventLog.log.length, 6);
 
-    await au.stop();
+    await au.stop(true);
   });
   // #endregion
 
@@ -1585,7 +1585,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
 
       assertLog(eventLog);
 
-      await au.stop();
+      await au.stop(true);
     });
   }
 
@@ -6230,7 +6230,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     assert.strictEqual(c2vm.canUnloadCalled, 3, 'c1vm.canUnloadCalled 5');
     assert.html.textContent(host, 'c1', 'content 4');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('lifecycle hooks as dependencies are supported', async function () {
@@ -6289,6 +6289,6 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook2\] loading 'c2'/,
     ], 'round#2');
 
-    await au.stop();
+    await au.stop(true);
   });
 });

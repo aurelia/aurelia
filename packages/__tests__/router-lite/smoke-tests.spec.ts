@@ -1886,7 +1886,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('Router#load accepts hierarchical viewport instructions with route-id', async function () {
@@ -2018,7 +2018,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(vps[0], 'c1 gc12', 'round#5 vp1');
     assert.html.textContent(vps[1], '', 'round#5 vp2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('Router#load supports class-returning-function as component', async function () {
@@ -2155,7 +2155,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(vps[0], 'c1 gc12', 'round#8 vp1');
     assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#8 vp2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   // Use-case: router.load(import('./class'))
@@ -2307,7 +2307,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(vps[0], 'c1 gc12', 'round#10 vp1');
     assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#10 vp2');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('Router#load accepts viewport instructions with specific viewport name - component: mixed', async function () {
@@ -2460,7 +2460,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(vps[0], 'c2 21 gc22 42', 'round#7 vp1');
     assert.html.textContent(vps[1], '', 'round#7 vp2');
 
-    await au.stop();
+    await au.stop(true);
   });
   // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
@@ -2488,7 +2488,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     assert.strictEqual(host.querySelector('a').getAttribute('href'), null);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   // #region location URL generation
@@ -2595,7 +2595,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #2 - structured query string object', async function () {
@@ -2607,7 +2607,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #3 - multi-valued query string - value from both string path and structured query params', async function () {
@@ -2619,7 +2619,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=fizz&foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=fizz&foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #4 - structured query string along with path parameter', async function () {
@@ -2631,7 +2631,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: fizz | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/fizz\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #5 - structured query string with class as routing instruction', async function () {
@@ -2643,7 +2643,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #6 - structured query string with viewport instruction', async function () {
@@ -2655,7 +2655,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #7 - structured query string with viewport instruction - route-id and multi-valued key', async function () {
@@ -2667,7 +2667,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: bar=fizz&bar=foo | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?bar=fizz&bar=foo$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('queryString - #8 - sibling viewports', async function () {
@@ -2679,7 +2679,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: view-a foo: undefined | query: foo=bar | fragment:');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\?foo=bar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #1 - raw fragment in path', async function () {
@@ -2691,7 +2691,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #2 - fragment in navigation options', async function () {
@@ -2703,7 +2703,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #3 - fragment in path always wins over the fragment in navigation options', async function () {
@@ -2715,7 +2715,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: undefined | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #4 - with viewport instruction', async function () {
@@ -2727,7 +2727,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #5 - with viewport instruction - raw url', async function () {
@@ -2739,7 +2739,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('fragment - #6 - sibling viewport', async function () {
@@ -2751,7 +2751,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: | fragment: foobar view-a foo: undefined | query: | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('query and fragment', async function () {
@@ -2763,7 +2763,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\?foo=bar#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('query and fragment - sibling viewport', async function () {
@@ -2775,7 +2775,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'view-a foo: 42 | query: foo=bar | fragment: foobar view-a foo: 84 | query: foo=bar | fragment: foobar');
       assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /a\/42\+a\/84\?foo=bar#foobar$/);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('shows title correctly', async function () {
@@ -2787,7 +2787,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       assert.strictEqual(container.get(IPlatform).document.title, 'A | base');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('respects custom buildTitle', async function () {
@@ -2802,7 +2802,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       assert.strictEqual(container.get(IPlatform).document.title, 'base - A');
 
-      await au.stop();
+      await au.stop(true);
     });
   }
   // TODO(sayan): add more tests for title involving children and sibling routes
@@ -2842,7 +2842,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'gcc1');
     assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /c1\/gc1$/);
 
-    await au.stop();
+    await au.stop(true);
   });
   // #endregion
 
@@ -3002,7 +3002,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('getRouteConfig hook', async function () {
@@ -3116,7 +3116,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('async configuration', async function () {
@@ -3230,7 +3230,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('parameterized route', async function () {
@@ -3332,7 +3332,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#5 child navbar');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('with redirection', async function () {
@@ -3432,7 +3432,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('with redirection - path with redirection is shown', async function () {
@@ -3532,7 +3532,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       rootNavbar.assert([{ href: '', text: 'null', active: false }, { href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('parameterized redirection', async function () {
@@ -3588,7 +3588,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       rootNavbar.assert([{ href: 'p1/:id', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#2 root');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('can be deactivated', async function () {
@@ -3632,7 +3632,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'no nav model root no nav model p1 c11');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     class InvalidAsyncComponentTestData {
@@ -3679,7 +3679,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
           assert.match((er as Error).message, /does not appear to be a component or CustomElement recognizable by Aurelia/);
         }
 
-        await au.stop();
+        await au.stop(true);
       });
     }
   });
@@ -3733,7 +3733,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     await container.get(IRouter).load('p2');
     assert.deepStrictEqual(log, [true, false]);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('custom base path can be configured', async function () {
@@ -3805,7 +3805,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.strictEqual(host.querySelector('ce-p1'), null);
     assert.notEqual(host.querySelector('ce-p2'), null);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('multiple paths can redirect to same path', async function () {
@@ -3852,7 +3852,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'p2');
     assert.match(location.path, /p2$/);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('parameterized redirect', async function () {
@@ -3918,7 +3918,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.match((e as Error).message, /^Unexpected expression kind/, 'Expected error due to unexpected path segment.');
     }
 
-    await au.stop();
+    await au.stop(true);
   });
 
   it('parameterized redirect - parameter rearrange', async function () {
@@ -3964,7 +3964,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'p2 2 1');
     assert.match(location.path, /p2\/2\/1$/);
 
-    await au.stop();
+    await au.stop(true);
   });
 
   describe('path generation', function () {
@@ -4079,7 +4079,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.strictEqual(await router.load('bar/1?b=3'), true);
       BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ b: '3' })], 'params7');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('at root - with siblings', async function () {
@@ -4185,7 +4185,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.strictEqual(await router.load('foo/11+bar/21?b=3'), true);
       BaseRouteViewModel.assertAndClear('params5', ['foo', [{ id: '11' }, new URLSearchParams({ b: '3' })]], ['bar', [{ id: '21' }, new URLSearchParams({ b: '3' })]]);
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('with parent-child hierarchy', async function () {
@@ -4314,7 +4314,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.match(location.path, /12\/1\/23\/5\/tt\/6$/);
       BaseRouteViewModel.assertAndClear('params5', ['cel23', [{ id: '5', a: '6' }, new URLSearchParams()]]);
 
-      await au.stop();
+      await au.stop(true);
     });
   });
 
@@ -4356,7 +4356,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('replace - inherited - sibling', async function () {
@@ -4413,7 +4413,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('transitionPlan function #1', async function () {
@@ -4458,7 +4458,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 2', 'round#2');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('transitionPlan function #2 - sibling', async function () {
@@ -4521,7 +4521,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 1 2', 'round#2');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('transitionPlan function #3 - parent-child - parent:replace,child:invoke-lifecycles', async function () {
@@ -4588,7 +4588,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2'); // this happens as the ce-one (parent) is replaced causing replacement of child
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('transitionPlan function #3 - parent-child - parent:invoke-lifecycles,child:replace', async function () {
@@ -4655,7 +4655,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 2 ce2 2 2', 'round#2');
 
-      await au.stop();
+      await au.stop(true);
     });
   });
 
@@ -4742,7 +4742,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
           assert.html.textContent(history, expectations[i], `round#${i}`);
         }
 
-        await au.stop();
+        await au.stop(true);
       });
     }
 
@@ -4832,7 +4832,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     (isNode() ? it.skip : it)('explicit history strategy can be used for individual navigation - configured: replace', async function () {
@@ -4921,7 +4921,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
 
-      await au.stop();
+      await au.stop(true);
     });
 
     (isNode() ? it.skip : it)('explicit history strategy can be used for individual navigation - configured: none', async function () {
@@ -5009,7 +5009,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(vp, 'ce2', 'round#4 - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":6}', 'round#4 - history');
 
-      await au.stop();
+      await au.stop(true);
     });
   });
 
@@ -5070,7 +5070,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #3');
 
-    await au.stop();
+    await au.stop(true);
   });
 
   describe('multiple configurations for same component', function () {
@@ -5111,7 +5111,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
       assert.deepStrictEqual(ce.data, { awesome: 'possum' });
 
-      await au.stop();
+      await au.stop(true);
     });
 
     it('same component is added under different parents', async function () {
@@ -5165,7 +5165,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
       assert.deepStrictEqual(ce.data, { awesome: 'possum' });
 
-      await au.stop();
+      await au.stop(true);
     });
 
     for (const config of ['c1', { path: 'c1' }]) {
@@ -5216,7 +5216,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
         assert.html.textContent(host, 'p-2/c1');
 
-        await au.stop();
+        await au.stop(true);
 
       });
 
@@ -5265,7 +5265,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load('p2/c1');
         assert.html.textContent(host, 'p-2/c1');
 
-        await au.stop();
+        await au.stop(true);
 
       });
     }
@@ -5386,7 +5386,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       assert.html.textContent(host, 'p-2/c1');
 
-      await au.stop();
+      await au.stop(true);
     });
   });
 });

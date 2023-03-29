@@ -112,7 +112,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.deepStrictEqual(eventLog, [], `${unsubscribedEvent} event log`);
 
       subscriber.dispose();
-      await au.stop();
+      await au.stop(true);
     });
 
     it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - parent-child`, async function () {
@@ -225,7 +225,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
 
       subscriber.dispose();
-      await au.stop();
+      await au.stop(true);
     });
 
     it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling`, async function () {
@@ -319,7 +319,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c2\+c1$/, 'forward3 event log path');
 
       subscriber.dispose();
-      await au.stop();
+      await au.stop(true);
     });
 
     it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling/child`, async function () {
@@ -435,7 +435,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward3 event log path');
 
       subscriber.dispose();
-      await au.stop();
+      await au.stop(true);
     });
 
     it(`parent-child - replicates GH issue 1658 - useUrlFragmentHash: ${useHash}, event: ${event}`, async function () {
@@ -527,7 +527,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'forward event log path');
 
       subscriber.dispose();
-      await au.stop();
+      await au.stop(true);
     });
   }
 });

@@ -123,16 +123,12 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly fallback: string | FallbackFunction | null,
     public readonly component: Routeable,
     public readonly nav: boolean,
-    /** @internal */
-    // public readonly _definedByComponent: boolean,
   ) { }
 
   /** @internal */
   public static _create(
     configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
     Type: RouteType | null,
-    // definedByComponent: boolean,
-    /* , parentConfig: RouteConfig | null */
   ): RouteConfig {
     if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
       const path = ensureArrayOfStrings(configOrPath);
@@ -141,7 +137,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       const caseSensitive = Type?.caseSensitive ?? false;
       const id = ensureString(Type?.id ?? (path instanceof Array ? path[0] : path));
       const title = Type?.title ?? null;
-      const reentryBehavior = Type?.transitionPlan ?? /* parentConfig?.transitionPlan ?? */ null;
+      const reentryBehavior = Type?.transitionPlan ?? null;
       const viewport = Type?.viewport ?? defaultViewportName;
       const data = Type?.data ?? {};
       const children = Type?.routes ?? noRoutes;
@@ -159,7 +155,6 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         Type?.fallback ?? null,
         Type as Routeable,
         Type?.nav ?? true,
-        // definedByComponent,
       );
     } else if (typeof configOrPath === 'object') {
       const config = configOrPath;
@@ -193,7 +188,6 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? Type ?? null,
         config.nav ?? true,
-        // definedByComponent,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -303,7 +297,6 @@ export const Route = {
   configure<T extends RouteType>(
     configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
     Type: T,
-    // isDefinedByType: boolean
   ): T {
     const config = RouteConfig._create(configOrPath, Type /* , isDefinedByType , null */);
     Metadata.define(Route.name, config, Type);

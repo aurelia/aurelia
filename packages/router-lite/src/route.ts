@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, emptyArray, onResolve, Protocol, ResourceType, Writable } from '@aurelia/kernel';
+import { Constructable, emptyArray, onResolve, Protocol, ResourceType, Writable, IContainer } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, NavigationInstructionType, RouteableComponent, TypedNavigationInstruction, ViewportInstruction } from './instructions';
@@ -280,6 +280,12 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     return typeof fallback === 'function'
       ? fallback(viewportInstruction, routeNode, context)
       : fallback;
+  }
+
+  public register(container: IContainer): void {
+    const component= this.component;
+    if(component == null) return;
+    container.register(component);
   }
 }
 

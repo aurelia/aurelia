@@ -221,10 +221,10 @@ export class RouteContext {
     } else {
       this._navigationModel = null;
     }
-    this.processConfiguration(config);
+    this._processConfig(config);
   }
 
-  private processConfiguration(config: RouteConfig): void {
+  private _processConfig(config: RouteConfig): void {
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
     const childrenRoutes = config.routes ?? noRoutes;
@@ -411,7 +411,7 @@ export class RouteContext {
       ? void 0
       : onResolve(
         resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null),
-        config => this.processConfiguration(config)
+        config => this._processConfig(config)
       );
     return onResolve(task, () => {
       const controller = Controller.$el(container, componentInstance, hostController.host, null);

@@ -5075,8 +5075,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
   describe('multiple configurations for same component', function () {
     it('multiple configurations for the same component under the same parent', async function () {
-      @customElement({ name: 'c-1', template: 'c1' })
+      @customElement({ name: 'c-1', template: 'c1 ${id}' })
       class C1 implements IRouteViewModel {
+        private static id: number = 0;
+        private readonly id: number = ++C1.id;
         public data: Record<string, unknown>;
         public loading(_params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
           this.data = next.data;
@@ -5097,7 +5099,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const doc = container.get(IPlatform).document;
       const router = container.get(IRouter);
 
-      assert.html.textContent(host, 'c1');
+      assert.html.textContent(host, 'c1 1');
       assert.strictEqual(doc.title, 't1');
 
       let ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
@@ -5105,7 +5107,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await router.load('c1');
 
-      assert.html.textContent(host, 'c1');
+      assert.html.textContent(host, 'c1 2');
       assert.strictEqual(doc.title, 't2');
 
       ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;

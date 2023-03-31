@@ -4657,6 +4657,87 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.stop(true);
     });
+
+    it('transitionPlan can be overridden per instruction basis', async function () {
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2} ${id}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        private id: string;
+        public canLoad(params: Params): boolean {
+          this.id = params.id;
+          this.id2 = ++CeTwo.id2;
+          return true;
+        }
+      }
+
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2} ${id}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        private id: string;
+        public canLoad(params: Params): boolean {
+          this.id = params.id;
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan: 'replace',
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1/:id'],
+            component: CeOne,
+            transitionPlan: 'invoke-lifecycles',
+          },
+          {
+            id: 'ce2',
+            path: ['ce2/:id'],
+            component: CeTwo,
+            transitionPlan: 'replace',
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root });
+      const queue = container.get(IPlatform).domWriteQueue;
+      const router = container.get<Router>(IRouter);
+
+      await router.load('ce1/42');
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 42', 'round#1');
+
+      await router.load('ce1/43');
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 2 43', 'round#2');
+
+      await router.load('ce1/44', { transitionPlan: 'replace' });
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 3 44', 'round#3');
+
+      await router.load('ce2/42');
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 1 1 42', 'round#4');
+
+      await router.load('ce2/43');
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 2 2 43', 'round#5');
+
+      await router.load('ce2/44', { transitionPlan: 'invoke-lifecycles' });
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 2 3 44', 'round#6');
+
+      await au.stop(true);
+    });
   });
 
   describe('history strategy', function () {

@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import type { Params, RouteContextLike, ViewportInstructionTree } from './instructions';
+import { TransitionPlan } from './route';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 
@@ -98,6 +99,7 @@ export class NavigationOptions implements INavigationOptions {
      * Specify any kind of state to be stored together with the history entry for this navigation.
      */
     public readonly state: Params | null,
+    public readonly transitionPlan: TransitionPlan | null,
   ) { }
 
   public static create(routerOptions: RouterOptions, input: INavigationOptions): NavigationOptions {
@@ -109,6 +111,7 @@ export class NavigationOptions implements INavigationOptions {
       input.queryParams ?? null,
       input.fragment ?? '',
       input.state ?? null,
+      input.transitionPlan ?? null,
     );
   }
 
@@ -121,6 +124,7 @@ export class NavigationOptions implements INavigationOptions {
       { ...this.queryParams },
       this.fragment,
       this.state === null ? null : { ...this.state },
+      this.transitionPlan,
     );
   }
 

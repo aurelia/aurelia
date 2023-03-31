@@ -1046,6 +1046,18 @@ export class MyApp implements IRouteViewModel {
 }
 ```
 {% endtab %}
+{% tab title="home.ts" %}
+```typescript
+import { route } from '@aurelia/router-lite';
+import { customElement } from '@aurelia/runtime-html';
+
+@route({ path: ['', 'home'], title: 'Home' })
+@customElement({ name: 'ho-me', template: '<h1>${message}</h1>' })
+export class Home {
+  private readonly message: string = 'Welcome to Aurelia2 router-lite!';
+}
+```
+{% endtab %}
 {% tab title="about.ts" %}
 ```typescript
 import { route } from '@aurelia/router-lite';

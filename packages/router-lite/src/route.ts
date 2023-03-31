@@ -109,7 +109,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     if (path.length > 0) return path;
     return this._path = [CustomElement.getDefinition(this.component as RouteType).name];
   }
-  protected constructor(
+  private constructor(
     public readonly id: string,
     /** @internal */
     public _path: string[],
@@ -283,6 +283,11 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   public register(container: IContainer): void {
+    /**
+     * When an instance of the RouteConfig is created, via the static `_create` and `resolveRouteConfiguration`, the component is always resolved to a custom element.
+     * This makes the process to registering to registering the custom element to the DI.
+     * The component can only be null for redirection configurations and that is ignored here.
+     */
     const component= this.component;
     if(component == null) return;
     container.register(component);

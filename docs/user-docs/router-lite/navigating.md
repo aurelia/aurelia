@@ -1019,6 +1019,62 @@ router.load('c3', { historyStrategy: 'replace' })
 
 then performing a `history.back()` should load the `c1` route, as the state for `c2` is replaced.
 
+**transitionPlan**
+
+Using this navigation option, you can override the [configured transition plan](./transition-plans.md) per routing instruction basis.
+The following example demonstrates that even though the routes are configured with a specific transition plans, using the router API, the transition plans can be overridden.
+
+```typescript
+@route({
+  transitionPlan: 'replace',
+  routes: [
+    {
+      id: 'ce1',
+      path: ['ce1/:id'],
+      component: CeOne,
+      transitionPlan: 'invoke-lifecycles',
+    },
+    {
+      id: 'ce2',
+      path: ['ce2/:id'],
+      component: CeTwo,
+      transitionPlan: 'replace',
+    },
+  ],
+})
+@customElement({
+  name: 'my-app',
+  template: `
+<button click.trigger="navigate('ce1/42')">ce1/42 (default: invoke lifecycles)</button><br>
+<button click.trigger="navigate('ce1/43')">ce1/43 (default: invoke lifecycles)</button><br>
+<button click.trigger="navigate('ce1/44', 'replace')">ce1/44 (override: replace)</button><br>
+<br>
+
+<button click.trigger="navigate('ce2/42')">ce2/42 (default: replace)</button><br>
+<button click.trigger="navigate('ce2/43')">ce2/43 (default: replace)</button><br>
+<button click.trigger="navigate('ce2/44', 'invoke-lifecycles')">ce2/44 (override: invoke lifecycles)</button><br>
+
+<au-viewport></au-viewport>
+`,
+})
+export class MyApp {
+  public constructor(@IRouter private readonly router: IRouter) {}
+  private navigate(
+    path: string,
+    transitionPlan?: 'replace' | 'invoke-lifecycles'
+  ) {
+    void this.router.load(
+      path,
+      transitionPlan ? { transitionPlan } : undefined
+    );
+  }
+}
+```
+
+This can be seen in action below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-transitionplan-nav-opt?ctl=1&embed=1&file=src/my-app.ts" %}
+
 ## Redirection and unknown paths
 
 For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.

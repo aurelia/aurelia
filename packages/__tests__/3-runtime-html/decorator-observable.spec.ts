@@ -366,7 +366,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     public created() {
       this.countObs = this['$controller'].container.get(IObserverLocator).getObserver(this, 'count');
       this.countObs.subscribe({
-        handleChange: (value, oldValue) => {
+        handleChange: (value: number, oldValue: number) => {
           if (value > 0 && value < 10) {
             this.log('S.1. handleChange()', value);
             if (value > oldValue) {

@@ -5,6 +5,7 @@ import {
   ModifierFlags,
   SyntaxKind,
   TypeAliasDeclaration,
+  getModifiers,
 } from 'typescript';
 import {
   emptyArray,
@@ -80,7 +81,7 @@ export class $InterfaceDeclaration implements I$Node {
 
     ctx |= Context.InTypeElement;
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
@@ -149,7 +150,7 @@ export class $TypeAliasDeclaration implements I$Node {
 
     ctx |= Context.InTypeElement;
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
@@ -233,7 +234,7 @@ export class $EnumDeclaration implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;

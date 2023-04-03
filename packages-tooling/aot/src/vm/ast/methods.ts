@@ -1,6 +1,7 @@
 import {
   canHaveModifiers,
   GetAccessorDeclaration,
+  getDecorators,
   getModifiers,
   MethodDeclaration,
   ModifierFlags,
@@ -126,7 +127,7 @@ export class $MethodDeclaration implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
@@ -297,7 +298,7 @@ export class $GetAccessorDeclaration implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
@@ -423,7 +424,7 @@ export class $SetAccessorDeclaration implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);

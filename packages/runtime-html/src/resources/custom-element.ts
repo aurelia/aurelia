@@ -414,7 +414,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+export type InjectableToken<K = any> = (target: Injectable, property: string | symbol | undefined, index: number) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;

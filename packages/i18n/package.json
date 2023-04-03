@@ -57,7 +57,7 @@
     "i18next": "^17.0.0"
   },
   "devDependencies": {
-    "typescript": "4.9.5"
+    "typescript": "5.0.2"
   },
   "engines": {
     "node": ">=14.17.0"

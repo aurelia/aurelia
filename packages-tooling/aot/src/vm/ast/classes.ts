@@ -12,6 +12,7 @@ import {
   getModifiers,
   factory,
   Modifier,
+  getDecorators,
 } from 'typescript';
 import {
   emptyArray,
@@ -387,7 +388,7 @@ export class $ClassDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     let $name: $Identifier | $Undefined;
     if (node.name === void 0) {
       $name = this.$name = new $Undefined(realm, void 0, void 0, this);
@@ -836,7 +837,7 @@ export class $PropertyDeclaration implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(canHaveModifiers(node) ? getModifiers(node) : undefined);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 

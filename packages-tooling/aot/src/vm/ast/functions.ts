@@ -5,10 +5,13 @@ import {
   ConstructorDeclaration,
   FunctionDeclaration,
   FunctionExpression,
+  getDecorators,
   getModifiers,
   ModifierFlags,
   ParameterDeclaration,
   SyntaxKind,
+  Node as TsNode,
+  ClassDeclaration
 } from 'typescript';
 import {
   emptyArray,
@@ -252,7 +255,7 @@ export class $FunctionExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.FunctionExpression`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
     if (DirectivePrologue.ContainsUseStrict) {
@@ -749,7 +752,7 @@ export class $FunctionDeclaration implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
@@ -760,7 +763,7 @@ export class $FunctionDeclaration implements I$Node {
       ctx |= Context.InStrictMode;
     }
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node as TsNode as ClassDeclaration), this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
@@ -1519,7 +1522,7 @@ export class $ArrowFunction implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ArrowFunction`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
     if (node.body.kind === SyntaxKind.Block) {
       const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
@@ -1644,9 +1647,9 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ConstructorDeclaration`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.modifierFlags = modifiersToModifierFlags(getModifiers(node));
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node as TsNode as ClassDeclaration), this, ctx);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
 
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
@@ -1751,7 +1754,7 @@ export class $ParameterDeclaration implements I$Node {
 
     ctx |= Context.InParameterDeclaration;
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    this.$decorators = $decoratorList(getDecorators(node), this, ctx);
     const $name = this.$name = $$bindingName(node.name, this, ctx, -1);
 
     this.BoundNames = $name.BoundNames;

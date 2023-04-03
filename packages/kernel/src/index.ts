@@ -26,6 +26,7 @@ export {
   type ResolveCallback,
   singleton,
   transient,
+  type AbstractInjectable,
   type Injectable,
   type InterfaceSymbol,
   InstanceProvider,

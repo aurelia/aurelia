@@ -28,6 +28,21 @@ module.exports = function (env, { analyze }) {
         'url': require.resolve('url'),
         'events': require.resolve('events'),
       },
+      alias: {
+        ...[
+          'fetch-client',
+          'router',
+          'kernel',
+          'runtime',
+          'runtime-html',
+        ].reduce((map, pkg) => {
+          const name = `@aurelia/${pkg}`;
+          map[name] = path.resolve(__dirname, '../../node_modules', name, 'dist/esm/index.dev.mjs');
+          return map;
+        }, {
+          'aurelia': path.resolve(__dirname, '../../node_modules/aurelia/dist/esm/index.dev.mjs'),
+        })
+      }
     },
     devServer: {
       historyApiFallback: true,

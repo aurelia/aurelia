@@ -11,9 +11,9 @@ export class SortValueConverter {
     if (Array.isArray(arr)) {
       const factor = dir === 'asc' ? 1 : -1;
       if (prop?.length) {
-        arr.sort((a, b) => a[prop] - b[prop] * factor);
+        arr.sort((a: any, b: any) => a[prop] - b[prop] * factor);
       } else {
-        arr.sort((a, b) => a - b * factor);
+        arr.sort((a, b) => (a as number) - (b as number) * factor);
       }
     }
     return arr;

@@ -75,6 +75,7 @@ function createProxy<T extends object>(obj: T): T {
 
   const proxiedObj = new Proxy(obj, handler);
   proxyMap.set(obj, proxiedObj);
+  proxyMap.set(proxiedObj, proxiedObj);
 
   return proxiedObj as T;
 }

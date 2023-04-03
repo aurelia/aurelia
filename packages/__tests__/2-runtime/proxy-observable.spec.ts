@@ -31,6 +31,26 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     });
   }
 
+  it('does not rewrap a wrapped object', function () {
+    const proxied = ProxyObservable.wrap({});
+    assert.strictEqual(ProxyObservable.wrap(proxied), proxied);
+  });
+
+  it('does not rewrap a wrapped array', function () {
+    const proxied = ProxyObservable.wrap([]);
+    assert.strictEqual(ProxyObservable.wrap(proxied), proxied);
+  });
+
+  it('does not rewrap a wrapped map', function () {
+    const proxied = ProxyObservable.wrap(new Map());
+    assert.strictEqual(ProxyObservable.wrap(proxied), proxied);
+  });
+
+  it('does not rewrap a wrapped set', function () {
+    const proxied = ProxyObservable.wrap(new Set());
+    assert.strictEqual(ProxyObservable.wrap(proxied), proxied);
+  });
+
   it('does not wrap object that has been marked as "nowrap"', function () {
     @nowrap
     class MyModel { }

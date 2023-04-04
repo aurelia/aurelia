@@ -257,6 +257,7 @@ module.exports = {
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/typedef': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
       'import/no-nodejs-modules': 'off',
       'import/no-extraneous-dependencies': 'off',
       'jsdoc/require-param-description': 'off',

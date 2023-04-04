@@ -57,7 +57,7 @@ module.exports =
   // - [1.2, 1.3, 1.4, 2.3, 3.1] Ordinary JS files (framework, spec and utility) are all watched so that changing either the tests or the code will re-trigger a test run
   //   when the transpiled output changes (so the TS source files still need to be watched by tsc separately).
 
-  // - [1.2, 1.3, 1.4] We don't want to include/serve setup-test262 / setup-node in the browser tests, and we don't like hacking too much with globs, therefore all top-level .js files are declared statically on top as well (instead of e.g. *.js).
+  // - [1.2, 1.3, 1.4] We don't want to include/serve setup-node in the browser tests, and we don't like hacking too much with globs, therefore all top-level .js files are declared statically on top as well (instead of e.g. *.js).
 
   // - [2.2, 2.4, 3.2, 3.3] .ts and .js.map files are *only* served, so that source maps work properly when running in debug mode.
   //   They're not watched because they shouldn't by themselves trigger a re-run (only the transpiled output should).

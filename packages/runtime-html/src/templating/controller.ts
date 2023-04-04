@@ -1340,8 +1340,6 @@ function createWatchers(
         observerLocator,
         expression,
         callback,
-        // there should be a flag to purposely disable proxy
-        // AOT: not true for IE11
         true,
       ));
     } else {

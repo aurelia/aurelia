@@ -1,8 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "declarationDir": "./dist/types",
-    "outDir": "./dist/esm",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
-  }
-}

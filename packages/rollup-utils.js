@@ -132,7 +132,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   /** @type {NormalizedEnvVars} */
   const envVars = {
     __DEV__: process.env.__DEV__,
-    NO_MINIFIED: process.env.NO_MINIFIED
+    ...(process.env.NO_MINIFIED ? { NO_MINIFIED: process.env.NO_MINIFIED } : {})
   };
   // @ts-ignore
   const isDevMode = /^true$/.test(process.env.DEV_MODE);

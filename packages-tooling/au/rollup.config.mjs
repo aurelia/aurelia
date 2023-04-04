@@ -1,6 +1,8 @@
 import typescript from '@rollup/plugin-typescript';
-import pkg from './package.json';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+const pkg = createRequire(import.meta.url)('./package.json');
 
 export default {
   input: 'src/index.ts',

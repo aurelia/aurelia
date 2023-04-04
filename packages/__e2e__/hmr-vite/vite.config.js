@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter } from '@rollup/pluginutils';
 import path, { resolve } from 'path';
+import aurelia from '@aurelia/vite-plugin';
 
 export default defineConfig({
   // mode: 'production',
@@ -11,24 +12,25 @@ export default defineConfig({
   build: {
     minify: false
   },
-  resolve: {
-    alias: {
-      ...[
-        'fetch-client',
-        'router-lite',
-        'kernel',
-        'runtime',
-        'runtime-html',
-        'router-lite',
-      ].reduce((map, pkg) => {
-        const name = `@aurelia/${pkg}`;
-        map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);
-        return map;
-      }, {})
-    }
-  },
+  // resolve: {
+  //   alias: {
+  //     ...[
+  //       'fetch-client',
+  //       'router-lite',
+  //       'kernel',
+  //       'runtime',
+  //       'runtime-html',
+  //       'router-lite',
+  //     ].reduce((map, pkg) => {
+  //       const name = `@aurelia/${pkg}`;
+  //       map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);
+  //       return map;
+  //     }, {})
+  //   }
+  // },
   plugins: [
-    au2({ include: 'src/**/*.{ts,js,html}', pre: true }),
+    // au2({ include: 'src/**/*.{ts,js,html}', pre: true }),
+    aurelia()
   ]
 });
 

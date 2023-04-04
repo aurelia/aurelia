@@ -1,7 +1,7 @@
 /* eslint-disable */
 const fs = require('fs');
 const { resolve, join } = require('path');
-const { build } = require('esbuild');
+const { context } = require('esbuild');
 const { exec, execSync } = require('child_process');
 
 /**
@@ -36,11 +36,10 @@ function findByExt(startPath, filter, found = []) {
   return found;
 };
 
-build({
+context({
   entryPoints: findByExt('./', /\.tsx?$/),
   outdir: resolve(__dirname, 'dist/cjs/__tests__'),
   sourcemap: true,
-  watch: /^true$/.test(process.env.DEV_MODE),
   keepNames: true,
   format: 'cjs',
   plugins: [
@@ -65,6 +64,10 @@ build({
       }
     }
   ]
+}).then(ctx => {
+  if (/^true$/.test(process.env.DEV_MODE)) {
+    ctx.watch();
+  }
 }).catch(err => {
   process.stderr.write(err.stderr);
   process.exit(1);

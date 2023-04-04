@@ -1,7 +1,7 @@
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
-import { resolve, dirname } from 'path';
-import fs from 'fs';
+import { resolve, dirname } from 'node:path';
+import { promises } from 'node:fs';
 
 export default function au(options: { include?: FilterPattern; exclude?: FilterPattern; pre?: boolean } = {}) {
   const { include = 'src/**/*.{ts,js,html}', exclude, pre = true } = options;
@@ -81,7 +81,7 @@ export default function au(options: { include?: FilterPattern; exclude?: FilterP
         return null;
       }
       const htmlId = id.replace('.$au.ts', '.html');
-      const code = await fs.promises.readFile(htmlId, { encoding: 'utf-8' });
+      const code = await promises.readFile(htmlId, { encoding: 'utf-8' });
       const result = preprocess({
         path: htmlId,
         contents: code,

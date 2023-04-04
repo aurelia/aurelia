@@ -57,7 +57,7 @@ export function rollupTypeScript(overrides) {
 
 /**
  * @param {{ name: string; script: string }[]} scripts
- * @return {import('rollup').Plugin}
+ * @returns {import('rollup').Plugin}
  */
 export function runPostbuildScript(...scripts) {
   return {
@@ -66,12 +66,12 @@ export function runPostbuildScript(...scripts) {
       const now = Date.now();
       scripts.forEach(s => {
         try {
-          execSync(s.script.replace(/^(?:npm run\s*)?/, 'npm run '))
+          execSync(s.script.replace(/^(?:npm run\s*)?/, 'npm run '));
         } catch (ex) {
           process.stdout.write(ex.stdout);
         }
       });
-      console.log(`run: ${scripts.map(s => `"${s.name}"`).join('\, ')} in ${((Date.now() - now) / 1000).toFixed(2)}s`);
+      console.log(`run: ${scripts.map(s => `"${s.name}"`).join(', ')} in ${((Date.now() - now) / 1000).toFixed(2)}s`);
     }
   };
 }
@@ -95,9 +95,10 @@ export function runPostbuildScript(...scripts) {
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
  * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
- *  a callback that takes a record of env variables, and returns overrides for terser plugin config
+ * a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */
+// eslint-disable-next-line default-param-last
 export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = [{ name: 'build dts', script: 'postrollup'}]) {
   /** @type {NormalizedEnvVars} */
   const envVars = {
@@ -120,8 +121,8 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
 
   const prodConfig = configure({
     input: inputFile,
-    external: Object.keys(pkg.dependencies)
-      .concat(Object.keys(pkg.devDependencies))
+    external: Object.keys(pkg.dependencies ?? {})
+      .concat(Object.keys(pkg.devDependencies ?? {}))
       .concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
     output: [
       {

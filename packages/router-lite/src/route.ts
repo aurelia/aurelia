@@ -107,7 +107,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public get path(): string[] {
     const path = this._path;
     if (path.length > 0) return path;
-    return this._path = [CustomElement.getDefinition(this.component as RouteType).name];
+    const ceDfn = CustomElement.getDefinition(this.component as RouteType);
+    return this._path = [ceDfn.name, ...ceDfn.aliases];
   }
   private constructor(
     public readonly id: string,
@@ -165,7 +166,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
       const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
       const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
-      const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? /* parentConfig?.transitionPlan ?? */ null;
+      const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? null;
       const viewport = config.viewport ?? Type?.viewport ?? defaultViewportName;
       const data = {
         ...Type?.data,
@@ -309,7 +310,7 @@ export const Route = {
     configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
     Type: T,
   ): T {
-    const config = RouteConfig._create(configOrPath, Type /* , isDefinedByType , null */);
+    const config = RouteConfig._create(configOrPath, Type);
     Metadata.define(Route.name, config, Type);
 
     return Type;

@@ -32,10 +32,10 @@ describe('router/routing-hook.spec.ts', function () {
       RouterConfiguration.customize();
       RouterConfiguration.for(router).removeAllHooks();
       await au.stop(true);
-      const { href } = platform.location;
+      const { href } = platform.window.location;
       const index = href.indexOf('#');
       if (index >= 0) {
-        platform.history.replaceState({}, '', href.slice(0, index));
+        platform.window.history.replaceState({}, '', href.slice(0, index));
       }
     }
 

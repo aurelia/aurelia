@@ -35,7 +35,6 @@
     "packages/validation-i18n",
     "packages/web-components",
     "packages-tooling/__tests__",
-    "packages-tooling/aot",
     "packages-tooling/au",
     "packages-tooling/http-server",
     "packages-tooling/plugin-gulp",
@@ -53,15 +52,7 @@
     "examples/realworld",
     "examples/realworld-advanced",
     "examples/router-animation",
-    "examples/sierpinski-triangle",
-    "test/i18n",
-    "test/benchmarking-apps/shared",
-    "test/benchmarking-apps/aurelia2",
-    "test/benchmarking-apps/runner",
-    "test/benchmarking-apps/storage",
-    "test/benchmarking-apps/test-result",
-    "test/benchmarking-apps/viewer/server",
-    "test/benchmarking-apps/viewer/client"
+    "examples/sierpinski-triangle"
   ],
   "license": "MIT",
   "engines": {
@@ -80,7 +71,7 @@
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
-    "clean": "rimraf dist packages/*/dist packages-tooling/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist test/js-framework-benchmark/*/dist",
+    "clean": "rimraf dist packages/*/dist packages-tooling/*/dist test/*/dist examples/*/dist",
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo packages-tooling/*/dist/tsconfig.tsbuildinfo",
     "clean:lint": "rimraf .eslintcache packages/*/.eslintcache packages-tooling/*/.eslintcache",
     "lint": "turbo lint && npm run lint:other",

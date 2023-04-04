@@ -231,7 +231,6 @@ jobs:
             - packages/__tests__/node_modules
 
             - packages-tooling/__tests__/node_modules
-            - packages-tooling/aot/node_modules
             - packages-tooling/au/node_modules
             - packages-tooling/babel-jest/node_modules
             - packages-tooling/http-server/node_modules
@@ -301,7 +300,6 @@ jobs:
             - packages/web-components/dist
 
             - packages-tooling/__tests__/dist
-            - packages-tooling/aot/dist
             - packages-tooling/au/dist
             - packages-tooling/babel-jest/dist
             - packages-tooling/http-server/dist
@@ -572,7 +570,6 @@ jobs:
             - packages/__tests__/node_modules
 
             - packages-tooling/__tests__/node_modules
-            - packages-tooling/aot/node_modules
             - packages-tooling/au/node_modules
             - packages-tooling/babel-jest/node_modules
             - packages-tooling/http-server/node_modules
@@ -705,79 +702,6 @@ jobs:
           working_directory: "benchmarks"
           no_output_timeout: "30s"
 
-  js_framework_benchmark:
-    executor: docker_circleci_bench
-    steps:
-      - browser-tools/install-browser-tools
-      - checkout
-      - run:
-          name: "Print browser tools version"
-          command: |
-            node --version
-            java --version
-            google-chrome --version
-      - run:
-          name: "Benchmark all"
-          command: |
-            npm run init
-            cd test/js-framework-benchmark
-            npm run ci
-      - store_test_results:
-          path: test/js-framework-benchmark/webdriver-ts-results/table.html
-      - store_artifacts:
-          path: test/js-framework-benchmark/webdriver-ts-results/table.html
-      - run:
-          name: "Post benchmark result to comment"
-          command: npx ts-node scripts/post-benchmark-result.ts
-
-  # benchmark using playwright setup
-  benchmark_playwright:
-    executor: docker_circleci
-    steps:
-      - checkout
-      - run: git checkout master
-      - run: npm ci
-      - run: npm run build
-      - run:
-          name: "Prepare cosmos db configuration and run test for the master branch"
-          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
-          command: |
-            cd test/benchmarking-apps/runner
-            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
-            set -o pipefail && node dist/run-benchmarks --i 2 --storage json
-      - run: cd ../../../
-      - checkout_install
-      - run: npm run build
-      - run:
-          name: "Run test for the current branch"
-          command: |
-            cd test/benchmarking-apps/runner
-            set -o pipefail && node dist/run-benchmarks --i 2 --storage json
-      # source: https://support.circleci.com/hc/en-us/articles/360048170573-Auto-comment-on-GitHub-Pull-Requests
-      # - run:
-      #     name: Post benchmarking comparison link to GitHub PR
-      #     command: |
-      #       sudo apt-get install jq
-
-      #       pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
-
-      #       if [ $(echo $pr_response | jq length) -eq 0 ]; then
-      #         echo "No PR found to update"
-      #       else
-      #         pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
-
-      #         git checkout master
-      #         master_commit=$(git rev-parse HEAD)
-
-      #         comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
-      #         curl --location --request POST "$pr_comment_url" \
-      #         -H 'Content-Type: application/json' \
-      #         -H "Authorization: token $GITHUB_TOKEN" \
-      #         --data-raw "{
-      #         \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
-      #         }"
-      #       fi
-
   # on branches that only touches doc
   # there's no need to run the workflow
   check_doc_abort:
@@ -867,26 +791,12 @@ workflows:
           npm_command: "test-node"
           requires:
             - build_release
-      #- unit_test_aot:
-      #   <<: *filter_ignore_develop_release
-      #   name: test_test262
-      #   npm_command: "test-262"
-      #   coverage: false
-      #   submodules: true
 
       - lint_packages:
           <<: *filter_ignore_develop_release
           requires:
             - checkout_install
-      # - js_framework_benchmark:
-      #     <<: *filter_ignore_develop_release
-      #     requires:
-      #       - check_doc_abort
 
-      # - benchmark_playwright:
-      #     <<: *filter_ignore_develop_release
-      #     requires:
-      #       - check_doc_abort
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: webpack_conventions_ts
@@ -958,7 +868,6 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
-            #- test_test262
             # - lint_packages
             - webpack_conventions_ts
             - e2e_hmr_webpack
@@ -1059,13 +968,6 @@ workflows:
           requires:
             - build_release
 
-      #- unit_test_aot:
-      #   <<: *filter_only_tag
-      #   name: test_test262
-      #   npm_command: "test-262"
-      #   coverage: false
-      #   submodules: true
-
       # - lint_packages:
       #     <<: *filter_only_tag
       #     requires:
@@ -1084,7 +986,6 @@ workflows:
             - e2e_hmr_webpack
             - e2e_router_lite
             - e2e_router
-            #- test_test262
             # - lint_packages
           from: $CIRCLE_TAG
           to: release

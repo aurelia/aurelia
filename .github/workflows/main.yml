@@ -79,7 +79,6 @@ jobs:
             packages/validation-i18n/dist
             packages/web-components/dist
             packages-tooling/__tests__/dist
-            packages-tooling/aot/dist
             packages-tooling/au/dist
             packages-tooling/babel-jest/dist
             packages-tooling/http-server/dist
@@ -241,7 +240,6 @@ jobs:
   #   strategy:
   #     matrix:
   #       suite: [
-  #         "aot",
   #         "babel-jest",
   #         "plugin-conventions",
   #         "plugin-gulp",

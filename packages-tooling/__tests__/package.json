@@ -10,10 +10,8 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
-    "test-262": "node dist/cjs/__tests__/setup-test262.js",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
     "test-node": "npm run ::mocha -- dist/cjs/__tests__/**/*.spec.js",
-    "test-node:aot": "npm run ::mocha -- dist/cjs/__tests__/aot/**/*.spec.js",
     "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/__tests__/plugin-conventions/**/*.spec.js",
     "test-node:plugin-gulp": "npm run ::mocha -- dist/cjs/__tests__/plugin-gulp/**/*.spec.js",
     "test-node:webpack-loader": "npm run ::mocha -- dist/cjs/__tests__/webpack-loader/**/*.spec.js",
@@ -26,7 +24,6 @@
     "verify": "tsc --noEmit"
   },
   "dependencies": {
-    "@aurelia/aot": "2.0.0-beta.3",
     "@aurelia/babel-jest": "2.0.0-beta.3",
     "@aurelia/kernel": "2.0.0-beta.3",
     "@aurelia/metadata": "2.0.0-beta.3",

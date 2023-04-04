@@ -7,10 +7,10 @@ describe('router/link-handler.spec.ts', function () {
     const ctx = TestContext.create();
     const { container, platform, doc } = ctx;
 
-    const { href } = platform.location;
+    const { href } = platform.window.location;
     const index = href.indexOf('#');
     if (index >= 0) {
-      platform.history.replaceState({}, '', href.slice(0, index));
+      platform.window.history.replaceState({}, '', href.slice(0, index));
     }
 
     container.register(RouterConfiguration.customize(routerOptions));

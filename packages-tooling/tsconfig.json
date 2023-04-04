@@ -3,7 +3,6 @@
   "references": [
     { "path": "__tests__" },
     { "path": "au" },
-    { "path": "aot" },
     { "path": "http-server" },
     { "path": "plugin-conventions" },
     { "path": "plugin-gulp" },

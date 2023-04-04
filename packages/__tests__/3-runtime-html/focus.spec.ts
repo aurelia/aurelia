@@ -1,6 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
 import { PLATFORM, assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/focus.spec.ts', function () {
   // there are focus/blur API that won't work with JSDOM
@@ -85,7 +86,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
       ['<select/> + <option/>', `<select focus.two-way=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
       ['<textarea/>', `<textarea focus.two-way=hasFocus id=blurred></textarea>`]
     ];
-    if (!PLATFORM.navigator.userAgent.includes('jsdom')) {
+    if (!isNode()) {
       specs.push(['<div/>', '<div contenteditable focus.two-way=hasFocus id=blurred></div>']);
     }
     for (const [desc, template] of specs) {

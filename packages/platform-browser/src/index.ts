@@ -13,9 +13,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
 
   public readonly window!: TGlobal['window'];
   public readonly document!: TGlobal['document'];
-  public readonly location!: TGlobal['location'];
-  public readonly history!: TGlobal['history'];
-  public readonly navigator!: TGlobal['navigator'];
   public readonly customElements!: TGlobal['customElements'];
 
   public readonly fetch!: TGlobal['window']['fetch'];
@@ -36,7 +33,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     super(g, overrides);
 
     ('Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver '
-    + 'window document location history navigator customElements')
+    + 'window document customElements')
       .split(' ')
       // eslint-disable-next-line
       .forEach(prop => (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop]);

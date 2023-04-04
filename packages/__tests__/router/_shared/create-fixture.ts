@@ -145,12 +145,11 @@ export async function createFixture<T extends Constructable>(
 }
 
 export async function clearBrowserState(platform: any, router: IRouter | null = null): Promise<void> {
-  const { href } = platform.location;
-  // const { state } = platform.history;
+  const { href } = platform.window.location;
   const index = href.indexOf('#');
   if (index >= 0) {
     if (router?.viewer?.replaceNavigatorState == null) {
-      platform.history.replaceState({}, '', href.slice(0, index));
+      platform.window.history.replaceState({}, '', href.slice(0, index));
       await Promise.resolve();
     } else {
       await router.viewer.replaceNavigatorState({}, '', href.slice(0, index));

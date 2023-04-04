@@ -1,7 +1,8 @@
-import { assert, createFixture, PLATFORM } from '@aurelia/testing';
+import { assert, createFixture } from '@aurelia/testing';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/input.spec.ts', function () {
-  const isTestingInNode = PLATFORM.navigator.userAgent.includes('jsdom');
+  const isTestingInNode = isNode();
 
   it('works: input[text] value.bind', function () {
     const { appHost, component, ctx } = createFixture(

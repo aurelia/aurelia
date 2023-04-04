@@ -12,7 +12,7 @@ export class TestContext {
 
   public get wnd(): Window & typeof globalThis { return this.platform.globalThis as Window & typeof globalThis; }
   public get doc(): Document { return this.platform.document; }
-  public get userAgent(): string { return this.platform.navigator.userAgent; }
+  public get userAgent(): string { return this.platform.window.navigator.userAgent; }
 
   public get UIEvent() { return this.platform.globalThis.UIEvent; }
   public get Event() { return this.platform.globalThis.Event; }

@@ -4,7 +4,6 @@ import {
 import {
   assert,
   TestContext,
-  PLATFORM,
 } from '@aurelia/testing';
 import {
   bindable,
@@ -17,6 +16,7 @@ import {
   Aurelia,
   ValueConverter,
 } from '@aurelia/runtime-html';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function () {
 
@@ -556,7 +556,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       au.app({ component: App, host });
       await au.start();
 
-      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
+      if (isNode()) {
         assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
       } else {
         assert.includes(host.querySelector('a').search, `?route=home.main`);
@@ -583,7 +583,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       au.app({ component: App, host });
       await au.start();
 
-      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
+      if (isNode()) {
         assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
       } else {
         assert.strictEqual(host.querySelector('a').search, '?route=home--main');
@@ -619,7 +619,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
 
       const anchorEl = host.querySelector('a');
 
-      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
+      if (isNode()) {
         assert.strictEqual(anchorEl.href, '/?route=home.main');
       } else {
         assert.strictEqual(anchorEl.search, '?route=home.main');
@@ -628,7 +628,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
-      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
+      if (isNode()) {
         assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       } else {
         assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);

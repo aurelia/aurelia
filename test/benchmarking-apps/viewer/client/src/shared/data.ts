@@ -10,7 +10,7 @@ export class Api {
     @ILogger private readonly logger: ILogger,
   ) {
     this.logger = logger.scopeTo('Api');
-    http.configure(c => c.withDefaults({ mode: 'no-cors' }).withBaseUrl(`${PLATFORM.location.protocol}//${PLATFORM.location.host}/api/`));
+    http.configure(c => c.withDefaults({ mode: 'no-cors' }).withBaseUrl(`${PLATFORM.window.location.protocol}//${PLATFORM.window.location.host}/api/`));
   }
 
   // public async getAll(): Promise<DataSet> {

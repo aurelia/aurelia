@@ -815,6 +815,12 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
+          path: "packages/__e2e__/hmr-vite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_hmr_webpack
           path: "packages/__e2e__/hmr-webpack"
           requires:
             - build_release

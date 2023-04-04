@@ -3,49 +3,60 @@ import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'node:path';
 import { promises } from 'node:fs';
 
-export default function au(options: { include?: FilterPattern; exclude?: FilterPattern; pre?: boolean } = {}) {
-  const { include = 'src/**/*.{ts,js,html}', exclude, pre = true } = options;
+export default function au(options: {
+  include?: FilterPattern;
+  exclude?: FilterPattern;
+  pre?: boolean;
+  // /**
+  //  * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
+  //  *
+  //  * @default true when NODE_ENV is not 'production'
+  //  */
+  // useDev?: boolean;
+} = {}) {
+  const {
+    include = 'src/**/*.{ts,js,html}',
+    exclude,
+    pre = true,
+    // useDev = !/production/i.test(process.env.NODE_ENV ?? ''),
+  } = options;
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
+
+  // it's quite hard to make this work
+  // so it's a todo for now
+  // todo(vite-plugin): investigate how to enable the aliases
+  //
+
+  // const devPlugin = useDev ?
+  //   alias({
+  //     entries: [
+  //       'aurelia',
+  //       'fetch-client',
+  //       'router-lite',
+  //       'router',
+  //       'kernel',
+  //       'metadata',
+  //       'i18n',
+  //       'state',
+  //       'route-recognizer',
+  //       'compat-v1',
+  //       'dialog',
+  //       'runtime',
+  //       'runtime-html',
+  //       'router-lite',
+  //     ].reduce((aliases: Record<string, string>, pkg) => {
+  //       const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
+  //       const packageLocation = require.resolve(name);
+  //       aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
+  //       return aliases;
+  //     }, {})
+  //   }) as import('vite').Plugin
+  //   : null;
 
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
     enforce: pre ? 'pre' : 'post',
-    async options(options) {
-      const isDev = !/production/i.test(process.env.NODE_ENV ?? '');
-
-      if (!isDev) return null;
-
-      /* eslint-disable */
-      // @ts-expect-error
-      const aliases = ((options.resolve ??= {}).alias ??= {}) as Record<string, string>;
-      /* eslint-enable */
-
-      [
-        'aurelia',
-        'fetch-client',
-        'router-lite',
-        'router',
-        'kernel',
-        'metadata',
-        'i18n',
-        'state',
-        'route-recognizer',
-        'compat-v1',
-        'dialog',
-        'runtime',
-        'runtime-html',
-        'router-lite',
-      ].forEach((pkg) => {
-        const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
-        // dev already defined an alias, dont override
-        if (name in aliases) return;
-        const packageLocation = require.resolve(name);
-        aliases[name] = resolve(packageLocation, `../esm/index.dev.mjs`);
-      });
-
-      return options;
-    },
     async transform(code, id) {
       if (!filter(id)) return;
       // .$au.ts = .html

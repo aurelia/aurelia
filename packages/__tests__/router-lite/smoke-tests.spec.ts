@@ -5472,4 +5472,153 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await au.stop(true);
     });
   });
+
+  describe('CE alias', function () {
+    it('using the aliases as path works', async function () {
+      @customElement({ name: 'c-1', template: 'c1', aliases: ['c-a', 'c-one'] })
+      class C1 { }
+
+      @customElement({ name: 'c-2', template: 'c2', aliases: ['c-b', 'c-two'] })
+      class C2 { }
+
+      @route({
+        routes: [C1, C2]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+
+      assert.html.textContent(host, '');
+
+      await router.load('c-a');
+      assert.html.textContent(host, 'c1');
+
+      await router.load('c-b');
+      assert.html.textContent(host, 'c2');
+
+      await router.load('c-1');
+      assert.html.textContent(host, 'c1');
+
+      await router.load('c-2');
+      assert.html.textContent(host, 'c2');
+
+      await router.load('c-one');
+      assert.html.textContent(host, 'c1');
+
+      await router.load('c-two');
+      assert.html.textContent(host, 'c2');
+
+      await au.stop();
+
+    });
+
+    it('order of route decorator and the customElement decorator does not matter', async function () {
+      @route({ title: 'c1' })
+      @customElement({ name: 'c-1', template: 'c1', aliases: ['c-a', 'c-one'] })
+      class C1 { }
+
+      @customElement({ name: 'c-2', template: 'c2', aliases: ['c-b', 'c-two'] })
+      @route({ title: 'c2' })
+      class C2 { }
+
+      @route({
+        routes: [C1, C2]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+      const doc = container.get(IPlatform).document;
+
+      assert.html.textContent(host, '');
+
+      await router.load('c-a');
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 'c1');
+
+      await router.load('c-b');
+      assert.html.textContent(host, 'c2');
+      assert.strictEqual(doc.title, 'c2');
+
+      await router.load('c-1');
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 'c1');
+
+      await router.load('c-2');
+      assert.html.textContent(host, 'c2');
+      assert.strictEqual(doc.title, 'c2');
+
+      await router.load('c-one');
+      assert.html.textContent(host, 'c1');
+      assert.strictEqual(doc.title, 'c1');
+
+      await router.load('c-two');
+      assert.html.textContent(host, 'c2');
+      assert.strictEqual(doc.title, 'c2');
+
+      await au.stop();
+
+    });
+
+    it('explicitly defined paths always override CE name or aliases', async function () {
+
+      @route('c1')
+      @customElement({ name: 'c-1', template: 'c1', aliases: ['c-a'] })
+      class C1 { }
+
+      @customElement({ name: 'c-2', template: 'c2', aliases: ['c-b'] })
+      class C2 { }
+
+      @route({
+        routes: [C1, { path: 'c2', component: C2 }]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+
+      assert.html.textContent(host, '');
+
+      await router.load('c1');
+      assert.html.textContent(host, 'c1');
+
+      await router.load('c2');
+      assert.html.textContent(host, 'c2');
+
+      try {
+        await router.load('c-1');
+        assert.fail('expected error 1');
+      } catch (er) {
+        assert.match((er as Error).message, /'c-1' matched any configured route/);
+      }
+
+      try {
+        await router.load('c-a');
+        assert.fail('expected error 2');
+      } catch (er) {
+        assert.match((er as Error).message, /'c-a' matched any configured route/);
+      }
+
+      try {
+        await router.load('c-2');
+        assert.fail('expected error 3');
+      } catch (er) {
+        assert.match((er as Error).message, /'c-2' matched any configured route/);
+      }
+
+      try {
+        await router.load('c-b');
+        assert.fail('expected error 4');
+      } catch (er) {
+        assert.match((er as Error).message, /'c-b' matched any configured route/);
+      }
+
+      await au.stop();
+
+    });
+  });
 });

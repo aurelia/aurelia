@@ -1,7 +1,7 @@
 import type { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
-import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './route';
+import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
 import type { IViewportInstruction, Params, RouteableComponent } from './instructions';
 import { tryStringify } from './util';
 

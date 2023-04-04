@@ -1,8 +1,8 @@
 import { DI } from '@aurelia/kernel';
-import type { Params, RouteContextLike, ViewportInstructionTree } from './instructions';
-import { TransitionPlan } from './route';
+import type { Params, RouteContextLike, RouteableComponent, ViewportInstruction, ViewportInstructionTree } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
+import { IRouteContext } from './route-context';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -133,3 +133,86 @@ export class NavigationOptions implements INavigationOptions {
     return valueOrFuncToValue(instructions, this.historyStrategy);
   }
 }
+
+export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext) => Routeable | null;
+
+/**
+ * Either a `RouteableComponent` or a name/config that can be resolved to a one:
+ * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
+ * - `IChildRouteConfig`: a standalone child route config object.
+ * - `RouteableComponent`: see `RouteableComponent`.
+ *
+ * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
+ * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
+ * as well as `IRedirectRouteConfig`
+ */
+export type Routeable = string | IChildRouteConfig | IRedirectRouteConfig | RouteableComponent;
+
+export interface IRouteConfig {
+  /**
+   * The id for this route, which can be used in the view for generating hrefs.
+   */
+  readonly id?: string | null;
+  /**
+   * The path to match against the url.
+   *
+   * If left blank, the path will be derived from the component's static `path` property (if it exists).
+   */
+  readonly path?: string | string[] | null;
+  /**
+   * The title to use for this route when matched.
+   *
+   * If left blank, this route will not contribute to the generated title.
+   */
+  readonly title?: string | ((node: RouteNode) => string | null) | null;
+  /**
+   * The path to which to redirect when the url matches the path in this config.
+   */
+  readonly redirectTo?: string | null;
+  /**
+   * Whether the `path` should be case sensitive.
+   */
+  readonly caseSensitive?: boolean;
+  /**
+   * How to behave when this component scheduled to be loaded again in the same viewport:
+   *
+   * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed  (default if only the parameters have changed).
+   * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading`.
+   * - `none`: does nothing (default if nothing has changed for the viewport).
+   */
+  readonly transitionPlan?: TransitionPlanOrFunc | null;
+  /**
+   * The name of the viewport this component should be loaded into.
+   */
+  readonly viewport?: string | null;
+  /**
+   * Any custom data that should be accessible to matched components or hooks.
+   */
+  readonly data?: Record<string, unknown>;
+  /**
+   * The child routes that can be navigated to from this route. See `Routeable` for more information.
+   */
+  readonly routes?: readonly Routeable[];
+
+  /**
+   * When set, will be used to redirect unknown/unconfigured routes to this route.
+   * Can be a route-id, route-path (route), or a custom element name; this is also the resolution/fallback order.
+   */
+  readonly fallback?: Routeable | FallbackFunction | null;
+  /**
+   * When set to `false`, the routes won't be included in the navigation model.
+   *
+   * @default true
+   */
+  readonly nav?: boolean;
+}
+export interface IChildRouteConfig extends IRouteConfig {
+  /**
+   * The component to load when this route is matched.
+   */
+  readonly component: Routeable;
+}
+export interface IRedirectRouteConfig extends Pick<IRouteConfig, 'caseSensitive' | 'redirectTo' | 'path'> { }
+
+export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
+export type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);

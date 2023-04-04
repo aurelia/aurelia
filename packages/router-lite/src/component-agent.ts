@@ -10,8 +10,7 @@ import {
 } from './instructions';
 import type { Transition } from './router';
 import { Batch } from './util';
-import { IRouteConfig } from './route';
-import type { RouterOptions } from './options';
+import type { RouterOptions, IRouteConfig } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;

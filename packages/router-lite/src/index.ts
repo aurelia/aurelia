@@ -1,6 +1,5 @@
 export {
   type IViewport,
-  FallbackFunction,
 } from './resources/viewport';
 
 export {
@@ -41,9 +40,6 @@ export {
 } from './location-manager';
 
 export {
-  type Routeable,
-  type IRouteConfig,
-  type IChildRouteConfig,
   RouteConfig,
   Route,
   type RouteType,
@@ -91,6 +87,10 @@ export {
   RouterOptions,
   NavigationOptions,
   type HistoryStrategy,
+  FallbackFunction,
+  type Routeable,
+  type IRouteConfig,
+  type IChildRouteConfig,
 } from './options';
 
 export {

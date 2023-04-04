@@ -1421,6 +1421,52 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.areTaskQueuesEmpty();
   });
 
+  it('fallback as class is supported - route configuration', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF },
+      ],
+      fallback: NF,
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const ctx = TestContext.create();
+    const { container } = ctx;
+
+    container.register(
+      TestRouterConfiguration.for(LogLevel.warn),
+      RouterConfiguration,
+    );
+
+    const component = container.get(Root);
+    const router = container.get(IRouter);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
   for (const attr of ['href', 'load']) {
     it(`will load the root-level fallback when navigating to a non-existing route - parent-child - children without fallback - attr: ${attr}`, async function () {
       @customElement({ name: 'gc-11', template: 'gc11' })

@@ -437,15 +437,17 @@ export function createAndAppendNodes(
               : ctx.config._getFallback(vi, node, ctx);
             if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-            // fallback: id -> route -> CEDefn (Route configuration)
-            // look for a route first
-            log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-            const rd = (ctx.childRoutes as RouteConfig[]).find(x => x.id === fallback);
-            if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
+            if(typeof fallback === 'string'){
+              // fallback: id -> route -> CEDefn (Route configuration)
+              // look for a route first
+              log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
+              const rd = (ctx.childRoutes as RouteConfig[]).find(x => x.id === fallback);
+              if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
 
-            log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
-            const rr = ctx.recognize(fallback, true);
-            if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
+              log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
+              const rr = ctx.recognize(fallback, true);
+              if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
+            }
 
             // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);

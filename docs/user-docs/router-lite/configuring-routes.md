@@ -820,6 +820,7 @@ You can see this configuration in action below.
 ## Using classes as routes
 
 Using router-lite it is also possible to use the routed view model classes directly as routes configuration.
+While doing so, if no paths have been explicitly configured for the components, the custom element name and aliases can be used as routing instructions.
 The following example demonstrates that the `C1` and `C2` classes are used directly as the child routes for the `Root`.
 
 ```typescript
@@ -836,13 +837,11 @@ class C2 { }
 class Root { }
 ```
 
-The example above implies that `router.load('c-1')` and `router.load('c-2')` will load the `C1` and `C2` respectively.
+The example above implies that `router.load('c-1')`, or `router.load('c-a')` and `router.load('c-2')`, `router.load('c-two')` will load the `C1` and `C2` respectively.
 
 {% hint style="info" %}
 To know more about the router API refer [this section](./navigating.md#using-the-router-api).
 {% endhint %}
-
-Note that this extends also for alias; that is using `router.load('c-a')` and `router.load('c-two')` will load the `C1` and `C2` respectively.
 
 ## Distributed routing configurations
 

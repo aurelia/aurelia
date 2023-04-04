@@ -5473,7 +5473,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     });
   });
 
-  describe('CE alias', function () {
+  describe('custom element aliases as routing instruction', function () {
     it('using the aliases as path works', async function () {
       @customElement({ name: 'c-1', template: 'c1', aliases: ['c-a', 'c-one'] })
       class C1 { }

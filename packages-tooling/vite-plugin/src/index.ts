@@ -9,8 +9,6 @@ export default function au(options: {
   pre?: boolean;
   /**
    * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
-   *
-   * @default true when NODE_ENV is not 'production'
    */
   useDev?: boolean;
 } = {}) {
@@ -18,7 +16,7 @@ export default function au(options: {
     include = 'src/**/*.{ts,js,html}',
     exclude,
     pre = true,
-    useDev = !/production/i.test(process.env.NODE_ENV ?? ''),
+    useDev,
   } = options;
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
@@ -26,6 +24,11 @@ export default function au(options: {
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
     config(config) {
+      const isDev = useDev || (!useDev && config.mode !== 'production');
+      if (!isDev) {
+        return;
+      }
+
       [
         'platform',
         'platform-browser',
@@ -102,7 +105,7 @@ export default function au(options: {
     }
   };
 
-  return [useDev ? devPlugin : null, auPlugin];
+  return [devPlugin, auPlugin];
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {

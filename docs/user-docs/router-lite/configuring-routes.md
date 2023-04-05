@@ -817,6 +817,33 @@ You can see this configuration in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-component-ce-instance-jx3kee?ctl=1&embed=1&file=src/my-app.ts" %}
 
+## Using classes as routes
+
+Using router-lite it is also possible to use the routed view model classes directly as routes configuration.
+The following example demonstrates that the `C1` and `C2` classes are used directly as the child routes for the `Root`.
+
+```typescript
+@customElement({ name: 'c-1', template: 'c1', aliases: ['c-a', 'c-one'] })
+class C1 { }
+
+@customElement({ name: 'c-2', template: 'c2', aliases: ['c-b', 'c-two'] })
+class C2 { }
+
+@route({
+  routes: [C1, C2]
+})
+@customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+class Root { }
+```
+
+The example above implies that `router.load('c-1')` and `router.load('c-2')` will load the `C1` and `C2` respectively.
+
+{% hint style="info" %}
+To know more about the router API refer [this section](./navigating.md#using-the-router-api).
+{% endhint %}
+
+Note that this extends also for alias; that is using `router.load('c-a')` and `router.load('c-two')` will load the `C1` and `C2` respectively.
+
 ## Distributed routing configurations
 
 The examples discussed so far demonstrate the classic use-cases of route configurations where the parents define the child routes.

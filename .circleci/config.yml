@@ -814,7 +814,7 @@ workflows:
       #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_hmr_webpack
+          name: e2e_hmr_vite
           path: "packages/__e2e__/hmr-vite"
           requires:
             - build_release
@@ -876,6 +876,7 @@ workflows:
             - test_toolings
             # - lint_packages
             - webpack_conventions_ts
+            - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
             - e2e_router

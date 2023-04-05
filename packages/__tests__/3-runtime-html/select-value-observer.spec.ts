@@ -298,4 +298,30 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
     await tearDown();
   });
+
+  describe('multiple and value binding order gh #1724 https://github.com/aurelia/aurelia/issues/1724', function () {
+    it('disregards order in simple case', function () {
+      createFixture(
+        `<select value.bind="[]" multiple.bind="true">`,
+      );
+    });
+
+    it('disregard order when there are more attributes in between', function () {
+      createFixture(
+        `<select value.bind="[]" id.bind="a" multiple.bind="true">`,
+      );
+    });
+
+    it('disregard order when there are more attributes at the start', function () {
+      createFixture(
+        `<select id.bind="a" value.bind="[]" multiple.bind="true">`,
+      );
+    });
+
+    it('disregard order when there are more attributes at the end', function () {
+      createFixture(
+        `<select value.bind="[]" multiple.bind="true" id.bind="a">`,
+      );
+    });
+  });
 });

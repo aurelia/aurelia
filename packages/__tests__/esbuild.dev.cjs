@@ -64,7 +64,7 @@ esbuild.context({
     }
   ]
 }).then((ctx) => {
-  if (/^true/.test(process.env.NODE_ENV)) {
+  if (/^true/.test(process.env.DEV_MODE)) {
     ctx.watch();
   }
 }).catch(err => {

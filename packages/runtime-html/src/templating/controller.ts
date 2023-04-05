@@ -97,6 +97,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public state: State = State.none;
+  /** @internal */
+  private _lifecycleState: LifecycleState = LifecycleState.none;
+
   public get isActive(): boolean {
     return (this.state & (State.activating | State.activated)) > 0 && (this.state & State.deactivating) === 0;
   }
@@ -542,9 +545,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           throw createError(`AUR0502:${this.name}`);
       default:
         if (__DEV__)
-          throw createError(`AUR0503: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
+          throw createError(`AUR0503: ${this.name} unexpected state: ${stringifyState(this.state, this._lifecycleState)}.`);
         else
-          throw createError(`AUR0503:${this.name} ${stringifyState(this.state)}`);
+          throw createError(`AUR0503:${this.name} ${stringifyState(this.state, this._lifecycleState)}`);
     }
 
     this.parent = parent;
@@ -585,6 +588,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // opposing leave is called in attach() (which will trigger attached())
     this._enterActivating();
 
+    this._lifecycleState |= LifecycleState.bound;
+
     let ret: void | Promise<void>;
     if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.binding != null) {
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
@@ -601,10 +606,30 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
+        if ((this.state & (State.activating | State.activated)) === 0) {
+          if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (binding)'); }
+          // Resolve this.$promise, signaling that activation is "done"
+          this._resolve();
+          if (this.$initiator !== this) {
+            (this.parent as Controller)?._leaveActivating();
+          }
+          _retPromise = void 0;
+          return this.$promise;
+        }
         this.bind();
       }).catch((err: Error) => {
         this._reject(err);
       });
+      return this.$promise;
+    }
+    if ((this.state & (State.activating | State.activated)) === 0) {
+      if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (binding)'); }
+      // Resolve this.$promise, signaling that activation is "done"
+      this._resolve();
+      if (this.$initiator !== this) {
+        (this.parent as Controller)?._leaveActivating();
+      }
+      _retPromise = void 0;
       return this.$promise;
     }
 
@@ -655,6 +680,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       ret.then(() => {
         this.isBound = true;
+        if ((this.state & (State.activating | State.activated)) === 0) {
+          if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (bound)'); }
+          // Resolve this.$promise, signaling that activation is "done"
+          this._resolve();
+          if (this.$initiator !== this) {
+            (this.parent as Controller)?._leaveActivating();
+          }
+          _retPromise = void 0;
+          return;
+        }
         this._attach();
       }).catch((err: Error) => {
         this._reject(err);
@@ -663,6 +698,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     this.isBound = true;
+    if ((this.state & (State.activating | State.activated)) === 0) {
+      if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (bound)'); }
+      // Resolve this.$promise, signaling that activation is "done"
+      this._resolve();
+      if (this.$initiator !== this) {
+        (this.parent as Controller)?._leaveActivating();
+      }
+      _retPromise = void 0;
+      return;
+    }
     this._attach();
   }
 
@@ -722,6 +767,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let i = 0;
     let ret: Promise<void> | void = void 0;
 
+    this._lifecycleState |= LifecycleState.attached;
+
     if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.attaching != null) {
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
 
@@ -761,6 +808,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     _parent: IHydratedController | null,
   ): void | Promise<void> {
     switch ((this.state & ~State.released)) {
+      case State.activating:
+        if (__DEV__ && this.debug) { this.logger!.trace(`Deactivating while activating ${stringifyState(this.state, this._lifecycleState)}.`); }
+        this.state = State.deactivating;
+        break;
       case State.activated:
         // We're fully activated, so proceed with normal deactivation.
         this.state = State.deactivating;
@@ -773,9 +824,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       default:
         if (__DEV__)
-          throw createError(`AUR0505: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
+          throw createError(`AUR0505: ${this.name} unexpected state: ${stringifyState(this.state, this._lifecycleState)}.`);
         else
-          throw createError(`AUR0505:${this.name} ${stringifyState(this.state)}`);
+          throw createError(`AUR0505:${this.name} ${stringifyState(this.state, this._lifecycleState)}`);
     }
 
     if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
@@ -804,27 +855,30 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+    if ((this._lifecycleState & LifecycleState.attached) === LifecycleState.attached) {
+      if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
-      ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+        ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+      }
+
+      if (this._hooks.hasDetaching) {
+        if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+
+        ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+      }
+
+      if (isPromise(ret)) {
+        this._ensurePromise();
+        (initiator as Controller)._enterDetaching();
+        ret.then(() => {
+          (initiator as Controller)._leaveDetaching();
+        }).catch((err: Error) => {
+          (initiator as Controller)._reject(err);
+        });
+      }
     }
-
-    if (this._hooks.hasDetaching) {
-      if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
-
-      ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
-    }
-
-    if (isPromise(ret)) {
-      this._ensurePromise();
-      (initiator as Controller)._enterDetaching();
-      ret.then(() => {
-        (initiator as Controller)._leaveDetaching();
-      }).catch((err: Error) => {
-        (initiator as Controller)._reject(err);
-      });
-    }
+    this._lifecycleState &= ~LifecycleState.attached;
 
     // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
     // then the linking will become out of order.
@@ -965,6 +1019,20 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
+      if ((this.state & (State.activating | State.activated)) === 0) {
+        if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attaching)'); }
+        // Resolve this.$promise, signaling that activation is "done"
+        this._resolve();
+        if (this.$initiator !== this) {
+          (this.parent as Controller)?._leaveActivating();
+        }
+        _retPromise = void 0;
+        if (this.$initiator !== this) {
+          (this.parent as Controller)?._leaveActivating();
+        }
+        return;
+      }
+
       if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.attached != null) {
         _retPromise = resolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
@@ -978,11 +1046,21 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (isPromise(_retPromise)) {
         this._ensurePromise();
         _retPromise.then(() => {
+          if ((this.state & (State.activating | State.activated)) === 0) {
+            if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attached)'); }
+            // Resolve this.$promise, signaling that activation is "done"
+            this._resolve();
+            if (this.$initiator !== this) {
+              (this.parent as Controller)?._leaveActivating();
+            }
+            _retPromise = void 0;
+            return;
+          }
           this.state = State.activated;
           // Resolve this.$promise, signaling that activation is done (path 1 of 2)
           this._resolve();
           if (this.$initiator !== this) {
-            (this.parent as Controller)._leaveActivating();
+            (this.parent as Controller)?._leaveActivating();
           }
         }).catch((err: Error) => {
           this._reject(err);
@@ -990,6 +1068,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         _retPromise = void 0;
         return;
       }
+      if ((this.state & (State.activating | State.activated)) === 0) {
+        if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attached)'); }
+        // Resolve this.$promise, signaling that activation is "done"
+        this._resolve();
+        if (this.$initiator !== this) {
+          (this.parent as Controller)?._leaveActivating();
+        }
+        _retPromise = void 0;
+        return;
+      }
+
       _retPromise = void 0;
 
       this.state = State.activated;
@@ -997,7 +1086,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._resolve();
     }
     if (this.$initiator !== this) {
-      (this.parent as Controller)._leaveActivating();
+      (this.parent as Controller)?._leaveActivating();
     }
   }
 
@@ -1026,30 +1115,33 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           cur.removeNodes();
         }
 
-        if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
-          ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, this));
-        }
+        if ((this._lifecycleState & LifecycleState.bound) === LifecycleState.bound) {
+          if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
+            ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, this));
+          }
 
-        if (cur._hooks.hasUnbinding) {
-          if (cur.debug) { cur.logger!.trace('unbinding()'); }
+          if (cur._hooks.hasUnbinding) {
+            if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-          ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
-        }
+            ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+          }
 
-        if (isPromise(ret)) {
-          this._ensurePromise();
-          this._enterUnbinding();
-          ret.then(() => {
-            this._leaveUnbinding();
-          }).catch((err: Error) => {
-            this._reject(err);
-          });
+          if (isPromise(ret)) {
+            this._ensurePromise();
+            this._enterUnbinding();
+            ret.then(() => {
+              this._leaveUnbinding();
+            }).catch((err: Error) => {
+              this._reject(err);
+            });
+          }
         }
 
         ret = void 0;
 
         cur = cur.next as Controller;
       }
+      this._lifecycleState &= ~LifecycleState.bound;
 
       this._leaveUnbinding();
     }
@@ -1527,7 +1619,13 @@ export const enum State {
   disposed                 = 0b10_00_00,
 }
 
-export function stringifyState(state: State): string {
+const enum LifecycleState {
+  none                     = 0b00,
+  bound                    = 0b01,
+  attached                 = 0b10,
+}
+
+export function stringifyState(state: State, lifecycleState: LifecycleState): string {
   const names: string[] = [];
 
   if ((state & State.activating) === State.activating) { names.push('activating'); }
@@ -1536,6 +1634,9 @@ export function stringifyState(state: State): string {
   if ((state & State.deactivated) === State.deactivated) { names.push('deactivated'); }
   if ((state & State.released) === State.released) { names.push('released'); }
   if ((state & State.disposed) === State.disposed) { names.push('disposed'); }
+
+  if ((lifecycleState & LifecycleState.bound) === LifecycleState.bound) { names.push('bound'); }
+  if ((lifecycleState & LifecycleState.attached) === LifecycleState.attached) { names.push('attached'); }
 
   return names.length === 0 ? 'none' : names.join('|');
 }

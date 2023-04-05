@@ -437,7 +437,7 @@ export function createAndAppendNodes(
               : ctx.config._getFallback(vi, node, ctx);
             if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
-            if(typeof fallback === 'string'){
+            if (typeof fallback === 'string') {
               // fallback: id -> route -> CEDefn (Route configuration)
               // look for a route first
               log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
@@ -451,10 +451,10 @@ export function createAndAppendNodes(
 
             // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-            return appendNode(log, node, createFallbackNode(log,
-              resolveRouteConfiguration(fallback, false, ctx.config, null, ctx) as RouteConfig, // TODO: fix the typing by adding overloads.
-              node,
-              vi as ViewportInstruction<ITypedNavigationInstruction_string>));
+            return onResolve(
+              resolveRouteConfiguration(fallback, false, ctx.config, null, ctx),
+              rc => appendNode(log, node, createFallbackNode(log, rc, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>))
+            );
           }
 
           // readjust the children wrt. the residue

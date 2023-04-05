@@ -113,7 +113,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         break;
       case 'component':
-        validateComponent(value, path);
+        validateComponent(value, path, 'component');
         break;
       case 'routes': {
         if (!(value instanceof Array)) {
@@ -121,7 +121,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         for (const route of value) {
           const childPath = `${path}[${value.indexOf(route)}]`;
-          validateComponent(route, childPath);
+          validateComponent(route, childPath, 'component');
         }
         break;
       }
@@ -144,13 +144,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         break;
       case 'fallback':
-        switch(typeof value) {
-          case 'string':
-          case 'function':
-            break;
-          default:
-            expectType('string or function', path, value);
-        }
+        validateComponent(value, path, 'fallback');
         break;
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
@@ -192,7 +186,7 @@ function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig> | nul
   }
 }
 
-function validateComponent(component: Routeable | null | undefined, parentPath: string): void {
+function validateComponent(component: Routeable | null | undefined, parentPath: string, property: string): void {
   switch (typeof component) {
     case 'function':
       break;
@@ -212,7 +206,7 @@ function validateComponent(component: Routeable | null | undefined, parentPath: 
         !isCustomElementViewModel(component) &&
         !isPartialCustomElementDefinition(component)
       ) {
-        expectType(`an object with at least a 'component' property (see Routeable)`, parentPath, component);
+        expectType(`an object with at least a '${property}' property (see Routeable)`, parentPath, component);
       }
       break;
     case 'string':

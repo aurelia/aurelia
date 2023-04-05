@@ -26,7 +26,10 @@ test.describe('i18n', () => {
     }
   };
 
-  const changeCurrentLocaleToDe = async (page: Page) => await page.click('#locale-changer-de');
+  const changeCurrentLocaleToDe = async (page: Page) => {
+    await page.click('#locale-changer-de');
+    await new Promise(r => setTimeout(r, 16));
+  }
 
   const dispatchedOn = new Date(2020, 1, 10, 5, 15).toString(), deliveredOn = new Date(2021, 1, 10, 5, 15).toString(),
     enDeliveredText = en.status_delivered.replace('{{date}}', deliveredOn),

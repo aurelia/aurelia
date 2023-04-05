@@ -23,6 +23,7 @@ module.exports = {
   },
   ignorePatterns: [
     'rollup.config.js',
+    'rollup.config.mjs',
     'karma.conf.cjs'
   ],
   globals: {
@@ -249,14 +250,21 @@ module.exports = {
     '@typescript-eslint/quotes': ['off']
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['**/*.js'],
+    files: ['**/*.{js,mjs}'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/typedef': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
       'import/no-nodejs-modules': 'off',
+      'import/no-extraneous-dependencies': 'off',
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/require-returns-description': 'off',
+      'jsdoc/require-property-description': 'off',
+      'jsdoc/require-hyphen-before-param-description': 'off',
+      'no-console': 'off',
     }
   }, { // Specific overrides for TS files within examples, scripts and tests as some rules don't make sense there.
     files: ['examples/**', 'scripts/**', 'test/**'],

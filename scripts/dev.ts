@@ -42,6 +42,7 @@ const validE2e = [
   'hmr-vite',
   'hmr-webpack',
   'select-safari16',
+  'i18n',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 

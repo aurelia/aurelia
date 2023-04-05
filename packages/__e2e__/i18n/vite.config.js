@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     minify: false
   },
+  logLevel: 'error',
   plugins: [
     aurelia()
   ]

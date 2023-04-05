@@ -238,6 +238,7 @@ jobs:
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
             - packages-tooling/ts-jest/node_modules
+            - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
 
   build_and_cache:
@@ -307,6 +308,7 @@ jobs:
             - packages-tooling/plugin-conventions/dist
             - packages-tooling/plugin-gulp/dist
             - packages-tooling/ts-jest/dist
+            - packages-tooling/vite-plugin/dist
             - packages-tooling/webpack-loader/dist
 
   unit_test_esm:
@@ -577,6 +579,7 @@ jobs:
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
             - packages-tooling/ts-jest/node_modules
+            - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
       # instead of doing the following 2 commands
       # - checkout_install
@@ -814,6 +817,12 @@ workflows:
       #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_hmr_vite
+          path: "packages/__e2e__/hmr-vite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
           path: "packages/__e2e__/hmr-webpack"
           requires:
@@ -828,6 +837,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/router"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_i18n
+          path: "packages/__e2e__/i18n"
           requires:
             - build_release
       - tacho_benchmark_prep:
@@ -870,9 +885,11 @@ workflows:
             - test_toolings
             # - lint_packages
             - webpack_conventions_ts
+            - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
             - e2e_router
+            - e2e_i18n
           from: master
           to: develop
           channel: dev
@@ -951,6 +968,12 @@ workflows:
 
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_hmr_vite
+          path: "packages/__e2e__/hmr-vite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
           path: "packages/__e2e__/hmr-webpack"
           requires:
@@ -965,6 +988,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/router"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_i18n
+          path: "packages/__e2e__/i18n"
           requires:
             - build_release
 
@@ -983,10 +1012,11 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
+            - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
             - e2e_router
-            # - lint_packages
+            - e2e_i18n
           from: $CIRCLE_TAG
           to: release
           channel: latest

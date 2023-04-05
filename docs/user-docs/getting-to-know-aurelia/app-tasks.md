@@ -15,7 +15,7 @@ The app task API has the following calls:
 * `hydrating` — Runs after instantiating the root view, but before compiling itself, and instantiating the child elements inside it - good chance for a router to do some initial work
 * `hydrated` — Runs after self-hydration of the root controller, but before hydrating the child element inside - good chance for a router to do some initial work
 * `activating` — Runs right before the root component is activated - in this phase, scope hierarchy is formed, and bindings are getting bound
-* `actiated` — Runs right after the root component is activated - the app is now running
+* `activated` — Runs right after the root component is activated - the app is now running
 * `deactivating` — Runs right before the root component is deactivated - in this phase, scope hierarchy is unlinked, and bindings are getting unbound
 * `deactivated` — Runs right after the root component is deactivated
 

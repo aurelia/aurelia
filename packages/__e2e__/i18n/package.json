@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
-    "test:e2e:watch": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright-watch test --workers 4\"",
+    "test:e2e:watch": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9004 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch"

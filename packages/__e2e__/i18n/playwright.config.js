@@ -1,1 +1,1 @@
-module.exports = require('../playwright-util')(9004);
+module.exports = require('../playwright-util')(9004, 3);

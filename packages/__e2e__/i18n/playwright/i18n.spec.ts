@@ -9,6 +9,10 @@ interface Spec {
 }
 
 test.describe('i18n', () => {
+  test.describe.configure({
+    mode: 'parallel'
+  });
+
   test.beforeEach(async ({ page, baseURL }) => {
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
@@ -16,13 +20,13 @@ test.describe('i18n', () => {
 
   const assertContent = async (page: Page, selector: string, expected: string | undefined, isHtmlContent: boolean | undefined = false) => {
     if (isHtmlContent) {
-      expect(await page.locator(selector).innerHTML()).toContain(expected);
+      expect(await page.innerHTML(selector, { strict: true })).toContain(expected);
     } else {
       await expect(page.locator(selector)).toContainText(expected!);
     }
   };
 
-  const changeCurrentLocaleToDe = (page: Page) => page.locator('#locale-changer-de').click();
+  const changeCurrentLocaleToDe = async (page: Page) => await page.click('#locale-changer-de');
 
   const dispatchedOn = new Date(2020, 1, 10, 5, 15).toString(), deliveredOn = new Date(2021, 1, 10, 5, 15).toString(),
     enDeliveredText = en.status_delivered.replace('{{date}}', deliveredOn),
@@ -313,7 +317,6 @@ test.describe('i18n', () => {
     });
 
     test('should allow to keep original content if key not found', async ({ page, baseURL }) => {
-      // await page.visit('/?skipkey=true');
       await page.goto(`${baseURL}?skipkey=true`!, { waitUntil: 'domcontentloaded' });
       await page.reload();
 
@@ -325,9 +328,7 @@ test.describe('i18n', () => {
   });
 
   test('works with Backend', async ({ page, baseURL }) => {
-    // cy.visit('/?fetchResource=true');
     await page.goto(`${baseURL}?fetchResource=true`!, { waitUntil: 'domcontentloaded' });
-    // await page.reload();
 
     await assertContent(page, `#i18n-simple`, en.simple.text);
     await changeCurrentLocaleToDe(page);

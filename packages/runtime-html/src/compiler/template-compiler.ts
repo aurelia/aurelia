@@ -20,6 +20,7 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
+  InstructionType,
 } from '../renderer';
 import { IPlatform } from '../platform';
 import { Bindable, BindableDefinition } from '../bindable';
@@ -646,6 +647,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrName: string;
     let attrValue: string;
     let attrSyntax: AttrSyntax;
+    /**
+     * A list of plain attribute bindings/interpolation bindings
+     */
     let plainAttrInstructions: IInstruction[] | undefined;
     let elBindableInstructions: IInstruction[] | undefined;
     let attrDef: CustomAttributeDefinition | null = null;
@@ -920,7 +924,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     resetCommandBuildInfo();
 
-    if (this._shouldReorderAttrs(el) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+    if (this._shouldReorderAttrs(el, plainAttrInstructions) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
       this._reorder(el, plainAttrInstructions);
     }
 
@@ -1575,8 +1579,13 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /** @internal */
-  private _shouldReorderAttrs(el: Element): boolean {
-    return el.nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1;
+  private _shouldReorderAttrs(el: Element, instructions?: IInstruction[]): boolean | undefined {
+    const nodeName = el.nodeName;
+    return nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1
+      || nodeName === 'SELECT' && (
+        (el as HTMLSelectElement).hasAttribute('multiple')
+        || instructions?.some(i => i.type === InstructionType.propertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
+      );
   }
 
   /** @internal */
@@ -1607,6 +1616,32 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
         if (checkedIndex !== void 0 && modelOrValueOrMatcherIndex !== void 0 && checkedIndex < modelOrValueOrMatcherIndex) {
           [_instructions[modelOrValueOrMatcherIndex], _instructions[checkedIndex]] = [_instructions[checkedIndex], _instructions[modelOrValueOrMatcherIndex]];
+        }
+        break;
+      }
+      case 'SELECT': {
+        const _instructions = instructions as (PropertyBindingInstruction | InterpolationInstruction)[];
+        let valueIndex = 0;
+        let multipleIndex = 0;
+        // a variable to stop the loop as soon as we find both value & multiple binding indices
+        let found = 0;
+        let instruction: PropertyBindingInstruction | InterpolationInstruction;
+        // swap the order of multiple and value bindings
+        for (let i = 0; i < _instructions.length && found < 2; ++i) {
+          instruction = _instructions[i];
+          switch (instruction.to) {
+            case 'multiple':
+              multipleIndex = i;
+              found++;
+              break;
+            case 'value':
+              valueIndex = i;
+              found++;
+              break;
+          }
+          if (found === 2 && valueIndex < multipleIndex) {
+            [_instructions[multipleIndex], _instructions[valueIndex]] = [_instructions[valueIndex], _instructions[multipleIndex]];
+          }
         }
       }
     }

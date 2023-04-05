@@ -265,7 +265,7 @@ export class SelectValueObserver implements INodeObserver {
     if (array != null) {
       if (!this._el.multiple) {
         if (__DEV__)
-          throw createError(`AUR0654: Only null or Array instances can be bound to a multi-select.`);
+          throw createError(`AUR0654: array values can only be bound to a multi-select.`);
         else
           throw createError(`AUR0654`);
       }

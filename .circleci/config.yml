@@ -238,6 +238,7 @@ jobs:
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
             - packages-tooling/ts-jest/node_modules
+            - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
 
   build_and_cache:
@@ -307,6 +308,7 @@ jobs:
             - packages-tooling/plugin-conventions/dist
             - packages-tooling/plugin-gulp/dist
             - packages-tooling/ts-jest/dist
+            - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/dist
 
   unit_test_esm:
@@ -577,6 +579,7 @@ jobs:
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
             - packages-tooling/ts-jest/node_modules
+            - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
       # instead of doing the following 2 commands
       # - checkout_install

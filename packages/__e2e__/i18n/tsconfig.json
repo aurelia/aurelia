@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig-build.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "es2021",
+    "module": "esnext",
+    "outDir": "dist",
+    "lib": ["esnext", "dom"],
+    "types": ["node"]
+  },
+  "include": ["src", "../playwright-coverage.ts", "public/**/*.json"]
+}

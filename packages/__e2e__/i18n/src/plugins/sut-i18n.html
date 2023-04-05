@@ -1,0 +1,97 @@
+<template>
+  <button id="key-changer" click.trigger="changeKey()">Change key</button><br>
+  <button id="params-changer" click.trigger="changeParams()">Change t-params</button><br>
+  <button id="locale-changer-de" click.trigger="changeLocale('de')">DE</button><br>
+  <button id="rt-changer" click.trigger="changeMyDate()">Change my date</button>
+
+  <span id="i18n-simple" t="simple.text"></span><br>
+  <span id="i18n-vm-bound" t.bind="obj.key"></span><br>
+  <span id="i18n-alias" i18n="simple.text"></span><br>
+  <span id="i18n-interpolated-key-expr" t="${obj.key}"></span><br>
+  <br>
+
+  <span id="i18n-attr" t="[title]simple.attr">attribute test</span><br>
+  <span id="i18n-multiple-attr" t="simple.text;[title]simple.attr"></span><br>
+  <span id="i18n-multiple-attr-same-key" t="simple.text;[title,data-foo]simple.attr"></span><br>
+  <span id="i18n-nested" t="$t(simple.text) $t(simple.attr)"></span><br>
+  <br>
+
+  <span id="i18n-ctx" t="status"></span><br>
+  <span id="i18n-ctx-dispatched" t="status" t-params.bind="{context: 'dispatched', date: dispatchedOn}"></span><br>
+  <span id="i18n-ctx-delivered" t="status" t-params.bind="{context: 'delivered', date: deliveredOn}"></span><br>
+  <span id="i18n-ctx-bound-vm-params" t="status" t-params.bind="params"></span><br>
+  <br>
+
+  <span id="i18n-interpolation" t="status_delivered" t-params.bind="{date: deliveredOn}"></span><br>
+  <span id="i18n-interpolation-custom" t="custom_interpolation_brace"
+    t-params.bind="{date: deliveredOn, interpolation: { prefix: '{', suffix: '}' }}"></span><br>
+  <span id="i18n-interpolation-es6" t="custom_interpolation_es6_syntax"
+    t-params.bind="{date: deliveredOn, interpolation: { prefix: '${', suffix: '}' }}"></span><br>
+  <br>
+
+  <span id="i18n-items-plural-0" t="itemWithCount" t-params.bind="{count: 0}"></span><br>
+  <span id="i18n-items-plural-1" t="itemWithCount" t-params.bind="{count: 1}"></span><br>
+  <span id="i18n-items-plural-10" t="itemWithCount" t-params.bind="{count: 10}"></span><br>
+  <br>
+
+  <span id="i18n-interval-0" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 0}"></span><br>
+  <span id="i18n-interval-1" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 1}"></span><br>
+  <span id="i18n-interval-2" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 2}"></span><br>
+  <span id="i18n-interval-3" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 3}"></span><br>
+  <span id="i18n-interval-6" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 6}"></span><br>
+  <span id="i18n-interval-7" t="itemWithCount_interval" t-params.bind="{postProcess: 'interval', count: 7}"></span><br>
+  <span id="i18n-interval-10" t="itemWithCount_interval"
+    t-params.bind="{postProcess: 'interval', count: 10}"></span><br>
+
+  <br>
+
+  <span id="i18n-html" t="[html]html"></span><br><br>
+
+  <span id="i18n-prepend-append" t="[prepend]pretest;[append]post-test">Blue</span><br><br>
+
+  <img id="i18n-img" t="imgPath" /><br><br>
+
+  <span id="i18n-t-vc"> ${'itemWithCount' | t : {count: 10}} </span><br>
+  <span id="i18n-t-bb"> ${'itemWithCount' & t : {count: 100}} </span><br>
+  <span id="i18n-t-bb-attr" title.bind="'itemWithCount' & t : {count: 100}"></span><br><br>
+
+  <span id="i18n-nf-vc"> ${ 123456789.12 | nf } </span><br>
+  <span id="i18n-nf-bb"> ${ 123456789.12 & nf : undefined : 'de'} </span><br><br>
+
+  <span id="i18n-nf-vc-cur"> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span><br>
+  <span id="i18n-nf-bb-cur"> ${ 123456789.12 & nf: {style:'currency', currency: 'USD' } : locale } </span><br><br>
+
+  <span id="i18n-df-vc"> ${ dispatchedOn | df } </span><br>
+  <span id="i18n-df-vc-iso"> ${ '2019-08-10T13:42:35.209Z' | df } </span><br>
+  <span id="i18n-df-vc-int"> ${ 0 | df } </span><br>
+  <span id="i18n-df-vc-int-str"> ${ '0' | df } </span><br>
+  <span id="i18n-df-bb"> ${ dispatchedOn & df : undefined : 'de'} </span><br><br>
+
+  <span id="i18n-rt-vc"> ${ myDate | rt} </span><br>
+  <span id="i18n-rt-bb"> ${ myDate & rt} </span><br><br>
+
+  <!-- translations via code -->
+  <div>
+    <span id="i18n-code-simple">${translations.simple}</span>
+    <span id="i18n-code-context">${translations.context}</span>
+    <span id="i18n-code-plural">${translations.plural}</span>
+    <span id="i18n-code-interval">${translations.interval}</span>
+
+    <span id="i18n-code-num">${translations.num}</span>
+    <span id="i18n-code-num-uf-simple">${translations.numUfSimple}</span>
+    <span id="i18n-code-num-uf-locale">${translations.numUfLocale}</span>
+    <span id="i18n-code-num-uf-currency">${translations.numUfCurrency}</span>
+    <span id="i18n-code-num-uf-text">${translations.numUfText}</span>
+    <span id="i18n-code-num-uf-minus">${translations.numUfMinus}</span>
+
+    <span id="i18n-code-date">${translations.date}</span>
+    <span id="i18n-code-rtime">${translations.rtime}</span>
+  </div>
+
+  <custom-message data-test-id="custom-element-interpolated" message="${'simple.text' | t}"></custom-message>
+  <custom-message data-test-id="custom-element-target-bindable" t="[message]simple.text"></custom-message>
+  <custom-message data-test-id="custom-element-with-params" t="[message]itemWithCount" t-params.bind="{count: 0}">
+  </custom-message>
+
+  <span data-test-id="missing-key" t="missing-key">non-translated text</span>
+</template>

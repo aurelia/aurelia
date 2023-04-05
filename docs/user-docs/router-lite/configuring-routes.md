@@ -525,6 +525,10 @@ You can also see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-using-function?ctl=1&embed=1&file=src/my-app.html" %}
 
+You can also use non-string fallbacks.
+For example, you can use a class as the value for `fallback`; such as `fallback: NotFound`.
+Or, if you are using a function, you choose to return a class instead of returning a string.
+These combinations are also supported by router-lite.
 
 ## Case sensitive routes
 

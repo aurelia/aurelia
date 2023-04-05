@@ -308,7 +308,7 @@ jobs:
             - packages-tooling/plugin-conventions/dist
             - packages-tooling/plugin-gulp/dist
             - packages-tooling/ts-jest/dist
-            - packages-tooling/vite-plugin/node_modules
+            - packages-tooling/vite-plugin/dist
             - packages-tooling/webpack-loader/dist
 
   unit_test_esm:

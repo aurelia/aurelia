@@ -9,7 +9,6 @@ import {
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
-import { Children } from '../templating/children';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
@@ -30,7 +29,6 @@ import type {
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
-import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
@@ -52,7 +50,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
-  readonly childrenObservers?: Record<string, PartialChildrenDefinition>;
   readonly containerless?: boolean;
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
@@ -233,7 +230,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
-    public readonly childrenObservers: Record<string, ChildrenDefinition>,
     public readonly containerless: boolean,
     public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
@@ -296,7 +292,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
         Bindable.from(Type, def.bindables),
-        Children.from(def.childrenObservers),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
@@ -329,11 +324,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
-        ),
-        Children.from(
-          ...Children.getAll(Type),
-          getElementAnnotation(Type, 'childrenObservers'),
-          Type.childrenObservers,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
@@ -371,12 +361,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         Type.bindables,
         nameOrDef.bindables,
       ),
-      Children.from(
-        ...Children.getAll(Type),
-        getElementAnnotation(Type, 'childrenObservers'),
-        Type.childrenObservers,
-        nameOrDef.childrenObservers,
-      ),
       fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
@@ -413,7 +397,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 export type InjectableToken<K = any> = (target: Injectable, property: string | symbol | undefined, index: number) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {

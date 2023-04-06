@@ -369,7 +369,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       createWatchers(this, container, definition, instance);
     }
     createObservers(this, definition, instance);
-    // this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
 
     if (this._hooks.hasDefine) {
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
@@ -1260,44 +1259,6 @@ function createObservers(
     }
   }
 }
-
-// function createChildrenObservers(
-//   controller: Controller,
-//   definition: CustomElementDefinition,
-//   instance: object,
-// ): ChildrenObserver[] {
-//   const childrenObservers = definition.childrenObservers;
-//   const childObserverNames = getOwnPropertyNames(childrenObservers);
-//   const length = childObserverNames.length;
-//   if (length > 0) {
-//     const observers = getLookup(instance as IIndexable);
-//     const obs: ChildrenObserver[] = [];
-
-//     let name: string;
-//     let i = 0;
-//     let childrenDescription: ChildrenDefinition;
-//     for (; i < length; ++i) {
-//       name = childObserverNames[i];
-
-//       if (observers[name] == null) {
-//         childrenDescription = childrenObservers[name];
-//         obs[obs.length] = observers[name] = new ChildrenObserver(
-//           controller as ICustomElementController,
-//           instance as IIndexable,
-//           name,
-//           childrenDescription.callback,
-//           childrenDescription.query,
-//           childrenDescription.filter,
-//           childrenDescription.map,
-//           childrenDescription.options,
-//         );
-//       }
-//     }
-//     return obs;
-//   }
-
-//   return emptyArray as ChildrenObserver[];
-// }
 
 const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
 const getAccessScopeAst = (key: PropertyKey) => {

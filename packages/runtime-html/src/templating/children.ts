@@ -1,9 +1,8 @@
-import { getPrototypeChain, emptyArray, IContainer, IServiceLocator, IDisposable, Key } from '@aurelia/kernel';
+import { emptyArray, IContainer, IServiceLocator, IDisposable, Key } from '@aurelia/kernel';
 import { IBinding, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement, findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { createError, def, isArray, isString, objectFreeze, objectKeys } from '../utilities';
-import { getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
+import { createError, def, isString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 
@@ -64,9 +63,6 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
       CustomElement.annotate(target, dependenciesKey, dependencies = []);
     }
     dependencies.push(new ChildrenLifecycleHooks(config as PartialChildrenDefinition & { name: PropertyKey }));
-
-    // defineMetadata(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
-    // appendAnnotationKey($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 
   if (arguments.length > 1) {
@@ -76,11 +72,12 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
     decorator(configOrTarget!, prop!);
     return;
   } else if (isString(configOrTarget)) {
-    // ClassDecorator
-    // - @children('bar')
     // Direct call:
-    // - @children('bar')(Foo)
-    config = { query: (controller) => simpleChildQuery(controller, configOrTarget), filter: () => true, map: el => el };
+    // - @children('div')(Foo)
+    config = {
+      filter: (node: Node) => node.nodeType === 1 && (node as Element).matches(configOrTarget),
+      map: el => el
+    };
     return decorator;
   }
 
@@ -91,83 +88,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
   return decorator;
 }
 
-function isChildrenObserverAnnotation(key: string): boolean {
-  return key.startsWith(baseName);
-}
-
-const baseName = getAnnotationKeyFor('children-observer');
-export const Children = objectFreeze({
-  name: baseName,
-  keyFrom: (name: string): string =>`${baseName}:${name}`,
-  from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | string[] | undefined)[]): Record<string, ChildrenDefinition> {
-    const childrenObservers: Record<string, ChildrenDefinition> = {};
-
-    function addName(name: string): void {
-      childrenObservers[name] = ChildrenDefinition.create(name);
-    }
-
-    function addDescription(name: string, def: PartialChildrenDefinition): void {
-      childrenObservers[name] = ChildrenDefinition.create(name, def);
-    }
-
-    function addList(maybeList: ChildrenDefinition | Record<string, PartialChildrenDefinition> | string[] | undefined): void {
-      if (isArray(maybeList)) {
-        maybeList.forEach(addName);
-      } else if (maybeList instanceof ChildrenDefinition) {
-        childrenObservers[maybeList.property] = maybeList;
-      } else if (maybeList !== void 0) {
-        objectKeys(maybeList).forEach(name => addDescription(name, maybeList));
-      }
-    }
-
-    childrenObserverLists.forEach(addList);
-
-    return childrenObservers;
-  },
-  getAll(Type: Constructable): readonly ChildrenDefinition[] {
-    const propStart = baseName.length + 1;
-    const defs: ChildrenDefinition[] = [];
-    const prototypeChain = getPrototypeChain(Type);
-
-    let iProto = prototypeChain.length;
-    let iDefs = 0;
-    let keys: string[];
-    let keysLen: number;
-    let Class: Constructable;
-    while (--iProto >= 0) {
-      Class = prototypeChain[iProto];
-      keys = getAllAnnotations(Class).filter(isChildrenObserverAnnotation);
-      keysLen = keys.length;
-      for (let i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart));
-      }
-    }
-    return defs;
-  },
-});
-
 const childObserverOptions = { childList: true };
-export class ChildrenDefinition {
-  private constructor(
-    public readonly callback: string,
-    public readonly property: string,
-    public readonly options?: MutationObserverInit,
-    public readonly query?: (controller: ICustomElementController) => ArrayLike<Node>,
-    public readonly filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean,
-    public readonly map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown,
-  ) {}
-
-  public static create(prop: string, def: PartialChildrenDefinition = {}): ChildrenDefinition {
-    return new ChildrenDefinition(
-      '', // firstDefined(def.callback, `${prop}Changed`),
-      '', // firstDefined(def.property, prop),
-      def.options ?? childObserverOptions,
-      def.query,
-      def.filter,
-      def.map,
-    );
-  }
-}
 
 export interface ChildrenObserver extends
   IAccessor,
@@ -295,21 +216,6 @@ const notImplemented = (name: string) => createError(`Method "${name}": not impl
 
 subscriberCollection()(ChildrenObserver);
 
-function simpleChildQuery(controller: ICustomElementController, selector: string) {
-  const results = [];
-  const els = controller.host.children;
-  if (selector === '*') return Array.from(els);
-
-  let i = 0;
-  // eslint-disable-next-line prefer-const
-  let ii = els.length;
-  let el: Element;
-  for (; i < ii; ++i) {
-    if ((el = els[i]).matches(selector)) results.push(el);
-  }
-  return results;
-}
-
 function defaultChildQuery(controller: ICustomElementController): ArrayLike<INode> {
   return controller.host.childNodes;
 }
@@ -364,7 +270,7 @@ class ChildrenLifecycleHooks {
     instanceRegistration(ILifecycleHooks, this).register(c);
   }
 
-  public created(vm: object, controller: ICustomElementController) {
+  public hydrating(vm: object, controller: ICustomElementController) {
     const def = this.def;
     controller.addBinding(new ChildrenObserver(
       controller,

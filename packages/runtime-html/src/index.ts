@@ -387,8 +387,6 @@ export {
 
 export {
   type PartialChildrenDefinition,
-  ChildrenDefinition,
-  Children,
   children,
   ChildrenObserver,
 } from './templating/children';

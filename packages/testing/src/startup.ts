@@ -50,7 +50,7 @@ export function createFixture<T extends object>(
       } as unknown as Constructable<K>;
 
   const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register'>)[] =
-    ['aliases', 'bindables', 'cache', 'capture', 'childrenObservers', 'containerless', 'dependencies', 'enhance'];
+    ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
       Metadata.define(anno, CustomElement.getAnnotation($class as unknown as Constructable<K>, anno), $$class);

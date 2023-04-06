@@ -197,6 +197,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const $el = Controller.getCached(viewModel);
     if ($el === void 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0500: There is no cached controller for the provided ViewModel: ${viewModel}`);
       else
         throw createError(`AUR0500:${viewModel}`);
@@ -371,6 +372,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
 
     if (this._hooks.hasDefine) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
@@ -413,6 +415,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
     if (this._hooks.hasHydrating) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
       (this._vm as BindingContext<C>).hydrating(this as ICustomElementController);
     }
@@ -435,6 +438,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (shadowOptions !== null || hasSlots) {
       if (location != null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0501: Cannot combine the containerless custom element option with Shadow DOM.`);
         else
           throw createError(`AUR0501`);
@@ -458,6 +462,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this._hooks.hasHydrated) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
       (this._vm as BindingContext<C>).hydrated(this as ICustomElementController);
     }
@@ -476,6 +481,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._lifecycleHooks!.created.forEach(callCreatedHook, this);
     }
     if (this._hooks.hasCreated) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this._vm as BindingContext<C>).created(this as ICustomElementController);
     }
@@ -498,6 +504,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._lifecycleHooks!.created.forEach(callCreatedHook, this);
     }
     if (this._hooks.hasCreated) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this._vm as BindingContext<C>).created(this as ICustomAttributeController);
     }
@@ -540,11 +547,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       case State.disposed:
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0502: ${this.name} trying to activate a controller that is disposed.`);
         else
           throw createError(`AUR0502:${this.name}`);
       default:
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0503: ${this.name} unexpected state: ${stringifyState(this.state, this._lifecycleState)}.`);
         else
           throw createError(`AUR0503:${this.name} ${stringifyState(this.state, this._lifecycleState)}`);
@@ -568,6 +577,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // maybe only check when there's not already a scope
         if (scope === void 0 || scope === null) {
           if (__DEV__)
+            /* istanbul ignore next */
             throw createError(`AUR0504: Scope is null or undefined`);
           else
             throw createError(`AUR0504`);
@@ -592,12 +602,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let ret: void | Promise<void>;
     if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.binding != null) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
 
       ret = resolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
     }
 
     if (this._hooks.hasBinding) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
       ret = resolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
@@ -607,6 +619,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       ret.then(() => {
         if ((this.state & (State.activating | State.activated)) === 0) {
+          /* istanbul ignore next */
           if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (binding)'); }
           // Resolve this.$promise, signaling that activation is "done"
           this._resolve();
@@ -623,6 +636,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return this.$promise;
     }
     if ((this.state & (State.activating | State.activated)) === 0) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (binding)'); }
       // Resolve this.$promise, signaling that activation is "done"
       this._resolve();
@@ -638,6 +652,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private bind(): void {
+    /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`bind()`); }
 
     let i = 0;
@@ -665,12 +680,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.bound != null) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
 
       ret = resolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
     }
 
     if (this._hooks.hasBound) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
       ret = resolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
@@ -681,6 +698,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret.then(() => {
         this.isBound = true;
         if ((this.state & (State.activating | State.activated)) === 0) {
+          /* istanbul ignore next */
           if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (bound)'); }
           // Resolve this.$promise, signaling that activation is "done"
           this._resolve();
@@ -699,6 +717,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.isBound = true;
     if ((this.state & (State.activating | State.activated)) === 0) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (bound)'); }
       // Resolve this.$promise, signaling that activation is "done"
       this._resolve();
@@ -732,6 +751,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   private _attach(): void {
+    /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
     if (this.hostController !== null) {
@@ -770,12 +790,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._lifecycleState |= LifecycleState.attached;
 
     if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.attaching != null) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
 
       ret = resolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
     }
 
     if (this._hooks.hasAttaching) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
       ret = resolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
@@ -809,6 +831,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     switch ((this.state & ~State.released)) {
       case State.activating:
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`Deactivating while activating ${stringifyState(this.state, this._lifecycleState)}.`); }
         this.state = State.deactivating;
         break;
@@ -824,6 +847,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       default:
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0505: ${this.name} unexpected state: ${stringifyState(this.state, this._lifecycleState)}.`);
         else
           throw createError(`AUR0505:${this.name} ${stringifyState(this.state, this._lifecycleState)}`);
@@ -857,12 +881,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if ((this._lifecycleState & LifecycleState.attached) === LifecycleState.attached) {
       if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
         ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
       }
 
       if (this._hooks.hasDetaching) {
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
         ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
@@ -928,6 +954,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private unbind(): void {
+    /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
     let i = 0;
@@ -1020,6 +1047,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveActivating(): void {
     if (--this._activatingStack === 0) {
       if ((this.state & (State.activating | State.activated)) === 0) {
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attaching)'); }
         // Resolve this.$promise, signaling that activation is "done"
         this._resolve();
@@ -1038,6 +1066,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
 
       if (this._hooks.hasAttached) {
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
         _retPromise = resolveAll(_retPromise, this._vm!.attached!(this.$initiator));
@@ -1047,6 +1076,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this._ensurePromise();
         _retPromise.then(() => {
           if ((this.state & (State.activating | State.activated)) === 0) {
+            /* istanbul ignore next */
             if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attached)'); }
             // Resolve this.$promise, signaling that activation is "done"
             this._resolve();
@@ -1069,6 +1099,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         return;
       }
       if ((this.state & (State.activating | State.activated)) === 0) {
+        /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace('No longer activating (attached)'); }
         // Resolve this.$promise, signaling that activation is "done"
         this._resolve();
@@ -1100,6 +1131,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private _leaveDetaching(): void {
     if (--this._detachingStack === 0) {
       // Note: this controller is the initiator (detach is only ever called on the initiator)
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`detach()`); }
 
       this._enterUnbinding();
@@ -1110,6 +1142,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
       while (cur !== null) {
         if (cur !== this) {
+          /* istanbul ignore next */
           if (cur.debug) { cur.logger!.trace(`detach()`); }
 
           cur.removeNodes();
@@ -1121,6 +1154,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           }
 
           if (cur._hooks.hasUnbinding) {
+            /* istanbul ignore next */
             if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
             ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
@@ -1156,6 +1190,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveUnbinding(): void {
     if (--this._unbindingStack === 0) {
+      /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
       let cur = this.$initiator.head as Controller | null;
@@ -1245,6 +1280,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public dispose(): void {
+    /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`dispose()`); }
 
     if ((this.state & State.disposed) === State.disposed) {
@@ -1422,6 +1458,7 @@ function createWatchers(
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
     if (!isFunction(callback)) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0506: Invalid callback for @watch decorator: ${String(callback)}`);
       else
         throw createError(`AUR0506:${String(callback)}`);

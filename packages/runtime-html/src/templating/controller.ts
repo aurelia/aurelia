@@ -18,7 +18,6 @@ import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
-// import { ChildrenObserver } from './children';
 import { IPlatform } from '../platform';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
@@ -131,8 +130,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private debug!: boolean;
   /** @internal */
   private _fullyNamed: boolean = false;
-  // /** @internal */
-  // private _childrenObs: ChildrenObserver[] = emptyArray;
   /** @internal */
   private readonly _rendering: IRendering;
 

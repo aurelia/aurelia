@@ -7,7 +7,7 @@ import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
-import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
+import type { ISubscriberCollection } from '@aurelia/runtime';
 import type { INode } from '../dom';
 
 export type PartialChildrenDefinition = {
@@ -88,23 +88,12 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
   return decorator;
 }
 
-const childObserverOptions = { childList: true };
-
-export interface ChildrenObserver extends
-  IAccessor,
-  ISubscribable,
-  ISubscriberCollection,
-  IObserver { }
+export interface ChildrenBinding extends ISubscriberCollection { }
 
 /**
- * A special observer for observing the children of a custom element. Unlike other observer that starts/stops
- * based on the changes in the subscriber addition/removal, this is a controlled observers.
- *
- * The controller of a custom element should totally control when this observer starts/stops.
- *
- * @internal
+ * A binding for observing & notifying the children of a custom element.
  */
-export class ChildrenObserver implements IBinding {
+export class ChildrenBinding implements IBinding {
   /** @internal */
   private readonly _callback: () => void;
   /** @internal */
@@ -138,7 +127,7 @@ export class ChildrenObserver implements IBinding {
     options: MutationObserverInit = childObserverOptions,
   ) {
     this._controller = controller;
-    this._callback = (this.obj = obj as IIndexable)[cbName] as typeof ChildrenObserver.prototype._callback;
+    this._callback = (this.obj = obj as IIndexable)[cbName] as typeof ChildrenBinding.prototype._callback;
     this._host = controller.host;
     this._query = query;
     this._filter = filter;
@@ -210,36 +199,30 @@ export class ChildrenObserver implements IBinding {
     return filterChildren(this._controller, this._query, this._filter, this._map);
   }
 }
-subscriberCollection(ChildrenObserver);
+subscriberCollection(ChildrenBinding);
 
+const childObserverOptions = { childList: true };
 const notImplemented = (name: string) => createError(`Method "${name}": not implemented`);
 
-subscriberCollection()(ChildrenObserver);
-
-function defaultChildQuery(controller: ICustomElementController): ArrayLike<INode> {
-  return controller.host.childNodes;
-}
+const defaultChildQuery = (controller: ICustomElementController): ArrayLike<INode> => controller.host.childNodes;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function defaultChildFilter(node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean {
+const defaultChildFilter = (node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean =>
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  return !!viewModel;
-}
+  !!viewModel;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function defaultChildMap(node: INode, controller?: ICustomElementController | null, viewModel?: any): any {
-  return viewModel;
-}
+const defaultChildMap = (node: INode, controller?: ICustomElementController | null, viewModel?: any): any => viewModel;
 
 const forOpts = { optional: true } as const;
 
-function filterChildren(
+const filterChildren = (
   controller: ICustomElementController,
   query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
   map: typeof defaultChildMap
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any[] {
+): any[] => {
   const nodes = query(controller);
   const ii = nodes.length;
   const children: unknown[] = [];
@@ -259,7 +242,7 @@ function filterChildren(
   }
 
   return children;
-}
+};
 
 class ChildrenLifecycleHooks {
   public constructor(
@@ -272,7 +255,7 @@ class ChildrenLifecycleHooks {
 
   public hydrating(vm: object, controller: ICustomElementController) {
     const def = this.def;
-    controller.addBinding(new ChildrenObserver(
+    controller.addBinding(new ChildrenBinding(
       controller,
       controller.viewModel,
       def.name,

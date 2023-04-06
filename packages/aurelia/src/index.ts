@@ -682,7 +682,7 @@ export {
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,
-  // ChildrenObserver,
+  ChildrenBinding,
   // IRenderer,
   // IInstructionTypeClassifier,
   // IRenderingEngine,

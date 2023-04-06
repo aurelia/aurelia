@@ -388,7 +388,7 @@ export {
 export {
   type PartialChildrenDefinition,
   children,
-  ChildrenObserver,
+  ChildrenBinding,
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them

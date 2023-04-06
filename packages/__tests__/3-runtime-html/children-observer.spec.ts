@@ -143,6 +143,28 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
       au.dispose();
     });
+
+    it('updates subscribers', async function () {
+      @customElement({
+        name: 'e-l',
+        template: 'child count: ${nodes.length}<au-slot>',
+        shadowOptions: { mode: 'open' }
+      })
+      class El {
+        @children('div') nodes: any[];
+      }
+      const { assertText } = createFixture(
+        '<e-l ref=el><div repeat.for="i of items">',
+        class App {
+          items = 3;
+        },
+        [El]
+      );
+
+      await new Promise(r => setTimeout(r, 50));
+
+      assertText('child count: 3');
+    });
   });
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {

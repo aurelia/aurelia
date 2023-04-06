@@ -499,8 +499,7 @@ export {
   Bindable,
   coercer,
 
-  // PartialChildrenDefinition,
-  // ChildrenDefinition,
+  PartialChildrenDefinition,
   // Children,
   children,
 

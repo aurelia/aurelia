@@ -2,7 +2,6 @@
 import {
   ILogger,
   LogLevel,
-  emptyArray,
   InstanceProvider,
   optional,
   resolveAll,
@@ -19,7 +18,7 @@ import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
-import { ChildrenDefinition, ChildrenObserver } from './children';
+// import { ChildrenObserver } from './children';
 import { IPlatform } from '../platform';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
@@ -28,6 +27,7 @@ import { IRendering } from './rendering';
 import { createError, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, registerResolver } from '../utilities-di';
+// import { SlotWatcher } from './controller.projection';
 
 import type {
   IContainer,
@@ -51,6 +51,7 @@ import type { IViewFactory } from './view';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
+// import type { ISlotWatcher } from './controller.projection';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -130,8 +131,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private debug!: boolean;
   /** @internal */
   private _fullyNamed: boolean = false;
-  /** @internal */
-  private _childrenObs: ChildrenObserver[] = emptyArray;
+  // /** @internal */
+  // private _childrenObs: ChildrenObserver[] = emptyArray;
   /** @internal */
   private readonly _rendering: IRendering;
 
@@ -150,6 +151,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._vm = v;
     this._hooks = v == null || this.vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(v);
   }
+
+  // public readonly slotWatcher: SlotWatcher | null;
 
   public constructor(
     public container: IContainer,
@@ -178,6 +181,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ) {
     this._vm = viewModel;
     this._hooks = vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(viewModel!);
+    // this.slotWatcher = vmKind === ViewModelKind.customElement ? new SlotWatcher(this as ICustomElementController) : null;
     if (__DEV__) {
       this.logger = null!;
       this.debug = false;
@@ -365,7 +369,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       createWatchers(this, container, definition, instance);
     }
     createObservers(this, definition, instance);
-    this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
+    // this._childrenObs = createChildrenObservers(this as Controller, definition, instance);
 
     if (this._hooks.hasDefine) {
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
@@ -406,7 +410,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public _hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
-    if (this._lifecycleHooks!.hydrating !== void 0) {
+    if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
     if (this._hooks.hasHydrating) {
@@ -616,19 +620,20 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (__DEV__ && this.debug) { this.logger!.trace(`bind()`); }
 
     let i = 0;
-    let ii = this._childrenObs.length;
+    let ii = 0;
+    // let ii = this._childrenObs.length;
     let ret: void | Promise<void>;
     // timing: after binding, before bound
     // reason: needs to start observing before all the bindings finish their bind phase,
     //         so that changes in one binding can be reflected into the other, regardless the index of the binding
     //
     // todo: is this timing appropriate?
-    if (ii > 0) {
-      while (ii > i) {
-        this._childrenObs[i].start();
-        ++i;
-      }
-    }
+    // if (ii > 0) {
+    //   while (ii > i) {
+    //     this._childrenObs[i].start();
+    //     ++i;
+    //   }
+    // }
 
     if (this.bindings !== null) {
       i = 0;
@@ -791,11 +796,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // timing: before deactiving
     // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
     // todo: is this appropriate timing?
-    if (this._childrenObs.length) {
-      for (; i < this._childrenObs.length; ++i) {
-        this._childrenObs[i].stop();
-      }
-    }
+    // if (this._childrenObs.length) {
+    //   for (; i < this._childrenObs.length; ++i) {
+    //     this._childrenObs[i].stop();
+    //   }
+    // }
 
     if (this.children !== null) {
       for (i = 0; i < this.children.length; ++i) {
@@ -1206,7 +1211,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 }
 
-function getLookup(instance: IIndexable): Record<string, BindableObserver | ChildrenObserver> {
+function getLookup(instance: IIndexable): Record<string, BindableObserver> {
   let lookup = instance.$observers;
   if (lookup === void 0) {
     Reflect.defineProperty(
@@ -1218,7 +1223,7 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
       },
     );
   }
-  return lookup as Record<string, BindableObserver | ChildrenObserver>;
+  return lookup as Record<string, BindableObserver>;
 }
 
 function createObservers(
@@ -1256,43 +1261,43 @@ function createObservers(
   }
 }
 
-function createChildrenObservers(
-  controller: Controller,
-  definition: CustomElementDefinition,
-  instance: object,
-): ChildrenObserver[] {
-  const childrenObservers = definition.childrenObservers;
-  const childObserverNames = getOwnPropertyNames(childrenObservers);
-  const length = childObserverNames.length;
-  if (length > 0) {
-    const observers = getLookup(instance as IIndexable);
-    const obs: ChildrenObserver[] = [];
+// function createChildrenObservers(
+//   controller: Controller,
+//   definition: CustomElementDefinition,
+//   instance: object,
+// ): ChildrenObserver[] {
+//   const childrenObservers = definition.childrenObservers;
+//   const childObserverNames = getOwnPropertyNames(childrenObservers);
+//   const length = childObserverNames.length;
+//   if (length > 0) {
+//     const observers = getLookup(instance as IIndexable);
+//     const obs: ChildrenObserver[] = [];
 
-    let name: string;
-    let i = 0;
-    let childrenDescription: ChildrenDefinition;
-    for (; i < length; ++i) {
-      name = childObserverNames[i];
+//     let name: string;
+//     let i = 0;
+//     let childrenDescription: ChildrenDefinition;
+//     for (; i < length; ++i) {
+//       name = childObserverNames[i];
 
-      if (observers[name] == null) {
-        childrenDescription = childrenObservers[name];
-        obs[obs.length] = observers[name] = new ChildrenObserver(
-          controller as ICustomElementController,
-          instance as IIndexable,
-          name,
-          childrenDescription.callback,
-          childrenDescription.query,
-          childrenDescription.filter,
-          childrenDescription.map,
-          childrenDescription.options,
-        );
-      }
-    }
-    return obs;
-  }
+//       if (observers[name] == null) {
+//         childrenDescription = childrenObservers[name];
+//         obs[obs.length] = observers[name] = new ChildrenObserver(
+//           controller as ICustomElementController,
+//           instance as IIndexable,
+//           name,
+//           childrenDescription.callback,
+//           childrenDescription.query,
+//           childrenDescription.filter,
+//           childrenDescription.map,
+//           childrenDescription.options,
+//         );
+//       }
+//     }
+//     return obs;
+//   }
 
-  return emptyArray as ChildrenObserver[];
-}
+//   return emptyArray as ChildrenObserver[];
+// }
 
 const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
 const getAccessScopeAst = (key: PropertyKey) => {
@@ -1712,6 +1717,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
    */
   readonly viewModel: C;
   readonly lifecycleHooks: LifecycleHooksLookup;
+  // readonly slotWatcher: ISlotWatcher;
 
   activate(
     initiator: IHydratedController,
@@ -1727,10 +1733,13 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
 export const IController = createInterface<IController>('IController');
 
 export const IHydrationContext = createInterface<IHydrationContext>('IHydrationContext');
-export interface IHydrationContext<T extends ICustomElementViewModel = ICustomElementViewModel> extends HydrationContext<T> {
+export interface IHydrationContext<T extends ICustomElementViewModel = ICustomElementViewModel> {
+  readonly controller: ICustomElementController<T>;
+  readonly instruction: IControllerElementHydrationInstruction | null;
+  readonly parent: IHydrationContext | undefined;
 }
 
-class HydrationContext<T extends ICustomElementViewModel> {
+class HydrationContext<T extends ICustomElementViewModel> implements IHydrationContext<T> {
   public readonly controller: ICustomElementController<T>;
   public constructor(
     controller: Controller,
@@ -1860,12 +1869,6 @@ export interface IControllerElementHydrationInstruction {
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
 }
-
-export type ControllerLifecyleHookLookup = LifecycleHooksLookup<{
-  hydrating: ICompileHooks['hydrating'];
-  hydrated: ICompileHooks['hydrated'];
-  created: ICompileHooks['created'];
-}>;
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {
   l.instance.created(this._vm!, this as IHydratedComponentController);

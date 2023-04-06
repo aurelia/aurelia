@@ -5,6 +5,7 @@ import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, Custom
 import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
+import { getVisibleText } from './specialized-assertions';
 
 const fixtureHooks = new EventAggregator();
 export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown) => {
@@ -124,9 +125,9 @@ export function createFixture<T extends object>(
       if (el === null) {
         throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
       }
-      assert.strictEqual(el.textContent, text);
+      assert.strictEqual(getVisibleText(el), text);
     } else {
-      assert.strictEqual(host.textContent, selector);
+      assert.strictEqual(getVisibleText(host), selector);
     }
   }
   function getInnerHtml(el: Element, compact?: boolean) {

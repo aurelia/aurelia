@@ -1,17 +1,19 @@
-import { firstDefined, getPrototypeChain, emptyArray } from '@aurelia/kernel';
-import { subscriberCollection } from '@aurelia/runtime';
-import { findElementControllerFor } from '../resources/custom-element';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
-import { isArray, isString, objectFreeze, objectKeys } from '../utilities';
+import { getPrototypeChain, emptyArray, IContainer, IServiceLocator, IDisposable, Key } from '@aurelia/kernel';
+import { IBinding, subscriberCollection } from '@aurelia/runtime';
+import { CustomElement, findElementControllerFor } from '../resources/custom-element';
+import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
+import { createError, def, isArray, isString, objectFreeze, objectKeys } from '../utilities';
+import { getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
+import { instanceRegistration } from '../utilities-di';
+import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 
 import type { IIndexable, Constructable } from '@aurelia/kernel';
 import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import type { ICustomElementViewModel, ICustomElementController } from './controller';
 
 export type PartialChildrenDefinition = {
-  callback?: string;
-  property?: string;
+  callback?: PropertyKey;
+  name?: PropertyKey;
   options?: MutationObserverInit;
   query?: (controller: ICustomElementController) => ArrayLike<Node>;
   filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
@@ -27,9 +29,9 @@ export function children(config?: PartialChildrenDefinition): PropertyDecorator;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
  *
- * @param prop - The property name
+ * @param selector - The CSS element selector for filtering children
  */
-export function children(prop: string): ClassDecorator;
+export function children(selector: string): PropertyDecorator;
 /**
  * Decorator: Decorator: Specifies an array property that synchronizes its items with child content nodes of the element.
  *
@@ -37,21 +39,34 @@ export function children(prop: string): ClassDecorator;
  * @param prop - The property name
  */
 export function children(target: {}, prop: string): void;
-export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?: string): void | PropertyDecorator | ClassDecorator {
+export function children(configOrTarget?: PartialChildrenDefinition | {} | string, prop?: string): void | PropertyDecorator | ClassDecorator {
   let config: PartialChildrenDefinition;
 
-  function decorator($target: {}, $prop: symbol | string): void {
+  const dependenciesKey = 'dependencies';
+  function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
     if (arguments.length > 1) {
       // Non invocation:
       // - @children
       // Invocation with or w/o opts:
       // - @children()
       // - @children({...opts})
-      config.property = $prop as string;
+      config.name = $prop as string;
     }
 
-    defineMetadata(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
-    appendAnnotationKey($target.constructor as Constructable, Children.keyFrom($prop as string));
+    if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
+      throw new Error(`Invalid usage. @children can only be used on a field`);
+    }
+
+    const target = ($target as object).constructor as Constructable;
+
+    let dependencies = CustomElement.getAnnotation(target, dependenciesKey) as Key[] | undefined;
+    if (dependencies == null) {
+      CustomElement.annotate(target, dependenciesKey, dependencies = []);
+    }
+    dependencies.push(new ChildrenLifecycleHooks(config as PartialChildrenDefinition & { name: PropertyKey }));
+
+    // defineMetadata(baseName, ChildrenDefinition.create($prop as string, config), $target.constructor, $prop);
+    // appendAnnotationKey($target.constructor as Constructable, Children.keyFrom($prop as string));
   }
 
   if (arguments.length > 1) {
@@ -65,7 +80,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {}, prop?:
     // - @children('bar')
     // Direct call:
     // - @children('bar')(Foo)
-    config = {};
+    config = { query: (controller) => simpleChildQuery(controller, configOrTarget), filter: () => true, map: el => el };
     return decorator;
   }
 
@@ -144,8 +159,8 @@ export class ChildrenDefinition {
 
   public static create(prop: string, def: PartialChildrenDefinition = {}): ChildrenDefinition {
     return new ChildrenDefinition(
-      firstDefined(def.callback, `${prop}Changed`),
-      firstDefined(def.property, prop),
+      '', // firstDefined(def.callback, `${prop}Changed`),
+      '', // firstDefined(def.property, prop),
       def.options ?? childObserverOptions,
       def.query,
       def.filter,
@@ -168,77 +183,132 @@ export interface ChildrenObserver extends
  *
  * @internal
  */
-export class ChildrenObserver {
-  public observing: boolean = false;
+export class ChildrenObserver implements IBinding {
+  /** @internal */
+  private readonly _callback: () => void;
+  /** @internal */
+  private _children: unknown[] = (void 0)!;
+  /** @internal */
+  private readonly _observer: MutationObserver;
+  /** @internal */
+  private readonly _host: HTMLElement;
+  /** @internal */
+  private readonly _controller: ICustomElementController;
+  /** @internal */
+  private readonly _query = defaultChildQuery;
+  /** @internal */
+  private readonly _filter = defaultChildFilter;
+  /** @internal */
+  private readonly _map = defaultChildMap;
+  /** @internal */
+  private readonly _options?: MutationObserverInit;
 
-  private readonly callback: () => void;
-  private children: unknown[] = (void 0)!;
-  private observer: MutationObserver | undefined = void 0;
+  public isBound = false;
+  public readonly obj: ICustomElementViewModel;
 
   public constructor(
-    private readonly controller: ICustomElementController,
-    public readonly obj: IIndexable,
-    public readonly propertyKey: string,
-    cbName: string,
-    private readonly query = defaultChildQuery,
-    private readonly filter = defaultChildFilter,
-    private readonly map = defaultChildMap,
-    private readonly options?: MutationObserverInit
+    controller: ICustomElementController,
+    obj: ICustomElementViewModel,
+    public readonly key: PropertyKey,
+    cbName: PropertyKey,
+    query = defaultChildQuery,
+    filter = defaultChildFilter,
+    map = defaultChildMap,
+    options: MutationObserverInit = childObserverOptions,
   ) {
-    this.callback = obj[cbName] as typeof ChildrenObserver.prototype.callback;
-    Reflect.defineProperty(
+    this._controller = controller;
+    this._callback = (this.obj = obj as IIndexable)[cbName] as typeof ChildrenObserver.prototype._callback;
+    this._host = controller.host;
+    this._query = query;
+    this._filter = filter;
+    this._map = map;
+    this._options = options;
+    this._observer = new controller.host.ownerDocument.defaultView!.MutationObserver(() => {
+      this._onChildrenChanged();
+    });
+    def(
       this.obj,
-      this.propertyKey,
+      this.key,
       {
         enumerable: true,
         configurable: true,
-        get: () => this.getValue(),
+        get: Object.assign(() => this.getValue(), { getObserver: () => this }),
         set: () => { return; },
       }
     );
   }
 
   public getValue(): unknown[] {
-    return this.observing ? this.children : this.get();
+    return this.isBound ? this._children : this._getNodes();
   }
 
   public setValue(_value: unknown): void { /* do nothing */ }
 
-  public start(): void {
-    if (!this.observing) {
-      this.observing = true;
-      this.children = this.get();
-      (this.observer ??= new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this._onChildrenChanged(); }))
-        .observe(this.controller.host, this.options);
+  public bind(): void {
+    if (this.isBound) {
+      return;
     }
+    this.isBound = true;
+    this._observer.observe(this._host, this._options);
+    this._children = this._getNodes();
   }
 
-  public stop(): void {
-    if (this.observing) {
-      this.observing = false;
-      this.observer!.disconnect();
-      this.children = emptyArray;
+  public unbind(): void {
+    if (!this.isBound) {
+      return;
     }
+    this.isBound = false;
+    this._observer.disconnect();
+    this._children = emptyArray;
   }
 
+  /** @internal */
   private _onChildrenChanged(): void {
-    this.children = this.get();
+    this._children = this._getNodes();
 
-    if (this.callback !== void 0) {
-      this.callback.call(this.obj);
-    }
-
-    this.subs.notify(this.children, undefined);
+    this._callback?.call(this.obj);
+    this.subs.notify(this._children, undefined);
   }
 
+  public get(): ReturnType<IServiceLocator['get']> {
+    throw notImplemented('get');
+  }
+
+  public useScope() {
+    /* not implemented */
+  }
+
+  public limit(): IDisposable {
+    throw notImplemented('limit');
+  }
+
+  /** @internal */
   // freshly retrieve the children everytime
   // in case this observer is not observing
-  private get() {
-    return filterChildren(this.controller, this.query, this.filter, this.map);
+  private _getNodes() {
+    return filterChildren(this._controller, this._query, this._filter, this._map);
   }
 }
+subscriberCollection(ChildrenObserver);
+
+const notImplemented = (name: string) => createError(`Method "${name}": not implemented`);
 
 subscriberCollection()(ChildrenObserver);
+
+function simpleChildQuery(controller: ICustomElementController, selector: string) {
+  const results = [];
+  const els = controller.host.children;
+  if (selector === '*') return Array.from(els);
+
+  let i = 0;
+  // eslint-disable-next-line prefer-const
+  let ii = els.length;
+  let el: Element;
+  for (; i < ii; ++i) {
+    if ((el = els[i]).matches(selector)) results.push(el);
+  }
+  return results;
+}
 
 function defaultChildQuery(controller: ICustomElementController): ArrayLike<INode> {
   return controller.host.childNodes;
@@ -257,8 +327,7 @@ function defaultChildMap(node: INode, controller?: ICustomElementController | nu
 
 const forOpts = { optional: true } as const;
 
-/** @internal */
-export function filterChildren(
+function filterChildren(
   controller: ICustomElementController,
   query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
@@ -267,7 +336,7 @@ export function filterChildren(
 ): any[] {
   const nodes = query(controller);
   const ii = nodes.length;
-  const children = [];
+  const children: unknown[] = [];
 
   let node: INode;
   let $controller: ICustomElementController | null;
@@ -285,3 +354,29 @@ export function filterChildren(
 
   return children;
 }
+
+class ChildrenLifecycleHooks {
+  public constructor(
+    private readonly def: PartialChildrenDefinition & { name: PropertyKey },
+  ) {}
+
+  public register(c: IContainer) {
+    instanceRegistration(ILifecycleHooks, this).register(c);
+  }
+
+  public created(vm: object, controller: ICustomElementController) {
+    const def = this.def;
+    controller.addBinding(new ChildrenObserver(
+      controller,
+      controller.viewModel,
+      def.name,
+      def.callback ?? `${String(def.name)}Changed`,
+      def.query ?? defaultChildQuery,
+      def.filter ?? defaultChildFilter,
+      def.map ?? defaultChildMap,
+      def.options ?? childObserverOptions,
+    ));
+  }
+}
+
+lifecycleHooks()(ChildrenLifecycleHooks);

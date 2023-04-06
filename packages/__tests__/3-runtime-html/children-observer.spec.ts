@@ -147,7 +147,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
     it('updates subscribers', async function () {
       @customElement({
         name: 'e-l',
-        template: 'child count: ${nodes.length}<au-slot>',
+        template: 'child count: ${nodes.length}',
         shadowOptions: { mode: 'open' }
       })
       class El {

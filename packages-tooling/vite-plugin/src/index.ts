@@ -48,8 +48,10 @@ export default function au(options: {
         'router-lite',
       ].reduce((aliases, pkg) => {
         const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
-        const packageLocation = require.resolve(name);
-        aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
+        try {
+          const packageLocation = require.resolve(name);
+          aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
+        } catch {/* needs not to do anything */}
         return aliases;
       }, ((config.resolve ??= {}).alias ??= {}) as Record<string, string>);
     },

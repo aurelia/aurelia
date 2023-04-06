@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -1146,7 +1146,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.areTaskQueuesEmpty();
   });
 
-  it('fallback as function is supported - route configuration', async function () {
+  it('function as fallback is supported - route configuration', async function () {
     @customElement({ name: 'ce-a', template: 'a' })
     class A { }
     @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1202,7 +1202,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.areTaskQueuesEmpty();
   });
 
-  it('fallback as function is supported - route configuration - hierarchical', async function () {
+  it('function as fallback is supported - route configuration - hierarchical', async function () {
     @customElement({ name: 'ce-c1', template: 'c1' })
     class C1 { }
 
@@ -1280,7 +1280,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.areTaskQueuesEmpty();
   });
 
-  it('fallback as function is supported - viewport', async function () {
+  it('function as fallback is supported - viewport', async function () {
     @customElement({ name: 'ce-a', template: 'a' })
     class A { }
     @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1337,7 +1337,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.areTaskQueuesEmpty();
   });
 
-  it('fallback as function is supported - viewport - hierarchical', async function () {
+  it('function as fallback is supported - viewport - hierarchical', async function () {
 
     function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
       return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
@@ -1420,6 +1420,786 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     await au.stop(true);
     assert.areTaskQueuesEmpty();
   });
+
+  it('class as fallback is supported - route configuration', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF },
+      ],
+      fallback: NF,
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('class as fallback is supported - route configuration - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    class P2 { }
+
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF },
+      ],
+      fallback: NF,
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning class as fallback is supported - route configuration', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF1 },
+        { id: 'r3', path: ['nf2'], component: NF2 },
+      ],
+      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
+      },
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF1]]);
+
+    await router.load('bar');
+
+    assertComponentsVisible(host, [Root, [NF2]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning class as fallback is supported - route configuration - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    class P2 { }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return rn.component.Type === P1 ? NF1 : NF2;
+      },
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('promise resolving to class as fallback is supported - route configuration', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF },
+      ],
+      fallback: Promise.resolve(NF),
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('promise resolving to class as fallback is supported - route configuration - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    class P2 { }
+
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF },
+      ],
+      fallback: Promise.resolve(NF),
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning a promise resolving to class as fallback is supported - route configuration', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF1 },
+        { id: 'r3', path: ['nf2'], component: NF2 },
+      ],
+      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
+      },
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF1]]);
+
+    await router.load('bar');
+
+    assertComponentsVisible(host, [Root, [NF2]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning a promise resolving to class as fallback is supported - route configuration - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    class P2 { }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
+      },
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('class as fallback is supported - viewport', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport fallback.bind>`,
+    })
+    class Root {
+      fallback = NF;
+    }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('class as fallback is supported - viewport - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    class P1 {
+      private readonly fallback = NF1;
+    }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    class P2 {
+      private readonly fallback = NF2;
+    }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning class as fallback is supported - viewport', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF1 },
+        { id: 'r3', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport fallback.bind>`,
+    })
+    class Root {
+      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
+      }
+    }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF1]]);
+
+    await router.load('bar');
+
+    assertComponentsVisible(host, [Root, [NF2]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning class as fallback is supported - viewport - hierarchical', async function () {
+    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      return rn.component.Type === P1 ? NF1 : NF2;
+    }
+
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    class P1 {
+      fallback = fallback;
+    }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    class P2 {
+      fallback = fallback;
+    }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('promise resolving to class as fallback is supported - viewport', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f', template: 'nf' })
+    class NF { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport fallback.bind>`,
+    })
+    class Root {
+      fallback = Promise.resolve(NF);
+    }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('promise resolving to class as fallback is supported - viewport - hierarchical', async function () {
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    class P1 {
+      private readonly fallback = Promise.resolve(NF1);
+    }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    class P2 {
+      private readonly fallback = Promise.resolve(NF2);
+    }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning a promise resolving to class as fallback is supported - viewport', async function () {
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A { }
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'a'], component: A },
+        { id: 'r2', path: ['nf1'], component: NF1 },
+        { id: 'r3', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport fallback.bind>`,
+    })
+    class Root {
+      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+        return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
+      }
+    }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [A]]);
+
+    await router.load('foo');
+
+    assertComponentsVisible(host, [Root, [NF1]]);
+
+    await router.load('bar');
+
+    assertComponentsVisible(host, [Root, [NF2]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('function returning a promise resolving to class as fallback is supported - viewport - hierarchical', async function () {
+    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
+    }
+
+    @customElement({ name: 'ce-c1', template: 'c1' })
+    class C1 { }
+
+    @customElement({ name: 'ce-c2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C1 },
+      ]
+    })
+    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    class P1 {
+      fallback = fallback;
+    }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'c'], component: C2 },
+      ]
+    })
+    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    class P2 {
+      fallback = fallback;
+    }
+
+    @customElement({ name: 'n-f-1', template: 'nf1' })
+    class NF1 { }
+    @customElement({ name: 'n-f-2', template: 'nf2' })
+    class NF2 { }
+    @route({
+      routes: [
+        { id: 'r1', path: ['', 'p1'], component: P1 },
+        { id: 'r2', path: ['p2'], component: P2 },
+        { id: 'r3', path: ['nf1'], component: NF1 },
+        { id: 'r4', path: ['nf2'], component: NF2 },
+      ],
+    })
+    @customElement({
+      name: 'root',
+      template: `root<au-viewport>`,
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+
+    await router.load('p2/foo');
+
+    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+
+    await router.load('p1/foo');
+
+    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  // TODO(sayan): add more tests
 
   for (const attr of ['href', 'load']) {
     it(`will load the root-level fallback when navigating to a non-existing route - parent-child - children without fallback - attr: ${attr}`, async function () {
@@ -5473,7 +6253,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     });
   });
 
-  describe('CE alias', function () {
+  describe('custom element aliases as routing instruction', function () {
     it('using the aliases as path works', async function () {
       @customElement({ name: 'c-1', template: 'c1', aliases: ['c-a', 'c-one'] })
       class C1 { }

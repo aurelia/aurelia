@@ -1,27 +1,27 @@
-import { ILogger } from '@aurelia/kernel';
+import { Constructable, ILogger } from '@aurelia/kernel';
 import {
   bindable,
   customElement,
   ICustomElementViewModel,
   IHydratedController,
   ICustomElementController,
-  ICompiledCustomElementController
+  ICompiledCustomElementController,
+  CustomElement
 } from '@aurelia/runtime-html';
 
 import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
 import { defaultViewportName, type ViewportInstruction } from '../instructions';
 import { type RouteNode } from '../route-tree';
-
-export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext) => string | null;
+import { FallbackFunction, Routeable } from '../options';
 
 export interface IViewport {
   readonly name: string;
   readonly usedBy: string;
   readonly default: string;
-  readonly fallback: string | FallbackFunction;
+  readonly fallback: Routeable | FallbackFunction;
   /** @internal */
-  _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null;
+  _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -29,7 +29,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   @bindable public name: string = defaultViewportName;
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
-  @bindable public fallback: string | FallbackFunction = '';
+  @bindable public fallback: Routeable | FallbackFunction = '';
 
   private agent: ViewportAgent = (void 0)!;
   private controller: ICustomElementController = (void 0)!;
@@ -44,10 +44,11 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   /** @internal */
-  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): string | null {
+  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
     const fallback = this.fallback;
     return typeof fallback === 'function'
-      ? fallback(viewportInstruction, routeNode, context)
+      && !CustomElement.isType(fallback as Constructable)
+      ? (fallback as FallbackFunction)(viewportInstruction, routeNode, context)
       : fallback;
   }
 

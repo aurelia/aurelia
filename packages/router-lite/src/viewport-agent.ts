@@ -7,9 +7,8 @@ import type { IViewport } from './resources/viewport';
 import type { ComponentAgent } from './component-agent';
 import { type RouteNode, createAndAppendNodes } from './route-tree';
 import type { IRouteContext } from './route-context';
-import type { NavigationOptions } from './options';
+import type { NavigationOptions, TransitionPlan } from './options';
 import type { Transition } from './router';
-import type { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 import { ViewportInstruction, defaultViewportName } from './instructions';
 

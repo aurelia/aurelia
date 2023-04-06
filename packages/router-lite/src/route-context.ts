@@ -41,9 +41,11 @@ import {
 } from './instructions';
 import {
   NavigationOptions,
+  IChildRouteConfig,
+  Routeable,
 } from './options';
 import { IViewport } from './resources/viewport';
-import { IChildRouteConfig, noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, Routeable, RouteConfig, RouteType } from './route';
+import { noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 import type { RouteNode } from './route-tree';
 import {
   emptyQuery,
@@ -391,7 +393,7 @@ export class RouteContext {
   }
 
   public getFallbackViewportAgent(name: string): ViewportAgent | null {
-    return this.childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback.length > 0) ?? null;
+    return this.childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback !== '') ?? null;
   }
 
   /**

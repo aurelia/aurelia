@@ -285,6 +285,7 @@ export class Case implements ICustomAttributeViewModel {
       this.linkToSwitch($switch);
     } else {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0815: The parent switch not found; only "*[switch] > *[case|default-case]" relation is supported.`);
       else
         throw createError(`AUR0815`);
@@ -367,6 +368,7 @@ export class DefaultCase extends Case {
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0816: Multiple 'default-case's are not allowed.`);
       else
         throw createError(`AUR0816`);

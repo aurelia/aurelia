@@ -95,6 +95,7 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     const def = getOwnMetadata(bbBaseName, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0151: No definition found for type ${Type.name}`);
       else
         throw createError(`AUR0151:${Type.name}`);

@@ -10,6 +10,7 @@ export class AttrBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: IBinding): void {
     if (!(binding instanceof PropertyBinding)) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AURxxxx: & attr can be only used on property binding. It's used on ${binding.constructor.name}`);
       else
         throw createError(`AURxxxx`);

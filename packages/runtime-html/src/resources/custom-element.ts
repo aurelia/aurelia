@@ -262,6 +262,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       const def = nameOrDef;
       if (isString(def)) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0761: Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
           throw createError(`AUR0761:${nameOrDef}`);
@@ -461,6 +462,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
         return null!;
       }
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0762: The provided node is not a custom element or containerless host.`);
       else
         throw createError(`AUR0762`);
@@ -472,6 +474,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       const controller = getRef(node, elementBaseName) as Controller<C> | null;
       if (controller === null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0763: The provided node is not a custom element or containerless host.`);
         else
           throw createError(`AUR0763`);
@@ -503,6 +506,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     }
 
     if (__DEV__)
+      /* istanbul ignore next */
       throw createError(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     else
       throw createError(`AUR0764`);
@@ -519,6 +523,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
   }
 
   if (__DEV__)
+    /* istanbul ignore next */
     throw createError(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
   else
     throw createError(`AUR0765`);
@@ -647,6 +652,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
 
   if (!isFunction(hook)) {
     if (__DEV__)
+      /* istanbul ignore next */
       throw createError(`AUR0766: Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
       throw createError(`AUR0766:${typeof hook}`);

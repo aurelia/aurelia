@@ -21,7 +21,7 @@ import type {
   IsExpression, Scope
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
-import { isArray } from '../utilities';
+import { isArray, safeString } from '../utilities';
 import type { IBindingController } from './interfaces-bindings';
 
 const queueTaskOptions: QueueTaskOptions = {
@@ -346,7 +346,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       target.textContent = '';
       target.parentNode?.insertBefore(value, target);
     } else {
-      target.textContent = String(value);
+      target.textContent = safeString(value);
     }
   }
 

@@ -2,6 +2,8 @@ import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
 const O = Object;
 
+/** @internal */ export const safeString = String;
+
 /** @internal */ export const baseObjectPrototype = O.prototype;
 
 /** @internal */ export const createLookup = <T = unknown>() => O.create(null) as Record<string, T>;

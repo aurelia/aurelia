@@ -39,6 +39,7 @@ export class Aurelia implements IDisposable {
     if (this._root == null) {
       if (this.next == null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0767: root is not defined`);
         else
           throw createError(`AUR0767`);
@@ -58,6 +59,7 @@ export class Aurelia implements IDisposable {
   ) {
     if (container.has(IAurelia, true)) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0768: An instance of Aurelia is already registered with the container or an ancestor of it.`);
       else
         throw createError(`AUR0768`);
@@ -129,6 +131,7 @@ export class Aurelia implements IDisposable {
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0769: Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
         else
           throw createError(`AUR0769`);
@@ -197,6 +200,7 @@ export class Aurelia implements IDisposable {
   public dispose(): void {
     if (this._isRunning || this._isStopping) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0771: The aurelia instance must be fully stopped before it can be disposed`);
       else
         throw createError(`AUR0771`);

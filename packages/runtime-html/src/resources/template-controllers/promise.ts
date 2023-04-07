@@ -18,7 +18,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
 import { templateController } from '../custom-attribute';
-import { createError, isPromise } from '../../utilities';
+import { createError, isPromise, safeString } from '../../utilities';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
@@ -74,7 +74,8 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private swap(initiator: IHydratedController | null): void {
     const value = this.value;
     if (!isPromise(value)) {
-      this.logger.warn(`The value '${String(value)}' is not a promise. No change will be done.`);
+      /* istanbul ignore next */
+      this.logger.warn(`The value '${safeString(value)}' is not a promise. No change will be done.`);
       return;
     }
     const q = this._platform.domWriteQueue;

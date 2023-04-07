@@ -88,6 +88,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this.key = parser.parse(value, ExpressionType.IsProperty);
         } else {
           if (__DEV__) {
+            /* istanbul ignore next */
             throw createError(`AUR775:invalid command ${command}`);
           } else {
             throw createError(`AUR775:${command}`);
@@ -95,6 +96,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
       } else {
         if (__DEV__) {
+          /* istanbul ignore next */
           throw createError(`AUR776:invalid target ${to}`);
         } else {
           throw createError(`AUR776:${to}`);

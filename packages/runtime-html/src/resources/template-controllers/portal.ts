@@ -254,6 +254,7 @@ export class Portal implements ICustomAttributeViewModel {
     if (target == null) {
       if (this.strict) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0812: Portal target not found`);
         else
           throw createError(`AUR0812`);

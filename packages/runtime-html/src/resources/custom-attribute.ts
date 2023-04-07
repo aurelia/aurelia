@@ -185,6 +185,7 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
   const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
   if (def === void 0) {
     if (__DEV__)
+      /* istanbul ignore next */
       throw createError(`No definition found for type ${Type.name}`);
     else
       throw createError(`AUR0759:${Type.name}`);

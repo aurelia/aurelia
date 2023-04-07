@@ -1,5 +1,5 @@
 import { subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { createError, isString } from '../utilities';
+import { createError, isString, safeString } from '../utilities';
 
 import type {
   IObserver,
@@ -100,7 +100,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           if (this._value == null) {
             this._obj.removeAttribute(this._attr);
           } else {
-            this._obj.setAttribute(this._attr, String(this._value));
+            this._obj.setAttribute(this._attr, safeString(this._value));
           }
         }
       }

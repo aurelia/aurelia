@@ -23,7 +23,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { createError, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
+import { createError, getOwnPropertyNames, isFunction, isPromise, isString, safeString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, registerResolver } from '../utilities-di';
 // import { SlotWatcher } from './controller.projection';
@@ -1293,9 +1293,10 @@ function createWatchers(
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
     if (!isFunction(callback)) {
       if (__DEV__)
-        throw createError(`AUR0506: Invalid callback for @watch decorator: ${String(callback)}`);
+        /* istanbul ignore next */
+        throw createError(`AUR0506: Invalid callback for @watch decorator: ${safeString(callback)}`);
       else
-        throw createError(`AUR0506:${String(callback)}`);
+        throw createError(`AUR0506:${safeString(callback)}`);
     }
     if (isFunction(expression)) {
       controller.addBinding(new ComputedWatcher(

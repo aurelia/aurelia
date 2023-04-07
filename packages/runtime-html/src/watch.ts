@@ -3,7 +3,7 @@ import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { createError, isFunction, objectFreeze } from './utilities';
+import { createError, isFunction, objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
@@ -84,15 +84,17 @@ export function watch<T extends object = object>(
         && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
       ) {
         if (__DEV__)
-          throw createError(`AUR0773: Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
+          /* istanbul ignore next */
+          throw createError(`AUR0773: Invalid change handler config. Method "${safeString(changeHandlerOrCallback)}" not found in class ${Type.name}`);
         else
-          throw createError(`AUR0773:${String(changeHandlerOrCallback)}@${Type.name}}`);
+          throw createError(`AUR0773:${safeString(changeHandlerOrCallback)}@${Type.name}}`);
       }
     } else if (!isFunction(descriptor?.value)) {
       if (__DEV__)
-        throw createError(`AUR0774: decorated target ${String(key)} is not a class method.`);
+        /* istanbul ignore next */
+        throw createError(`AUR0774: decorated target ${safeString(key)} is not a class method.`);
       else
-        throw createError(`AUR0774:${String(key)}`);
+        throw createError(`AUR0774:${safeString(key)}`);
     }
 
     Watch.add(Type, watchDef as IWatchDefinition);

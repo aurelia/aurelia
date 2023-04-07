@@ -104,6 +104,7 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0152: No definition found for type ${Type.name}`);
       else
         throw createError(`AUR0152:${Type.name}`);

@@ -418,6 +418,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
     case 'view':
       // todo: returns node sequences for fun?
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0750: Not supported API`);
       else
         throw createError(`AUR0750`);
@@ -432,6 +433,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
         else
           throw createError(`AUR0751:${refTargetName}`);
@@ -579,6 +581,7 @@ export class CustomAttributeRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
+            /* istanbul ignore next */
             throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
             throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
@@ -657,6 +660,7 @@ export class TemplateControllerRenderer implements IRenderer {
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
           if (__DEV__)
+            /* istanbul ignore next */
             throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
           else
             throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
@@ -1253,12 +1257,14 @@ class ViewFactoryProvider implements IResolver {
     const f = this.f;
     if (f === null) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
       else
         throw createError(`AUR7055`);
     }
     if (!isString(f.name) || f.name.length === 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
       else
         throw createError(`AUR0756`);

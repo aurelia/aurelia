@@ -2,7 +2,7 @@ import { emptyArray, IContainer, IServiceLocator, IDisposable, Key } from '@aure
 import { IBinding, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement, findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { createError, def, isString, objectAssign } from '../utilities';
+import { createError, def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 
@@ -280,7 +280,7 @@ class ChildrenLifecycleHooks {
       controller,
       controller.viewModel,
       def.name,
-      def.callback ?? `${String(def.name)}Changed`,
+      def.callback ?? `${safeString(def.name)}Changed`,
       def.query ?? defaultChildQuery,
       def.filter ?? defaultChildFilter,
       def.map ?? defaultChildMap,

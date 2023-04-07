@@ -40,7 +40,7 @@ import {
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
 } from './ast';
-import { createError, createInterface, createLookup } from '../utilities-objects';
+import { createError, createInterface, createLookup, objectAssign } from '../utilities-objects';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
@@ -1828,7 +1828,7 @@ const TokenValues = [
   'of', '=>'
 ];
 
-const KeywordLookup: Record<string, Token> = Object.assign(Object.create(null), {
+const KeywordLookup: Record<string, Token> = objectAssign(Object.create(null), {
   true: Token.TrueKeyword,
   null: Token.NullKeyword,
   false: Token.FalseKeyword,

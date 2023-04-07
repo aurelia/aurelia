@@ -73,7 +73,7 @@ export class Focus implements ICustomAttributeViewModel {
   /**
    * Invoked when the attribute is afterDetachChildren from the DOM.
    */
-  public afterDetachChildren(): void {
+  public detaching(): void {
     const el = this._element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);
@@ -102,6 +102,8 @@ export class Focus implements ICustomAttributeViewModel {
 
   /**
    * Focus/blur based on current value
+   *
+   * @internal
    */
   private _apply(): void {
     const el = this._element;
@@ -116,7 +118,8 @@ export class Focus implements ICustomAttributeViewModel {
     }
   }
 
-  /** @internal */ private get _isElFocused(): boolean {
+  /** @internal */
+  private get _isElFocused(): boolean {
     return this._element === this._platform.document.activeElement;
   }
 }

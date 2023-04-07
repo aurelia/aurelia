@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import type { Params, RouteContextLike, RouteableComponent, ViewportInstruction, ViewportInstructionTree } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
-import { IRouteContext } from './route-context';
+import type { IRouteContext } from './route-context';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -41,6 +41,12 @@ export class RouterOptions {
      * The default value is `true`.
      */
     public readonly useNavigationModel: boolean,
+    /**
+     * The class that is added to the element by the `load` custom attribute, if the associated instruction is active.
+     * If no value is provided while configuring router, no class will be added.
+     * The default value is `null`.
+     */
+    public readonly activeClass: string | null,
   ) { }
 
   public static create(input: IRouterOptions): RouterOptions {
@@ -50,6 +56,7 @@ export class RouterOptions {
       input.historyStrategy ?? 'push',
       input.buildTitle ?? null,
       input.useNavigationModel ?? true,
+      input.activeClass ?? null,
     );
   }
 

@@ -580,6 +580,12 @@ This can also be seen in the live example below.
 Note that the [navigation model](./navigation-model.md) also offers a [`isActive` property](./navigation-model.md#using-the-isactive-property).
 {% endhint %}
 
+### "active" CSS class
+
+The `active` bindable can be used for other purposes, other than adding CSS classes to the element.
+However, if that's what you need mostly the `active` property for, you may choose to configure the [`activeClass` property](./router-configuration.md#configure-active-class) in the router configuration.
+When configured, the `load` custom attribute will add that configured class to the element when the associated routing instruction is active.
+
 ## Using the Router API
 
 Along with the custom attributes on the markup-side, the router-lite also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript at your disposal.

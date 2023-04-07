@@ -4,7 +4,6 @@ import {
   customAttribute,
   bindable,
   ICustomAttributeViewModel,
-  IEventTarget,
   INode,
   CustomElement,
 } from '@aurelia/runtime-html';
@@ -37,12 +36,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private href: string | null = null;
   private instructions: ViewportInstructionTree | null = null;
-  // private eventListener: IDisposable | null = null;
   private navigationEndListener: IDisposable | null = null;
   private readonly isEnabled: boolean;
+  private readonly activeClass: string | null;
 
   public constructor(
-    @IEventTarget private readonly target: IEventTarget,
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @IRouterEvents private readonly events: IRouterEvents,
@@ -51,6 +49,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   ) {
     // Ensure the element is not explicitly marked as external.
     this.isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
+    this.activeClass = router.options.activeClass;
   }
 
   public binding(): void {
@@ -60,7 +59,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.valueChanged();
     this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
       this.valueChanged();
-      this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
+      const active = this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
+      const activeClass = this.activeClass;
+      if (activeClass === null) return;
+      if (active) {
+        this.el.classList.add(activeClass);
+      } else {
+        this.el.classList.remove(activeClass);
+      }
     });
   }
 

@@ -499,8 +499,7 @@ export {
   Bindable,
   coercer,
 
-  // PartialChildrenDefinition,
-  // ChildrenDefinition,
+  PartialChildrenDefinition,
   // Children,
   children,
 
@@ -683,7 +682,7 @@ export {
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,
-  // ChildrenObserver,
+  ChildrenBinding,
   // IRenderer,
   // IInstructionTypeClassifier,
   // IRenderingEngine,

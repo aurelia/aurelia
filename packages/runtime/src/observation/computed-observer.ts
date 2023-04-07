@@ -6,7 +6,7 @@ import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, createError, def, isFunction } from '../utilities-objects';
+import { areEqual, createError, def, isFunction, objectAssign } from '../utilities-objects';
 
 import type {
   ISubscriber,
@@ -36,12 +36,10 @@ export class ComputedObserver implements
     const getter = descriptor.get!;
     const setter = descriptor.set;
     const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
-    const $get = ((/* Computed Observer */) => observer.getValue()) as ObservableGetter;
-    $get.getObserver = () => observer;
     def(obj, key, {
       enumerable: descriptor.enumerable,
       configurable: true,
-      get: $get,
+      get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
       set: (/* Computed Observer */v) => {
         observer.setValue(v);
       },

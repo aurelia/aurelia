@@ -697,3 +697,40 @@ Having more than one `<au-slot>` with the same name is also supported. This lets
 {% endcode %}
 
 Note that projection for the name is provided once, but it gets duplicated in 2 slots. You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
+
+## Listening to slot change
+
+### With `@slotted` decorator
+
+Similar like the standard `<slot>` element allows the ability to listen to changes in the content projected, `<au-slot>` also provides the capability to listen & react to changes.
+
+One way to subscribe to `au-slot` changes is via the `@slotted` decorator, like the following example:
+
+{% code title="app.html" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p>It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+{% code title="my-summary.html" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="my-summary.ts" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 2
+}
+```
+{% endcode %}
+
+After rendering, the `MySummaryElement` instance will have paragraphs value as an array of 2 `<p>` element as seen in the `app.html`.

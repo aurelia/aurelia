@@ -673,6 +673,7 @@ export {
   // Compose,
   IAuSlotsInfo,
   AuSlotsInfo,
+  slotted,
 
   // IProjectorLocatorRegistration,
   // ITargetAccessorLocatorRegistration,

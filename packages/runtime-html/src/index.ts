@@ -280,7 +280,6 @@ export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
 export {
-  IProjections,
   AuSlotsInfo,
   IAuSlotsInfo,
 } from './resources/slot-injectables';
@@ -420,6 +419,17 @@ export {
   type IHydratedCustomAttributeViewModel,
   type ISyntheticView,
 } from './templating/controller';
+export {
+  type IProjectionSubscriber,
+  IProjections,
+  type ISlot,
+  type ISlotSubscriber,
+  ISlotWatcher,
+  ISlotsInfo,
+  type PartialSlottedDefinition,
+  SlotsInfo,
+  slotted,
+} from './templating/controller.projection';
 export {
   ILifecycleHooks,
   LifecycleHooksEntry,

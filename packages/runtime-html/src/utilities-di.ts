@@ -34,7 +34,7 @@ export const resource = function <T extends Key>(key: T) {
  * A resolver builder for resolving all registrations of a key
  * with resource semantic (leaf + root + ignore middle layer container)
  */
-export const allResources = function <T extends Key>(key: T) {
+export const allResources = <T extends Key>(key: T) => {
   function Resolver(target: Constructable, property?: string | number, descriptor?: PropertyDescriptor | number) {
     DI.inject(Resolver)(target, property, descriptor);
   }
@@ -51,6 +51,18 @@ export const allResources = function <T extends Key>(key: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Resolver as IResolver<Resolved<T>[]> & ((...args: unknown[]) => any);
 };
+
+/** @internal */
+export const optionalOwn = <T extends Key>(key: T): IResolver<T | undefined> => ({
+  $isResolver: true,
+  resolve(handler, requestor) {
+    if (requestor.has(key, false)) {
+      return requestor.get(key);
+    } else {
+      return undefined;
+    }
+  },
+});
 
 /** @internal */
 export const createInterface = DI.createInterface;

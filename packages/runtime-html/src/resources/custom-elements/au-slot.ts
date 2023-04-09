@@ -6,27 +6,31 @@ import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 
-import { IContainer, InstanceProvider, Writable } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, onResolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
-import { registerResolver } from '../../utilities-di';
+import { optionalOwn, registerResolver } from '../../utilities-di';
+import { ISlot, ISlotSubscriber, ISlotWatcher } from '../../templating/controller.projection';
 
 @customElement({
   name: 'au-slot',
   template: null,
   containerless: true
 })
-export class AuSlot implements ICustomElementViewModel {
+export class AuSlot implements ICustomElementViewModel, ISlot {
   /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
 
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
+  /** @internal */ private readonly _location: IRenderLocation;
   /** @internal */ private _parentScope: Scope | null = null;
   /** @internal */ private _outerScope: Scope | null = null;
   /** @internal */ private readonly _hasProjection: boolean;
   /** @internal */ private readonly _hdrContext: IHydrationContext;
+  /** @internal */ private readonly _slotwatcher: ISlotWatcher | null;
+  /** @internal */ private readonly _hasSlotWatcher: boolean;
 
   @bindable
   public expose: object | undefined;
@@ -41,9 +45,11 @@ export class AuSlot implements ICustomElementViewModel {
     let container: IContainer;
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
+    this.name = slotInfo.name;
     if (projection == null) {
       factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
       this._hasProjection = false;
+      this._slotwatcher = null;
     } else {
       container = hdrContext.parent!.controller.container.createChild();
       registerResolver(
@@ -53,9 +59,38 @@ export class AuSlot implements ICustomElementViewModel {
       );
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
+      this._slotwatcher = hdrContext.controller.container.get(optionalOwn(ISlotWatcher)) ?? null;
     }
+    this._hasSlotWatcher = this._slotwatcher != null;
     this._hdrContext = hdrContext;
-    this.view = factory.create().setLocation(location);
+    this.view = factory.create().setLocation(this._location = location);
+  }
+
+  public name: string;
+  public get nodes() {
+    const nodes = [];
+    const location = this._location;
+    let curr = location.$start!.nextSibling;
+    while (curr != null && curr !== location) {
+      if (curr.nodeType !== /* comment */8) {
+        nodes.push(curr);
+      }
+      curr = curr.nextSibling;
+    }
+    return nodes;
+  }
+
+  /** @internal */
+  private readonly _subs = new Set<ISlotSubscriber>();
+
+  public subscribe(subscriber: ISlotSubscriber): void {
+    if (!this._subs.has(subscriber) && this._subs.add(subscriber).size === 1) {
+      /* empty */
+    }
+  }
+
+  public unsubscribe(subscriber: ISlotSubscriber): void {
+    this._subs.delete(subscriber);
   }
 
   public binding(
@@ -80,17 +115,25 @@ export class AuSlot implements ICustomElementViewModel {
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    return this.view.activate(
+    return onResolve(this.view.activate(
       initiator,
       this.$controller,
       this._hasProjection ? this._outerScope! : this._parentScope!,
-    );
+      ), () => {
+        if (this._hasSlotWatcher) {
+          this._slotwatcher!.watch(this);
+          this._observe();
+          this._notifySlotChange();
+        }
+    });
   }
 
   public detaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
+    this._unobserve();
+    this._slotwatcher?.unwatch(this);
     return this.view.deactivate(initiator, this.$controller);
   }
 
@@ -110,5 +153,65 @@ export class AuSlot implements ICustomElementViewModel {
       return true;
     }
   }
+
+  /** @internal */
+  private _observer: MutationObserver | null = null;
+  /** @internal */
+  private _observe(): void {
+    if (this._observer != null) {
+      return;
+    }
+    const location = this._location;
+    const parent = location.parentElement;
+    if (parent == null) {
+      return;
+    }
+    this._observer = new parent.ownerDocument.defaultView!.MutationObserver(records => {
+      if (isMutationWithinLocation(location, records)) {
+        this._notifySlotChange();
+      }
+    });
+  }
+
+  /** @internal */
+  private _unobserve(): void {
+    this._observer?.disconnect();
+    this._observer = null;
+  }
+
+  /** @internal */
+  private _notifySlotChange() {
+    const nodes = this.nodes;
+    const subs = new Set(this._subs);
+    for (const sub of subs) {
+      sub.handleSlotChange(this, nodes);
+    }
+  }
 }
 
+const comparePosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
+const isMutationWithinLocation = (location: IRenderLocation, records: MutationRecord[]) => {
+  for (const { addedNodes, removedNodes } of records) {
+    let i = 0;
+    let ii = addedNodes.length;
+    let node: Node;
+    for (; i < ii; ++i) {
+      node = addedNodes[i];
+      if (comparePosition(location.$start!, node) === /* DOCUMENT_POSITION_FOLLOWING */4
+        && comparePosition(location, node) === /* DOCUMENT_POSITION_PRECEDING */2
+      ) {
+        return true;
+      }
+    }
+    i = 0;
+    ii = removedNodes.length;
+    for (; i < ii; ++i) {
+      node = removedNodes[i];
+      if (comparePosition(location.$start!, node) === /* DOCUMENT_POSITION_FOLLOWING */4
+        && comparePosition(location, node) === /* DOCUMENT_POSITION_PRECEDING */2
+      ) {
+        return true;
+      }
+    }
+  }
+};

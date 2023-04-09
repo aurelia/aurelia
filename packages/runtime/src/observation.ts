@@ -51,9 +51,9 @@ export interface ICollectionSubscriber {
   handleCollectionChange(collection: Collection, indexMap: IndexMap): void;
 }
 
-export interface ISubscribable {
-  subscribe(subscriber: ISubscriber): void;
-  unsubscribe(subscriber: ISubscriber): void;
+export interface ISubscribable<T = ISubscriber> {
+  subscribe(subscriber: T): void;
+  unsubscribe(subscriber: T): void;
 }
 
 export interface ICollectionSubscribable {

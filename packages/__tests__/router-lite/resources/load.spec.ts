@@ -272,6 +272,60 @@ describe('router-lite/resources/load.spec.ts', function () {
     await au.stop(true);
   });
 
+  it('allow navigating to route defined in parent context using ../ prefix - with parameters', async function () {
+    @customElement({ name: 'pro-duct', template: `product \${id} <a load="../products"></a>` })
+    class Product {
+      id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @customElement({ name: 'pro-ducts', template: `<a load="route:../product; params.bind:{id:'1'}"></a><a load="route:../product; params.bind:{id:'2'}"></a> products` })
+    class Products { }
+
+    @route({
+      routes: [
+        { id: 'products', path: ['', 'products'], component: Products },
+        { id: 'product', path: 'product/:id', component: Product },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    assert.html.textContent(host, 'products');
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /product\/1$/);
+    assert.match(hrefs[1], /product\/2$/);
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 1');
+    // go back
+    const back = host.querySelector<HTMLAnchorElement>('a');
+    assert.match(back.href, /products$/);
+    back.click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
+
+    // 2nd round
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 2');
+    // go back
+    host.querySelector<HTMLAnchorElement>('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
+
+    await au.stop(true);
+  });
+
   it('allow navigating to route defined in parent context using explicit routing context', async function () {
     @customElement({ name: 'pro-duct', template: `product \${id} <a load="route:products; context.bind:rtCtx.parent"></a>` })
     class Product {
@@ -360,6 +414,54 @@ describe('router-lite/resources/load.spec.ts', function () {
       routes: [
         { id: 'l11', path: ['', 'l11'], component: L11 },
         { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l22');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    await au.stop(true);
+  });
+
+  it('allow navigating to route defined in grand-parent context using ../../ prefix - with parameters', async function () {
+    @customElement({ name: 'l-21', template: `l21 <a load="route:../../l12; params.bind:{id: '42'}"></a>` })
+    class L21 { }
+    @customElement({ name: 'l-22', template: `l22 <a load="route:../../l11; params.bind:{id: '42'}"></a>` })
+    class L22 { }
+
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
+
+    @route({
+      routes: [
+        { id: 'l22', path: ['', 'l22'], component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'l11/42' },
+        { id: 'l11', path: 'l11/:id', component: L11 },
+        { id: 'l12', path: 'l12/:id', component: L12 },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })

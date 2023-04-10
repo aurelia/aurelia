@@ -700,9 +700,9 @@ Note that projection for the name is provided once, but it gets duplicated in 2 
 
 ## Listening to slot change
 
-### With `@slotted` decorator
-
 Similar like the standard `<slot>` element allows the ability to listen to changes in the content projected, `<au-slot>` also provides the capability to listen & react to changes.
+
+### With `@slotted` decorator
 
 One way to subscribe to `au-slot` changes is via the `@slotted` decorator, like the following example:
 

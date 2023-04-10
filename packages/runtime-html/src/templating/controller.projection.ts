@@ -1,6 +1,6 @@
 import { type ICustomElementViewModel, type ICustomElementController, IHydrationContext } from './controller';
 import { CustomElement, type CustomElementDefinition } from '../resources/custom-element';
-import { createInterface, instanceRegistration, optionalOwn } from '../utilities-di';
+import { createInterface, instanceRegistration } from '../utilities-di';
 import { type IRateLimitOptions, type Scope, ISubscribable } from '@aurelia/runtime';
 import { Constructable, emptyArray, Key, type IContainer, type IDisposable, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
@@ -103,7 +103,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
 
   public isBound: boolean = false;
 
-  public constructor(
+  private constructor(
     controller: ICustomElementController,
     obj: ICustomElementViewModel,
     callback: PropertyKey,
@@ -128,10 +128,6 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
 
   public setValue() {
     /* nothing */
-  }
-
-  public get(): ReturnType<IServiceLocator['get']> {
-    throw new Error('not implemented');
   }
 
   public watch(slot: ISlot): void {
@@ -175,11 +171,15 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
     this._subs.delete(subscriber);
   }
 
-  public useScope(scope: Scope): void {
+  public get(): ReturnType<IServiceLocator['get']> {
+    throw new Error('not implemented');
+  }
+
+  public useScope(_scope: Scope): void {
     /* not needed */
   }
 
-  public limit(opts: IRateLimitOptions): IDisposable {
+  public limit(_opts: IRateLimitOptions): IDisposable {
     throw new Error('not implemented');
   }
 }

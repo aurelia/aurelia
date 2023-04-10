@@ -66,7 +66,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
     this.view = factory.create().setLocation(this._location = location);
   }
 
-  public name: string;
+  public readonly name: string;
   public get nodes() {
     const nodes = [];
     const location = this._location;

@@ -148,5 +148,25 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(divs.length, 1);
       assert.strictEqual(divs2.length, 1);
     });
+
+    it('assigns to multiple slotted properties with overlapping queries', function () {
+      @customElement({
+        name: 'el',
+        template: '<au-slot>'
+      })
+      class El {
+        @slotted('div') divs;
+        @slotted('div, p') divAndPs;
+      }
+
+      const { component: { el: { divs, divAndPs } } } = createFixture(
+        '<el view-model.ref="el"><div></div><p>',
+        class App { el: El; },
+        [El,]
+      );
+
+      assert.strictEqual(divs.length, 1);
+      assert.strictEqual(divAndPs.length, 2);
+    });
   });
 });

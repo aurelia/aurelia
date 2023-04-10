@@ -1,7 +1,7 @@
-import { type ICustomElementViewModel, type ICustomElementController, IHydrationContext } from './controller';
+import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { CustomElement, type CustomElementDefinition } from '../resources/custom-element';
 import { createInterface, instanceRegistration } from '../utilities-di';
-import { type IRateLimitOptions, type Scope, ISubscribable } from '@aurelia/runtime';
+import { type IRateLimitOptions, type Scope, ISubscribable, ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
 import { Constructable, emptyArray, Key, type IContainer, type IDisposable, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
@@ -44,15 +44,12 @@ export interface ISlotSubscriber {
   handleSlotChange(slot: ISlot, nodes: Node[]): void;
 }
 
-export interface IProjectionSubscriber {
-  handleNodesChange(nodes: Node[]): void;
-}
-
-export interface ISlotWatcher {
+export interface ISlotWatcher extends ISubscribable {
+  // this may be an issue in the future where there's a desire
+  // for a watcher to watch multiple slot at once
+  readonly slotName: string;
   watch(slot: ISlot): void;
   unwatch(slot: ISlot): void;
-  subscribe(subscriber: IProjectionSubscriber): void;
-  unsubscribe(subscriber: IProjectionSubscriber): void;
 }
 export const ISlotWatcher = createInterface<ISlotWatcher>('ISlotWatcher');
 
@@ -65,16 +62,18 @@ export const ISlotWatcher = createInterface<ISlotWatcher>('ISlotWatcher');
 // 2. au-slot should stop listening to mutation when detaching
 // 3. au-slot should notify slot watcher on mutation
 
-class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable<IProjectionSubscriber> {
+interface SlotWatcherBinding extends ISubscriberCollection {}
+class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCollection {
 
   public static create(
     controller: ICustomElementController,
     name: PropertyKey,
     callbackName: PropertyKey,
+    slotName: string,
     query: string,
   ) {
     const obj = controller.viewModel;
-    const slotWatcher = new SlotWatcherBinding(controller, obj, callbackName, query);
+    const slotWatcher = new SlotWatcherBinding(controller, obj, callbackName, slotName, query);
     def(obj, name, {
       enumerable: true,
       configurable: true,
@@ -91,12 +90,12 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
   private readonly _obj: ICustomElementViewModel;
   /** @internal */
   private readonly _callback: (nodes: readonly Node[]) => void;
+
+  public readonly slotName: string;
   /** @internal */
   private readonly _query: string;
   /** @internal */
   private readonly _slots = new Set<ISlot>();
-  /** @internal */
-  private readonly _subs = new Set<IProjectionSubscriber>();
 
   /** @internal */
   private _nodes: Node[] = emptyArray;
@@ -107,10 +106,12 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
     controller: ICustomElementController,
     obj: ICustomElementViewModel,
     callback: PropertyKey,
+    slotName: string,
     query: string,
   ) {
     this._controller = controller;
     this._callback = (this._obj = obj as IIndexable)[callback] as typeof SlotWatcherBinding.prototype._callback;
+    this.slotName = slotName;
     this._query = query;
   }
 
@@ -143,46 +144,45 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscribable
     }
   }
 
-  public handleSlotChange(_slot: ISlot, _nodes: Node[]): void {
+  public handleSlotChange(slot: ISlot, nodes: Node[]): void {
+    if (!this.isBound) {
+      return;
+    }
+    const oldNodes = this._nodes;
     const $nodes: Node[] = [];
-    for (const $slot of this._slots) {
-      for (const node of $slot.nodes) {
-        if (node.nodeType === 1 && (this._query === '*' || (node as Element).matches(this._query))) {
-          $nodes.push(node);
+    let $slot: ISlot;
+    let node: Node;
+    for ($slot of this._slots) {
+      for (node of $slot === slot ? nodes : $slot.nodes) {
+        if (this._query === '*' || (node.nodeType === 1 && (node as Element).matches(this._query))) {
+          $nodes[$nodes.length] = node;
         }
       }
-      // $nodes = $nodes.concat($slot.nodes);
     }
-    if ($nodes.length !== this._nodes.length || $nodes.some((n, i) => n !== this._nodes[i])) {
+    if ($nodes.length !== oldNodes.length || $nodes.some((n, i) => n !== oldNodes[i])) {
       this._nodes = $nodes;
       this._callback?.call(this._obj, $nodes);
-      const subs = new Set(this._subs);
-      for (const sub of subs) {
-        sub.handleNodesChange($nodes);
-      }
+      this.subs.notify($nodes, oldNodes);
     }
   }
 
-  public subscribe(subscriber: IProjectionSubscriber): void {
-    this._subs.add(subscriber);
-  }
-
-  public unsubscribe(subscriber: IProjectionSubscriber): void {
-    this._subs.delete(subscriber);
-  }
-
+  /* istanbul ignore next */
   public get(): ReturnType<IServiceLocator['get']> {
     throw new Error('not implemented');
   }
 
+  /* istanbul ignore next */
   public useScope(_scope: Scope): void {
     /* not needed */
   }
 
+  /* istanbul ignore next */
   public limit(_opts: IRateLimitOptions): IDisposable {
     throw new Error('not implemented');
   }
 }
+
+subscriberCollection(SlotWatcherBinding);
 
 class SlottedLifecycleHooks {
   public constructor(
@@ -199,29 +199,31 @@ class SlottedLifecycleHooks {
       controller,
       def.name,
       def.callback ?? `${safeString(def.name)}Changed`,
+      def.slotName ?? 'default',
       def.query ?? '*'
     );
-    instanceRegistration(ISlotWatcher, watcher).register(controller.container.get(IHydrationContext).controller.container);
+    instanceRegistration(ISlotWatcher, watcher).register(controller.container);
     controller.addBinding(watcher);
   }
 }
 
 lifecycleHooks()(SlottedLifecycleHooks);
 
-export function slotted(query: string) {
+export function slotted(query: string, slotName?: string) {
   const dependenciesKey = 'dependencies';
   function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
     const config: PartialSlottedDefinition = {
       query,
+      slotName
     };
-    if (arguments.length > 1) {
-      // Non invocation:
-      // - @slotted
-      // Invocation with or w/o opts:
-      // - @slotted()
-      // - @slotted({...opts})
-      config.name = $prop as string;
-    }
+    // if (arguments.length > 1) {
+    //   // Non invocation:
+    //   // - @slotted
+    //   // Invocation with or w/o opts:
+    //   // - @slotted()
+    //   // - @slotted({...opts})
+    // }
+    config.name = $prop as string;
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
       throw new Error(`Invalid usage. @slotted can only be used on a field`);

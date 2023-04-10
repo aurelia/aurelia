@@ -5,13 +5,13 @@ import { customElement } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
+import { registerResolver } from '../../utilities-di';
 
-import { IContainer, InstanceProvider, Writable, onResolve } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, emptyArray, onResolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
-import { optionalOwn, registerResolver } from '../../utilities-di';
-import { ISlot, ISlotSubscriber, ISlotWatcher } from '../../templating/controller.projection';
+import { type ISlot, type ISlotSubscriber, ISlotWatcher } from '../../templating/controller.projection';
 
 @customElement({
   name: 'au-slot',
@@ -29,7 +29,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   /** @internal */ private _outerScope: Scope | null = null;
   /** @internal */ private readonly _hasProjection: boolean;
   /** @internal */ private readonly _hdrContext: IHydrationContext;
-  /** @internal */ private readonly _slotwatcher: ISlotWatcher | null;
+  /** @internal */ private readonly _slotwatchers: readonly ISlotWatcher[];
   /** @internal */ private readonly _hasSlotWatcher: boolean;
 
   @bindable
@@ -49,7 +49,6 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
     if (projection == null) {
       factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
       this._hasProjection = false;
-      this._slotwatcher = null;
     } else {
       container = hdrContext.parent!.controller.container.createChild();
       registerResolver(
@@ -59,9 +58,9 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
       );
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatcher = hdrContext.controller.container.get(optionalOwn(ISlotWatcher)) ?? null;
+      this._slotwatchers = hdrContext.controller.container.getAll(ISlotWatcher, false)?.filter(w => w.slotName === slotInfo.name) ?? emptyArray;
     }
-    this._hasSlotWatcher = this._slotwatcher != null;
+    this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
     this.view = factory.create().setLocation(this._location = location);
   }
@@ -84,9 +83,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   private readonly _subs = new Set<ISlotSubscriber>();
 
   public subscribe(subscriber: ISlotSubscriber): void {
-    if (!this._subs.has(subscriber) && this._subs.add(subscriber).size === 1) {
-      /* empty */
-    }
+    this._subs.add(subscriber);
   }
 
   public unsubscribe(subscriber: ISlotSubscriber): void {
@@ -121,7 +118,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
       this._hasProjection ? this._outerScope! : this._parentScope!,
       ), () => {
         if (this._hasSlotWatcher) {
-          this._slotwatcher!.watch(this);
+          this._slotwatchers.forEach(w => w.watch(this));
           this._observe();
           this._notifySlotChange();
         }
@@ -133,7 +130,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._unobserve();
-    this._slotwatcher?.unwatch(this);
+    this._slotwatchers.forEach(w => w.unwatch(this));
     return this.view.deactivate(initiator, this.$controller);
   }
 
@@ -183,7 +180,8 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   private _notifySlotChange() {
     const nodes = this.nodes;
     const subs = new Set(this._subs);
-    for (const sub of subs) {
+    let sub: ISlotSubscriber;
+    for (sub of subs) {
       sub.handleSlotChange(this, nodes);
     }
   }

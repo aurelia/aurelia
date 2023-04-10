@@ -53,18 +53,6 @@ export const allResources = <T extends Key>(key: T) => {
 };
 
 /** @internal */
-export const optionalOwn = <T extends Key>(key: T): IResolver<T | undefined> => ({
-  $isResolver: true,
-  resolve(handler, requestor) {
-    if (requestor.has(key, false)) {
-      return requestor.get(key);
-    } else {
-      return undefined;
-    }
-  },
-});
-
-/** @internal */
 export const createInterface = DI.createInterface;
 
 /** @internal */

@@ -420,7 +420,6 @@ export {
   type ISyntheticView,
 } from './templating/controller';
 export {
-  type IProjectionSubscriber,
   IProjections,
   type ISlot,
   type ISlotSubscriber,

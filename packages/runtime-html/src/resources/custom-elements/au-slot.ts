@@ -45,20 +45,21 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
     let container: IContainer;
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
+    const contextController = hdrContext.controller;
     this.name = slotInfo.name;
     if (projection == null) {
-      factory = rendering.getViewFactory(slotInfo.fallback, hdrContext.controller.container);
+      factory = rendering.getViewFactory(slotInfo.fallback, contextController.container);
       this._hasProjection = false;
     } else {
       container = hdrContext.parent!.controller.container.createChild();
       registerResolver(
         container,
-        hdrContext.controller.definition.Type,
-        new InstanceProvider(void 0, hdrContext.controller.viewModel)
+        contextController.definition.Type,
+        new InstanceProvider(void 0, contextController.viewModel)
       );
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = hdrContext.controller.container.getAll(ISlotWatcher, false)?.filter(w => w.slotName === slotInfo.name) ?? emptyArray;
+      this._slotwatchers = contextController.container.getAll(ISlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
@@ -163,11 +164,11 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
     if (parent == null) {
       return;
     }
-    this._observer = new parent.ownerDocument.defaultView!.MutationObserver(records => {
+    (this._observer = new parent.ownerDocument.defaultView!.MutationObserver(records => {
       if (isMutationWithinLocation(location, records)) {
         this._notifySlotChange();
       }
-    });
+    })).observe(parent, { childList: true });
   }
 
   /** @internal */
@@ -189,7 +190,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
 
 const comparePosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 const isMutationWithinLocation = (location: IRenderLocation, records: MutationRecord[]) => {
-  for (const { addedNodes, removedNodes } of records) {
+  for (const { addedNodes, removedNodes, nextSibling } of records) {
     let i = 0;
     let ii = addedNodes.length;
     let node: Node;
@@ -205,8 +206,8 @@ const isMutationWithinLocation = (location: IRenderLocation, records: MutationRe
     ii = removedNodes.length;
     for (; i < ii; ++i) {
       node = removedNodes[i];
-      if (comparePosition(location.$start!, node) === /* DOCUMENT_POSITION_FOLLOWING */4
-        && comparePosition(location, node) === /* DOCUMENT_POSITION_PRECEDING */2
+      if (nextSibling != null && comparePosition(location.$start!, nextSibling) === /* DOCUMENT_POSITION_FOLLOWING */4
+        && comparePosition(location, nextSibling) === /* DOCUMENT_POSITION_PRECEDING */2
       ) {
         return true;
       }

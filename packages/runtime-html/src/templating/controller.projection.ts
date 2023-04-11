@@ -73,7 +73,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
     query: string,
   ) {
     const obj = controller.viewModel;
-    const slotWatcher = new SlotWatcherBinding(controller, obj, callbackName, slotName, query);
+    const slotWatcher = new SlotWatcherBinding(obj, callbackName, slotName, query);
     def(obj, name, {
       enumerable: true,
       configurable: true,
@@ -84,8 +84,6 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
     return slotWatcher;
   }
 
-  /** @internal */
-  private readonly _controller: ICustomElementController;
   /** @internal */
   private readonly _obj: ICustomElementViewModel;
   /** @internal */
@@ -103,13 +101,11 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
   public isBound: boolean = false;
 
   private constructor(
-    controller: ICustomElementController,
     obj: ICustomElementViewModel,
     callback: PropertyKey,
     slotName: string,
     query: string,
   ) {
-    this._controller = controller;
     this._callback = (this._obj = obj as IIndexable)[callback] as typeof SlotWatcherBinding.prototype._callback;
     this.slotName = slotName;
     this._query = query;
@@ -125,10 +121,6 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
 
   public getValue() {
     return this._nodes;
-  }
-
-  public setValue() {
-    /* nothing */
   }
 
   public watch(slot: ISlot): void {
@@ -212,10 +204,11 @@ lifecycleHooks()(SlottedLifecycleHooks);
 export function slotted(query: string, slotName?: string) {
   const dependenciesKey = 'dependencies';
   function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
-    const config: PartialSlottedDefinition = {
+    const config = {
       query,
-      slotName
-    };
+      slotName,
+      name: $prop as string
+    } satisfies PartialSlottedDefinition;
     // if (arguments.length > 1) {
     //   // Non invocation:
     //   // - @slotted
@@ -235,7 +228,7 @@ export function slotted(query: string, slotName?: string) {
     if (dependencies == null) {
       CustomElement.annotate(target, dependenciesKey, dependencies = []);
     }
-    dependencies.push(new SlottedLifecycleHooks(config as PartialSlottedDefinition & { name: PropertyKey }));
+    dependencies.push(new SlottedLifecycleHooks(config));
   }
 
   return decorator;

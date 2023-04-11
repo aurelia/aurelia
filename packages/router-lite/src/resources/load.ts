@@ -62,11 +62,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       const active = this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
       const activeClass = this.activeClass;
       if (activeClass === null) return;
-      if (active) {
-        this.el.classList.add(activeClass);
-      } else {
-        this.el.classList.remove(activeClass);
-      }
+      this.el.classList.toggle(activeClass, active);
     });
   }
 

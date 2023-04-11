@@ -417,12 +417,12 @@ export {
 } from './templating/controller';
 export {
   IProjections,
-  type ISlot,
-  type ISlotSubscriber,
-  ISlotWatcher,
-  ISlotsInfo,
+  type IAuSlot,
+  type IAuSlotSubscriber,
+  IAuSlotWatcher,
+  IAuSlotsInfo,
   type PartialSlottedDefinition,
-  SlotsInfo,
+  AuSlotsInfo,
   slotted,
 } from './templating/controller.projection';
 export {

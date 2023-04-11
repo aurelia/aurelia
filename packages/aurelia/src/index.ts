@@ -671,8 +671,10 @@ export {
 
   // Subject,
   // Compose,
-  ISlotsInfo,
-  SlotsInfo,
+  IAuSlot,
+  IAuSlotsInfo,
+  AuSlotsInfo,
+  IAuSlotWatcher,
   slotted,
 
   // IProjectorLocatorRegistration,

@@ -11,14 +11,14 @@ import { IContainer, InstanceProvider, Writable, emptyArray, onResolve } from '@
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
-import { type ISlot, type ISlotSubscriber, ISlotWatcher } from '../../templating/controller.projection';
+import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher } from '../../templating/controller.projection';
 
 @customElement({
   name: 'au-slot',
   template: null,
   containerless: true
 })
-export class AuSlot implements ICustomElementViewModel, ISlot {
+export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
 
   public readonly view: ISyntheticView;
@@ -29,7 +29,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   /** @internal */ private _outerScope: Scope | null = null;
   /** @internal */ private readonly _hasProjection: boolean;
   /** @internal */ private readonly _hdrContext: IHydrationContext;
-  /** @internal */ private readonly _slotwatchers: readonly ISlotWatcher[];
+  /** @internal */ private readonly _slotwatchers: readonly IAuSlotWatcher[];
   /** @internal */ private readonly _hasSlotWatcher: boolean;
 
   @bindable
@@ -59,7 +59,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
       );
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = contextController.container.getAll(ISlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
+      this._slotwatchers = contextController.container.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
@@ -81,13 +81,13 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   }
 
   /** @internal */
-  private readonly _subs = new Set<ISlotSubscriber>();
+  private readonly _subs = new Set<IAuSlotSubscriber>();
 
-  public subscribe(subscriber: ISlotSubscriber): void {
+  public subscribe(subscriber: IAuSlotSubscriber): void {
     this._subs.add(subscriber);
   }
 
-  public unsubscribe(subscriber: ISlotSubscriber): void {
+  public unsubscribe(subscriber: IAuSlotSubscriber): void {
     this._subs.delete(subscriber);
   }
 
@@ -181,7 +181,7 @@ export class AuSlot implements ICustomElementViewModel, ISlot {
   private _notifySlotChange() {
     const nodes = this.nodes;
     const subs = new Set(this._subs);
-    let sub: ISlotSubscriber;
+    let sub: IAuSlotSubscriber;
     for (sub of subs) {
       sub.handleSlotChange(this, nodes);
     }

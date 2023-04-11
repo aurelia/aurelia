@@ -39,11 +39,11 @@ import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
 import { createError, defineProp, objectKeys, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
+import { IProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
 import { createText, insertBefore } from './utilities-dom';
-import { IProjections, ISlotsInfo, SlotsInfo } from './templating/controller.projection';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -518,7 +518,7 @@ export class CustomElementRenderer implements IRenderer {
       /* host             */target,
       /* instruction      */instruction,
       /* location         */location,
-      /* SlotsInfo      */projections == null ? void 0 : new SlotsInfo(objectKeys(projections)),
+      /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
     Ctor = def.Type;
     component = container.invoke(Ctor);
@@ -1207,7 +1207,7 @@ function createElementContainer(
   host: HTMLElement,
   instruction: HydrateElementInstruction,
   location: IRenderLocation | null,
-  SlotsInfo?: ISlotsInfo,
+  auSlotsInfo?: IAuSlotsInfo,
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
 
@@ -1231,9 +1231,9 @@ function createElementContainer(
     ? noLocationProvider
     : new RenderLocationProvider(location));
   registerResolver(ctn, IViewFactory, noViewFactoryProvider);
-  registerResolver(ctn, ISlotsInfo, SlotsInfo == null
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
-    : new InstanceProvider(slotInfoProviderName, SlotsInfo)
+    : new InstanceProvider(slotInfoProviderName, auSlotsInfo)
   );
 
   return ctn;
@@ -1281,7 +1281,7 @@ function invokeAttribute(
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
-  SlotsInfo?: ISlotsInfo,
+  auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
   registerResolver(
@@ -1304,9 +1304,9 @@ function invokeAttribute(
   registerResolver(ctn, IViewFactory, viewFactory == null
     ? noViewFactoryProvider
     : new ViewFactoryProvider(viewFactory));
-  registerResolver(ctn, ISlotsInfo, SlotsInfo == null
+  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
-    : new InstanceProvider(slotInfoProviderName, SlotsInfo));
+    : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
 
   return { vm: ctn.invoke(definition.Type), ctn };
 }
@@ -1326,4 +1326,4 @@ class RenderLocationProvider implements IResolver {
 
 const noLocationProvider = new RenderLocationProvider(null);
 const noViewFactoryProvider = new ViewFactoryProvider(null);
-const noAuSlotProvider = new InstanceProvider<ISlotsInfo>(slotInfoProviderName, new SlotsInfo(emptyArray));
+const noAuSlotProvider = new InstanceProvider<IAuSlotsInfo>(slotInfoProviderName, new AuSlotsInfo(emptyArray));

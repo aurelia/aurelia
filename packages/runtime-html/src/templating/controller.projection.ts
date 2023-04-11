@@ -19,7 +19,7 @@ export type PartialSlottedDefinition = {
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = createInterface<IProjections>("IProjections");
 
-export interface ISlotsInfo {
+export interface IAuSlotsInfo {
   /**
    * Name of the slots to which content are projected.
    */
@@ -28,8 +28,8 @@ export interface ISlotsInfo {
 /**
  * Describing the projection information statically available for a custom element
  */
-export const ISlotsInfo = createInterface<ISlotsInfo>('ISlotsInfo');
-export class SlotsInfo implements ISlotsInfo {
+export const IAuSlotsInfo = createInterface<IAuSlotsInfo>('IAuSlotsInfo');
+export class AuSlotsInfo implements IAuSlotsInfo {
   public constructor(
     public readonly projectedSlots: string[],
   ) { }
@@ -38,26 +38,29 @@ export class SlotsInfo implements ISlotsInfo {
 /**
  * Describe the interface of a slot
  */
-export interface ISlot {
+export interface IAuSlot {
   readonly name: string;
   readonly nodes: readonly Node[];
-  subscribe(subscriber: ISlotSubscriber): void;
-  unsubscribe(subscriber: ISlotSubscriber): void;
+  subscribe(subscriber: IAuSlotSubscriber): void;
+  unsubscribe(subscriber: IAuSlotSubscriber): void;
 }
 
-export interface ISlotSubscriber {
-  handleSlotChange(slot: ISlot, nodes: Node[]): void;
+export interface IAuSlotSubscriber {
+  handleSlotChange(slot: IAuSlot, nodes: Node[]): void;
 }
 
-export interface ISlotWatcher extends ISubscribable {
+/**
+ * Describes the interface of a <au-slot> watcher
+ */
+export interface IAuSlotWatcher extends ISubscribable {
   // this may be an issue in the future where there's a desire
   // for a watcher to selectively watch multiple slot at once
   // at the moment, it's all (*) or one (name)
   readonly slotName: string;
-  watch(slot: ISlot): void;
-  unwatch(slot: ISlot): void;
+  watch(slot: IAuSlot): void;
+  unwatch(slot: IAuSlot): void;
 }
-export const ISlotWatcher = createInterface<ISlotWatcher>('ISlotWatcher');
+export const IAuSlotWatcher = createInterface<IAuSlotWatcher>('IAuSlotWatcher');
 
 // 1. on hydrating, create a slot watcher (binding) & register with hydration context
 // 2. on slot with projection created, optionally retrieve the slot watcher
@@ -68,8 +71,8 @@ export const ISlotWatcher = createInterface<ISlotWatcher>('ISlotWatcher');
 // 2. au-slot should stop listening to mutation when detaching
 // 3. au-slot should notify slot watcher on mutation
 
-interface SlotWatcherBinding extends ISubscriberCollection {}
-class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCollection {
+interface AuSlotWatcherBinding extends ISubscriberCollection {}
+class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscriberCollection {
 
   public static create(
     controller: ICustomElementController,
@@ -79,7 +82,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
     query: string,
   ) {
     const obj = controller.viewModel;
-    const slotWatcher = new SlotWatcherBinding(obj, callbackName, slotName, query);
+    const slotWatcher = new AuSlotWatcherBinding(obj, callbackName, slotName, query);
     def(obj, name, {
       enumerable: true,
       configurable: true,
@@ -99,7 +102,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
   /** @internal */
   private readonly _query: string;
   /** @internal */
-  private readonly _slots = new Set<ISlot>();
+  private readonly _slots = new Set<IAuSlot>();
 
   /** @internal */
   private _nodes: Node[] = emptyArray;
@@ -112,7 +115,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
     slotName: string,
     query: string,
   ) {
-    this._callback = (this._obj = obj as IIndexable)[callback] as typeof SlotWatcherBinding.prototype._callback;
+    this._callback = (this._obj = obj as IIndexable)[callback] as typeof AuSlotWatcherBinding.prototype._callback;
     this.slotName = slotName;
     this._query = query;
   }
@@ -129,26 +132,26 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
     return this._nodes;
   }
 
-  public watch(slot: ISlot): void {
+  public watch(slot: IAuSlot): void {
     if (!this._slots.has(slot)) {
       this._slots.add(slot);
       slot.subscribe(this);
     }
   }
 
-  public unwatch(slot: ISlot): void {
+  public unwatch(slot: IAuSlot): void {
     if (this._slots.delete(slot)) {
       slot.unsubscribe(this);
     }
   }
 
-  public handleSlotChange(slot: ISlot, nodes: Node[]): void {
+  public handleSlotChange(slot: IAuSlot, nodes: Node[]): void {
     if (!this.isBound) {
       return;
     }
     const oldNodes = this._nodes;
     const $nodes: Node[] = [];
-    let $slot: ISlot;
+    let $slot: IAuSlot;
     let node: Node;
     for ($slot of this._slots) {
       for (node of $slot === slot ? nodes : $slot.nodes) {
@@ -180,7 +183,7 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
   }
 }
 
-subscriberCollection(SlotWatcherBinding);
+subscriberCollection(AuSlotWatcherBinding);
 
 type SlottedPropDefinition = PartialSlottedDefinition & { name: PropertyKey };
 class SlottedLifecycleHooks {
@@ -194,14 +197,14 @@ class SlottedLifecycleHooks {
 
   public hydrating(vm: object, controller: ICustomElementController) {
     const def = this.def;
-    const watcher = SlotWatcherBinding.create(
+    const watcher = AuSlotWatcherBinding.create(
       controller,
       def.name,
       def.callback ?? `${safeString(def.name)}Changed`,
       def.slotName ?? 'default',
       def.query ?? '*'
     );
-    instanceRegistration(ISlotWatcher, watcher).register(controller.container);
+    instanceRegistration(IAuSlotWatcher, watcher).register(controller.container);
     controller.addBinding(watcher);
   }
 }

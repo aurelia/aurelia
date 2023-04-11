@@ -48,7 +48,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       component: ICustomElementViewModel & Component;
     };
 
-    describe('non-keyed', function () {
+    describe('non-keyed with reference types', function () {
       async function testFn(fn: (ctx: $ctx) => Promise<void>) {
         const ctx = TestContext.create();
         const au = new Aurelia(ctx.container);
@@ -167,6 +167,191 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         assertAdd(1, mutations, 0);
         assertRem(2, mutations, 4);
         assertAdd(3, mutations, 4);
+      });
+    });
+
+    describe('non-keyed with value types', function () {
+      async function testFn(fn: (ctx: $ctx) => Promise<void>) {
+        const ctx = TestContext.create();
+        const au = new Aurelia(ctx.container);
+        const host = ctx.createElement("div");
+
+        const App = CustomElement.define(
+          {
+            name: "app",
+            template: `<div repeat.for="i of items">\${i}</div>`
+          },
+          Component,
+        );
+
+        const mutations: MutationRecord[] = [];
+        const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
+
+        const component = new App();
+        au.app({ host, component });
+
+        async function mutate(cb: () => void) {
+          obs.observe(host, { childList: true });
+          cb();
+          await Promise.resolve();
+          obs.disconnect();
+        }
+
+        try {
+          await fn({ au, host, mutations, mutate, component });
+        } finally {
+          await au.stop();
+          au.dispose();
+        }
+      }
+
+      const $it = create$it(testFn);
+
+      $it('mutate: simple replacement', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [0, 1, 2, 3, 4];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          component.items.splice(4, 1, 4);
+        });
+
+        assert.strictEqual(host.textContent, '01234');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, 4);
+        assertAdd(1, mutations, 4);
+      });
+
+      $it('mutate: simple move', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [0, 1, 2, 3, 4];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '01234');
+
+        await mutate(() => {
+          batch(() => {
+            component.items.splice(4, 1, 0);
+            component.items.splice(0, 1, 4);
+          });
+        });
+
+        assert.strictEqual(host.textContent, '41230');
+        assert.strictEqual(mutations.length, 4);
+        assertRem(0, mutations, 0, 4);
+        assertAdd(2, mutations, 0, 4);
+      });
+
+      $it('reassign with duplicate numbers: shift to left', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [0, 0, 1, 1];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '0011');
+
+        await mutate(() => {
+          component.items = [0, 1, 1, 1];
+        });
+
+        assert.strictEqual(host.textContent, '0111');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, 0);
+        assertAdd(1, mutations, 1);
+      });
+
+      $it('reassign with duplicate numbers: shift to right', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [0, 0, 1, 1];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '0011');
+
+        await mutate(() => {
+          component.items = [0, 0, 0, 1];
+        });
+
+        assert.strictEqual(host.textContent, '0001');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, 1);
+        assertAdd(1, mutations, 0);
+      });
+
+      $it('reassign with duplicate strings: shift to left', async function ({ au, host, mutations, mutate, component }) {
+        component.items = ['0', '0', '1', '1'];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '0011');
+
+        await mutate(() => {
+          component.items = ['0', '1', '1', '1'];
+        });
+
+        assert.strictEqual(host.textContent, '0111');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, '0');
+        assertAdd(1, mutations, '1');
+      });
+
+      $it('reassign with duplicate booleans: shift to left', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [false, false, true, true];
+
+        await au.start();
+        assert.strictEqual(host.textContent, 'falsefalsetruetrue');
+
+        await mutate(() => {
+          component.items = [false, true, true, true];
+        });
+
+        assert.strictEqual(host.textContent, 'falsetruetruetrue');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations, false);
+        assertAdd(1, mutations, true);
+      });
+
+      $it('reassign with duplicate null values: shift to left', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [undefined, undefined, null, null];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '');
+
+        await mutate(() => {
+          component.items = [undefined, null, null, null];
+        });
+
+        assert.strictEqual(host.textContent, '');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations);
+        assertAdd(1, mutations);
+      });
+
+      $it('reassign with duplicate undefined values: shift to left', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [null, null, undefined, undefined];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '');
+
+        await mutate(() => {
+          component.items = [null, undefined, undefined, undefined];
+        });
+
+        assert.strictEqual(host.textContent, '');
+        assert.strictEqual(mutations.length, 2);
+        assertRem(0, mutations);
+        assertAdd(1, mutations);
+      });
+
+      $it('reassign with duplicate strings and numbers: replace strings with numbers (ensure that non-strict-equal values are considered different by the repeater too)', async function ({ au, host, mutations, mutate, component }) {
+        component.items = [0, 0, 1, 1];
+
+        await au.start();
+        assert.strictEqual(host.textContent, '0011');
+
+        await mutate(() => {
+          component.items = ['0', '0', '1', '1'];
+        });
+
+        assert.strictEqual(host.textContent, '0011');
+        assert.strictEqual(mutations.length, 8);
+        assertRem(0, mutations, 0, 0, 1, 1);
+        assertAdd(4, mutations, 1, 1, 0, 0);
       });
     });
 

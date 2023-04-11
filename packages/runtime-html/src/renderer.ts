@@ -39,7 +39,7 @@ import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
 import { createError, defineProp, objectKeys, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
-import { IProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
+import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
@@ -351,7 +351,7 @@ export interface ICompliationInstruction {
    * Where each key is the matching slot name for <au-slot/> inside,
    * and each value is the definition to render and project
    */
-  projections: IProjections | null;
+  projections: IAuSlotProjections | null;
 }
 
 export interface IInstructionTypeClassifier<TType extends string = string> {

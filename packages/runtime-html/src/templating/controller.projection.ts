@@ -16,8 +16,7 @@ export type PartialSlottedDefinition = {
   // map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown;
 };
 
-export type IProjections = Record<string, CustomElementDefinition>;
-export const IProjections = createInterface<IProjections>("IProjections");
+export type IAuSlotProjections = Record<string, CustomElementDefinition>;
 
 export interface IAuSlotsInfo {
   /**

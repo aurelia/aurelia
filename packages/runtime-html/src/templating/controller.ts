@@ -41,7 +41,7 @@ import type {
   IsBindingBehavior,
 } from '@aurelia/runtime';
 import type { AttrSyntax } from '../resources/attribute-pattern';
-import type { IProjections } from './controller.projection';
+import type { IAuSlotProjections } from './controller.projection';
 import type { BindableDefinition } from '../bindable';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
@@ -1808,7 +1808,7 @@ export interface IControllerElementHydrationInstruction {
    * @internal
    */
   readonly hydrate?: boolean;
-  readonly projections: IProjections | null;
+  readonly projections: IAuSlotProjections | null;
   /**
    * A list of captured attributes/binding in raw format
    */

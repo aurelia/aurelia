@@ -416,7 +416,7 @@ export {
   type ISyntheticView,
 } from './templating/controller';
 export {
-  IProjections,
+  type IAuSlotProjections,
   type IAuSlot,
   type IAuSlotSubscriber,
   IAuSlotWatcher,

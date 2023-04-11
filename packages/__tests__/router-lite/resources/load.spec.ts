@@ -58,10 +58,18 @@ describe('router-lite/resources/load.spec.ts', function () {
   });
 
   it('adds activeClass when configured', async function () {
-    @customElement({ name: 'fo-o', template: '' })
-    class Foo { }
+    @customElement({ name: 'fo-o', template: '${instanceId} ${id}' })
+    class Foo {
+      private static instanceId: number = 0;
+      private readonly instanceId = ++Foo.instanceId;
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id;
+      }
+    }
 
     @route({
+      transitionPlan: 'replace',
       routes: [
         { id: 'foo', path: 'foo/:id', component: Foo }
       ]
@@ -89,12 +97,24 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     a2.active = true;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#2');
+    assert.html.textContent(host, '1 2');
+
+    anchors[1].click();
+    await queue.yield();
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
+    assert.html.textContent(host, '2 2');
 
     anchors[0].click();
     await queue.yield();
     a1.active = true;
     a2.active = false;
-    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#4');
+    assert.html.textContent(host, '3 1');
+
+    anchors[0].click();
+    await queue.yield();
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#5');
+    assert.html.textContent(host, '4 1');
 
     await au.stop(true);
 

@@ -547,6 +547,16 @@ This is shown in the following example.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nullroot-context?ctl=1&embed=1&file=src/child1.ts" %}
 
+When the route context selection involves only ancestor context, then the `../` prefix can be used when using string instruction.
+This also works when using the route-id.
+The following code snippets shows, how the previous example can be written using the `../` prefix.
+
+
+```html
+<a load="route: ../r2">c2</a>
+```
+
+
 ### `active` status
 
 When using the `load` attribute, you can also leverage the bindable `active` property which is `true` whenever the associated route, bound to the `href` is active.

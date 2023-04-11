@@ -280,10 +280,6 @@ export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
 export {
-  AuSlotsInfo,
-  IAuSlotsInfo,
-} from './resources/slot-injectables';
-export {
   DefinitionType,
 } from './resources/resources-shared';
 

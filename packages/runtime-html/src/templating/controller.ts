@@ -26,7 +26,6 @@ import { IRendering } from './rendering';
 import { createError, getOwnPropertyNames, isFunction, isPromise, isString, safeString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, registerResolver } from '../utilities-di';
-// import { SlotWatcher } from './controller.projection';
 
 import type {
   IContainer,
@@ -42,7 +41,7 @@ import type {
   IsBindingBehavior,
 } from '@aurelia/runtime';
 import type { AttrSyntax } from '../resources/attribute-pattern';
-import type { IProjections } from '../resources/slot-injectables';
+import type { IProjections } from './controller.projection';
 import type { BindableDefinition } from '../bindable';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
@@ -50,7 +49,6 @@ import type { IViewFactory } from './view';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
-// import type { ISlotWatcher } from './controller.projection';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -149,8 +147,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._hooks = v == null || this.vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(v);
   }
 
-  // public readonly slotWatcher: SlotWatcher | null;
-
   public constructor(
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
@@ -178,7 +174,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ) {
     this._vm = viewModel;
     this._hooks = vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(viewModel!);
-    // this.slotWatcher = vmKind === ViewModelKind.customElement ? new SlotWatcher(this as ICustomElementController) : null;
     if (__DEV__) {
       this.logger = null!;
       this.debug = false;
@@ -1676,7 +1671,6 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
    */
   readonly viewModel: C;
   readonly lifecycleHooks: LifecycleHooksLookup;
-  // readonly slotWatcher: ISlotWatcher;
 
   activate(
     initiator: IHydratedController,

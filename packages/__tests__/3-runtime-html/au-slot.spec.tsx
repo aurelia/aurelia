@@ -1,6 +1,6 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer, inject } from '@aurelia/kernel';
-import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
+import { BindingMode, Aurelia, SlotsInfo, bindable, customElement, CustomElement, ISlotsInfo, IPlatform } from '@aurelia/runtime-html';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -80,7 +80,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       public readonly spec: string,
       public readonly template: string,
       public readonly registrations: any[],
-      public readonly expected: Record<string, readonly [string | HTMLElement, AuSlotsInfo]>,
+      public readonly expected: Record<string, readonly [string | HTMLElement, SlotsInfo]>,
       public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
       public readonly only: boolean = false,
     ) { }
@@ -89,9 +89,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     const createMyElement = (template: string, containerless = false) => {
       class MyElement {
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
       return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, containerless }, MyElement);
@@ -104,7 +104,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static default s1 s2', new AuSlotsInfo([])] },
+      { 'my-element': ['static default s1 s2', new SlotsInfo([])] },
     );
 
     yield new TestData(
@@ -113,7 +113,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static <div>d</div> <div>p1</div> s2', new AuSlotsInfo(['default', 's1'])] },
+      { 'my-element': ['static <div>d</div> <div>p1</div> s2', new SlotsInfo(['default', 's1'])] },
     );
 
     yield new TestData(
@@ -122,7 +122,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static d p1 s2', new AuSlotsInfo(['default', 's1'])] },
+      { 'my-element': ['static d p1 s2', new SlotsInfo(['default', 's1'])] },
     );
 
     yield new TestData(
@@ -131,7 +131,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': [`static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
+      { 'my-element': [`static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, new SlotsInfo(['s2', 's1'])] },
     );
 
     for (const sep of [' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '[', '{', '(', ')', '}', ']', '<', '>', '-', '_', '+', '=', '.', ',', '/', '\\\\', '|', '?', ':', ';', '&quot;']) {
@@ -142,7 +142,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="${slotName}"></au-slot>`),
         ],
-        { 'my-element': ['<div>p</div>', new AuSlotsInfo([slotName.replace('&quot;', '"')])] },
+        { 'my-element': ['<div>p</div>', new SlotsInfo([slotName.replace('&quot;', '"')])] },
       );
     }
 
@@ -152,7 +152,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>`),
       ],
-      { 'my-element': ['<div>p</div>s1fb', new AuSlotsInfo(['default'])] },
+      { 'my-element': ['<div>p</div>s1fb', new SlotsInfo(['default'])] },
     );
 
     // tag: mis-projection
@@ -162,7 +162,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     //   [
     //     createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
     //   ],
-    //   { 'my-element': ['<div>p</div>s1fb|d', new AuSlotsInfo([])] },
+    //   { 'my-element': ['<div>p</div>s1fb|d', new SlotsInfo([])] },
     // );
 
     yield new TestData(
@@ -172,7 +172,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`<au-slot></au-slot>`),
       ],
-      { 'my-element': ['<div>p1</div>', new AuSlotsInfo(['default'])], 'my-element+my-element': ['<div>p2</div>', new AuSlotsInfo(['default'])] },
+      { 'my-element': ['<div>p1</div>', new SlotsInfo(['default'])], 'my-element+my-element': ['<div>p2</div>', new SlotsInfo(['default'])] },
     );
     // #endregion
 
@@ -183,7 +183,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': [`static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
+      { 'my-element': [`static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>`, new SlotsInfo(['s2', 's1'])] },
     );
 
     yield new TestData(
@@ -192,16 +192,16 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': [`static default p11root rootp21`, new AuSlotsInfo(['s2', 's1'])] },
+      { 'my-element': [`static default p11root rootp21`, new SlotsInfo(['s2', 's1'])] },
     );
 
     {
       class MyElement {
         public readonly message: string = 'inner';
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
       yield new TestData(
@@ -213,7 +213,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             MyElement
           ),
         ],
-        { 'my-element': [`<div>inner</div> <div>root</div>`, new AuSlotsInfo(['s2', 's1'])] },
+        { 'my-element': [`<div>inner</div> <div>root</div>`, new SlotsInfo(['s2', 's1'])] },
       );
     }
 
@@ -221,9 +221,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         public readonly message: string = 'inner';
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
       yield new TestData(
@@ -235,7 +235,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             MyElement
           ),
         ],
-        { 'my-element': [`inner <div>root</div>`, new AuSlotsInfo(['s2'])] },
+        { 'my-element': [`inner <div>root</div>`, new SlotsInfo(['s2'])] },
       );
     }
     // #endregion
@@ -246,7 +246,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         @bindable public showS1: boolean = true;
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
       yield new TestData(
@@ -255,7 +255,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`static default <div>p20</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
+        { 'my-element': [`static default <div>p20</div><div>p21</div>`, new SlotsInfo(['s2', 's1'])] },
         async function ({ host, platform }) {
           const el = host.querySelector('my-element');
           const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
@@ -273,7 +273,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         @bindable public showS1: boolean = true;
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
       yield new TestData(
@@ -285,7 +285,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`static default <div>p21</div>`, new AuSlotsInfo(['s2', 's1'])], 'my-element+my-element': [`static default <div>p12</div>`, new AuSlotsInfo(['s2', 's1'])] },
+        { 'my-element': [`static default <div>p21</div>`, new SlotsInfo(['s2', 's1'])], 'my-element+my-element': [`static default <div>p12</div>`, new SlotsInfo(['s2', 's1'])] },
         async function ({ host, platform }) {
           const el1 = host.querySelector('my-element');
           const el2 = host.querySelector('my-element+my-element');
@@ -307,7 +307,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         @bindable public someCondition: boolean = true;
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
       yield new TestData(
@@ -319,7 +319,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])], 'my-element+my-element': [`<div><span>1</span><span>2</span></div>`, new AuSlotsInfo(['default'])] },
+        { 'my-element': [`<ul><li>1</li><li>2</li></ul>`, new SlotsInfo(['default'])], 'my-element+my-element': [`<div><span>1</span><span>2</span></div>`, new SlotsInfo(['default'])] },
       );
     }
 
@@ -332,7 +332,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new SlotsInfo(['default'])] },
       );
 
       yield new TestData(
@@ -341,7 +341,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new SlotsInfo(['default'])] },
       );
 
       yield new TestData(
@@ -350,7 +350,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot repeat.for="i of 3"><li>\${i}</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new SlotsInfo(['default'])]},
       );
 
       yield new TestData(
@@ -359,7 +359,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template repeat.for="i of 3" au-slot><li>\${i}</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new SlotsInfo(['default'])]},
       );
     }
 
@@ -468,7 +468,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         @bindable public people: Person[];
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
 
@@ -478,7 +478,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new AuSlotsInfo([])] },
+        { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new SlotsInfo([])] },
         async function ({ app, host, platform }) {
           app.people.push(new Person('Jane', 'Doe', []));
           platform.domWriteQueue.flush();
@@ -506,7 +506,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>0-true-false</div> <div>Doe</div> <div>John</div> <div>1-false-true</div> <div>Mustermann</div> <div>Max</div>`, new AuSlotsInfo(['header', 'content'])] },
+        { 'my-element': [`<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>0-true-false</div> <div>Doe</div> <div>John</div> <div>1-false-true</div> <div>Mustermann</div> <div>Max</div>`, new SlotsInfo(['header', 'content'])] },
       );
 
       yield new TestData(
@@ -525,8 +525,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         {
-          'my-element': [`<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`, new AuSlotsInfo(['grid'])],
-          'my-element:nth-of-type(2)': [`<ul><li>John Doe</li><li>Max Mustermann</li></ul>`, new AuSlotsInfo(['grid'])],
+          'my-element': [`<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`, new SlotsInfo(['grid'])],
+          'my-element:nth-of-type(2)': [`<ul><li>John Doe</li><li>Max Mustermann</li></ul>`, new SlotsInfo(['grid'])],
         },
       );
 
@@ -536,7 +536,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
         ],
-        { 'my-element': [`01234`, new AuSlotsInfo([])], },
+        { 'my-element': [`01234`, new SlotsInfo([])], },
       );
 
       yield new TestData(
@@ -545,7 +545,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
         ],
-        { 'my-element': [`02468`, new AuSlotsInfo(['default'])], },
+        { 'my-element': [`02468`, new SlotsInfo(['default'])], },
       );
 
       yield new TestData(
@@ -561,7 +561,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             </template>
             `),
         ],
-        { 'my-element': [`0 2 4 6 8 | 0 2 4 6 8`, new AuSlotsInfo(['default'])], },
+        { 'my-element': [`0 2 4 6 8 | 0 2 4 6 8`, new SlotsInfo(['default'])], },
       );
 
       yield new TestData(
@@ -570,7 +570,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>|<au-slot repeat.for="i of 5">\${i + 2}</au-slot>`),
         ],
-        { 'my-element': [`02468|02468`, new AuSlotsInfo(['default'])], },
+        { 'my-element': [`02468|02468`, new SlotsInfo(['default'])], },
       );
 
       yield new TestData(
@@ -585,7 +585,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               </template>
             </template>`),
         ],
-        { 'my-element': [`00 30 12 42 24 54 36 66 48 78`, new AuSlotsInfo(['s2'])], },
+        { 'my-element': [`00 30 12 42 24 54 36 66 48 78`, new SlotsInfo(['s2'])], },
       );
 
       yield new TestData(
@@ -599,7 +599,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               </template>
             </template>`),
         ],
-        { 'my-element': [`024 024`, new AuSlotsInfo(['s1'])], },
+        { 'my-element': [`024 024`, new SlotsInfo(['s1'])], },
       );
 
       yield new TestData(
@@ -608,7 +608,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1" repeat.for="i of 2">\${i}</au-slot>`),
         ],
-        { 'my-element': [`024024`, new AuSlotsInfo(['s1'])], },
+        { 'my-element': [`024024`, new SlotsInfo(['s1'])], },
       );
 
       yield new TestData(
@@ -619,8 +619,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement(`<let items.bind="[1,2]"></let>S<div repeat.for="item of items">\${item}<au-slot name="bar"></au-slot></div>E`),
         ],
         {
-          'my-element': [`S<div>1<div>First</div></div><div>2<div>First</div></div>E`, new AuSlotsInfo(['bar'])],
-          'my-element+my-element': [`S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`, new AuSlotsInfo(['bar'])],
+          'my-element': [`S<div>1<div>First</div></div><div>2<div>First</div></div>E`, new SlotsInfo(['bar'])],
+          'my-element+my-element': [`S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`, new SlotsInfo(['bar'])],
         },
       );
 
@@ -642,7 +642,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         class MyElement {
           @bindable public people: Person[];
           public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            @ISlotsInfo public readonly slots: ISlotsInfo,
           ) { }
         }
 
@@ -664,7 +664,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           ],
           { 'my-element': [
             `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 undefined</div> <div>Doe</div> <div>John</div> <div>index: 1 undefined</div> <div>Mustermann</div> <div>Max</div>`,
-            new AuSlotsInfo(['header', 'content'])
+            new SlotsInfo(['header', 'content'])
           ]},
         );
       }
@@ -672,7 +672,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       {
         class MyElement {
           public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            @ISlotsInfo public readonly slots: ISlotsInfo,
           ) { }
         }
         yield new TestData(
@@ -688,7 +688,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               MyElement),
           ],
           {
-            'my-element': [`<table><thead><tr><th>p1</th><th>p2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>11</td><td>22</td></tr></tbody></table>`, new AuSlotsInfo(['header', 'content'])],
+            'my-element': [`<table><thead><tr><th>p1</th><th>p2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>11</td><td>22</td></tr></tbody></table>`, new SlotsInfo(['header', 'content'])],
           },
         );
       }
@@ -707,8 +707,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>')
         ],
         {
-          'my-element': [`1`, new AuSlotsInfo(['default'])],
-          'my-element+my-element': [`2`, new AuSlotsInfo(['default'])],
+          'my-element': [`1`, new SlotsInfo(['default'])],
+          'my-element+my-element': [`2`, new SlotsInfo(['default'])],
         },
       );
 
@@ -724,8 +724,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>')
         ],
         {
-          'my-element': [`1`, new AuSlotsInfo(['default'])],
-          'my-element+my-element': [`2`, new AuSlotsInfo(['default'])],
+          'my-element': [`1`, new SlotsInfo(['default'])],
+          'my-element+my-element': [`2`, new SlotsInfo(['default'])],
         },
       );
 
@@ -744,8 +744,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>')
         ],
         {
-          'my-element': [`John`, new AuSlotsInfo(['default'])],
-          'my-element+my-element': [`Max`, new AuSlotsInfo(['default'])],
+          'my-element': [`John`, new SlotsInfo(['default'])],
+          'my-element+my-element': [`Max`, new SlotsInfo(['default'])],
         },
       );
 
@@ -760,21 +760,21 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>')
         ],
         {
-          'my-element': [`John`, new AuSlotsInfo(['default'])],
-          'my-element+my-element': [`Max`, new AuSlotsInfo(['default'])],
+          'my-element': [`John`, new SlotsInfo(['default'])],
+          'my-element+my-element': [`Max`, new SlotsInfo(['default'])],
         },
       );
 
       {
         let counter = 0;
-        const expected: Record<string, readonly [string, AuSlotsInfo]> = Object.fromEntries(new Array(3)
+        const expected: Record<string, readonly [string, SlotsInfo]> = Object.fromEntries(new Array(3)
           .fill(0)
           .flatMap(
             (_, i) => new Array(3)
               .fill(0)
               .map((__, j) => [
                 new Array(++counter).fill('my-element').join('+'),
-                [String(i * j), new AuSlotsInfo(['default'])]
+                [String(i * j), new SlotsInfo(['default'])]
               ])
           ));
 
@@ -850,11 +850,11 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       }
 
       {
-        const expected: Record<string, readonly [string, AuSlotsInfo]> = {
-          'my-element': ['John Mustermann', new AuSlotsInfo(['default'])],
-          'my-element+my-element': ['John Doe', new AuSlotsInfo(['default'])],
-          'my-element+my-element+my-element': ['Max Mustermann', new AuSlotsInfo(['default'])],
-          'my-element+my-element+my-element+my-element': ['Max Doe', new AuSlotsInfo(['default'])],
+        const expected: Record<string, readonly [string, SlotsInfo]> = {
+          'my-element': ['John Mustermann', new SlotsInfo(['default'])],
+          'my-element+my-element': ['John Doe', new SlotsInfo(['default'])],
+          'my-element+my-element+my-element': ['Max Mustermann', new SlotsInfo(['default'])],
+          'my-element+my-element+my-element+my-element': ['Max Doe', new SlotsInfo(['default'])],
         };
         yield new TestData(
           'works with data from repeater scope - template[repeat.for]>template[repeat.for]>custom-element - nested repeater - source: binding context',
@@ -950,7 +950,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
-        { 'my-element': [`<div><div>Doe</div></div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div><div>Doe</div></div>`, new SlotsInfo(['default'])] }
       );
       yield new TestData(
         'works with "with" on parent - outer scope',
@@ -958,7 +958,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
-        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] },
+        { 'my-element': [`<div><div>Mustermann</div></div>`, new SlotsInfo(['default'])] },
       );
       yield new TestData(
         'works with "with" on self',
@@ -966,7 +966,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
         ],
-        { 'my-element': [`<div>Doe</div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div>Doe</div>`, new SlotsInfo(['default'])] }
       );
       yield new TestData(
         'works with "with" on self - outer scope',
@@ -974,7 +974,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
         ],
-        { 'my-element': [`<div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div>Mustermann</div>`, new SlotsInfo(['default'])] }
       );
       yield new TestData(
         'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2]',
@@ -982,7 +982,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
         ],
-        { 'my-element': [`<div>John<div>John</div></div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`<div>John<div>John</div></div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2] - outer scope',
@@ -990,7 +990,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
         ],
-        { 'my-element': [`<div>John<div>Max</div></div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`<div>John<div>Max</div></div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2]',
@@ -998,7 +998,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
         ],
-        { 'my-element': [`John<div><div>John</div></div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`John<div><div>John</div></div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2] - outer scope',
@@ -1006,7 +1006,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
         ],
-        { 'my-element': [`John<div><div>Max</div></div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`John<div><div>Max</div></div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing au-slot[name=s1]>au-slot[name=s2][with]',
@@ -1014,7 +1014,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
         ],
-        { 'my-element': [`John<div>John</div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`John<div>John</div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing au-slot[name=s1]>au-slot[name=s2][with] - outer scope',
@@ -1022,7 +1022,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
         ],
-        { 'my-element': [`John<div>Max</div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`John<div>Max</div>`, new SlotsInfo(['s2'])] }
       );
       yield new TestData(
         'works replacing div[with]>au-slot,div[with]au-slot',
@@ -1030,7 +1030,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div><div with.bind="{item: people[1]}"><au-slot>\${item.firstName}</au-slot></div>`),
         ],
-        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new SlotsInfo(['default'])] }
       );
       yield new TestData(
         'works replacing au-slot[with],au-slot[with]',
@@ -1038,7 +1038,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot><au-slot with.bind="{item: people[1]}">\${item.firstName}</au-slot>`),
         ],
-        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] },
+        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new SlotsInfo(['default'])] },
         void 0,
       );
     }
@@ -1070,7 +1070,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         @bindable public people: Person[];
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
       yield new TestData(
@@ -1080,7 +1080,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new SlotsInfo([])] },
       );
 
       yield new TestData(
@@ -1100,7 +1100,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         { 'my-element': [
           '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
-          new AuSlotsInfo(['content'])
+          new SlotsInfo(['content'])
         ]},
       );
 
@@ -1120,7 +1120,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new SlotsInfo(['content'])] },
       );
 
       yield new TestData(
@@ -1142,7 +1142,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         {
           'my-element': [
             '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
-            new AuSlotsInfo(['content'])
+            new SlotsInfo(['content'])
           ],
         }
       );
@@ -1157,7 +1157,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new SlotsInfo(['colleslawt'])] },
       );
 
       yield new TestData(
@@ -1166,7 +1166,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
         ],
-        { 'my-element': ['d1|s11|d2|s12', new AuSlotsInfo([])] },
+        { 'my-element': ['d1|s11|d2|s12', new SlotsInfo([])] },
       );
 
       yield new TestData(
@@ -1175,7 +1175,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
         ],
-        { 'my-element': ['dp|s1p|dp|s1p', new AuSlotsInfo(['default', 's1'])] },
+        { 'my-element': ['dp|s1p|dp|s1p', new SlotsInfo(['default', 's1'])] },
       );
 
       yield new TestData(
@@ -1216,7 +1216,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
           CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
         ],
-        { 'my-element': ['<foo-bar class="au">root</foo-bar>', new AuSlotsInfo(['s1'])] },
+        { 'my-element': ['<foo-bar class="au">root</foo-bar>', new SlotsInfo(['s1'])] },
       );
 
       {
@@ -1224,7 +1224,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         class MyElement {
           public readonly message: string = 'inner';
           public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            @ISlotsInfo public readonly slots: ISlotsInfo,
           ) { }
         }
         yield new TestData(
@@ -1239,7 +1239,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             ),
             CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
           ],
-          { 'my-element': ['<foo-bar class="au">inner</foo-bar>', new AuSlotsInfo(['s1'])] },
+          { 'my-element': ['<foo-bar class="au">inner</foo-bar>', new SlotsInfo(['s1'])] },
         );
       }
 
@@ -1279,7 +1279,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         // + fallback of <au-slot name=foo>
         // + |
         // + fallback of <au-slot name=s1>
-        { 'my-element': ['mis-projected bar |s1fb', new AuSlotsInfo(['default'])] },
+        { 'my-element': ['mis-projected bar |s1fb', new SlotsInfo(['default'])] },
       );
 
       // tag: nonsense-example
@@ -1289,7 +1289,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>`),
         ],
-        { 'my-element': ['', new AuSlotsInfo([])] },
+        { 'my-element': ['', new SlotsInfo([])] },
       );
 
       yield new TestData(
@@ -1304,7 +1304,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
-        { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+        { 'my-element': ['<div> projection </div>', new SlotsInfo(['s1'])] },
       );
 
       // tag: nonsense-example
@@ -1321,7 +1321,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
-        { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+        { 'my-element': ['<div> projection </div>', new SlotsInfo(['s1'])] },
       );
 
       // tag: nonsense-example
@@ -1341,7 +1341,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
-        { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+        { 'my-element': ['<div> projection </div>', new SlotsInfo(['s1'])] },
       );
 
       // tag: chained-projection
@@ -1438,7 +1438,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
         class MyElement {
           public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            @ISlotsInfo public readonly slots: ISlotsInfo,
           ) { }
         }
 
@@ -1449,7 +1449,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             [
               CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, MyElement),
             ],
-            { 'my-element': [buildExpectedTextContent(i), new AuSlotsInfo([`s${i}`])] },
+            { 'my-element': [buildExpectedTextContent(i), new SlotsInfo([`s${i}`])] },
           );
         }
       }
@@ -1478,7 +1478,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         };
         const buildExpectation = (level: number) => {
           if (level === 1) {
-            return ['p1', new AuSlotsInfo(['s1'])] as const;
+            return ['p1', new SlotsInfo(['s1'])] as const;
           }
           const slots = [];
           let content = '';
@@ -1488,13 +1488,13 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             slots.push(`s${i}`);
             ++i;
           }
-          return [content, new AuSlotsInfo(slots)] as const;
+          return [content, new SlotsInfo(slots)] as const;
         };
 
         for (let i = 1; i < 11; i++) {
           class MyElement {
             public constructor(
-              @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+              @ISlotsInfo public readonly slots: ISlotsInfo,
             ) { }
           }
           yield new TestData(
@@ -1606,7 +1606,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyElement {
         public foo: string = "foo";
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
       yield new TestData(
@@ -1615,7 +1615,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <input au-slot type="text" value.two-way="$host.foo">
       </my-element>`,
         [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, MyElement)],
-        { 'my-element': ['<input type="text" class="au">', new AuSlotsInfo(['default'])] },
+        { 'my-element': ['<input type="text" class="au">', new SlotsInfo(['default'])] },
         async function ({ host, platform }) {
           const el = host.querySelector('my-element');
           const vm = CustomElement.for(el).viewModel as any;
@@ -1634,7 +1634,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <input au-slot type="text" value.two-way="people[0].firstName">
       </my-element>`,
       [createMyElement(`<au-slot></au-slot>`)],
-      { 'my-element': ['<input type="text" class="au">', new AuSlotsInfo(['default'])] },
+      { 'my-element': ['<input type="text" class="au">', new SlotsInfo(['default'])] },
       async function ({ app, host, platform }) {
         const el = host.querySelector('my-element');
         const input = el.querySelector('input');
@@ -1725,7 +1725,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     {
       class Base {
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) { }
       }
 
@@ -1735,10 +1735,10 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class MyElement1 extends Base { }
       yield new TestData(
-        '@IAuSlotsInfo works with inheritance - #1',
+        '@ISlotsInfo works with inheritance - #1',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement1],
-        { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+        { 'my-element': ['dfb<div>s1p</div>', new SlotsInfo(['s1'])] }
       );
 
       class Base2 extends Base { }
@@ -1748,10 +1748,10 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class MyElement2 extends Base2 { }
       yield new TestData(
-        '@IAuSlotsInfo works with inheritance - #2',
+        '@ISlotsInfo works with inheritance - #2',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement2],
-        { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+        { 'my-element': ['dfb<div>s1p</div>', new SlotsInfo(['s1'])] }
       );
     }
 
@@ -1762,9 +1762,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class CeOne {
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
       @customElement({
@@ -1773,9 +1773,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class CeTwo {
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
       @customElement({
@@ -1784,22 +1784,22 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class CeThree {
         public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          @ISlotsInfo public readonly slots: ISlotsInfo,
         ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+          assert.instanceOf(slots, SlotsInfo);
         }
       }
 
       yield new TestData(
-        '@IAuSlotsInfo works correctly with element nesting',
+        '@ISlotsInfo works correctly with element nesting',
         '<ce-one><span au-slot="s1">s1p</span></ce-one><ce-two></ce-two><ce-three><div au-slot="s1">s1p</div></ce-three>',
         [CeOne, CeTwo, CeThree],
         {
-          'ce-one': ['dfb<span>s1p</span>', new AuSlotsInfo(['s1'])],
-          'ce-two': ['ce two', new AuSlotsInfo([])],
-          'ce-three': ['<div>s1p</div><ce-one class="au"><span>dp</span>s1fb</ce-one><ce-two class="au">ce two</ce-two>', new AuSlotsInfo(['s1'])],
-          'ce-three>ce-one': ['<span>dp</span>s1fb', new AuSlotsInfo(['default'])],
-          'ce-three>ce-two': ['ce two', new AuSlotsInfo([])],
+          'ce-one': ['dfb<span>s1p</span>', new SlotsInfo(['s1'])],
+          'ce-two': ['ce two', new SlotsInfo([])],
+          'ce-three': ['<div>s1p</div><ce-one class="au"><span>dp</span>s1fb</ce-one><ce-two class="au">ce two</ce-two>', new SlotsInfo(['s1'])],
+          'ce-three>ce-one': ['<span>dp</span>s1fb', new SlotsInfo(['default'])],
+          'ce-three>ce-two': ['ce two', new SlotsInfo([])],
         }
       );
     }
@@ -2004,7 +2004,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         const { host, error } = ctx;
         try {
           assert.deepEqual(error, null);
-          for (const [selector, [expectedInnerHtml, expectedAuSlotsInfo]] of Object.entries(expected)) {
+          for (const [selector, [expectedInnerHtml, expectedSlotsInfo]] of Object.entries(expected)) {
             if (selector) {
               assert.html.innerEqual(
                 selector,
@@ -2016,9 +2016,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               assert.html.innerEqual(host, typeof expectedInnerHtml === 'string' ? expectedInnerHtml : expectedInnerHtml.outerHTML, `root.innerHTML`);
             }
 
-            if (expectedAuSlotsInfo != null) {
-              const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
-              assert.deepStrictEqual(slots, expectedAuSlotsInfo);
+            if (expectedSlotsInfo != null) {
+              const slots = CustomElement.for<{ slots: SlotsInfo }>(host.querySelector(selector)).viewModel.slots;
+              assert.deepStrictEqual(slots, expectedSlotsInfo);
             }
           }
           if (additionalAssertion != null) {

@@ -30,7 +30,6 @@ import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import { ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
-import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
@@ -44,6 +43,7 @@ import { createInterface, registerResolver, singletonRegistration } from './util
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
 import { createText, insertBefore } from './utilities-dom';
+import { IProjections, ISlotsInfo, SlotsInfo } from './templating/controller.projection';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -518,7 +518,7 @@ export class CustomElementRenderer implements IRenderer {
       /* host             */target,
       /* instruction      */instruction,
       /* location         */location,
-      /* auSlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
+      /* SlotsInfo      */projections == null ? void 0 : new SlotsInfo(objectKeys(projections)),
     );
     Ctor = def.Type;
     component = container.invoke(Ctor);
@@ -1199,7 +1199,7 @@ const createSurrogateBinding = (context: IHydrationContext<object>) =>
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
-const slotInfoProviderName = 'IAuSlotsInfo';
+const slotInfoProviderName = 'ISlotsInfo';
 
 function createElementContainer(
   p: IPlatform,
@@ -1207,7 +1207,7 @@ function createElementContainer(
   host: HTMLElement,
   instruction: HydrateElementInstruction,
   location: IRenderLocation | null,
-  auSlotsInfo?: IAuSlotsInfo,
+  SlotsInfo?: ISlotsInfo,
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
 
@@ -1231,9 +1231,9 @@ function createElementContainer(
     ? noLocationProvider
     : new RenderLocationProvider(location));
   registerResolver(ctn, IViewFactory, noViewFactoryProvider);
-  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, ISlotsInfo, SlotsInfo == null
     ? noAuSlotProvider
-    : new InstanceProvider(slotInfoProviderName, auSlotsInfo)
+    : new InstanceProvider(slotInfoProviderName, SlotsInfo)
   );
 
   return ctn;
@@ -1281,7 +1281,7 @@ function invokeAttribute(
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
-  auSlotsInfo?: IAuSlotsInfo,
+  SlotsInfo?: ISlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
   registerResolver(
@@ -1304,9 +1304,9 @@ function invokeAttribute(
   registerResolver(ctn, IViewFactory, viewFactory == null
     ? noViewFactoryProvider
     : new ViewFactoryProvider(viewFactory));
-  registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
+  registerResolver(ctn, ISlotsInfo, SlotsInfo == null
     ? noAuSlotProvider
-    : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
+    : new InstanceProvider(slotInfoProviderName, SlotsInfo));
 
   return { vm: ctn.invoke(definition.Type), ctn };
 }
@@ -1326,4 +1326,4 @@ class RenderLocationProvider implements IResolver {
 
 const noLocationProvider = new RenderLocationProvider(null);
 const noViewFactoryProvider = new ViewFactoryProvider(null);
-const noAuSlotProvider = new InstanceProvider<IAuSlotsInfo>(slotInfoProviderName, new AuSlotsInfo(emptyArray));
+const noAuSlotProvider = new InstanceProvider<ISlotsInfo>(slotInfoProviderName, new SlotsInfo(emptyArray));

@@ -25,6 +25,9 @@ export interface ISlotsInfo {
    */
   readonly projectedSlots: readonly string[];
 }
+/**
+ * Describing the projection information statically available for a custom element
+ */
 export const ISlotsInfo = createInterface<ISlotsInfo>('ISlotsInfo');
 export class SlotsInfo implements ISlotsInfo {
   public constructor(
@@ -32,6 +35,9 @@ export class SlotsInfo implements ISlotsInfo {
   ) { }
 }
 
+/**
+ * Describe the interface of a slot
+ */
 export interface ISlot {
   readonly name: string;
   readonly nodes: readonly Node[];

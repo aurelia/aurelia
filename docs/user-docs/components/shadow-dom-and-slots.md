@@ -734,3 +734,109 @@ export class MySummaryElement {
 {% endcode %}
 
 After rendering, the `MySummaryElement` instance will have paragraphs value as an array of 2 `<p>` element as seen in the `app.html`.
+
+The `@slotted` decorator will invoke change handler upon initial rendering, and whenever there's a mutation after wards, while the owning custom element is still active.
+By default, the callback will be selected based on the name of the decorated property. For example: `paragraphs` -> `paragraphsChanged`, like the following example:
+
+{% code title="my-summary.ts" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 2
+
+  paragraphsChanged(ps: HTMLParagraphElement[]) {
+    // do things
+  }
+}
+```
+{% endcode %}
+
+{% code title="my-summary.html" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="app.html" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p>It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+
+#### `@slotted` usage
+
+The `@slotted` decorator can be used in multiple forms:
+
+| Usage | Meaning |
+| - | - |
+| `@slotted() prop` | Use default options, observe projection on the `default` slot, and select all elements |
+| `@slotted('div') prop` | Observe projection on the `default` slot, and select only `div` elements |
+| `@slotted('div', 'footer') prop` | Observe projection on the `footer` slot and select only `div` elements |
+| `@slotted('*')` | Observe projection on the `default` slot, and select all nodes, including text |
+| `@slotted('div', '*')` | Observe projection on all slots, and select only `div` elements |
+| `@slotted({ query: 'div' })` | Observe projection on the `default` slot, and select only `div` elements |
+| `@slotted({ slotName: 'footer' })` | Observe projection on `footer` slot, and select all elements |
+
+### With `slotchange` binding
+
+The standard `<slot>` element dispatches `slotchange` events for application to react to changes in the projection. This behavior is also supported
+with `<au-slot>`. The different are with `<slot>`, it's an event while for `<au-slot>`, it's a callback as there's no host to dispatch an event, for
+`<au-slot>` is a `containerless` element.
+
+The callback will be passed 2 parameters:
+
+| name | type | description |
+| - | - | - |
+| name | string | the name of the slot calling the change callback |
+| nodes | Node[] | the list of the latest nodes that belongs to the slot calling the change callback |
+
+An example of using `slotchange` behavior may look like the following:
+{% code title="app.html" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p if.bind="describeMore">It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+{% code title="my-summary.html" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot slotchange.bind="onContentChange"></au-slot>
+  <au-slot slotchange.bind="(name, nodes) => doSomething(name, nodes)"></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="my-summary.ts" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 1
+
+  onContentChange = (name: string, nodes: Node[]) => {
+    // handle the new set of nodes here
+    console.assert(this === undefined);
+  }
+
+  doSomething(name: string, nodes: Node[]) {
+    console.assert(this instanceof MySummaryElement);
+  }
+}
+```
+{% endcode %}
+
+{% hint style="info" %}
+- The callback will not be called upon the initial rendering, it's only called when there's a mutation after the initial rendering.
+- The callback pass to slotchange of `<au-slot>` will be call with an `undefined` this, so you should either give it a lambda expression, or a function like the example above.
+- The nodes passed to the 2nd parameter of the `slotchange` callback will always be the latest list of nodes.
+{% endhint %}

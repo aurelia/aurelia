@@ -22,6 +22,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
 
   public readonly view: ISyntheticView;
+  /** @internal */
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   /** @internal */ private readonly _location: IRenderLocation;
@@ -31,9 +32,19 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /** @internal */ private readonly _hdrContext: IHydrationContext;
   /** @internal */ private readonly _slotwatchers: readonly IAuSlotWatcher[];
   /** @internal */ private readonly _hasSlotWatcher: boolean;
+  /** @internal */ private _attached: boolean = false;
 
+  /**
+   * The binding context that will be exposed to slotted content
+   */
   @bindable
-  public expose: object | undefined;
+  public expose: object | null = null;
+
+  /**
+   * A callback that will be called when the content of this slot changed
+   */
+  @bindable
+  public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
   public constructor(
     location: IRenderLocation,
@@ -126,10 +137,15 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     });
   }
 
+  public attached(): void | Promise<void> {
+    this._attached = true;
+  }
+
   public detaching(
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
+    this._attached = false;
     this._unobserve();
     this._slotwatchers.forEach(w => w.unwatch(this));
     return this.view.deactivate(initiator, this.$controller);
@@ -182,6 +198,9 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     const nodes = this.nodes;
     const subs = new Set(this._subs);
     let sub: IAuSlotSubscriber;
+    if (this._attached) {
+      this.slotchange?.call(void 0, this.name, nodes);
+    }
     for (sub of subs) {
       sub.handleSlotChange(this, nodes);
     }

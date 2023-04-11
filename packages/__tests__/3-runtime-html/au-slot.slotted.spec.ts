@@ -446,6 +446,29 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       assertText('Count: 3');
     });
+
+    it('does not call slotchange inititially', function () {
+      let call = 0;
+      @customElement({
+        name: 'el',
+        template: 'Count: ${nodes.length}<au-slot slotchange.bind="log">'
+      })
+      class El {
+        @slotted() nodes;
+
+        log() {
+          call = 1;
+        }
+      }
+
+      createFixture(
+        '<el><div>',
+        class App { },
+        [El,]
+      );
+
+      assert.strictEqual(call, 0);
+    });
   });
 
   describe('mutation', function () {
@@ -529,6 +552,37 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       await Promise.resolve();
       flush();
       assertText('inputs count: 1 | inputs count: 3');
+    });
+
+    it('calls slotchange after rendering', async function () {
+      const calls: [string, number][] = [];
+      @customElement({
+        name: 'el',
+        template: '<au-slot slotchange.bind="log">'
+      })
+      class El {
+        @slotted('*') nodes;
+
+        log(name: string, nodes: Node[]) {
+          calls.push([name, nodes.length]);
+        }
+      }
+
+      const { component, flush } = createFixture(
+        '<el><div if.bind="show"></div><p>',
+        class App { show = false; },
+        [El,]
+      );
+
+      component.show = true;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2]]);
+
+      component.show = false;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
   });
 });

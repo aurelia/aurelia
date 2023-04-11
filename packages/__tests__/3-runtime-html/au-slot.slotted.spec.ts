@@ -428,6 +428,24 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       assertText('Count: 1');
     });
+
+    it('assigns on dynamically generated <au-slot>', function () {
+      @customElement({
+        name: 'el',
+        template: 'Count: ${nodes.length}<au-slot repeat.for="i of 3">'
+      })
+      class El {
+        @slotted() nodes;
+      }
+
+      const { assertText } = createFixture(
+        '<el><div>',
+        class App { },
+        [El,]
+      );
+
+      assertText('Count: 3');
+    });
   });
 
   describe('mutation', function () {

@@ -83,6 +83,31 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(call, 1);
     });
 
+    it('calls specified change handler', function () {
+      let call = 0;
+      @customElement({
+        name: 'el',
+        template: '<au-slot>'
+      })
+      class El {
+        @slotted({
+          callback: 'changed'
+        }) divs;
+
+        changed() {
+          call = 1;
+        }
+      }
+
+      createFixture(
+        '<el><div></div>',
+        class App { },
+        [El,]
+      );
+
+      assert.strictEqual(call, 1);
+    });
+
     it('does not call change handler if theres no slot', function () {
       let call = 0;
       @customElement({
@@ -381,6 +406,27 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       assertText('inputs count: 1 | inputs count: 2');
+    });
+
+    it('assigns all node with custom slot name from definition object', function () {
+      @customElement({
+        name: 'el',
+        template: 'Count: ${nodes.length}<au-slot name=1>'
+      })
+      class El {
+        @slotted({
+          slotName: '1'
+        })
+        nodes;
+      }
+
+      const { assertText } = createFixture(
+        '<el><div au-slot=1>',
+        class App { },
+        [El,]
+      );
+
+      assertText('Count: 1');
     });
   });
 

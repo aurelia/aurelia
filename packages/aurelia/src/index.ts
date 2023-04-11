@@ -671,6 +671,7 @@ export {
 
   // Subject,
   // Compose,
+  ISlotsInfo,
   IAuSlotsInfo,
   AuSlotsInfo,
   slotted,

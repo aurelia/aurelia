@@ -1,14 +1,13 @@
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { CustomElement, type CustomElementDefinition } from '../resources/custom-element';
 import { createInterface, instanceRegistration } from '../utilities-di';
-import { type IRateLimitOptions, type Scope, ISubscribable, ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
-import { Constructable, emptyArray, Key, type IContainer, type IDisposable, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
+import { type IRateLimitOptions, type Scope, type ISubscribable, type ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
+import { type Constructable, emptyArray, type Key, type IContainer, type IDisposable, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
 
 export type PartialSlottedDefinition = {
   callback?: PropertyKey;
-  name?: PropertyKey;
   slotName?: string;
   query?: string;
   // options?: MutationObserverInit;
@@ -46,7 +45,8 @@ export interface ISlotSubscriber {
 
 export interface ISlotWatcher extends ISubscribable {
   // this may be an issue in the future where there's a desire
-  // for a watcher to watch multiple slot at once
+  // for a watcher to selectively watch multiple slot at once
+  // at the moment, it's all (*) or one (name)
   readonly slotName: string;
   watch(slot: ISlot): void;
   unwatch(slot: ISlot): void;
@@ -176,9 +176,10 @@ class SlotWatcherBinding implements ISlotWatcher, ISlotSubscriber, ISubscriberCo
 
 subscriberCollection(SlotWatcherBinding);
 
+type SlottedPropDefinition = PartialSlottedDefinition & { name: PropertyKey };
 class SlottedLifecycleHooks {
   public constructor(
-    private readonly def: PartialSlottedDefinition & { name: PropertyKey },
+    private readonly def: SlottedPropDefinition,
   ) {}
 
   public register(c: IContainer) {
@@ -201,22 +202,46 @@ class SlottedLifecycleHooks {
 
 lifecycleHooks()(SlottedLifecycleHooks);
 
-export function slotted(query: string, slotName?: string) {
+/**
+ * Decorate a property of a class to get updates from the projection of the decorated custom element
+ */
+export function slotted(): PropertyDecorator;
+/**
+ * Decorate a property of a class to get updates from the projection of the decorated custom element
+ *
+ * @param query - the query select used to match each slotted node of the corresponding <au-slot>
+ * If * is provided, then it'll get all nodes (including text nodes)
+ */
+export function slotted(query: string): PropertyDecorator;
+/**
+ * Decorate a property of a class to get updates from the projection of the decorated custom element
+ *
+ * @param query - the query select used to match each slotted node of the corresponding <au-slot>
+ * If * is provided, then it'll get all nodes (including text nodes)
+ * @param slotName - the name of the <au-slot> this slotted decorator is targeting.
+ * If * is provided, then it'll get all nodes from all <au-slot>
+ */
+export function slotted(query: string, slotName: string): PropertyDecorator;
+
+/**
+ * Decorate a property of a class to get updates from the projection of the decorated custom element
+ *
+ * @param def - The configuration of the slotted decorator.
+ */
+export function slotted(def: PartialSlottedDefinition): PropertyDecorator;
+export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string): PropertyDecorator;
+export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
   const dependenciesKey = 'dependencies';
+
   function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
-    const config = {
-      query,
-      slotName,
-      name: $prop as string
-    } satisfies PartialSlottedDefinition;
-    // if (arguments.length > 1) {
-    //   // Non invocation:
-    //   // - @slotted
-    //   // Invocation with or w/o opts:
-    //   // - @slotted()
-    //   // - @slotted({...opts})
-    // }
-    config.name = $prop as string;
+    const config = (typeof queryOrDef === 'object'
+      ? queryOrDef
+      : {
+        query: queryOrDef,
+        slotName,
+        name: ''
+      }) as SlottedPropDefinition;
+    config.name = $prop;
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
       throw new Error(`Invalid usage. @slotted can only be used on a field`);
@@ -232,4 +257,17 @@ export function slotted(query: string, slotName?: string) {
   }
 
   return decorator;
+}
+
+/* eslint-disable */
+function testDecorator() {
+  class Abc {
+    @slotted() abc: any;
+    @slotted('div') a2: any;
+    @slotted('div', 'slot1') a3: any;
+    @slotted({
+      slotName: 'slot1'
+    })
+    a4: any;
+  }
 }

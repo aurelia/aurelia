@@ -549,7 +549,7 @@ function createConfiguredNode(
                 component: ced,
                 title: $handler.title,
                 residue: [
-                  // TODO(sayan): this can be removed; need to inspect more.
+                  // TODO(sayan): this can be removed; need to inspect more. --> Add tests to string instruction as parent that results in residue and then add children.
                   ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
                   ...vi.children,
                 ],

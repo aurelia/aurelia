@@ -217,10 +217,10 @@ export class Router {
 
     this.locationMgr.startListening();
     this.locationChangeSubscription = this.events.subscribe('au:router:location-change', e => {
-      // TODO(fkleuver): add a throttle config.
       // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
+      // If the throttle limit is hit, then add a throttle config.
       this.p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
@@ -332,7 +332,6 @@ export class Router {
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
-    // TODO: incorporate potential context offset by `../` etc in the instructions
     return this.routeTree.contains(instructions, false);
   }
 
@@ -554,11 +553,6 @@ export class Router {
       this.logger.debug(`run(tr:%s) - aborting because a new transition was queued in response to the NavigationStartEvent`, tr);
       return this.run(this.nextTr);
     }
-
-    // TODO: run global guards
-    //
-    //
-    // ---
 
     tr.run(() => {
       const vit = tr.finalInstructions;

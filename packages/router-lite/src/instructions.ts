@@ -123,8 +123,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       return false;
     }
 
-    // TODO(fkleuver): incorporate viewports when null / '' descrepancies are fixed,
-    // as well as params when inheritance is fully fixed
+    // TODO(fkleuver): incorporate viewports when null / '' descrepancies are fixed --> TODO(sayan): need tests in this area to close this todo
     if (!this.component.equals(other.component)) {
       return false;
     }
@@ -146,7 +145,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     if (
-      // TODO(fkleuver): decide if we really need to include `context` in this comparison
+      // TODO(fkleuver): decide if we really need to include `context` in this comparison --> TODO(sayan): need tests in this area to close this todo
       !this.component.equals(other.component) ||
       this.viewport !== other.viewport ||
       !shallowEquals(this.params, other.params)

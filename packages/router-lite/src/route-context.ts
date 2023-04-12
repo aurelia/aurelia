@@ -517,14 +517,9 @@ export class RouteContext {
         }
       }
 
-      if (defaultExport === void 0) {
-        if (firstNonDefaultExport === void 0) {
-          // TODO: make error more accurate and add potential causes/solutions
-          throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia`);
-        }
-        return firstNonDefaultExport;
-      }
-      return defaultExport;
+      if(defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.`);
+
+      return firstNonDefaultExport ?? defaultExport!;
     });
   }
 

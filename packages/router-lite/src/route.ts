@@ -264,8 +264,6 @@ export function route(config: IRouteConfig): RouteDecorator;
  *
  * @param path - The path to match against.
  *
- * (TODO: improve the formatting, better examples, etc)
- *
  * ```
  * &#64;route('home')
  * export class Home {}

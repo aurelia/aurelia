@@ -77,7 +77,7 @@ A slot can display default content when nothing is explicitly projected into it.
 
 ### Listening to projection change
 
-#### At the projection target (`<slot>` element), with the `slotchange` event
+#### At the projection target (`<slot>` element), with the [`slotchange` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLSlotElement/slotchange_event)
 
 The `<slot>` element comes with an event based way to listen to its changes. This can be done via listening to `slotchange` even on the `<slot>` element, like the following example:
 {% code title="my-app.html" overflow="wrap" lineNumbers="true" %}
@@ -115,12 +115,19 @@ export class MyDetails {
 
 After the initial rendering, `myDetails.divs` will be an array of 1 `<div>` element, and any future addition of any `<div>` elements to the `<my-details>` element will update the `divs` property on `myDetails` instance, with corresponding array.
 
+Additionally, the `@children` decorator will also call a callback as a reactive change handler. The name of the callback, if omitted in the decorator, will be derived based on
+the property being decorated, example: `divs` -> `divsChanged`
+
 #### `@children` decorator usage
 
 | Usage | Meaning |
 | - | - |
 | `@children() prop` | Use default options, observe mutation, and select all elements |
 | `@children('div') prop` | Observe mutation, and select only `div` elements |
+
+{% hint style="info" %}
+Note: the `@children` decorator wont update if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+{% %}
 
 ## Au-slot
 
@@ -835,6 +842,11 @@ The `@slotted` decorator can be used in multiple forms:
 | `@slotted('div', '*')` | Observe projection on all slots, and select only `div` elements |
 | `@slotted({ query: 'div' })` | Observe projection on the `default` slot, and select only `div` elements |
 | `@slotted({ slotName: 'footer' })` | Observe projection on `footer` slot, and select all elements |
+| `@slotted({ callback: 'nodeChanged' })` | Observe projection on `default` slot, and select all elements, and call `nodeChanged` method on projection change |
+
+{% hint style="info" %}
+Note: the `@slotted` decorator won't be notified if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+{% %}
 
 ### With `slotchange` binding
 
@@ -893,4 +905,5 @@ export class MySummaryElement {
 - The callback will not be called upon the initial rendering, it's only called when there's a mutation after the initial rendering.
 - The callback pass to slotchange of `<au-slot>` will be call with an `undefined` this, so you should either give it a lambda expression, or a function like the example above.
 - The nodes passed to the 2nd parameter of the `slotchange` callback will always be the latest list of nodes.
+- the `slotchange` callback doesn't fire if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
 {% endhint %}

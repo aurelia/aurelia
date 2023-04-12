@@ -31,7 +31,11 @@ export class StateBindingBehavior {
         subscriber._wrappedScope = scope;
       }
       this._store.subscribe(subscriber);
-      binding.useScope(scope);
+      if (__DEV__ && !binding.useScope) {
+        // eslint-disable-next-line no-console
+        console.warn(`Binding ${binding.constructor.name} does not support "state" binding behavior`);
+      }
+      binding.useScope?.(scope);
     }
   }
 

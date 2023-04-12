@@ -1,7 +1,8 @@
-import { IPlatform, type IDisposable } from '@aurelia/kernel';
+import { IPlatform, type IDisposable, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
 import { BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
 import { bindingBehavior } from '../binding-behavior';
+import { isString } from '../../utilities';
 
 const bindingHandlerMap: WeakMap<IBinding, IDisposable> = new WeakMap();
 const defaultDelay = 200;
@@ -19,16 +20,17 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
     this._taskQueue = platform.taskQueue;
   }
 
-  public bind(scope: Scope, binding: IBinding, delay?: number) {
-    delay = Number(delay);
+  public bind(scope: Scope, binding: IBinding, delay?: number, signals?: string | string[]) {
     const opts: IRateLimitOptions = {
       type: 'throttle',
-      delay: delay > 0 ? delay : defaultDelay,
+      delay: delay ?? defaultDelay,
       now: this._now,
       queue: this._taskQueue,
+      signals: isString(signals) ? [signals] : (signals ?? emptyArray),
     };
     const handler = binding.limit?.(opts);
     if (handler == null) {
+      /* istanbul ignore next */
       if (__DEV__) {
         // eslint-disable-next-line no-console
         console.warn(`Binding ${binding.constructor.name} does not support debounce rate limiting`);
@@ -42,8 +44,6 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
     bindingHandlerMap.get(binding)?.dispose();
     bindingHandlerMap.delete(binding);
   }
-
-  // todo: observe and update rate
 }
 
 bindingBehavior('throttle')(ThrottleBindingBehavior);

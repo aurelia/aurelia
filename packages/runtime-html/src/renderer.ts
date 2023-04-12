@@ -1,6 +1,5 @@
 import {
   emptyArray,
-  type IDisposable,
   InstanceProvider,
   type Key,
   type IServiceLocator,
@@ -1167,14 +1166,6 @@ class SpreadBinding implements IBinding {
       throw createError('Spread binding does not support spreading custom attributes/template controllers');
     }
     this.ctrl.addChild(controller);
-  }
-
-  public limit(): IDisposable {
-    throw createError('not implemented');
-  }
-
-  public useScope(): void {
-    throw createError('not implemented');
   }
 }
 

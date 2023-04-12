@@ -6,6 +6,7 @@ import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
+import { createMutationObserver } from '../../utilities-dom';
 
 import { IContainer, InstanceProvider, Writable, emptyArray, onResolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
@@ -133,12 +134,9 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
           this._slotwatchers.forEach(w => w.watch(this));
           this._observe();
           this._notifySlotChange();
+          this._attached = true;
         }
     });
-  }
-
-  public attached(): void | Promise<void> {
-    this._attached = true;
   }
 
   public detaching(
@@ -180,7 +178,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     if (parent == null) {
       return;
     }
-    (this._observer = new parent.ownerDocument.defaultView!.MutationObserver(records => {
+    (this._observer = createMutationObserver(parent, records => {
       if (isMutationWithinLocation(location, records)) {
         this._notifySlotChange();
       }
@@ -211,6 +209,7 @@ const comparePosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 const isMutationWithinLocation = (location: IRenderLocation, records: MutationRecord[]) => {
   for (const { addedNodes, removedNodes, nextSibling } of records) {
     let i = 0;
+    // eslint-disable-next-line prefer-const
     let ii = addedNodes.length;
     let node: Node;
     for (; i < ii; ++i) {
@@ -221,10 +220,7 @@ const isMutationWithinLocation = (location: IRenderLocation, records: MutationRe
         return true;
       }
     }
-    i = 0;
-    ii = removedNodes.length;
-    for (; i < ii; ++i) {
-      node = removedNodes[i];
+    if (removedNodes.length > 0) {
       if (nextSibling != null && comparePosition(location.$start!, nextSibling) === /* DOCUMENT_POSITION_FOLLOWING */4
         && comparePosition(location, nextSibling) === /* DOCUMENT_POSITION_PRECEDING */2
       ) {

@@ -40,7 +40,9 @@ export class AuSlotsInfo implements IAuSlotsInfo {
 export interface IAuSlot {
   readonly name: string;
   readonly nodes: readonly Node[];
+  /** Add subscriber to the change listener list of this slot */
   subscribe(subscriber: IAuSlotSubscriber): void;
+  /** Remove subscriber from the change listener list of this slot */
   unsubscribe(subscriber: IAuSlotSubscriber): void;
 }
 

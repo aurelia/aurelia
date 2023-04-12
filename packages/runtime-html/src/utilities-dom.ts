@@ -84,6 +84,9 @@ export const markerToLocation = (el: Element) => {
   }
 };
 
+/** @internal */
+export const createMutationObserver = (node: Node, callback: MutationCallback) => new node.ownerDocument!.defaultView!.MutationObserver(callback);
+
 const markerMalformedError = () =>
   __DEV__
     ? createError(`AURxxxx: marker is malformed.`)

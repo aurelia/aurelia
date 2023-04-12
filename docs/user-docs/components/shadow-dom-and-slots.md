@@ -6,11 +6,11 @@ description: >-
 
 # Slotted content
 
-In Aurelia, we have several ways to project content into custom elements. In the case of Shadow DOM, we can use `<slot>` and for situations where Shadow DOM is disabled, but we want content project functionality, we have `<au-slot>`
+In Aurelia, we have two ways to project content into custom elements. In the case of Shadow DOM, we can use `<slot>` and for situations where Shadow DOM is not desirable, we have `<au-slot>`
 
 ## Slot
 
-When working with Shadow DOM-enabled components, the `<slot>` element is a native way to allow content projection into components. In some instances, the `<slot>` element will not be the right choice, and you will need to consider `<au-slot>` (referenced below) instead.
+When working with Shadow DOM-enabled components, the `<slot>` element is a web platform native way to allow content projection into components. In some instances, the `<slot>` element will not be the right choice, and you will need to consider [`<au-slot>` (referenced below)](#au-slot) instead.
 
 {% hint style="warning" %}
 The slot element will only work when Shadow DOM is enabled for your component. Attempting to use the slot element with it disabled will throw an error in the console.
@@ -74,6 +74,60 @@ A slot can display default content when nothing is explicitly projected into it.
     </div>
 </div>
 ```
+
+### Listening to projection change
+
+#### At the projection target (`<slot>` element), with the [`slotchange` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLSlotElement/slotchange_event)
+
+The `<slot>` element comes with an event based way to listen to its changes. This can be done via listening to `slotchange` even on the `<slot>` element, like the following example:
+{% code title="my-app.html" overflow="wrap" lineNumbers="true" %}
+```html
+<slot slotchange.trigger="handleSlotChange($event.target.assignedNodes())"></slot>
+```
+{% endcode %}
+{% code title="my-app.ts overflow="wrap" lineNumbers="true" %}
+```typescript
+class MyApp {
+  handleSlotChange(nodes: Node[]) {
+    console.log('new nodes are:', nodes);
+  }
+}
+```
+{% endcode %}
+
+#### At the projection source (custom element host), with the `@children` decorator
+
+In case where it's not desirable to go to listen to projection change at the targets (`<slot>` elements), it's also possible to listen to projection at the source with `@children` decorator. Decorating a property on a custom element class with `@children` decorator will setup mutation observer to notify of any changes, like the following example:
+{% code title="my-details.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+export class MyDetails {
+  @children('div') divs
+}
+```
+{% endcode %}
+{% code title="my-app.html" overflow="wrap" lineNumbers="true" }
+```html
+<my-details>
+  <div>@children decorator is a good way to listen to node changes without having to deal with boilerplate yourself</div>
+</my-details>
+```
+{% endcode %}
+
+After the initial rendering, `myDetails.divs` will be an array of 1 `<div>` element, and any future addition of any `<div>` elements to the `<my-details>` element will update the `divs` property on `myDetails` instance, with corresponding array.
+
+Additionally, the `@children` decorator will also call a callback as a reactive change handler. The name of the callback, if omitted in the decorator, will be derived based on
+the property being decorated, example: `divs` -> `divsChanged`
+
+#### `@children` decorator usage
+
+| Usage | Meaning |
+| - | - |
+| `@children() prop` | Use default options, observe mutation, and select all elements |
+| `@children('div') prop` | Observe mutation, and select only `div` elements |
+
+{% hint style="info" %}
+Note: the `@children` decorator wont update if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+{% %}
 
 ## Au-slot
 
@@ -697,3 +751,159 @@ Having more than one `<au-slot>` with the same name is also supported. This lets
 {% endcode %}
 
 Note that projection for the name is provided once, but it gets duplicated in 2 slots. You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
+
+## Listening to `<au-slot>` change
+
+Similar like the standard `<slot>` element allows the ability to listen to changes in the content projected, `<au-slot>` also provides the capability to listen & react to changes.
+
+### With `@slotted` decorator
+
+One way to subscribe to `au-slot` changes is via the `@slotted` decorator, like the following example:
+
+{% code title="app.html" overflow="wrap" lineNumbers="true" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p>It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+{% code title="my-summary.html" overflow="wrap" lineNumbers="true" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="my-summary.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 2
+}
+```
+{% endcode %}
+
+After rendering, the `MySummaryElement` instance will have paragraphs value as an array of 2 `<p>` element as seen in the `app.html`.
+
+The `@slotted` decorator will invoke change handler upon initial rendering, and whenever there's a mutation after wards, while the owning custom element is still active.
+By default, the callback will be selected based on the name of the decorated property. For example: `paragraphs` -> `paragraphsChanged`, like the following example:
+
+{% code title="my-summary.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 2
+
+  paragraphsChanged(ps: HTMLParagraphElement[]) {
+    // do things
+  }
+}
+```
+{% endcode %}
+
+{% code title="my-summary.html" overflow="wrap" lineNumbers="true" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="app.html" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p>It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+
+{% hint style="info" %}
+### Change handler callback reminders
+- The change handler will be called upon the initial rendering, and after every mutation afterwards while the custom element is still active
+{% %}
+
+#### `@slotted` usage
+
+The `@slotted` decorator can be used in multiple forms:
+
+| Usage | Meaning |
+| - | - |
+| `@slotted() prop` | Use default options, observe projection on the `default` slot, and select all elements |
+| `@slotted('div') prop` | Observe projection on the `default` slot, and select only `div` elements |
+| `@slotted('div', 'footer') prop` | Observe projection on the `footer` slot and select only `div` elements |
+| `@slotted('*')` | Observe projection on the `default` slot, and select all nodes, including text |
+| `@slotted('div', '*')` | Observe projection on all slots, and select only `div` elements |
+| `@slotted({ query: 'div' })` | Observe projection on the `default` slot, and select only `div` elements |
+| `@slotted({ slotName: 'footer' })` | Observe projection on `footer` slot, and select all elements |
+| `@slotted({ callback: 'nodeChanged' })` | Observe projection on `default` slot, and select all elements, and call `nodeChanged` method on projection change |
+
+{% hint style="info" %}
+Note: the `@slotted` decorator won't be notified if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+{% %}
+
+### With `slotchange` binding
+
+The standard `<slot>` element dispatches `slotchange` events for application to react to changes in the projection. This behavior is also supported
+with `<au-slot>`. The different are with `<slot>`, it's an event while for `<au-slot>`, it's a callback as there's no host to dispatch an event, for
+`<au-slot>` is a `containerless` element.
+
+The callback will be passed 2 parameters:
+
+| name | type | description |
+| - | - | - |
+| name | string | the name of the slot calling the change callback |
+| nodes | Node[] | the list of the latest nodes that belongs to the slot calling the change callback |
+
+An example of using `slotchange` behavior may look like the following:
+{% code title="app.html" overflow="wrap" lineNumbers="true" %}
+```html
+<my-summary>
+  <p>This is a demo of the @slotted decorator</p>
+  <p if.bind="describeMore">It can get all the "p" elements with a simple decorator</p>
+</my-summary>
+```
+{% endcode %}
+{% code title="my-summary.html" overflow="wrap" lineNumbers="true" %}
+```html
+<p>Heading text</p>
+<div>
+  <au-slot slotchange.bind="onContentChange"></au-slot>
+  <au-slot slotchange.bind="(name, nodes) => doSomething(name, nodes)"></au-slot>
+</div>
+```
+{% endcode %}
+
+{% code title="my-summary.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+import { slotted } from 'aurelia';
+
+export class MySummaryElement {
+  @slotted('p') paragraphs // assert paragraphs.length === 1
+
+  onContentChange = (name: string, nodes: Node[]) => {
+    // handle the new set of nodes here
+    console.assert(this === undefined);
+  }
+
+  doSomething(name: string, nodes: Node[]) {
+    console.assert(this instanceof MySummaryElement);
+  }
+}
+```
+{% endcode %}
+
+{% hint style="info" %}
+### `slotchange` callback reminders
+
+- The callback will not be called upon the initial rendering, it's only called when there's a mutation after the initial rendering.
+- The callback pass to slotchange of `<au-slot>` will be call with an `undefined` this, so you should either give it a lambda expression, or a function like the example above.
+- The nodes passed to the 2nd parameter of the `slotchange` callback will always be the latest list of nodes.
+- the `slotchange` callback doesn't fire if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+{% endhint %}

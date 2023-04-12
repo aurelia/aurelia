@@ -162,7 +162,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     //   [
     //     createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
     //   ],
-    //   { 'my-element': ['<div>p</div>s1fb|d', new AuSlotsInfo([])] },
+    //   { 'my-element': ['<div>p</div>s1fb|d', new SlotsInfo([])] },
     // );
 
     yield new TestData(
@@ -1735,7 +1735,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class MyElement1 extends Base { }
       yield new TestData(
-        '@IAuSlotsInfo works with inheritance - #1',
+        '@ISlotsInfo works with inheritance - #1',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement1],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
@@ -1748,7 +1748,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       })
       class MyElement2 extends Base2 { }
       yield new TestData(
-        '@IAuSlotsInfo works with inheritance - #2',
+        '@ISlotsInfo works with inheritance - #2',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement2],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
@@ -1791,7 +1791,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       }
 
       yield new TestData(
-        '@IAuSlotsInfo works correctly with element nesting',
+        '@ISlotsInfo works correctly with element nesting',
         '<ce-one><span au-slot="s1">s1p</span></ce-one><ce-two></ce-two><ce-three><div au-slot="s1">s1p</div></ce-three>',
         [CeOne, CeTwo, CeThree],
         {
@@ -2004,7 +2004,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         const { host, error } = ctx;
         try {
           assert.deepEqual(error, null);
-          for (const [selector, [expectedInnerHtml, expectedAuSlotsInfo]] of Object.entries(expected)) {
+          for (const [selector, [expectedInnerHtml, expectedSlotsInfo]] of Object.entries(expected)) {
             if (selector) {
               assert.html.innerEqual(
                 selector,
@@ -2016,9 +2016,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               assert.html.innerEqual(host, typeof expectedInnerHtml === 'string' ? expectedInnerHtml : expectedInnerHtml.outerHTML, `root.innerHTML`);
             }
 
-            if (expectedAuSlotsInfo != null) {
+            if (expectedSlotsInfo != null) {
               const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
-              assert.deepStrictEqual(slots, expectedAuSlotsInfo);
+              assert.deepStrictEqual(slots, expectedSlotsInfo);
             }
           }
           if (additionalAssertion != null) {

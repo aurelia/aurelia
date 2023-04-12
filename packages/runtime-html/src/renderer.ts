@@ -30,7 +30,6 @@ import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import { ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
-import { AuSlotsInfo, IAuSlotsInfo, IProjections } from './resources/slot-injectables';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
@@ -40,6 +39,7 @@ import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
 import { createError, defineProp, objectKeys, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
+import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
@@ -351,7 +351,7 @@ export interface ICompliationInstruction {
    * Where each key is the matching slot name for <au-slot/> inside,
    * and each value is the definition to render and project
    */
-  projections: IProjections | null;
+  projections: IAuSlotProjections | null;
 }
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
@@ -518,7 +518,7 @@ export class CustomElementRenderer implements IRenderer {
       /* host             */target,
       /* instruction      */instruction,
       /* location         */location,
-      /* auSlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
+      /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
     Ctor = def.Type;
     component = container.invoke(Ctor);
@@ -1199,7 +1199,7 @@ const createSurrogateBinding = (context: IHydrationContext<object>) =>
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
-const slotInfoProviderName = 'IAuSlotsInfo';
+const slotInfoProviderName = 'ISlotsInfo';
 
 function createElementContainer(
   p: IPlatform,

@@ -1,8 +1,8 @@
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { CustomElement, type CustomElementDefinition } from '../resources/custom-element';
 import { createInterface, instanceRegistration } from '../utilities-di';
-import { type IRateLimitOptions, type Scope, type ISubscribable, type ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
-import { type Constructable, emptyArray, type Key, type IContainer, type IDisposable, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
+import { type ISubscribable, type ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
+import { type Constructable, emptyArray, type Key, type IContainer, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
 
@@ -170,16 +170,6 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
 
   /* istanbul ignore next */
   public get(): ReturnType<IServiceLocator['get']> {
-    throw new Error('not implemented');
-  }
-
-  /* istanbul ignore next */
-  public useScope(_scope: Scope): void {
-    /* not needed */
-  }
-
-  /* istanbul ignore next */
-  public limit(_opts: IRateLimitOptions): IDisposable {
     throw new Error('not implemented');
   }
 }

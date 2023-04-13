@@ -85,6 +85,7 @@ The `<slot>` element comes with an event based way to listen to its changes. Thi
 <slot slotchange.trigger="handleSlotChange($event.target.assignedNodes())"></slot>
 ```
 {% endcode %}
+
 {% code title="my-app.ts overflow="wrap" lineNumbers="true" %}
 ```typescript
 class MyApp {
@@ -126,8 +127,9 @@ the property being decorated, example: `divs` -> `divsChanged`
 | `@children('div') prop` | Observe mutation, and select only `div` elements |
 
 {% hint style="info" %}
+
 Note: the `@children` decorator wont update if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
-{% %}
+{% endhint %}
 
 ## Au-slot
 

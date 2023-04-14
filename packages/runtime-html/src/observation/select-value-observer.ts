@@ -11,6 +11,7 @@ import type { INode } from '../dom';
 import { createError, hasOwnProperty, isArray } from '../utilities';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';
+import { createMutationObserver } from '../utilities-dom';
 
 const childObserverOptions = {
   childList: true,
@@ -237,8 +238,7 @@ export class SelectValueObserver implements INodeObserver {
    * @internal
    */
   public _start(): void {
-    (this._nodeObserver = new this._el.ownerDocument.defaultView!.MutationObserver(this._handleNodeChange.bind(this)))
-      .observe(this._el, childObserverOptions);
+    (this._nodeObserver = createMutationObserver(this._el, this._handleNodeChange.bind(this))).observe(this._el, childObserverOptions);
     this._observeArray(this._value instanceof Array ? this._value : null);
     this._observing = true;
   }

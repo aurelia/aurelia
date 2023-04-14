@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.4"></a>
+# 2.0.0-beta.4 (2023-04-13)
+
+### Features:
+
+* **debounce-throttle:** flush via signals (#1739) ([af238a9](https://github.com/aurelia/aurelia/commit/af238a9))
+* **slotted:** add slotted decorator, slotchange bindable for au-slot (#1735) ([8cf87af](https://github.com/aurelia/aurelia/commit/8cf87af))
+
+
+### Bug Fixes:
+
+* **proxy-observation:** prevent proxies from being wrapped in proxies again (#1716) ([7792e9c](https://github.com/aurelia/aurelia/commit/7792e9c))
+
+
+### Refactorings:
+
+* **children:** make children observation a binding (#1732) ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **children:** make children deco as a hook ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **children:** remove children observers from custom element def ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **children:** cleanup children observer related code, rename to binding ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **observers:** remove intermediate vars ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* ***:** ignore dev message coverage ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+
 <a name="2.0.0-beta.3"></a>
 # 2.0.0-beta.3 (2023-03-24)
 

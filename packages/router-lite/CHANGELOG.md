@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.4"></a>
+# 2.0.0-beta.4 (2023-04-13)
+
+### Features:
+
+* **router-lite:** extended support for ../ prefix (#1738) ([75732f1](https://github.com/aurelia/aurelia/commit/75732f1))
+* **router-lite:** extended support for ../ prefix ([75732f1](https://github.com/aurelia/aurelia/commit/75732f1))
+* **router-lite:** activeClass router configuration (#1733) ([bd18fde](https://github.com/aurelia/aurelia/commit/bd18fde))
+* **router-lite:** activeClass router configuration ([bd18fde](https://github.com/aurelia/aurelia/commit/bd18fde))
+* **router-lite:** non-string support for fallback (#1730) ([59da952](https://github.com/aurelia/aurelia/commit/59da952))
+* **router-lite:** class as fallback ([59da952](https://github.com/aurelia/aurelia/commit/59da952))
+* **router-lite:** ce aliases as configured route (#1723) ([2b7f9fc](https://github.com/aurelia/aurelia/commit/2b7f9fc))
+* **router-lite:** transitionplan as nav opt ([7905d98](https://github.com/aurelia/aurelia/commit/7905d98))
+
+
+### Bug Fixes:
+
+* ** Previously, it was only available to the string instruction. This commit adds support for `{ component: '../../route', params: { wha:** 'ever' } }`. ([75732f1](https://github.com/aurelia/aurelia/commit/75732f1))
+* **router-lite:** deepscan issues ([ddebae8](https://github.com/aurelia/aurelia/commit/ddebae8))
+* **router-lite:** residual dispose ([e274535](https://github.com/aurelia/aurelia/commit/e274535))
+* **router-lite:** broken smoke tests ([f1ba19c](https://github.com/aurelia/aurelia/commit/f1ba19c))
+* **router-lite:** tests ([7715cc1](https://github.com/aurelia/aurelia/commit/7715cc1))
+* **router-lite:** some failing tests ([1d427fc](https://github.com/aurelia/aurelia/commit/1d427fc))
+* **router-lite:** build errors ([45d7063](https://github.com/aurelia/aurelia/commit/45d7063))
+
+
+### Refactorings:
+
+* **router-lite:** routable fallback ([59da952](https://github.com/aurelia/aurelia/commit/59da952))
+* ***:** router-lite ([25304d5](https://github.com/aurelia/aurelia/commit/25304d5))
+* ***:** router-lite ([5a56a89](https://github.com/aurelia/aurelia/commit/5a56a89))
+* ***:** router-lite ([4b12a9a](https://github.com/aurelia/aurelia/commit/4b12a9a))
+* **router-lite:** route definition configuration ([eba6d61](https://github.com/aurelia/aurelia/commit/eba6d61))
+* **router-lite:** wip ([06a05be](https://github.com/aurelia/aurelia/commit/06a05be))
+* **router-lite:** route definition ([3de75a6](https://github.com/aurelia/aurelia/commit/3de75a6))
+
 <a name="2.0.0-beta.3"></a>
 # 2.0.0-beta.3 (2023-03-24)
 

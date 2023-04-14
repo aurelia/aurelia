@@ -34,7 +34,7 @@ export const resource = function <T extends Key>(key: T) {
  * A resolver builder for resolving all registrations of a key
  * with resource semantic (leaf + root + ignore middle layer container)
  */
-export const allResources = function <T extends Key>(key: T) {
+export const allResources = <T extends Key>(key: T) => {
   function Resolver(target: Constructable, property?: string | number, descriptor?: PropertyDescriptor | number) {
     DI.inject(Resolver)(target, property, descriptor);
   }

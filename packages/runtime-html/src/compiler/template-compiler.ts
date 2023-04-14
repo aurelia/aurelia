@@ -43,9 +43,9 @@ import type {
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
-import type { IProjections } from '../resources/slot-injectables';
 import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
+import type { IAuSlotProjections } from '../templating/controller.projection';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -1024,7 +1024,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let childEl: Element;
       let targetSlot: string | null;
-      let projections: IProjections | undefined;
+      let projections: IAuSlotProjections | undefined;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
       let slotTemplate: Node | Element | DocumentFragment;
@@ -1217,7 +1217,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       let child = el.firstChild as Node | null;
       let childEl: Element;
       let targetSlot: string | null;
-      let projections: IProjections | null = null;
+      let projections: IAuSlotProjections | null = null;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
       let slotTemplate: Node | Element | DocumentFragment;

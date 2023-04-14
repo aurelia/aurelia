@@ -1,7 +1,7 @@
 import { ISignaler } from '@aurelia/runtime';
 import { bindingBehavior } from '../binding-behavior';
+import { addSignalListener, createError, removeSignalListener } from '../../utilities';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
-import { createError } from '../../utilities';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {
   /** @internal */
@@ -34,7 +34,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     this._lookup.set(binding, names);
     let name: string;
     for (name of names) {
-      this._signaler.addSignalListener(name, binding);
+      addSignalListener(this._signaler, name, binding);
     }
   }
 
@@ -43,7 +43,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     this._lookup.delete(binding);
     let name: string;
     for (name of names) {
-      this._signaler.removeSignalListener(name, binding);
+      removeSignalListener(this._signaler, name, binding);
     }
   }
 }

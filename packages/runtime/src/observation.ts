@@ -10,8 +10,8 @@ export interface IBinding {
   bind(scope: Scope): void;
   unbind(): void;
   get: IServiceLocator['get'];
-  useScope(scope: Scope): void;
-  limit(opts: IRateLimitOptions): IDisposable;
+  useScope?(scope: Scope): void;
+  limit?(opts: IRateLimitOptions): IDisposable;
 }
 
 export interface IRateLimitOptions {
@@ -19,6 +19,7 @@ export interface IRateLimitOptions {
   delay: number;
   queue: TaskQueue;
   now: () => number;
+  signals: string[];
 }
 
 export const ICoercionConfiguration = DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
@@ -51,9 +52,9 @@ export interface ICollectionSubscriber {
   handleCollectionChange(collection: Collection, indexMap: IndexMap): void;
 }
 
-export interface ISubscribable {
-  subscribe(subscriber: ISubscriber): void;
-  unsubscribe(subscriber: ISubscriber): void;
+export interface ISubscribable<T = ISubscriber> {
+  subscribe(subscriber: T): void;
+  unsubscribe(subscriber: T): void;
 }
 
 export interface ICollectionSubscribable {

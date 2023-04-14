@@ -1,13 +1,12 @@
-import { emptyArray, IContainer, IServiceLocator, IDisposable, Key } from '@aurelia/kernel';
-import { IBinding, subscriberCollection } from '@aurelia/runtime';
+import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable, Constructable } from '@aurelia/kernel';
+import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
 import { CustomElement, findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { createError, def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
+import { createMutationObserver } from '../utilities-dom';
 
-import type { IIndexable, Constructable } from '@aurelia/kernel';
-import type { ISubscriberCollection } from '@aurelia/runtime';
 import type { INode } from '../dom';
 
 export type PartialChildrenDefinition = {
@@ -164,7 +163,7 @@ export class ChildrenBinding implements IBinding {
     this._filter = filter;
     this._map = map;
     this._options = options;
-    this._observer = new (this._host = controller.host).ownerDocument.defaultView!.MutationObserver(() => {
+    this._observer = createMutationObserver(this._host = controller.host, () => {
       this._onChildrenChanged();
     });
   }
@@ -203,14 +202,6 @@ export class ChildrenBinding implements IBinding {
 
   public get(): ReturnType<IServiceLocator['get']> {
     throw notImplemented('get');
-  }
-
-  public useScope() {
-    /* not implemented */
-  }
-
-  public limit(): IDisposable {
-    throw notImplemented('limit');
   }
 
   /** @internal */

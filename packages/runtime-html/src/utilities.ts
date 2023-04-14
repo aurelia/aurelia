@@ -1,3 +1,4 @@
+import type { ISignaler, ISubscriber } from '@aurelia/runtime';
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
 const O = Object;
@@ -45,6 +46,7 @@ const IsDataAttribute: Record<string, boolean> = createLookup();
 /** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
+/** @internal */ export const isNumber = (v: unknown): v is number => typeof v === 'number';
 /** @internal */ export const defineProp = O.defineProperty;
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
 /** @internal */ export const areEqual = O.is;
@@ -62,3 +64,8 @@ export const defineHiddenProp = <T>(obj: object, key: PropertyKey, value: T): T 
   });
   return value;
 };
+
+/** @internal */
+export const addSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.addSignalListener(signal, listener);
+/** @internal */
+export const removeSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.removeSignalListener(signal, listener);

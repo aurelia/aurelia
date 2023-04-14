@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.4"></a>
+# 2.0.0-beta.4 (2023-04-13)
+
+### Features:
+
+* **vite-plugin:** add plugin for vite (#1726) ([564e533](https://github.com/aurelia/aurelia/commit/564e533))
+
+
+### Bug Fixes:
+
+* **ci:** fix vite build in ci, upgrade chromedriver ([564e533](https://github.com/aurelia/aurelia/commit/564e533))
+
+
+### Refactorings:
+
+* **all:** upgrade rollup config files ([564e533](https://github.com/aurelia/aurelia/commit/564e533))
+* ***:** remove unnecessary properties on PLATFORM (#1722) ([7cd77ad](https://github.com/aurelia/aurelia/commit/7cd77ad))
+
 <a name="2.0.0-beta.3"></a>
 # 2.0.0-beta.3 (2023-03-24)
 

@@ -203,10 +203,9 @@ export class RouteContext {
       true,
     );
 
-    container.registerResolver(
-      IRouteContext,
-      new InstanceProvider<IRouteContext>('IRouteContext', this)
-    );
+    const ctxProvider = new InstanceProvider<IRouteContext>('IRouteContext', this);
+    container.registerResolver(IRouteContext, ctxProvider);
+    container.registerResolver(RouteContext, ctxProvider);
 
     container.register(config);
 
@@ -700,7 +699,6 @@ export class $RecognizedRoute {
   }
 }
 
-export const INavigationModel = DI.createInterface<INavigationModel>('INavigationModel');
 export interface INavigationModel {
   /**
    * Collection of routes.

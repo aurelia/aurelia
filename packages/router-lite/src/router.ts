@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll, Registration, IResolver } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -193,6 +193,7 @@ export class Router {
   ) {
     this.logger = logger.root.scopeTo('Router');
     this.instructions = ViewportInstructionTree.create('', options);
+    container.registerResolver(Router, Registration.instance(Router, this) as unknown as IResolver<Router>);
   }
 
   /**

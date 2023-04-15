@@ -1,6 +1,6 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -6467,5 +6467,46 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
     assert.areTaskQueuesEmpty();
+  });
+
+  it('Alias registrations work', async function () {
+    @route('')
+    @inject(Router, RouterOptions, RouteContext)
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 {
+      public constructor(
+        public readonly router: Router,
+        public readonly routerOptions: RouterOptions,
+        public readonly ctx: RouteContext,
+        @IRouteContext public readonly ictx: IRouteContext,
+      ) { }
+    }
+
+    @route({ routes: [C1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root {
+      public constructor(
+        @IRouter public readonly router: IRouter,
+        @IRouterOptions public readonly routerOptions: IRouterOptions,
+      ) { }
+    }
+
+    const { au, host, container, rootVm } = await start({ appRoot: Root });
+
+    assert.html.textContent(host, 'c1');
+
+    const c1vm = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+
+    const router = container.get(IRouter);
+    assert.strictEqual(Object.is(router, rootVm.router), true, 'router != root Router');
+    assert.strictEqual(Object.is(router, c1vm.router), true, 'router != c1 router');
+
+    const routerOptions = container.get(IRouterOptions);
+    assert.strictEqual(Object.is(routerOptions, rootVm.routerOptions), true, 'options != root options');
+    assert.strictEqual(Object.is(routerOptions, c1vm.routerOptions), true, 'options != c1 options');
+
+    assert.strictEqual(Object.is(c1vm.ctx, c1vm.ictx), true, 'RouteCtx != IRouteCtx');
+
+    await au.stop(true);
   });
 });

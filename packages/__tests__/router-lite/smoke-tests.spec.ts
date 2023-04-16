@@ -3240,6 +3240,44 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  it('children are supported as residue as well as structured children array', async function () {
+    @route('c1')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({ path: 'p1', routes: [C1, C2] })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+    class P1 { }
+
+    @route(['', 'p2'])
+    @customElement({ name: 'p-2', template: 'p2' })
+    class P2 { }
+
+    @route({ routes: [P1, P2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).taskQueue;
+
+    assert.html.textContent(host, 'p2');
+
+    await router.load({
+      component: 'p1/c1',
+      children: [{ component: C2, viewport: '$2' }]
+    });
+    await queue.yield();
+
+    assert.html.textContent(host, 'p1 c1 c2');
+    await au.stop(true);
+  });
+
   // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
   it('does not interfere with standard "href" attribute', async function () {

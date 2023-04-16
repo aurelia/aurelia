@@ -463,11 +463,18 @@ export function createAndAppendNodes(
             ? path
             : path.slice(0, -(residue.length + 1));
 
+          let addResidue = !noResidue;
           for (let i = 0; i < collapse; ++i) {
             const child = vi.children[0];
-            if (residue?.startsWith(child.component.value as string) ?? false) break;
+            if (residue?.startsWith(child.component.value as string) ?? false) {
+              addResidue = false;
+              break;
+            }
             (vi as Writable<ViewportInstruction>).viewport = child.viewport;
             (vi as Writable<ViewportInstruction>).children = child.children;
+          }
+          if (addResidue) {
+            vi.children.unshift(ViewportInstruction.create(residue!));
           }
           (vi as Writable<ViewportInstruction>).recognizedRoute = rr;
           log.trace('createNode after adjustment vi:%s', vi);
@@ -548,11 +555,8 @@ function createConfiguredNode(
                 viewport: vpName,
                 component: ced,
                 title: $handler.title,
-                residue: [
-                  // TODO(sayan): this can be removed; need to inspect more. --> Add tests to string instruction as parent that results in residue and then add children.
-                  ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
-                  ...vi.children,
-                ],
+                // Note: at this point, the residue from the recognized route should be converted to VI children. Hence the residues are not added back to the RouteNode.
+                residue: vi.children.slice(),
               });
               $node.setTree(node.tree);
 

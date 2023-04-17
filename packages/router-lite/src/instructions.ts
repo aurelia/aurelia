@@ -123,10 +123,10 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       return false;
     }
 
-    // TODO(fkleuver): incorporate viewports when null / '' descrepancies are fixed --> TODO(sayan): need tests in this area to close this todo
-    if (!this.component.equals(other.component)) {
-      return false;
-    }
+    if (!this.component.equals(other.component)) return false;
+    const vp = this.viewport ?? null;
+    const otherVp = other.viewport ?? null;
+    if (vp !== null && otherVp !== null && vp !== otherVp) return false;
 
     for (let i = 0, ii = otherChildren.length; i < ii; ++i) {
       if (!thisChildren[i].contains(otherChildren[i])) {
@@ -322,7 +322,12 @@ export class ViewportInstructionTree {
       return expr.toInstructionTree($options);
     }
 
-    const eagerVi = hasContext ? context.generateViewportInstruction(instructionOrInstructions) : null;
+    const eagerVi = hasContext
+      ? context.generateViewportInstruction('component' in instructionOrInstructions
+        ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
+        : { component: instructionOrInstructions, params: emptyObject }
+      )
+      : null;
     const query = new URLSearchParams($options.queryParams ?? emptyObject);
     return eagerVi !== null
       ? new ViewportInstructionTree(

@@ -67,6 +67,13 @@ export interface IRouteNode {
 
 let nodeId: number = 0;
 
+export interface RouteNodeMatchOptions {
+  /** Endpoints will be matched instead of instruction */
+  matchEndpoint: boolean;
+  /** Original instruction will be matched */
+  matchOriginalInstruction: boolean;
+}
+
 export class RouteNode implements IRouteNode {
   /** @internal */
   public tree!: RouteTree;
@@ -76,6 +83,10 @@ export class RouteNode implements IRouteNode {
   public get root(): RouteNode {
     return this.tree.root;
   }
+
+  /** @internal */
+  private _isInstructionsFinalized: boolean = false;
+  public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
 
   private constructor(
     /** @internal */
@@ -150,19 +161,25 @@ export class RouteNode implements IRouteNode {
     );
   }
 
-  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
+  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
     if (this.context === instructions.options.context) {
+      const matchEndpoint = options.matchEndpoint ?? false;
+      const matchOriginalInstruction = options.matchOriginalInstruction ?? false;
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
         for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
           const instructionChild = instructionChildren[j];
-          const instructionEndpoint = preferEndpointMatch ? instructionChild.recognizedRoute?.route.endpoint : null;
-          const nodeChild = nodeChildren[i + j];
+          const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
+          const nodeChild = nodeChildren[i + j] ?? null;
+          const instruction = nodeChild !== null
+            ? !matchOriginalInstruction && nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild.originalInstruction
+            : null;
+          const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
           if (i + j < ii
             && (
-              (instructionEndpoint != null && nodeChild.instruction?.recognizedRoute?.route.endpoint === instructionEndpoint)
-              || (nodeChild.originalInstruction?.contains(instructionChild) ?? false)
+              (instructionEndpoint?.equalsOrResidual(childEndpoint) ?? false)
+               || (instruction?.contains(instructionChild) ?? false)
             )
           ) {
             if (j + 1 === jj) {
@@ -176,7 +193,7 @@ export class RouteNode implements IRouteNode {
     }
 
     return this.children.some(function (x) {
-      return x.contains(instructions, preferEndpointMatch);
+      return x.contains(instructions, options);
     });
   }
 
@@ -236,6 +253,7 @@ export class RouteNode implements IRouteNode {
 
   /** @internal */
   public finalizeInstruction(): ViewportInstruction {
+    this._isInstructionsFinalized = true;
     const children = this.children.map(x => x.finalizeInstruction());
     const instruction = this.instruction!.clone();
     instruction.children.splice(0, instruction.children.length, ...children);
@@ -306,8 +324,8 @@ export class RouteTree {
     public root: RouteNode,
   ) { }
 
-  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
-    return this.root.contains(instructions, preferEndpointMatch);
+  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
+    return this.root.contains(instructions, options);
   }
 
   public clone(): RouteTree {
@@ -524,7 +542,8 @@ function createConfiguredNode(
     log.trace(`creatingConfiguredNode(rdc:%s, vi:%s)`, $handler, vi);
 
     if ($handler.redirectTo === null) {
-      const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
+      const viWithVp = (vi.viewport?.length ?? 0) > 0;
+      const vpName: string = (viWithVp ? vi.viewport : $handler.viewport)!;
       return onResolve(
         resolveCustomElementDefinition($handler.component, ctx)[1],
         ced => {
@@ -534,6 +553,9 @@ function createConfiguredNode(
             ced.name,
           ));
 
+          if(!viWithVp) {
+            (vi as Writable<ViewportInstruction>).viewport = vpa.viewport.name;
+          }
           const router = ctx.container.get(IRouter);
           return onResolve(
             router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.config, ctx, $handler),

@@ -279,6 +279,39 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     await tearDown();
   });
 
+  it('root can load sibling components and can determine if it\'s active', async function () {
+    @route('c1')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({ routes: [C1, C2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '', 'init');
+
+    await router.load('c1+c2');
+    assert.html.textContent(host, 'c1 c2', 'init');
+
+    const ctx = router.routeTree.root.context;
+
+    assertIsActive(router, 'c1+c2',       ctx, true, 1);
+    assertIsActive(router, 'c1@$1+c2@$2', ctx, true, 2);
+    assertIsActive(router, 'c2@$1+c1@$2', ctx, false, 3);
+    assertIsActive(router, 'c1@$2+c2@$1', ctx, false, 4);
+    assertIsActive(router, 'c2+c1', ctx, false, 5);
+    assertIsActive(router, 'c2$2+c1$1', ctx, false, 6); // the contains check is not order-invariant.
+
+    await au.stop(true);
+  });
+
   it(`root1 can load a11/a01,a11/a02 in order with context`, async function () {
     const { router, host, tearDown } = await createFixture(Root1, Z);
 

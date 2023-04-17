@@ -50,7 +50,7 @@ describe('router-lite/ast.spec.ts', function () {
     ),
   ];
 
-  const noViewport = new ViewportExpression('', '');
+  const noViewport = new ViewportExpression('', null);
   const viewportSpecs = [
     noViewport,
     new ViewportExpression('@foo', 'foo'),

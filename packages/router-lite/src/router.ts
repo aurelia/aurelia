@@ -332,7 +332,7 @@ export class Router {
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
-    return this.routeTree.contains(instructions, false);
+    return this.routeTree.contains(instructions, { matchEndpoint: false });
   }
 
   private readonly vpaLookup: ViewportAgentLookup = new Map();

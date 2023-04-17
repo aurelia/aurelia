@@ -58,7 +58,6 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     this.valueChanged();
     this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
-      this.valueChanged();
       const active = this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
       const activeClass = this.activeClass;
       if (activeClass === null) return;

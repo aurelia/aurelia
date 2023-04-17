@@ -807,6 +807,6 @@ class NavigationRoute implements INavigationRoute {
         );
       });
     }
-    this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
+    this._isActive = trees.some(vit => router.routeTree.contains(vit, { matchEndpoint: true, matchOriginalInstruction: this.redirectTo !== null }));
   }
 }

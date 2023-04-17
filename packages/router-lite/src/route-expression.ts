@@ -573,12 +573,12 @@ export class ViewportExpression {
 
   public constructor(
     public readonly raw: string,
-    public readonly name: string,
+    public readonly name: string | null,
   ) {}
 
   public static parse(state: ParserState): ViewportExpression {
     state.record();
-    let name = '';
+    let name: string | null = null;
 
     if (state.consumeOptional('@')) {
       state.record();

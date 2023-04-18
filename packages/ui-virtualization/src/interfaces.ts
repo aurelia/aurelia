@@ -15,7 +15,7 @@ export interface IVirtualRepeater<T extends Collection = Collection> extends ISc
   getDistances(): [top: number, bottom: number];
 }
 
-export const IDomRenderer = DI.createInterface<IDomRenderer>('IDomRenderer');
+export const IDomRenderer = /*@__PURE__*/DI.createInterface<IDomRenderer>('IDomRenderer');
 export interface IDomRenderer {
   render(target: HTMLElement | IRenderLocation): IVirtualRepeatDom;
 }
@@ -32,7 +32,7 @@ export interface IVirtualRepeatDom extends IDisposable {
   update(top: number, bot: number): void;
 }
 
-export const IScrollerObsererLocator = DI.createInterface<IScrollerObsererLocator>('IScrollerObsererLocator');
+export const IScrollerObsererLocator = /*@__PURE__*/DI.createInterface<IScrollerObsererLocator>('IScrollerObsererLocator');
 export interface IScrollerObsererLocator {
   getObserver(scroller: HTMLElement): IScrollerObserver;
 }
@@ -61,7 +61,7 @@ export interface IScrollerInfo {
   readonly height: number;
 }
 
-export const ICollectionStrategyLocator = DI.createInterface<ICollectionStrategyLocator>('ICollectionStrategyLocator');
+export const ICollectionStrategyLocator = /*@__PURE__*/DI.createInterface<ICollectionStrategyLocator>('ICollectionStrategyLocator');
 export interface ICollectionStrategyLocator {
   getStrategy(items: unknown): ICollectionStrategy;
 }

@@ -4,7 +4,7 @@ import { isNativeFunction } from './functions';
 import { Class, Constructable, IDisposable } from './interfaces';
 import { emptyArray } from './platform';
 import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
-import { createError, createObject, getOwnMetadata, isFunction, isString, toStringSafe } from './utilities';
+import { createError, createObject, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { IContainer, type Key, type IResolver, type IDisposableResolver, Factory, ContainerConfiguration, type IRegistry, Registration, Resolver, ResolverStrategy, Transformer, type RegisterSelf, type Resolved, getDependencies, containerGetKey, IFactory, IContainerConfiguration } from './di';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
@@ -524,20 +524,20 @@ const registrationError = (deps: Key[]) =>
   // Most likely cause is trying to register a plain object that does not have a
   // register method and is not a class constructor
   __DEV__
-    ? createError(`AUR0006: Unable to autoregister dependency: [${deps.map(toStringSafe)}]`)
-    : createError(`AUR0006:${deps.map(toStringSafe)}`);
+    ? createError(`AUR0006: Unable to autoregister dependency: [${deps.map(safeString)}]`)
+    : createError(`AUR0006:${deps.map(safeString)}`);
 const resourceExistError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0007: Resource key "${toStringSafe(key)}" already registered`)
-    : createError(`AUR0007:${toStringSafe(key)}`);
+    ? createError(`AUR0007: Resource key "${safeString(key)}" already registered`)
+    : createError(`AUR0007:${safeString(key)}`);
 const cantResolveKeyError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0008: Unable to resolve key: ${toStringSafe(key)}`)
-    : createError(`AUR0008:${toStringSafe(key)}`);
+    ? createError(`AUR0008: Unable to resolve key: ${safeString(key)}`)
+    : createError(`AUR0008:${safeString(key)}`);
 const jitRegisterNonFunctionError = (keyAsValue: Key) =>
   __DEV__
-    ? createError(`AUR0009: Attempted to jitRegister something that is not a constructor: '${toStringSafe(keyAsValue)}'. Did you forget to register this resource?`)
-    : createError(`AUR0009:${toStringSafe(keyAsValue)}`);
+    ? createError(`AUR0009: Attempted to jitRegister something that is not a constructor: '${safeString(keyAsValue)}'. Did you forget to register this resource?`)
+    : createError(`AUR0009:${safeString(keyAsValue)}`);
 const jitInstrinsicTypeError = (keyAsValue: any) =>
   __DEV__
     ? createError(`AUR0010: Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`)

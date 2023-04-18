@@ -105,7 +105,7 @@ export interface IFlushable {
   flush(): void;
 }
 
-export const IFlushQueue = createInterface<IFlushQueue>('IFlushQueue', x => x.singleton(FlushQueue));
+export const IFlushQueue = /*@__PURE__*/createInterface<IFlushQueue>('IFlushQueue', x => x.singleton(FlushQueue));
 export interface IFlushQueue {
   get count(): number;
   add(flushable: IFlushable): void;

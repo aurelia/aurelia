@@ -195,7 +195,7 @@ module.exports = {
     'space-in-parens': 'error',
     'spaced-comment': ['error', 'always', {
       line: { markers: ['/'], exceptions: ['-', '+'] },
-      block: { markers: ['!'], exceptions: ['*'], balanced: true }
+      block: { markers: ['!'], exceptions: ['*', '@__PURE__'], balanced: true }
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:

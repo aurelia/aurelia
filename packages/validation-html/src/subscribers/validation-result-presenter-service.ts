@@ -7,7 +7,7 @@ const resultIdAttribute = 'validation-result-id';
 const resultContainerAttribute = 'validation-result-container';
 
 export interface IValidationResultPresenterService extends ValidationResultPresenterService { }
-export const IValidationResultPresenterService = DI.createInterface<IValidationResultPresenterService>('IValidationResultPresenterService', (x) => x.transient(ValidationResultPresenterService));
+export const IValidationResultPresenterService = /*@__PURE__*/DI.createInterface<IValidationResultPresenterService>('IValidationResultPresenterService', (x) => x.transient(ValidationResultPresenterService));
 
 export class ValidationResultPresenterService implements ValidationResultsSubscriber {
   public constructor(

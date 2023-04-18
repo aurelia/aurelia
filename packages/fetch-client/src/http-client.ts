@@ -5,7 +5,7 @@ import { RetryInterceptor } from './retry-interceptor';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
-export const IHttpClient = DI.createInterface<IHttpClient>('IHttpClient', x => x.singleton(HttpClient));
+export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.singleton(HttpClient));
 export interface IHttpClient extends HttpClient {}
 /**
  * An HTTP client based on the Fetch API.

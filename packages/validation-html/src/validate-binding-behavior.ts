@@ -51,7 +51,7 @@ export enum ValidationTrigger {
   changeOrFocusout = 'changeOrFocusout',
 }
 
-export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
+export const IDefaultTrigger = /*@__PURE__*/DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
 const validationConnectorMap = new WeakMap<IBinding, ValidatitionConnector>();
 const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();

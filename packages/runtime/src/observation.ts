@@ -22,7 +22,7 @@ export interface IRateLimitOptions {
   signals: string[];
 }
 
-export const ICoercionConfiguration = DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
+export const ICoercionConfiguration = /*@__PURE__*/DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
 export interface ICoercionConfiguration {
   /** When set to `true`, enables the automatic type-coercion for bindables globally. */
   enableCoercion: boolean;

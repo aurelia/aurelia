@@ -11,7 +11,7 @@ import { isArrayIndex } from './functions';
 import { Container } from './di.container';
 import { Constructable, IDisposable, Writable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
-import { createError, defineMetadata, getOwnMetadata, isFunction, isString, toStringSafe } from './utilities';
+import { createError, defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
@@ -175,8 +175,8 @@ export const DefaultResolver = {
 
 const noResolverForKeyError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0002: ${toStringSafe(key)} not registered, did you forget to add @singleton()?`)
-    : createError(`AUR0002:${toStringSafe(key)}`);
+    ? createError(`AUR0002: ${safeString(key)} not registered, did you forget to add @singleton()?`)
+    : createError(`AUR0002:${safeString(key)}`);
 
 export class ContainerConfiguration implements IContainerConfiguration {
   public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
@@ -706,7 +706,7 @@ export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 export const newInstanceForScope = createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => {
     const instance = createNewInstance(key, handler, requestor);
-    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(toStringSafe(key), instance);
+    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(safeString(key), instance);
     /**
      * By default the new instances for scope are disposable.
      * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
@@ -807,8 +807,8 @@ const cyclicDependencyError = (name: string) =>
     : createError(`AUR0003:${name}`);
 const nullFactoryError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0004: Resolver for ${toStringSafe(key)} returned a null factory`)
-    : createError(`AUR0004:${toStringSafe(key)}`);
+    ? createError(`AUR0004: Resolver for ${safeString(key)} returned a null factory`)
+    : createError(`AUR0004:${safeString(key)}`);
 const invalidResolverStrategyError = (strategy: ResolverStrategy) =>
   __DEV__
     ? createError(`AUR0005: Invalid resolver strategy specified: ${strategy}.`)

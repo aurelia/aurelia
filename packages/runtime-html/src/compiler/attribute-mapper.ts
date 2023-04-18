@@ -3,7 +3,7 @@ import { ISVGAnalyzer } from '../observation/svg-analyzer';
 import { createInterface } from '../utilities-di';
 
 export interface IAttrMapper extends AttrMapper {}
-export const IAttrMapper = createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
+export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
 
 export type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 

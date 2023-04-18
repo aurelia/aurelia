@@ -3,7 +3,7 @@ import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
 import { LoadCustomAttribute } from './load';
 import { IRouter } from '../router';
 
-export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler', x => x.singleton(LinkHandler));
+export const ILinkHandler = /*@__PURE__*/DI.createInterface<ILinkHandler>('ILinkHandler', x => x.singleton(LinkHandler));
 
 export interface ILinkHandler extends LinkHandler { }
 

@@ -9,7 +9,7 @@ import { IRouter, Router } from './router';
 import { IRouterOptions, RouterOptions } from './router-options';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook';
 
-export const IRouterConfiguration = DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
+export const IRouterConfiguration = /*@__PURE__*/DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 export interface IRouterConfiguration extends RouterConfiguration { }
 
 export const RouterRegistration = IRouter as unknown as IRegistry;

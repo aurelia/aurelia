@@ -67,7 +67,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   };
 }
 
-export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
+export const IActivityTracker = /*@__PURE__*/DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
 export interface IActivityTracker extends ActivityTracker { }
 export class ActivityTracker {
   public readonly activeVMs: string[] = [];

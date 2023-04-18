@@ -13,7 +13,7 @@ function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionT
   return valueOrFunc;
 }
 
-export const IRouterOptions = DI.createInterface<Readonly<RouterOptions>>('RouterOptions');
+export const IRouterOptions = /*@__PURE__*/DI.createInterface<Readonly<RouterOptions>>('RouterOptions');
 export interface IRouterOptions extends Partial<RouterOptions> {}
 export class RouterOptions {
   protected constructor(

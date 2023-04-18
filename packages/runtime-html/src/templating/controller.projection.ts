@@ -27,7 +27,7 @@ export interface IAuSlotsInfo {
 /**
  * Describing the projection information statically available for a custom element
  */
-export const IAuSlotsInfo = createInterface<IAuSlotsInfo>('IAuSlotsInfo');
+export const IAuSlotsInfo = /*@__PURE__*/createInterface<IAuSlotsInfo>('IAuSlotsInfo');
 export class AuSlotsInfo implements IAuSlotsInfo {
   public constructor(
     public readonly projectedSlots: string[],
@@ -61,7 +61,7 @@ export interface IAuSlotWatcher extends ISubscribable {
   watch(slot: IAuSlot): void;
   unwatch(slot: IAuSlot): void;
 }
-export const IAuSlotWatcher = createInterface<IAuSlotWatcher>('IAuSlotWatcher');
+export const IAuSlotWatcher = /*@__PURE__*/createInterface<IAuSlotWatcher>('IAuSlotWatcher');
 
 // 1. on hydrating, create a slot watcher (binding) & register with hydration context
 // 2. on slot with projection created, optionally retrieve the slot watcher

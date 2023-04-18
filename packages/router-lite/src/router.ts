@@ -12,6 +12,7 @@ import { IViewportInstruction, NavigationInstruction, RouteContextLike, Viewport
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
+import { isPartialViewportInstruction } from './validation';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -407,7 +408,7 @@ export class Router {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
     }
 
-    const isVpInstr = typeof instructionOrInstructions !== 'string' && 'component' in instructionOrInstructions;
+    const isVpInstr = isPartialViewportInstruction(instructionOrInstructions);
     let $instruction = isVpInstr ? (instructionOrInstructions as IViewportInstruction).component : instructionOrInstructions;
     if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
       context = this.resolveContext(context);

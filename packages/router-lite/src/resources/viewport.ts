@@ -11,7 +11,7 @@ import {
 
 import type { ViewportAgent } from '../viewport-agent';
 import { IRouteContext } from '../route-context';
-import { defaultViewportName, type ViewportInstruction } from '../instructions';
+import { defaultViewportName, IViewportInstruction } from '../instructions';
 import { type RouteNode } from '../route-tree';
 import { FallbackFunction, Routeable } from '../options';
 
@@ -21,7 +21,7 @@ export interface IViewport {
   readonly default: string;
   readonly fallback: Routeable | FallbackFunction;
   /** @internal */
-  _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
+  _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -44,7 +44,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   /** @internal */
-  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
+  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
     const fallback = this.fallback;
     return typeof fallback === 'function'
       && !CustomElement.isType(fallback as Constructable)

@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -1192,7 +1192,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
       },
     })
@@ -1269,7 +1269,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
         return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
       },
     })
@@ -1332,7 +1332,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
       }
     }
@@ -1372,7 +1372,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
   it('function as fallback is supported - viewport - hierarchical', async function () {
 
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
       return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
     }
 
@@ -1554,7 +1554,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
       },
     })
@@ -1615,7 +1615,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return rn.component.Type === P1 ? NF1 : NF2;
       },
     })
@@ -1742,7 +1742,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
       },
     })
@@ -1803,7 +1803,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
       },
     })
@@ -1943,7 +1943,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
       }
     }
@@ -1966,7 +1966,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   });
 
   it('function returning class as fallback is supported - viewport - hierarchical', async function () {
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
       return rn.component.Type === P1 ? NF1 : NF2;
     }
 
@@ -2144,7 +2144,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
       }
     }
@@ -2167,7 +2167,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   });
 
   it('function returning a promise resolving to class as fallback is supported - viewport - hierarchical', async function () {
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
       return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
     }
 

@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import type { Params, RouteContextLike, RouteableComponent, ViewportInstruction, ViewportInstructionTree } from './instructions';
+import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent, ViewportInstructionTree } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import type { IRouteContext } from './route-context';
@@ -141,7 +141,7 @@ export class NavigationOptions implements INavigationOptions {
   }
 }
 
-export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext) => Routeable | null;
+export type FallbackFunction = (viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext) => Routeable | null;
 
 /**
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:

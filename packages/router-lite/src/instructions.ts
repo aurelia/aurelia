@@ -124,6 +124,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     if (!this.component.equals(other.component)) return false;
+    // if either of the viewports are not set then ignore
     const vp = this.viewport ?? null;
     const otherVp = other.viewport ?? null;
     if (vp !== null && otherVp !== null && vp !== otherVp) return false;
@@ -145,7 +146,6 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     if (
-      // TODO(fkleuver): decide if we really need to include `context` in this comparison --> TODO(sayan): need tests in this area to close this todo
       !this.component.equals(other.component) ||
       this.viewport !== other.viewport ||
       !shallowEquals(this.params, other.params)
@@ -175,9 +175,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 
   public toUrlComponent(recursive: boolean = true): string {
-    // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
-    const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`; /** TODO(sayan): review the path generation usage and correct this stringifyParams artefact. */
+    const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
     const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
@@ -323,7 +322,7 @@ export class ViewportInstructionTree {
     }
 
     const eagerVi = hasContext
-      ? context.generateViewportInstruction('component' in instructionOrInstructions
+      ? context.generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
         ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
         : { component: instructionOrInstructions, params: emptyObject }
       )

@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, noop } from '@aurelia/kernel';
+import { IContainer, noop } from '@aurelia/kernel';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -50,7 +50,6 @@ import {
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
-import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
@@ -78,17 +77,6 @@ import { NodeObserverLocator } from './observation/observer-locator';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { instanceRegistration } from './utilities-di';
 
-export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
-export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
-export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
-export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
-export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
-export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
-export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
-
-export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
-export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry;
-
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
@@ -96,17 +84,9 @@ export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry
  * - `ITargetObserverLocator`
  */
 export const DefaultComponents = [
-  ITemplateCompilerRegistration,
-  INodeObserverLocatorRegistration,
+  TemplateCompiler,
+  NodeObserverLocator,
 ];
-
-export const SVGAnalyzerRegistration = SVGAnalyzer as IRegistry;
-
-export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
-export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
-export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
-export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
-export const SpreadAttributePatternRegistration = SpreadAttributePattern as unknown as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -129,20 +109,6 @@ export const ShortHandBindingSyntax = [
   ColonPrefixedBindAttributePattern
 ];
 
-export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
-export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
-export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
-export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as unknown as IRegistry;
-export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown as IRegistry;
-export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
-export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
-export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
-export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
-export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
-export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
-export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as IRegistry;
-export const SpreadBindingCommandRegistration = SpreadBindingCommand as unknown as IRegistry;
-
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
@@ -151,43 +117,20 @@ export const SpreadBindingCommandRegistration = SpreadBindingCommand as unknown 
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
 export const DefaultBindingLanguage = [
-  DefaultBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  RefBindingCommandRegistration,
-  TriggerBindingCommandRegistration,
-  CaptureBindingCommandRegistration,
-  ClassBindingCommandRegistration,
-  StyleBindingCommandRegistration,
-  AttrBindingCommandRegistration,
-  SpreadBindingCommandRegistration,
+  DefaultBindingCommand,
+  OneTimeBindingCommand,
+  FromViewBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand,
+  ForBindingCommand,
+  RefBindingCommand,
+  TriggerBindingCommand,
+  CaptureBindingCommand,
+  ClassBindingCommand,
+  StyleBindingCommand,
+  AttrBindingCommand,
+  SpreadBindingCommand,
 ];
-
-export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
-export const IfRegistration = If as unknown as IRegistry;
-export const ElseRegistration = Else as unknown as IRegistry;
-export const RepeatRegistration = Repeat as unknown as IRegistry;
-export const WithRegistration = With as unknown as IRegistry;
-export const SwitchRegistration = Switch as unknown as IRegistry;
-export const CaseRegistration = Case as unknown as IRegistry;
-export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
-export const PromiseTemplateControllerRegistration = PromiseTemplateController as unknown as IRegistry;
-export const PendingTemplateControllerRegistration = PendingTemplateController as unknown as IRegistry;
-export const FulfilledTemplateControllerRegistration = FulfilledTemplateController as unknown as IRegistry;
-export const RejectedTemplateControllerRegistration = RejectedTemplateController as unknown as IRegistry;
-// TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
-export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
-export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
-export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
-export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
-export const AuComposeRegistration = AuCompose as unknown as IRegistry;
-export const PortalRegistration = Portal as unknown as IRegistry;
-export const FocusRegistration = Focus as unknown as IRegistry;
-export const ShowRegistration = Show as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) resources:

@@ -3,7 +3,7 @@ import { isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { Class, Constructable, IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
+import { IResourceKind, ResourceDefinition, ResourceType, getAllResources, hasResources } from './resource';
 import { createError, createObject, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { IContainer, type Key, type IResolver, type IDisposableResolver, Factory, ContainerConfiguration, type IRegistry, Registration, Resolver, ResolverStrategy, Transformer, type RegisterSelf, type Resolved, getDependencies, containerGetKey, IFactory, IContainerConfiguration } from './di';
 
@@ -95,8 +95,8 @@ export class Container implements IContainer {
       }
       if (isRegistry(current)) {
         current.register(this);
-      } else if (Protocol.resource.has(current)) {
-        const defs = Protocol.resource.getAll(current);
+      } else if (hasResources(current)) {
+        const defs = getAllResources(current);
         if (defs.length === 1) {
           // Fast path for the very common case
           defs[0].register(this);
@@ -445,8 +445,8 @@ export class Container implements IContainer {
         throw invalidResolverFromRegisterError();
       }
       return registrationResolver as IResolver;
-    } else if (Protocol.resource.has(keyAsValue)) {
-      const defs = Protocol.resource.getAll(keyAsValue);
+    } else if (hasResources(keyAsValue)) {
+      const defs = getAllResources(keyAsValue);
       if (defs.length === 1) {
         // Fast path for the very common case
         defs[0].register(handler);

@@ -76,6 +76,17 @@ const annotation = Object.freeze({
 });
 
 const resBaseName = 'au:resource';
+export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
+/** @internal */
+export const getAllResources = (target: Constructable): readonly ResourceDefinition[] => {
+  const keys = getOwnMetadata(resBaseName, target) as string[];
+  if (keys === void 0) {
+    return emptyArray;
+  } else {
+    return keys.map(k => getOwnMetadata(k, target));
+  }
+};
+
 const resource = Object.freeze({
   name: resBaseName,
   appendTo(target: Constructable, key: string): void {
@@ -86,15 +97,8 @@ const resource = Object.freeze({
       keys.push(key);
     }
   },
-  has: (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target),
-  getAll(target: Constructable): readonly ResourceDefinition[] {
-    const keys = getOwnMetadata(resBaseName, target) as string[];
-    if (keys === void 0) {
-      return emptyArray;
-    } else {
-      return keys.map(k => getOwnMetadata(k, target));
-    }
-  },
+  has: hasResources,
+  getAll: getAllResources,
   getKeys(target: Constructable): readonly string[] {
     let keys = getOwnMetadata(resBaseName, target) as string[];
     if (keys === void 0) {

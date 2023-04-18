@@ -174,8 +174,6 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
   }
 }
 
-subscriberCollection(AuSlotWatcherBinding);
-
 type SlottedPropDefinition = PartialSlottedDefinition & { name: PropertyKey };
 class SlottedLifecycleHooks {
   public constructor(
@@ -199,8 +197,6 @@ class SlottedLifecycleHooks {
     controller.addBinding(watcher);
   }
 }
-
-lifecycleHooks()(SlottedLifecycleHooks);
 
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
@@ -231,6 +227,11 @@ export function slotted(query: string, slotName: string): PropertyDecorator;
 export function slotted(def: PartialSlottedDefinition): PropertyDecorator;
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string): PropertyDecorator;
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
+  if (!mixed) {
+    mixed = true;
+    subscriberCollection(AuSlotWatcherBinding);
+    lifecycleHooks()(SlottedLifecycleHooks);
+  }
   const dependenciesKey = 'dependencies';
 
   function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
@@ -271,3 +272,5 @@ function testDecorator() {
     a4: any;
   }
 }
+
+let mixed = false;

@@ -18,7 +18,7 @@ class Handler<T extends Constructable> {
   }
 }
 
-export const IEventAggregator = createInterface<IEventAggregator>('IEventAggregator', x => x.singleton(EventAggregator));
+export const IEventAggregator = /*@__PURE__*/createInterface<IEventAggregator>('IEventAggregator', x => x.singleton(EventAggregator));
 export interface IEventAggregator extends EventAggregator {}
 
 /**

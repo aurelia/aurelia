@@ -36,7 +36,7 @@ DialogConfiguration.customize(settings => {
 }, [all_implementations_here])
 ```
  */
-export const DialogConfiguration = createDialogConfiguration(() => {
+export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => {
   if (__DEV__)
     throw createError(`AUR0904: Invalid dialog configuration. ` +
       'Specify the implementations for ' +
@@ -51,7 +51,7 @@ export const DialogConfiguration = createDialogConfiguration(() => {
   }
 }]);
 
-export const DialogDefaultConfiguration = createDialogConfiguration(noop, [
+export const DialogDefaultConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
   DialogService,
   DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,

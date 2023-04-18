@@ -114,9 +114,9 @@ export const SpreadAttributePatternRegistration = SpreadAttributePattern as unkn
  * - `target.command` (dot-separated)
  */
 export const DefaultBindingSyntax = [
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-  SpreadAttributePatternRegistration,
+  RefAttributePattern,
+  DotSeparatedAttributePattern,
+  SpreadAttributePattern,
 ];
 
 /**
@@ -125,8 +125,8 @@ export const DefaultBindingSyntax = [
  * - `:target` (short-hand for `target.bind`)
  */
 export const ShortHandBindingSyntax = [
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern
 ];
 
 export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
@@ -198,36 +198,36 @@ export const ShowRegistration = Show as unknown as IRegistry;
  * - Value Converters: `sanitize`
  */
 export const DefaultResources = [
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-  SanitizeValueConverterRegistration,
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  WithRegistration,
-  SwitchRegistration,
-  CaseRegistration,
-  DefaultCaseRegistration,
-  PromiseTemplateControllerRegistration,
-  PendingTemplateControllerRegistration,
-  FulfilledTemplateControllerRegistration,
-  RejectedTemplateControllerRegistration,
+  DebounceBindingBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  FromViewBindingBehavior,
+  SignalBindingBehavior,
+  ThrottleBindingBehavior,
+  TwoWayBindingBehavior,
+  SanitizeValueConverter,
+  If,
+  Else,
+  Repeat,
+  With,
+  Switch,
+  Case,
+  DefaultCase,
+  PromiseTemplateController,
+  PendingTemplateController,
+  FulfilledTemplateController,
+  RejectedTemplateController,
   // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-  PromiseAttributePatternRegistration,
-  FulfilledAttributePatternRegistration,
-  RejectedAttributePatternRegistration,
+  PromiseAttributePattern,
+  FulfilledAttributePattern,
+  RejectedAttributePattern,
   AttrBindingBehavior,
-  SelfBindingBehaviorRegistration,
-  UpdateTriggerBindingBehaviorRegistration,
-  AuComposeRegistration,
-  PortalRegistration,
-  FocusRegistration,
-  ShowRegistration,
+  SelfBindingBehavior,
+  UpdateTriggerBindingBehavior,
+  AuCompose,
+  Portal,
+  Focus,
+  Show,
   AuSlot,
 ];
 
@@ -268,7 +268,7 @@ export const DefaultRenderers = [
   SpreadRenderer,
 ];
 
-export const StandardConfiguration = createConfiguration(noop);
+export const StandardConfiguration = /*@__PURE__*/createConfiguration(noop);
 
 function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
   return {

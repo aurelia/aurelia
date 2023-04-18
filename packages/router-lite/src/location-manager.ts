@@ -7,8 +7,8 @@ import { IRouterEvents, LocationChangeEvent } from './router-events';
 export interface IPopStateEvent extends PopStateEvent {}
 export interface IHashChangeEvent extends HashChangeEvent {}
 
-export const IBaseHref = DI.createInterface<URL>('IBaseHref');
-export const ILocationManager = DI.createInterface<ILocationManager>('ILocationManager', x => x.singleton(BrowserLocationManager));
+export const IBaseHref = /*@__PURE__*/DI.createInterface<URL>('IBaseHref');
+export const ILocationManager = /*@__PURE__*/DI.createInterface<ILocationManager>('ILocationManager', x => x.singleton(BrowserLocationManager));
 export interface ILocationManager extends BrowserLocationManager {}
 
 /**

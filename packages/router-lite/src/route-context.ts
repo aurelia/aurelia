@@ -57,7 +57,7 @@ import { isPartialChildRouteConfig } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
-export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
+export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 

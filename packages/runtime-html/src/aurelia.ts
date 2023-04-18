@@ -15,7 +15,7 @@ import type {
 } from '@aurelia/kernel';
 
 export interface IAurelia extends Aurelia {}
-export const IAurelia = createInterface<IAurelia>('IAurelia');
+export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
 
 export class Aurelia implements IDisposable {
   /** @internal */

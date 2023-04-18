@@ -10,7 +10,7 @@ export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
     : never;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel> = { [K in TKey]-?: LifecycleHook<TViewModel, K>; };
-export const ILifecycleHooks = createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
+export const ILifecycleHooks = /*@__PURE__*/createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
 
 export type LifecycleHooksLookup<TViewModel = {}> = {
   [K in FunctionPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];

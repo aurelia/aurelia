@@ -3,7 +3,7 @@ import { InitOptions, Module, ThirdPartyModule } from 'i18next';
 
 export type I18nModule = Module | ThirdPartyModule;
 
-export const I18nInitOptions = DI.createInterface<I18nInitOptions>('I18nInitOptions');
+export const I18nInitOptions = /*@__PURE__*/DI.createInterface<I18nInitOptions>('I18nInitOptions');
 export interface I18nInitOptions extends InitOptions {
   /**
    * Collection of i18next plugins to use.

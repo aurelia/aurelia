@@ -1683,9 +1683,9 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
   ): void | Promise<void>;
 }
 
-export const IController = createInterface<IController>('IController');
+export const IController = /*@__PURE__*/createInterface<IController>('IController');
 
-export const IHydrationContext = createInterface<IHydrationContext>('IHydrationContext');
+export const IHydrationContext = /*@__PURE__*/createInterface<IHydrationContext>('IHydrationContext');
 export interface IHydrationContext<T extends ICustomElementViewModel = ICustomElementViewModel> {
   readonly controller: ICustomElementController<T>;
   readonly instruction: IControllerElementHydrationInstruction | null;

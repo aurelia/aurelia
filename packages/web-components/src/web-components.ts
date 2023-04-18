@@ -12,7 +12,7 @@ import {
   setRef
 } from '@aurelia/runtime-html';
 
-export const IWcElementRegistry = DI.createInterface<IWcElementRegistry>(x => x.singleton(WcCustomElementRegistry));
+export const IWcElementRegistry = /*@__PURE__*/DI.createInterface<IWcElementRegistry>(x => x.singleton(WcCustomElementRegistry));
 export interface IWcElementRegistry {
   /**
    * Define a web-component custom element for a set of given parameters

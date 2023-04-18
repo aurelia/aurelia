@@ -1,6 +1,6 @@
 import { createInterface } from './di';
 import { emptyArray } from './platform';
-import { Protocol } from './resource';
+import { getAllResources } from './resource';
 import { createError, isFunction } from './utilities';
 
 import type { IRegistry } from './di';
@@ -13,7 +13,7 @@ export interface IModule {
 }
 
 export interface IModuleLoader extends ModuleLoader {}
-export const IModuleLoader = createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
+export const IModuleLoader = /*@__PURE__*/createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
 
 const noTransform = <TRet = AnalyzedModule>(m: AnalyzedModule): TRet => m as unknown as TRet;
 
@@ -97,7 +97,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
         case 'function':
           isRegistry = isFunction((value as Constructable & IIndexable).register);
           isConstructable = (value as Constructable).prototype !== void 0;
-          definitions = Protocol.resource.getAll(value as Constructable);
+          definitions = getAllResources(value as Constructable);
           break;
         default:
           continue;

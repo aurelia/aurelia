@@ -6,7 +6,7 @@ import type { IContainer, IResolver } from '@aurelia/kernel';
 import type { INode } from '../dom';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
-export const ISVGAnalyzer = createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
+export const ISVGAnalyzer = /*@__PURE__*/createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
 
 const o = (keys: string | string[]): Record<string, true | undefined> => {
   const lookup = createLookup<true | undefined>();

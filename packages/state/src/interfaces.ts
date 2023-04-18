@@ -1,9 +1,9 @@
 import { DI, type MaybePromise, type IRegistry, type IDisposable } from '@aurelia/kernel';
 
-export const IActionHandler = DI.createInterface<IActionHandler>('IActionHandler');
+export const IActionHandler = /*@__PURE__*/DI.createInterface<IActionHandler>('IActionHandler');
 export type IActionHandler<T = any> = (state: T, action: unknown) => MaybePromise<T>;
 
-export const IStore = DI.createInterface<IStore<object>>('IStore');
+export const IStore = /*@__PURE__*/DI.createInterface<IStore<object>>('IStore');
 export interface IStore<T extends object, TAction = unknown> {
   subscribe(subscriber: IStoreSubscriber<T>): void;
   unsubscribe(subscriber: IStoreSubscriber<T>): void;
@@ -17,7 +17,7 @@ export interface IStore<T extends object, TAction = unknown> {
   dispatch(action: TAction): void | Promise<void>;
 }
 
-export const IState = DI.createInterface<object>('IState');
+export const IState = /*@__PURE__*/DI.createInterface<object>('IState');
 
 export type IRegistrableAction = IActionHandler & IRegistry;
 

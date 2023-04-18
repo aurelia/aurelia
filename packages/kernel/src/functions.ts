@@ -44,7 +44,7 @@ export const isArrayIndex = (value: unknown): value is number | string => {
 /**
  * Base implementation of camel and kebab cases
  */
-const baseCase = (function () {
+const baseCase = /*@__PURE__*/(function () {
   _START_CONST_ENUM();
   const enum CharKind {
     none  = 0,
@@ -146,7 +146,7 @@ const baseCase = (function () {
  *
  * Results are cached.
  */
-export const camelCase = (function () {
+export const camelCase = /*@__PURE__*/(function () {
   const cache: Record<string, string | undefined> = createObject();
 
   const callback = (char: string, sep: boolean): string => {
@@ -172,7 +172,7 @@ export const camelCase = (function () {
  *
  * Results are cached.
  */
-export const pascalCase = (function () {
+export const pascalCase = /*@__PURE__*/(function () {
   const cache: Record<string, string | undefined> = createObject();
 
   return (input: string): string => {
@@ -198,7 +198,7 @@ export const pascalCase = (function () {
  *
  * Results are cached.
  */
-export const kebabCase = (function () {
+export const kebabCase = /*@__PURE__*/(function () {
   const cache: Record<string, string | undefined> = createObject();
 
   const callback = (char: string, sep: boolean): string => {
@@ -285,7 +285,7 @@ export const firstDefined = <T>(...values: readonly (T | undefined)[]): T => {
   throw createError(`No default value found`);
 };
 
-export const getPrototypeChain = (function () {
+export const getPrototypeChain = /*@__PURE__*/(function () {
   const functionPrototype = Function.prototype;
   const getPrototypeOf = Object.getPrototypeOf;
 
@@ -362,7 +362,7 @@ export function toLookup(...objs: {}[]): Readonly<{}> {
  * @param fn - The function to check.
  * @returns `true` is the function is a native function, otherwise `false`
  */
-export const isNativeFunction = (function () {
+export const isNativeFunction = /*@__PURE__*/(function () {
   // eslint-disable-next-line @typescript-eslint/ban-types
   const lookup: WeakMap<Function, boolean> = new WeakMap();
   let isNative = false as boolean | undefined;

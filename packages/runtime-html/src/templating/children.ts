@@ -38,6 +38,11 @@ export function children(selector: string): PropertyDecorator;
  */
 export function children(target: {}, prop: string): void;
 export function children(configOrTarget?: PartialChildrenDefinition | {} | string, prop?: string): void | PropertyDecorator | ClassDecorator {
+  if (!mixed) {
+    mixed = true;
+    subscriberCollection(ChildrenBinding);
+    lifecycleHooks()(ChildrenLifecycleHooks);
+  }
   let config: PartialChildrenDefinition;
 
   const dependenciesKey = 'dependencies';
@@ -211,7 +216,6 @@ export class ChildrenBinding implements IBinding {
     return filterChildren(this._controller, this._query, this._filter, this._map);
   }
 }
-subscriberCollection(ChildrenBinding);
 
 const childObserverOptions: MutationObserverInit = { childList: true };
 const notImplemented = (name: string) => createError(`Method "${name}": not implemented`);
@@ -280,4 +284,4 @@ class ChildrenLifecycleHooks {
   }
 }
 
-lifecycleHooks()(ChildrenLifecycleHooks);
+let mixed = false;

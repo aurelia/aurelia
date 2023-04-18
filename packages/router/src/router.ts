@@ -134,7 +134,7 @@ export interface ILoadOptions {
   replacing?: boolean;
 }
 
-export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
+export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {

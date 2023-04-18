@@ -101,7 +101,7 @@ type RouteConfigLookup = WeakMap<RouteConfig, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigLookup>;
 
 export interface IRouter extends Router { }
-export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
+export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 export class Router {
   private _ctx: RouteContext | null = null;
   private get ctx(): RouteContext {

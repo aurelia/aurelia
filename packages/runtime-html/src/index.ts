@@ -11,16 +11,6 @@ export {
 } from './observation/bindable-observer';
 
 export {
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-} from './configuration';
-
-export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,
@@ -319,51 +309,19 @@ export {
 } from './resources/value-converters/sanitize';
 
 export {
-  ITemplateCompilerRegistration,
-  INodeObserverLocatorRegistration,
-
   DefaultComponents,
-
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
 
   DefaultBindingSyntax,
 
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-
   ShortHandBindingSyntax,
 
-  SVGAnalyzerRegistration,
-
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  RefBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-  TriggerBindingCommandRegistration,
-  CaptureBindingCommandRegistration,
-  AttrBindingCommandRegistration,
-  ClassBindingCommandRegistration,
-  StyleBindingCommandRegistration,
-
   DefaultBindingLanguage,
-
-  SanitizeValueConverterRegistration,
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  WithRegistration,
-  SelfBindingBehaviorRegistration,
-  UpdateTriggerBindingBehaviorRegistration,
 
   DefaultResources,
 
   DefaultRenderers,
 
-  StandardConfiguration
+  StandardConfiguration,
 } from './configuration';
 export {
   ITemplateElementFactory

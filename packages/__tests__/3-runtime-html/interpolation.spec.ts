@@ -10,7 +10,7 @@ import {
   BindingMode,
   CustomElement,
   InterpolationBinding,
-  SVGAnalyzerRegistration,
+  SVGAnalyzer,
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
@@ -704,7 +704,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         class App {
           public progress = 0;
         },
-        [SVGAnalyzerRegistration],
+        [SVGAnalyzer],
       );
 
       await startPromise;

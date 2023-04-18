@@ -11,7 +11,7 @@ import { isArrayIndex } from './functions';
 import { Container } from './di.container';
 import { Constructable, IDisposable, Writable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
-import { createError, defineMetadata, getOwnMetadata, isFunction, isString, toStringSafe } from './utilities';
+import { createError, defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
@@ -175,8 +175,8 @@ export const DefaultResolver = {
 
 const noResolverForKeyError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0002: ${toStringSafe(key)} not registered, did you forget to add @singleton()?`)
-    : createError(`AUR0002:${toStringSafe(key)}`);
+    ? createError(`AUR0002: ${safeString(key)} not registered, did you forget to add @singleton()?`)
+    : createError(`AUR0002:${safeString(key)}`);
 
 export class ContainerConfiguration implements IContainerConfiguration {
   public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
@@ -221,6 +221,7 @@ const getOrCreateAnnotationParamTypes = (Type: Constructable | Injectable): Key[
   return annotationParamtypes;
 };
 
+/** @internal */
 export const getDependencies = (Type: Constructable | Injectable): Key[] => {
   // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
   // so be careful with making changes here as it can have a huge impact on complex end user apps.
@@ -301,24 +302,24 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
  */
 export const createInterface = <K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> => {
  const configure = isFunction(configureOrName) ? configureOrName : configuror;
- const friendlyName = isString(configureOrName) ? configureOrName : undefined;
+ const friendlyName = (isString(configureOrName) ? configureOrName : undefined) ?? '(anonymous)';
 
  const Interface = function (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index: number | undefined): void {
    if (target == null || new.target !== undefined) {
-    throw createNoRegistrationError(Interface.friendlyName);
+    throw createNoRegistrationError(friendlyName);
    }
    const annotationParamtypes = getOrCreateAnnotationParamTypes(target as Injectable);
    annotationParamtypes[index!] = Interface;
  };
  Interface.$isInterface = true;
- Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
+ Interface.friendlyName = friendlyName;
 
  if (configure != null) {
    Interface.register = (container: IContainer, key?: Key): IResolver<K> =>
      configure(new ResolverBuilder(container, key ?? Interface));
  }
 
- Interface.toString = (): string => `InterfaceSymbol<${Interface.friendlyName}>`;
+ Interface.toString = (): string => `InterfaceSymbol<${friendlyName}>`;
 
  return Interface;
 };
@@ -467,7 +468,7 @@ export const DI = {
   },
 };
 
-export const IContainer = createInterface<IContainer>('IContainer');
+export const IContainer = /*@__PURE__*/createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
 function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
@@ -581,7 +582,7 @@ const createAllResolver = (
   };
 };
 
-export const all = createAllResolver(
+export const all = /*@__PURE__*/createAllResolver(
   (key: any,
     handler: IContainer,
     requestor: IContainer,
@@ -616,7 +617,7 @@ export const all = createAllResolver(
  * - @param key [[`Key`]]
  * see { @link DI.createInterface } on interactions with interfaces
  */
-export const lazy = createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
+export const lazy = /*@__PURE__*/createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   return () => requestor.get(key);
 });
 export type ILazyResolver<K = any> = IResolver<K>
@@ -648,7 +649,7 @@ export type IResolvedLazy<K> = () => Resolved<K>;
  *
  * see { @link DI.createInterface } on interactions with interfaces
  */
-export const optional = createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
+export const optional = /*@__PURE__*/createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   if (requestor.has(key, true)) {
     return requestor.get(key);
   } else {
@@ -693,7 +694,7 @@ ignore.resolve = () => undefined;
  * - @param key [[`Key`]]
  * see { @link DI.createInterface } on interactions with interfaces
  */
-export const factory = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
+export const factory = /*@__PURE__*/createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   return (...args: unknown[]) => handler.getFactory(key).construct(requestor, args);
 }) as <K>(key: K) => IFactoryResolver<K>;
 export type IFactoryResolver<K = any> = IResolver<K>
@@ -703,10 +704,10 @@ export type IFactoryResolver<K = any> = IResolver<K>
   & ((...args: unknown[]) => any);
 export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 
-export const newInstanceForScope = createResolver(
+export const newInstanceForScope = /*@__PURE__*/createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => {
     const instance = createNewInstance(key, handler, requestor);
-    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(toStringSafe(key), instance);
+    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(safeString(key), instance);
     /**
      * By default the new instances for scope are disposable.
      * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
@@ -716,7 +717,7 @@ export const newInstanceForScope = createResolver(
     return instance;
   }) as <K>(key: K) => INewInstanceResolver<K>;
 
-export const newInstanceOf = createResolver(
+export const newInstanceOf = /*@__PURE__*/createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
 ) as <K>(key: K) => INewInstanceResolver<K>;
 
@@ -807,8 +808,8 @@ const cyclicDependencyError = (name: string) =>
     : createError(`AUR0003:${name}`);
 const nullFactoryError = (key: Key) =>
   __DEV__
-    ? createError(`AUR0004: Resolver for ${toStringSafe(key)} returned a null factory`)
-    : createError(`AUR0004:${toStringSafe(key)}`);
+    ? createError(`AUR0004: Resolver for ${safeString(key)} returned a null factory`)
+    : createError(`AUR0004:${safeString(key)}`);
 const invalidResolverStrategyError = (strategy: ResolverStrategy) =>
   __DEV__
     ? createError(`AUR0005: Invalid resolver strategy specified: ${strategy}.`)

@@ -27,7 +27,7 @@ export interface IAuSlotsInfo {
 /**
  * Describing the projection information statically available for a custom element
  */
-export const IAuSlotsInfo = createInterface<IAuSlotsInfo>('IAuSlotsInfo');
+export const IAuSlotsInfo = /*@__PURE__*/createInterface<IAuSlotsInfo>('IAuSlotsInfo');
 export class AuSlotsInfo implements IAuSlotsInfo {
   public constructor(
     public readonly projectedSlots: string[],
@@ -61,7 +61,7 @@ export interface IAuSlotWatcher extends ISubscribable {
   watch(slot: IAuSlot): void;
   unwatch(slot: IAuSlot): void;
 }
-export const IAuSlotWatcher = createInterface<IAuSlotWatcher>('IAuSlotWatcher');
+export const IAuSlotWatcher = /*@__PURE__*/createInterface<IAuSlotWatcher>('IAuSlotWatcher');
 
 // 1. on hydrating, create a slot watcher (binding) & register with hydration context
 // 2. on slot with projection created, optionally retrieve the slot watcher
@@ -174,8 +174,6 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
   }
 }
 
-subscriberCollection(AuSlotWatcherBinding);
-
 type SlottedPropDefinition = PartialSlottedDefinition & { name: PropertyKey };
 class SlottedLifecycleHooks {
   public constructor(
@@ -199,8 +197,6 @@ class SlottedLifecycleHooks {
     controller.addBinding(watcher);
   }
 }
-
-lifecycleHooks()(SlottedLifecycleHooks);
 
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
@@ -231,6 +227,11 @@ export function slotted(query: string, slotName: string): PropertyDecorator;
 export function slotted(def: PartialSlottedDefinition): PropertyDecorator;
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string): PropertyDecorator;
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
+  if (!mixed) {
+    mixed = true;
+    subscriberCollection(AuSlotWatcherBinding);
+    lifecycleHooks()(SlottedLifecycleHooks);
+  }
   const dependenciesKey = 'dependencies';
 
   function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
@@ -271,3 +272,5 @@ function testDecorator() {
     a4: any;
   }
 }
+
+let mixed = false;

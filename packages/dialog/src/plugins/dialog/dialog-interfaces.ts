@@ -6,7 +6,7 @@ import type { ICustomElementViewModel } from '@aurelia/runtime-html';
 /**
  * The dialog service for composing view & view model into a dialog
  */
-export const IDialogService = createInterface<IDialogService>('IDialogService');
+export const IDialogService = /*@__PURE__*/createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
   readonly controllers: IDialogController[];
   /**
@@ -28,7 +28,7 @@ export interface IDialogService {
 /**
  * The controller asscociated with every dialog view model
  */
-export const IDialogController = createInterface<IDialogController>('IDialogController');
+export const IDialogController = /*@__PURE__*/createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
   readonly settings: IDialogLoadedSettings;
   /**
@@ -44,7 +44,7 @@ export interface IDialogController {
 /**
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
-export const IDialogDomRenderer = createInterface<IDialogDomRenderer>('IDialogDomRenderer');
+export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer>('IDialogDomRenderer');
 export interface IDialogDomRenderer {
   render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
 }
@@ -52,7 +52,7 @@ export interface IDialogDomRenderer {
 /**
  * An interface describing the DOM structure of a dialog
  */
-export const IDialogDom = createInterface<IDialogDom>('IDialogDom');
+export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
   readonly overlay: HTMLElement;
   readonly contentHost: HTMLElement;
@@ -160,7 +160,7 @@ export type IDialogGlobalSettings = Pick<
   IDialogSettings,
   'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
-export const IDialogGlobalSettings = createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
+export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
 
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;

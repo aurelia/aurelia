@@ -2004,7 +2004,7 @@ const getBindingMode = (bindable: Element): BindingMode => {
  *
  * A feature available to the default template compiler.
  */
-export const ITemplateCompilerHooks = createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+export const ITemplateCompilerHooks = /*@__PURE__*/createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
 export interface ITemplateCompilerHooks {
   /**
    * Should be invoked immediately before a template gets compiled

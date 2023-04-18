@@ -287,7 +287,7 @@ export interface ISyntaxInterpreter {
   add(defs: AttributePatternDefinition[]): void;
   interpret(name: string): Interpretation;
 }
-export const ISyntaxInterpreter = createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = /*@__PURE__*/createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
 export class SyntaxInterpreter implements ISyntaxInterpreter {
   /** @internal */
@@ -443,12 +443,12 @@ export interface IAttributePattern {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
-export const IAttributePattern = createInterface<IAttributePattern>('IAttributePattern');
+export const IAttributePattern = /*@__PURE__*/createInterface<IAttributePattern>('IAttributePattern');
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
 }
-export const IAttributeParser = createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
+export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 export class AttributeParser implements IAttributeParser {
   /** @internal */

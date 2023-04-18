@@ -8,7 +8,7 @@ import {
   PropertyBindingRenderer,
   TextBindingRenderer,
   TextBindingInstruction,
-  INodeObserverLocatorRegistration,
+  NodeObserverLocator,
   IRendering,
   PropertyBinding,
   HydrateTemplateController,
@@ -496,7 +496,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   ];
 
   const container = createContainer().register(
-    INodeObserverLocatorRegistration,
+    NodeObserverLocator,
     PropertyBindingRenderer,
     TextBindingRenderer,
   );

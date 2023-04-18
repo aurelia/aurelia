@@ -72,7 +72,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = createInterface<IInstruction>('Instruction');
+export const IInstruction = /*@__PURE__*/createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -307,7 +307,7 @@ export class SpreadElementPropBindingInstruction {
   ) {}
 }
 
-export const ITemplateCompiler = createInterface<ITemplateCompiler>('ITemplateCompiler');
+export const ITemplateCompiler = /*@__PURE__*/createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
    * Indicates whether this compiler should compile template in debug mode
@@ -372,7 +372,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = createInterface<IRenderer>('IRenderer');
+export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;

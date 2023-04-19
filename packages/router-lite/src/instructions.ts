@@ -176,6 +176,23 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public toUrlComponent(recursive: boolean = true): string {
     const component = this.component.toUrlComponent();
+    /**
+     * Note on the parenthesized parameters:
+     * We will land on this branch if and only if the component cannot be eagerly recognized (in the RouteContext#generateViewportInstruction) AND the parameters are also provided.
+     * When the routes are eagerly recognized, then there is no parameters left at this point and everything is already packed in the generated path as well as in the recognized route.
+     * Thus, in normal scenarios the users will never land where, and when they do.
+     *
+     * Whenever, they are using a hand composed (string) path, then in that case there is no question of having parameters at this point, rather the given path is recognized in the createAndAppendNodes.
+     * It might be a rare edge case where users provide half the parameters in the string path and half as form of parameters; example: `load="route: r1/id1; params.bind: {id2}"`.
+     * We might not want to officially support such cases.
+     *
+     * However, as the route recognition is inherently lazy (think about child routes, whose routing configuration are not resolved till a child routing context is created, or
+     * the usage of instance level getRouteConfig), the component cannot be recognized fully eagerly. Thus, it is difficult at this point to correctly handle parameters as defined by the path templates defined for the component.
+     * This artifact is kept here for the purpose of fallback.
+     *
+     * We can think about a stricter mode where we throw error if any params remains unconsumed at this point.
+     * Or simply ignore the params while creating the URL. However, that does not feel right at all.
+     */
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;

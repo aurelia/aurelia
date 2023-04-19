@@ -16,7 +16,7 @@ When an object from one application is used in another, and an observer for a pr
 
 Most of the applications have a single app running inside them so it's unlikely to be an issue. And for applications that have multiple apps running, they often don't have conflicting observation strategy for the same objects & properties. So while the potential issues above are there, they are unlikely to cause issues.
 
-While we can leave it alone, there's some potential outcome if we are to change the way the way observer locator work. These potentials are around API simplicifcation, new APIs, capabilities & optimization enablement, and maybe the ability to work in perfect harmony with the new incoming official decorator, since it's also static.
+While we can leave it alone, there's some potentially good outcomes if we are to change the way the way observer locator work. These potentials are around API simplicifcation, new APIs, capabilities & optimization enablement, and maybe the ability to work in perfect harmony with the new incoming official decorator, since it's also static.
 
 ## 📍 Proposal
 
@@ -33,9 +33,7 @@ Make the observation system static, so all apps in an application will use the s
     }
   
     binding() {
-      this.observerLocator.getObserver(this.details, 'name').subscribe({
-        ...
-      })
+      this.observerLocator.getObserver(this.details, 'name').subscribe({ ... })
     }
   }
   ```
@@ -46,17 +44,21 @@ Make the observation system static, so all apps in an application will use the s
 
   class MyClass {
     binding() {
-      getObserver(this.details, 'name').subscribe({
-        ...
-      })
+      getObserver(this.details, 'name').subscribe({ ... })
+
+      getObserver(this.details, (d) => d.name).subscribe({ ... })
     }
   }
   ```
 
 ## API challenges
 
-As mentioned above, one problem that comes with static APIs is that there's no more a boundary between applications on the same page, with regards to observation. This can be compensated by enabling 3 ways of defining "observer locator" on a node:
-  - `au:observe` symbol on the node itself
+As mentioned above, one problem that comes with static APIs is that there's no more a boundary between applications on the same page, with regards to observation. This happens to both normal & special HTML objects (elements). While currently, there's an adaptor API that can be used to mitigate this to a certain degree, it still requires care around organising the adaptors so that they dont override each other.
+
+To better solve this issue, there should be a hierarchy of observer locating strategies so that one application/usage can ensure their observation is not overriden by any other accidental global config.
+
+An example of this hierarchy is per the following:
+  - Check `au:observe` symbol on the node itself, if exist, then call ...
   - global static config of event based observation, similar to how current node observer locator works.
   - `au:observe` symbol on the node constructor
   

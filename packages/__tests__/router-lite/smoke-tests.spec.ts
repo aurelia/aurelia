@@ -302,7 +302,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const ctx = router.routeTree.root.context;
 
-    assertIsActive(router, 'c1+c2',       ctx, true, 1);
+    assertIsActive(router, 'c1+c2', ctx, true, 1);
     assertIsActive(router, 'c1@$1+c2@$2', ctx, true, 2);
     assertIsActive(router, 'c2@$1+c1@$2', ctx, false, 3);
     assertIsActive(router, 'c1@$2+c2@$1', ctx, false, 4);
@@ -6607,6 +6607,45 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await router.load('c1(id1=2,id2=3)');
     assert.html.textContent(host, 'c1 2 3', 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('self-referencing routing configuration', async function () {
+    @route('')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>', aliases: ['p1'] })
+    class P1 implements IRouteViewModel {
+      public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig {
+        return {
+          routes: [
+            C1,
+            C2,
+            P1,
+          ]
+        };
+      }
+    }
+
+    @route({ routes: [{ path: ['', 'p1'], component: P1 }] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, 'p1 c1', 'init');
+
+    await router.load('p1/p1');
+    assert.html.textContent(host, 'p1 p1 c1', 'round#1');
+
+    await router.load('p1/p1/p1/c2');
+    assert.html.textContent(host, 'p1 p1 p1 c2', 'round#2');
 
     await au.stop(true);
   });

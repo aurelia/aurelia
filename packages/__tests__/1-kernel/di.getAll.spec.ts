@@ -1,5 +1,5 @@
 // import { Metadata } from '@aurelia/metadata';
-import { all, DI, IContainer, Registration } from '@aurelia/kernel';
+import { all, DI, IContainer, injected, newInstanceOf, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.getAll.spec.ts', function () {
@@ -100,5 +100,26 @@ describe('1-kernel/di.getAll.spec.ts', function () {
         );
       });
     }
+  });
+
+  describe('injected()', function () {
+    it('works with .getAll()', function () {
+      let id = 0;
+      const II = DI.createInterface<{ a: Model }>();
+      class Model {
+        id = ++id;
+      }
+      container.register(
+        Registration.transient(II, class I1 {
+          a = injected(Model);
+        }),
+        Registration.transient(II, class I2 {
+          a = injected(newInstanceOf(Model));
+        })
+      );
+      const iis = container.getAll(II);
+
+      assert.deepStrictEqual(iis.map(a => a.a.id), [1, 2]);
+    });
   });
 });

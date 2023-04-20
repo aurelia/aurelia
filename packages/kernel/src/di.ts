@@ -8,7 +8,7 @@ import { applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect, false, false);
 
 import { isArrayIndex } from './functions';
-import { Container } from './di.container';
+import { Container, injected } from './di.container';
 import { Constructable, IDisposable, Writable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
 import { createError, defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
@@ -46,8 +46,10 @@ export interface IFactory<T extends Constructable = any> {
 export interface IServiceLocator {
   readonly root: IServiceLocator;
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+  get<K extends Key>(key: IAllResolver<K>): readonly Resolved<K>[];
   get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
   get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
+  get<K extends Key>(key: IOptionalResolver<K>): Resolved<K> | undefined;
   get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
   get<K extends Key>(key: IResolver<K>): Resolved<K>;
   get<K extends Key>(key: K): Resolved<K>;
@@ -473,7 +475,7 @@ export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IService
 
 function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
   return function (key: any): ReturnType<typeof DI.inject> {
-    const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> & { $isResolver: true} = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+    const resolver = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
       inject(resolver)(target, property, descriptor);
     };
 
@@ -557,38 +559,47 @@ export function singleton<T extends Constructable>(targetOrOptions?: (T & Partia
   };
 }
 
-const createAllResolver = (
-  getter: (key: any, handler: IContainer, requestor: IContainer, searchAncestors: boolean) => readonly any[]
-): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> => {
-  return (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> => {
-    searchAncestors = !!searchAncestors;
-    const resolver: ReturnType<typeof DI.inject>
-      & Required<Pick<IResolver, 'resolve'>>
-      & { $isResolver: true}
-      = function (
-          target: Injectable,
-          property?: string | number,
-          descriptor?: PropertyDescriptor | number
-        ): void {
-          inject(resolver)(target, property, descriptor);
-        };
+/**
+ * Create a resolver that will resolve all values of a key from resolving container
+ */
+export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IAllResolver<T> => {
+  function resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+    inject(resolver)(target, property, descriptor);
+  }
 
-    resolver.$isResolver = true;
-    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
-      return getter(key, handler, requestor, searchAncestors!);
-    };
-
-    return resolver;
+  resolver.$isResolver = true;
+  resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+    return requestor.getAll(key, searchAncestors);
   };
+
+  return resolver as IAllResolver<T>;
+};
+export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
+  // type only hack
+  __isAll: undefined;
+  // any for decorator
+  (...args: unknown[]): any;
 };
 
-export const all = /*@__PURE__*/createAllResolver(
-  (key: any,
-    handler: IContainer,
-    requestor: IContainer,
-    searchAncestors: boolean
-  ) => requestor.getAll(key, searchAncestors)
-);
+function testAll() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instances = d.get(all(class Abc { public b: number = 5; }));
+  instances.forEach(i => i.b);
+
+  const ii = d.get(all(I));
+  ii.forEach(i => i.c);
+
+  class Def {
+    public constructor(@all(I) private readonly i: I) {}
+  }
+
+  @inject(all(I))
+  class G {}
+}
 
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
@@ -619,13 +630,35 @@ export const all = /*@__PURE__*/createAllResolver(
  */
 export const lazy = /*@__PURE__*/createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   return () => requestor.get(key);
-});
-export type ILazyResolver<K = any> = IResolver<K>
+}) as <K extends Key>(key: K) => ILazyResolver<K>;
+export type ILazyResolver<K extends Key = Key> = IResolver<() => K>
   // type only hack
   & { __isLazy: undefined }
   // any is needed for decorator usages
   & ((...args: unknown[]) => any);
 export type IResolvedLazy<K> = () => Resolved<K>;
+
+function testLazy() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(lazy(class Abc { public b: number = 5; }));
+  if (instance().b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(@lazy(I) private readonly i: I) {}
+  }
+
+  @inject(lazy(I))
+  class G {
+    public i = injected(lazy(I));
+    public b: I = this.i();
+  }
+}
 
 /**
  * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
@@ -655,7 +688,40 @@ export const optional = /*@__PURE__*/createResolver((key: Key, handler: IContain
   } else {
     return undefined;
   }
-});
+}) as <K extends Key>(key: K) => IOptionalResolver<K>;
+export type IOptionalResolver<K extends Key = Key> = IResolver<K | undefined> & {
+  // type only hack
+  __isOptional: undefined;
+  // any is needed for decorator usages
+  (...args: unknown[]): any;
+};
+
+function testOptional() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(optional(class Abc { public b: number = 5; }));
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  if (instance.b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(@optional(I) private readonly i: I) {}
+  }
+
+  @inject(optional(I))
+  class G {
+    public i = injected(optional(I));
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    public b: I = this.i;
+  }
+}
+
 /**
  * ignore tells the container not to try to inject a dependency
  */
@@ -704,10 +770,13 @@ export type IFactoryResolver<K = any> = IResolver<K>
   & ((...args: unknown[]) => any);
 export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
 
+/**
+ * Create a resolver that will resolve a new instance of a key, and register the newly created instance with the requestor container
+ */
 export const newInstanceForScope = /*@__PURE__*/createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => {
     const instance = createNewInstance(key, handler, requestor);
-    const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(safeString(key), instance);
+    const instanceProvider = new InstanceProvider<{}>(safeString(key), instance);
     /**
      * By default the new instances for scope are disposable.
      * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
@@ -717,11 +786,15 @@ export const newInstanceForScope = /*@__PURE__*/createResolver(
     return instance;
   }) as <K>(key: K) => INewInstanceResolver<K>;
 
+/**
+ * Create a resolver that will resolve a new instance of a key
+ */
 export const newInstanceOf = /*@__PURE__*/createResolver(
   (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
 ) as <K>(key: K) => INewInstanceResolver<K>;
 
-export type INewInstanceResolver<T> = {
+export type INewInstanceResolver<T> = IResolver<T> & {
+  // type only hack
   __newInstance: undefined;
   // any is needed for decorator usage
   (...args: unknown[]): any;
@@ -731,7 +804,39 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   return handler.getFactory(key).construct(requestor);
 };
 
+function testNewInstance() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(newInstanceOf(class Abc { public b: number = 5; }));
+  if (instance.b === 5) {
+    // good
+  }
+  const instance2 = d.get(newInstanceForScope(class Abc { public b: number = 5; }));
+  if (instance2.b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(
+      @newInstanceOf(I) private readonly i: I,
+      @newInstanceForScope(I) private readonly j: I,
+    ) {}
+  }
+
+  @inject(newInstanceOf(I))
+  class G {
+    public i = injected(newInstanceOf(I));
+    public ii: I = this.i;
+    public j = injected(newInstanceForScope(I));
+    public jj: I = this.j;
+  }
+}
+
 _START_CONST_ENUM();
+/** @internal */
 export const enum ResolverStrategy {
   instance = 0,
   singleton = 1,
@@ -824,42 +929,6 @@ export interface IInvoker<T extends Constructable = any> {
     staticDependencies: Key[],
     dynamicDependencies: Key[]
   ): Resolved<T>;
-}
-
-export function containerGetKey(this: IContainer, d: Key) {
-  return this.get(d);
-}
-
-function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => any) {
-  return transform(inst);
-}
-
-/** @internal */
-export class Factory<T extends Constructable = any> implements IFactory<T> {
-  private transformers: ((instance: any) => any)[] | null = null;
-  public constructor(
-    public Type: T,
-    private readonly dependencies: Key[],
-  ) {}
-
-  public construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T> {
-    let instance: Resolved<T>;
-    if (dynamicDependencies === void 0) {
-      instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
-    } else {
-      instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
-    }
-
-    if (this.transformers == null) {
-      return instance;
-    }
-
-    return this.transformers.reduce(transformInstance, instance);
-  }
-
-  public registerTransformer(transformer: (instance: any) => any): void {
-    (this.transformers ??= []).push(transformer);
-  }
 }
 
 /**

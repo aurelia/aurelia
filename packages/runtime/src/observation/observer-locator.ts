@@ -27,14 +27,14 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
+export const IObserverLocator = /*@__PURE__*/createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
-export const INodeObserverLocator = createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
+export const INodeObserverLocator = /*@__PURE__*/createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
   if (__DEV__) {
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');

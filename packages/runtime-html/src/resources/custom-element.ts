@@ -422,13 +422,13 @@ const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
 /** @internal */
-export const elementBaseName = getResourceKeyFor('custom-element');
+export const elementBaseName = /*@__PURE__*/getResourceKeyFor('custom-element');
 
 /** @internal */
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
 
 /** @internal */
-export const generateElementName = (() => {
+export const generateElementName = /*@__PURE__*/(() => {
   let id = 0;
 
   return () => `unnamed-${++id}`;
@@ -574,7 +574,7 @@ export const createElementInjectable = <K extends Key = Key>(): InjectableToken<
 };
 
 /** @internal */
-export const generateElementType = (function () {
+export const generateElementType = /*@__PURE__*/(function () {
   const nameDescriptor: PropertyDescriptor = {
     value: '',
     writable: false,
@@ -624,7 +624,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 
-const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
+const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
 export function processContent<TClass extends {}>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {

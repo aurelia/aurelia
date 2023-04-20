@@ -1,4 +1,4 @@
-import { all, Constructable, DI, factory, IContainer, inject, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton } from '@aurelia/kernel';
+import { all, Constructable, DI, factory, IContainer, inject, injected, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.get.spec.ts', function () {
@@ -762,5 +762,135 @@ describe('1-kernel/di.get.spec.ts', function () {
 
     // guess we can add a test for factory resolving to a factory resolving to a factory
     // to see if things work smoothly... TODO?
+  });
+
+  describe('injected', function () {
+    it('works with injected(all(...))', function () {
+      let id = 0;
+      const II = DI.createInterface<{ a: Model }>();
+      class Model {
+        id = ++id;
+      }
+      class A {
+        a = injected(all(II));
+      }
+      container.register(
+        Registration.transient(II, class I1 {
+          a = injected(Model);
+        }),
+        Registration.transient(II, class I2 {
+          a = injected(newInstanceOf(Model));
+        })
+      );
+      const { a } = container.get(A);
+
+      assert.deepStrictEqual(a.map(a => a.a.id), [1, 2]);
+    });
+
+    it('works with injected(transient(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = injected(transient(Model));
+        b = injected(transient(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [1, 2]);
+    });
+
+    it('works with injected(lazy(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = injected(lazy(Model));
+        b = injected(lazy(Model));
+      });
+
+      assert.deepStrictEqual([a().id, b().id], [1, 1]);
+      assert.deepStrictEqual([a().id, b().id], [1, 1]);
+    });
+
+    it('works with injected(optional(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = injected(optional(Model));
+        b = injected(optional(Model));
+      });
+
+      assert.deepStrictEqual([a?.id, b?.id], [undefined, undefined]);
+    });
+
+    it('works with injected(newInstanceOf(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        _ = injected(Model);
+        a = injected(newInstanceOf(Model));
+        b = injected(newInstanceOf(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [2, 3]);
+      assert.strictEqual(container.getAll(Model).length, 1);
+    });
+
+    it('works with injected(newInstanceForScope(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        _ = injected(Model);
+        a = injected(newInstanceForScope(Model));
+        b = injected(newInstanceForScope(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [2, 3]);
+      assert.strictEqual(container.getAll(Model).length, 3);
+    });
+
+    it('works with injected(factory(...))', function () {
+      let id = 0;
+      class Model {
+        id = ++id;
+        args: number[];
+        constructor(...args: number[]) {
+          this.args = args;
+        }
+        get sum() {
+          return this.id + this.args.reduce((c, i) => c + i, 0);
+        }
+      }
+      const { a, b } = container.get(class A {
+        a = injected(factory(Model));
+        b = injected(factory(Model));
+      });
+
+      assert.deepStrictEqual([a(1, 2).sum, b(1, 2).sum], [4, 5]);
+    });
+
+    it('works with deeply nested injected(...)', function () {
+      let i = 0;
+      class Address { n: number = ++i; }
+      class Details {
+        address1 = injected(Address);
+        address2 = injected(newInstanceForScope(Address));
+      }
+      class Profile {
+        details = injected(Details);
+      }
+      class Parent {
+        model = injected(Profile);
+      }
+      class Child {
+        parent = injected(Parent);
+      }
+      const { parent } = container.get(Child);
+      assert.strictEqual(parent.model.details.address1.n, 1);
+      assert.strictEqual(parent.model.details.address2.n, 2);
+      assert.strictEqual(parent.model.details, container.get(Details));
+    });
+
+    it('throws on calling without an active container', function () {
+      assert.throws(() => injected(class Abc {}));
+    });
   });
 });

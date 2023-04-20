@@ -40,6 +40,10 @@ export {
 } from './di';
 
 export {
+  injected,
+} from './di.container';
+
+export {
   type Class,
   type Constructable,
   type ConstructableClass,

@@ -1,12 +1,13 @@
 import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
 import { Writable } from '@aurelia/kernel';
 
-export const enum Signals {
-  I18N_EA_CHANNEL = 'i18n:locale:changed',
-  I18N_SIGNAL = 'aurelia-translation-signal',
-  RT_SIGNAL = 'aurelia-relativetime-signal'
-}
+export const Signals = {
+  I18N_EA_CHANNEL: 'i18n:locale:changed',
+  I18N_SIGNAL: 'aurelia-translation-signal',
+  RT_SIGNAL: 'aurelia-relativetime-signal'
+} as const;
 
+/** @internal */
 export const enum ValueConverters {
   translationValueConverterName = 't',
   dateFormatValueConverterName = 'df',

@@ -1,4 +1,4 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import { DI, IContainer, injected, newInstanceForScope } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.invoke.spec.ts', function () {
@@ -79,5 +79,35 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     assert.strictEqual(instanceDeps.length, 2);
     assert.deepStrictEqual(instanceDeps[0], [depInstance, 'dep1', 'dep2', 'dep3']);
     assert.deepStrictEqual(instanceDeps[1], [depInstance, 'dep4', 'dep5']);
+  });
+
+  it('works with injected', function () {
+    let id = 0;
+    class Model {
+      id = ++id;
+    }
+    const { a, b } = container.invoke(class {
+      a = injected(Model);
+      b = injected(Model);
+    });
+
+    assert.strictEqual(id, 1);
+    assert.strictEqual(a.id, 1);
+    assert.strictEqual(b.id, 1);
+  });
+
+  it('works with resolver + injected', function () {
+    let id = 0;
+    class Model {
+      id = ++id;
+    }
+    const { a, b } = container.invoke(class {
+      a = injected(Model);
+      b = injected(newInstanceForScope(Model));
+    });
+
+    assert.strictEqual(id, 2);
+    assert.strictEqual(a.id, 1);
+    assert.strictEqual(b.id, 2);
   });
 });

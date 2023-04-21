@@ -7,6 +7,7 @@ describe('1-kernel/di.get.spec.ts', function () {
   beforeEach(function () {
     container = DI.createContainer();
   });
+
   afterEach(function () {
     assert.throws(() => injected(class Abc{}));
   });
@@ -176,7 +177,7 @@ describe('1-kernel/di.get.spec.ts', function () {
     });
   });
 
-  describe.only('intrinsic', function () {
+  describe('intrinsic', function () {
 
     describe('bad', function () {
 

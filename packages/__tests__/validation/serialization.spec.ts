@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
+/* eslint-disable mocha/no-sibling-hooks */
 import { IExpressionParser } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {

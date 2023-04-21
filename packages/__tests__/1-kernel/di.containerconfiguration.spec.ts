@@ -8,7 +8,6 @@ describe('1-kernel/di.containerconfiguration.spec.ts', function () {
   describe('child', function () {
     describe('defaultResolver - transient', function () {
       describe('root container', function () {
-        // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer({
             ...ContainerConfiguration.DEFAULT,
@@ -36,7 +35,6 @@ describe('1-kernel/di.containerconfiguration.spec.ts', function () {
       });
 
       describe('one child container', function () {
-        // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer();
 

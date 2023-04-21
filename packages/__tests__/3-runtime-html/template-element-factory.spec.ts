@@ -6,7 +6,6 @@ describe('3-runtime-html/template-element-factory.spec.ts', function () {
   let sut: ITemplateElementFactory;
   let ctx: TestContext;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.create();
     sut = ctx.container.get(ITemplateElementFactory);

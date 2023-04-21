@@ -80,7 +80,6 @@ describe('1-kernel/di.integration.spec.ts', function () {
     let callback: ISpy<() => ICallback>;
     let get: ISpy<IContainer['get']>;
 
-    // eslint-disable-next-line mocha/no-hooks
     beforeEach(function () {
       callbackCount = 0;
       container = DI.createContainer();
@@ -94,7 +93,6 @@ describe('1-kernel/di.integration.spec.ts', function () {
       get = createSpy(container, 'get', true);
     });
 
-    // eslint-disable-next-line mocha/no-hooks
     afterEach(function () {
       get.restore();
     });

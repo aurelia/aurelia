@@ -1,9 +1,14 @@
-import { BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
+import { Aurelia, BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { injected } from '@aurelia/kernel';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
+  it('injects right aurelia instance', function () {
+    const { component: { au, au1 } } = createFixture(``, class { au = injected(Aurelia); au1 = injected(IAurelia); });
+    assert.strictEqual(au, au1);
+  });
+
   it('works with multiple layers of change propagation & <input/>', function () {
     const { ctx, appHost } = createFixture(
       `<input value.bind="first_name | properCase">

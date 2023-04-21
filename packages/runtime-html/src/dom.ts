@@ -1,10 +1,10 @@
-import { type Writable } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, type Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
-import { createInterface } from './utilities-di';
+import { createInterface, registerResolver } from './utilities-di';
 import { markerToLocation } from './utilities-dom';
 
 export class Refs {
@@ -509,3 +509,17 @@ export interface IHistory extends History {
    */
   replaceState(state: {} | null, title: string, url?: string | null): void;
 }
+
+/** @internal */
+export const registerHostNode = (container: IContainer, platform: IPlatform, host: INode | null) => {
+  registerResolver(
+    container,
+    platform.HTMLElement,
+    registerResolver(
+      container,
+      platform.Element,
+      registerResolver(container, INode, new InstanceProvider('ElementResolver', host))
+    )
+  );
+  return container;
+};

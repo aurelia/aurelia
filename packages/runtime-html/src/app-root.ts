@@ -1,14 +1,14 @@
 import { InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
-import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
-import { createInterface, registerResolver } from './utilities-di';
+import { createInterface } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 import type { IPlatform } from './platform';
+import { registerHostNode } from './dom';
 
 export interface ISinglePageApp {
   host: HTMLElement;
@@ -21,7 +21,7 @@ export const IAppRoot = /*@__PURE__*/createInterface<IAppRoot>('IAppRoot');
 export class AppRoot implements IDisposable {
   public readonly host: HTMLElement;
 
-  public controller: ICustomElementController = (void 0)!;
+  public controller!: ICustomElementController;
 
   /** @internal */
   private _hydratePromise: Promise<void> | void = void 0;
@@ -35,15 +35,7 @@ export class AppRoot implements IDisposable {
     this.host = config.host;
     rootProvider.prepare(this);
 
-    registerResolver(
-      container,
-      platform.HTMLElement,
-      registerResolver(
-        container,
-        platform.Element,
-        registerResolver(container, INode, new InstanceProvider('ElementResolver', config.host))
-      )
-    );
+    registerHostNode(container, platform, config.host);
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       const component = config.component as Constructable | ICustomElementViewModel;

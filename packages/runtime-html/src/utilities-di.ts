@@ -4,11 +4,11 @@ import {
   Registration,
   type IResolver,
   type Key,
-  type Resolved,
   type Constructable,
   type IContainer,
   type IResourceKind,
   type ResourceDefinition,
+  type IAllResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 
@@ -48,8 +48,7 @@ export const allResources = <T extends Key>(key: T) => {
       ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
       : requestor.root.getAll(key, false);
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return Resolver as IResolver<Resolved<T>[]> & ((...args: unknown[]) => any);
+  return Resolver as IAllResolver<T>;
 };
 
 /** @internal */

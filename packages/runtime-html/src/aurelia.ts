@@ -1,7 +1,7 @@
 import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
-import { IEventTarget, INode } from './dom';
+import { IEventTarget, registerHostNode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
@@ -57,7 +57,7 @@ export class Aurelia implements IDisposable {
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
   ) {
-    if (container.has(IAurelia, true)) {
+    if (container.has(IAurelia, true) || container.has(Aurelia, true)) {
       if (__DEV__)
         /* istanbul ignore next */
         throw createError(`AUR0768: An instance of Aurelia is already registered with the container or an ancestor of it.`);
@@ -66,6 +66,7 @@ export class Aurelia implements IDisposable {
     }
 
     registerResolver(container, IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
+    registerResolver(container, Aurelia, new InstanceProvider<IAurelia>('Aurelia', this));
     registerResolver(container, IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
@@ -89,15 +90,7 @@ export class Aurelia implements IDisposable {
     const comp = config.component as unknown as K;
     let bc: ICustomElementViewModel & K;
     if (isFunction(comp)) {
-      registerResolver(
-        ctn,
-        p.HTMLElement,
-        registerResolver(
-          ctn,
-          p.Element,
-          registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
-        )
-      );
+      registerHostNode(ctn, p, host);
       bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
       bc = comp;

@@ -1,5 +1,5 @@
-import { IRenderLocation } from './dom';
-import { IPlatform } from './platform';
+import { type IRenderLocation } from './dom';
+import { type IPlatform } from './platform';
 import { createError } from './utilities';
 
 /** @internal */

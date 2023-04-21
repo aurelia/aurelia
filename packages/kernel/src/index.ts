@@ -5,8 +5,11 @@ export {
 export {
   all,
   factory,
+  type IAllResolver,
   type IFactoryResolver,
+  type IOptionalResolver,
   type IResolvedFactory,
+  type INewInstanceResolver,
   DI,
   IContainer,
   type IFactory,

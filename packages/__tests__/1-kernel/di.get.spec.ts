@@ -892,6 +892,33 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.strictEqual(parent.model.details, container.get(Details));
     });
 
-    // add inheritance tests
+    describe('with [inheritance]', function () {
+      it('works for basic inheritance', function () {
+        let i = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = injected(Model);
+        }
+        const { a: { v } } = container.get(class extends Base {});
+        assert.strictEqual(v, 1);
+      });
+
+      it('works with deeply nested injected(...)', function () {
+        let id = 0;
+        class Model { id = ++id; }
+        class Value {
+          a = injected(newInstanceOf(Model));
+        }
+        class V2 extends Value {
+          a = injected(newInstanceOf(Model));
+        }
+        class V3 extends V2 {
+          a = injected(newInstanceOf(Model));
+        }
+        const { a } = container.get(V3);
+
+        assert.strictEqual(a.id, 3);
+      });
+    });
   });
 });

@@ -1,6 +1,7 @@
-import { BindingMode, customElement, CustomElement, ValueConverter } from '@aurelia/runtime-html';
+import { BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
+import { injected } from '@aurelia/kernel';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('works with multiple layers of change propagation & <input/>', function () {
@@ -159,5 +160,31 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     );
     trigger('button', 'bs.open-modal');
     assert.strictEqual(clicked, 1);
+  });
+
+  describe('injected', function () {
+    afterEach(function () {
+      assert.throws(() => injected(class Abc {}));
+    });
+
+    it('works basic', function () {
+      const { au, component } = createFixture(
+        '',
+        class App { au = injected(IAurelia); }
+      );
+      assert.strictEqual(au, component.au);
+    });
+
+    it('works with inheritance', function () {
+      class Base { au = injected(IAurelia); }
+      @customElement('el')
+      class El extends Base {}
+
+      const { au, component } = createFixture('<el view-model.ref="el">', class App {
+        el: El;
+      }, [El]);
+
+      assert.strictEqual(au, component.el.au);
+    });
   });
 });

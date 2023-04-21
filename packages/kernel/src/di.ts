@@ -568,9 +568,7 @@ export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IA
   }
 
   resolver.$isResolver = true;
-  resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
-    return requestor.getAll(key, searchAncestors);
-  };
+  resolver.resolve = (handler: IContainer, requestor: IContainer) => requestor.getAll(key, searchAncestors);
 
   return resolver as IAllResolver<T>;
 };

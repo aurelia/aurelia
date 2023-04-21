@@ -4,9 +4,11 @@ import { assert } from '@aurelia/testing';
 describe('1-kernel/di.get.spec.ts', function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
+  });
+  afterEach(function () {
+    assert.throws(() => injected(class Abc{}));
   });
 
   describe('@lazy', function () {
@@ -174,7 +176,7 @@ describe('1-kernel/di.get.spec.ts', function () {
     });
   });
 
-  describe('intrinsic', function () {
+  describe.only('intrinsic', function () {
 
     describe('bad', function () {
 
@@ -889,8 +891,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.strictEqual(parent.model.details, container.get(Details));
     });
 
-    it('throws on calling without an active container', function () {
-      assert.throws(() => injected(class Abc {}));
-    });
+    // add inheritance tests
   });
 });

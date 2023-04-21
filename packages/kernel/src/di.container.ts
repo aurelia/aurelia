@@ -36,7 +36,9 @@ const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView 
 // const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 let containerId = 0;
 
-let currentContainer: IContainer | null = null;
+/** @internal */
+// eslint-disable-next-line import/no-mutable-exports
+export let currentContainer: IContainer | null = null;
 
 /** @internal */
 export class Container implements IContainer {
@@ -245,7 +247,8 @@ export class Container implements IContainer {
       return key as unknown as IResolver;
     }
 
-    let current: Container = this;
+    const previousContainer = currentContainer;
+    let current: Container = currentContainer = this;
     let resolver: IResolver | undefined;
     let handler: Container;
 
@@ -255,15 +258,21 @@ export class Container implements IContainer {
       if (resolver == null) {
         if (current.parent == null) {
           handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
-          return autoRegister ? this._jitRegister(key, handler) : null;
+          if (autoRegister) {
+            return this._jitRegister(key, handler);
+           }
+           currentContainer = previousContainer;
+           return null;
         }
 
         current = current.parent;
       } else {
+        currentContainer = previousContainer;
         return resolver;
       }
     }
 
+    currentContainer = previousContainer;
     return null;
   }
 
@@ -295,8 +304,11 @@ export class Container implements IContainer {
         if (current.parent == null) {
           handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
           resolver = this._jitRegister(key, handler);
-          result = resolver.resolve(current, this);
-          currentContainer = previousContainer;
+          try {
+            result = resolver.resolve(current, this);
+          } finally {
+            currentContainer = previousContainer;
+          }
           return result;
         }
 
@@ -321,30 +333,35 @@ export class Container implements IContainer {
     let resolutions: Resolved<K>[] = emptyArray;
 
     if (searchAncestors) {
-      while (current != null) {
-        resolver = current._resolvers.get(key);
-        if (resolver != null) {
-          resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
-        }
-        current = current.parent;
-      }
-      currentContainer = previousContainer;
-      return resolutions;
-    } else {
-      while (current != null) {
-        resolver = current._resolvers.get(key);
-
-        if (resolver == null) {
-          current = current.parent;
-
-          if (current == null) {
-            currentContainer = previousContainer;
-            return emptyArray;
+      try {
+        while (current != null) {
+          resolver = current._resolvers.get(key);
+          if (resolver != null) {
+            resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
           }
-        } else {
-          resolutions = buildAllResponse(resolver, current, requestor);
+          current = current.parent;
+        }
+      } finally {
+        currentContainer = previousContainer;
+      }
+      return resolutions;
+    }
+
+    while (current != null) {
+      resolver = current._resolvers.get(key);
+
+      if (resolver == null) {
+        current = current.parent;
+
+        if (current == null) {
           currentContainer = previousContainer;
-          return resolutions;
+          return emptyArray;
+        }
+      } else {
+        try {
+          return buildAllResponse(resolver, current, requestor);
+        } finally {
+          currentContainer = previousContainer;
         }
       }
     }
@@ -354,11 +371,12 @@ export class Container implements IContainer {
   }
 
   public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
-    if (isNativeFunction(Type)) {
-      throw createNativeInvocationError(Type);
-    }
     const previousContainer = currentContainer;
     currentContainer = this;
+    if (isNativeFunction(Type)) {
+      currentContainer = previousContainer;
+      throw createNativeInvocationError(Type);
+    }
     const instance = dynamicDependencies === void 0
       ? new Type(...getDependencies(Type).map(containerGetKey, this))
       : new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
@@ -466,15 +484,22 @@ export class Container implements IContainer {
 
   /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
+    const previousContainer = currentContainer;
+    currentContainer = this;
+
     if (!isFunction(keyAsValue)) {
+      currentContainer = previousContainer;
       throw jitRegisterNonFunctionError(keyAsValue);
     }
+
     if (InstrinsicTypeNames.has(keyAsValue.name)) {
+      currentContainer = previousContainer;
       throw jitInstrinsicTypeError(keyAsValue);
     }
 
     if (isRegistry(keyAsValue)) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
+      currentContainer = previousContainer;
       if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler._resolvers.get(keyAsValue);
         if (newResolver != null) {
@@ -483,7 +508,9 @@ export class Container implements IContainer {
         throw invalidResolverFromRegisterError();
       }
       return registrationResolver as IResolver;
-    } else if (hasResources(keyAsValue)) {
+    }
+
+    if (hasResources(keyAsValue)) {
       const defs = getAllResources(keyAsValue);
       if (defs.length === 1) {
         // Fast path for the very common case
@@ -495,17 +522,22 @@ export class Container implements IContainer {
         }
       }
       const newResolver = handler._resolvers.get(keyAsValue);
+      currentContainer = previousContainer;
       if (newResolver != null) {
         return newResolver;
       }
       throw invalidResolverFromRegisterError();
-    } else if (keyAsValue.$isInterface) {
-      throw jitInterfaceError(keyAsValue.friendlyName);
-    } else {
-      const resolver = this.config.defaultResolver(keyAsValue, handler);
-      handler._resolvers.set(keyAsValue, resolver);
-      return resolver;
     }
+
+    if (keyAsValue.$isInterface) {
+      currentContainer = previousContainer;
+      throw jitInterfaceError(keyAsValue.friendlyName);
+    }
+
+    const resolver = this.config.defaultResolver(keyAsValue, handler);
+    handler._resolvers.set(keyAsValue, resolver);
+    currentContainer = previousContainer;
+    return resolver;
   }
 }
 

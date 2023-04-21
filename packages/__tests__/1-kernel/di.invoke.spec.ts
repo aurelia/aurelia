@@ -4,9 +4,12 @@ import { assert } from '@aurelia/testing';
 describe('1-kernel/di.invoke.spec.ts', function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
+  });
+
+  afterEach(function () {
+    assert.throws(() => injected(class Abc{}));
   });
 
   it('plain usage', function () {

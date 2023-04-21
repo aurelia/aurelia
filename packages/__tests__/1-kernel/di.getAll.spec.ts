@@ -5,7 +5,6 @@ import { assert } from '@aurelia/testing';
 describe('1-kernel/di.getAll.spec.ts', function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
   });

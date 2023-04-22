@@ -225,10 +225,10 @@ The section below describes how to use `resolve` function to perform property in
 
 ### Context
 
-Often times as application grows, there's a need to extract group some common functionalities to apply to multiple classes. There are many ways/techniques to do this,
-e.g mixin, decorator or sub classing. When working in class based application, subclassing is the more one commonly seen technique. Normally there would be a base class
+Often times as application grows, there's a need to extract & group some common functionalities to apply to multiple classes. There are many ways/techniques to do this,
+e.g mixin, decorator, sub classing etc.... When working in class based applications, subclassing is the more one commonly seen technique. Normally there would be a base class
 that requires a set of parameters during its construction, and provides a certain set of behaviors. In order to provide the base class the set of parameters it needs
-during construction, we have to pass those from the constructor of the subclass. Dependency injection cannot help in this case as it won't be able to call the
+during construction, we have to pass those from the constructor of the subclass. Constructor dependency injection cannot help in this case as it won't be able to call the
 base call constructor to provide (or "inject") its required dependencies. The following example won't work:
 
 ```typescript
@@ -262,7 +262,7 @@ export class MyInput extends FormElementBase {
   constructor(host, formController) {
     // "inject" the dependencies
     super(host, formController);
-    // do its own setup work here that doesn't need host or formControllere
+    // do its own setup work here that doesn't need host or formController
   }
 }
 ```
@@ -314,8 +314,8 @@ export class MyInput extends FormElementBase {
 }
 ```
 
-Because the `resolve(key)` call infers the returned type based on the type of `key` parameter, so the properties `form` and `formController` will automatically get
-the right types too, there's no need to do duplicate work as in the case with decorator.
+Because the `resolve(key)` call infers the returned type based on the type of `key` parameter, the properties `form` and `formController` will automatically get
+the right types, there's no need to do duplicate work as in the case with decorator.
 
 `resolve` can also be called with multiple keys, to get multiple values at once, like the following example:
 
@@ -338,13 +338,16 @@ You can also move `resolve` to a helper function that resolve a dependency and d
 
 {% code title="useFieldListeners.js" %}
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve, all } from 'aurelia';
 
 export function useFieldListeners(field) {
-  const listeners = resolve(IFieldListeners);
+  const listeners = resolve(all(IFieldListeners));
 
   if (field.type === 'checkbox') {
-    return listeners.filter(listener => listener.type === 'change' || listener.type === 'validate');
+    return listeners.filter(listener =>
+      listener.type === 'change'
+      || listener.type === 'validate'
+    );
   }
 
   return listeners;

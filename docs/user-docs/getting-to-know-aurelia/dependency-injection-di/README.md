@@ -4,7 +4,9 @@ Dependency injection is a powerful tool that enables Aurelia and its component m
 
 To learn about dependency injection and why you should use it, consult our [what is Dependency Injection](what-is-dependency-injection.md) section.
 
-## Declaring injectable dependencies
+## Constructor injection & declaring injectable dependencies
+
+The section below describes how to use dependency injection in its traditional form, constructor injection, and how to declare the dependencies to be injected.
 
 ### Injecting into plain classes
 
@@ -127,7 +129,7 @@ export interface IRegistration<T = any> {
 }
 ```
 
-> **Note:** For a deeper exploration of how to implement custom registrations and resolvers, [see the internal registration/resolver implementation](https://github.com/aurelia/aurelia/tree/1475ca4d7b1e7ef3037fc4942c4a456337d06f3c/docs/user-docs/app-basics/src/di.ts#L409) that handles all the registration scenarios listed above.
+> **Note:** For a deeper exploration of how to implement custom registrations and resolvers, [see the internal registration/resolver implementation](./resolvers.md#custom-resolvers) that handles all the registration scenarios listed above.
 
 ## Resolving services
 
@@ -163,14 +165,14 @@ const IProfileService = Symbol('IProfileService');
 interface IProfileService { ... }
 
 class ProfileService implements IProfileService {
-    // ...implementation...
+  // ...implementation...
 }
 
 class SomeClass {
-  inject = [IProfileService];
+  static inject = [IProfileService];
   constructor(service: IProfileService) {
-        // ...implementation...
-    }
+    // ...implementation...
+  }
 }
 
 container.register(
@@ -216,3 +218,156 @@ class TaskQueue implements ITaskQueue {
 ```
 
 The callback that creates the default registration. This API looks nearly identical to the `Registration` DSL described above.
+
+## Property injection
+
+The section below describes how to use `resolve` function to perform property injection, which is another form of dependency injection.
+
+### Context
+
+Often times as application grows, there's a need to extract group some common functionalities to apply to multiple classes. There are many ways/techniques to do this,
+e.g mixin, decorator or sub classing. When working in class based application, subclassing is the more one commonly seen technique. Normally there would be a base class
+that requires a set of parameters during its construction, and provides a certain set of behaviors. In order to provide the base class the set of parameters it needs
+during construction, we have to pass those from the constructor of the subclass. Dependency injection cannot help in this case as it won't be able to call the
+base call constructor to provide (or "inject") its required dependencies. The following example won't work:
+
+```typescript
+abstract class FormElementBase {
+  static inject = [Element, FormController];
+
+  constructor(host, formController) {
+    this.form = host.form;
+    this.formController = formController;
+  }
+}
+```
+
+Even though we declared the `static inject` on the `FormElementBase`, at runtime, Aurelia won't be able to see this information, or able to do anything with it,
+as it will be constructing the subclass of this `FormElementBase` class. This results in undesirable boilerplate sometimes, especially when the parameters used in the
+base class aren't needed in the subclass, like the following example:
+
+```typescript
+abstract class FormElementBase {
+  static inject = [Element, FormController];
+
+  constructor(host, formController) {
+    this.form = host.form;
+    this.formController = formController;
+  }
+}
+
+export class MyInput extends FormElementBase {
+  // redeclaring the injection
+  static inject = [Element, FormController];
+  constructor(host, formController) {
+    // "inject" the dependencies
+    super(host, formController);
+    // do its own setup work here that doesn't need host or formControllere
+  }
+}
+```
+
+Property injection is a way to help handle this case. Imagine we can rewrite the above as
+
+```typescript
+abstract class FormElementBase {
+
+  @inject(Element)
+  form: Element
+
+  @inject(FormController)
+  formController: FormController
+}
+
+export class MyInput extends FormElementBase {
+  constructor() {
+    super();
+    // do own work
+  }
+}
+```
+
+There's not much boilerplate anymore, and it's easier to manage the dependencies now, as when the base class needs more dependencies, it can declare on its own
+and Aurelia DI system can just take care of that. From this example, we see there's a desirable use cases for the property injection capability.
+<!-- maybe explain the draw back of using decorator with the old decorator -->
+Aurelia provides a function `resolve` to meet this need.
+
+### Using `resolve`
+
+To use property injection with `resolve`, simply call it with the key, which often is the class that you want to "resolve" the value by. The above example could be rewritten like the following:
+
+```typescript
+import { resolve } from 'aurelia';
+
+abstract class FormElementBase {
+
+  form = resolve(Element);
+
+  formController = resolve(FormController);
+}
+
+export class MyInput extends FormElementBase {
+  constructor() {
+    super();
+    // do own work
+  }
+}
+```
+
+Because the `resolve(key)` call infers the returned type based on the type of `key` parameter, so the properties `form` and `formController` will automatically get
+the right types too, there's no need to do duplicate work as in the case with decorator.
+
+`resolve` can also be called with multiple keys, to get multiple values at once, like the following example:
+
+```typescript
+import { resolve } from 'aurelia';
+
+abstract class FormElementBase {
+
+  listeners = resolve(IChangeListener, ISubmitListener, IErrorListener);
+}
+```
+
+Note that `resolve` can only be used when there is an active container. In other words, it can only be used within a dependency injection context. An attemp to `new FormElementBase` will result in an error as there's no active container.
+Because Aurelia applications and its tests are mostly in the context of the dependency injection system, this constraint should not be an issue.
+
+### Other `resolve` usages
+
+While it's required that `resolve` must be called within the context of an active container, it does not necessarily mean that `resolve` can only be used within a class.
+You can also move `resolve` to a helper function that resolve a dependency and do more setup work with it before assigning the final value to a property, like the following example:
+
+{% code title="useFieldListeners.js" %}
+```typescript
+import { resolve } from 'aurelia';
+
+export function useFieldListeners(field) {
+  const listeners = resolve(IFieldListeners);
+
+  if (field.type === 'checkbox') {
+    return listeners.filter(listener => listener.type === 'change' || listener.type === 'validate');
+  }
+
+  return listeners;
+}
+```
+{% endcode %}
+
+{% code title="field-base.js" %}
+```typescript
+import { useFieldListeners } from './useFieldListeners';
+
+abstract class FormElementBase {
+
+  listeners = useFieldListeners(this);
+}
+```
+{% endcode %}
+
+Doing it this way, however may sometimes lead you to situation where you call those helper functions without a dependency injection context. In such cases, you'll see an error
+like the following, in development mode:
+
+```
+AUR0016: There is not a currently active container. Are you trying to "new Class(...)" that has a resolve(...) call?
+```
+
+To fix this, ensure that you are using `container.get(SomeClass)` instead of `new SomeClass(...)`.

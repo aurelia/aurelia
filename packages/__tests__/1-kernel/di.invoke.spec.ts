@@ -1,4 +1,4 @@
-import { DI, IContainer, injected, newInstanceForScope } from '@aurelia/kernel';
+import { DI, IContainer, injected, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.invoke.spec.ts', function () {
@@ -112,5 +112,29 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     assert.strictEqual(id, 2);
     assert.strictEqual(a.id, 1);
     assert.strictEqual(b.id, 2);
+  });
+
+  it('works with a list of keys', function () {
+    let i = 0;
+    class Model { v = ++i; }
+    class Base {
+      a = injected(Model, newInstanceOf(Model));
+    }
+    const { a: [{ v }, { v: v1 }] } = container.invoke(Base);
+    assert.strictEqual(v, 1);
+    assert.strictEqual(v1, 2);
+  });
+
+  describe('inheritance', function () {
+    it('works with a list of keys', function () {
+      let i = 0;
+      class Model { v = ++i; }
+      class Base {
+        a = injected(Model, newInstanceOf(Model));
+      }
+      const { a: [{ v }, { v: v1 }] } = container.invoke(class extends Base {});
+      assert.strictEqual(v, 1);
+      assert.strictEqual(v1, 2);
+    });
   });
 });

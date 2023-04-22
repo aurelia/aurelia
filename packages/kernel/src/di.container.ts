@@ -28,7 +28,13 @@ import {
   type IResolvedFactory,
   type IResolvedLazy,
   type IAllResolver,
-  type IOptionalResolver
+  type IOptionalResolver,
+  all,
+  lazy,
+  factory,
+  optional,
+  newInstanceForScope,
+  newInstanceOf
 } from './di';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
@@ -573,26 +579,56 @@ function containerGetKey(this: IContainer, d: Key) {
   return this.get(d);
 }
 
+export type IResolvedInjection<K extends Key> =
+  K extends IAllResolver<infer R>
+    ? readonly Resolved<R>[]
+    : K extends INewInstanceResolver<infer R>
+      ? Resolved<R>
+      : K extends ILazyResolver<infer R>
+        ? IResolvedLazy<R>
+        : K extends IOptionalResolver<infer R>
+          ? Resolved<R> | undefined
+          : K extends IFactoryResolver<infer R>
+            ? IResolvedFactory<R>
+            : K extends IResolver<infer R>
+              ? Resolved<R>
+              : K extends [infer R1 extends Key, ...infer R2]
+                ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
+                : Resolved<K>;
+
 /**
  * Retrieve the resolved value of a key from the currently active container.
  *
  * Calling this without an active container will result in an error.
  */
-export function injected<K extends Key>(key: IAllResolver<K>): readonly Resolved<K>[];
-export function injected<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
-export function injected<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
-export function injected<K extends Key>(key: IOptionalResolver<K>): Resolved<K> | undefined;
-export function injected<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
-export function injected<K extends Key>(key: IResolver<K>): Resolved<K>;
-export function injected<K extends Key>(key: K): Resolved<K>;
-export function injected<K extends Key>(key: Key): Resolved<K>;
-export function injected<K extends Key>(key: K | Key): Resolved<K>;
-export function injected<K extends Key>(key: K): Resolved<K> {
+export function injected<K extends Key>(keys: K): IResolvedInjection<K>;
+export function injected<K extends Key[]>(...keys: K): IResolvedInjection<K>;
+export function injected<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
   if (currentContainer == null) {
     throw createInvalidInjectedCallError();
   }
-  return currentContainer.get(key);
+  return keys.length === 1
+    ? currentContainer.get(keys[0])
+    : keys.map(containerGetKey, currentContainer);
 }
+
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
+function testInjected() {
+  class Abc { public a = 1; }
+  class Def { public b = 2; }
+  class Abc2 { public c = '3'; }
+  const [{ a: _ }] = injected(all(Abc));
+  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = injected(all(Abc), all(Def), all(Abc2));
+  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = injected(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
+  a = 3; b = 4; c = '1';
+  lazyDef().b = 5;
+  factoryAbc2(1, 2, 3).c = '2';
+  // @ts-expect-error
+  if (optionalAbc.a) {/*  */}
+  newDef.b = 4;
+  newAbc.a = 2;
+}
+/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
 
 const buildAllResponse = (resolver: IResolver, handler: IContainer, requestor: IContainer): any[] => {
   if (resolver instanceof Resolver && resolver._strategy === ResolverStrategy.array) {

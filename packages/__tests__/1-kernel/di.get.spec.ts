@@ -790,6 +790,17 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.deepStrictEqual(a.map(a => a.a.id), [1, 2]);
     });
 
+    it('works with a list of keys', function () {
+      let i = 0;
+      class Model { v = ++i; }
+      class Base {
+        a = injected(Model, newInstanceOf(Model));
+      }
+      const { a: [{ v }, { v: v1 }] } = container.get(Base);
+      assert.strictEqual(v, 1);
+      assert.strictEqual(v1, 2);
+    });
+
     it('works with injected(transient(...))', function () {
       let id = 0;
       class Model { id = ++id; }
@@ -918,6 +929,40 @@ describe('1-kernel/di.get.spec.ts', function () {
         const { a } = container.get(V3);
 
         assert.strictEqual(a.id, 3);
+      });
+
+      it('works with a list of keys', function () {
+        let i = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = injected(Model, newInstanceOf(Model));
+        }
+        const { a: [{ v }, { v: v1 }] } = container.get(class extends Base {});
+        assert.strictEqual(v, 1);
+        assert.strictEqual(v1, 2);
+      });
+
+      it('works with multiple all(...)', function () {
+        let i = 0;
+        let j = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = injected(newInstanceForScope(Model), newInstanceForScope(Model));
+        }
+        const I = DI.createInterface<Base>();
+        container.register(
+          Registration.transient(I, class extends Base {}),
+          Registration.transient(I, class extends Base {
+            j = ++j;
+          }),
+        );
+        container.invoke(class {
+          b = injected(all(I), all(I));
+        });
+
+        assert.strictEqual(container.getAll(Model).length, 8);
+        assert.strictEqual(i, 8);
+        assert.strictEqual(j, 2);
       });
     });
   });

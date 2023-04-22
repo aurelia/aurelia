@@ -1,4 +1,4 @@
-import { DI, IContainer, injected, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
+import { DI, IContainer, resolve, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.invoke.spec.ts', function () {
@@ -9,7 +9,7 @@ describe('1-kernel/di.invoke.spec.ts', function () {
   });
 
   afterEach(function () {
-    assert.throws(() => injected(class Abc{}));
+    assert.throws(() => resolve(class Abc{}));
   });
 
   it('plain usage', function () {
@@ -84,14 +84,14 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     assert.deepStrictEqual(instanceDeps[1], [depInstance, 'dep4', 'dep5']);
   });
 
-  it('works with injected', function () {
+  it('works with resolve', function () {
     let id = 0;
     class Model {
       id = ++id;
     }
     const { a, b } = container.invoke(class {
-      a = injected(Model);
-      b = injected(Model);
+      a = resolve(Model);
+      b = resolve(Model);
     });
 
     assert.strictEqual(id, 1);
@@ -99,14 +99,14 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     assert.strictEqual(b.id, 1);
   });
 
-  it('works with resolver + injected', function () {
+  it('works with resolver + resolve', function () {
     let id = 0;
     class Model {
       id = ++id;
     }
     const { a, b } = container.invoke(class {
-      a = injected(Model);
-      b = injected(newInstanceForScope(Model));
+      a = resolve(Model);
+      b = resolve(newInstanceForScope(Model));
     });
 
     assert.strictEqual(id, 2);
@@ -118,7 +118,7 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     let i = 0;
     class Model { v = ++i; }
     class Base {
-      a = injected(Model, newInstanceOf(Model));
+      a = resolve(Model, newInstanceOf(Model));
     }
     const { a: [{ v }, { v: v1 }] } = container.invoke(Base);
     assert.strictEqual(v, 1);
@@ -130,7 +130,7 @@ describe('1-kernel/di.invoke.spec.ts', function () {
       let i = 0;
       class Model { v = ++i; }
       class Base {
-        a = injected(Model, newInstanceOf(Model));
+        a = resolve(Model, newInstanceOf(Model));
       }
       const { a: [{ v }, { v: v1 }] } = container.invoke(class extends Base {});
       assert.strictEqual(v, 1);

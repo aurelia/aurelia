@@ -597,15 +597,15 @@ export type IResolvedInjection<K extends Key> =
                 : Resolved<K>;
 
 /**
- * Retrieve the resolved value of a key from the currently active container.
+ * Retrieve the resolved value of a key, or values of a list of keys from the currently active container.
  *
  * Calling this without an active container will result in an error.
  */
-export function injected<K extends Key>(keys: K): IResolvedInjection<K>;
-export function injected<K extends Key[]>(...keys: K): IResolvedInjection<K>;
-export function injected<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
+export function resolve<K extends Key>(key: K): IResolvedInjection<K>;
+export function resolve<K extends Key[]>(...keys: K): IResolvedInjection<K>;
+export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
   if (currentContainer == null) {
-    throw createInvalidInjectedCallError();
+    throw createInvalidResolveCallError();
   }
   return keys.length === 1
     ? currentContainer.get(keys[0])
@@ -613,13 +613,13 @@ export function injected<K extends Key, A extends K[]>(...keys: A): Resolved<K> 
 }
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
-function testInjected() {
+function testResolve() {
   class Abc { public a = 1; }
   class Def { public b = 2; }
   class Abc2 { public c = '3'; }
-  const [{ a: _ }] = injected(all(Abc));
-  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = injected(all(Abc), all(Def), all(Abc2));
-  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = injected(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
+  const [{ a: _ }] = resolve(all(Abc));
+  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = resolve(all(Abc), all(Def), all(Abc2));
+  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = resolve(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
   a = 3; b = 4; c = '1';
   lazyDef().b = 5;
   factoryAbc2(1, 2, 3).c = '2';
@@ -704,7 +704,7 @@ const createNativeInvocationError = (Type: Constructable): Error =>
   __DEV__
     ? createError(`AUR0015: ${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`)
     : createError(`AUR0015:${Type.name}`);
-const createInvalidInjectedCallError = () =>
+const createInvalidResolveCallError = () =>
   __DEV__
-    ? createError(`AUR0016: There is not a currently active container. Are you trying to "new Class(...)"?`)
+    ? createError(`AUR0016: There is not a currently active container. Are you trying to "new Class(...)" that has a resolve(...) call?`)
     : createError(`AUR0016`);

@@ -8,7 +8,7 @@ import { applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect, false, false);
 
 import { isArrayIndex } from './functions';
-import { Container, injected } from './di.container';
+import { Container, resolve } from './di.container';
 import { Constructable, IDisposable, Writable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
 import { createError, defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
@@ -653,7 +653,7 @@ function testLazy() {
 
   @inject(lazy(I))
   class G {
-    public i = injected(lazy(I));
+    public i = resolve(lazy(I));
     public b: I = this.i();
   }
 }
@@ -713,7 +713,7 @@ function testOptional() {
 
   @inject(optional(I))
   class G {
-    public i = injected(optional(I));
+    public i = resolve(optional(I));
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     public b: I = this.i;
@@ -826,9 +826,9 @@ function testNewInstance() {
 
   @inject(newInstanceOf(I))
   class G {
-    public i = injected(newInstanceOf(I));
+    public i = resolve(newInstanceOf(I));
     public ii: I = this.i;
-    public j = injected(newInstanceForScope(I));
+    public j = resolve(newInstanceForScope(I));
     public jj: I = this.j;
   }
 }

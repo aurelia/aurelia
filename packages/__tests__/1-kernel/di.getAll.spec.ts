@@ -1,5 +1,4 @@
-// import { Metadata } from '@aurelia/metadata';
-import { all, DI, IContainer, injected, newInstanceOf, Registration } from '@aurelia/kernel';
+import { all, DI, IContainer, resolve, newInstanceOf, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.getAll.spec.ts', function () {
@@ -101,7 +100,7 @@ describe('1-kernel/di.getAll.spec.ts', function () {
     }
   });
 
-  describe('injected()', function () {
+  describe('resolve()', function () {
     it('works with .getAll()', function () {
       let id = 0;
       const II = DI.createInterface<{ a: Model }>();
@@ -110,10 +109,10 @@ describe('1-kernel/di.getAll.spec.ts', function () {
       }
       container.register(
         Registration.transient(II, class I1 {
-          a = injected(Model);
+          a = resolve(Model);
         }),
         Registration.transient(II, class I2 {
-          a = injected(newInstanceOf(Model));
+          a = resolve(newInstanceOf(Model));
         })
       );
       const iis = container.getAll(II);

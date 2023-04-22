@@ -1,11 +1,11 @@
 import { Aurelia, BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { injected } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('injects right aurelia instance', function () {
-    const { component: { au, au1 } } = createFixture(``, class { au = injected(Aurelia); au1 = injected(IAurelia); });
+    const { component: { au, au1 } } = createFixture(``, class { au = resolve(Aurelia); au1 = resolve(IAurelia); });
     assert.strictEqual(au, au1);
   });
 
@@ -167,21 +167,21 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.strictEqual(clicked, 1);
   });
 
-  describe('injected', function () {
+  describe('resolve', function () {
     afterEach(function () {
-      assert.throws(() => injected(class Abc {}));
+      assert.throws(() => resolve(class Abc {}));
     });
 
     it('works basic', function () {
       const { au, component } = createFixture(
         '',
-        class App { au = injected(IAurelia); }
+        class App { au = resolve(IAurelia); }
       );
       assert.strictEqual(au, component.au);
     });
 
     it('works with inheritance', function () {
-      class Base { au = injected(IAurelia); }
+      class Base { au = resolve(IAurelia); }
       @customElement('el')
       class El extends Base {}
 

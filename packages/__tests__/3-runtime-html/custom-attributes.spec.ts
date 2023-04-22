@@ -1,4 +1,4 @@
-import { injected } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 import {
   alias,
   bindable,
@@ -746,13 +746,13 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     });
   });
 
-  describe('injected', function () {
+  describe('resolve', function () {
     afterEach(function () {
-      assert.throws(() => injected(class Abc {}));
+      assert.throws(() => resolve(class Abc {}));
     });
 
-    it('works with injected and inheritance', function () {
-      class Base { au = injected(IAurelia); }
+    it('works with resolve and inheritance', function () {
+      class Base { au = resolve(IAurelia); }
       @customAttribute('attr')
       class Attr extends Base {}
 

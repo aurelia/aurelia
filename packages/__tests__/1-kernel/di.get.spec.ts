@@ -1,4 +1,4 @@
-import { all, Constructable, DI, factory, IContainer, inject, injected, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
+import { all, Constructable, DI, factory, IContainer, inject, resolve, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.get.spec.ts', function () {
@@ -9,7 +9,7 @@ describe('1-kernel/di.get.spec.ts', function () {
   });
 
   afterEach(function () {
-    assert.throws(() => injected(class Abc{}));
+    assert.throws(() => resolve(class Abc{}));
   });
 
   describe('@lazy', function () {
@@ -767,22 +767,22 @@ describe('1-kernel/di.get.spec.ts', function () {
     // to see if things work smoothly... TODO?
   });
 
-  describe('injected', function () {
-    it('works with injected(all(...))', function () {
+  describe('resolve', function () {
+    it('works with resolve(all(...))', function () {
       let id = 0;
       const II = DI.createInterface<{ a: Model }>();
       class Model {
         id = ++id;
       }
       class A {
-        a = injected(all(II));
+        a = resolve(all(II));
       }
       container.register(
         Registration.transient(II, class I1 {
-          a = injected(Model);
+          a = resolve(Model);
         }),
         Registration.transient(II, class I2 {
-          a = injected(newInstanceOf(Model));
+          a = resolve(newInstanceOf(Model));
         })
       );
       const { a } = container.get(A);
@@ -794,74 +794,74 @@ describe('1-kernel/di.get.spec.ts', function () {
       let i = 0;
       class Model { v = ++i; }
       class Base {
-        a = injected(Model, newInstanceOf(Model));
+        a = resolve(Model, newInstanceOf(Model));
       }
       const { a: [{ v }, { v: v1 }] } = container.get(Base);
       assert.strictEqual(v, 1);
       assert.strictEqual(v1, 2);
     });
 
-    it('works with injected(transient(...))', function () {
+    it('works with resolve(transient(...))', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        a = injected(transient(Model));
-        b = injected(transient(Model));
+        a = resolve(transient(Model));
+        b = resolve(transient(Model));
       });
 
       assert.deepStrictEqual([a.id, b.id], [1, 2]);
     });
 
-    it('works with injected(lazy(...))', function () {
+    it('works with resolve(lazy(...))', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        a = injected(lazy(Model));
-        b = injected(lazy(Model));
+        a = resolve(lazy(Model));
+        b = resolve(lazy(Model));
       });
 
       assert.deepStrictEqual([a().id, b().id], [1, 1]);
       assert.deepStrictEqual([a().id, b().id], [1, 1]);
     });
 
-    it('works with injected(optional(...))', function () {
+    it('works with resolve(optional(...))', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        a = injected(optional(Model));
-        b = injected(optional(Model));
+        a = resolve(optional(Model));
+        b = resolve(optional(Model));
       });
 
       assert.deepStrictEqual([a?.id, b?.id], [undefined, undefined]);
     });
 
-    it('works with injected(newInstanceOf(...))', function () {
+    it('works with resolve(newInstanceOf(...))', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        _ = injected(Model);
-        a = injected(newInstanceOf(Model));
-        b = injected(newInstanceOf(Model));
+        _ = resolve(Model);
+        a = resolve(newInstanceOf(Model));
+        b = resolve(newInstanceOf(Model));
       });
 
       assert.deepStrictEqual([a.id, b.id], [2, 3]);
       assert.strictEqual(container.getAll(Model).length, 1);
     });
 
-    it('works with injected(newInstanceForScope(...))', function () {
+    it('works with resolve(newInstanceForScope(...))', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        _ = injected(Model);
-        a = injected(newInstanceForScope(Model));
-        b = injected(newInstanceForScope(Model));
+        _ = resolve(Model);
+        a = resolve(newInstanceForScope(Model));
+        b = resolve(newInstanceForScope(Model));
       });
 
       assert.deepStrictEqual([a.id, b.id], [2, 3]);
       assert.strictEqual(container.getAll(Model).length, 3);
     });
 
-    it('works with injected(factory(...))', function () {
+    it('works with resolve(factory(...))', function () {
       let id = 0;
       class Model {
         id = ++id;
@@ -874,28 +874,28 @@ describe('1-kernel/di.get.spec.ts', function () {
         }
       }
       const { a, b } = container.get(class A {
-        a = injected(factory(Model));
-        b = injected(factory(Model));
+        a = resolve(factory(Model));
+        b = resolve(factory(Model));
       });
 
       assert.deepStrictEqual([a(1, 2).sum, b(1, 2).sum], [4, 5]);
     });
 
-    it('works with deeply nested injected(...)', function () {
+    it('works with deeply nested resolve(...)', function () {
       let i = 0;
       class Address { n: number = ++i; }
       class Details {
-        address1 = injected(Address);
-        address2 = injected(newInstanceForScope(Address));
+        address1 = resolve(Address);
+        address2 = resolve(newInstanceForScope(Address));
       }
       class Profile {
-        details = injected(Details);
+        details = resolve(Details);
       }
       class Parent {
-        model = injected(Profile);
+        model = resolve(Profile);
       }
       class Child {
-        parent = injected(Parent);
+        parent = resolve(Parent);
       }
       const { parent } = container.get(Child);
       assert.strictEqual(parent.model.details.address1.n, 1);
@@ -908,23 +908,23 @@ describe('1-kernel/di.get.spec.ts', function () {
         let i = 0;
         class Model { v = ++i; }
         class Base {
-          a = injected(Model);
+          a = resolve(Model);
         }
         const { a: { v } } = container.get(class extends Base {});
         assert.strictEqual(v, 1);
       });
 
-      it('works with deeply nested injected(...)', function () {
+      it('works with deeply nested resolve(...)', function () {
         let id = 0;
         class Model { id = ++id; }
         class Value {
-          a = injected(newInstanceOf(Model));
+          a = resolve(newInstanceOf(Model));
         }
         class V2 extends Value {
-          a = injected(newInstanceOf(Model));
+          a = resolve(newInstanceOf(Model));
         }
         class V3 extends V2 {
-          a = injected(newInstanceOf(Model));
+          a = resolve(newInstanceOf(Model));
         }
         const { a } = container.get(V3);
 
@@ -935,7 +935,7 @@ describe('1-kernel/di.get.spec.ts', function () {
         let i = 0;
         class Model { v = ++i; }
         class Base {
-          a = injected(Model, newInstanceOf(Model));
+          a = resolve(Model, newInstanceOf(Model));
         }
         const { a: [{ v }, { v: v1 }] } = container.get(class extends Base {});
         assert.strictEqual(v, 1);
@@ -947,7 +947,7 @@ describe('1-kernel/di.get.spec.ts', function () {
         let j = 0;
         class Model { v = ++i; }
         class Base {
-          a = injected(newInstanceForScope(Model), newInstanceForScope(Model));
+          a = resolve(newInstanceForScope(Model), newInstanceForScope(Model));
         }
         const I = DI.createInterface<Base>();
         container.register(
@@ -957,7 +957,7 @@ describe('1-kernel/di.get.spec.ts', function () {
           }),
         );
         container.invoke(class {
-          b = injected(all(I), all(I));
+          b = resolve(all(I), all(I));
         });
 
         assert.strictEqual(container.getAll(Model).length, 8);

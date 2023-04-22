@@ -43,7 +43,8 @@ export {
 } from './di';
 
 export {
-  injected,
+  resolve,
+  type IResolvedInjection,
 } from './di.container';
 
 export {

@@ -1,11 +1,9 @@
-// import { Metadata } from '@aurelia/metadata';
-import { all, DI, IContainer, Registration } from '@aurelia/kernel';
+import { all, DI, IContainer, resolve, newInstanceOf, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.getAll.spec.ts', function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
   });
@@ -100,5 +98,26 @@ describe('1-kernel/di.getAll.spec.ts', function () {
         );
       });
     }
+  });
+
+  describe('resolve()', function () {
+    it('works with .getAll()', function () {
+      let id = 0;
+      const II = DI.createInterface<{ a: Model }>();
+      class Model {
+        id = ++id;
+      }
+      container.register(
+        Registration.transient(II, class I1 {
+          a = resolve(Model);
+        }),
+        Registration.transient(II, class I2 {
+          a = resolve(newInstanceOf(Model));
+        })
+      );
+      const iis = container.getAll(II);
+
+      assert.deepStrictEqual(iis.map(a => a.a.id), [1, 2]);
+    });
   });
 });

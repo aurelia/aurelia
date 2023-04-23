@@ -1,9 +1,11 @@
+import { resolve } from '@aurelia/kernel';
 import {
   alias,
   bindable,
   customAttribute,
   INode,
-  CustomAttribute
+  CustomAttribute,
+  IAurelia
 } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
@@ -741,6 +743,24 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
         await options.tearDown();
       });
+    });
+  });
+
+  describe('resolve', function () {
+    afterEach(function () {
+      assert.throws(() => resolve(class Abc {}));
+    });
+
+    it('works with resolve and inheritance', function () {
+      class Base { au = resolve(IAurelia); }
+      @customAttribute('attr')
+      class Attr extends Base {}
+
+      const { au, component } = createFixture('<div attr attr.ref="attr">', class App {
+        attr: Attr;
+      }, [Attr]);
+
+      assert.strictEqual(au, component.attr.au);
     });
   });
 });

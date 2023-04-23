@@ -30,7 +30,7 @@ import { RefBinding } from './binding/ref-binding';
 import { ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
-import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping } from './dom';
+import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
@@ -1202,20 +1202,7 @@ function createElementContainer(
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
 
-  // todo:
-  // both node provider and location provider may not be allowed to throw
-  // if there's no value associated, unlike InstanceProvider
-  // reason being some custom element can have `containerless` attribute on them
-  // causing the host to disappear, and replace by a location instead
-  registerResolver(
-    ctn,
-    p.HTMLElement,
-    registerResolver(
-      ctn,
-      p.Element,
-      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
-    )
-  );
+  registerHostNode(ctn, p, host);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null
@@ -1275,15 +1262,7 @@ function invokeAttribute(
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const ctn = renderingCtrl.container.createChild();
-  registerResolver(
-    ctn,
-    p.HTMLElement,
-    registerResolver(
-      ctn,
-      p.Element,
-      registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
-    )
-  );
+  registerHostNode(ctn, p, host);
   renderingCtrl = renderingCtrl instanceof Controller
     ? renderingCtrl
     : (renderingCtrl as unknown as SpreadBinding).ctrl;

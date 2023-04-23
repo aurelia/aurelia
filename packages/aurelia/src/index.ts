@@ -100,6 +100,7 @@ export {
   // IDefaultableInterfaceSymbol,
   // IFactory,
   inject,
+  resolve,
   type IRegistration,
   type IRegistry,
   type IResolver,

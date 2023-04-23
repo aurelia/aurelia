@@ -1,8 +1,14 @@
-import { BindingMode, customElement, CustomElement, ValueConverter } from '@aurelia/runtime-html';
+import { Aurelia, BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
+import { resolve } from '@aurelia/kernel';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
+  it('injects right aurelia instance', function () {
+    const { component: { au, au1 } } = createFixture(``, class { au = resolve(Aurelia); au1 = resolve(IAurelia); });
+    assert.strictEqual(au, au1);
+  });
+
   it('works with multiple layers of change propagation & <input/>', function () {
     const { ctx, appHost } = createFixture(
       `<input value.bind="first_name | properCase">
@@ -159,5 +165,31 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     );
     trigger('button', 'bs.open-modal');
     assert.strictEqual(clicked, 1);
+  });
+
+  describe('resolve', function () {
+    afterEach(function () {
+      assert.throws(() => resolve(class Abc {}));
+    });
+
+    it('works basic', function () {
+      const { au, component } = createFixture(
+        '',
+        class App { au = resolve(IAurelia); }
+      );
+      assert.strictEqual(au, component.au);
+    });
+
+    it('works with inheritance', function () {
+      class Base { au = resolve(IAurelia); }
+      @customElement('el')
+      class El extends Base {}
+
+      const { au, component } = createFixture('<el view-model.ref="el">', class App {
+        el: El;
+      }, [El]);
+
+      assert.strictEqual(au, component.el.au);
+    });
   });
 });

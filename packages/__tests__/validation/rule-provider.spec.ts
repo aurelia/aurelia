@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-condition, mocha/no-hooks, mocha/no-sibling-hooks */
+/* eslint-disable no-constant-condition, mocha/no-sibling-hooks */
 import { Metadata } from '@aurelia/metadata';
 import {
   DI,

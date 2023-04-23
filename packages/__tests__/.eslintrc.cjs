@@ -25,7 +25,7 @@ module.exports = {
     'mocha/no-exports': 'off',
     'mocha/no-async-describe': 'error',
     'mocha/no-exclusive-tests': 'warn',
-    'mocha/no-hooks': 'error',
+    'mocha/no-hooks': 'off',
     'mocha/no-hooks-for-single-case': 'off', // Disabled to avoid duplicates, because 'no-hooks' is enabled
     'mocha/no-identical-title': 'error',
     'mocha/no-mocha-arrows': 'error',

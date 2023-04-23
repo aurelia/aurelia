@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
-import { INode, IRenderLocation, isRenderLocation } from '../../dom';
+import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -308,15 +308,7 @@ export class AuCompose {
 
     const p = this._platform;
     const isLocation = isRenderLocation(host);
-    registerResolver(
-      container,
-      p.Element,
-      registerResolver(
-        container,
-        INode,
-        new InstanceProvider('ElementResolver', isLocation ? null : host)
-      )
-    );
+    registerHostNode(container, p, isLocation ? null : host);
     registerResolver(
       container,
       IRenderLocation,

@@ -1,16 +1,49 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import { isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable } from './interfaces';
+import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { IResourceKind, ResourceDefinition, ResourceType, getAllResources, hasResources } from './resource';
+import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
 import { createError, createObject, getOwnMetadata, isFunction, isString, safeString } from './utilities';
-import { IContainer, type Key, type IResolver, type IDisposableResolver, Factory, ContainerConfiguration, type IRegistry, Registration, Resolver, ResolverStrategy, Transformer, type RegisterSelf, type Resolved, getDependencies, containerGetKey, IFactory, IContainerConfiguration } from './di';
+import {
+  IContainer,
+  type Key,
+  type IResolver,
+  type IDisposableResolver,
+  ContainerConfiguration,
+  type IRegistry,
+  Registration,
+  Resolver,
+  ResolverStrategy,
+  type Transformer,
+  type RegisterSelf,
+  type Resolved,
+  getDependencies,
+  type IFactory,
+  type IContainerConfiguration,
+  type IFactoryResolver,
+  type ILazyResolver,
+  type INewInstanceResolver,
+  type IResolvedFactory,
+  type IResolvedLazy,
+  type IAllResolver,
+  type IOptionalResolver,
+  all,
+  lazy,
+  factory,
+  optional,
+  newInstanceForScope,
+  newInstanceOf
+} from './di';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
 // const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 let containerId = 0;
+
+let currentContainer: IContainer | null = null;
+
 /** @internal */
 export class Container implements IContainer {
   public readonly id: number = ++containerId;
@@ -218,24 +251,31 @@ export class Container implements IContainer {
       return key as unknown as IResolver;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let current: Container = this;
+    const previousContainer = currentContainer;
+    let current: Container = currentContainer = this;
     let resolver: IResolver | undefined;
     let handler: Container;
 
-    while (current != null) {
-      resolver = current._resolvers.get(key);
+    try {
+      while (current != null) {
+        resolver = current._resolvers.get(key);
 
-      if (resolver == null) {
-        if (current.parent == null) {
-          handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
-          return autoRegister ? this._jitRegister(key, handler) : null;
+        if (resolver == null) {
+          if (current.parent == null) {
+            handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
+            if (autoRegister) {
+              return this._jitRegister(key, handler);
+            }
+            return null;
+          }
+
+          current = current.parent;
+        } else {
+          return resolver;
         }
-
-        current = current.parent;
-      } else {
-        return resolver;
       }
+    } finally {
+      currentContainer = previousContainer;
     }
 
     return null;
@@ -256,25 +296,27 @@ export class Container implements IContainer {
       return (key as IResolver).resolve(this, this);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let current: Container = this;
+    const previousContainer = currentContainer;
+    let current: Container = currentContainer = this;
     let resolver: IResolver | undefined;
     let handler: Container;
+    try {
+      while (current != null) {
+        resolver = current._resolvers.get(key);
 
-    while (current != null) {
-      resolver = current._resolvers.get(key);
-
-      if (resolver == null) {
-        if (current.parent == null) {
-          handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
-          resolver = this._jitRegister(key, handler);
+        if (resolver == null) {
+          if (current.parent == null) {
+            handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
+            resolver = this._jitRegister(key, handler);
+            return resolver.resolve(current, this);
+          }
+          current = current.parent;
+        } else {
           return resolver.resolve(current, this);
         }
-
-        current = current.parent;
-      } else {
-        return resolver.resolve(current, this);
       }
+    } finally {
+      currentContainer = previousContainer;
     }
 
     throw cantResolveKeyError(key);
@@ -283,22 +325,24 @@ export class Container implements IContainer {
   public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const requestor = this;
+    const previousContainer = currentContainer;
+    const requestor = currentContainer = this;
     let current: Container | null = requestor;
     let resolver: IResolver | undefined;
+    let resolutions: Resolved<K>[] = emptyArray;
 
-    if (searchAncestors) {
-      let resolutions: Resolved<K>[] = emptyArray;
-      while (current != null) {
-        resolver = current._resolvers.get(key);
-        if (resolver != null) {
-          resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
+    try {
+      if (searchAncestors) {
+        while (current != null) {
+          resolver = current._resolvers.get(key);
+          if (resolver != null) {
+            resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
+          }
+          current = current.parent;
         }
-        current = current.parent;
+        return resolutions;
       }
-      return resolutions;
-    } else {
+
       while (current != null) {
         resolver = current._resolvers.get(key);
 
@@ -306,25 +350,32 @@ export class Container implements IContainer {
           current = current.parent;
 
           if (current == null) {
+            currentContainer = previousContainer;
             return emptyArray;
           }
         } else {
           return buildAllResponse(resolver, current, requestor);
         }
       }
+    } finally {
+      currentContainer = previousContainer;
     }
 
     return emptyArray;
   }
 
   public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
-    if (isNativeFunction(Type)) {
-      throw createNativeInvocationError(Type);
-    }
-    if (dynamicDependencies === void 0) {
-      return new Type(...getDependencies(Type).map(containerGetKey, this));
-    } else {
-      return new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
+    const previousContainer = currentContainer;
+    currentContainer = this;
+    try {
+      if (isNativeFunction(Type)) {
+        throw createNativeInvocationError(Type);
+      }
+      return dynamicDependencies === void 0
+        ? new Type(...getDependencies(Type).map(containerGetKey, this))
+        : new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
+    } finally {
+      currentContainer = previousContainer;
     }
   }
 
@@ -431,6 +482,7 @@ export class Container implements IContainer {
     if (!isFunction(keyAsValue)) {
       throw jitRegisterNonFunctionError(keyAsValue);
     }
+
     if (InstrinsicTypeNames.has(keyAsValue.name)) {
       throw jitInstrinsicTypeError(keyAsValue);
     }
@@ -445,7 +497,9 @@ export class Container implements IContainer {
         throw invalidResolverFromRegisterError();
       }
       return registrationResolver as IResolver;
-    } else if (hasResources(keyAsValue)) {
+    }
+
+    if (hasResources(keyAsValue)) {
       const defs = getAllResources(keyAsValue);
       if (defs.length === 1) {
         // Fast path for the very common case
@@ -461,14 +515,54 @@ export class Container implements IContainer {
         return newResolver;
       }
       throw invalidResolverFromRegisterError();
-    } else if (keyAsValue.$isInterface) {
+    }
+
+    if (keyAsValue.$isInterface) {
       throw jitInterfaceError(keyAsValue.friendlyName);
-    } else {
-      const resolver = this.config.defaultResolver(keyAsValue, handler);
-      handler._resolvers.set(keyAsValue, resolver);
-      return resolver;
+    }
+
+    const resolver = this.config.defaultResolver(keyAsValue, handler);
+    handler._resolvers.set(keyAsValue, resolver);
+    return resolver;
+  }
+}
+
+/** @internal */
+class Factory<T extends Constructable = any> implements IFactory<T> {
+  private transformers: ((instance: any) => any)[] | null = null;
+  public constructor(
+    public Type: T,
+    private readonly dependencies: Key[],
+  ) {}
+
+  public construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T> {
+    const previousContainer = currentContainer;
+    currentContainer = container;
+    let instance: Resolved<T>;
+    try {
+        if (dynamicDependencies === void 0) {
+          instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
+        } else {
+          instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
+        }
+
+      if (this.transformers == null) {
+        return instance;
+      }
+
+      return this.transformers.reduce(transformInstance, instance);
+    } finally {
+      currentContainer = previousContainer;
     }
   }
+
+  public registerTransformer(transformer: (instance: any) => any): void {
+    (this.transformers ??= []).push(transformer);
+  }
+}
+
+function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => any) {
+  return transform(inst);
 }
 
 function validateKey(key: any): void {
@@ -481,13 +575,69 @@ function validateKey(key: any): void {
   }
 }
 
+function containerGetKey(this: IContainer, d: Key) {
+  return this.get(d);
+}
+
+export type IResolvedInjection<K extends Key> =
+  K extends IAllResolver<infer R>
+    ? readonly Resolved<R>[]
+    : K extends INewInstanceResolver<infer R>
+      ? Resolved<R>
+      : K extends ILazyResolver<infer R>
+        ? IResolvedLazy<R>
+        : K extends IOptionalResolver<infer R>
+          ? Resolved<R> | undefined
+          : K extends IFactoryResolver<infer R>
+            ? IResolvedFactory<R>
+            : K extends IResolver<infer R>
+              ? Resolved<R>
+              : K extends [infer R1 extends Key, ...infer R2]
+                ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
+                : Resolved<K>;
+
+/**
+ * Retrieve the resolved value of a key, or values of a list of keys from the currently active container.
+ *
+ * Calling this without an active container will result in an error.
+ */
+export function resolve<K extends Key>(key: K): IResolvedInjection<K>;
+export function resolve<K extends Key[]>(...keys: K): IResolvedInjection<K>;
+export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
+  if (currentContainer == null) {
+    throw createInvalidResolveCallError();
+  }
+  return keys.length === 1
+    ? currentContainer.get(keys[0])
+    : keys.map(containerGetKey, currentContainer);
+}
+
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
+function testResolve() {
+  class Abc { public a = 1; }
+  class Def { public b = 2; }
+  class Abc2 { public c = '3'; }
+  const [{ a: _ }] = resolve(all(Abc));
+  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = resolve(all(Abc), all(Def), all(Abc2));
+  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = resolve(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
+  a = 3; b = 4; c = '1';
+  lazyDef().b = 5;
+  factoryAbc2(1, 2, 3).c = '2';
+  // @ts-expect-error
+  if (optionalAbc.a) {/*  */}
+  newDef.b = 4;
+  newAbc.a = 2;
+}
+/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
+
 const buildAllResponse = (resolver: IResolver, handler: IContainer, requestor: IContainer): any[] => {
   if (resolver instanceof Resolver && resolver._strategy === ResolverStrategy.array) {
     const state = resolver._state as IResolver[];
-    let i = state.length;
-    const results = new Array(i);
+    const ii = state.length;
+    const results = Array(ii);
+    let i = 0;
 
-    while (i--) {
+    for (; i < ii; ++i) {
       results[i] = state[i].resolve(handler, requestor);
     }
 
@@ -554,3 +704,7 @@ const createNativeInvocationError = (Type: Constructable): Error =>
   __DEV__
     ? createError(`AUR0015: ${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`)
     : createError(`AUR0015:${Type.name}`);
+const createInvalidResolveCallError = () =>
+  __DEV__
+    ? createError(`AUR0016: There is not a currently active container. Are you trying to "new Class(...)" that has a resolve(...) call?`)
+    : createError(`AUR0016`);

@@ -422,7 +422,6 @@ describe('2-runtime/ast.spec.ts', function () {
   describe('AccessKeyedExpression', function () {
     let expression: AccessKeyedExpression;
 
-    // eslint-disable-next-line mocha/no-hooks
     before(function () {
       expression = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression('bar'));
     });

@@ -229,7 +229,7 @@ Often times as application grows, there's a need to extract & group some common 
 e.g mixin, decorator, sub classing etc.... When working in class based applications, subclassing is the more one commonly seen technique. Normally there would be a base class
 that requires a set of parameters during its construction, and provides a certain set of behaviors. In order to provide the base class the set of parameters it needs
 during construction, we have to pass those from the constructor of the subclass. Constructor dependency injection cannot help in this case as it won't be able to call the
-base call constructor to provide (or "inject") its required dependencies. The following example won't work:
+base constructor to provide (or "inject") its required dependencies. The following example won't work:
 
 ```typescript
 abstract class FormElementBase {
@@ -240,10 +240,12 @@ abstract class FormElementBase {
     this.formController = formController;
   }
 }
+
+export class MyInput extends FormElementBase {}
 ```
 
 Even though we declared the `static inject` on the `FormElementBase`, at runtime, Aurelia won't be able to see this information, or able to do anything with it,
-as it will be constructing the subclass of this `FormElementBase` class. This results in undesirable boilerplate sometimes, especially when the parameters used in the
+as it will be constructing the subclass `MyInput`. This results in undesirable boilerplate sometimes, especially when the parameters used in the
 base class aren't needed in the subclass, like the following example:
 
 ```typescript
@@ -289,7 +291,7 @@ export class MyInput extends FormElementBase {
 
 There's not much boilerplate anymore, and it's easier to manage the dependencies now, as when the base class needs more dependencies, it can declare on its own
 and Aurelia DI system can just take care of that. From this example, we see there's a desirable use cases for the property injection capability.
-<!-- maybe explain the draw back of using decorator with the old decorator -->
+<!-- maybe explain the draw back of using decorator with the legacy decorator feature -->
 Aurelia provides a function `resolve` to meet this need.
 
 ### Using `resolve`
@@ -329,7 +331,7 @@ abstract class FormElementBase {
 ```
 
 Note that `resolve` can only be used when there is an active container. In other words, it can only be used within a dependency injection context. An attemp to `new FormElementBase` will result in an error as there's no active container.
-Because Aurelia applications and its tests are mostly in the context of the dependency injection system, this constraint should not be an issue.
+Because Aurelia applications and tests are mostly in the context of the dependency injection system, this constraint should not be an issue.
 
 ### Other `resolve` usages
 

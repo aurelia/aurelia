@@ -85,7 +85,7 @@ export class ObserverLocator {
   }
 
   public getObserver(obj: unknown, key: PropertyKey): IObserver;
-  public getObserver<T extends object>(obj: T, key: ComputedGetterFn<T>): IObserver;
+  public getObserver<T, R>(obj: T, key: ComputedGetterFn<T, R>): IObserver<R>;
   public getObserver(obj: unknown, key: PropertyKey | ComputedGetterFn): IObserver {
     if (obj == null) {
       throw nullObjectError(safeString(key));

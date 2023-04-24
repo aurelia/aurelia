@@ -17,7 +17,8 @@ import type {
 import type { IConnectableBinding } from '../binding/connectable';
 import type { IObserverLocator } from './observer-locator';
 
-export type ComputedGetterFn<T extends object = object> = (this: T, obj: T, observer: IConnectable) => unknown;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ComputedObserver<T extends object> extends IConnectableBinding, ISubscriberCollection { }

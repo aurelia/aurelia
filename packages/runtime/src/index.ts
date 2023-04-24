@@ -111,7 +111,7 @@ export {
   type IEffect,
   IObservation,
   Observation,
-  type EffectFunc,
+  type EffectRunFunc,
 } from './observation/observation';
 export {
   type IObservableDefinition,

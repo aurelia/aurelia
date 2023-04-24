@@ -276,4 +276,57 @@ describe('3-runtime-html/effect.spec.ts', function () {
     assert.strictEqual(runCount, 0);
     assert.strictEqual(div.textContent, '19, 19');
   });
+
+  describe('watch effect', function () {
+    let observation: IObservation;
+    let tearDown: () => void;
+
+    beforeEach(function () {
+      const { container, tearDown: $tearDown } = createFixture('');
+      tearDown = $tearDown as () => void;
+      observation = container.get(IObservation);
+    });
+
+    it('runs immediately', function () {
+      let v = 0;
+      observation.watch({ a: 1 }, o => o.a, vv => v = vv);
+      assert.strictEqual(v, 1);
+    });
+
+    it('does not run immediately', function () {
+      let v = 0;
+      const { run } = observation.watch({ a: 1 }, o => o.a, vv => v = vv, { immediate: false });
+      assert.strictEqual(v, 0);
+      run();
+      assert.strictEqual(v, 1);
+    });
+
+    it('does not run after stopped', function () {
+      let v = 0;
+      const obj = { a: 1 };
+      const { stop } = observation.watch(obj, o => o.a, vv => v = vv);
+      stop();
+      obj.a = 2;
+      assert.strictEqual(v, 1);
+    });
+
+    it('runs can be called again', function () {
+      let v = 0;
+      const { run } = observation.watch({ a: 1 }, o => o.a, _ => v++);
+      run();
+      assert.strictEqual(v, 2);
+    });
+
+    it('runs independently with owning application', function () {
+      let v = 0;
+      const obj = { a: 1 };
+      const { run } = observation.watch(obj, o => o.a, _ => v++);
+      run();
+      assert.strictEqual(v, 2);
+
+      tearDown();
+      obj.a = 2;
+      assert.strictEqual(v, 3);
+    });
+  });
 });

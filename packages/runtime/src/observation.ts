@@ -178,7 +178,7 @@ export interface IAccessor<TValue = unknown> {
 /**
  * An interface describing a standard contract of an observer in Aurelia binding & observation system
  */
-export interface IObserver extends IAccessor, ISubscribable {
+export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscribable {
   doNotCache?: boolean;
 }
 

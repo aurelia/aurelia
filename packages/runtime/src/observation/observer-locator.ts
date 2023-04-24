@@ -1,13 +1,13 @@
 import { Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
 import { getArrayObserver } from './array-observer';
-import { ComputedObserver } from './computed-observer';
+import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities-objects';
 
 import type {
   Collection,
@@ -84,12 +84,17 @@ export class ObserverLocator {
     this._adapters.push(adapter);
   }
 
-  public getObserver(obj: unknown, key: PropertyKey): IObserver {
+  public getObserver(obj: unknown, key: PropertyKey): IObserver;
+  public getObserver<T, R>(obj: T, key: ComputedGetterFn<T, R>): IObserver<R>;
+  public getObserver(obj: unknown, key: PropertyKey | ComputedGetterFn): IObserver {
     if (obj == null) {
-      throw nullObjectError(key);
+      throw nullObjectError(safeString(key));
     }
     if (!isObject(obj)) {
-      return new PrimitiveObserver(obj as Primitive, key);
+      return new PrimitiveObserver(obj as Primitive, isFunction(key) ? '' : key);
+    }
+    if (isFunction(key)) {
+      return new ComputedObserver(obj, key, void 0, this, true);
     }
     const lookup = getObserverLookup(obj);
     let observer = lookup[key];
@@ -174,7 +179,7 @@ export class ObserverLocator {
 
       return obs == null
         ? pd.configurable
-          ? ComputedObserver.create(obj, key, pd, this, /* AOT: not true for IE11 */ true)
+          ? this._createComputedObserver(obj, key, pd, true)
           : this._dirtyChecker.createProperty(obj, key)
         : obs;
     }
@@ -182,6 +187,21 @@ export class ObserverLocator {
     // Ordinary get/set observation (the common use case)
     // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
     return new SetterObserver(obj, key);
+  }
+
+  /** @internal */
+  private _createComputedObserver(obj: object, key: PropertyKey, pd: PropertyDescriptor, useProxy?: boolean) {
+    const observer = new ComputedObserver(obj, pd.get!, pd.set, this, !!useProxy);
+    def(obj, key, {
+      enumerable: pd.enumerable,
+      configurable: true,
+      get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+      set: (/* Computed Observer */v) => {
+        observer.setValue(v);
+      },
+    });
+
+    return observer;
   }
 
   /** @internal */

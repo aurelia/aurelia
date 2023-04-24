@@ -1,7 +1,7 @@
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
-import { resolve, dirname } from 'node:path';
-import { promises } from 'node:fs';
+import { resolve, dirname } from 'path';
+import { promises } from 'fs';
 
 export default function au(options: {
   include?: FilterPattern;

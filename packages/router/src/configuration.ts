@@ -8,6 +8,7 @@ import { ConsideredActiveCustomAttribute } from './resources/considered-active';
 import { IRouter, Router } from './router';
 import { IRouterOptions, RouterOptions } from './router-options';
 import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook';
+import { RouteCallback } from './route-callback';
 
 export const IRouterConfiguration = /*@__PURE__*/DI.createInterface<IRouterConfiguration>('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 export interface IRouterConfiguration extends RouterConfiguration { }
@@ -84,6 +85,7 @@ export class RouterConfiguration {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
+      RouteCallback,
       AppTask.activating(IRouter, RouterConfiguration.configurationCall),
       AppTask.activated(IRouter, (router: IRouter) => router.initialLoad() as Promise<void>),
       AppTask.deactivated(IRouter, (router: IRouter) => router.stop()),

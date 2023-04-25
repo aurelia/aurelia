@@ -8,15 +8,16 @@ describe('router-lite/events.spec.ts', function () {
   type RouterTestStartOptions<TAppRoot> = {
     appRoot: Class<TAppRoot>;
     registrations?: any[];
+    restorePreviousRouteTreeOnError?: boolean;
   };
 
-  async function start<TAppRoot>({ appRoot, registrations = [] }: RouterTestStartOptions<TAppRoot>) {
+  async function start<TAppRoot>({ appRoot, registrations = [], restorePreviousRouteTreeOnError = true }: RouterTestStartOptions<TAppRoot>) {
     const ctx = TestContext.create();
     const { container } = ctx;
 
     container.register(
       TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
+      RouterConfiguration.customize({ restorePreviousRouteTreeOnError }),
       ...registrations,
       IRouterEventLoggerService,
       AppTask.creating(IRouterEventLoggerService, noop), // force the service creation
@@ -240,7 +241,7 @@ describe('router-lite/events.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('erred navigation', async function () {
+  it('erred navigation - without recovery', async function () {
     @customElement({ name: 'c-1', template: 'c1' })
     class ChildOne { }
 
@@ -260,7 +261,7 @@ describe('router-lite/events.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root });
+    const { au, host, container } = await start({ appRoot: Root, restorePreviousRouteTreeOnError: false });
     const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 

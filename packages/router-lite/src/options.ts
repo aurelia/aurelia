@@ -47,6 +47,12 @@ export class RouterOptions {
      * The default value is `null`.
      */
     public readonly activeClass: string | null,
+    /**
+     * When set to `true`, the router will try to restore previous route tree, when a routing instruction errs.
+     * Set this to `false`, if a stricter behavior is desired. However, in that case, you need to ensure the avoidance of errors.
+     * The default value is `true`.
+     */
+    public readonly restorePreviousRouteTreeOnError: boolean,
   ) { }
 
   public static create(input: IRouterOptions): RouterOptions {
@@ -57,6 +63,7 @@ export class RouterOptions {
       input.buildTitle ?? null,
       input.useNavigationModel ?? true,
       input.activeClass ?? null,
+      input.restorePreviousRouteTreeOnError ?? true,
     );
   }
 

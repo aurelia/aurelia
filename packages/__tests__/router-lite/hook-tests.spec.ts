@@ -479,6 +479,7 @@ async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
   level: LogLevel = LogLevel.fatal,
+  restorePreviousRouteTreeOnError: boolean = true,
 ) {
   const ctx = TestContext.create();
   const cfg = new NotifierConfig([], 100);
@@ -486,7 +487,7 @@ async function createFixture<T extends Constructable>(
 
   container.register(TestRouterConfiguration.for(level));
   container.register(Registration.instance(INotifierConfig, cfg));
-  container.register(RouterConfiguration);
+  container.register(RouterConfiguration.customize({ restorePreviousRouteTreeOnError }));
   container.register(...deps);
 
   const mgr = container.get(INotifierManager);
@@ -1474,13 +1475,13 @@ describe('router-lite/hook-tests.spec.ts', function () {
       }
 
       function runTest(spec: IErrorSpec) {
-        it(`re-throws ${spec}`, async function () {
+        it(`re-throws ${spec} - without recovery`, async function () {
           const components = spec.createCes();
           @route({ routes: components.map(component => ({ path: CustomElement.getDefinition(component).name, component })) })
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
           class Root { }
 
-          const { router, tearDown } = await createFixture(Root, components);
+          const { router, tearDown } = await createFixture(Root, components, undefined, false);
 
           let err: Error | undefined = void 0;
           try {

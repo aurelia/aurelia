@@ -417,7 +417,7 @@ export class Router {
         context = context!.parent;
       }
     }
-    if(isVpInstr) {
+    if (isVpInstr) {
       (instructionOrInstructions as Writable<IViewportInstruction>).component = $instruction;
     } else {
       instructionOrInstructions = $instruction;
@@ -461,7 +461,8 @@ export class Router {
     let reject: Exclude<Transition['reject'], null> = (void 0)!;
     let promise: Exclude<Transition['promise'], null>;
 
-    if (failedTr === null || failedTr.erredWithUnknownRoute) {
+    const restorePrevRT = this.options.restorePreviousRouteTreeOnError;
+    if (failedTr === null || failedTr.erredWithUnknownRoute || (failedTr.error != null && restorePrevRT)) {
       promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
     } else {
       // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
@@ -514,12 +515,16 @@ export class Router {
       } else {
         this._isNavigating = false;
         this.events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
-        const $nextTr = this.nextTr;
-        // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
-        if ($nextTr !== null) {
-          ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+        if (restorePrevRT) {
+          this.cancelNavigation(nextTr);
         } else {
-          this._routeTree = nextTr.previousRouteTree;
+          const $nextTr = this.nextTr;
+          // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
+          if ($nextTr !== null) {
+            ($nextTr as Writable<Transition>).previousRouteTree = nextTr.previousRouteTree;
+          } else {
+            this._routeTree = nextTr.previousRouteTree;
+          }
         }
       }
       throw err;
@@ -716,7 +721,12 @@ export class Router {
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition();
     } else {
-      const instructions = tr.erredWithUnknownRoute ? tr.prevInstructions : guardsResult as ViewportInstructionTree;
+
+      let instructions: ViewportInstructionTree;
+      if (this.navigated && (tr.erredWithUnknownRoute || (tr.error != null && this.options.restorePreviousRouteTreeOnError))) instructions = tr.prevInstructions;
+      else if (guardsResult === true) return;
+      else instructions = guardsResult;
+
       void onResolve(this.enqueue(instructions, 'api', tr.managedState, tr), () => {
         this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
       });

@@ -715,10 +715,12 @@ export class ViewportAgent {
     switch (this.currState) {
       case State.currIsEmpty:
       case State.currIsActive:
+        this.currTransition = null;
         break;
       case State.currCanUnload:
       case State.currCanUnloadDone:
         this.currState = State.currIsActive;
+        this.currTransition = null;
         break;
       case State.currUnload:
       case State.currDeactivate:

@@ -30,7 +30,7 @@ export interface ICoercionConfiguration {
   coerceNullish: boolean;
 }
 
-export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig: ICoercionConfiguration | null) => TOutput;
+export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput, coercionConfig?: ICoercionConfiguration) => TOutput;
 
 export interface IConnectable {
   observe(obj: object, key: PropertyKey): void;

@@ -2,10 +2,10 @@ import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aureli
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { Metadata } from '@aurelia/metadata';
 import { BindingMode } from './binding/interfaces-bindings';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from './utilities-metadata';
+import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 import { isString, objectFreeze, objectKeys } from './utilities';
 
-import type { Constructable, Writable } from '@aurelia/kernel';
+import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
@@ -127,7 +127,7 @@ type B345 = B45 & B3<B45>;
 type B2345 = B345 & B2<B345>;
 type B12345 = B2345 & B1<B2345>;
 
-const baseName = getAnnotationKeyFor('bindable');
+const baseName = /*@__PURE__*/getAnnotationKeyFor('bindable');
 
 export const Bindable = objectFreeze({
   name: baseName,
@@ -158,58 +158,6 @@ export const Bindable = objectFreeze({
     bindableLists.forEach(addList);
 
     return bindables;
-  },
-  for(Type: Constructable): BFluent {
-    let def: Writable<BindableDefinition>;
-
-    const builder: BFluent & B12345 = {
-      add(configOrProp: string | PartialBindableDefinitionPropertyRequired): BFluent & B12345 {
-        let prop: string;
-        let config: PartialBindableDefinitionPropertyRequired;
-        if (isString(configOrProp)) {
-          prop = configOrProp;
-          config = { property: prop };
-        } else {
-          prop = configOrProp.property;
-          config = configOrProp;
-        }
-
-        def = BindableDefinition.create(prop, Type, config) as Writable<BindableDefinition>;
-        if (!hasOwnMetadata(baseName, Type, prop)) {
-          appendAnnotationKey(Type, Bindable.keyFrom(prop));
-        }
-        defineMetadata(baseName, def, Type, prop);
-
-        return builder;
-      },
-      mode(mode: BindingMode): BFluent & B12345 {
-        def.mode = mode;
-
-        return builder;
-      },
-      callback(callback: string): BFluent & B12345 {
-        def.callback = callback;
-
-        return builder;
-      },
-      attribute(attribute: string): BFluent & B12345 {
-        def.attribute = attribute;
-
-        return builder;
-      },
-      primary(): BFluent & B12345 {
-        def.primary = true;
-
-        return builder;
-      },
-      set(setInterpreter: InterceptorFunc): BFluent & B12345 {
-        def.set = setInterpreter;
-
-        return builder;
-      }
-    };
-
-    return builder;
   },
   getAll(Type: Constructable): readonly BindableDefinition[] {
     const propStart = baseName.length + 1;
@@ -290,43 +238,6 @@ function apiTypeCheck() {
     })
     public prop: unknown;
   }
-
-  Bindable.for(Foo)
-    // > expected error - there is no add() function with only optional params on the fluent api
-    //.add()
-    // > expected error - 'property' is a required property on the fluent api
-    //.add({})
-    .add({ property: 'prop' })
-    .add({ property: 'prop', mode: BindingMode.twoWay })
-    .add({ property: 'prop', callback: 'propChanged' })
-    .add({ property: 'prop', attribute: 'prop' })
-    .add({ property: 'prop', primary: true })
-    .add({ property: 'prop', mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
-    .add('prop')
-    // > expected error - the add() method that accepts an object literal does not return a fluent api
-    //.add({ property: 'prop' }).mode(BindingMode.twoWay)
-    //.add({ property: 'prop' }).callback('propChanged')
-    //.add({ property: 'prop' }).attribute('prop')
-    //.add({ property: 'prop' }).primary()
-    // > expected error - fluent api methods can only be invoked once per bindable
-    //.add('prop').mode(BindingMode.twoWay).mode(BindingMode.twoWay)
-    //.add('prop').mode(BindingMode.twoWay).callback('propChanged').mode(BindingMode.twoWay)
-    //.add('prop').mode(BindingMode.twoWay).callback('propChanged').callback('propChanged') // etc
-    // > expected error - wrong invocation order
-    //.add('prop').callback('propChanged').mode(BindingMode.twoWay)
-    //.add('prop').primary().mode(BindingMode.twoWay)  // etc
-    .add('prop').mode(BindingMode.twoWay)
-    .add('prop').mode(BindingMode.twoWay).callback('propChanged')
-    .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop')
-    .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
-    .add('prop').mode(BindingMode.twoWay).set((value: unknown) => Number(value))
-    .add('prop').mode(BindingMode.twoWay).callback('propChanged').set(value => Number(value))
-    .add('prop').callback('propChanged')
-    .add('prop').callback('propChanged').attribute('prop')
-    .add('prop').callback('propChanged').attribute('prop').primary()
-    .add('prop').attribute('prop')
-    .add('prop').attribute('prop').primary()
-    .add('prop').primary();
 }
 /* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
@@ -371,7 +282,7 @@ function getInterceptor(prop: string, target: Constructable<unknown>, def: Parti
 }
 
 function createCoercer<TInput, TOutput>(coercer: InterceptorFunc<TInput, TOutput>, nullable: boolean | undefined): InterceptorFunc<TInput, TOutput> {
-  return function (value: TInput, coercionConfiguration: ICoercionConfiguration | null): TOutput {
+  return function (value: TInput, coercionConfiguration?: ICoercionConfiguration): TOutput {
     if (!coercionConfiguration?.enableCoercion) return value as unknown as TOutput;
     return ((nullable ?? ((coercionConfiguration?.coerceNullish ?? false) ? false : true)) && value == null)
       ? value as unknown as TOutput

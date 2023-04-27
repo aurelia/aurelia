@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, ICoercionConfiguration } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { areEqual, isFunction } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
@@ -9,7 +9,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from '@aurelia/runtime';
-import type { IController } from '../templating/controller';
+import type { IComponentController } from '../templating/controller';
 
 export interface BindableObserver extends IObserver, ISubscriberCollection {}
 
@@ -17,8 +17,24 @@ interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown): void;
 }
 
-type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
-
+// for new decorator, if bindable was declared on a field, it would require a pair of getter/setter to be reinstalled on the instance
+//                  it'll also required the observer to initialize to the field existing value
+// in case of @bindable on accessor, bindable setup needs to return get, set and optionally the init-transformer of the initial value,
+//                  this init-transformer will be the set function
+// in case of @bindable on setter, bindable setup needs to somehow links the getter (if any) with the setter
+// in case of @bindable on getter, bindable setup needs to somehow links the setter (if any) with the getter
+// ... and more for static, private, proxy etc..
+// ...
+// these conditions will likely make the bindable observation setup explode
+// a new strategy for handling bindable is required
+// ...
+// bindable observation isn't too special, it requires:
+//    - metadata correctly declared on the custom element definition for binding compilation
+//    - ability to invoke the right callbacks on value changes
+//    - ability to intercept the incoming value, as it often has to deal with html literal string, but normally meant boolean/number etc...
+// ...
+// maybe the controller can just get whatever existing observer, and add some special subscription on top to turn it into a "bindable" observer
+// doing this requires the existing observer to open more API to understand some special needs too
 export class BindableObserver {
   public get type(): AccessorType { return AccessorType.Observer; }
 
@@ -34,7 +50,7 @@ export class BindableObserver {
   private readonly cb: (newValue: unknown, oldValue: unknown) => void;
 
   /** @internal */
-  private readonly _cbAll: HasPropertyChangedCallback['propertyChanged'];
+  private readonly _cbAll: NonNullable<IMayHavePropertyChangedCallback['propertyChanged']>;
 
   /** @internal */
   private readonly _hasCb: boolean;
@@ -59,8 +75,8 @@ export class BindableObserver {
     // todo: a future feature where the observer is not instantiated via a controller
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
-    public readonly $controller: IController | null,
-    private readonly _coercionConfig: ICoercionConfiguration | null,
+    public readonly $controller: IComponentController | null,
+    // private readonly _coercionConfig: ICoercionConfiguration | null,
   ) {
     const cb = obj[cbName] as typeof BindableObserver.prototype.cb;
     const cbAll = (obj as IMayHavePropertyChangedCallback).propertyChanged!;
@@ -83,7 +99,7 @@ export class BindableObserver {
       this._observing = true;
 
       val = obj[key];
-      this._value = hasSetter && val !== void 0 ? set(val, this._coercionConfig) : val;
+      this._value = hasSetter && val !== void 0 ? set(val, this.$controller?.coercion) : val;
       this._createGetterSetter();
     }
   }
@@ -94,7 +110,7 @@ export class BindableObserver {
 
   public setValue(newValue: unknown): void {
     if (this._hasSetter) {
-      newValue = this.set(newValue, this._coercionConfig);
+      newValue = this.set(newValue, this.$controller?.coercion);
     }
 
     const currentValue = this._value;
@@ -126,7 +142,7 @@ export class BindableObserver {
     if (!this._observing === false) {
       this._observing = true;
       this._value = this._hasSetter
-        ? this.set(this._obj[this._key], this._coercionConfig)
+        ? this.set(this._obj[this._key], this.$controller?.coercion)
         : this._obj[this._key];
       this._createGetterSetter();
     }

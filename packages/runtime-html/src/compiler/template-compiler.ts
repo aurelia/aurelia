@@ -2008,7 +2008,7 @@ export interface ITemplateCompilerHooks {
 }
 
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<{}>>();
-const hooksBaseName = getResourceKeyFor('compiler-hooks');
+const hooksBaseName = /*@__PURE__*/getResourceKeyFor('compiler-hooks');
 
 export const TemplateCompilerHooks = objectFreeze({
   name: hooksBaseName,

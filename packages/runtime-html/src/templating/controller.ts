@@ -25,7 +25,7 @@ import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
 import { createError, getOwnPropertyNames, isFunction, isPromise, isString, safeString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
-import { createInterface, registerResolver } from '../utilities-di';
+import { createInterface, optionalResource, registerResolver } from '../utilities-di';
 
 import type {
   IContainer,
@@ -60,6 +60,7 @@ export const enum MountTarget {
 }
 
 const optionalCeFind = { optional: true } as const;
+const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
@@ -147,6 +148,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._hooks = v == null || this.vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(v);
   }
 
+  public coercion: ICoercionConfiguration | undefined;
+
   public constructor(
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
@@ -180,6 +183,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     this.location = location;
     this._rendering = container.root.get(IRendering);
+    this.coercion = vmKind === ViewModelKind.synthetic
+      ? void 0
+      : container.get(optionalCoercionConfigResolver);
   }
 
   public static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined {
@@ -1230,8 +1236,8 @@ function createObservers(
     let bindable: BindableDefinition;
     let i = 0;
     const observers = getLookup(instance as IIndexable);
-    const container = controller.container;
-    const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
+    // const container = controller.container;
+    // const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
 
     for (; i < length; ++i) {
       name = observableNames[i];
@@ -1244,8 +1250,8 @@ function createObservers(
           name,
           bindable.callback,
           bindable.set,
-          controller,
-          coercionConfiguration,
+          controller as IComponentController,
+          // coercionConfiguration,
         );
       }
     }
@@ -1457,6 +1463,10 @@ export interface IComponentController<C extends IViewModel = IViewModel> extends
    */
   readonly viewModel: C;
 
+  /**
+   * Coercion configuration associated with a component (attribute/element) or an application
+   */
+  readonly coercion: ICoercionConfiguration | undefined;
 }
 
 /**

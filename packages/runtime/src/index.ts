@@ -101,6 +101,7 @@ export {
 } from './observation/collection-length-observer';
 export {
   ComputedObserver,
+  type ComputedGetterFn,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,

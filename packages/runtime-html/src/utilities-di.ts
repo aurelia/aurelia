@@ -9,25 +9,37 @@ import {
   type IResourceKind,
   type ResourceDefinition,
   type IAllResolver,
+  IOptionalResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
+import { objectAssign } from './utilities';
 
-export const resource = function <T extends Key>(key: T) {
+export const resource = <T extends Key>(key: T) => {
   function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
     DI.inject(Resolver)(target, property, descriptor);
   }
   Resolver.$isResolver = true;
-  Resolver.resolve = function (handler: IContainer, requestor: IContainer) {
-    if (/* is root? */requestor.root === requestor) {
-      return requestor.get(key);
-    }
-
-    return requestor.has(key, false)
+  Resolver.resolve = (handler: IContainer, requestor: IContainer) =>
+    requestor.has(key, false)
       ? requestor.get(key)
       : requestor.root.get(key);
-  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return Resolver as IResolver<T> & ((...args: unknown[]) => any);
+};
+
+export const optionalResource = <T extends Key>(key: T) => {
+  return objectAssign(function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
+    DI.inject(Resolver)(target, property, descriptor);
+  }, {
+    $isResolver: true,
+    resolve: (handler: IContainer, requestor: IContainer) =>
+      requestor.has(key, false)
+        ? requestor.get(key)
+        : requestor.root.has(key, false)
+          ? requestor.root.get(key)
+          : void 0,
+  }) as IOptionalResolver<T>;
 };
 
 /**

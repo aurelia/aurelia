@@ -142,7 +142,7 @@ export class SetterNotifier implements IAccessor {
 
   public setValue(value: unknown): void {
     if (this._hasSetter) {
-      value = this._setter!(value, null);
+      value = this._setter!(value);
     }
     if (!areEqual(value, this._value)) {
       this._oldValue = this._value;

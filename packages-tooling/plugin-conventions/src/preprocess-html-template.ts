@@ -1,8 +1,8 @@
 import * as path from 'path';
+import modifyCode, { type ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 import { resourceName } from './resource-name';
-import { modifyCode, type ModifyCodeResult } from './utilities';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:

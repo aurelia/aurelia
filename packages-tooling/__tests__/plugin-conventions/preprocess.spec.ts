@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { preprocess } from '@aurelia/plugin-conventions';
+import { preprocess, IFileUnit } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
 describe('preprocess', function () {
@@ -49,7 +49,7 @@ export function register(container) {
         hmr: false,
         enableConventions: true
       },
-      (filePath: string) => filePath === path.join('src', 'foo-bar.less')
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.less'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -89,6 +89,40 @@ export function register(container) {
     assert.equal(result.map.version, 3);
   });
 
+  it('transforms html file with explicit file extension on dep', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="./foo"><require from="./foo-bar.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import { shadowCSS } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html";
+import * as d1 from "./foo.ts";
+import d2 from "!!raw-loader!./foo-bar.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
+export const shadowOptions = { mode: 'open' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocess(
+      { path: path.join('src', 'foo-bar.html'), contents: html },
+      {
+        defaultShadowOptions: { mode: 'open' },
+        stringModuleWrap: (id: string) => `!!raw-loader!${id}`,
+        hmr: false,
+        enableConventions: true
+      },
+      (unit: IFileUnit, filePath: string) => filePath === './foo.ts'
+    );
+    assert.equal(result.code, expected);
+    assert.equal(result.map.version, 3);
+  });
+
   it('does not touch js/ts file without html pair', function () {
     const js = `export class Foo {}\n`;
     const result = preprocess(
@@ -105,7 +139,7 @@ export function register(container) {
     const result = preprocess(
       { path: path.join('src', 'bar.js'), contents: js },
       { hmr: false },
-      (filePath: string) => filePath === path.join('src', 'bar.html')
+      (unit: IFileUnit, filePath: string) => filePath === './bar.html'
     );
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
@@ -125,7 +159,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar.html')
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -145,7 +179,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar', 'index.html')
+      (unit: IFileUnit, filePath: string) => filePath === './index.html'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -165,7 +199,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar-view.html')
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar-view.html'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -185,7 +219,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar', 'index-view.html')
+      (unit: IFileUnit, filePath: string) => filePath === './index-view.html'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -270,7 +304,7 @@ export class FooBar {}
         contents: js
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('src', 'foo-bar.html')
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -355,7 +389,7 @@ export class FooBar {}
         contents: js
       },
       { hmr: false },
-      (filePath: string) => filePath === path.join('src', 'foo-bar.haml')
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.haml'
     );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);

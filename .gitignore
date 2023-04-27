@@ -34,3 +34,4 @@ test/benchmarking-apps/runner/cosmos.config.json
 **/webdriver-ts/traces
 
 .turbo
+.parcel-cache

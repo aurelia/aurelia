@@ -335,7 +335,7 @@ export function coercer(target: Constructable<unknown>, property: string, _descr
 }
 
 const Coercer = {
-  key: getAnnotationKeyFor('coercer'),
+  key: /*@__PURE__*/getAnnotationKeyFor('coercer'),
   define(target: Constructable<unknown>, property: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
     defineMetadata(Coercer.key, ((target as any)[property] as InterceptorFunc).bind(target), target);

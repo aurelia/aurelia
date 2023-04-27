@@ -2,7 +2,7 @@
 
 Aurelia provides a higher-level API for simplifying some common tasks to handle a common reactivity intent in any application: run a function again when any of its dependencies have been changed.&#x20;
 
-This function is called an effect, and the dependencies are typically(1) tracked when they are accessed (read) inside this effect function. The builtin `@observable` decorator from Aurelia enables this track-on-read capability by default.
+This function is called an effect, and the dependencies are typically tracked when they are accessed (read) inside this effect function. The builtin `@observable` decorator from Aurelia enables this track-on-read capability by default.
 
 Aurelia provides a few ways to declare a dependency for an effect function. The most common one is the track "on read" of a reactive property.
 
@@ -18,7 +18,7 @@ class MouseTracker {
 The property `coord` of a `MouseTracker` instance will be turned into a reactive property and is also aware of effect function dependency tracking.
 
 {% hint style="info" %}
-Properties decorated with `@observable` and any proxy based property access will be tracked as dependencies of the effect
+Properties decorated with `@observable` and any proxy based property accesses will be tracked as dependencies of the effect
 {% endhint %}
 
 The effect APIs are provided via the default implementation of the interface `IObservation`, which can be retrieved like one of the following examples:

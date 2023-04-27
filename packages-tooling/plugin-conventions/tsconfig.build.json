@@ -4,6 +4,7 @@
     "composite": false,
     "declaration": false,
     "declarationMap": false,
+    "esModuleInterop": true,
     "rootDir": "src",
     "lib": ["esnext", "dom"],
     "types": ["node"]

@@ -1,25 +1,15 @@
-import modifyCode, { ModifyCodeResult } from 'modify-code';
 import {
   type CallExpression,
-  createSourceFile,
-  ScriptTarget,
   type Statement,
   type Node,
-  isImportDeclaration,
-  isStringLiteral,
-  isNamedImports,
-  SyntaxKind,
-  canHaveDecorators,
-  getDecorators,
-  isCallExpression,
-  isIdentifier,
-  isClassDeclaration,
-  canHaveModifiers,
-  getModifiers,
 } from 'typescript';
+import modifyCode, { type ModifyCodeResult } from 'modify-code';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
+
+import pkg from 'typescript';
+const { createSourceFile, ScriptTarget, isImportDeclaration, isStringLiteral, isNamedImports, isClassDeclaration, canHaveModifiers, getModifiers, SyntaxKind, canHaveDecorators, getDecorators, isCallExpression, isIdentifier } = pkg;
 
 interface ICapturedImport {
   names: string[];

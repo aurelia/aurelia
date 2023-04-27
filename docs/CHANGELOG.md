@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.5"></a>
+# 2.0.0-beta.5 (2023-04-27)
+
+### Features:
+
+* **observer-locator:** ability to create getter based observer (#1750) ([ba40b2d](https://github.com/aurelia/aurelia/commit/ba40b2d))
+* **effect:** add watch ([ba40b2d](https://github.com/aurelia/aurelia/commit/ba40b2d))
+* **di:** property injection with `resolve` (#1748) ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+* **aurelia:** ability to inject with `Aurelia` export beside `IAurelia` ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+
+
+### Bug Fixes:
+
+* **plugin-conventions:** ensure esm cjs compat (#1751) ([f808503](https://github.com/aurelia/aurelia/commit/f808503))
+* **compat-v1:** dont use both writable and getter/setter ([b58f967](https://github.com/aurelia/aurelia/commit/b58f967))
+
+
+### Refactorings:
+
+* **build:** preserve pure annotation for better tree shaking (#1745) ([0bc5cd6](https://github.com/aurelia/aurelia/commit/0bc5cd6))
+* **router-lite:** alias registrations (#1741) ([f5e7140](https://github.com/aurelia/aurelia/commit/f5e7140))
+
 <a name="2.0.0-beta.4"></a>
 # 2.0.0-beta.4 (2023-04-13)
 

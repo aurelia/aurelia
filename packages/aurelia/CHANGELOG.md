@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.5"></a>
+# 2.0.0-beta.5 (2023-04-27)
+
+### Features:
+
+* **di:** property injection with `resolve` (#1748) ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+* **aurelia:** ability to inject with `Aurelia` export beside `IAurelia` ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+
 <a name="2.0.0-beta.4"></a>
 # 2.0.0-beta.4 (2023-04-13)
 

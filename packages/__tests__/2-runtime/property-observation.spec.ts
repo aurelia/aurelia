@@ -176,7 +176,7 @@ describe('2-runtime/property-observation.spec.ts', function () {
     });
   });
 
-  describe('BindableObserver', function () {
+  describe('[UNIT] BindableObserver', function () {
     function createFixture(obj: IIndexable, key: string) {
       const _ctx = TestContext.create();
       const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { coercion: { enableCoercion: false, coerceNullish: false } } as any);

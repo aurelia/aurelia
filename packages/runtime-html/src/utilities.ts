@@ -21,7 +21,7 @@ const O = Object;
 
 /** @internal */ export const objectKeys = O.keys;
 
-const IsDataAttribute: Record<string, boolean> = createLookup();
+const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 
 /** @internal */ export const isDataAttribute = (obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean => {
   if (IsDataAttribute[key as string] === true) {

@@ -1,6 +1,6 @@
-import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { areEqual, isFunction } from '../utilities';
+import { Constructable, noop } from '@aurelia/kernel';
+import { subscriberCollection, AccessorType, IObserverLocator, ICoercionConfiguration } from '@aurelia/runtime';
+import { areEqual, isFunction, safeString } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
@@ -9,7 +9,8 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from '@aurelia/runtime';
-import type { IComponentController } from '../templating/controller';
+import type { IComponentController, ICustomElementViewModel } from '../templating/controller';
+import type { BindableDefinition } from '../bindable';
 
 export interface BindableObserver extends IObserver, ISubscriberCollection {}
 
@@ -17,24 +18,6 @@ interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown): void;
 }
 
-// for new decorator, if bindable was declared on a field, it would require a pair of getter/setter to be reinstalled on the instance
-//                  it'll also required the observer to initialize to the field existing value
-// in case of @bindable on accessor, bindable setup needs to return get, set and optionally the init-transformer of the initial value,
-//                  this init-transformer will be the set function
-// in case of @bindable on setter, bindable setup needs to somehow links the getter (if any) with the setter
-// in case of @bindable on getter, bindable setup needs to somehow links the setter (if any) with the getter
-// ... and more for static, private, proxy etc..
-// ...
-// these conditions will likely make the bindable observation setup explode
-// a new strategy for handling bindable is required
-// ...
-// bindable observation isn't too special, it requires:
-//    - metadata correctly declared on the custom element definition for binding compilation
-//    - ability to invoke the right callbacks on value changes
-//    - ability to intercept the incoming value, as it often has to deal with html literal string, but normally meant boolean/number etc...
-// ...
-// maybe the controller can just get whatever existing observer, and add some special subscription on top to turn it into a "bindable" observer
-// doing this requires the existing observer to open more API to understand some special needs too
 export class BindableObserver {
   public get type(): AccessorType { return AccessorType.Observer; }
 
@@ -76,7 +59,6 @@ export class BindableObserver {
     // this observer can become more static, as in immediately available when used
     // in the form of a decorator
     public readonly $controller: IComponentController | null,
-    // private readonly _coercionConfig: ICoercionConfiguration | null,
   ) {
     const cb = obj[cbName] as typeof BindableObserver.prototype.cb;
     const cbAll = (obj as IMayHavePropertyChangedCallback).propertyChanged!;
@@ -168,3 +150,88 @@ export class BindableObserver {
 }
 
 subscriberCollection(BindableObserver);
+
+export function createBindableGetterSetter(
+  Type: Constructable,
+  key: PropertyKey,
+  bindable: BindableDefinition,
+  // coercer: InterceptorFunc,
+  // handler: string | symbol,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  instance: IIndexable<ICustomElementViewModel, any>,
+  observerLocator: IObserverLocator,
+  coercion?: ICoercionConfiguration,
+) {
+  const obs = observerLocator.getObserver(instance, key);
+  if (bindable.set !== noop) {
+    if (obs.useCoercer?.(bindable.set, coercion) !== true) {
+      throw new Error(`AURxxxx: observer for property ${safeString(key)} does not support coercion.`);
+    }
+  }
+  const handler = bindable.callback;
+  if (instance[handler] != null || 'propertyChanged' in instance) {
+    const callback = (newValue: unknown, oldValue: unknown) => {
+      if (instance.$controller == null || instance.$controller.isBound) {
+        // eslint-disable-next-line
+        instance[handler]?.(newValue, oldValue);
+        instance.propertyChanged?.(key, newValue, oldValue);
+      }
+    };
+    if (obs.useCallback?.(callback) !== true) {
+      throw new Error(`AURxxxx: observer for property ${safeString(key)} does not support change handler.`);
+    }
+  }
+  // const coercer = bindable.set === noop ? identity : bindable.set;
+  // const ownProto = getPrototypeOf(instance);
+  // let pd = getOwnPropertyDescriptor(ownProto, key);
+  // // Only instance properties will yield a descriptor here, otherwise walk up the proto chain
+  // if (pd === void 0) {
+  //   let proto: object | null = getPrototypeOf(ownProto);
+  //   while (proto !== null) {
+  //     pd = getOwnPropertyDescriptor(proto, key);
+  //     if (pd === void 0) {
+  //       proto = getPrototypeOf(proto);
+  //     } else {
+  //       break;
+  //     }
+  //   }
+  // }
+  // let get: (() => unknown);
+  // let set: ((v: unknown) => void | unknown) | undefined;
+  // const isField = pd == null || hasOwnProperty.call(pd, 'value');
+  // if (isField) {
+  //   let v: unknown = coercer(instance[key], coercion);
+  //   get = () => v;
+  //   set = ($v: unknown) => v = coercer($v, coercion);
+  // } else {
+  //   if (!pd!.get) {
+  //     throw new Error(`AURxxxx: bindable ${safeString(key)} is write only`);
+  //   }
+  //   get = pd!.get;
+  //   set = pd!.set == null ? void 0 : (v: unknown) => pd!.set?.call(instance, coercer(v, coercion));
+  // }
+  // const observer = new ComputedObserver(
+  //   instance,
+  //   // if it's a field then can reuse the getter setter
+  //   get,
+  //   set,
+  //   observerLocator,
+  //   !isField,
+  // );
+
+  // if (instance[handler] != null || 'propertyChanged' in instance) {
+  //   observer.useCallback((newValue, oldValue) => {
+  //     if (instance.$controller == null || instance.$controller.isBound) {
+  //       // eslint-disable-next-line
+  //       instance[handler]?.(newValue, oldValue);
+  //       instance.propertyChanged?.(key, newValue, oldValue);
+  //     }
+  //   });
+  // }
+  // def(instance, key, {
+  //   enumerable: true,
+  //   configurable: true,
+  //   get: objectAssign(() => observer.getValue(), { getObserver: () => observer }),
+  //   set: (v: unknown) => observer.setValue(v),
+  // });
+}

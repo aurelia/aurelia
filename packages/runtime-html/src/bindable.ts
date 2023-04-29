@@ -1,4 +1,4 @@
-import { kebabCase, firstDefined, getPrototypeChain, noop, Class } from '@aurelia/kernel';
+import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { Metadata } from '@aurelia/metadata';
 import { BindingMode } from './binding/interfaces-bindings';
@@ -25,10 +25,6 @@ export type PartialBindableDefinition = {
    * @default true
    */
   nullable?: boolean;
-};
-
-type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
-  property: string;
 };
 
 type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 'property'>;
@@ -65,6 +61,39 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop;
     }
 
+    // if decorated on a field
+    // generate getter/setter for value by a weakmap
+
+    // if decorated on a getter/setter pair
+    // generate getter/setter for this object
+
+    // if decorated on a class
+    // generate getter/setter for a value by a weakmap
+
+    // if decorated on a method, throws
+
+    // in the future,
+    // decorated on accessor = intercept getter/setter
+    // decorated on field = same strategy
+    // decorated on setter = throws
+    // decorated on getter = getter computed
+    // const observer = new ComputedObserver(
+    //   { a: 1 },
+    //   function () {
+    //     // empty
+    //   },
+    //   function (v: unknown) {
+    //     // empty
+    //     if (descriptor?.set) {
+    //       observer.setValue()
+    //     } else {
+    //       throw new Error(`Property ${$prop} is readonly`);
+    //     }
+    //   },
+    //   null!,
+    //   false
+    // );
+
     defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
     appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
   }
@@ -94,38 +123,6 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
 function isBindableAnnotation(key: string): boolean {
   return key.startsWith(baseName);
 }
-
-type BFluent = {
-  add(config: PartialBindableDefinitionPropertyRequired): BFluent;
-  add(property: string): BFluent & B12345;
-};
-
-type B1<T = {}> = {
-  mode(mode: BindingMode): BFluent & T;
-};
-
-type B2<T = {}> = {
-  callback(callback: string): BFluent & T;
-};
-
-type B3<T = {}> = {
-  attribute(attribute: string): BFluent & T;
-};
-
-type B4<T = {}> = {
-  primary(): BFluent & T;
-};
-
-type B5<T = {}> = {
-  set(setterFn: InterceptorFunc): BFluent & T;
-};
-
-// An important self-imposed limitation for this to be viable (e.g. avoid exponential combination growth),
-// is to keep the fluent API invocation order in a single direction.
-type B45 = B5 & B4<B5>;
-type B345 = B45 & B3<B45>;
-type B2345 = B345 & B2<B345>;
-type B12345 = B2345 & B1<B2345>;
 
 const baseName = /*@__PURE__*/getAnnotationKeyFor('bindable');
 
@@ -194,12 +191,12 @@ export class BindableDefinition {
 
   public static create(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}): BindableDefinition {
     return new BindableDefinition(
-      firstDefined(def.attribute, kebabCase(prop)),
-      firstDefined(def.callback, `${prop}Changed`),
-      firstDefined(def.mode, BindingMode.toView),
-      firstDefined(def.primary, false),
-      firstDefined(def.property, prop),
-      firstDefined(def.set, getInterceptor(prop, target, def)),
+      def.attribute ?? kebabCase(prop),
+      def.callback ?? `${prop}Changed`,
+      def.mode ?? BindingMode.toView,
+      def.primary ?? false,
+      def.property ?? prop,
+      def.set ?? getInterceptor(prop, target, def),
     );
   }
 }

@@ -285,6 +285,19 @@ export const firstDefined = <T>(...values: readonly (T | undefined)[]): T => {
   throw createError(`No default value found`);
 };
 
+/**
+ * Get the prototypes of a class hierarchy. Es6 classes have their parent class as prototype
+ * so this will return a list of constructors
+ *
+ * @example
+ * ```ts
+ * class A {}
+ * class B extends A {}
+ *
+ * assert.deepStrictEqual(getPrototypeChain(A), [A])
+ * assert.deepStrictEqual(getPrototypeChain(B), [B, A])
+ * ```
+ */
 export const getPrototypeChain = /*@__PURE__*/(function () {
   const functionPrototype = Function.prototype;
   const getPrototypeOf = Object.getPrototypeOf;

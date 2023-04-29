@@ -180,6 +180,8 @@ export interface IAccessor<TValue = unknown> {
  */
 export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscribable {
   doNotCache?: boolean;
+  useCallback?(callback: (newValue: TValue, oldValue: TValue) => void): boolean;
+  useCoercer?(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration): boolean;
 }
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {

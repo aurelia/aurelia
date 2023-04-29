@@ -123,7 +123,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  protected propertyChanged(name: ChangeSource): void {
+  public propertyChanged(name: ChangeSource): void {
     if (name === 'model' && this._composition != null) {
       // eslint-disable-next-line
       this._composition.update(this.model);

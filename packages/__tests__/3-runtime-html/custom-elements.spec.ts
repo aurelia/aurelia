@@ -192,4 +192,82 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(au, component.el.au);
     });
   });
+
+  describe('getter bindable', function () {
+    it('works in basic scenario', function () {
+      const { assertText, flush, trigger } = createFixture(
+        `<my-el view-model.ref=el message="hello world">`,
+        class App {},
+        [CustomElement.define({
+          name: 'my-el',
+          template: '<button click.trigger="_m = 1"></button>${message}',
+          bindables: ['message']
+        }, class {
+          _m = 'hey';
+          get message() {
+            return this._m;
+          }
+
+          set message(v) {
+            this._m = v;
+          }
+        })]
+      );
+
+      assertText('hello world');
+      trigger.click('button');
+      flush();
+      assertText('1');
+    });
+
+    it('works with readonly bindable', function () {
+      const { assertText, flush, trigger } = createFixture(
+        `<my-el view-model.ref=el message.from-view="message">`,
+        class App {
+          message = 'hello-world';
+        },
+        [CustomElement.define({
+          name: 'my-el',
+          template: '<button click.trigger="_m = 1"></button>${message}',
+          bindables: ['message']
+        }, class {
+          _m = 'hey';
+          get message() {
+            return this._m;
+          }
+        })]
+      );
+
+      assertText('hey');
+      trigger.click('button');
+      flush();
+      assertText('1');
+    });
+
+    it('works with array based computed bindable', function () {
+      const { component, assertText, flush, trigger } = createFixture(
+        `<my-el view-model.ref=el message.from-view="message">`,
+        class App {
+          message = '';
+        },
+        [CustomElement.define({
+          name: 'my-el',
+          template: '<button click.trigger="_m[0].v = `hey`"></button>${message}',
+          bindables: ['message']
+        }, class {
+          _m = [{ v: 'hello' }, { v: 'world' }];
+          get message() {
+            return this._m.map(v => v.v).join(' ');
+          }
+        })]
+      );
+
+      assertText('hello world');
+      assert.strictEqual(component.message, 'hello world');
+      trigger.click('button');
+      flush();
+      assertText('hey world');
+      assert.strictEqual(component.message, 'hey world');
+    });
+  });
 });

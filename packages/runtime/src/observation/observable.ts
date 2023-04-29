@@ -1,12 +1,12 @@
-import { IObserver } from '../observation';
-import { SetterNotifier } from './setter-observer';
-import { safeString, def, createError } from '../utilities-objects';
+import { AccessorType, IAccessor, IObserver, ISubscriberCollection } from '../observation';
+import { safeString, def, createError, isFunction, areEqual } from '../utilities-objects';
 import { currentConnectable } from './connectable-switcher';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
 import type { IBindingContext, InterceptorFunc, IObservable } from '../observation';
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
+import { subscriberCollection } from './subscriber-collection';
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -158,6 +158,63 @@ function getNotifier(
   }
   return notifier;
 }
+
+type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown) => void;
+
+export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
+
+export class SetterNotifier implements IAccessor {
+  public readonly type: AccessorType = AccessorType.Observer;
+
+  /** @internal */
+  private _value: unknown = void 0;
+  /** @internal */
+  private _oldValue: unknown = void 0;
+  /** @internal */
+  private readonly cb?: ChangeHandlerCallback;
+  /** @internal */
+  private readonly _obj: object;
+  /** @internal */
+  private readonly _setter: InterceptorFunc | undefined;
+  /** @internal */
+  private readonly _hasSetter: boolean;
+
+  public constructor(
+    obj: object,
+    callbackKey: PropertyKey,
+    set: InterceptorFunc | undefined,
+    initialValue: unknown,
+  ) {
+    this._obj = obj;
+    this._setter = set;
+    this._hasSetter = isFunction(set);
+    const callback = (obj as IIndexable)[callbackKey as string];
+    this.cb = isFunction(callback) ? callback as ChangeHandlerCallback : void 0;
+    this._value = initialValue;
+  }
+
+  public getValue(): unknown {
+    return this._value;
+  }
+
+  public setValue(value: unknown): void {
+    if (this._hasSetter) {
+      value = this._setter!(value);
+    }
+    if (!areEqual(value, this._value)) {
+      this._oldValue = this._value;
+      this._value = value;
+      this.cb?.call(this._obj, this._value, this._oldValue);
+      // this._value might have been updated during the callback
+      // we only want to notify subscribers with the latest values
+      value = this._oldValue;
+      this._oldValue = this._value;
+      this.subs.notify(this._value, value);
+    }
+  }
+}
+
+subscriberCollection(SetterNotifier);
 
 /*
           | typescript       | babel

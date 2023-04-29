@@ -252,7 +252,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       await tearDown();
     });
 
-    it('does not invoke chane handler when starts with commands', async function () {
+    it('does not invoke change handler when starts with commands', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo.bind="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -260,7 +260,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       await tearDown();
     });
 
-    it('does not invoke chane handler when starts with interpolation', async function () {
+    it('does not invoke change handler when starts with interpolation', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo="\${prop}"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
@@ -268,7 +268,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       await tearDown();
     });
 
-    it('does not invoke chane handler when starts with two way binding', async function () {
+    it('does not invoke change handler when starts with two way binding', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo.two-way="prop"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0, '#1 should have had 0 calls at start');
       fooVm.prop = '5';
@@ -468,7 +468,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     }
   });
 
-  describe('05. with setter/getter', function () {
+  describe('05. with setter', function () {
 
     /**
      * Specs:

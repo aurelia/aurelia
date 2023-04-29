@@ -14,7 +14,7 @@ import {
   IExpressionParser,
   ICoercionConfiguration,
 } from '@aurelia/runtime';
-import { BindableObserver } from '../observation/bindable-observer';
+import { createBindableGetterSetter } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
@@ -29,7 +29,6 @@ import { createInterface, optionalResource, registerResolver } from '../utilitie
 
 import type {
   IContainer,
-  IIndexable,
   Writable,
   Constructable,
   IDisposable,
@@ -1208,21 +1207,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 }
 
-function getLookup(instance: IIndexable): Record<string, BindableObserver> {
-  let lookup = instance.$observers;
-  if (lookup === void 0) {
-    Reflect.defineProperty(
-      instance,
-      '$observers',
-      {
-        enumerable: false,
-        value: lookup = {},
-      },
-    );
-  }
-  return lookup as Record<string, BindableObserver>;
-}
-
 function createObservers(
   controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
@@ -1231,29 +1215,23 @@ function createObservers(
   const bindables = definition.bindables;
   const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
+  const locator = controller.container.get(IObserverLocator);
   if (length > 0) {
     let name: string;
     let bindable: BindableDefinition;
     let i = 0;
-    const observers = getLookup(instance as IIndexable);
-    // const container = controller.container;
-    // const coercionConfiguration = container.has(ICoercionConfiguration, true) ? container.get(ICoercionConfiguration) : null;
 
     for (; i < length; ++i) {
       name = observableNames[i];
-
-      if (observers[name] === void 0) {
-        bindable = bindables[name];
-
-        observers[name] = new BindableObserver(
-          instance as IIndexable,
-          name,
-          bindable.callback,
-          bindable.set,
-          controller as IComponentController,
-          // coercionConfiguration,
-        );
-      }
+      bindable = bindables[name];
+      createBindableGetterSetter(
+        definition.Type,
+        name,
+        bindable,
+        instance,
+        locator,
+        controller.coercion,
+      );
     }
   }
 }
@@ -1785,6 +1763,7 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
   created?(
     controller: ICustomElementController<this>,
   ): void;
+  propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
 }
 
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
@@ -1798,6 +1777,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
   created?(
     controller: ICustomAttributeController<this>,
   ): void;
+  propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
 }
 
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {

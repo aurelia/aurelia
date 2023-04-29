@@ -341,8 +341,6 @@ export {
 
   // PropertyAccessor,
 
-  // BindableObserver,
-
   // SetterObserver,
 
   ISignaler,

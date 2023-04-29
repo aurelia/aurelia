@@ -5,6 +5,9 @@ import {
   InstanceProvider,
   optional,
   resolveAll,
+  noop,
+  IIndexable,
+  AnyFunction,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -14,7 +17,6 @@ import {
   IExpressionParser,
   ICoercionConfiguration,
 } from '@aurelia/runtime';
-import { createBindableGetterSetter } from '../observation/bindable-observer';
 import { convertToRenderLocation, setRef } from '../dom';
 import { CustomElementDefinition, getElementDefinition, elementBaseName, isElementType, findElementControllerFor } from '../resources/custom-element';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
@@ -41,7 +43,6 @@ import type {
 } from '@aurelia/runtime';
 import type { AttrSyntax } from '../resources/attribute-pattern';
 import type { IAuSlotProjections } from './controller.projection';
-import type { BindableDefinition } from '../bindable';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
 import type { IViewFactory } from './view';
@@ -365,7 +366,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, container, definition, instance);
     }
-    createObservers(this, definition, instance);
+    createObservers(this, definition, instance as IIndexable<ICustomElementViewModel>);
 
     if (this._hooks.hasDefine) {
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
@@ -486,7 +487,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this, definition, instance);
+    createObservers(this, definition, instance as unknown as IIndexable<ICustomAttributeViewModel>);
 
     (instance as Writable<C>).$controller = this;
     this._lifecycleHooks = LifecycleHooks.resolve(this.container);
@@ -1210,28 +1211,35 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 function createObservers(
   controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  instance: object,
+  instance: IIndexable<ICustomElementViewModel | ICustomAttributeViewModel>,
 ): void {
   const bindables = definition.bindables;
   const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
   const locator = controller.container.get(IObserverLocator);
   if (length > 0) {
-    let name: string;
-    let bindable: BindableDefinition;
-    let i = 0;
+    for (let i = 0; i < length; ++i) {
+      const name = observableNames[i];
+      const bindable = bindables[name];
+      const handler = bindable.callback;
+      const obs = locator.getObserver(instance, name);
 
-    for (; i < length; ++i) {
-      name = observableNames[i];
-      bindable = bindables[name];
-      createBindableGetterSetter(
-        definition.Type,
-        name,
-        bindable,
-        instance,
-        locator,
-        controller.coercion,
-      );
+      if (bindable.set !== noop) {
+        if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
+          throw new Error(`AURxxxx: observer for property ${safeString(name)} does not support coercion.`);
+        }
+      }
+      if (instance[handler] != null || instance.propertyChanged != null) {
+        const callback = (newValue: unknown, oldValue: unknown) => {
+          if (controller.isBound) {
+            (instance[handler] as AnyFunction)?.(newValue, oldValue);
+            instance.propertyChanged?.(name, newValue, oldValue);
+          }
+        };
+        if (obs.useCallback?.(callback) !== true) {
+          throw new Error(`AURxxxx: observer for property ${safeString(name)} does not support change handler.`);
+        }
+      }
     }
   }
 }

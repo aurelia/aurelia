@@ -1226,7 +1226,10 @@ function createObservers(
 
       if (bindable.set !== noop) {
         if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
-          throw new Error(`AURxxxx: observer for property ${safeString(name)} does not support coercion.`);
+          if (__DEV__)
+            throw createError(`AURxxxx: observer for property ${safeString(name)} does not support coercion.`);
+          else
+            throw createError(`AURxxxx: coercion(${safeString(name)})`);
         }
       }
       if (instance[handler] != null || instance.propertyChanged != null) {
@@ -1237,7 +1240,10 @@ function createObservers(
           }
         };
         if (obs.useCallback?.(callback) !== true) {
-          throw new Error(`AURxxxx: observer for property ${safeString(name)} does not support change handler.`);
+          if (__DEV__)
+            throw createError(`AURxxxx: observer for property ${safeString(name)} does not support change handler.`);
+          else
+            throw createError(`AURxxx: changed(${safeString})`);
         }
       }
     }

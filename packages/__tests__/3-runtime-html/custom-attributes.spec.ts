@@ -763,4 +763,108 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(au, component.attr.au);
     });
   });
+
+  describe('getter/[setter] bindable', function () {
+    it('works in basic scenario', function () {
+      const { assertText } = createFixture(
+        `<div my-attr="hi">`,
+        class App {},
+        [CustomAttribute.define({ name: 'my-attr', bindables: ['message'] }, class {
+          _m = 'hey';
+          host = resolve(INode) as Element;
+          get message() {
+            return this._m;
+          }
+
+          set message(v) {
+            this._m = v;
+          }
+          attached() {
+            this.host.textContent = this._m;
+          }
+        })]
+      );
+
+      assertText('hi');
+    });
+
+    it('works with readonly bindable + [from-view]', function () {
+      const { assertText } = createFixture(
+        '<div my-attr.from-view="message">${message}',
+        class App {
+          message = '';
+        },
+        [CustomAttribute.define({ name: 'my-attr', bindables: ['_m', 'message'] }, class {
+          _m = '2';
+          get message() {
+            return this._m;
+          }
+
+          binding() {
+            this._m = '2+';
+          }
+        })]
+      );
+
+      assertText('2+');
+    });
+
+    it('works with coercer bindable', function () {
+      let setCount = 0;
+      const values = [];
+      @customAttribute('my-attr')
+      class MyAttr {
+        _m: string = '';
+        @bindable({ set: v => {
+          setCount++;
+          v = Number(v);
+          values.push(v);
+          return v;
+        } })
+        get message() {
+          return this._m;
+        }
+        set message(v: string) {
+          this._m = v;
+        }
+      }
+
+      const { component } = createFixture(
+        `<div my-attr.bind="value">`,
+        { value: '1' },
+        [MyAttr]
+      );
+
+      assert.strictEqual(setCount, 1);
+      assert.deepStrictEqual(values, [1]);
+      component.value = '2';
+      assert.strictEqual(setCount, 2);
+      assert.deepStrictEqual(values, [1, 2]);
+    });
+
+    it('works with array based computed bindable', function () {
+      const MyAttr = CustomAttribute.define({
+        name: 'my-attr',
+        bindables: ['message']
+      }, class {
+        _m = [{ v: 'hello' }, { v: 'world' }];
+        get message() {
+          return this._m.map(v => v.v).join(' ');
+        }
+      });
+      const { component } = createFixture(
+        '<div my-attr.ref=attr my-attr.from-view="value">',
+        class App {
+          attr: InstanceType<typeof MyAttr>;
+          value: any;
+        },
+        [MyAttr]
+      );
+
+      assert.strictEqual(component.value, 'hello world');
+
+      component.attr._m[1].v = 'world+';
+      assert.strictEqual(component.value, 'hello world+');
+    });
+  });
 });

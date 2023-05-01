@@ -712,6 +712,8 @@ export class ViewportAgent {
 
     this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
 
+    let currentDeactivationPromise: void | Promise<void> | null = null;
+    let nextDeactivationPromise: void | Promise<void> | null = null;
     switch (this.currState) {
       case State.currIsEmpty:
       case State.currIsActive:
@@ -728,6 +730,13 @@ export class ViewportAgent {
         this.curCA = null;
         this.currTransition = null;
         break;
+      case State.currUnloadDone:
+        currentDeactivationPromise = onResolve(this.curCA?._deactivate(null, this.hostController), () => {
+          this.curCA?._dispose();
+          this.currState = State.currIsEmpty;
+          this.curCA = null;
+        });
+        break;
     }
 
     switch (this.nextState) {
@@ -740,17 +749,22 @@ export class ViewportAgent {
         break;
       case State.nextLoad:
       case State.nextActivate: {
-        this._cancellationPromise = onResolve(this.nextCA?._deactivate(null, this.hostController), () => {
+        nextDeactivationPromise = onResolve(this.nextCA?._deactivate(null, this.hostController), () => {
           this.nextCA?._dispose();
           this.$plan = 'replace';
           this.nextState = State.nextIsEmpty;
           this.nextCA = null;
           this.nextNode = null;
-          this.currTransition = null;
-          this._cancellationPromise = null;
         });
         break;
       }
+    }
+
+    if (currentDeactivationPromise !== null && nextDeactivationPromise !== null) {
+      this._cancellationPromise = onResolve(resolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
+        this.currTransition = null;
+        this._cancellationPromise = null;
+      });
     }
   }
 

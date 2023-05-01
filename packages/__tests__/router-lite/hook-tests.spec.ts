@@ -23,6 +23,7 @@ import { assert, TestContext } from '@aurelia/testing';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { isFirefox } from '../util.js';
+import { TaskQueue } from '@aurelia/platform';
 
 function join(sep: string, ...parts: string[]): string {
   return parts.filter(function (x) {
@@ -3221,9 +3222,32 @@ describe('router-lite/hook-tests.spec.ts', function () {
     });
 
     describe('from error thrown from hooks', function () {
+
+      const ticks = 0;
+      function click(anchor: HTMLAnchorElement, queue: TaskQueue): Promise<void> {
+        anchor.click();
+        return waitForQueuedTasks(queue);
+      }
+
+      function waitForQueuedTasks(queue: TaskQueue): Promise<void> {
+        queue.queueTask(() => Promise.resolve());
+        return queue.yield();
+      }
+
       describe('single level - single viewport', function () {
-        it('error thrown in canLoad', async function () {
-          const ticks = 0;
+
+        function generateExpectedNormalInvocationLog(phase: string, current: string, next: string) {
+          return [
+            ...$(phase, current, ticks, 'canUnload'),
+            ...$(phase, next, ticks, 'canLoad'),
+            ...$(phase, current, ticks, 'unloading'),
+            ...$(phase, next, ticks, 'loading'),
+            ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+            ...$(phase, next, ticks, 'binding', 'bound', 'attaching', 'attached'),
+          ];
+        }
+
+        function createCes(hook: string) {
           const hookSpec = HookSpecs.create(ticks);
           @route(['', 'a'])
           @customElement({ name: 'ce-a', template: 'a' })
@@ -3237,9 +3261,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
           @customElement({ name: 'ce-c', template: 'c' })
           class C extends TestVM {
             public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
-            public canLoad(p: P, n: RN, c: RN): boolean | NI | NI[] | Promise<boolean | NI | NI[]> {
-              return onResolve(super.canLoad(p, n, c), (ret) => {
-                throw new Error('Synthetic test error in canLoad');
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                throw new Error(`Synthetic test error in ${hook}`);
               });
             }
           }
@@ -3258,106 +3282,114 @@ describe('router-lite/hook-tests.spec.ts', function () {
           })
           class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
-          const { router, mgr, tearDown, host, platform } = await createFixture(Root/* , undefined, LogLevel.trace */);
+          return Root;
+        }
 
-          const queue = platform.taskQueue;
-          const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
-          assert.html.textContent(host, 'a', 'load');
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, current: string) => any[]]> {
+          yield [
+            'canLoad',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+              ];
+            }
+          ];
+          yield [
+            'loading',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+                ...$(phase, current, ticks, 'unloading'),
+                ...$(phase, 'ce-c', ticks, 'loading'),
+                ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'ce-c', ticks, 'dispose'),
+                ...$(phase, current, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ];
+            }
+          ];
+          yield [
+            'binding',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+                ...$(phase, current, ticks, 'unloading'),
+                ...$(phase, 'ce-c', ticks, 'loading'),
+                ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'ce-c', ticks, 'binding', 'dispose'),
+                ...$(phase, current, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ];
+            }
+          ];
+        }
 
-          const click = async (anchor: HTMLAnchorElement) => {
-            anchor.click();
-            // ensure that all promise callbacks from the transition promise are executed
-            queue.queueTask(() => Promise.resolve());
-            await queue.yield();
-          };
+        for (const [hook, getExpectedErrorLog] of getTestData()) {
+          it(`error thrown from ${hook}`, async function () {
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook), undefined, LogLevel.trace);
 
-          let phase = 'round#1';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          await click(anchorC);
-          try {
-            await router['currentTr'].promise;
-            assert.fail('expected error');
-          } catch { /* noop */ }
-          assert.html.textContent(host, 'a', `${phase} - text`);
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-a', ticks, 'canUnload'),
-            ...$(phase, 'ce-c', ticks, 'canLoad'),
-          ]);
+            const queue = platform.taskQueue;
+            const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
+            assert.html.textContent(host, 'a', 'load');
 
-          phase = 'round#2';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          await click(anchorB);
-          await router['currentTr'].promise; // actual wait is done here
-          assert.html.textContent(host, 'b', `${phase} - text`);
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-a', ticks, 'canUnload'),
-            ...$(phase, 'ce-b', ticks, 'canLoad'),
-            ...$(phase, 'ce-a', ticks, 'unloading'),
-            ...$(phase, 'ce-b', ticks, 'loading'),
-            ...$(phase, 'ce-a', ticks, 'detaching', 'unbinding', 'dispose'),
-            ...$(phase, 'ce-b', ticks, 'binding', 'bound', 'attaching', 'attached'),
-          ]);
+            let phase = 'round#1';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(anchorC, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            assert.html.textContent(host, 'a', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'ce-a'));
 
-          phase = 'round#3';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          await click(anchorC);
-          try {
-            await router['currentTr'].promise;
-            assert.fail('expected error');
-          } catch { /* noop */ }
-          assert.html.textContent(host, 'b', `${phase} - text`);
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-b', ticks, 'canUnload'),
-            ...$(phase, 'ce-c', ticks, 'canLoad'),
-          ]);
+            phase = 'round#2';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(anchorB, queue);
+            await router['currentTr'].promise; // actual wait is done here
+            assert.html.textContent(host, 'b', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-a', 'ce-b'));
 
-          phase = 'round#4';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          await click(anchorA);
-          await router['currentTr'].promise; // actual wait is done here
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-b', ticks, 'canUnload'),
-            ...$(phase, 'ce-a', ticks, 'canLoad'),
-            ...$(phase, 'ce-b', ticks, 'unloading'),
-            ...$(phase, 'ce-a', ticks, 'loading'),
-            ...$(phase, 'ce-b', ticks, 'detaching', 'unbinding', 'dispose'),
-            ...$(phase, 'ce-a', ticks, 'binding', 'bound', 'attaching', 'attached'),
-          ]);
+            phase = 'round#3';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(anchorC, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            assert.html.textContent(host, 'b', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'ce-b'));
 
-          phase = 'round#5';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          try {
-            await router.load('c');
-            assert.fail('expected error');
-          } catch { /* noop */ }
-          assert.html.textContent(host, 'a', `${phase} - text`);
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-a', ticks, 'canUnload'),
-            ...$(phase, 'ce-c', ticks, 'canLoad'),
-          ]);
+            phase = 'round#4';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(anchorA, queue);
+            await router['currentTr'].promise; // actual wait is done here
+            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-b', 'ce-a'));
 
-          phase = 'round#6';
-          mgr.fullNotifyHistory.length = 0;
-          mgr.setPrefix(phase);
-          await router.load('b');
-          assert.html.textContent(host, 'b', `${phase} - text`);
-          verifyInvocationsEqual(mgr.fullNotifyHistory, [
-            ...$(phase, 'ce-a', ticks, 'canUnload'),
-            ...$(phase, 'ce-b', ticks, 'canLoad'),
-            ...$(phase, 'ce-a', ticks, 'unloading'),
-            ...$(phase, 'ce-b', ticks, 'loading'),
-            ...$(phase, 'ce-a', ticks, 'detaching', 'unbinding', 'dispose'),
-            ...$(phase, 'ce-b', ticks, 'binding', 'bound', 'attaching', 'attached'),
-          ]);
+            phase = 'round#5';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            try {
+              await router.load('c');
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            assert.html.textContent(host, 'a', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'ce-a'));
 
-          await tearDown();
-        });
+            phase = 'round#6';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await router.load('b');
+            assert.html.textContent(host, 'b', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-a', 'ce-b'));
 
+            await tearDown();
+          });
+        }
       });
     });
   });

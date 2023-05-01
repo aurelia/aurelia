@@ -432,21 +432,19 @@ describe('3-runtime-html/switch.spec.ts', function () {
     for (const config of configFactories) {
       const MyEcho = createComponentType('my-echo', `Echoed '\${message}'`, ['message']);
 
-      const enumTemplate = `
-    <template>
-      <template switch.bind="status">
-        <case-host case="received"   ce-id="1">Order received.</case-host>
-        <case-host case="dispatched" ce-id="2">On the way.</case-host>
-        <case-host case="processing" ce-id="3">Processing your order.</case-host>
-        <case-host case="delivered"  ce-id="4">Delivered.</case-host>
-      </template>
-    </template>`;
-
       yield new TestData(
         'works for simple switch-case',
         {
           initialStatus: Status.processing,
-          template: enumTemplate,
+          template: `
+          <template>
+            <template switch.bind="status">
+              <case-host case="received"   ce-id="1">Order received.</case-host>
+              <case-host case="dispatched" ce-id="2">On the way.</case-host>
+              <case-host case="processing" ce-id="3">Processing your order.</case-host>
+              <case-host case="delivered"  ce-id="4">Delivered.</case-host>
+            </template>
+          </template>`,
         },
         config(),
         wrap('Processing your order.'),

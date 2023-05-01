@@ -7,10 +7,6 @@ export {
 } from './bindable';
 
 export {
-  BindableObserver,
-} from './observation/bindable-observer';
-
-export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,

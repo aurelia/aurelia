@@ -1,6 +1,8 @@
 import {
   AccessorType,
+  ICoercionConfiguration,
   IObserver,
+  InterceptorFunc,
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
@@ -48,6 +50,15 @@ export class ComputedObserver<T extends object> implements
   /** @internal */
   private readonly _wrapped: T;
 
+  /** @internal */
+  private _callback?: (newValue: unknown, oldValue: unknown) => void = void 0;
+
+  /** @internal */
+  private _coercer?: InterceptorFunc = void 0;
+
+  /** @internal */
+  private _coercionConfig?: ICoercionConfiguration = void 0;
+
   /**
    * The getter this observer is wrapping
    */
@@ -77,6 +88,11 @@ export class ComputedObserver<T extends object> implements
     this.oL = observerLocator;
   }
 
+  public init(value: unknown) {
+    this._value = value;
+    this._isDirty = false;
+  }
+
   public getValue() {
     if (this.subs.count === 0) {
       return this.$get.call(this._obj, this._obj, this);
@@ -91,7 +107,10 @@ export class ComputedObserver<T extends object> implements
   // deepscan-disable-next-line
   public setValue(v: unknown): void {
     if (isFunction(this.$set)) {
-      if (v !== this._value) {
+      if (this._coercer !== void 0) {
+        v = this._coercer.call(null, v, this._coercionConfig);
+      }
+      if (!areEqual(v, this._value)) {
         // setting running true as a form of batching
         this._isRunning = true;
         this.$set.call(this._obj, v);
@@ -105,6 +124,17 @@ export class ComputedObserver<T extends object> implements
       else
         throw createError(`AUR0221`);
     }
+  }
+
+  public useCoercer(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration | undefined): boolean {
+    this._coercer = coercer;
+    this._coercionConfig = coercionConfig;
+    return true;
+  }
+
+  public useCallback(callback: (newValue: unknown, oldValue: unknown) => void) {
+    this._callback = callback;
+    return true;
   }
 
   public handleChange(): void {
@@ -148,6 +178,9 @@ export class ComputedObserver<T extends object> implements
     this._isDirty = false;
 
     if (!areEqual(newValue, oldValue)) {
+      // todo: probably should set is running here too
+      // to prevent depth first notification
+      this._callback?.(newValue, oldValue);
       this.subs.notify(this._value, oldValue);
     }
   }

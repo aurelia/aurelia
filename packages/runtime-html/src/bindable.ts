@@ -61,39 +61,6 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       config.property = $prop;
     }
 
-    // if decorated on a field
-    // generate getter/setter for value by a weakmap
-
-    // if decorated on a getter/setter pair
-    // generate getter/setter for this object
-
-    // if decorated on a class
-    // generate getter/setter for a value by a weakmap
-
-    // if decorated on a method, throws
-
-    // in the future,
-    // decorated on accessor = intercept getter/setter
-    // decorated on field = same strategy
-    // decorated on setter = throws
-    // decorated on getter = getter computed
-    // const observer = new ComputedObserver(
-    //   { a: 1 },
-    //   function () {
-    //     // empty
-    //   },
-    //   function (v: unknown) {
-    //     // empty
-    //     if (descriptor?.set) {
-    //       observer.setValue()
-    //     } else {
-    //       throw new Error(`Property ${$prop} is readonly`);
-    //     }
-    //   },
-    //   null!,
-    //   false
-    // );
-
     defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
     appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
   }

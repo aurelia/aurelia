@@ -1,4 +1,5 @@
-import { Interceptor, RetryConfiguration } from './interfaces';
+import { CacheInterceptor } from './cache-interceptor';
+import { CacheConfiguration, Interceptor, RetryConfiguration } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
 
 /**
@@ -95,6 +96,12 @@ export class HttpClientConfiguration {
 
   public withRetry(config?: RetryConfiguration): HttpClientConfiguration {
     const interceptor: Interceptor = new RetryInterceptor(config);
+
+    return this.withInterceptor(interceptor);
+  }
+
+  public withCache(config?: CacheConfiguration): HttpClientConfiguration {
+    const interceptor: Interceptor = new CacheInterceptor(config);
 
     return this.withInterceptor(interceptor);
   }

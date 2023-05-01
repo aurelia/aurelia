@@ -61,3 +61,8 @@ export interface RetryConfiguration {
   doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
   beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
 }
+
+export interface CacheConfiguration {
+  cacheTime?: number;
+  staleTime?: number;
+}

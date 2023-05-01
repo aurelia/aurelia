@@ -764,7 +764,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     switch ((this.state & ~State.released)) {
       case State.activated:
-        // We're fully activated, so proceed with normal deactivation.
+      case State.activating:
         this.state = State.deactivating;
         break;
       case State.none:
@@ -812,7 +812,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
     }
 
-    if (this._hooks.hasDetaching) {
+    if (this._hooks.hasDetaching && this.isBound) {
       if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
       ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
@@ -1032,7 +1032,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, this));
         }
 
-        if (cur._hooks.hasUnbinding) {
+        if (cur._hooks.hasUnbinding && cur.isBound) {
           if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
           ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));

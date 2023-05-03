@@ -134,7 +134,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   private _initCalculation(): void {
-    const firstView = this._createAndActivateFirstView();    
+    const firstView = this._createAndActivateFirstView();
     const itemHeight = calcOuterHeight(firstView.nodes.firstChild as HTMLElement);
     const scrollerInfo = this.scrollerObserver!.getValue();
     const calculation = this._calculate(scrollerInfo, this.collectionStrategy!.count(), itemHeight);

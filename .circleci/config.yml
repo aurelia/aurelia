@@ -847,7 +847,7 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_i18n
+          name: e2e_virtual_repeat
           path: "packages/__e2e__/ui-virtualization"
           requires:
             - build_release
@@ -1004,7 +1004,7 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_i18n
+          name: e2e_virtual_repeat
           path: "packages/__e2e__/ui-virtualization"
           requires:
             - build_release

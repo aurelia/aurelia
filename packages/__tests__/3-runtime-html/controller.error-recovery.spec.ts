@@ -1,6 +1,20 @@
-import { Class, DI, onResolve } from '@aurelia/kernel';
-import { Aurelia, CustomElement, ICustomElementController, ICustomElementViewModel, IHydratedController, customElement } from '@aurelia/runtime-html';
-import { TestContext, assert } from '@aurelia/testing';
+import {
+  Class,
+  DI,
+  onResolve,
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  CustomElement,
+  ICustomElementController,
+  ICustomElementViewModel,
+  IHydratedController,
+  customElement,
+} from '@aurelia/runtime-html';
+import {
+  TestContext,
+  assert,
+} from '@aurelia/testing';
 
 describe('3-runtime-html/controller.error-recovery.spec.ts', function () {
 
@@ -30,7 +44,7 @@ describe('3-runtime-html/controller.error-recovery.spec.ts', function () {
 
     public assertLog(expected: string[], message: string) {
       const log = this.log;
-      const len = expected.length;
+      const len = Math.max(log.length, expected.length);
       for (let i = 0; i < len; i++) {
         assert.strictEqual(log[i], expected[i], `${message} - unexpected log at index${i}: ${log[i]}; actual log: ${JSON.stringify(log, undefined, 2)}`);
       }
@@ -94,165 +108,223 @@ describe('3-runtime-html/controller.error-recovery.spec.ts', function () {
     return { host, au, container, rootVm, startUpError };
   }
 
-  it('Aurelia instance with error on binding can be stopped  - root', async function () {
-    @customElement({ name: 'ro-ot', template: '' })
-    class Root extends TestVM {
-      public $binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        throw new Error('Synthetic test error');
+  for (const hook of ['binding', 'bound', 'attaching', 'attached'] as const) {
+    it(`Aurelia instance with error on ${hook} can be deactivated  - root`, async function () {
+      @customElement({ name: 'ro-ot', template: '' })
+      class Root extends TestVM {
+        public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+          throw new Error('Synthetic test error');
+        }
       }
-    }
 
-    const { startUpError, au, container } = await start(Root);
-    const mgr = container.get(INotifierManager);
+      const { startUpError, au, container } = await start(Root);
+      const mgr = container.get(INotifierManager);
 
-    assert.instanceOf(startUpError, Error);
+      assert.instanceOf(startUpError, Error);
 
-    mgr.assertLog([
-      'start.ro-ot.binding.enter',
-    ], 'start');
-
-    mgr.setPrefix('stop');
-    let stopError: unknown = null;
-    try {
-      await au.stop(true);
-    } catch (e) {
-      stopError = e;
-    }
-
-    assert.strictEqual(stopError, null);
-
-    // Because aurelia could not be started
-    mgr.assertLog([], 'stop');
-  });
-
-  it('Aurelia instance with error on binding can be stopped - children CE', async function () {
-    @customElement({ name: 'c-1', template: '' })
-    class C1 extends TestVM {
-      public $binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        throw new Error('Synthetic test error');
+      const logs = [];
+      /* eslint-disable no-fallthrough */
+      switch (hook) {
+        case 'attached': logs.push('start.ro-ot.attached.enter', 'start.ro-ot.attaching.leave');
+        case 'attaching': logs.push('start.ro-ot.attaching.enter', 'start.ro-ot.bound.leave');
+        case 'bound': logs.push('start.ro-ot.bound.enter', 'start.ro-ot.binding.leave');
+        case 'binding': logs.push('start.ro-ot.binding.enter');
       }
-    }
+      /* eslint-enable no-fallthrough */
+      logs.reverse();
+      mgr.assertLog(logs, 'start');
 
-    @customElement({ name: 'ro-ot', template: '<c-1></c-1>' })
-    class Root extends TestVM { }
-
-    const { startUpError, au, container } = await start(Root, C1);
-    const mgr = container.get(INotifierManager);
-
-    mgr.assertLog([
-      'start.ro-ot.binding.enter',
-      'start.ro-ot.binding.leave',
-      'start.ro-ot.bound.enter',
-      'start.ro-ot.bound.leave',
-      'start.ro-ot.attaching.enter',
-      'start.ro-ot.attaching.leave',
-      'start.c-1.binding.enter',
-    ], 'start');
-
-    assert.instanceOf(startUpError, Error);
-
-    mgr.setPrefix('stop');
-    let stopError: unknown = null;
-    try {
-      await au.stop(true);
-    } catch (e) {
-      stopError = e;
-    }
-
-    assert.strictEqual(stopError, null);
-    // Because aurelia could not be started
-    mgr.assertLog([], 'stop');
-  });
-
-  it('Aurelia instance with error on binding can be stopped - if.bind', async function () {
-    @customElement({ name: 'c-1', template: 'c1' })
-    class C1 extends TestVM { }
-
-    @customElement({ name: 'c-2', template: 'c2' })
-    class C2 extends TestVM {
-      public $binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        throw new Error('Synthetic test error');
+      mgr.setPrefix('stop');
+      let stopError: unknown = null;
+      try {
+        await au.stop(true);
+      } catch (e) {
+        stopError = e;
       }
-    }
 
-    @customElement({ name: 'ro-ot', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
-    class Root extends TestVM {
-      public showC1: boolean = true;
-      public readonly $controller!: ICustomElementController<this>;
-    }
+      assert.strictEqual(stopError, null);
 
-    const { au, rootVm, host, container } = await start(Root, C1, C2);
+      // Because aurelia could not be started
+      mgr.assertLog([], 'stop');
+    });
 
-    const mgr = container.get(INotifierManager);
-    mgr.assertLog([
-      'start.ro-ot.binding.enter',
-      'start.ro-ot.binding.leave',
-      'start.ro-ot.bound.enter',
-      'start.ro-ot.bound.leave',
-      'start.ro-ot.attaching.enter',
-      'start.ro-ot.attaching.leave',
-      'start.c-1.binding.enter',
-      'start.c-1.binding.leave',
-      'start.c-1.bound.enter',
-      'start.c-1.bound.leave',
-      'start.c-1.attaching.enter',
-      'start.c-1.attaching.leave',
-    ], 'start');
+    it(`Aurelia instance with error on ${hook} can be deactivated - children CE`, async function () {
+      @customElement({ name: 'c-1', template: '' })
+      class C1 extends TestVM {
+        public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+          throw new Error('Synthetic test error');
+        }
+      }
 
-    mgr.setPrefix('phase#1');
-    assert.html.textContent(host, 'c1');
-    try {
-      rootVm.showC1 = false;
-      assert.fail('expected error');
-    } catch (e) {
-      assert.instanceOf(e, Error, 'swap');
-    }
-    mgr.assertLog([
-      'phase#1.c-1.detaching.enter',
-      'phase#1.c-1.detaching.leave',
-      'phase#1.c-1.unbinding.enter',
-      'phase#1.c-1.unbinding.leave',
-      'phase#1.c-2.binding.enter',
-    ], 'phase#1');
+      @customElement({ name: 'ro-ot', template: '<c-1></c-1>' })
+      class Root extends TestVM { }
 
-    assert.html.textContent(host, '');
+      const { startUpError, au, container } = await start(Root, C1);
+      const mgr = container.get(INotifierManager);
 
-    mgr.setPrefix('phase#2');
-    rootVm.showC1 = true;
-    assert.html.textContent(host, 'c1');
-    mgr.assertLog([
-      'phase#2.c-1.binding.enter',
-      'phase#2.c-1.binding.leave',
-      'phase#2.c-1.bound.enter',
-      'phase#2.c-1.bound.leave',
-      'phase#2.c-1.attaching.enter',
-      'phase#2.c-1.attaching.leave',
-    ], 'phase#2');
+      const logs = [];
+      /* eslint-disable no-fallthrough */
+      switch (hook) {
+        case 'attached': logs.push('start.c-1.attached.enter', 'start.c-1.attaching.leave');
+        case 'attaching': logs.push('start.c-1.attaching.enter', 'start.c-1.bound.leave');
+        case 'bound': logs.push('start.c-1.bound.enter', 'start.c-1.binding.leave');
+        case 'binding': logs.push('start.c-1.binding.enter');
+      }
+      /* eslint-enable no-fallthrough */
+      logs.reverse();
 
-    mgr.setPrefix('stop');
-    let error: unknown = null;
-    try {
-      await au.stop(true);
-    } catch (e) {
-      error = e;
-    }
+      mgr.assertLog([
+        'start.ro-ot.binding.enter',
+        'start.ro-ot.binding.leave',
+        'start.ro-ot.bound.enter',
+        'start.ro-ot.bound.leave',
+        'start.ro-ot.attaching.enter',
+        'start.ro-ot.attaching.leave',
+        ...logs
+      ], 'start');
 
-    assert.strictEqual(error, null, 'stop');
-    mgr.assertLog([
-      'stop.c-1.detaching.enter',
-      'stop.c-1.detaching.leave',
-      'stop.ro-ot.detaching.enter',
-      'stop.ro-ot.detaching.leave',
-      'stop.c-1.unbinding.enter',
-      'stop.c-1.unbinding.leave',
-      'stop.ro-ot.unbinding.enter',
-      'stop.ro-ot.unbinding.leave',
-      'stop.ro-ot.dispose.enter',
-      'stop.ro-ot.dispose.leave',
-      'stop.c-1.dispose.enter',
-      'stop.c-1.dispose.leave',
-      'stop.c-2.dispose.enter',
-      'stop.c-2.dispose.leave',
-    ], 'stop');
-  });
+      assert.instanceOf(startUpError, Error);
+
+      mgr.setPrefix('stop');
+      let stopError: unknown = null;
+      try {
+        await au.stop(true);
+      } catch (e) {
+        stopError = e;
+      }
+
+      assert.strictEqual(stopError, null);
+      // Because aurelia could not be started
+      mgr.assertLog([], 'stop');
+    });
+
+    it(`Aurelia instance with error on ${hook} can be deactivated - individual CE deactivation via template controller (if.bind)`, async function () {
+
+      function getErredActivationLog() {
+        const logs = [];
+        /* eslint-disable no-fallthrough */
+        switch (hook) {
+          case 'attached': logs.push('phase#1.c-2.attached.enter', 'phase#1.c-2.attaching.leave');
+          case 'attaching': logs.push('phase#1.c-2.attaching.enter', 'phase#1.c-2.bound.leave');
+          case 'bound': logs.push('phase#1.c-2.bound.enter', 'phase#1.c-2.binding.leave');
+          case 'binding': logs.push('phase#1.c-2.binding.enter');
+        }
+        /* eslint-enable no-fallthrough */
+        logs.reverse();
+        logs.unshift(
+          'phase#1.c-1.detaching.enter',
+          'phase#1.c-1.detaching.leave',
+          'phase#1.c-1.unbinding.enter',
+          'phase#1.c-1.unbinding.leave',
+        );
+        return logs;
+      }
+
+      function getErredDeactivationLog() {
+        return [
+          ...(
+            hook === 'attached' || hook === 'attaching'
+              ? [
+                'phase#2.c-2.detaching.enter',
+                'phase#2.c-2.detaching.leave',
+                'phase#2.c-2.unbinding.enter',
+                'phase#2.c-2.unbinding.leave'
+              ]
+              : []
+          ),
+          'phase#2.c-1.binding.enter',
+          'phase#2.c-1.binding.leave',
+          'phase#2.c-1.bound.enter',
+          'phase#2.c-1.bound.leave',
+          'phase#2.c-1.attaching.enter',
+          'phase#2.c-1.attaching.leave',
+          'phase#2.c-1.attached.enter',
+          'phase#2.c-1.attached.leave',
+        ];
+      }
+
+      @customElement({ name: 'c-1', template: 'c1' })
+      class C1 extends TestVM { }
+
+      @customElement({ name: 'c-2', template: 'c2' })
+      class C2 extends TestVM {
+        public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+          throw new Error('Synthetic test error');
+        }
+      }
+
+      @customElement({ name: 'ro-ot', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
+      class Root extends TestVM {
+        public showC1: boolean = true;
+        public readonly $controller!: ICustomElementController<this>;
+      }
+
+      const { au, rootVm, host, container } = await start(Root, C1, C2);
+
+      assert.html.textContent(host, 'c1', 'start.textContent');
+      const mgr = container.get(INotifierManager);
+      mgr.assertLog([
+        'start.ro-ot.binding.enter',
+        'start.ro-ot.binding.leave',
+        'start.ro-ot.bound.enter',
+        'start.ro-ot.bound.leave',
+        'start.ro-ot.attaching.enter',
+        'start.ro-ot.attaching.leave',
+        'start.c-1.binding.enter',
+        'start.c-1.binding.leave',
+        'start.c-1.bound.enter',
+        'start.c-1.bound.leave',
+        'start.c-1.attaching.enter',
+        'start.c-1.attaching.leave',
+        'start.c-1.attached.enter',
+        'start.c-1.attached.leave',
+        'start.ro-ot.attached.enter',
+        'start.ro-ot.attached.leave',
+      ], 'start');
+
+      mgr.setPrefix('phase#1');
+      try {
+        rootVm.showC1 = false;
+        assert.fail('expected error');
+      } catch (e) {
+        assert.instanceOf(e, Error, 'swap');
+      }
+
+      mgr.assertLog(getErredActivationLog(), 'phase#1');
+
+      assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+
+      mgr.setPrefix('phase#2');
+      rootVm.showC1 = true;
+      assert.html.textContent(host, 'c1', 'phase#2.textContent');
+
+      mgr.assertLog(getErredDeactivationLog(), 'phase#2');
+
+      mgr.setPrefix('stop');
+      let error: unknown = null;
+      try {
+        await au.stop(true);
+      } catch (e) {
+        error = e;
+      }
+
+      assert.strictEqual(error, null, 'stop');
+      mgr.assertLog([
+        'stop.c-1.detaching.enter',
+        'stop.c-1.detaching.leave',
+        'stop.ro-ot.detaching.enter',
+        'stop.ro-ot.detaching.leave',
+        'stop.c-1.unbinding.enter',
+        'stop.c-1.unbinding.leave',
+        'stop.ro-ot.unbinding.enter',
+        'stop.ro-ot.unbinding.leave',
+        'stop.ro-ot.dispose.enter',
+        'stop.ro-ot.dispose.leave',
+        'stop.c-1.dispose.enter',
+        'stop.c-1.dispose.leave',
+        'stop.c-2.dispose.enter',
+        'stop.c-2.dispose.leave',
+      ], 'stop');
+    });
+  }
 });

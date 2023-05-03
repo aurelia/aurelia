@@ -76,6 +76,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private task: ITask | null = null;
   /** @internal */ private _currScrollerInfo: IScrollerInfo = noScrollInfo;
 
+  private needInitCalculation = true;
   private itemHeight = 0;
   private minViewsRequired = 0;
   private collectionStrategy?: ICollectionStrategy;
@@ -105,19 +106,11 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   public attaching(): void {
     const container = this._container;
     const collectionStrategyLocator = container.get(ICollectionStrategyLocator);
-    const collectionStrategy = this.collectionStrategy = collectionStrategyLocator.getStrategy(this.items);
-    const itemCount = collectionStrategy.count();
-
-    if (itemCount === 0) {
-      // just wait?
-      return;
-    }
-
+    this.collectionStrategy = collectionStrategyLocator.getStrategy(this.items);
     const repeatDom = this.dom = container.get(IDomRenderer).render(this.location);
-    const firstView = this._createAndActivateFirstView();
     (this.scrollerObserver = container.get(IScrollerObsererLocator).getObserver(repeatDom.scroller))
       .subscribe(this);
-    this._initCalculation(firstView);
+    this._initCalculation();
 
     this.itemsChanged(this.items);
   }
@@ -140,7 +133,8 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /**
    * @internal
    */
-  private _initCalculation(firstView: ISyntheticView): void {
+  private _initCalculation(): void {
+    const firstView = this._createAndActivateFirstView();    
     const itemHeight = calcOuterHeight(firstView.nodes.firstChild as HTMLElement);
     const scrollerInfo = this.scrollerObserver!.getValue();
     const calculation = this._calculate(scrollerInfo, this.collectionStrategy!.count(), itemHeight);
@@ -155,6 +149,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     }
     this.itemHeight = itemHeight;
     this.minViewsRequired = calculation.minViews;
+    this.needInitCalculation = false;
   }
 
   /**
@@ -175,6 +170,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   private _resetCalculation() {
+    this.needInitCalculation = true;
     this.minViewsRequired = 0;
     this.itemHeight = 0;
   }
@@ -185,6 +181,8 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const collectionStrategy = this.collectionStrategy = this._container.get(ICollectionStrategyLocator).getStrategy(items);
     const itemCount = collectionStrategy.count();
     const views = this.views;
+    if (this.needInitCalculation)
+      this._initCalculation();
     const maxViewsRequired = this.minViewsRequired * 2;
 
     let i = 0;

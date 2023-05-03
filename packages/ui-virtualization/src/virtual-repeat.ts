@@ -110,7 +110,6 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const repeatDom = this.dom = container.get(IDomRenderer).render(this.location);
     (this.scrollerObserver = container.get(IScrollerObsererLocator).getObserver(repeatDom.scroller))
       .subscribe(this);
-    this._initCalculation();
 
     this.itemsChanged(this.items);
   }

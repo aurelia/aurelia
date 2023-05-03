@@ -845,6 +845,12 @@ workflows:
           path: "packages/__e2e__/i18n"
           requires:
             - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_i18n
+          path: "packages/__e2e__/ui-virtualization"
+          requires:
+            - build_release
       - tacho_benchmark_prep:
           <<: *filter_ignore_develop_release
           requires:
@@ -994,6 +1000,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
           path: "packages/__e2e__/i18n"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_i18n
+          path: "packages/__e2e__/ui-virtualization"
           requires:
             - build_release
 

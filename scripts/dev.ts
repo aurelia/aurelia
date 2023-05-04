@@ -105,6 +105,7 @@ const toolingPackages = [
   'ts-jest',
   'babel-jest',
   'parcel-transformer',
+  'vite-plugin',
   'webpack-loader',
 ];
 

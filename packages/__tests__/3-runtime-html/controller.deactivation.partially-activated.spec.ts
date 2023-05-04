@@ -16,7 +16,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-describe('3-runtime-html/controller.error-recovery.spec.ts', function () {
+describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', function () {
 
   type Hook = (_initiator: IHydratedController, _parent?: IHydratedController) => void | Promise<void>;
 

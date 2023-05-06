@@ -476,7 +476,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         );
         mgr.assertLog(expectedLog, 'phase#1 - post-resolve');
 
-        // phase#2: try to activate c-1 - should work without complication
+        // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
         queue.queueTask(() => Promise.resolve());
@@ -485,7 +485,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         assert.html.textContent(host, 'c1', 'phase#2.textContent');
         mgr.assertLog(getDeactivationLog(), 'phase#2');
 
-        // phase#3: try to activate c-2 with resolved promise - should work without complication
+        // phase#3: try to activate c-2 with resolved promise - should work
         promiseManager.setMode('resolved');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
@@ -508,6 +508,51 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#3.c-2.attached.enter',
           'phase#3.c-2.attached.leave',
         ], 'phase#3');
+
+        // phase#4: try to activate c-1 - should work - JFF
+        mgr.setPrefix('phase#4');
+        rootVm.showC1 = true;
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(host, 'c1', 'phase#4.textContent');
+        mgr.assertLog([
+          'phase#4.c-2.detaching.enter',
+          'phase#4.c-2.detaching.leave',
+          'phase#4.c-2.unbinding.enter',
+          'phase#4.c-2.unbinding.leave',
+          'phase#4.c-1.binding.enter',
+          'phase#4.c-1.binding.leave',
+          'phase#4.c-1.bound.enter',
+          'phase#4.c-1.bound.leave',
+          'phase#4.c-1.attaching.enter',
+          'phase#4.c-1.attaching.leave',
+          'phase#4.c-1.attached.enter',
+          'phase#4.c-1.attached.leave',
+        ], 'phase#4');
+
+        // phase#5: try to activate c-2 with resolved promise - should work
+        mgr.setPrefix('phase#5');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(host, 'c2', 'phase#5.textContent');
+        mgr.assertLog([
+          'phase#5.c-1.detaching.enter',
+          'phase#5.c-1.detaching.leave',
+          'phase#5.c-1.unbinding.enter',
+          'phase#5.c-1.unbinding.leave',
+          'phase#5.c-2.binding.enter',
+          'phase#5.c-2.binding.leave',
+          'phase#5.c-2.bound.enter',
+          'phase#5.c-2.bound.leave',
+          'phase#5.c-2.attaching.enter',
+          'phase#5.c-2.attaching.leave',
+          'phase#5.c-2.attached.enter',
+          'phase#5.c-2.attached.leave',
+        ], 'phase#5');
 
         // stop
         mgr.setPrefix('stop');

@@ -602,7 +602,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
-        this.bind();
+        if (this.state !== State.activating) {
+          // because controller can be deactivated, during a long running promise in the binding phase
+          this._resolve();
+        } else {
+          this.bind();
+        }
       }).catch((err: Error) => {
         this._reject(err);
       });
@@ -656,8 +661,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
-        this.isBound = true;
-        this._attach();
+        // because controller can be deactivated, during a long running promise in the bound phase
+        if (this.state !== State.activating) {
+          this._resolve();
+        } else {
+          this.isBound = true;
+          this._attach();
+        }
       }).catch((err: Error) => {
         this._reject(err);
       });
@@ -740,7 +750,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
-        this._leaveActivating();
+        // Resolve the current promise, if the deactivation was triggered, while it was in the attaching phase.
+        if (this.state !== State.activating) {
+          this._resolve();
+        } else {
+          this._leaveActivating();
+        }
       }).catch((err: Error) => {
         this._reject(err);
       });

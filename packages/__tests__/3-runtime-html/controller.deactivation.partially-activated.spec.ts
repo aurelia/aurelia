@@ -334,9 +334,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
     // TODO: remove
     if (hook !== 'binding') continue;
 
-    describe.only(`long running activation promise on ${hook} isn't waited to be finished`, function () {
+    describe(`long running activation promise on ${hook} - promise is resolved`, function () {
 
-      it(`Aurelia instance can be deactivated - individual CE deactivation via template controller (if.bind)`, async function () {
+      it(`Individual CE deactivation via template controller (if.bind)`, async function () {
 
         function getPendingActivationLog() {
           const logs = [];
@@ -358,7 +358,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           return logs;
         }
 
-        function getErredDeactivationLog() {
+        function getDeactivationLog() {
           return [
             ...(
               hook === 'attached' || hook === 'attaching'
@@ -386,19 +386,42 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           public readonly $controller!: ICustomElementController<this>;
         }
 
-        let resolve: () => void;
-        const promise = new Promise<void>((res) => resolve = res);
-        const promiseToken = DI.createInterface<Promise<void>>(`${hook}Promise`, x => x.instance(promise));
+        interface IPromiseManager {
+          createPromise(): Promise<void>;
+        }
+        const promiseManager = new (class implements IPromiseManager {
+          private _mode: 'resolved' | 'long-running' = 'long-running';
+          private _resolve: () => void | null = null;
+          private _currentPromise: Promise<void> | null = null;
+          public get currentPromise(): Promise<void> | null { return this._currentPromise; }
+
+          public createPromise(): Promise<void> {
+            return this._currentPromise = this._mode === 'resolved'
+              ? Promise.resolve()
+              : new Promise<void>((res) => this._resolve = res);
+          }
+
+          public resolve() {
+            this._resolve?.();
+          }
+
+          public setMode(value: 'resolved' | 'long-running'): void {
+            this._mode = value;
+            this._resolve = null;
+          }
+        })();
+        const IPromiseManager = DI.createInterface<IPromiseManager>('IPromiseManager', x => x.instance(promiseManager));
+
         @customElement({ name: 'c-2', template: 'c2' })
         class C2 extends TestVM {
           public readonly $controller!: ICustomElementController<this>;
           public constructor(
             @INotifierManager mgr: INotifierManager,
-            @promiseToken private readonly promise: Promise<void>
+            @IPromiseManager private readonly promiseManager: IPromiseManager
           ) { super(mgr); }
 
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-            return this.promise;
+            return this.promiseManager.createPromise();
           }
         }
 
@@ -435,6 +458,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         const ifCtrl = rootVm.$controller.children[0];
         const ifVm = ifCtrl.viewModel as If;
 
+        // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
 
@@ -443,26 +467,49 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         assert.html.textContent(host, /* hook === 'attached' || hook === 'attaching' ? 'c2' : */ '', 'phase#1.textContent');
 
         // trigger deactivation then resolve the promise and wait for everything
-        console.log('------------------------------ triggering deactivation ------------------------------');
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
-        console.log('------------------------------ resolving ------------------------------');
-        resolve();
+        promiseManager.resolve();
         queue.queueTask(() => Promise.resolve());
-        await Promise.all([promise, deactivationPromise, queue.yield()]);
-        await queue.yield();
+        await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
         expectedLog.push(
-          'phase#1.c-2.binding.leave',
+          `phase#1.c-2.${hook}.leave`,
         );
         mgr.assertLog(expectedLog, 'phase#1 - post-resolve');
 
+        // phase#2: try to activate c-1 - should work without complication
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
+
         assert.html.textContent(host, 'c1', 'phase#2.textContent');
+        mgr.assertLog(getDeactivationLog(), 'phase#2');
 
-        mgr.assertLog(getErredDeactivationLog(), 'phase#2');
+        // phase#3: try to activate c-2 with resolved promise - should work without complication
+        promiseManager.setMode('resolved');
+        mgr.setPrefix('phase#3');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
 
+        assert.html.textContent(host, 'c2', 'phase#3.textContent');
+        mgr.assertLog([
+          'phase#3.c-1.detaching.enter',
+          'phase#3.c-1.detaching.leave',
+          'phase#3.c-1.unbinding.enter',
+          'phase#3.c-1.unbinding.leave',
+          'phase#3.c-2.binding.enter',
+          'phase#3.c-2.binding.leave',
+          'phase#3.c-2.bound.enter',
+          'phase#3.c-2.bound.leave',
+          'phase#3.c-2.attaching.enter',
+          'phase#3.c-2.attaching.leave',
+          'phase#3.c-2.attached.enter',
+          'phase#3.c-2.attached.leave',
+        ], 'phase#3');
+
+        // stop
         mgr.setPrefix('stop');
         let error: unknown = null;
         try {
@@ -473,12 +520,12 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.strictEqual(error, null, 'stop');
         mgr.assertLog([
-          'stop.c-1.detaching.enter',
-          'stop.c-1.detaching.leave',
+          'stop.c-2.detaching.enter',
+          'stop.c-2.detaching.leave',
           'stop.ro-ot.detaching.enter',
           'stop.ro-ot.detaching.leave',
-          'stop.c-1.unbinding.enter',
-          'stop.c-1.unbinding.leave',
+          'stop.c-2.unbinding.enter',
+          'stop.c-2.unbinding.leave',
           'stop.ro-ot.unbinding.enter',
           'stop.ro-ot.unbinding.leave',
           'stop.ro-ot.dispose.enter',

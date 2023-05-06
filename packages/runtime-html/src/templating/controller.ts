@@ -8,6 +8,7 @@ import {
   noop,
   IIndexable,
   AnyFunction,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -604,7 +605,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret.then(() => {
         if (this.state !== State.activating) {
           // because controller can be deactivated, during a long running promise in the binding phase
-          this._resolve();
+          this._leaveActivating();
         } else {
           this.bind();
         }
@@ -663,7 +664,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret.then(() => {
         // because controller can be deactivated, during a long running promise in the bound phase
         if (this.state !== State.activating) {
-          this._resolve();
+          this._leaveActivating();
         } else {
           this.isBound = true;
           this._attach();
@@ -750,12 +751,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
-        // Resolve the current promise, if the deactivation was triggered, while it was in the attaching phase.
-        if (this.state !== State.activating) {
-          this._resolve();
-        } else {
-          this._leaveActivating();
-        }
+        this._leaveActivating();
       }).catch((err: Error) => {
         this._reject(err);
       });
@@ -777,10 +773,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     initiator: IHydratedController,
     _parent: IHydratedController | null,
   ): void | Promise<void> {
+    let prevActivation: void | Promise<void> = void 0;
     switch ((this.state & ~State.released)) {
       case State.activated:
+        this.state = State.deactivating;
+        break;
       case State.activating:
         this.state = State.deactivating;
+        prevActivation = this.$promise;
         break;
       case State.none:
       case State.deactivated:
@@ -820,52 +820,54 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         void this.children[i].deactivate(initiator, this as IHydratedController);
       }
     }
+    return onResolve(prevActivation, () => {
 
-    if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+      if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
-      ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
-    }
+        ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+      }
 
-    if (this._hooks.hasDetaching && this.isBound) {
-      if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+      if (this._hooks.hasDetaching && this.isBound) {
+        if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
-      ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
-    }
+        ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+      }
 
-    if (isPromise(ret)) {
-      this._ensurePromise();
-      (initiator as Controller)._enterDetaching();
-      ret.then(() => {
-        (initiator as Controller)._leaveDetaching();
-      }).catch((err: Error) => {
-        (initiator as Controller)._reject(err);
-      });
-    }
+      if (isPromise(ret)) {
+        this._ensurePromise();
+        (initiator as Controller)._enterDetaching();
+        ret.then(() => {
+          (initiator as Controller)._leaveDetaching();
+        }).catch((err: Error) => {
+          (initiator as Controller)._reject(err);
+        });
+      }
 
-    // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
-    // then the linking will become out of order.
-    // For framework components, this shouldn't cause issues.
-    // We can only prevent that by linking up after awaiting the detaching promise, which would add an extra tick + a fair bit of
-    // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
-    // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
-    if (initiator.head === null) {
-      initiator.head = this as IHydratedController;
-    } else {
-      initiator.tail!.next = this as IHydratedController;
-    }
-    initiator.tail = this as IHydratedController;
+      // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
+      // then the linking will become out of order.
+      // For framework components, this shouldn't cause issues.
+      // We can only prevent that by linking up after awaiting the detaching promise, which would add an extra tick + a fair bit of
+      // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
+      // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
+      if (initiator.head === null) {
+        initiator.head = this as IHydratedController;
+      } else {
+        initiator.tail!.next = this as IHydratedController;
+      }
+      initiator.tail = this as IHydratedController;
 
-    if (initiator !== this) {
-      // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
-      // The rest is handled by the initiator.
-      // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
-      // controller api calls, or race conditions might occur.
-      return;
-    }
+      if (initiator !== this) {
+        // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
+        // The rest is handled by the initiator.
+        // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
+        // controller api calls, or race conditions might occur.
+        return;
+      }
 
-    this._leaveDetaching();
-    return this.$promise;
+      this._leaveDetaching();
+      return this.$promise;
+    });
   }
 
   private removeNodes(): void {
@@ -981,6 +983,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   /** @internal */
   private _leaveActivating(): void {
+    if (this.state !== State.activating) {
+      --this._activatingStack;
+      // skip doing rest of the work if the controller is deactivated.
+      this._resolve();
+      if (this.$initiator !== this) {
+        (this.parent as Controller)._leaveActivating();
+      }
+      return;
+    }
     if (--this._activatingStack === 0) {
       if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.attached != null) {
         _retPromise = resolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));

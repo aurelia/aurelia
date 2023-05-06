@@ -331,14 +331,11 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
       });
     });
 
-    // TODO: remove
-    if (hook !== 'binding') continue;
-
     describe(`long running activation promise on ${hook} - promise is resolved`, function () {
 
       it(`Individual CE deactivation via template controller (if.bind)`, async function () {
 
-        function getPendingActivationLog() {
+        function getPendingActivationLog(postResolution: boolean) {
           const logs = [];
           /* eslint-disable no-fallthrough */
           switch (hook) {
@@ -355,30 +352,21 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             'phase#1.c-1.unbinding.enter',
             'phase#1.c-1.unbinding.leave',
           );
-          return logs;
-        }
+          if (!postResolution) return logs;
 
-        function getDeactivationLog() {
-          return [
-            ...(
-              hook === 'attached' || hook === 'attaching'
-                ? [
-                  'phase#2.c-2.detaching.enter',
-                  'phase#2.c-2.detaching.leave',
-                  'phase#2.c-2.unbinding.enter',
-                  'phase#2.c-2.unbinding.leave'
-                ]
-                : []
-            ),
-            'phase#2.c-1.binding.enter',
-            'phase#2.c-1.binding.leave',
-            'phase#2.c-1.bound.enter',
-            'phase#2.c-1.bound.leave',
-            'phase#2.c-1.attaching.enter',
-            'phase#2.c-1.attaching.leave',
-            'phase#2.c-1.attached.enter',
-            'phase#2.c-1.attached.leave',
-          ];
+          logs.push(`phase#1.c-2.${hook}.leave`);
+          switch (hook) {
+            case 'attaching':
+            case 'attached':
+              logs.push(
+                'phase#1.c-2.detaching.enter',
+                'phase#1.c-2.detaching.leave',
+                'phase#1.c-2.unbinding.enter',
+                'phase#1.c-2.unbinding.leave',
+              );
+              break;
+          }
+          return logs;
         }
 
         @customElement({ name: 'c-1', template: 'c1' })
@@ -462,19 +450,16 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
 
-        const expectedLog = getPendingActivationLog();
+        const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
-        assert.html.textContent(host, /* hook === 'attached' || hook === 'attaching' ? 'c2' : */ '', 'phase#1.textContent');
+        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
 
         // trigger deactivation then resolve the promise and wait for everything
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.resolve();
         queue.queueTask(() => Promise.resolve());
         await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
-        expectedLog.push(
-          `phase#1.c-2.${hook}.leave`,
-        );
-        mgr.assertLog(expectedLog, 'phase#1 - post-resolve');
+        mgr.assertLog(getPendingActivationLog(true), 'phase#1 - post-resolve');
 
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
@@ -483,7 +468,16 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         await queue.yield();
 
         assert.html.textContent(host, 'c1', 'phase#2.textContent');
-        mgr.assertLog(getDeactivationLog(), 'phase#2');
+        mgr.assertLog([
+          'phase#2.c-1.binding.enter',
+          'phase#2.c-1.binding.leave',
+          'phase#2.c-1.bound.enter',
+          'phase#2.c-1.bound.leave',
+          'phase#2.c-1.attaching.enter',
+          'phase#2.c-1.attaching.leave',
+          'phase#2.c-1.attached.enter',
+          'phase#2.c-1.attached.leave',
+        ], 'phase#2');
 
         // phase#3: try to activate c-2 with resolved promise - should work
         promiseManager.setMode('resolved');

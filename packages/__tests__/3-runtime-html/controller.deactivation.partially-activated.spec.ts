@@ -1,10 +1,8 @@
 import {
-  Class,
   DI,
   onResolve,
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   CustomElement,
   ICustomElementController,
   ICustomElementViewModel,
@@ -14,8 +12,8 @@ import {
   customElement,
 } from '@aurelia/runtime-html';
 import {
-  TestContext,
   assert,
+  createFixture
 } from '@aurelia/testing';
 
 describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', function () {
@@ -124,51 +122,32 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
     protected $dispose(): void { /* noop */ }
   }
 
-  async function start<TAppRoot>(appRoot: Class<TAppRoot>, ...registrations: any[]) {
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      INotifierManager,
-      IPromiseManager,
-      ...registrations
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    let startUpError: unknown = null;
-    try {
-      await au.app({ component: appRoot, host }).start();
-    } catch (e) {
-      startUpError = e;
-    }
-    const rootVm = au.root.controller.viewModel as TAppRoot;
-    return { host, au, container, rootVm, startUpError };
-  }
-
   for (const hook of ['binding', 'bound', 'attaching', 'attached'] as const) {
     describe(`activation aborted by error from ${hook}`, function () {
       it(`Aurelia instance can be deactivated  - root`, async function () {
-        @customElement({ name: 'ro-ot', template: '' })
         class Root extends TestVM {
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             throw new Error('Synthetic test error');
           }
         }
 
-        const { startUpError, au, container } = await start(Root);
+        const { container, start, stop } = createFixture('', Root, [INotifierManager], false);
         const mgr = container.get(INotifierManager);
 
-        assert.instanceOf(startUpError, Error);
+        try {
+          await start();
+          assert.fail('expected error on start up');
+        } catch (err) {
+          assert.instanceOf(err, Error);
+        }
 
         const logs = [];
         /* eslint-disable no-fallthrough */
         switch (hook) {
-          case 'attached': logs.push('start.ro-ot.attached.enter', 'start.ro-ot.attaching.leave');
-          case 'attaching': logs.push('start.ro-ot.attaching.enter', 'start.ro-ot.bound.leave');
-          case 'bound': logs.push('start.ro-ot.bound.enter', 'start.ro-ot.binding.leave');
-          case 'binding': logs.push('start.ro-ot.binding.enter');
+          case 'attached': logs.push('start.app.attached.enter', 'start.app.attaching.leave');
+          case 'attaching': logs.push('start.app.attaching.enter', 'start.app.bound.leave');
+          case 'bound': logs.push('start.app.bound.enter', 'start.app.binding.leave');
+          case 'binding': logs.push('start.app.binding.enter');
         }
         /* eslint-enable no-fallthrough */
         logs.reverse();
@@ -177,7 +156,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('stop');
         let stopError: unknown = null;
         try {
-          await au.stop(true);
+          await stop(true);
         } catch (e) {
           stopError = e;
         }
@@ -196,11 +175,17 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           }
         }
 
-        @customElement({ name: 'ro-ot', template: '<c-1></c-1>' })
         class Root extends TestVM { }
 
-        const { startUpError, au, container } = await start(Root, C1);
+        const { container, start, stop } = createFixture('<c-1></c-1>', Root, [C1, INotifierManager], false);
         const mgr = container.get(INotifierManager);
+
+        try {
+          await start();
+          assert.fail('expected error on start up');
+        } catch (err) {
+          assert.instanceOf(err, Error);
+        }
 
         const logs = [];
         /* eslint-disable no-fallthrough */
@@ -214,21 +199,19 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         logs.reverse();
 
         mgr.assertLog([
-          'start.ro-ot.binding.enter',
-          'start.ro-ot.binding.leave',
-          'start.ro-ot.bound.enter',
-          'start.ro-ot.bound.leave',
-          'start.ro-ot.attaching.enter',
-          'start.ro-ot.attaching.leave',
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
           ...logs
         ], 'start');
-
-        assert.instanceOf(startUpError, Error);
 
         mgr.setPrefix('stop');
         let stopError: unknown = null;
         try {
-          await au.stop(true);
+          await stop(true);
         } catch (e) {
           stopError = e;
         }
@@ -293,23 +276,23 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           }
         }
 
-        @customElement({ name: 'ro-ot', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
         class Root extends TestVM {
           public showC1: boolean = true;
           public readonly $controller!: ICustomElementController<this>;
         }
 
-        const { au, rootVm, host, container } = await start(Root, C1, C2);
+        const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager]);
+        const rootVm = au.root.controller.viewModel as Root;
 
-        assert.html.textContent(host, 'c1', 'start.textContent');
+        assert.html.textContent(appHost, 'c1', 'start.textContent');
         const mgr = container.get(INotifierManager);
         mgr.assertLog([
-          'start.ro-ot.binding.enter',
-          'start.ro-ot.binding.leave',
-          'start.ro-ot.bound.enter',
-          'start.ro-ot.bound.leave',
-          'start.ro-ot.attaching.enter',
-          'start.ro-ot.attaching.leave',
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
           'start.c-1.binding.enter',
           'start.c-1.binding.leave',
           'start.c-1.bound.enter',
@@ -318,8 +301,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'start.c-1.attaching.leave',
           'start.c-1.attached.enter',
           'start.c-1.attached.leave',
-          'start.ro-ot.attached.enter',
-          'start.ro-ot.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
         ], 'start');
 
         mgr.setPrefix('phase#1');
@@ -332,18 +315,18 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.assertLog(getErredActivationLog(), 'phase#1');
 
-        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        assert.html.textContent(host, 'c1', 'phase#2.textContent');
+        assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
 
         mgr.setPrefix('stop');
         let error: unknown = null;
         try {
-          await au.stop(true);
+          await stop(true);
         } catch (e) {
           error = e;
         }
@@ -352,14 +335,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.assertLog([
           'stop.c-1.detaching.enter',
           'stop.c-1.detaching.leave',
-          'stop.ro-ot.detaching.enter',
-          'stop.ro-ot.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
           'stop.c-1.unbinding.enter',
           'stop.c-1.unbinding.leave',
-          'stop.ro-ot.unbinding.enter',
-          'stop.ro-ot.unbinding.leave',
-          'stop.ro-ot.dispose.enter',
-          'stop.ro-ot.dispose.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
           'stop.c-1.dispose.enter',
           'stop.c-1.dispose.leave',
           'stop.c-2.dispose.enter',
@@ -424,25 +407,26 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           }
         }
 
-        @customElement({ name: 'ro-ot', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
+        @customElement({ name: 'app', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
         class Root extends TestVM {
           public showC1: boolean = true;
           public readonly $controller!: ICustomElementController<this>;
         }
 
-        const { au, rootVm, host, container } = await start(Root, C1, C2);
+        const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
+        const rootVm = au.root.controller.viewModel as Root;
         const queue = container.get(IPlatform).taskQueue;
         const promiseManager = container.get<PromiseManager>(IPromiseManager);
 
-        assert.html.textContent(host, 'c1', 'start.textContent');
+        assert.html.textContent(appHost, 'c1', 'start.textContent');
         const mgr = container.get(INotifierManager);
         mgr.assertLog([
-          'start.ro-ot.binding.enter',
-          'start.ro-ot.binding.leave',
-          'start.ro-ot.bound.enter',
-          'start.ro-ot.bound.leave',
-          'start.ro-ot.attaching.enter',
-          'start.ro-ot.attaching.leave',
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
           'start.c-1.binding.enter',
           'start.c-1.binding.leave',
           'start.c-1.bound.enter',
@@ -451,8 +435,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'start.c-1.attaching.leave',
           'start.c-1.attached.enter',
           'start.c-1.attached.leave',
-          'start.ro-ot.attached.enter',
-          'start.ro-ot.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
         ], 'start');
 
         const ifCtrl = rootVm.$controller.children[0];
@@ -464,7 +448,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
-        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
@@ -486,7 +470,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c1', 'phase#2.textContent');
+        assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
           'phase#2.c-1.binding.enter',
           'phase#2.c-1.binding.leave',
@@ -506,7 +490,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c2', 'phase#3.textContent');
+        assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
         mgr.assertLog([
           'phase#3.c-1.detaching.enter',
           'phase#3.c-1.detaching.leave',
@@ -528,7 +512,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c1', 'phase#4.textContent');
+        assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
           'phase#4.c-2.detaching.enter',
           'phase#4.c-2.detaching.leave',
@@ -551,7 +535,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c2', 'phase#5.textContent');
+        assert.html.textContent(appHost, 'c2', 'phase#5.textContent');
         mgr.assertLog([
           'phase#5.c-1.detaching.enter',
           'phase#5.c-1.detaching.leave',
@@ -571,7 +555,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('stop');
         let error: unknown = null;
         try {
-          await au.stop(true);
+          await stop(true);
         } catch (e) {
           error = e;
         }
@@ -580,14 +564,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.assertLog([
           'stop.c-2.detaching.enter',
           'stop.c-2.detaching.leave',
-          'stop.ro-ot.detaching.enter',
-          'stop.ro-ot.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
           'stop.c-2.unbinding.enter',
           'stop.c-2.unbinding.leave',
-          'stop.ro-ot.unbinding.enter',
-          'stop.ro-ot.unbinding.leave',
-          'stop.ro-ot.dispose.enter',
-          'stop.ro-ot.dispose.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
           'stop.c-1.dispose.enter',
           'stop.c-1.dispose.leave',
           'stop.c-2.dispose.enter',
@@ -663,25 +647,26 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           }
         }
 
-        @customElement({ name: 'ro-ot', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
+        @customElement({ name: 'app', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
         class Root extends TestVM {
           public showC1: boolean = true;
           public readonly $controller!: ICustomElementController<this>;
         }
 
-        const { au, rootVm, host, container } = await start(Root, C1, C2);
+        const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
+        const rootVm = au.root.controller.viewModel as Root;
         const queue = container.get(IPlatform).taskQueue;
         const promiseManager = container.get<PromiseManager>(IPromiseManager);
 
-        assert.html.textContent(host, 'c1', 'start.textContent');
+        assert.html.textContent(appHost, 'c1', 'start.textContent');
         const mgr = container.get(INotifierManager);
         mgr.assertLog([
-          'start.ro-ot.binding.enter',
-          'start.ro-ot.binding.leave',
-          'start.ro-ot.bound.enter',
-          'start.ro-ot.bound.leave',
-          'start.ro-ot.attaching.enter',
-          'start.ro-ot.attaching.leave',
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
           'start.c-1.binding.enter',
           'start.c-1.binding.leave',
           'start.c-1.bound.enter',
@@ -690,8 +675,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'start.c-1.attaching.leave',
           'start.c-1.attached.enter',
           'start.c-1.attached.leave',
-          'start.ro-ot.attached.enter',
-          'start.ro-ot.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
         ], 'start');
 
         const ifCtrl = rootVm.$controller.children[0];
@@ -703,7 +688,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-reject');
-        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
 
         // trigger deactivation then reject the promise and wait for everything
         /**
@@ -727,7 +712,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c1', 'phase#2.textContent');
+        assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
           'phase#2.c-1.binding.enter',
           'phase#2.c-1.binding.leave',
@@ -747,7 +732,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
         mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
@@ -758,7 +743,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, 'c1', 'phase#4.textContent');
+        assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
           ...(hook === 'attaching' || hook === 'attached'
             ? [
@@ -786,7 +771,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
-        assert.html.textContent(host, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
@@ -795,7 +780,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('stop');
         let error: unknown = null;
         try {
-          await au.stop(true);
+          await stop(true);
         } catch (e) {
           error = e;
         }
@@ -809,8 +794,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             ]
             : []
           ),
-          'stop.ro-ot.detaching.enter',
-          'stop.ro-ot.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
           ...(hook === 'attaching' || hook === 'attached'
             ? [
               'stop.c-2.unbinding.enter',
@@ -818,10 +803,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             ]
             : []
           ),
-          'stop.ro-ot.unbinding.enter',
-          'stop.ro-ot.unbinding.leave',
-          'stop.ro-ot.dispose.enter',
-          'stop.ro-ot.dispose.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
           'stop.c-1.dispose.enter',
           'stop.c-1.dispose.leave',
           'stop.c-2.dispose.enter',

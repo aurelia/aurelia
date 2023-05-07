@@ -12,7 +12,7 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);
-    } catch(ex) {
+    } catch (ex) {
       console.log('(!) Error in fixture:created callback');
       console.log(ex);
     }
@@ -43,7 +43,7 @@ export function createFixture<T extends object>(
   const $$class: Constructable<K> = typeof $class === 'function'
     ? $class as unknown as Constructable<K>
     : $class == null
-      ? class {} as Constructable<K>
+      ? class { } as Constructable<K>
       : function $Ctor() {
         Object.setPrototypeOf($class, $Ctor.prototype);
         return $class;
@@ -147,7 +147,7 @@ export function createFixture<T extends object>(
       if (el === null) {
         throw new Error(`No element found for selector "${selectorOrHtml}" to compare innerHTML against "${html}"`);
       }
-      assert.strictEqual(getInnerHtml(el, compact) , html);
+      assert.strictEqual(getInnerHtml(el, compact), html);
     } else {
       assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
     }
@@ -188,13 +188,15 @@ export function createFixture<T extends object>(
     el.dispatchEvent(new ctx.CustomEvent(event, init));
   }
   ['click', 'change', 'input', 'scroll'].forEach(event => {
-    Object.defineProperty(trigger, event, { configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-      const el = queryBy(selector);
-      if (el === null) {
-        throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+    Object.defineProperty(trigger, event, {
+      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
+        const el = queryBy(selector);
+        if (el === null) {
+          throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+        }
+        el.dispatchEvent(new ctx.CustomEvent(event, init));
       }
-      el.dispatchEvent(new ctx.CustomEvent(event, init));
-    } });
+    });
   });
   function type(selector: string | Element, value: string): void {
     const el = typeof selector === 'string' ? queryBy(selector) : selector;
@@ -251,6 +253,16 @@ export function createFixture<T extends object>(
         return dispose();
     }
 
+    public async stop(dispose: boolean): Promise<void> {
+      try {
+        await au.stop(dispose);
+      } finally {
+        if (dispose) {
+          root.remove();
+        }
+      }
+    }
+
     public get torn() {
       return tornCount > 0;
     }
@@ -300,6 +312,7 @@ export interface IFixture<T> {
   readonly torn: boolean;
   start(): void | Promise<void>;
   tearDown(): void | Promise<void>;
+  stop(dispose: boolean): Promise<void>;
   readonly started: Promise<IFixture<T>>;
 
   /**
@@ -403,12 +416,12 @@ export interface IFixtureBuilderBase<T, E = {}> {
 type BuilderMethodNames = 'html' | 'component' | 'deps';
 type CreateBuilder<T, Availables extends BuilderMethodNames> = {
   [key in Availables]:
-    key extends 'html'
-      ? {
-        (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
-        (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
-      }
-      : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+  key extends 'html'
+  ? {
+    (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
+    (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
+  }
+  : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
 } & ('html' extends Availables ? {} : { build(): IFixture<T> });
 
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
@@ -456,7 +469,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
   return result;
 }
 
-createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values);
 createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
 
@@ -465,8 +478,8 @@ function testBuilderTypings() {
   type Expect<T extends true> = T;
   type Equal<A, B> =
     (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2)
-      ? true
-      : false;
+    ? true
+    : false;
   type IsType<A, B> = A extends B ? B extends A ? 1 : never : never;
 
   // @ts-expect-error

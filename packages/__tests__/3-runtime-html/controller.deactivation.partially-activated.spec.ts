@@ -815,5 +815,189 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
       });
     });
 
+
+    describe('parent activating done - child activating', function () {
+      it(`error on ${hook}`, async function () {
+
+        function getErredActivationLog() {
+          const logs = [];
+          /* eslint-disable no-fallthrough */
+          switch (hook) {
+            case 'attached': logs.push('phase#1.c2-c.attached.enter', 'phase#1.c2-c.attaching.leave');
+            case 'attaching': logs.push('phase#1.c2-c.attaching.enter', 'phase#1.c2-c.bound.leave');
+            case 'bound': logs.push('phase#1.c2-c.bound.enter', 'phase#1.c2-c.binding.leave');
+            case 'binding': logs.push('phase#1.c2-c.binding.enter');
+          }
+          /* eslint-enable no-fallthrough */
+          logs.reverse();
+          logs.unshift(
+            'phase#1.c1-c.detaching.enter',
+            'phase#1.c1-c.detaching.leave',
+            'phase#1.c-1.detaching.enter',
+            'phase#1.c-1.detaching.leave',
+            'phase#1.c1-c.unbinding.enter',
+            'phase#1.c1-c.unbinding.leave',
+            'phase#1.c-1.unbinding.enter',
+            'phase#1.c-1.unbinding.leave',
+            'phase#1.c-2.binding.enter',
+            'phase#1.c-2.binding.leave',
+            'phase#1.c-2.bound.enter',
+            'phase#1.c-2.bound.leave',
+            'phase#1.c-2.attaching.enter',
+            'phase#1.c-2.attaching.leave',
+          );
+          return logs;
+        }
+
+        function getErredDeactivationLog() {
+          return [
+            ...(
+              hook === 'attached' || hook === 'attaching'
+                ? [
+                  'phase#2.c2-c.detaching.enter',
+                  'phase#2.c2-c.detaching.leave',
+                ]
+                : []
+            ),
+            'phase#2.c-2.detaching.enter',
+            'phase#2.c-2.detaching.leave',
+            ...(
+              hook === 'attached' || hook === 'attaching'
+                ? [
+                  'phase#2.c2-c.unbinding.enter',
+                  'phase#2.c2-c.unbinding.leave',
+                ]
+                : []
+            ),
+            'phase#2.c-2.unbinding.enter',
+            'phase#2.c-2.unbinding.leave',
+            'phase#2.c-1.binding.enter',
+            'phase#2.c-1.binding.leave',
+            'phase#2.c-1.bound.enter',
+            'phase#2.c-1.bound.leave',
+            'phase#2.c-1.attaching.enter',
+            'phase#2.c-1.attaching.leave',
+            'phase#2.c1-c.binding.enter',
+            'phase#2.c1-c.binding.leave',
+            'phase#2.c1-c.bound.enter',
+            'phase#2.c1-c.bound.leave',
+            'phase#2.c1-c.attaching.enter',
+            'phase#2.c1-c.attaching.leave',
+            'phase#2.c1-c.attached.enter',
+            'phase#2.c1-c.attached.leave',
+            'phase#2.c-1.attached.enter',
+            'phase#2.c-1.attached.leave',
+          ];
+        }
+
+        @customElement({ name: 'c1-c', template: 'c1c' })
+        class C1Child extends TestVM { }
+
+        @customElement({ name: 'c2-c', template: 'c2c' })
+        class C2Child extends TestVM {
+          public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+            throw new Error('Synthetic test error');
+          }
+        }
+
+        @customElement({ name: 'c-1', template: '<c1-c></c1-c>', dependencies: [C1Child] })
+        class C1 extends TestVM { }
+
+        @customElement({ name: 'c-2', template: '<c2-c></c2-c>', dependencies: [C2Child] })
+        class C2 extends TestVM { }
+
+        class Root extends TestVM {
+          public showC1: boolean = true;
+        }
+
+        const { au, stop, appHost, container } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager]);
+        const rootVm = au.root.controller.viewModel as Root;
+
+        assert.html.textContent(appHost, 'c1c', 'start.textContent');
+        const mgr = container.get(INotifierManager);
+        mgr.assertLog([
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
+          'start.c-1.binding.enter',
+          'start.c-1.binding.leave',
+          'start.c-1.bound.enter',
+          'start.c-1.bound.leave',
+          'start.c-1.attaching.enter',
+          'start.c-1.attaching.leave',
+          'start.c1-c.binding.enter',
+          'start.c1-c.binding.leave',
+          'start.c1-c.bound.enter',
+          'start.c1-c.bound.leave',
+          'start.c1-c.attaching.enter',
+          'start.c1-c.attaching.leave',
+          'start.c1-c.attached.enter',
+          'start.c1-c.attached.leave',
+          'start.c-1.attached.enter',
+          'start.c-1.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
+        ], 'start');
+
+        mgr.setPrefix('phase#1');
+        try {
+          rootVm.showC1 = false;
+          assert.fail('expected error');
+        } catch (e) {
+          assert.instanceOf(e, Error, 'swap');
+        }
+
+        mgr.assertLog(getErredActivationLog(), 'phase#1');
+
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#1.textContent');
+
+        mgr.setPrefix('phase#2');
+        rootVm.showC1 = true;
+        assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
+
+        mgr.assertLog(getErredDeactivationLog(), 'phase#2');
+
+        mgr.setPrefix('stop');
+        let error: unknown = null;
+        try {
+          await stop(true);
+        } catch (e) {
+          error = e;
+        }
+
+        assert.strictEqual(error, null, 'stop');
+        mgr.assertLog([
+          'stop.c1-c.detaching.enter',
+          'stop.c1-c.detaching.leave',
+          'stop.c-1.detaching.enter',
+          'stop.c-1.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
+          'stop.c1-c.unbinding.enter',
+          'stop.c1-c.unbinding.leave',
+          'stop.c-1.unbinding.enter',
+          'stop.c-1.unbinding.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
+          'stop.c-1.dispose.enter',
+          'stop.c-1.dispose.leave',
+          'stop.c1-c.dispose.enter',
+          'stop.c1-c.dispose.leave',
+          'stop.c-2.dispose.enter',
+          'stop.c-2.dispose.leave',
+          'stop.c2-c.dispose.enter',
+          'stop.c2-c.dispose.leave',
+        ], 'stop');
+
+        await stop(true);
+      });
+      // TODO: long-running promise - resolved
+      // TODO: long-running promise - rejected
+    });
   }
 });

@@ -780,7 +780,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case State.activating:
         this.state = State.deactivating;
-        prevActivation = this.$promise;
+        prevActivation = this.$promise?.catch(noop); /** justification: because we are about to deactivate, the error from activation can be ignored */
         break;
       case State.none:
       case State.deactivated:

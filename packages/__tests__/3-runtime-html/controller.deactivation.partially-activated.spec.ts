@@ -407,7 +407,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           }
         }
 
-        @customElement({ name: 'app', template: '<c-1 if.bind="showC1"></c-1><c-2 else></c-2>' })
         class Root extends TestVM {
           public showC1: boolean = true;
           public readonly $controller!: ICustomElementController<this>;
@@ -815,7 +814,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
       });
     });
 
-
     describe('parent activating done - child activating', function () {
       it(`error on ${hook}`, async function () {
 
@@ -996,8 +994,609 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         await stop(true);
       });
-      // TODO: long-running promise - resolved
-      // TODO: long-running promise - rejected
+
+      it(`long running promise on ${hook} - promise is resolved`, async function () {
+        function getPendingActivationLog(isSettled: boolean) {
+          const logs = [];
+          /* eslint-disable no-fallthrough */
+          switch (hook) {
+            case 'attached': logs.push('phase#1.c2-c.attached.enter', 'phase#1.c2-c.attaching.leave');
+            case 'attaching': logs.push('phase#1.c2-c.attaching.enter', 'phase#1.c2-c.bound.leave');
+            case 'bound': logs.push('phase#1.c2-c.bound.enter', 'phase#1.c2-c.binding.leave');
+            case 'binding': logs.push('phase#1.c2-c.binding.enter');
+          }
+          /* eslint-enable no-fallthrough */
+          logs.reverse();
+          logs.unshift(
+            'phase#1.c1-c.detaching.enter',
+            'phase#1.c1-c.detaching.leave',
+            'phase#1.c-1.detaching.enter',
+            'phase#1.c-1.detaching.leave',
+            'phase#1.c1-c.unbinding.enter',
+            'phase#1.c1-c.unbinding.leave',
+            'phase#1.c-1.unbinding.enter',
+            'phase#1.c-1.unbinding.leave',
+            'phase#1.c-2.binding.enter',
+            'phase#1.c-2.binding.leave',
+            'phase#1.c-2.bound.enter',
+            'phase#1.c-2.bound.leave',
+            'phase#1.c-2.attaching.enter',
+            'phase#1.c-2.attaching.leave',
+          );
+          if (!isSettled) return logs;
+
+          logs.push(`phase#1.c2-c.${hook}.leave`,
+            ...(hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#1.c2-c.detaching.enter',
+                'phase#1.c2-c.detaching.leave',
+              ]
+              : []
+            ),
+            'phase#1.c-2.detaching.enter',
+            'phase#1.c-2.detaching.leave',
+            ...(hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#1.c2-c.unbinding.enter',
+                'phase#1.c2-c.unbinding.leave',
+              ]
+              : []
+            ),
+            'phase#1.c-2.unbinding.enter',
+            'phase#1.c-2.unbinding.leave',
+          );
+          return logs;
+        }
+
+        @customElement({ name: 'c1-c', template: 'c1c' })
+        class C1Child extends TestVM { }
+
+        @customElement({ name: 'c2-c', template: 'c2c' })
+        class C2Child extends TestVM {
+          public readonly $controller!: ICustomElementController<this>;
+          public constructor(
+            @INotifierManager mgr: INotifierManager,
+            @IPromiseManager private readonly promiseManager: IPromiseManager
+          ) { super(mgr); }
+
+          public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+            return this.promiseManager.createPromise();
+          }
+        }
+
+        @customElement({ name: 'c-1', template: '<c1-c></c1-c>', dependencies: [C1Child] })
+        class C1 extends TestVM { }
+
+        @customElement({ name: 'c-2', template: '<c2-c></c2-c>', dependencies: [C2Child] })
+        class C2 extends TestVM { }
+
+        class Root extends TestVM {
+          public showC1: boolean = true;
+          public readonly $controller!: ICustomElementController<this>;
+        }
+
+        const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
+        const rootVm = au.root.controller.viewModel as Root;
+        const queue = container.get(IPlatform).taskQueue;
+        const promiseManager = container.get<PromiseManager>(IPromiseManager);
+
+        assert.html.textContent(appHost, 'c1c', 'start.textContent');
+        const mgr = container.get(INotifierManager);
+        mgr.assertLog([
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
+          'start.c-1.binding.enter',
+          'start.c-1.binding.leave',
+          'start.c-1.bound.enter',
+          'start.c-1.bound.leave',
+          'start.c-1.attaching.enter',
+          'start.c-1.attaching.leave',
+          'start.c1-c.binding.enter',
+          'start.c1-c.binding.leave',
+          'start.c1-c.bound.enter',
+          'start.c1-c.bound.leave',
+          'start.c1-c.attaching.enter',
+          'start.c1-c.attaching.leave',
+          'start.c1-c.attached.enter',
+          'start.c1-c.attached.leave',
+          'start.c-1.attached.enter',
+          'start.c-1.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
+        ], 'start');
+
+        const ifCtrl = rootVm.$controller.children[0];
+        const ifVm = ifCtrl.viewModel as If;
+
+        // phase#1: try to activate c-2 with long-running promise
+        mgr.setPrefix('phase#1');
+        rootVm.showC1 = false;
+
+        const expectedLog = getPendingActivationLog(false);
+        mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#1.textContent');
+
+        // trigger deactivation then resolve the promise and wait for everything
+        /**
+         * Note on manual deactivation instead of setting the flag to false:
+         * The `if`-TC is not preemptive.
+         * That is it waits always for the previous change.
+         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
+         */
+        const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
+        promiseManager.resolve();
+        queue.queueTask(() => Promise.resolve());
+        await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        mgr.assertLog(getPendingActivationLog(true), 'phase#1 - post-resolve');
+
+        // phase#2: try to activate c-1 - should work
+        mgr.setPrefix('phase#2');
+        rootVm.showC1 = true;
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
+        mgr.assertLog([
+          'phase#2.c-1.binding.enter',
+          'phase#2.c-1.binding.leave',
+          'phase#2.c-1.bound.enter',
+          'phase#2.c-1.bound.leave',
+          'phase#2.c-1.attaching.enter',
+          'phase#2.c-1.attaching.leave',
+          'phase#2.c1-c.binding.enter',
+          'phase#2.c1-c.binding.leave',
+          'phase#2.c1-c.bound.enter',
+          'phase#2.c1-c.bound.leave',
+          'phase#2.c1-c.attaching.enter',
+          'phase#2.c1-c.attaching.leave',
+          'phase#2.c1-c.attached.enter',
+          'phase#2.c1-c.attached.leave',
+          'phase#2.c-1.attached.enter',
+          'phase#2.c-1.attached.leave',
+        ], 'phase#2');
+
+        // phase#3: try to activate c-2 with resolved promise - should work
+        promiseManager.setMode('resolved');
+        mgr.setPrefix('phase#3');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c2c', 'phase#3.textContent');
+        mgr.assertLog([
+          'phase#3.c1-c.detaching.enter',
+          'phase#3.c1-c.detaching.leave',
+          'phase#3.c-1.detaching.enter',
+          'phase#3.c-1.detaching.leave',
+          'phase#3.c1-c.unbinding.enter',
+          'phase#3.c1-c.unbinding.leave',
+          'phase#3.c-1.unbinding.enter',
+          'phase#3.c-1.unbinding.leave',
+          'phase#3.c-2.binding.enter',
+          'phase#3.c-2.binding.leave',
+          'phase#3.c-2.bound.enter',
+          'phase#3.c-2.bound.leave',
+          'phase#3.c-2.attaching.enter',
+          'phase#3.c-2.attaching.leave',
+          'phase#3.c2-c.binding.enter',
+          'phase#3.c2-c.binding.leave',
+          'phase#3.c2-c.bound.enter',
+          'phase#3.c2-c.bound.leave',
+          'phase#3.c2-c.attaching.enter',
+          'phase#3.c2-c.attaching.leave',
+          'phase#3.c2-c.attached.enter',
+          'phase#3.c2-c.attached.leave',
+          'phase#3.c-2.attached.enter',
+          'phase#3.c-2.attached.leave',
+        ], 'phase#3');
+
+        // phase#4: try to activate c-1 - should work - JFF
+        mgr.setPrefix('phase#4');
+        rootVm.showC1 = true;
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
+        mgr.assertLog([
+          'phase#4.c2-c.detaching.enter',
+          'phase#4.c2-c.detaching.leave',
+          'phase#4.c-2.detaching.enter',
+          'phase#4.c-2.detaching.leave',
+          'phase#4.c2-c.unbinding.enter',
+          'phase#4.c2-c.unbinding.leave',
+          'phase#4.c-2.unbinding.enter',
+          'phase#4.c-2.unbinding.leave',
+          'phase#4.c-1.binding.enter',
+          'phase#4.c-1.binding.leave',
+          'phase#4.c-1.bound.enter',
+          'phase#4.c-1.bound.leave',
+          'phase#4.c-1.attaching.enter',
+          'phase#4.c-1.attaching.leave',
+          'phase#4.c1-c.binding.enter',
+          'phase#4.c1-c.binding.leave',
+          'phase#4.c1-c.bound.enter',
+          'phase#4.c1-c.bound.leave',
+          'phase#4.c1-c.attaching.enter',
+          'phase#4.c1-c.attaching.leave',
+          'phase#4.c1-c.attached.enter',
+          'phase#4.c1-c.attached.leave',
+          'phase#4.c-1.attached.enter',
+          'phase#4.c-1.attached.leave',
+        ], 'phase#4');
+
+        // phase#5: try to activate c-2 with resolved promise - should work
+        mgr.setPrefix('phase#5');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c2c', 'phase#5.textContent');
+        mgr.assertLog([
+          'phase#5.c1-c.detaching.enter',
+          'phase#5.c1-c.detaching.leave',
+          'phase#5.c-1.detaching.enter',
+          'phase#5.c-1.detaching.leave',
+          'phase#5.c1-c.unbinding.enter',
+          'phase#5.c1-c.unbinding.leave',
+          'phase#5.c-1.unbinding.enter',
+          'phase#5.c-1.unbinding.leave',
+          'phase#5.c-2.binding.enter',
+          'phase#5.c-2.binding.leave',
+          'phase#5.c-2.bound.enter',
+          'phase#5.c-2.bound.leave',
+          'phase#5.c-2.attaching.enter',
+          'phase#5.c-2.attaching.leave',
+          'phase#5.c2-c.binding.enter',
+          'phase#5.c2-c.binding.leave',
+          'phase#5.c2-c.bound.enter',
+          'phase#5.c2-c.bound.leave',
+          'phase#5.c2-c.attaching.enter',
+          'phase#5.c2-c.attaching.leave',
+          'phase#5.c2-c.attached.enter',
+          'phase#5.c2-c.attached.leave',
+          'phase#5.c-2.attached.enter',
+          'phase#5.c-2.attached.leave',
+        ], 'phase#5');
+
+        // stop
+        mgr.setPrefix('stop');
+        let error: unknown = null;
+        try {
+          await stop(true);
+        } catch (e) {
+          error = e;
+        }
+
+        assert.strictEqual(error, null, 'stop');
+        mgr.assertLog([
+          'stop.c2-c.detaching.enter',
+          'stop.c2-c.detaching.leave',
+          'stop.c-2.detaching.enter',
+          'stop.c-2.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
+          'stop.c2-c.unbinding.enter',
+          'stop.c2-c.unbinding.leave',
+          'stop.c-2.unbinding.enter',
+          'stop.c-2.unbinding.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
+          'stop.c-1.dispose.enter',
+          'stop.c-1.dispose.leave',
+          'stop.c1-c.dispose.enter',
+          'stop.c1-c.dispose.leave',
+          'stop.c-2.dispose.enter',
+          'stop.c-2.dispose.leave',
+          'stop.c2-c.dispose.enter',
+          'stop.c2-c.dispose.leave',
+        ], 'stop');
+      });
+
+      it(`long running promise on ${hook} - promise is rejected`, async function () {
+        function getPendingActivationLog(prefix: string, isDeactivated: boolean) {
+          const logs = [];
+          /* eslint-disable no-fallthrough */
+          switch (hook) {
+            case 'attached': logs.push(
+              `${prefix}.c2-c.attached.enter`,
+              `${prefix}.c2-c.attaching.leave`,
+            );
+            case 'attaching': logs.push(
+              `${prefix}.c2-c.attaching.enter`,
+              `${prefix}.c2-c.bound.leave`,
+            );
+            case 'bound': logs.push(
+              `${prefix}.c2-c.bound.enter`,
+              `${prefix}.c2-c.binding.leave`,
+            );
+            case 'binding': logs.push(
+              `${prefix}.c2-c.binding.enter`,
+            );
+          }
+          /* eslint-enable no-fallthrough */
+          logs.reverse();
+          logs.unshift(
+            `${prefix}.c1-c.detaching.enter`,
+            `${prefix}.c1-c.detaching.leave`,
+            `${prefix}.c-1.detaching.enter`,
+            `${prefix}.c-1.detaching.leave`,
+            `${prefix}.c1-c.unbinding.enter`,
+            `${prefix}.c1-c.unbinding.leave`,
+            `${prefix}.c-1.unbinding.enter`,
+            `${prefix}.c-1.unbinding.leave`,
+            `${prefix}.c-2.binding.enter`,
+            `${prefix}.c-2.binding.leave`,
+            `${prefix}.c-2.bound.enter`,
+            `${prefix}.c-2.bound.leave`,
+            `${prefix}.c-2.attaching.enter`,
+            `${prefix}.c-2.attaching.leave`,
+          );
+          if (!isDeactivated) return logs;
+
+          logs.push(
+            ...(hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#1.c2-c.detaching.enter',
+                'phase#1.c2-c.detaching.leave',
+              ]
+              : []
+            ),
+            'phase#1.c-2.detaching.enter',
+            'phase#1.c-2.detaching.leave',
+            ...(hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#1.c2-c.unbinding.enter',
+                'phase#1.c2-c.unbinding.leave',
+              ]
+              : []
+            ),
+            'phase#1.c-2.unbinding.enter',
+            'phase#1.c-2.unbinding.leave',
+          );
+          return logs;
+        }
+
+        @customElement({ name: 'c1-c', template: 'c1c' })
+        class C1Child extends TestVM { }
+
+        @customElement({ name: 'c2-c', template: 'c2c' })
+        class C2Child extends TestVM {
+          public readonly $controller!: ICustomElementController<this>;
+          public constructor(
+            @INotifierManager mgr: INotifierManager,
+            @IPromiseManager private readonly promiseManager: IPromiseManager
+          ) { super(mgr); }
+
+          public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+            return this.promiseManager.createPromise();
+          }
+        }
+
+        @customElement({ name: 'c-1', template: '<c1-c></c1-c>', dependencies: [C1Child] })
+        class C1 extends TestVM { }
+
+        @customElement({ name: 'c-2', template: '<c2-c></c2-c>', dependencies: [C2Child] })
+        class C2 extends TestVM { }
+
+        class Root extends TestVM {
+          public showC1: boolean = true;
+          public readonly $controller!: ICustomElementController<this>;
+        }
+
+        const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
+        const rootVm = au.root.controller.viewModel as Root;
+        const queue = container.get(IPlatform).taskQueue;
+        const promiseManager = container.get<PromiseManager>(IPromiseManager);
+
+        assert.html.textContent(appHost, 'c1c', 'start.textContent');
+        const mgr = container.get(INotifierManager);
+        mgr.assertLog([
+          'start.app.binding.enter',
+          'start.app.binding.leave',
+          'start.app.bound.enter',
+          'start.app.bound.leave',
+          'start.app.attaching.enter',
+          'start.app.attaching.leave',
+          'start.c-1.binding.enter',
+          'start.c-1.binding.leave',
+          'start.c-1.bound.enter',
+          'start.c-1.bound.leave',
+          'start.c-1.attaching.enter',
+          'start.c-1.attaching.leave',
+          'start.c1-c.binding.enter',
+          'start.c1-c.binding.leave',
+          'start.c1-c.bound.enter',
+          'start.c1-c.bound.leave',
+          'start.c1-c.attaching.enter',
+          'start.c1-c.attaching.leave',
+          'start.c1-c.attached.enter',
+          'start.c1-c.attached.leave',
+          'start.c-1.attached.enter',
+          'start.c-1.attached.leave',
+          'start.app.attached.enter',
+          'start.app.attached.leave',
+        ], 'start');
+
+        const ifCtrl = rootVm.$controller.children[0];
+        const ifVm = ifCtrl.viewModel as If;
+
+        // phase#1: try to activate c-2 with long-running promise
+        mgr.setPrefix('phase#1');
+        rootVm.showC1 = false;
+
+        const expectedLog = getPendingActivationLog('phase#1', false);
+        mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#1.textContent');
+
+        // trigger deactivation then resolve the promise and wait for everything
+        /**
+         * Note on manual deactivation instead of setting the flag to false:
+         * The `if`-TC is not preemptive.
+         * That is it waits always for the previous change.
+         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
+         */
+        const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
+        promiseManager.reject(new Error('Synthetic test error - phase#1'));
+        queue.queueTask(() => Promise.resolve());
+        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        mgr.assertLog(getPendingActivationLog('phase#1', true), 'phase#1 - post-resolve');
+        /** clear pending promise from if as it cannot handle a activation rejection by itself */
+        ifVm['pending'] = void 0;
+
+        // phase#2: try to activate c-1 - should work
+        mgr.setPrefix('phase#2');
+        rootVm.showC1 = true;
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
+        mgr.assertLog([
+          'phase#2.c-1.binding.enter',
+          'phase#2.c-1.binding.leave',
+          'phase#2.c-1.bound.enter',
+          'phase#2.c-1.bound.leave',
+          'phase#2.c-1.attaching.enter',
+          'phase#2.c-1.attaching.leave',
+          'phase#2.c1-c.binding.enter',
+          'phase#2.c1-c.binding.leave',
+          'phase#2.c1-c.bound.enter',
+          'phase#2.c1-c.bound.leave',
+          'phase#2.c1-c.attaching.enter',
+          'phase#2.c1-c.attaching.leave',
+          'phase#2.c1-c.attached.enter',
+          'phase#2.c1-c.attached.leave',
+          'phase#2.c-1.attached.enter',
+          'phase#2.c-1.attached.leave',
+        ], 'phase#2');
+
+        // phase#3: try to activate c-2 with resolved promise - should work
+        promiseManager.setMode('rejected');
+        mgr.setPrefix('phase#3');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#3.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
+        /** clear pending promise from if as it cannot handle a activation rejection by itself */
+        ifVm['pending'] = void 0;
+
+        // phase#4: try to activate c-1 - should work - JFF
+        mgr.setPrefix('phase#4');
+        rootVm.showC1 = true;
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
+        mgr.assertLog([
+          ...(
+            hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#4.c2-c.detaching.enter',
+                'phase#4.c2-c.detaching.leave',
+              ]
+              : []
+          ),
+          'phase#4.c-2.detaching.enter',
+          'phase#4.c-2.detaching.leave',
+          ...(
+            hook === 'attaching' || hook === 'attached'
+              ? [
+                'phase#4.c2-c.unbinding.enter',
+                'phase#4.c2-c.unbinding.leave',
+              ]
+              : []
+          ),
+          'phase#4.c-2.unbinding.enter',
+          'phase#4.c-2.unbinding.leave',
+          'phase#4.c-1.binding.enter',
+          'phase#4.c-1.binding.leave',
+          'phase#4.c-1.bound.enter',
+          'phase#4.c-1.bound.leave',
+          'phase#4.c-1.attaching.enter',
+          'phase#4.c-1.attaching.leave',
+          'phase#4.c1-c.binding.enter',
+          'phase#4.c1-c.binding.leave',
+          'phase#4.c1-c.bound.enter',
+          'phase#4.c1-c.bound.leave',
+          'phase#4.c1-c.attaching.enter',
+          'phase#4.c1-c.attaching.leave',
+          'phase#4.c1-c.attached.enter',
+          'phase#4.c1-c.attached.leave',
+          'phase#4.c-1.attached.enter',
+          'phase#4.c-1.attached.leave',
+        ], 'phase#4');
+
+        // phase#5: try to activate c-2 with resolved promise - should work
+        mgr.setPrefix('phase#5');
+        rootVm.showC1 = false;
+        queue.queueTask(() => Promise.resolve());
+        queue.queueTask(() => Promise.resolve());
+        await queue.yield();
+
+        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#5.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
+        /** clear pending promise from if as it cannot handle a activation rejection by itself */
+        ifVm['pending'] = void 0;
+
+        // stop
+        mgr.setPrefix('stop');
+        let error: unknown = null;
+        try {
+          await stop(true);
+        } catch (e) {
+          error = e;
+        }
+
+        assert.strictEqual(error, null, 'stop');
+        mgr.assertLog([
+          ...(
+            hook === 'attaching' || hook === 'attached'
+              ? [
+                'stop.c2-c.detaching.enter',
+                'stop.c2-c.detaching.leave',
+              ]
+              : []
+          ),
+          'stop.c-2.detaching.enter',
+          'stop.c-2.detaching.leave',
+          'stop.app.detaching.enter',
+          'stop.app.detaching.leave',
+          ...(
+            hook === 'attaching' || hook === 'attached'
+              ? [
+                'stop.c2-c.unbinding.enter',
+                'stop.c2-c.unbinding.leave',
+              ]
+              : []
+          ),
+          'stop.c-2.unbinding.enter',
+          'stop.c-2.unbinding.leave',
+          'stop.app.unbinding.enter',
+          'stop.app.unbinding.leave',
+          'stop.app.dispose.enter',
+          'stop.app.dispose.leave',
+          'stop.c-1.dispose.enter',
+          'stop.c-1.dispose.leave',
+          'stop.c1-c.dispose.enter',
+          'stop.c1-c.dispose.leave',
+          'stop.c-2.dispose.enter',
+          'stop.c-2.dispose.leave',
+          'stop.c2-c.dispose.enter',
+          'stop.c2-c.dispose.leave',
+        ], 'stop');
+      });
     });
   }
 });

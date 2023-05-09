@@ -822,16 +822,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     return onResolve(prevActivation, () => {
 
-      if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
-        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+      if (this.isBound) {
+        if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
+          if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
-        ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
-      }
+          ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+        }
 
-      if (this._hooks.hasDetaching && this.isBound) {
-        if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+        if (this._hooks.hasDetaching) {
+          if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
-        ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+          ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+        }
       }
 
       if (isPromise(ret)) {
@@ -1054,14 +1056,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           cur.removeNodes();
         }
 
-        if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
-          ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, this));
-        }
+        if (cur.isBound) {
+          if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
+            ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
+          }
 
-        if (cur._hooks.hasUnbinding && cur.isBound) {
-          if (cur.debug) { cur.logger!.trace('unbinding()'); }
+          if (cur._hooks.hasUnbinding) {
+            if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-          ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+            // console.log('calling vm.unbinding');
+            ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+          }
         }
 
         if (isPromise(ret)) {

@@ -153,7 +153,7 @@ export function disableMapObservation(): void {
 export interface MapObserver extends ICollectionObserver<CollectionKind.map>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
-  public type: AccessorType = AccessorType.Map;
+  public type: AccessorType = AccessorType.Observer;
   private lenObs?: CollectionSizeObserver;
 
   public constructor(map: Map<unknown, unknown>) {

@@ -64,9 +64,6 @@ export class ClassAttributeAccessor implements IAccessor {
       if (nameIndex[name] === version) {
         continue;
       }
-
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete nameIndex[name];
       // TODO: this has the side-effect that classes already present which are added again,
       // will be removed if they're not present in the next update.
       // Better would be do have some configurability for this behavior, allowing the user to

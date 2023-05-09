@@ -55,6 +55,10 @@ export function observable(
   key?: PropertyKey,
   descriptor?: PropertyDescriptor
 ): ClassDecorator | PropertyDecorator {
+  if (!SetterNotifier.mixed) {
+    SetterNotifier.mixed = true;
+    subscriberCollection(SetterNotifier);
+  }
   // either this check, or arguments.length === 3
   // or could be both, so can throw against user error for better DX
   if (key == null) {
@@ -164,6 +168,7 @@ type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown) =
 export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
 export class SetterNotifier implements IAccessor {
+  public static mixed = false;
   public readonly type: AccessorType = AccessorType.Observer;
 
   /** @internal */
@@ -213,8 +218,6 @@ export class SetterNotifier implements IAccessor {
     }
   }
 }
-
-subscriberCollection(SetterNotifier);
 
 /*
           | typescript       | babel

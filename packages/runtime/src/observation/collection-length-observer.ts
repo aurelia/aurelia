@@ -1,6 +1,6 @@
 import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { createError, ensureProto, isMap } from '../utilities-objects';
+import { createError, ensureProto } from '../utilities-objects';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -14,7 +14,7 @@ import type {
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IObserver, ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Array;
+  public readonly type: AccessorType = AccessorType.Observer;
 
   /** @internal */
   private _value: number;
@@ -62,7 +62,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber {
-  public readonly type: AccessorType;
+  public readonly type: AccessorType = AccessorType.Observer;
 
   /** @internal */
   private _value: number;
@@ -74,7 +74,6 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
   ) {
     this._value = (this._obj = owner.collection).size;
-    this.type = isMap(this._obj) ? AccessorType.Map : AccessorType.Set;
   }
 
   public getValue(): number {

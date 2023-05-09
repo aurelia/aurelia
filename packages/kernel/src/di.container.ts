@@ -344,7 +344,6 @@ export class Container implements IContainer {
           current = current.parent;
 
           if (current == null) {
-            currentContainer = previousContainer;
             return emptyArray;
           }
         } else {

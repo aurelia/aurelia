@@ -48,6 +48,7 @@ export const mixinNodeObserverUseConfig =
     });
 };
 
+/** @internal */
 export const mixinNoopSubscribable = (target: Constructable) => {
   defineHiddenProp(target.prototype, 'subscribe', noop);
   defineHiddenProp(target.prototype, 'unsubscribe', noop);

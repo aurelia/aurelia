@@ -73,7 +73,7 @@ export class ClassAttributeAccessor implements IAccessor {
   }
 }
 
-export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
+function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
   if (isString(object)) {
     return splitClassString(object);
   }

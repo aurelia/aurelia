@@ -1,4 +1,4 @@
-import { test, expect, Page, ElementHandle } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
 

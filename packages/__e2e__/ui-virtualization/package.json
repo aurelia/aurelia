@@ -9,9 +9,9 @@
   "version": "2.0.0-beta.5",
   "scripts": {
     "dev": "vite dev",
-    "test:e2e": "cross-env APP_PORT=9008 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
-    "test:e2e:watch": "cross-env APP_PORT=9008 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test:e2e:debugger": "cross-env APP_PORT=9008 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",
+    "test:e2e:watch": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9008 PWDEBUG=1 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch"
   },

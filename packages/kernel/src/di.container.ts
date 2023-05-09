@@ -29,12 +29,6 @@ import {
   type IResolvedLazy,
   type IAllResolver,
   type IOptionalResolver,
-  all,
-  lazy,
-  factory,
-  optional,
-  newInstanceForScope,
-  newInstanceOf
 } from './di';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
@@ -350,7 +344,6 @@ export class Container implements IContainer {
           current = current.parent;
 
           if (current == null) {
-            currentContainer = previousContainer;
             return emptyArray;
           }
         } else {
@@ -611,24 +604,6 @@ export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> |
     ? currentContainer.get(keys[0])
     : keys.map(containerGetKey, currentContainer);
 }
-
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
-function testResolve() {
-  class Abc { public a = 1; }
-  class Def { public b = 2; }
-  class Abc2 { public c = '3'; }
-  const [{ a: _ }] = resolve(all(Abc));
-  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = resolve(all(Abc), all(Def), all(Abc2));
-  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = resolve(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
-  a = 3; b = 4; c = '1';
-  lazyDef().b = 5;
-  factoryAbc2(1, 2, 3).c = '2';
-  // @ts-expect-error
-  if (optionalAbc.a) {/*  */}
-  newDef.b = 4;
-  newAbc.a = 2;
-}
-/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
 
 const buildAllResponse = (resolver: IResolver, handler: IContainer, requestor: IContainer): any[] => {
   if (resolver instanceof Resolver && resolver._strategy === ResolverStrategy.array) {

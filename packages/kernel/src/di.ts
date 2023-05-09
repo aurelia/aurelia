@@ -579,26 +579,6 @@ export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
   (...args: unknown[]): any;
 };
 
-function testAll() {
-  const d = DI.createContainer();
-  const I = DI.createInterface<I>();
-  interface I {
-    c: number;
-  }
-  const instances = d.get(all(class Abc { public b: number = 5; }));
-  instances.forEach(i => i.b);
-
-  const ii = d.get(all(I));
-  ii.forEach(i => i.c);
-
-  class Def {
-    public constructor(@all(I) private readonly i: I) {}
-  }
-
-  @inject(all(I))
-  class G {}
-}
-
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
  *
@@ -636,28 +616,6 @@ export type ILazyResolver<K extends Key = Key> = IResolver<() => K>
   & ((...args: unknown[]) => any);
 export type IResolvedLazy<K> = () => Resolved<K>;
 
-function testLazy() {
-  const d = DI.createContainer();
-  const I = DI.createInterface<I>();
-  interface I {
-    c: number;
-  }
-  const instance = d.get(lazy(class Abc { public b: number = 5; }));
-  if (instance().b === 5) {
-    // good
-  }
-
-  class Def {
-    public constructor(@lazy(I) private readonly i: I) {}
-  }
-
-  @inject(lazy(I))
-  class G {
-    public i = resolve(lazy(I));
-    public b: I = this.i();
-  }
-}
-
 /**
  * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
  * ```ts
@@ -693,32 +651,6 @@ export type IOptionalResolver<K extends Key = Key> = IResolver<K | undefined> & 
   // any is needed for decorator usages
   (...args: unknown[]): any;
 };
-
-function testOptional() {
-  const d = DI.createContainer();
-  const I = DI.createInterface<I>();
-  interface I {
-    c: number;
-  }
-  const instance = d.get(optional(class Abc { public b: number = 5; }));
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  if (instance.b === 5) {
-    // good
-  }
-
-  class Def {
-    public constructor(@optional(I) private readonly i: I) {}
-  }
-
-  @inject(optional(I))
-  class G {
-    public i = resolve(optional(I));
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    public b: I = this.i;
-  }
-}
 
 /**
  * ignore tells the container not to try to inject a dependency
@@ -801,37 +733,6 @@ export type INewInstanceResolver<T> = IResolver<T> & {
 const createNewInstance = (key: any, handler: IContainer, requestor: IContainer) => {
   return handler.getFactory(key).construct(requestor);
 };
-
-function testNewInstance() {
-  const d = DI.createContainer();
-  const I = DI.createInterface<I>();
-  interface I {
-    c: number;
-  }
-  const instance = d.get(newInstanceOf(class Abc { public b: number = 5; }));
-  if (instance.b === 5) {
-    // good
-  }
-  const instance2 = d.get(newInstanceForScope(class Abc { public b: number = 5; }));
-  if (instance2.b === 5) {
-    // good
-  }
-
-  class Def {
-    public constructor(
-      @newInstanceOf(I) private readonly i: I,
-      @newInstanceForScope(I) private readonly j: I,
-    ) {}
-  }
-
-  @inject(newInstanceOf(I))
-  class G {
-    public i = resolve(newInstanceOf(I));
-    public ii: I = this.i;
-    public j = resolve(newInstanceForScope(I));
-    public jj: I = this.j;
-  }
-}
 
 _START_CONST_ENUM();
 /** @internal */

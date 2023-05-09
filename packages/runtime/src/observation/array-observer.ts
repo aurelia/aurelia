@@ -381,7 +381,7 @@ export function disableArrayObservation(): void {
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
-  public type: AccessorType = AccessorType.Array;
+  public type: AccessorType = AccessorType.Observer;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
   private lenObs?: CollectionLengthObserver;

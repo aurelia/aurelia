@@ -142,10 +142,10 @@ export type ObservedCollectionKindToType<T> =
             never;
 
 export const enum AccessorType {
-  None          = 0b0_0000_0000,
-  Observer      = 0b0_0000_0001,
+  None          = 0b0_000_000,
+  Observer      = 0b0_000_001,
 
-  Node          = 0b0_0000_0010,
+  Node          = 0b0_000_010,
 
   // misc characteristic of accessors/observers when update
   //
@@ -155,15 +155,7 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_0000_0100,
-  // by default, everything is an object
-  // eg: a property is accessed on an object
-  // unless explicitly not so
-  Primtive      = 0b0_0000_1000,
-
-  Array         = 0b0_0001_0010,
-  Set           = 0b0_0010_0010,
-  Map           = 0b0_0100_0010,
+  Layout        = 0b0_000_100,
 }
 
 /**

@@ -16,6 +16,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     const nodeLocator = {
       handles() { return false; }
     };
+    Registration.instance(IDirtyChecker, {}).register(container);
     Registration.instance(IPlatform, {}).register(container);
     Registration.instance(INodeObserverLocator, nodeLocator).register(container);
     const locator = container.get(IObserverLocator);

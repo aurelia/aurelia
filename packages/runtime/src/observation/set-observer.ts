@@ -133,7 +133,7 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<CollectionKind.set>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
-  public type: AccessorType = AccessorType.Set;
+  public type: AccessorType = AccessorType.Observer;
   private lenObs?: CollectionSizeObserver;
 
   public constructor(observedSet: Set<unknown>) {

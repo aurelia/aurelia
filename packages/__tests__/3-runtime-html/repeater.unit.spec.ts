@@ -1,4 +1,4 @@
-import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext } from '@aurelia/runtime';
+import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext, DirtyChecker } from '@aurelia/runtime';
 import {
   Repeat,
   Controller,
@@ -496,6 +496,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   ];
 
   const container = createContainer().register(
+    DirtyChecker,
     NodeObserverLocator,
     PropertyBindingRenderer,
     TextBindingRenderer,

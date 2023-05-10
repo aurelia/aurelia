@@ -69,12 +69,6 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
-  docker_playwright:
-    working_directory: *working_dir
-    resource_class: large
-    docker:
-      - image: mcr.microsoft.com/playwright:v1.33.0-jammy
-
   docker_release:
     working_directory: *working_dir
     resource_class: large
@@ -529,7 +523,7 @@ jobs:
 
   # e2e hmr
   e2e_test:
-    executor: docker_playwright
+    executor: docker_circleci
     parameters:
       path:
         type: string
@@ -548,7 +542,7 @@ jobs:
           name: "Run e2e script"
           working_directory: << parameters.path >>
           command: |
-            npm i
+            npx playwright install chromium
             npm run test
           no_output_timeout: "1m"
 

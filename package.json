@@ -62,7 +62,7 @@
     "npm": ">=7.0.0"
   },
   "scripts": {
-    "prepare": "npx husky install",
+    "prepare": "husky install",
     "commit": "git-cz",
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",

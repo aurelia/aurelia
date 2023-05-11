@@ -46,7 +46,7 @@ export class ContainerAnimationTransition {
 
     const collectionSeed = Math.random();
     if (collectionSeed > 0.8) {
-      this.people = collectionSeed > 0.9 ? undefined : collectionSeed > 0.8 ? null : [];
+      this.people = collectionSeed > 0.9 ? undefined : collectionSeed > 0.85 ? null : [];
     } else {
       if (this.people == null) {
         this.people = [];

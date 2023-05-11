@@ -198,8 +198,8 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     }
 
     if (this._needInitCalculation) {
-      const calculation = this._needInitCalculation ? this._initCalculation() : null;
-      if (calculation?.signals == null || calculation.signals === SizingSignals.reset || (calculation.signals & SizingSignals.has_sizing) === 0) {
+      const calculation = this._initCalculation();
+      if (calculation.signals === SizingSignals.reset || (calculation.signals & SizingSignals.has_sizing) === 0) {
         return;
       }
       // item height cannot be 0 if signals is has-sizing

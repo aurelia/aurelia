@@ -1,4 +1,4 @@
-import { IContainer, resolve } from "@aurelia/kernel";
+import { resolve } from "@aurelia/kernel";
 import type { ITask } from '@aurelia/platform';
 import {
   Scope,
@@ -80,8 +80,9 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   public readonly instruction = resolve(IInstruction) as HydrateTemplateController;
   public readonly parent = resolve(IController) as IHydratedComponentController;
   /** @internal */ private readonly _factory = resolve(IViewFactory);
-  /** @internal */ private readonly _container = resolve(IContainer);
   /** @internal */ private readonly _strategyLocator = resolve(ICollectionStrategyLocator);
+  /** @internal */ private readonly _domRenderer = resolve(IDomRenderer);
+  /** @internal */ private readonly scrollerObserverLocator = resolve(IScrollerObsererLocator);
 
   public constructor() {
     const iteratorInstruction = this.instruction.props[0] as IteratorBindingInstruction;
@@ -97,13 +98,12 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public attaching(): void {
-    const container = this._container;
-    const collectionStrategyLocator = container.get(ICollectionStrategyLocator);
-    this.collectionStrategy = collectionStrategyLocator.getStrategy(this.items);
-    const repeatDom = this.dom = container.get(IDomRenderer).render(this.location);
-    (this.scrollerObserver = container.get(IScrollerObsererLocator).getObserver(repeatDom.scroller))
-      .subscribe(this);
+    this.dom = this._domRenderer.render(this.location);
+    (this.scrollerObserver = this.scrollerObserverLocator.getObserver(this.dom.scroller)).subscribe(this);
 
+    // todo: merge the obs mediator into collection strategy
+    this._obsMediator.start(this.items);
+    this.collectionStrategy = this._strategyLocator.getStrategy(this.items);
     this._handleItemsChanged(this.items, this.collectionStrategy);
   }
 
@@ -282,7 +282,6 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   public itemsChanged(items?: Collection | null): void {
     this._obsMediator.start(items);
     this.collectionStrategy = this._strategyLocator.getStrategy(items);
-    // this._handleItemsChanged(items, collectionStrategy);
     this._queueHandleItemsChanged();
   }
 
@@ -467,10 +466,10 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     this.items = newItems;
     if (newItems === oldItems) {
       this._queueHandleItemsChanged();
-      // this.itemsChanged(newItems);
     }
   }
 
+  /** @internal */
   private _queueHandleItemsChanged() {
     const task = this.task;
     this.task = this.taskQueue.queueTask(() => {

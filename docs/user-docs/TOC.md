@@ -88,6 +88,7 @@
 * [Logging](getting-to-know-aurelia/logging.md)
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)
+* [UI virtualization](developer-guides/ui-virtualization.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [0001 to 0015](developer-guides/error-messages/0001-to-0015/README.md)
     * [AUR0001](developer-guides/error-messages/0001-to-0015/aur0001.md)

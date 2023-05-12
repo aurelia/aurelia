@@ -8,14 +8,19 @@
   },
   "version": "2.0.0-beta.5",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "dev": "webpack serve"
+    "dev": "vite dev",
+    "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",
+    "test:e2e:watch": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9008 PWDEBUG=1 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
+    "test": "npm run test:e2e",
+    "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
     "@aurelia/kernel": "2.0.0-beta.5",
     "@aurelia/metadata": "2.0.0-beta.5",
     "@aurelia/platform": "2.0.0-beta.5",
     "@aurelia/platform-browser": "2.0.0-beta.5",
+    "@aurelia/router": "2.0.0-beta.5",
     "@aurelia/router-lite": "2.0.0-beta.5",
     "@aurelia/runtime-html": "2.0.0-beta.5",
     "@aurelia/runtime": "2.0.0-beta.5",

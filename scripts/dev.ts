@@ -43,6 +43,7 @@ const validE2e = [
   'hmr-webpack',
   'select-safari16',
   'i18n',
+  'ui-virtualization',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 
@@ -104,6 +105,7 @@ const toolingPackages = [
   'ts-jest',
   'babel-jest',
   'parcel-transformer',
+  'vite-plugin',
   'webpack-loader',
 ];
 

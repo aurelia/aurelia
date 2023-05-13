@@ -662,11 +662,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
+        this.isBound = true;
         // because controller can be deactivated, during a long running promise in the bound phase
         if (this.state !== State.activating) {
           this._leaveActivating();
         } else {
-          this.isBound = true;
           this._attach();
         }
       }).catch((err: Error) => {

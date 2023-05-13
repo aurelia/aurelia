@@ -1,6 +1,7 @@
 import {
   DI,
   onResolve,
+  resolve,
 } from '@aurelia/kernel';
 import {
   IRouteViewModel,
@@ -120,9 +121,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
   }
 
   abstract class TestVM implements ICustomElementViewModel {
-    public constructor(
-      @INotifierManager public readonly mgr: INotifierManager,
-    ) {
+    public readonly mgr: INotifierManager = resolve(INotifierManager);
+    public constructor() {
+      const mgr = this.mgr;
       this.binding = mgr.createInvoker(this, 'binding', this.$binding);
       this.bound = mgr.createInvoker(this, 'bound', this.$bound);
       this.attaching = mgr.createInvoker(this, 'attaching', this.$attaching);
@@ -697,12 +698,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         @customElement({ name: 'c-2', template: 'c2' })
         class C2 extends TestVM {
-          public readonly $controller!: ICustomElementController<this>;
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
-
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();
           }
@@ -1347,11 +1343,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         @customElement({ name: 'c-2', template: 'c2' })
         class C2 extends TestVM {
-          public readonly $controller!: ICustomElementController<this>;
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
 
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();
@@ -2128,11 +2120,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         @customElement({ name: 'c2-c', template: 'c2c' })
         class C2Child extends TestVM {
-          public readonly $controller!: ICustomElementController<this>;
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
 
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();
@@ -2445,11 +2433,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         @customElement({ name: 'c2-c', template: 'c2c' })
         class C2Child extends TestVM {
-          public readonly $controller!: ICustomElementController<this>;
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
 
           public [`$${hook}`](_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();

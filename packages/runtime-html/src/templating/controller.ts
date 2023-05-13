@@ -783,8 +783,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // we are about to deactivate, the error from activation can be ignored
         prevActivation = this.$promise?.catch(__DEV__
           ? err => {
-            // eslint-disable-next-line no-console
-            console.warn('The activation promise is rejected. However, the controller is already scheduled for deactivation, the error will be ignored. The activation is rejected with:', err);
+            this.logger.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
           }
           : noop);
         break;

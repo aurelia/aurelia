@@ -780,7 +780,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case State.activating:
         this.state = State.deactivating;
-        prevActivation = this.$promise?.catch(noop); /** justification: because we are about to deactivate, the error from activation can be ignored */
+        // we are about to deactivate, the error from activation can be ignored
+        prevActivation = this.$promise?.catch(__DEV__
+          ? err => {
+            // eslint-disable-next-line no-console
+            console.warn('The activation promise is rejected. However, the controller is already scheduled for deactivation, the error will be ignored. The activation is rejected with:', err);
+          }
+          : noop);
         break;
       case State.none:
       case State.deactivated:
@@ -1064,7 +1070,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           if (cur._hooks.hasUnbinding) {
             if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-            // console.log('calling vm.unbinding');
             ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
           }
         }

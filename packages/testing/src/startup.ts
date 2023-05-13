@@ -253,12 +253,13 @@ export function createFixture<T extends object>(
         return dispose();
     }
 
-    public async stop(dispose: boolean): Promise<void> {
+    public async stop(dispose: boolean = false): Promise<void> {
       try {
         await au.stop(dispose);
       } finally {
         if (dispose) {
           root.remove();
+          au.dispose();
         }
       }
     }
@@ -312,7 +313,7 @@ export interface IFixture<T> {
   readonly torn: boolean;
   start(): void | Promise<void>;
   tearDown(): void | Promise<void>;
-  stop(dispose: boolean): Promise<void>;
+  stop(dispose?: boolean): Promise<void>;
   readonly started: Promise<IFixture<T>>;
 
   /**
@@ -416,12 +417,12 @@ export interface IFixtureBuilderBase<T, E = {}> {
 type BuilderMethodNames = 'html' | 'component' | 'deps';
 type CreateBuilder<T, Availables extends BuilderMethodNames> = {
   [key in Availables]:
-  key extends 'html'
-  ? {
-    (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
-    (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
-  }
-  : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+    key extends 'html'
+      ? {
+        (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
+        (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
+      }
+      : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
 } & ('html' extends Availables ? {} : { build(): IFixture<T> });
 
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
@@ -478,8 +479,8 @@ function testBuilderTypings() {
   type Expect<T extends true> = T;
   type Equal<A, B> =
     (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2)
-    ? true
-    : false;
+      ? true
+      : false;
   type IsType<A, B> = A extends B ? B extends A ? 1 : never : never;
 
   // @ts-expect-error

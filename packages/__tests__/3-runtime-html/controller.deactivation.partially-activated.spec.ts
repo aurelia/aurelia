@@ -308,9 +308,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                   'phase#2.c-2.detaching.enter',
                   'phase#2.c-2.detaching.leave',
                   'phase#2.c-2.unbinding.enter',
-                  'phase#2.c-2.unbinding.leave'
+                  'phase#2.c-2.unbinding.leave',
                 ]
-                : []
+                : hook === 'bound'
+                  ? [
+                    'phase#2.c-2.unbinding.enter',
+                    'phase#2.c-2.unbinding.leave',
+                  ]
+                  : []
             ),
             'phase#2.c-1.binding.enter',
             'phase#2.c-1.binding.leave',
@@ -479,7 +484,16 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                   'phase#2.c-2.unbinding.enter',
                   'phase#2.c-2.unbinding.leave'
                 ]
-                : []
+                : hook === 'bound'
+                  ? [
+                    'phase#2.Global.c-2.unbinding.enter',
+                    'phase#2.Global.c-2.unbinding.leave',
+                    'phase#2.Local.c-2.unbinding.enter',
+                    'phase#2.Local.c-2.unbinding.leave',
+                    'phase#2.c-2.unbinding.enter',
+                    'phase#2.c-2.unbinding.leave'
+                  ]
+                  : []
             ),
             'phase#2.Global.c-1.binding.enter',
             'phase#2.Global.c-1.binding.leave',
@@ -666,7 +680,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             case 'bound': logs.push('phase#1.c-2.bound.enter', 'phase#1.c-2.binding.leave');
             case 'binding': logs.push('phase#1.c-2.binding.enter');
           }
-          /* eslint-enable no-fallthrough */
           logs.reverse();
           logs.unshift(
             'phase#1.c-1.detaching.enter',
@@ -684,11 +697,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
               logs.push(
                 'phase#1.c-2.detaching.enter',
                 'phase#1.c-2.detaching.leave',
+              );
+            case 'binding':
+              logs.push(
                 'phase#1.c-2.unbinding.enter',
                 'phase#1.c-2.unbinding.leave',
               );
-              break;
           }
+          /* eslint-enable no-fallthrough */
           return logs;
         }
 
@@ -921,7 +937,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.Global.c-2.binding.enter`,
               );
           }
-          /* eslint-enable no-fallthrough */
           logs.reverse();
           logs.unshift(
             `${prefix}.Global.c-1.detaching.enter`,
@@ -947,6 +962,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.Local.c-2.detaching.leave`,
                 `${prefix}.c-2.detaching.enter`,
                 `${prefix}.c-2.detaching.leave`,
+              );
+            case 'binding':
+              logs.push(
                 `${prefix}.Global.c-2.unbinding.enter`,
                 `${prefix}.Global.c-2.unbinding.leave`,
                 `${prefix}.Local.c-2.unbinding.enter`,
@@ -954,8 +972,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.c-2.unbinding.enter`,
                 `${prefix}.c-2.unbinding.leave`,
               );
-              break;
           }
+          /* eslint-enable no-fallthrough */
           return logs;
         }
 
@@ -1311,7 +1329,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
               `${prefix}.c-2.binding.enter`,
             );
           }
-          /* eslint-enable no-fallthrough */
           logs.reverse();
           logs.unshift(
             `${prefix}.c-1.detaching.enter`,
@@ -1328,11 +1345,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
               logs.push(
                 `${prefix}.c-2.detaching.enter`,
                 `${prefix}.c-2.detaching.leave`,
+              );
+            case 'bound':
+              logs.push(
                 `${prefix}.c-2.unbinding.enter`,
                 `${prefix}.c-2.unbinding.leave`,
               );
-              break;
           }
+          /* eslint-enable no-fallthrough */
           return logs;
         }
 
@@ -1454,7 +1474,12 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
               'phase#4.c-2.unbinding.enter',
               'phase#4.c-2.unbinding.leave',
             ]
-            : []
+            : hook === 'bound'
+              ? [
+                'phase#4.c-2.unbinding.enter',
+                'phase#4.c-2.unbinding.leave',
+              ]
+              : []
           ),
           'phase#4.c-1.binding.enter',
           'phase#4.c-1.binding.leave',
@@ -1497,7 +1522,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           ),
           'stop.app.detaching.enter',
           'stop.app.detaching.leave',
-          ...(hook === 'attaching' || hook === 'attached'
+          ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
             ? [
               'stop.c-2.unbinding.enter',
               'stop.c-2.unbinding.leave',
@@ -1560,7 +1585,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.Global.c-2.binding.enter`,
               );
           }
-          /* eslint-enable no-fallthrough */
           logs.reverse();
           logs.unshift(
             `${prefix}.Global.c-1.detaching.enter`,
@@ -1584,6 +1608,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.Local.c-2.detaching.leave`,
                 `${prefix}.c-2.detaching.enter`,
                 `${prefix}.c-2.detaching.leave`,
+              );
+            case 'bound':
+              logs.push(
                 `${prefix}.Global.c-2.unbinding.enter`,
                 `${prefix}.Global.c-2.unbinding.leave`,
                 `${prefix}.Local.c-2.unbinding.enter`,
@@ -1591,8 +1618,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 `${prefix}.c-2.unbinding.enter`,
                 `${prefix}.c-2.unbinding.leave`,
               );
-              break;
           }
+          /* eslint-enable no-fallthrough */
           return logs;
         }
 
@@ -1778,7 +1805,16 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 'phase#4.c-2.unbinding.enter',
                 'phase#4.c-2.unbinding.leave',
               ]
-              : []
+              : hook === 'bound'
+                ? [
+                  'phase#4.Global.c-2.unbinding.enter',
+                  'phase#4.Global.c-2.unbinding.leave',
+                  'phase#4.Local.c-2.unbinding.enter',
+                  'phase#4.Local.c-2.unbinding.leave',
+                  'phase#4.c-2.unbinding.enter',
+                  'phase#4.c-2.unbinding.leave',
+                ]
+                : []
           ),
           'phase#4.Global.c-1.binding.enter',
           'phase#4.Global.c-1.binding.leave',
@@ -1843,7 +1879,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'stop.app.detaching.leave',
 
           ...(
-            hook === 'attaching' || hook === 'attached'
+            hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
 
                 'stop.Global.c-2.unbinding.enter',
@@ -1923,7 +1959,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             'phase#2.c-2.detaching.enter',
             'phase#2.c-2.detaching.leave',
             ...(
-              hook === 'attached' || hook === 'attaching'
+              hook === 'bound' || hook === 'attached' || hook === 'attaching'
                 ? [
                   'phase#2.c2-c.unbinding.enter',
                   'phase#2.c2-c.unbinding.leave',
@@ -2098,13 +2134,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             ),
             'phase#1.c-2.detaching.enter',
             'phase#1.c-2.detaching.leave',
-            ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
-              ? [
-                'phase#1.c2-c.unbinding.enter',
-                'phase#1.c2-c.unbinding.leave',
-              ]
-              : []
-            ),
+            'phase#1.c2-c.unbinding.enter',
+            'phase#1.c2-c.unbinding.leave',
             'phase#1.c-2.unbinding.enter',
             'phase#1.c-2.unbinding.leave',
           );
@@ -2409,7 +2440,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             ),
             'phase#1.c-2.detaching.enter',
             'phase#1.c-2.detaching.leave',
-            ...(hook === 'attaching' || hook === 'attached'
+            ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
                 'phase#1.c2-c.unbinding.enter',
                 'phase#1.c2-c.unbinding.leave',
@@ -2563,7 +2594,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#4.c-2.detaching.enter',
           'phase#4.c-2.detaching.leave',
           ...(
-            hook === 'attaching' || hook === 'attached'
+            hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
                 'phase#4.c2-c.unbinding.enter',
                 'phase#4.c2-c.unbinding.leave',
@@ -2625,7 +2656,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'stop.app.detaching.enter',
           'stop.app.detaching.leave',
           ...(
-            hook === 'attaching' || hook === 'attached'
+            hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
                 'stop.c2-c.unbinding.enter',
                 'stop.c2-c.unbinding.leave',

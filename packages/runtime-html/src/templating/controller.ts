@@ -80,6 +80,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public scope: Scope | null = null;
   public isBound: boolean = false;
+  /** @internal */
+  private _isBindingDone: boolean = false;
 
   // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
   // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
@@ -603,6 +605,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (isPromise(ret)) {
       this._ensurePromise();
       ret.then(() => {
+        this._isBindingDone = true;
         if (this.state !== State.activating) {
           // because controller can be deactivated, during a long running promise in the binding phase
           this._leaveActivating();
@@ -615,6 +618,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return this.$promise;
     }
 
+    this._isBindingDone = true;
     this.bind();
     return this.$promise;
   }
@@ -1061,7 +1065,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           cur.removeNodes();
         }
 
-        if (cur.isBound) {
+        if (cur._isBindingDone) {
           if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
             ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
           }
@@ -1107,6 +1111,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       let next: Controller | null = null;
       while (cur !== null) {
         if (cur !== this) {
+          cur._isBindingDone = false;
           cur.isBound = false;
           cur.unbind();
         }
@@ -1116,6 +1121,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
 
       this.head = this.tail = null;
+      this._isBindingDone = false;
       this.isBound = false;
       this.unbind();
     }

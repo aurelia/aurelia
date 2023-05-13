@@ -51,7 +51,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
     }
 
     public createLifecycleHookInvoker(hookInstance: TestHook, hookName: string, hook: LifecycleHook): LifecycleHook {
-      const name = hookInstance.constructor.name;
+      const name = hookInstance.hookName;
       hook = hook.bind(hookInstance);
       const mgr = hookInstance.mgr;
       return function $hook(vm: IRouteViewModel, initiator: IHydratedController, parent?: IHydratedController) {
@@ -153,9 +153,11 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
   type LifecycleHook = (vm: IRouteViewModel, initiator: IHydratedController, parent?: IHydratedController) => void | Promise<void>;
   abstract class TestHook implements ILifecycleHooks<IRouteViewModel, 'binding' | 'bound' | 'attaching' | 'attached' | 'detaching' | 'unbinding'> {
 
-    public constructor(
-      @INotifierManager public readonly mgr: INotifierManager,
-    ) {
+    public abstract get hookName(): string;
+
+    public readonly mgr: INotifierManager = resolve(INotifierManager);
+    public constructor() {
+      const mgr = this.mgr;
       this.binding = mgr.createLifecycleHookInvoker(this, 'binding', this.$binding);
       this.bound = mgr.createLifecycleHookInvoker(this, 'bound', this.$bound);
       this.attaching = mgr.createLifecycleHookInvoker(this, 'attaching', this.$attaching);
@@ -514,10 +516,17 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           ];
         }
         @lifecycleHooks()
-        class Global extends TestHook { }
+        class Global extends TestHook {
+          public get hookName(): string {
+            return 'Global';
+          }
+        }
 
         @lifecycleHooks()
         class Local extends TestHook {
+          public get hookName(): string {
+            return 'Local';
+          }
           public [`$${hook}`](_vm: IRouteViewModel, _initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             throw new Error('Synthetic test error');
           }
@@ -975,14 +984,18 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         }
 
         @lifecycleHooks()
-        class Global extends TestHook { }
+        class Global extends TestHook {
+          public get hookName(): string {
+            return 'Global';
+          }
+        }
 
         @lifecycleHooks()
         class Local extends TestHook {
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
+          public get hookName(): string {
+            return 'Local';
+          }
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
 
           public [`$${hook}`](_vm: IRouteViewModel, _initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();
@@ -1619,14 +1632,18 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         }
 
         @lifecycleHooks()
-        class Global extends TestHook { }
+        class Global extends TestHook {
+          public get hookName(): string {
+            return 'Global';
+          }
+        }
 
         @lifecycleHooks()
         class Local extends TestHook {
-          public constructor(
-            @INotifierManager mgr: INotifierManager,
-            @IPromiseManager private readonly promiseManager: IPromiseManager
-          ) { super(mgr); }
+          public get hookName(): string {
+            return 'Local';
+          }
+          private readonly promiseManager: IPromiseManager = resolve(IPromiseManager);
 
           public [`$${hook}`](_vm: IRouteViewModel, _initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
             return this.promiseManager.createPromise();

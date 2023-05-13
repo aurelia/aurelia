@@ -238,7 +238,7 @@ export function createFixture<T extends object>(
     }
 
     public tearDown() {
-      if (++tornCount === 2) {
+      if (++tornCount > 1) {
         console.log('(!) Fixture has already been torn down');
         return;
       }
@@ -258,6 +258,7 @@ export function createFixture<T extends object>(
         await au.stop(dispose);
       } finally {
         if (dispose) {
+          ++tornCount;
           root.remove();
           au.dispose();
         }

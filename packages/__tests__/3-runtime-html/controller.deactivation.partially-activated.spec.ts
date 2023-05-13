@@ -1108,7 +1108,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         queue.queueTask(() => Promise.resolve());
-        queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
         assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
@@ -1192,7 +1191,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -1434,7 +1432,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         queue.queueTask(() => Promise.resolve());
-        queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
@@ -1472,7 +1469,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -1751,7 +1747,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         queue.queueTask(() => Promise.resolve());
-        queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
@@ -1806,7 +1801,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -2230,7 +2224,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         queue.queueTask(() => Promise.resolve());
-        queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
         assert.html.textContent(appHost, 'c2c', 'phase#3.textContent');
@@ -2298,7 +2291,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -2545,7 +2537,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         queue.queueTask(() => Promise.resolve());
-        queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#3.textContent');
@@ -2602,7 +2593,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 

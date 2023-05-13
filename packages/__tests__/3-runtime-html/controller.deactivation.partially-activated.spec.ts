@@ -765,10 +765,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
@@ -1080,10 +1080,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
@@ -1411,10 +1411,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then reject the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
@@ -1724,10 +1724,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
@@ -2206,10 +2206,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
@@ -2516,10 +2516,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         // trigger deactivation then resolve the promise and wait for everything
         /**
-         * Note on manual deactivation instead of setting the flag to false:
+         * Note on manual deactivation instead of setting the value of the if.bind to false:
          * The `if`-TC is not preemptive.
          * That is it waits always for the previous change.
-         * Thus, setting the flag to false would only queue the deactivation rather than a pre-emptive action.
+         * Thus, setting the value of the if.bind to false would only queue the deactivation rather than a pre-emptive action.
          * We might want to change the `if`-TC to be pre-emptive, but that requires more discussion among team and community.
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);

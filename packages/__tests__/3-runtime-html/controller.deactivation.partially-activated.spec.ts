@@ -773,8 +773,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.resolve();
-        queue.queueTask(() => Promise.resolve());
-        await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.all([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog(true), 'phase#1 - post-resolve');
 
         // phase#2: try to activate c-1 - should work
@@ -799,7 +798,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('resolved');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -844,7 +842,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        queue.queueTask(() => Promise.resolve());
         queue.queueTask(() => Promise.resolve());
         await queue.yield();
 
@@ -1091,8 +1088,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.resolve();
-        queue.queueTask(() => Promise.resolve());
-        await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.all([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog('phase#1', true), 'phase#1 - post-resolve');
 
         // phase#2: try to activate c-1 - should work
@@ -1423,8 +1419,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.reject(new Error('Synthetic test error - phase#1'));
-        queue.queueTask(() => Promise.resolve());
-        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog('phase#1', true), 'phase#1 - post-reject');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
@@ -1737,8 +1732,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.reject(new Error('Synthetic test error'));
-        queue.queueTask(() => Promise.resolve());
-        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog('phase#1', true), 'phase#1 - post-resolve');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
@@ -2220,8 +2214,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.resolve();
-        queue.queueTask(() => Promise.resolve());
-        await Promise.all([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.all([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog(true), 'phase#1 - post-resolve');
 
         // phase#2: try to activate c-1 - should work
@@ -2531,8 +2524,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
          */
         const deactivationPromise = ifVm.elseView.deactivate(ifVm.elseView, ifCtrl);
         promiseManager.reject(new Error('Synthetic test error - phase#1'));
-        queue.queueTask(() => Promise.resolve());
-        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, queue.yield(), ifVm['pending']]);
+        await Promise.allSettled([promiseManager.currentPromise, deactivationPromise, ifVm['pending']]);
         mgr.assertLog(getPendingActivationLog('phase#1', true), 'phase#1 - post-resolve');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;

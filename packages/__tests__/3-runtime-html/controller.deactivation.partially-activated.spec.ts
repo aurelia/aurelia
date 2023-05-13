@@ -678,6 +678,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
           logs.push(`phase#1.c-2.${hook}.leave`);
           switch (hook) {
+            case 'bound':
             case 'attaching':
             case 'attached':
               logs.push(
@@ -936,6 +937,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
           logs.push(`${prefix}.Local.c-2.${hook}.leave`);
           switch (hook) {
+            case 'bound':
             case 'attaching':
             case 'attached':
               logs.push(
@@ -2093,7 +2095,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           if (!isSettled) return logs;
 
           logs.push(`phase#1.c2-c.${hook}.leave`,
-            ...(hook === 'attaching' || hook === 'attached'
+            ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
                 'phase#1.c2-c.detaching.enter',
                 'phase#1.c2-c.detaching.leave',
@@ -2102,7 +2104,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             ),
             'phase#1.c-2.detaching.enter',
             'phase#1.c-2.detaching.leave',
-            ...(hook === 'attaching' || hook === 'attached'
+            ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
                 'phase#1.c2-c.unbinding.enter',
                 'phase#1.c2-c.unbinding.leave',

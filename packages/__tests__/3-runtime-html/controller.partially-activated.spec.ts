@@ -1,30 +1,13 @@
 import {
-  DI,
-  onResolve,
-  resolve,
-} from '@aurelia/kernel';
-import {
-  IRouteViewModel,
-} from '@aurelia/router-lite';
-import {
-  CustomAttribute,
   CustomElement,
-  ICustomElementController,
-  ICustomElementViewModel,
-  IHydratedController,
-  ILifecycleHooks,
-  IPlatform,
-  If,
   LifecycleHooks,
-  customElement,
-  lifecycleHooks,
 } from '@aurelia/runtime-html';
 import {
   assert,
   createFixture,
 } from '@aurelia/testing';
 
-describe.only('3-runtime-html/controller.deactivation.partially-activated.spec.ts', function () {
+describe('3-runtime-html/controller.partially-activated.spec.ts', function () {
 
   it('does not call [bound] when deactivated while waiting for [binding]', async function () {
     let count = 0;

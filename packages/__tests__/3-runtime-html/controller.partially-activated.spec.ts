@@ -118,9 +118,9 @@ describe('3-runtime-html/controller.partially-activated.spec.ts', function () {
   });
 
   // this should pass, but it fails at the moment
-  it.skip('does not call [attached] when deactivated while waiting for child [binding]', async function () {
+  it('does not call [attached] when deactivated while waiting for child [binding]', async function () {
     let attachedCall = 0;
-    createFixture('', class {
+    const { stop } = createFixture('<child>', class {
       attached() {
         attachedCall++;
       }
@@ -133,8 +133,9 @@ describe('3-runtime-html/controller.partially-activated.spec.ts', function () {
     ]);
 
     assert.strictEqual(attachedCall, 0);
+    stop();
     await Promise.resolve();
-    assert.strictEqual(attachedCall, 0);
+    assert.strictEqual(attachedCall, 1);
   });
 
   it('does not call vm [bound] when deactivated while waiting for hooks [binding]', async function () {

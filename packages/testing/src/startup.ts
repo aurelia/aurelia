@@ -220,6 +220,8 @@ export function createFixture<T extends object>(
     ctx.platform.domWriteQueue.flush(time);
   };
 
+  let app: ReturnType<Aurelia['app']>;
+
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
@@ -234,7 +236,7 @@ export function createFixture<T extends object>(
     public hJsx = hJsx.bind(ctx.doc);
 
     public start() {
-      return au.app({ host: host, component }).start();
+      return (app ??= au.app({ host: host, component })).start();
     }
 
     public tearDown() {

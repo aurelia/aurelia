@@ -1,4 +1,4 @@
-import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
@@ -220,6 +220,32 @@ export function createFixture<T extends object>(
     ctx.platform.domWriteQueue.flush(time);
   };
 
+  const stop = (dispose: boolean = false): void | Promise<void> => {
+    let ret: MaybePromise<void>;
+    try {
+      ret = au.stop(dispose);
+    } finally {
+      if (dispose) {
+        if (++tornCount > 1) {
+          console.log('(!) Fixture has already been torn down');
+        } else {
+          const $dispose = () => {
+            root.remove();
+            au.dispose();
+          };
+          if (ret instanceof Promise) {
+            ret = ret.then($dispose);
+          } else {
+            $dispose();
+          }
+        }
+      }
+    }
+    return ret;
+  };
+
+  let app: ReturnType<Aurelia['app']>;
+
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
@@ -234,36 +260,14 @@ export function createFixture<T extends object>(
     public hJsx = hJsx.bind(ctx.doc);
 
     public start() {
-      return au.app({ host: host, component }).start();
+      return (app ??= au.app({ host: host, component })).start();
     }
 
     public tearDown() {
-      if (++tornCount > 1) {
-        console.log('(!) Fixture has already been torn down');
-        return;
-      }
-      const dispose = () => {
-        root.remove();
-        au.dispose();
-      };
-      const ret = au.stop();
-      if (ret instanceof Promise)
-        return ret.then(dispose);
-      else
-        return dispose();
+      return stop(true);
     }
 
-    public async stop(dispose: boolean = false): Promise<void> {
-      try {
-        await au.stop(dispose);
-      } finally {
-        if (dispose) {
-          ++tornCount;
-          root.remove();
-          au.dispose();
-        }
-      }
-    }
+    public stop = stop;
 
     public get torn() {
       return tornCount > 0;
@@ -313,8 +317,11 @@ export interface IFixture<T> {
   readonly logger: ILogger;
   readonly torn: boolean;
   start(): void | Promise<void>;
+  /**
+   * @deprecated use `stop(true)` instead
+   */
   tearDown(): void | Promise<void>;
-  stop(dispose?: boolean): Promise<void>;
+  stop(dispose?: boolean): void | Promise<void>;
   readonly started: Promise<IFixture<T>>;
 
   /**

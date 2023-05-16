@@ -1,6 +1,6 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll } from '@aurelia/kernel';
 import { type IHydratedController, type ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import type { IViewport } from './resources/viewport';
@@ -296,10 +296,10 @@ export class ViewportAgent {
             ctx.resolved,
             () => onResolve(
               onResolve(
-                resolveAll(
+                onResolveAll(
                   ...next.residue.splice(0).map(vi => createAndAppendNodes(this.logger, next, vi))
                 ),
-                () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+                () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
                   const vp = vpa.viewport;
                   const component = vp.default;
                   if (component === null) return acc;
@@ -612,12 +612,12 @@ export class ViewportAgent {
       return onResolve(ctx.resolved, () => {
         const existingChildren = next.children.slice();
         return onResolve(
-          resolveAll(...next
+          onResolveAll(...next
             .residue
             .splice(0)
             .map(vi => createAndAppendNodes(this.logger, next, vi))),
           () => onResolve(
-            resolveAll(...ctx
+            onResolveAll(...ctx
               .getAvailableViewportAgents()
               .reduce((acc, vpa) => {
                 const vp = vpa.viewport;

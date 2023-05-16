@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll, Registration, IResolver } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, IResolver } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -770,8 +770,8 @@ function updateNode(
     //   - create instructions, and
     //   - add the compiled nodes from those to children of the node.
     return onResolve(
-      resolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
-      () => resolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+      onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
         const vp = vpa.viewport;
         const component = vp.default;
         if (component === null) return acc;
@@ -782,7 +782,7 @@ function updateNode(
   }
 
   // Drill down until we're at the node whose context matches the provided navigation context
-  return resolveAll(...node.children.map(child => {
+  return onResolveAll(...node.children.map(child => {
     return updateNode(log, vit, ctx, child);
   }));
 }

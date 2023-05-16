@@ -447,7 +447,7 @@ export const onResolve = <TValue, TRet>(
  *
  * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
  */
-export const resolveAll = (
+export const onResolveAll = (
   ...maybePromises: (void | Promise<void>)[]
 ): void | Promise<void> => {
   let maybePromise: Promise<void> | void = void 0;

@@ -2,7 +2,7 @@ import {
   emptyObject,
   type ILogger,
   onResolve,
-  resolveAll,
+  onResolveAll,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -352,7 +352,7 @@ export function createAndAppendNodes(
           node.clearChildren();
         // falls through
         case '.':
-          return resolveAll(...vi.children.map(childVI => {
+          return onResolveAll(...vi.children.map(childVI => {
             return createAndAppendNodes(log, node, childVI);
           }));
         default: {

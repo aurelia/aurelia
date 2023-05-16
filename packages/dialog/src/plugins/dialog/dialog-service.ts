@@ -1,4 +1,4 @@
-import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
+import { IContainer, onResolve, onResolveAll } from '@aurelia/kernel';
 import { AppTask, IPlatform } from '@aurelia/runtime-html';
 
 import {
@@ -190,7 +190,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
     const loaded = this as IDialogLoadedSettings;
     const cmp = this.component;
     const template = this.template;
-    const maybePromise = resolveAll(...[
+    const maybePromise = onResolveAll(...[
       cmp == null
         ? void 0
         : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),

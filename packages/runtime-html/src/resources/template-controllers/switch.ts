@@ -2,7 +2,7 @@ import {
   ILogger,
   LogLevel,
   onResolve,
-  resolveAll,
+  onResolveAll,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -179,7 +179,7 @@ export class Switch implements ICustomAttributeViewModel {
       return cases[0].activate(initiator, scope);
     }
 
-    return resolveAll(...cases.map(($case) => $case.activate(initiator, scope)));
+    return onResolveAll(...cases.map(($case) => $case.activate(initiator, scope)));
   }
 
   /** @internal */
@@ -199,7 +199,7 @@ export class Switch implements ICustomAttributeViewModel {
     }
 
     return onResolve(
-      resolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
+      onResolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
         if (!newActiveCases.includes($case)) {
           acc.push($case.deactivate(initiator));
         }

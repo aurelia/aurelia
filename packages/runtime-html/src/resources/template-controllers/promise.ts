@@ -1,5 +1,5 @@
 import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
-import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
@@ -89,11 +89,11 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const $swap = () => {
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
-      void resolveAll(
+      void onResolveAll(
         // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
         // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
         preSettlePromise = (this.preSettledTask = q.queueTask(() => {
-          return resolveAll(
+          return onResolveAll(
             fulfilled?.deactivate(initiator),
             rejected?.deactivate(initiator),
             pending?.activate(initiator, s)
@@ -107,7 +107,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               }
               const fulfill = () => {
                 // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
-                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
+                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
                   pending?.deactivate(initiator),
                   rejected?.deactivate(initiator),
                   fulfilled?.activate(initiator, s, data),
@@ -126,7 +126,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               }
               const reject = () => {
                 // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
+                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
                   pending?.deactivate(initiator),
                   fulfilled?.deactivate(initiator),
                   rejected?.activate(initiator, s, err),

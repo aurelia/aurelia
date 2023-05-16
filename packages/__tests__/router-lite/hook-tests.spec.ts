@@ -3221,7 +3221,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
       });
     });
 
-    describe('from error thrown from hooks', function () {
+    describe('from activation error thrown by routed VM hooks', function () {
 
       const ticks = 0;
       function click(anchor: HTMLAnchorElement, queue: TaskQueue): Promise<void> {
@@ -3323,11 +3323,53 @@ describe('router-lite/hook-tests.spec.ts', function () {
               ];
             }
           ];
+          yield [
+            'bound',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+                ...$(phase, current, ticks, 'unloading'),
+                ...$(phase, 'ce-c', ticks, 'loading'),
+                ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'ce-c', ticks, 'binding', 'bound', 'unbinding', 'dispose'),
+                ...$(phase, current, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ];
+            }
+          ];
+          yield [
+            'attaching',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+                ...$(phase, current, ticks, 'unloading'),
+                ...$(phase, 'ce-c', ticks, 'loading'),
+                ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'ce-c', ticks, 'binding', 'bound', 'attaching', 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, current, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ];
+            }
+          ];
+          yield [
+            'attached',
+            function getExpectedErrorLog(phase: string, current: string) {
+              return [
+                ...$(phase, current, ticks, 'canUnload'),
+                ...$(phase, 'ce-c', ticks, 'canLoad'),
+                ...$(phase, current, ticks, 'unloading'),
+                ...$(phase, 'ce-c', ticks, 'loading'),
+                ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'ce-c', ticks, 'binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, current, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ];
+            }
+          ];
         }
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook), undefined, LogLevel.trace);
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook)/* , undefined, LogLevel.trace */);
 
             const queue = platform.taskQueue;
             const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));

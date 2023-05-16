@@ -761,7 +761,7 @@ export class ViewportAgent {
     }
 
     if (currentDeactivationPromise !== null && nextDeactivationPromise !== null) {
-      this._cancellationPromise = onResolve(resolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
+      this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
         this.currTransition = null;
         this._cancellationPromise = null;
       });

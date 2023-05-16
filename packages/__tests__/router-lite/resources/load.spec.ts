@@ -5,13 +5,14 @@ import { start } from '../_shared/create-fixture.js';
 
 describe('router-lite/resources/load.spec.ts', function () {
 
-  function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = ''): void {
+  function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = '', assertActive: boolean = true): void {
     const len = anchors.length;
     assert.strictEqual(len, expected.length, `${message} length`);
     for (let i = 0; i < len; i++) {
       const anchor = anchors[i];
       const item = expected[i];
       assert.strictEqual(anchor.href.endsWith(item.href), true, `${message} - #${i} href - actual: ${anchor.href} - expected: ${item.href}`);
+      if (!assertActive) continue;
       assert.strictEqual(anchor.classList.contains('active'), !!item.active, `${message} - #${i} active`);
     }
   }
@@ -698,6 +699,110 @@ describe('router-lite/resources/load.spec.ts', function () {
     anchors[2].click();
     await queue.yield();
     assert.html.textContent(host, 'ce2');
+
+    await au.stop(true);
+  });
+
+  it('href attribute value is correctly generated for child components', async function () {
+
+    @customElement({ name: 'gc-11', template: 'gc11' })
+    class GrandChildOneOne { }
+
+    @customElement({ name: 'gc-12', template: 'gc12' })
+    class GrandChildOneTwo { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'gc11' },
+        { id: 'r1', path: 'gc11', component: GrandChildOneOne },
+        { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-one',
+      template: `c1
+    <a load="r1">gc11</a>
+    <a load="r2">gc12</a>
+    <a load="route: r2; context.bind: parentCtx">c2</a>
+    <au-viewport></au-viewport>`,
+    })
+    class ChildOne {
+      private readonly parentCtx: IRouteContext;
+      public constructor(@IRouteContext ctx: IRouteContext) {
+        this.parentCtx = ctx.parent;
+      }
+    }
+
+    @customElement({ name: 'gc-21', template: 'gc21' })
+    class GrandChildTwoOne { }
+
+    @customElement({ name: 'gc-22', template: 'gc22' })
+    class GrandChildTwoTwo { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'gc21' },
+        { id: 'r1', path: 'gc21', component: GrandChildTwoOne },
+        { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
+      ],
+    })
+    @customElement({
+      name: 'c-two',
+      template: `c2
+    <a load="r1">gc21</a>
+    <a load="r2">gc22</a>
+    <a load="route: r1; context.bind: parentCtx">c1</a>
+    <au-viewport></au-viewport>`,
+    })
+    class ChildTwo {
+      private readonly parentCtx: IRouteContext;
+      public constructor(@IRouteContext ctx: IRouteContext) {
+        this.parentCtx = ctx.parent;
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: '',
+          redirectTo: 'c1',
+        },
+        {
+          id: 'r1',
+          path: 'c1',
+          component: ChildOne,
+        },
+        {
+          id: 'r2',
+          path: 'c2',
+          component: ChildTwo,
+        },
+      ],
+    })
+    @customElement({
+      name: 'my-app', template: `
+    <a load="r1">C1</a>
+    <a load="r2">C2</a>
+    <au-viewport></au-viewport>` })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = host.querySelectorAll('a');
+    assertAnchors(
+      anchors,
+      [
+        { href: 'c1' },
+        { href: 'c2' },
+        { href: 'c1/gc11' },
+        { href: 'c1/gc12' },
+        { href: 'c2' },
+      ],
+      'round#1',
+      false,
+    );
 
     await au.stop(true);
   });

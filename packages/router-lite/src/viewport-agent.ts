@@ -36,14 +36,14 @@ export class ViewportAgent {
   /** @internal */ private _nextCA: ComponentAgent | null = null;
 
   /** @internal */ private _state: State = State.bothAreEmpty;
-  /** @internal */ private get _currState(): CurrState { return this._state & State.curr; }
+  /** @internal */ public get _currState(): CurrState { return this._state & State.curr; }
   /** @internal */ private set _currState(state: CurrState) { this._state = (this._state & State.next) | state; }
   /** @internal */ private get _nextState(): NextState { return this._state & State.next; }
   /** @internal */ private set _nextState(state: NextState) { this._state = (this._state & State.curr) | state; }
 
   /** @internal */ private _$plan: TransitionPlan = 'replace';
-  /** @internal */ private _currNode: RouteNode | null = null;
-  /** @internal */ private _nextNode: RouteNode | null = null;
+  /** @internal */ public _currNode: RouteNode | null = null;
+  /** @internal */ public _nextNode: RouteNode | null = null;
 
   /** @internal */ private _currTransition: Transition | null = null;
   /** @internal */ private _cancellationPromise: Promise<void> | void | null = null;
@@ -860,7 +860,7 @@ function ensureTransitionHasNotErrored(tr: Transition): void {
   if (tr.error !== void 0 && !tr.erredWithUnknownRoute) throw tr.error;
 }
 
-const enum State {
+export const enum State {
   curr              = 0b1111111_0000000,
   currIsEmpty       = 0b1000000_0000000,
   currIsActive      = 0b0100000_0000000,

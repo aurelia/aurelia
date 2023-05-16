@@ -74,8 +74,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
@@ -207,8 +207,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
@@ -253,8 +253,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })

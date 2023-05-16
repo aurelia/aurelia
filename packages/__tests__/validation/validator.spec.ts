@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
+/* eslint-disable mocha/no-sibling-hooks */
 import { DI, Class } from '@aurelia/kernel';
 import {
   ValidationConfiguration,

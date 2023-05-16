@@ -1,12 +1,15 @@
-import { all, Constructable, DI, factory, IContainer, inject, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton } from '@aurelia/kernel';
+import { all, Constructable, DI, factory, IContainer, inject, resolve, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.get.spec.ts', function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
+  });
+
+  afterEach(function () {
+    assert.throws(() => resolve(class Abc{}));
   });
 
   describe('@lazy', function () {
@@ -762,5 +765,205 @@ describe('1-kernel/di.get.spec.ts', function () {
 
     // guess we can add a test for factory resolving to a factory resolving to a factory
     // to see if things work smoothly... TODO?
+  });
+
+  describe('resolve', function () {
+    it('works with resolve(all(...))', function () {
+      let id = 0;
+      const II = DI.createInterface<{ a: Model }>();
+      class Model {
+        id = ++id;
+      }
+      class A {
+        a = resolve(all(II));
+      }
+      container.register(
+        Registration.transient(II, class I1 {
+          a = resolve(Model);
+        }),
+        Registration.transient(II, class I2 {
+          a = resolve(newInstanceOf(Model));
+        })
+      );
+      const { a } = container.get(A);
+
+      assert.deepStrictEqual(a.map(a => a.a.id), [1, 2]);
+    });
+
+    it('works with a list of keys', function () {
+      let i = 0;
+      class Model { v = ++i; }
+      class Base {
+        a = resolve(Model, newInstanceOf(Model));
+      }
+      const { a: [{ v }, { v: v1 }] } = container.get(Base);
+      assert.strictEqual(v, 1);
+      assert.strictEqual(v1, 2);
+    });
+
+    it('works with resolve(transient(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = resolve(transient(Model));
+        b = resolve(transient(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [1, 2]);
+    });
+
+    it('works with resolve(lazy(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = resolve(lazy(Model));
+        b = resolve(lazy(Model));
+      });
+
+      assert.deepStrictEqual([a().id, b().id], [1, 1]);
+      assert.deepStrictEqual([a().id, b().id], [1, 1]);
+    });
+
+    it('works with resolve(optional(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        a = resolve(optional(Model));
+        b = resolve(optional(Model));
+      });
+
+      assert.deepStrictEqual([a?.id, b?.id], [undefined, undefined]);
+    });
+
+    it('works with resolve(newInstanceOf(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        _ = resolve(Model);
+        a = resolve(newInstanceOf(Model));
+        b = resolve(newInstanceOf(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [2, 3]);
+      assert.strictEqual(container.getAll(Model).length, 1);
+    });
+
+    it('works with resolve(newInstanceForScope(...))', function () {
+      let id = 0;
+      class Model { id = ++id; }
+      const { a, b } = container.get(class A {
+        _ = resolve(Model);
+        a = resolve(newInstanceForScope(Model));
+        b = resolve(newInstanceForScope(Model));
+      });
+
+      assert.deepStrictEqual([a.id, b.id], [2, 3]);
+      assert.strictEqual(container.getAll(Model).length, 3);
+    });
+
+    it('works with resolve(factory(...))', function () {
+      let id = 0;
+      class Model {
+        id = ++id;
+        args: number[];
+        constructor(...args: number[]) {
+          this.args = args;
+        }
+        get sum() {
+          return this.id + this.args.reduce((c, i) => c + i, 0);
+        }
+      }
+      const { a, b } = container.get(class A {
+        a = resolve(factory(Model));
+        b = resolve(factory(Model));
+      });
+
+      assert.deepStrictEqual([a(1, 2).sum, b(1, 2).sum], [4, 5]);
+    });
+
+    it('works with deeply nested resolve(...)', function () {
+      let i = 0;
+      class Address { n: number = ++i; }
+      class Details {
+        address1 = resolve(Address);
+        address2 = resolve(newInstanceForScope(Address));
+      }
+      class Profile {
+        details = resolve(Details);
+      }
+      class Parent {
+        model = resolve(Profile);
+      }
+      class Child {
+        parent = resolve(Parent);
+      }
+      const { parent } = container.get(Child);
+      assert.strictEqual(parent.model.details.address1.n, 1);
+      assert.strictEqual(parent.model.details.address2.n, 2);
+      assert.strictEqual(parent.model.details, container.get(Details));
+    });
+
+    describe('with [inheritance]', function () {
+      it('works for basic inheritance', function () {
+        let i = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = resolve(Model);
+        }
+        const { a: { v } } = container.get(class extends Base {});
+        assert.strictEqual(v, 1);
+      });
+
+      it('works with deeply nested resolve(...)', function () {
+        let id = 0;
+        class Model { id = ++id; }
+        class Value {
+          a = resolve(newInstanceOf(Model));
+        }
+        class V2 extends Value {
+          a = resolve(newInstanceOf(Model));
+        }
+        class V3 extends V2 {
+          a = resolve(newInstanceOf(Model));
+        }
+        const { a } = container.get(V3);
+
+        assert.strictEqual(a.id, 3);
+      });
+
+      it('works with a list of keys', function () {
+        let i = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = resolve(Model, newInstanceOf(Model));
+        }
+        const { a: [{ v }, { v: v1 }] } = container.get(class extends Base {});
+        assert.strictEqual(v, 1);
+        assert.strictEqual(v1, 2);
+      });
+
+      it('works with multiple all(...)', function () {
+        let i = 0;
+        let j = 0;
+        class Model { v = ++i; }
+        class Base {
+          a = resolve(newInstanceForScope(Model), newInstanceForScope(Model));
+        }
+        const I = DI.createInterface<Base>();
+        container.register(
+          Registration.transient(I, class extends Base {}),
+          Registration.transient(I, class extends Base {
+            j = ++j;
+          }),
+        );
+        container.invoke(class {
+          b = resolve(all(I), all(I));
+        });
+
+        assert.strictEqual(container.getAll(Model).length, 8);
+        assert.strictEqual(i, 8);
+        assert.strictEqual(j, 2);
+      });
+    });
   });
 });

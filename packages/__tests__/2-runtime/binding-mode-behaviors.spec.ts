@@ -33,7 +33,6 @@ describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
 
     for (const initMode of initModeArr) {
       describe(Behavior.name, function () {
-        // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           sut = new Behavior();
           binding = new PropertyBinding(

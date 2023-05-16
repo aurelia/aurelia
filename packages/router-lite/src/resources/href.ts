@@ -4,7 +4,6 @@ import {
   bindable,
   ICustomAttributeViewModel,
   ICustomAttributeController,
-  IEventTarget,
   INode,
   IWindow,
   getRef, CustomAttribute
@@ -32,7 +31,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  // private eventListener!: IDisposable;
   private isInitialized: boolean = false;
   private isEnabled: boolean;
 
@@ -43,7 +41,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor(
-    @IEventTarget private readonly target: IEventTarget,
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @IRouteContext private readonly ctx: IRouteContext,

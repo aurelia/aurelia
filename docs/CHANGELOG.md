@@ -3,6 +3,60 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.5"></a>
+# 2.0.0-beta.5 (2023-04-27)
+
+### Features:
+
+* **observer-locator:** ability to create getter based observer (#1750) ([ba40b2d](https://github.com/aurelia/aurelia/commit/ba40b2d))
+* **effect:** add watch ([ba40b2d](https://github.com/aurelia/aurelia/commit/ba40b2d))
+* **di:** property injection with `resolve` (#1748) ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+* **aurelia:** ability to inject with `Aurelia` export beside `IAurelia` ([a22826a](https://github.com/aurelia/aurelia/commit/a22826a))
+
+
+### Bug Fixes:
+
+* **plugin-conventions:** ensure esm cjs compat (#1751) ([f808503](https://github.com/aurelia/aurelia/commit/f808503))
+* **compat-v1:** dont use both writable and getter/setter ([b58f967](https://github.com/aurelia/aurelia/commit/b58f967))
+
+
+### Refactorings:
+
+* **build:** preserve pure annotation for better tree shaking (#1745) ([0bc5cd6](https://github.com/aurelia/aurelia/commit/0bc5cd6))
+* **router-lite:** alias registrations (#1741) ([f5e7140](https://github.com/aurelia/aurelia/commit/f5e7140))
+
+<a name="2.0.0-beta.4"></a>
+# 2.0.0-beta.4 (2023-04-13)
+
+### Features:
+
+* **debounce-throttle:** flush via signals (#1739) ([af238a9](https://github.com/aurelia/aurelia/commit/af238a9))
+* **slotted:** add slotted decorator, slotchange bindable for au-slot (#1735) ([8cf87af](https://github.com/aurelia/aurelia/commit/8cf87af))
+* **router-lite:** extended support for ../ prefix, activeClass router configuration (#1733) ([bd18fde](https://github.com/aurelia/aurelia/commit/bd18fde))
+* **router-lite:** non-string support for fallback (#1730) ([59da952](https://github.com/aurelia/aurelia/commit/59da952))
+* **vite-plugin:** add vite plugin (#1726) ([564e533](https://github.com/aurelia/aurelia/commit/564e533))
+* **router-lite:** ce aliases as configured route (#1723) ([2b7f9fc](https://github.com/aurelia/aurelia/commit/2b7f9fc))
+* **router-lite:** transitionplan as nav opt ([7905d98](https://github.com/aurelia/aurelia/commit/7905d98))
+
+
+### Bug Fixes:
+
+* **repeat:** fix mismatchedLengthError on assigning an array with duplicate primitive values (#1737) ([cf60ac8](https://github.com/aurelia/aurelia/commit/cf60ac8))
+* **vite-plugin:** optionally resolve alias, add preliminary doc (#1731) ([3f37f8d](https://github.com/aurelia/aurelia/commit/3f37f8d))
+* **select:** insensitive multiple.bind order (#1727) ([c8d912f](https://github.com/aurelia/aurelia/commit/c8d912f))
+* **ci:** fix vite build in ci, upgrade chromedriver ([564e533](https://github.com/aurelia/aurelia/commit/564e533))
+* **proxy-observation:** prevent proxies from being wrapped in proxies again (#1716) ([7792e9c](https://github.com/aurelia/aurelia/commit/7792e9c))
+
+
+### Refactorings:
+
+* **children:** remove children observers from custom element def, make children deco as a hook (#1732) ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **all:** ignore dev message coverage ([5bde983](https://github.com/aurelia/aurelia/commit/5bde983))
+* **router-lite:** routable fallback ([59da952](https://github.com/aurelia/aurelia/commit/59da952))
+* **platform:** remove unnecessary properties on PLATFORM (#1722) ([7cd77ad](https://github.com/aurelia/aurelia/commit/7cd77ad))
+* **router-lite:** route definition configuration ([eba6d61](https://github.com/aurelia/aurelia/commit/eba6d61))
+
+
 <a name="2.0.0-beta.3"></a>
 # 2.0.0-beta.3 (2023-03-24)
 

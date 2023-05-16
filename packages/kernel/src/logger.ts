@@ -160,11 +160,11 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
-export const ISink = createInterface<ISink>('ISink');
-export const ILogEventFactory = createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
-export const ILogger = createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
-export const ILogScopes = createInterface<string[]>('ILogScope');
+export const ILogConfig = /*@__PURE__*/createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
+export const ISink = /*@__PURE__*/createInterface<ISink>('ISink');
+export const ILogEventFactory = /*@__PURE__*/createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+export const ILogger = /*@__PURE__*/createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
+export const ILogScopes = /*@__PURE__*/createInterface<string[]>('ILogScope');
 
 interface SinkDefinition {
   handles: Exclude<LogLevel, LogLevel.none>[];

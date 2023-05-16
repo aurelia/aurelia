@@ -66,6 +66,7 @@ function configure(container: IContainer, options?: IRouterConfigurationOptions)
       return url;
     }),
     Registration.instance(IRouterOptions, routerOptions),
+    Registration.instance(RouterOptions, routerOptions),
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {

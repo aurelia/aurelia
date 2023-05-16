@@ -1,5 +1,6 @@
 import { subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { createError, isString } from '../utilities';
+import { createError, isString, safeString } from '../utilities';
+import { createMutationObserver } from '../utilities-dom';
 
 import type {
   IObserver,
@@ -100,7 +101,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           if (this._value == null) {
             this._obj.removeAttribute(this._attr);
           } else {
-            this._obj.setAttribute(this._attr, String(this._value));
+            this._obj.setAttribute(this._attr, safeString(this._value));
           }
         }
       }
@@ -145,7 +146,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this._value = this._oldValue = this._obj.getAttribute(this._prop);
-      startObservation(this._obj.ownerDocument.defaultView!.MutationObserver, this._obj as IHtmlElement, this);
+      startObservation(this._obj as IHtmlElement, this);
     }
   }
 
@@ -174,12 +175,12 @@ interface ElementMutationSubscriber {
   handleMutation(mutationRecords: MutationRecord[]): void;
 }
 
-const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscriber: ElementMutationSubscriber): void => {
+const startObservation = (element: IHtmlElement, subscriber: ElementMutationSubscriber): void => {
   if (element.$eMObs === undefined) {
     element.$eMObs = new Set();
   }
   if (element.$mObs === undefined) {
-    (element.$mObs = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
+    (element.$mObs = createMutationObserver(element, handleMutation)).observe(element, { attributes: true });
   }
   element.$eMObs.add(subscriber);
 };

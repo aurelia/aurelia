@@ -10,7 +10,7 @@ import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
 
-export const IRendering = createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
+export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering extends Rendering { }
 
 export class Rendering {
@@ -131,6 +131,7 @@ export class Rendering {
     const ii = targets.length;
     if (targets.length !== rows.length) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0757: The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
       else
         throw createError(`AUR0757:${ii}<>${rows.length}`);

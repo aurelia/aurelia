@@ -13,7 +13,7 @@ export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustom
 }
 
 export type I18nKeyConfiguration = Pick<ValidationI18nCustomizationOptions, 'DefaultNamespace' | 'DefaultKeyPrefix'>;
-export const I18nKeyConfiguration = DI.createInterface<I18nKeyConfiguration>('I18nKeyConfiguration');
+export const I18nKeyConfiguration = /*@__PURE__*/DI.createInterface<I18nKeyConfiguration>('I18nKeyConfiguration');
 
 export class LocalizedValidationController extends ValidationController {
   private readonly localeChangeSubscription: IDisposable;

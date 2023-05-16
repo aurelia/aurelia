@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0-beta.5",
   "packageManager": "npm@8.19.2",
   "workspaces": [
     "packages/__tests__",
@@ -113,7 +113,7 @@
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "@typescript-eslint/parser": "5.51.0",
     "chalk": "4.1.2",
-    "chromedriver": "^111.0.0",
+    "chromedriver": "113.0.0",
     "codecov": "^3.8.3",
     "concurrently": "7.6.0",
     "cross-env": "7.0.3",

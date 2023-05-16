@@ -8,7 +8,7 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { ICustomAttributeController, ICustomElementController, ISyntheticView } from './controller';
 
 export interface IViewFactory extends ViewFactory {}
-export const IViewFactory = createInterface<IViewFactory>('IViewFactory');
+export const IViewFactory = /*@__PURE__*/createInterface<IViewFactory>('IViewFactory');
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 

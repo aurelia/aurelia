@@ -3,7 +3,6 @@ import { PropertyDeclaration, Statement } from 'typescript';
 import project from '../project';
 import {
   $$call,
-  $$comment,
   $$const,
   $$functionDecl,
   $$functionExpr,
@@ -146,6 +145,7 @@ interface TextBinding extends Identifiable {
 }
 interface TplCtrl extends Identifiable {
   attr: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
   properties: PropertyDeclaration[];
   prop?: string;
@@ -1129,21 +1129,17 @@ function generateAndEmit(): void {
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
         $functionExpr([
-          $$comment('eslint-disable-next-line mocha/no-hooks',
-            $$functionExpr('before', [
-              $functionExpr([
-                $$call('Profiler.enable')
-              ])
+          $$functionExpr('before', [
+            $functionExpr([
+              $$call('Profiler.enable')
             ])
-          ),
-          $$comment('eslint-disable-next-line mocha/no-hooks',
-            $$functionExpr('after', [
-              $functionExpr([
-                $$call('Profiler.disable'),
-                $$call('writeProfilerReport', [$expression(suffix)])
-              ])
+          ]),
+          $$functionExpr('after', [
+            $functionExpr([
+              $$call('Profiler.disable'),
+              $$call('writeProfilerReport', [$expression(suffix)])
             ])
-          ),
+          ]),
           $$functionDecl(
             'createFixture',
             [

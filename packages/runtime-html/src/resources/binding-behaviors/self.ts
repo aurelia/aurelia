@@ -8,6 +8,7 @@ export class SelfBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: ListenerBinding): void {
     if (!(binding instanceof ListenerBinding)) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0801: Self binding behavior only supports listener binding via trigger/capture command.`);
       else
         throw createError(`AUR0801`);

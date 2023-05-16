@@ -23,12 +23,12 @@ import {
   InstructionType,
 } from '../renderer';
 import { IPlatform } from '../platform';
-import { Bindable, BindableDefinition } from '../bindable';
+import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
 import { BindingCommand, CommandType } from '../resources/binding-command';
-import { createError, createLookup, isString, objectAssign, objectFreeze } from '../utilities';
+import { createError, createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
 import { allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, getPreviousSibling } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
@@ -43,9 +43,9 @@ import type {
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
-import type { IProjections } from '../resources/slot-injectables';
 import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
+import type { IAuSlotProjections } from '../templating/controller.projection';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -1024,7 +1024,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let childEl: Element;
       let targetSlot: string | null;
-      let projections: IProjections | undefined;
+      let projections: IAuSlotProjections | undefined;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
       let slotTemplate: Node | Element | DocumentFragment;
@@ -1217,7 +1217,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       let child = el.firstChild as Node | null;
       let childEl: Element;
       let targetSlot: string | null;
-      let projections: IProjections | null = null;
+      let projections: IAuSlotProjections | null = null;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
       let slotTemplate: Node | Element | DocumentFragment;
@@ -1500,15 +1500,14 @@ export class TemplateCompiler implements ITemplateCompiler {
         else
           throw createError(`AUR0709`);
       }
+
       const name = processTemplateName(localTemplate, localTemplateNames);
 
-      const LocalTemplateType = class LocalTemplate { };
       const content = localTemplate.content;
       const bindableEls = toArray(content.querySelectorAll('bindable'));
-      const bindableInstructions = Bindable.for(LocalTemplateType);
       const properties = new Set<string>();
       const attributes = new Set<string>();
-      for (const bindableEl of bindableEls) {
+      const bindables = bindableEls.reduce((allBindables: Record<string, PartialBindableDefinition>, bindableEl) => {
         if (bindableEl.parentNode !== content) {
           if (__DEV__)
             throw createError(`AUR0710: Bindable properties of local templates needs to be defined directly under root.`);
@@ -1537,22 +1536,22 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           properties.add(property);
         }
-        bindableInstructions.add({
-          property,
-          attribute: attribute ?? void 0,
-          mode: getBindingMode(bindableEl),
-        });
-        const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+        const ignoredAttributes = toArray(bindableEl.attributes).filter((attr) => !allowedLocalTemplateBindableAttributes.includes(attr.name));
         if (ignoredAttributes.length > 0) {
           if (__DEV__)
-            context._logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+            context._logger.warn(`The attribute(s) ${ignoredAttributes.map(attr => attr.name).join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
         }
 
-        content.removeChild(bindableEl);
-      }
+        bindableEl.remove();
 
+        allBindables[property] = { attribute: attribute ?? void 0, mode: getBindingMode(bindableEl) };
+
+        return allBindables;
+      }, {});
+      class LocalTemplateType {}
+      def(LocalTemplateType, 'name', { value: name });
       localElTypes.push(LocalTemplateType);
-      context._addDep(defineElement({ name, template: localTemplate }, LocalTemplateType));
+      context._addDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
 
       root.removeChild(localTemplate);
     }
@@ -1568,13 +1567,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     // eagerly registering depdendencies inside the loop above
     // will make `<le-1/>` miss `<le-2/>` as its dependency
 
-    let i = 0;
-    const ii = localElTypes.length;
-    for (; ii > i; ++i) {
-      (getElementDefinition(localElTypes[i]).dependencies as Key[]).push(
-        ...context.def.dependencies ?? emptyArray,
-        ...context.deps ?? emptyArray,
-      );
+    const allDeps = [...context.def.dependencies ?? emptyArray, ...localElTypes];
+    for (const Type of localElTypes) {
+      (getElementDefinition(Type).dependencies as Key[]).push(allDeps.filter(d => d !== Type));
     }
   }
 
@@ -2004,7 +1999,7 @@ const getBindingMode = (bindable: Element): BindingMode => {
  *
  * A feature available to the default template compiler.
  */
-export const ITemplateCompilerHooks = createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+export const ITemplateCompilerHooks = /*@__PURE__*/createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
 export interface ITemplateCompilerHooks {
   /**
    * Should be invoked immediately before a template gets compiled
@@ -2013,7 +2008,7 @@ export interface ITemplateCompilerHooks {
 }
 
 const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<{}>>();
-const hooksBaseName = getResourceKeyFor('compiler-hooks');
+const hooksBaseName = /*@__PURE__*/getResourceKeyFor('compiler-hooks');
 
 export const TemplateCompilerHooks = objectFreeze({
   name: hooksBaseName,

@@ -101,9 +101,11 @@ export {
 } from './observation/collection-length-observer';
 export {
   ComputedObserver,
+  type ComputedGetterFn,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,
+  DirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
 } from './observation/dirty-checker';
@@ -111,7 +113,7 @@ export {
   type IEffect,
   IObservation,
   Observation,
-  type EffectFunc,
+  type EffectRunFunc,
 } from './observation/observation';
 export {
   type IObservableDefinition,

@@ -6,7 +6,7 @@ import { TestContext } from '@aurelia/testing';
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { TestRouterConfiguration } from './configuration.js';
 
-export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
+export const IActivityTracker = /*@__PURE__*/DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
 export interface IActivityTracker extends ActivityTracker {}
 export class ActivityTracker {
   public readonly activeVMs: string[] = [];
@@ -95,18 +95,19 @@ type RouterTestStartOptions<TAppRoot> = {
   useHash?: boolean;
   registrations?: any[];
   historyStrategy?: HistoryStrategy;
+  activeClass?: string | null;
 };
 
 /**
  * Simpler fixture creation.
  */
-export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace' }: RouterTestStartOptions<TAppRoot>) {
+export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass }: RouterTestStartOptions<TAppRoot>) {
   const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(
     TestRouterConfiguration.for(LogLevel.warn),
-    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy }),
+    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass }),
     ...registrations,
   );
 

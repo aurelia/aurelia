@@ -1,6 +1,6 @@
 import {
   CustomElement,
-  SVGAnalyzerRegistration,
+  SVGAnalyzer,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -20,7 +20,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     const ctx = TestContext.create();
     const state = new State();
     Registration.instance(State, state).register(ctx.container);
-    ctx.container.register(SVGAnalyzerRegistration, createPythagorasElement());
+    ctx.container.register(SVGAnalyzer, createPythagorasElement());
 
     const { startPromise, appHost, component, tearDown } = createFixture(
       `<div style='height: 50px;' css='max-width: \${width}px;'>

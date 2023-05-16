@@ -1,6 +1,6 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -2198,8 +2198,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     await au.stop(true);
     assert.areTaskQueuesEmpty();
   });
-
-  // TODO(sayan): add more tests
 
   for (const attr of ['href', 'load']) {
     it(`will load the root-level fallback when navigating to a non-existing route - parent-child - children without fallback - attr: ${attr}`, async function () {
@@ -6400,5 +6398,115 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await au.stop();
 
     });
+  });
+
+  it('local dependencies of the routed view model works', async function () {
+    @customElement({ name: 'c-11', template: 'c11' })
+    class C11 { }
+    @customElement({ name: 'c-1', template: 'c1 <c-11></c-11>', dependencies: [C11] })
+    class C1 { }
+
+    @customElement({ name: 'c-21', template: 'c21' })
+    class C21 { }
+
+    @customElement({ name: 'c-2', template: 'c2 <c-21></c-21>', dependencies: [C21] })
+    class C2 { }
+
+    @route({
+      routes: [
+        { path: 'c1', component: C1 },
+        { path: 'c2', component: C2 },
+      ]
+    })
+    @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '');
+
+    await router.load('c1');
+    assert.html.textContent(host, 'c1 c11');
+
+    await router.load('c2');
+    assert.html.textContent(host, 'c2 c21');
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  // use-case: master page
+  it('custom element containing au-viewport works', async function () {
+    @customElement({ name: 'master-page', template: 'mp <au-viewport></au-viewport>' })
+    class MasterPage { }
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { path: 'c1', component: C1 },
+        { path: 'c2', component: C2 },
+      ]
+    })
+    @customElement({ name: 'root', template: '<master-page></master-page>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root, registrations: [MasterPage] });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, 'mp');
+
+    await router.load('c1');
+    assert.html.textContent(host, 'mp c1');
+
+    await router.load('c2');
+    assert.html.textContent(host, 'mp c2');
+
+    await au.stop(true);
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('Alias registrations work', async function () {
+    @route('')
+    @inject(Router, RouterOptions, RouteContext)
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 {
+      public constructor(
+        public readonly router: Router,
+        public readonly routerOptions: RouterOptions,
+        public readonly ctx: RouteContext,
+        @IRouteContext public readonly ictx: IRouteContext,
+      ) { }
+    }
+
+    @route({ routes: [C1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root {
+      public constructor(
+        @IRouter public readonly router: IRouter,
+        @IRouterOptions public readonly routerOptions: IRouterOptions,
+      ) { }
+    }
+
+    const { au, host, container, rootVm } = await start({ appRoot: Root });
+
+    assert.html.textContent(host, 'c1');
+
+    const c1vm = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
+
+    const router = container.get(IRouter);
+    assert.strictEqual(Object.is(router, rootVm.router), true, 'router != root Router');
+    assert.strictEqual(Object.is(router, c1vm.router), true, 'router != c1 router');
+
+    const routerOptions = container.get(IRouterOptions);
+    assert.strictEqual(Object.is(routerOptions, rootVm.routerOptions), true, 'options != root options');
+    assert.strictEqual(Object.is(routerOptions, c1vm.routerOptions), true, 'options != c1 options');
+
+    assert.strictEqual(Object.is(c1vm.ctx, c1vm.ictx), true, 'RouteCtx != IRouteCtx');
+
+    await au.stop(true);
   });
 });

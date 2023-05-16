@@ -5,7 +5,6 @@ import { assert } from '@aurelia/testing';
 describe(`2-runtime/value-converter.spec.ts`, function () {
   let container: IContainer;
 
-  // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
   });

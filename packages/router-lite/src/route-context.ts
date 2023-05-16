@@ -57,7 +57,7 @@ import { isPartialChildRouteConfig } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 
 export interface IRouteContext extends RouteContext { }
-export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
+export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 
@@ -203,10 +203,9 @@ export class RouteContext {
       true,
     );
 
-    container.registerResolver(
-      IRouteContext,
-      new InstanceProvider<IRouteContext>('IRouteContext', this)
-    );
+    const ctxProvider = new InstanceProvider<IRouteContext>('IRouteContext', this);
+    container.registerResolver(IRouteContext, ctxProvider);
+    container.registerResolver(RouteContext, ctxProvider);
 
     container.register(config);
 
@@ -700,7 +699,6 @@ export class $RecognizedRoute {
   }
 }
 
-export const INavigationModel = DI.createInterface<INavigationModel>('INavigationModel');
 export interface INavigationModel {
   /**
    * Collection of routes.

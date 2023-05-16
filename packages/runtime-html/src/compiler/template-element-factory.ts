@@ -9,7 +9,7 @@ import { createInterface } from '../utilities-di';
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
 export interface ITemplateElementFactory extends TemplateElementFactory {}
-export const ITemplateElementFactory = createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
+export const ITemplateElementFactory = /*@__PURE__*/createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 

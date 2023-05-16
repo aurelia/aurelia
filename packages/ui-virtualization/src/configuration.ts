@@ -5,7 +5,7 @@ import { CollectionStrategyLocator } from './collection-strategy';
 import { ScrollerObserverLocator } from './scroller-observer';
 import { DefaultDomRenderer } from './virtual-repeat-dom-renderer';
 
-export const DefaultVirtualRepeatConfiguration: IRegistry = {
+export const DefaultVirtualizationConfiguration: IRegistry = {
   register(container: IContainer): IContainer {
     return container.register(
       ScrollerObserverLocator,

@@ -36,7 +36,7 @@ class Subscription implements IDisposable {
   }
 }
 
-export const IRouterEvents = DI.createInterface<IRouterEvents>('IRouterEvents', x => x.singleton(RouterEvents));
+export const IRouterEvents = /*@__PURE__*/DI.createInterface<IRouterEvents>('IRouterEvents', x => x.singleton(RouterEvents));
 export interface IRouterEvents extends RouterEvents {}
 export class RouterEvents implements IRouterEvents {
   private subscriptionSerial: number = 0;

@@ -57,6 +57,131 @@ describe('router-lite/resources/load.spec.ts', function () {
     await au.stop(true);
   });
 
+  it('adds activeClass when configured', async function () {
+    @customElement({ name: 'fo-o', template: '${instanceId} ${id}' })
+    class Foo {
+      private static instanceId: number = 0;
+      private readonly instanceId = ++Foo.instanceId;
+      private id: string;
+      public loading(params: Params) {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      transitionPlan: 'replace',
+      routes: [
+        { id: 'foo', path: 'foo/:id', component: Foo }
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `
+    <a load="route:foo; params.bind:{id: 1}"></a>
+    <a load="route:foo/2"></a>
+    <au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const activeClass = 'au-rl-active';
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo], activeClass });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = host.querySelectorAll('a');
+    const a1 = { href: 'foo/1', active: false };
+    const a2 = { href: 'foo/2', active: false };
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#1');
+
+    anchors[1].click();
+    await queue.yield();
+    a2.active = true;
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#2');
+    assert.html.textContent(host, '1 2');
+
+    anchors[1].click();
+    await queue.yield();
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
+    assert.html.textContent(host, '2 2');
+
+    anchors[0].click();
+    await queue.yield();
+    a1.active = true;
+    a2.active = false;
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#4');
+    assert.html.textContent(host, '3 1');
+
+    anchors[0].click();
+    await queue.yield();
+    assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#5');
+    assert.html.textContent(host, '4 1');
+
+    await au.stop(true);
+
+    function assertAnchorsWithClass(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], activeClass: string | null = null, message: string = ''): void {
+      const len = anchors.length;
+      assert.strictEqual(len, expected.length, `${message} length`);
+      for (let i = 0; i < len; i++) {
+        const anchor = anchors[i];
+        const item = expected[i];
+        assert.strictEqual(anchor.href.endsWith(item.href), true, `${message} - #${i} href - actual: ${anchor.href} - expected: ${item.href}`);
+        assert.strictEqual(anchor.classList.contains(activeClass), !!item.active, `${message} - #${i} active`);
+      }
+    }
+  });
+
+  it('does not add activeClass when not configured', async function () {
+    @customElement({ name: 'fo-o', template: '' })
+    class Foo { }
+
+    @route({
+      routes: [
+        { id: 'foo', path: 'foo/:id', component: Foo }
+      ]
+    })
+    @customElement({
+      name: 'ro-ot',
+      template: `
+    <a load="route:foo; params.bind:{id: 1}"></a>
+    <a load="route:foo/2"></a>
+    <au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = host.querySelectorAll('a');
+    const a1 = { href: 'foo/1', active: false };
+    const a2 = { href: 'foo/2', active: false };
+    assertAnchorsWithoutClass(anchors, [a1, a2], 'round#1');
+
+    anchors[1].click();
+    await queue.yield();
+    a2.active = true;
+    assertAnchorsWithoutClass(anchors, [a1, a2], 'round#2');
+
+    anchors[0].click();
+    await queue.yield();
+    a1.active = true;
+    a2.active = false;
+    assertAnchorsWithoutClass(anchors, [a1, a2], 'round#3');
+
+    await au.stop(true);
+
+    function assertAnchorsWithoutClass(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = ''): void {
+      const len = anchors.length;
+      assert.strictEqual(len, expected.length, `${message} length`);
+      for (let i = 0; i < len; i++) {
+        const anchor = anchors[i];
+        const item = expected[i];
+        assert.strictEqual(anchor.href.endsWith(item.href), true, `${message} - #${i} href - actual: ${anchor.href} - expected: ${item.href}`);
+        assert.strictEqual(anchor.classList.value, 'au', `${message} - #${i} active`);
+      }
+    }
+  });
+
   it('un-configured parameters are added to the querystring', async function () {
     @customElement({ name: 'fo-o', template: '' })
     class Foo { }
@@ -124,6 +249,60 @@ describe('router-lite/resources/load.spec.ts', function () {
     }
 
     @customElement({ name: 'pro-ducts', template: `<a load="../product/1"></a><a load="../product/2"></a> products` })
+    class Products { }
+
+    @route({
+      routes: [
+        { id: 'products', path: ['', 'products'], component: Products },
+        { id: 'product', path: 'product/:id', component: Product },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    assert.html.textContent(host, 'products');
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /product\/1$/);
+    assert.match(hrefs[1], /product\/2$/);
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 1');
+    // go back
+    const back = host.querySelector<HTMLAnchorElement>('a');
+    assert.match(back.href, /products$/);
+    back.click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
+
+    // 2nd round
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 2');
+    // go back
+    host.querySelector<HTMLAnchorElement>('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'products');
+
+    await au.stop(true);
+  });
+
+  it('allow navigating to route defined in parent context using ../ prefix - with parameters', async function () {
+    @customElement({ name: 'pro-duct', template: `product \${id} <a load="../products"></a>` })
+    class Product {
+      id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @customElement({ name: 'pro-ducts', template: `<a load="route:../product; params.bind:{id:'1'}"></a><a load="route:../product; params.bind:{id:'2'}"></a> products` })
     class Products { }
 
     @route({
@@ -255,6 +434,54 @@ describe('router-lite/resources/load.spec.ts', function () {
       routes: [
         { id: 'l11', path: ['', 'l11'], component: L11 },
         { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l12 l22');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'l11 l21');
+
+    await au.stop(true);
+  });
+
+  it('allow navigating to route defined in grand-parent context using ../../ prefix - with parameters', async function () {
+    @customElement({ name: 'l-21', template: `l21 <a load="route:../../l12; params.bind:{id: '42'}"></a>` })
+    class L21 { }
+    @customElement({ name: 'l-22', template: `l22 <a load="route:../../l11; params.bind:{id: '42'}"></a>` })
+    class L22 { }
+
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
+
+    @route({
+      routes: [
+        { id: 'l22', path: ['', 'l22'], component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'l11/42' },
+        { id: 'l11', path: 'l11/:id', component: L11 },
+        { id: 'l12', path: 'l12/:id', component: L12 },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })

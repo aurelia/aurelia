@@ -100,6 +100,7 @@ export {
   // IDefaultableInterfaceSymbol,
   // IFactory,
   inject,
+  resolve,
   type IRegistration,
   type IRegistry,
   type IResolver,
@@ -340,8 +341,6 @@ export {
 
   // PropertyAccessor,
 
-  // BindableObserver,
-
   // SetterObserver,
 
   ISignaler,
@@ -499,8 +498,7 @@ export {
   Bindable,
   coercer,
 
-  // PartialChildrenDefinition,
-  // ChildrenDefinition,
+  PartialChildrenDefinition,
   // Children,
   children,
 
@@ -672,8 +670,11 @@ export {
 
   // Subject,
   // Compose,
+  IAuSlot,
   IAuSlotsInfo,
   AuSlotsInfo,
+  IAuSlotWatcher,
+  slotted,
 
   // IProjectorLocatorRegistration,
   // ITargetAccessorLocatorRegistration,
@@ -683,7 +684,7 @@ export {
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,
-  // ChildrenObserver,
+  ChildrenBinding,
   // IRenderer,
   // IInstructionTypeClassifier,
   // IRenderingEngine,

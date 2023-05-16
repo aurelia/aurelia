@@ -81,7 +81,7 @@ export class HookInvocationTracker {
   }
 }
 
-export const IHIAConfig = DI.createInterface<IHIAConfig>('IHIAConfig');
+export const IHIAConfig = /*@__PURE__*/DI.createInterface<IHIAConfig>('IHIAConfig');
 export interface IHIAConfig extends HIAConfig {}
 export class HIAConfig {
   public constructor(
@@ -90,7 +90,7 @@ export class HIAConfig {
   ) {}
 }
 
-export const IHookInvocationAggregator = DI.createInterface<IHookInvocationAggregator>('IHookInvocationAggregator', x => x.singleton(HookInvocationAggregator));
+export const IHookInvocationAggregator = /*@__PURE__*/DI.createInterface<IHookInvocationAggregator>('IHookInvocationAggregator', x => x.singleton(HookInvocationAggregator));
 export interface IHookInvocationAggregator extends HookInvocationAggregator {}
 export class HookInvocationAggregator {
   public readonly notifyHistory: string[] = [];

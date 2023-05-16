@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-git reset --quiet -- yarn.lock
+git reset --quiet -- yarn.lock packages/__tests__/tsconfig.json
 git checkout --quiet -- yarn.lock

@@ -151,20 +151,6 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
 
     return definition.Type as BindingCommandType<T>;
   },
-  // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T> {
-  //   const def = getOwnMetadata(cmdBaseName, Type);
-  //   if (def === void 0) {
-  //     if (__DEV__)
-  //       throw createError(`AUR0758: No definition found for type ${Type.name}`);
-  //     else
-  //       throw createError(`AUR0758:${Type.name}`);
-  //   }
-
-  //   return def;
-  // },
-  // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void {
-  //   defineMetadata(getAnnotationKeyFor(prop), value, Type);
-  // },
   getAnnotation: getCommandAnnotation,
 });
 

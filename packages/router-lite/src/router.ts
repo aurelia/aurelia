@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, resolveAll, Registration, IResolver } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -101,7 +101,7 @@ type RouteConfigLookup = WeakMap<RouteConfig, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigLookup>;
 
 export interface IRouter extends Router { }
-export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
+export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 export class Router {
   private _ctx: RouteContext | null = null;
   private get ctx(): RouteContext {
@@ -193,6 +193,7 @@ export class Router {
   ) {
     this.logger = logger.root.scopeTo('Router');
     this.instructions = ViewportInstructionTree.create('', options);
+    container.registerResolver(Router, Registration.instance(Router, this) as unknown as IResolver<Router>);
   }
 
   /**
@@ -405,14 +406,23 @@ export class Router {
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (typeof instructionOrInstructions === 'string') {
       instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
-      if ((instructionOrInstructions as string).startsWith('../') && context !== null) {
-        context = this.resolveContext(context);
-        while ((instructionOrInstructions as string).startsWith('../') && (context?.parent ?? null) !== null) {
-          instructionOrInstructions = (instructionOrInstructions as string).slice(3);
-          context = context!.parent;
-        }
+    }
+
+    const isVpInstr = typeof instructionOrInstructions !== 'string' && 'component' in instructionOrInstructions;
+    let $instruction = isVpInstr ? (instructionOrInstructions as IViewportInstruction).component : instructionOrInstructions;
+    if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
+      context = this.resolveContext(context);
+      while (($instruction as string).startsWith('../') && (context?.parent ?? null) !== null) {
+        $instruction = ($instruction as string).slice(3);
+        context = context!.parent;
       }
     }
+    if(isVpInstr) {
+      (instructionOrInstructions as Writable<IViewportInstruction>).component = $instruction;
+    } else {
+      instructionOrInstructions = $instruction;
+    }
+
     const routerOptions = this.options;
     return ViewportInstructionTree.create(
       instructionOrInstructions,

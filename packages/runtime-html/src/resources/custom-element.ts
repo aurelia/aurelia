@@ -9,7 +9,6 @@ import {
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
-import { Children } from '../templating/children';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
@@ -30,7 +29,6 @@ import type {
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
-import type { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
@@ -52,7 +50,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
-  readonly childrenObservers?: Record<string, PartialChildrenDefinition>;
   readonly containerless?: boolean;
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
@@ -233,7 +230,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
-    public readonly childrenObservers: Record<string, ChildrenDefinition>,
     public readonly containerless: boolean,
     public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
@@ -266,6 +262,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       const def = nameOrDef;
       if (isString(def)) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0761: Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
         else
           throw createError(`AUR0761:${nameOrDef}`);
@@ -296,7 +293,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
         Bindable.from(Type, def.bindables),
-        Children.from(def.childrenObservers),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
@@ -329,11 +325,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
-        ),
-        Children.from(
-          ...Children.getAll(Type),
-          getElementAnnotation(Type, 'childrenObservers'),
-          Type.childrenObservers,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
@@ -371,12 +362,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         Type.bindables,
         nameOrDef.bindables,
       ),
-      Children.from(
-        ...Children.getAll(Type),
-        getElementAnnotation(Type, 'childrenObservers'),
-        Type.childrenObservers,
-        nameOrDef.childrenObservers,
-      ),
       fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
@@ -413,7 +398,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 export type InjectableToken<K = any> = (target: Injectable, property: string | symbol | undefined, index: number) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
@@ -437,13 +422,13 @@ const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
 /** @internal */
-export const elementBaseName = getResourceKeyFor('custom-element');
+export const elementBaseName = /*@__PURE__*/getResourceKeyFor('custom-element');
 
 /** @internal */
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
 
 /** @internal */
-export const generateElementName = (() => {
+export const generateElementName = /*@__PURE__*/(() => {
   let id = 0;
 
   return () => `unnamed-${++id}`;
@@ -477,6 +462,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
         return null!;
       }
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0762: The provided node is not a custom element or containerless host.`);
       else
         throw createError(`AUR0762`);
@@ -488,6 +474,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       const controller = getRef(node, elementBaseName) as Controller<C> | null;
       if (controller === null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0763: The provided node is not a custom element or containerless host.`);
         else
           throw createError(`AUR0763`);
@@ -519,6 +506,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     }
 
     if (__DEV__)
+      /* istanbul ignore next */
       throw createError(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     else
       throw createError(`AUR0764`);
@@ -535,6 +523,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
   }
 
   if (__DEV__)
+    /* istanbul ignore next */
     throw createError(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
   else
     throw createError(`AUR0765`);
@@ -585,7 +574,7 @@ export const createElementInjectable = <K extends Key = Key>(): InjectableToken<
 };
 
 /** @internal */
-export const generateElementType = (function () {
+export const generateElementType = /*@__PURE__*/(function () {
   const nameDescriptor: PropertyDescriptor = {
     value: '',
     writable: false,
@@ -635,7 +624,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 
-const pcHookMetadataProperty = getAnnotationKeyFor('processContent');
+const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
 export function processContent<TClass extends {}>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
@@ -663,6 +652,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
 
   if (!isFunction(hook)) {
     if (__DEV__)
+      /* istanbul ignore next */
       throw createError(`AUR0766: Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
     else
       throw createError(`AUR0766:${typeof hook}`);

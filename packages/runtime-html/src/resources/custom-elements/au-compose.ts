@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
-import { INode, IRenderLocation, isRenderLocation } from '../../dom';
+import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -60,6 +60,7 @@ export class AuCompose {
         return v;
       }
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
       else
         throw createError(`AUR0805`);
@@ -122,7 +123,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  protected propertyChanged(name: ChangeSource): void {
+  public propertyChanged(name: ChangeSource): void {
     if (name === 'model' && this._composition != null) {
       // eslint-disable-next-line
       this._composition.update(this.model);
@@ -204,6 +205,7 @@ export class AuCompose {
     if (vmDef !== null) {
       if (vmDef.containerless) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
         else
           throw createError(`AUR0806`);
@@ -306,15 +308,7 @@ export class AuCompose {
 
     const p = this._platform;
     const isLocation = isRenderLocation(host);
-    registerResolver(
-      container,
-      p.Element,
-      registerResolver(
-        container,
-        INode,
-        new InstanceProvider('ElementResolver', isLocation ? null : host)
-      )
-    );
+    registerHostNode(container, p, isLocation ? null : host);
     registerResolver(
       container,
       IRenderLocation,
@@ -425,6 +419,7 @@ class CompositionController implements ICompositionController {
   public activate(initiator?: IHydratedController) {
     if (this.state !== 0) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
       else
         throw createError(`AUR0807:${this.controller.name}`);
@@ -440,6 +435,7 @@ class CompositionController implements ICompositionController {
         return this.stop(detachInitator);
       case -1:
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0808: Composition has already been deactivated.`);
         else
           throw createError(`AUR0808`);

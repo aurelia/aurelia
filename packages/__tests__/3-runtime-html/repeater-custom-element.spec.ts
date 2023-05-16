@@ -50,13 +50,21 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       .start();
     const component = au.root.controller.viewModel as any;
 
-    await testFunction({ app: component, container, ctx, host, platform: container.get(IPlatform) });
+    try {
+      await testFunction({ app: component, container, ctx, host, platform: container.get(IPlatform) });
+    } catch (ex) {
+      ctx.doc.body.removeChild(host);
+      throw ex;
+    } finally {
+      await au.stop();
+    }
 
-    await au.stop();
+    try {
+      assert.strictEqual(host.textContent, '', `host.textContent`);
+    } finally {
+      ctx.doc.body.removeChild(host);
+    }
 
-    assert.strictEqual(host.textContent, '', `host.textContent`);
-
-    ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
 

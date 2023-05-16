@@ -1,9 +1,9 @@
-import { IDisposable, IServiceLocator, Key, type Constructable } from '@aurelia/kernel';
-import { ITask } from '@aurelia/platform';
+import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
+import { ITask, TaskStatus } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
-import { createError, def, defineHiddenProp } from '../utilities';
+import { addSignalListener, createError, def, defineHiddenProp, removeSignalListener } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 
@@ -105,7 +105,7 @@ export interface IFlushable {
   flush(): void;
 }
 
-export const IFlushQueue = createInterface<IFlushQueue>('IFlushQueue', x => x.singleton(FlushQueue));
+export const IFlushQueue = /*@__PURE__*/createInterface<IFlushQueue>('IFlushQueue', x => x.singleton(FlushQueue));
 export interface IFlushQueue {
   get count(): number;
   add(flushable: IFlushable): void;
@@ -158,15 +158,24 @@ export const mixingBindingLimited = <T extends IBinding>(target: Constructable<T
     }
     withLimitationBindings.add(this);
     const prop = getMethodName(this, opts);
+    const signals = opts.signals;
+    const signaler = signals.length > 0 ? this.get(ISignaler) : null;
     const originalFn = this[prop] as unknown as (...args: unknown[]) => unknown;
     const callOriginal = (...args: unknown[]) => originalFn.call(this, ...args);
     const limitedFn = opts.type === 'debounce'
       ? debounced(opts, callOriginal, this)
       : throttled(opts, callOriginal, this);
+    const signalListener = signaler ? { handleChange: limitedFn.flush } : null;
     this[prop] = limitedFn as unknown as typeof this[typeof prop];
+    if (signaler) {
+      signals.forEach(s => addSignalListener(signaler, s, signalListener!));
+    }
 
     return {
       dispose: () => {
+        if (signaler) {
+          signals.forEach(s => removeSignalListener(signaler, s, signalListener!));
+        }
         withLimitationBindings.delete(this);
         limitedFn.dispose();
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -178,45 +187,54 @@ export const mixingBindingLimited = <T extends IBinding>(target: Constructable<T
 
 /**
  * A helper for creating rated limited functions for binding. For internal use only
- *
- * @param startCounter - indicate at what call number the debounce effect should happens
- * Some bindings calls the debounced method during bind cycle, but that shouldn't be counted as the start of debounce
  */
-const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding) => {
+const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
   let limiterTask: ITask | undefined;
   let task: ITask | undefined;
   let latestValue: unknown;
+  let isPending = false;
   const taskQueue = opts.queue;
+  const callOriginalCallback = () => callOriginal(latestValue);
   const fn = (v: unknown) => {
     latestValue = v;
     if (binding.isBound) {
       task = limiterTask;
-      limiterTask = taskQueue.queueTask(() => callOriginal(latestValue), { delay: opts.delay, reusable: false });
+      limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay, reusable: false });
       task?.cancel();
     } else {
-      callOriginal(latestValue);
+      callOriginalCallback();
     }
   };
-  fn.dispose = () => {
+  const dispose = fn.dispose = () => {
     task?.cancel();
     limiterTask?.cancel();
+    task = limiterTask = void 0;
+  };
+  fn.flush = () => {
+    // only call callback when there's actually task being queued
+    isPending = limiterTask?.status === TaskStatus.pending;
+    dispose();
+    if (isPending) {
+      callOriginalCallback();
+    }
   };
 
-  return fn as unknown as T & IDisposable;
+  return fn;
 };
 
 /**
  * A helper for creating rated limited functions for binding. For internal use only
  */
-const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding) => {
+const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
   let limiterTask: ITask | undefined;
   let task: ITask | undefined;
   let last: number = 0;
   let elapsed = 0;
   let latestValue: unknown;
+  let isPending = false;
   const taskQueue = opts.queue;
   const now = () => opts.now();
-  // const callOriginal = () => originalFn.call(context, latestValue);
+  const callOriginalCallback = () => callOriginal(latestValue);
   const fn = (v: unknown) => {
     latestValue = v;
     if (binding.isBound) {
@@ -224,22 +242,36 @@ const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
       task = limiterTask;
       if (elapsed > opts.delay) {
         last = now();
-        callOriginal(latestValue);
+        callOriginalCallback();
       } else {
         // Queue the new one before canceling the old one, to prevent early yield
         limiterTask = taskQueue.queueTask(() => {
           last = now();
-          callOriginal(latestValue);
+          callOriginalCallback();
         }, { delay: opts.delay - elapsed, reusable: false });
       }
       task?.cancel();
     } else {
-      callOriginal(latestValue);
+      callOriginalCallback();
     }
   };
-  fn.dispose = () => {
+  const dispose = fn.dispose = () => {
     task?.cancel();
     limiterTask?.cancel();
+    task = limiterTask = void 0;
   };
-  return fn as unknown as T & IDisposable;
+  fn.flush = () => {
+    // only call callback when there's actually task being queued
+    isPending = limiterTask?.status === TaskStatus.pending;
+    dispose();
+    if (isPending) {
+      callOriginalCallback();
+    }
+  };
+  return fn;
+};
+
+type LimiterHandle = IDisposable & {
+  (v: unknown, oV?: unknown): void;
+  flush(): void;
 };

@@ -7,20 +7,6 @@ export {
 } from './bindable';
 
 export {
-  BindableObserver,
-} from './observation/bindable-observer';
-
-export {
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-} from './configuration';
-
-export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,
@@ -280,11 +266,6 @@ export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
 export {
-  IProjections,
-  AuSlotsInfo,
-  IAuSlotsInfo,
-} from './resources/slot-injectables';
-export {
   DefinitionType,
 } from './resources/resources-shared';
 
@@ -324,51 +305,19 @@ export {
 } from './resources/value-converters/sanitize';
 
 export {
-  ITemplateCompilerRegistration,
-  INodeObserverLocatorRegistration,
-
   DefaultComponents,
-
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
 
   DefaultBindingSyntax,
 
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-
   ShortHandBindingSyntax,
 
-  SVGAnalyzerRegistration,
-
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  RefBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-  TriggerBindingCommandRegistration,
-  CaptureBindingCommandRegistration,
-  AttrBindingCommandRegistration,
-  ClassBindingCommandRegistration,
-  StyleBindingCommandRegistration,
-
   DefaultBindingLanguage,
-
-  SanitizeValueConverterRegistration,
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  WithRegistration,
-  SelfBindingBehaviorRegistration,
-  UpdateTriggerBindingBehaviorRegistration,
 
   DefaultResources,
 
   DefaultRenderers,
 
-  StandardConfiguration
+  StandardConfiguration,
 } from './configuration';
 export {
   ITemplateElementFactory
@@ -387,10 +336,8 @@ export {
 
 export {
   type PartialChildrenDefinition,
-  ChildrenDefinition,
-  Children,
   children,
-  ChildrenObserver,
+  ChildrenBinding,
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
@@ -422,6 +369,16 @@ export {
   type IHydratedCustomAttributeViewModel,
   type ISyntheticView,
 } from './templating/controller';
+export {
+  type IAuSlotProjections,
+  type IAuSlot,
+  type IAuSlotSubscriber,
+  IAuSlotWatcher,
+  IAuSlotsInfo,
+  type PartialSlottedDefinition,
+  AuSlotsInfo,
+  slotted,
+} from './templating/controller.projection';
 export {
   ILifecycleHooks,
   LifecycleHooksEntry,

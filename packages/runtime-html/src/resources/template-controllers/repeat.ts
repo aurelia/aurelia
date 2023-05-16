@@ -56,8 +56,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   @bindable public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
 
-  /** @internal */ private readonly _keyMap: Map<IIndexable, unknown> = new Map();
-  /** @internal */ private readonly _scopeMap: Map<IIndexable, Scope> = new Map();
+  /** @internal */ private readonly _keyMap: Map<unknown, unknown> = new Map();
+  /** @internal */ private readonly _scopeMap: Map<unknown, Scope> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
   /** @internal */ private _forOfBinding!: PropertyBinding;
@@ -88,6 +88,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this.key = parser.parse(value, ExpressionType.IsProperty);
         } else {
           if (__DEV__) {
+            /* istanbul ignore next */
             throw createError(`AUR775:invalid command ${command}`);
           } else {
             throw createError(`AUR775:${command}`);
@@ -95,6 +96,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
       } else {
         if (__DEV__) {
+          /* istanbul ignore next */
           throw createError(`AUR776:invalid target ${to}`);
         } else {
           throw createError(`AUR776:${to}`);
@@ -244,8 +246,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           }
         }
 
-        let oldItem: IIndexable;
-        let newItem: IIndexable;
+        let oldItem: unknown;
+        let newItem: unknown;
         let oldKey: unknown;
         let newKey: unknown;
         let j = 0;
@@ -264,14 +266,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldItem = oldItems[i];
-            newItem = newItems[i];
-            oldKey = hasKey
-              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItems[i], forOf, parentScope, binding, local, hasDestructuredLocal), binding)
-              : oldItem;
-            newKey = hasKey
-              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItems[i], forOf, parentScope, binding, local, hasDestructuredLocal), binding)
-              : newItem;
+            if (hasKey) {
+              oldItem = oldItems[i];
+              newItem = newItems[i];
+              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+            } else {
+              oldItem = oldKey = ensureUnique(oldItems[i], i);
+              newItem = newKey = ensureUnique(newItems[i], i);
+            }
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -293,14 +296,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           j = newEnd;
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            oldItem = oldItems[j];
-            newItem = newItems[j];
-            oldKey = hasKey
-              ? getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
-              : oldItem;
-            newKey = hasKey
-              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
-              : newItem;
+            if (hasKey) {
+              oldItem = oldItems[j];
+              newItem = newItems[j];
+              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+            } else {
+              oldItem = oldKey = ensureUnique(oldItems[i], i);
+              newItem = newKey = ensureUnique(newItems[i], i);
+            }
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
               keyMap.set(newItem, newKey);
@@ -319,7 +323,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (keyMap.has(newItem = newItems[i])) {
+          if (keyMap.has(newItem = hasKey ? newItems[i] : ensureUnique(newItems[i], i))) {
             newKey = keyMap.get(newItem);
           } else {
             newKey = hasKey
@@ -331,7 +335,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = oldStart; i <= oldEnd; ++i) {
-          if (keyMap.has(oldItem = oldItems[i])) {
+          if (keyMap.has(oldItem = hasKey ? oldItems[i] : ensureUnique(oldItems[i], i))) {
             oldKey = keyMap.get(oldItem);
           } else {
             oldKey = hasKey
@@ -349,7 +353,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         }
 
         for (i = newStart; i <= newEnd; ++i) {
-          if (!oldIndices.has(keyMap.get(newItems[i]))) {
+          if (!oldIndices.has(keyMap.get(hasKey ? newItems[i] : ensureUnique(newItems[i], i)))) {
             indexMap[i] = -2;
           }
         }
@@ -787,9 +791,9 @@ const $number = (result: number, func: (item: number, index: number, arr: number
 };
 
 const getKeyValue = (
-  keyMap: WeakMap<IIndexable, unknown>,
+  keyMap: Map<unknown, unknown>,
   key: string | IsBindingBehavior,
-  item: IIndexable,
+  item: unknown,
   scope: Scope,
   binding: PropertyBinding,
 ) => {
@@ -797,7 +801,7 @@ const getKeyValue = (
   let value = keyMap.get(item);
   if (value === void 0) {
     if (typeof key === 'string') {
-      value = item[key];
+      value = (item as IIndexable)[key];
     } else {
       value = astEvaluate(key, scope, binding, null);
     }
@@ -807,8 +811,8 @@ const getKeyValue = (
 };
 
 const getScope = (
-  scopeMap: WeakMap<IIndexable, Scope>,
-  item: IIndexable,
+  scopeMap: Map<unknown, Scope>,
+  item: unknown,
   forOf: ForOfStatement,
   parentScope: Scope,
   binding: PropertyBinding,
@@ -825,4 +829,21 @@ const getScope = (
     scopeMap.set(item, scope);
   }
   return scope;
+};
+
+const ensureUnique = <T>(item: T, index: number): T | string => {
+  const type = typeof item;
+  switch (type) {
+    case 'object':
+      if (item !== null) return item;
+      // falls through
+    case 'string':
+    case 'number':
+    case 'bigint':
+    case 'undefined':
+    case 'boolean':
+      return `${index}${type}${item}`;
+    default:
+      return item;
+  }
 };

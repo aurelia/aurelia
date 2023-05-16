@@ -9,18 +9,18 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia": "2.0.0-beta.3",
+    "aurelia": "2.0.0-beta.5",
     "marked": "^4.0.14"
   },
   "type": "module",
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-beta.3",
+    "@aurelia/testing": "2.0.0-beta.5",
     "@types/mocha": "10.0.0",
     "@types/node": "^14.18.14",
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
     "mocha": "10.0.0",
-    "playwright": "^1.21.1",
+    "playwright": "^1.33.0",
     "rimraf": "^3.0.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.3.0",

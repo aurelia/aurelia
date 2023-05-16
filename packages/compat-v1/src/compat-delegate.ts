@@ -280,7 +280,7 @@ class DelegateSubscription implements IDisposable {
 }
 
 export interface IEventDelegator extends EventDelegator { }
-export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.cachedCallback((handler) => {
+export const IEventDelegator = /*@__PURE__*/DI.createInterface<IEventDelegator>('IEventDelegator', x => x.cachedCallback((handler) => {
   const instance = handler.invoke(EventDelegator);
   handler.register(AppTask.deactivating(() => instance.dispose()));
   return instance;

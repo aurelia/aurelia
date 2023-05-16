@@ -1,5 +1,5 @@
 import * as path from 'path';
-import modifyCode, { ModifyCodeResult } from 'modify-code';
+import modifyCode, { type ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 import { resourceName } from './resource-name';

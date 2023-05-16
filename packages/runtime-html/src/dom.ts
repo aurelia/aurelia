@@ -1,10 +1,10 @@
-import { type Writable } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, type Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
-import { createInterface } from './utilities-di';
+import { createInterface, registerResolver } from './utilities-di';
 import { markerToLocation } from './utilities-dom';
 
 export class Refs {
@@ -22,22 +22,22 @@ export function setRef(node: INode, name: string, controller: IHydratedControlle
 export type INode<T extends Node = Node> = T & {
   readonly $au?: Refs;
 };
-export const INode = createInterface<INode>('INode');
+export const INode = /*@__PURE__*/createInterface<INode>('INode');
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
-export const IEventTarget = createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
+export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
   if (handler.has(IAppRoot, true)) {
     return handler.get(IAppRoot).host;
   }
   return handler.get(IPlatform).document;
 }));
 
-export const IRenderLocation = createInterface<IRenderLocation>('IRenderLocation');
+export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
 };
 
-export const ICssModulesMapping = createInterface<Record<string, string>>('CssModules');
+export const ICssModulesMapping = /*@__PURE__*/createInterface<Record<string, string>>('CssModules');
 
 /**
  * Represents a DocumentFragment
@@ -410,13 +410,13 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export const IWindow = createInterface<IWindow>('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
+export const IWindow = /*@__PURE__*/createInterface<IWindow>('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
 export interface IWindow extends Window { }
 
-export const ILocation = createInterface<ILocation>('ILocation', x => x.callback(handler => handler.get(IWindow).location));
+export const ILocation = /*@__PURE__*/createInterface<ILocation>('ILocation', x => x.callback(handler => handler.get(IWindow).location));
 export interface ILocation extends Location { }
 
-export const IHistory = createInterface<IHistory>('IHistory', x => x.callback(handler => handler.get(IWindow).history));
+export const IHistory = /*@__PURE__*/createInterface<IHistory>('IHistory', x => x.callback(handler => handler.get(IWindow).history));
 // NOTE: `IHistory` is documented
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/History
@@ -509,3 +509,17 @@ export interface IHistory extends History {
    */
   replaceState(state: {} | null, title: string, url?: string | null): void;
 }
+
+/** @internal */
+export const registerHostNode = (container: IContainer, platform: IPlatform, host: INode | null) => {
+  registerResolver(
+    container,
+    platform.HTMLElement,
+    registerResolver(
+      container,
+      platform.Element,
+      registerResolver(container, INode, new InstanceProvider('ElementResolver', host))
+    )
+  );
+  return container;
+};

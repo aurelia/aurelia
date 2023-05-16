@@ -1,7 +1,7 @@
 import { IRouterEvents } from '@aurelia/router-lite';
 import { DI, IDisposable } from 'aurelia';
 
-export const IRouterEventLoggerService = DI.createInterface<IRouterEventLoggerService>('ISomeService', x => x.singleton(RouterEventLoggerService));
+export const IRouterEventLoggerService = /*@__PURE__*/DI.createInterface<IRouterEventLoggerService>('ISomeService', x => x.singleton(RouterEventLoggerService));
 export interface IRouterEventLoggerService extends RouterEventLoggerService { }
 export class RouterEventLoggerService implements IDisposable {
   private readonly subscriptions: IDisposable[];

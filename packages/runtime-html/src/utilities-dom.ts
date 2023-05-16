@@ -1,5 +1,5 @@
-import { IRenderLocation } from './dom';
-import { IPlatform } from './platform';
+import { type IRenderLocation } from './dom';
+import { type IPlatform } from './platform';
 import { createError } from './utilities';
 
 /** @internal */
@@ -83,6 +83,9 @@ export const markerToLocation = (el: Element) => {
     throw markerMalformedError();
   }
 };
+
+/** @internal */
+export const createMutationObserver = (node: Node, callback: MutationCallback) => new node.ownerDocument!.defaultView!.MutationObserver(callback);
 
 const markerMalformedError = () =>
   __DEV__

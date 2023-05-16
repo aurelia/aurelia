@@ -5,8 +5,11 @@ export {
 export {
   all,
   factory,
+  type IAllResolver,
   type IFactoryResolver,
+  type IOptionalResolver,
   type IResolvedFactory,
+  type INewInstanceResolver,
   DI,
   IContainer,
   type IFactory,
@@ -38,6 +41,11 @@ export {
   DefaultResolver,
   type IContainerConfiguration,
 } from './di';
+
+export {
+  resolve,
+  type IResolvedInjection,
+} from './di.container';
 
 export {
   type Class,

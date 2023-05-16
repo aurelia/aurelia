@@ -63,7 +63,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     let sut: ITemplateCompiler;
     let container: IContainer;
 
-    // eslint-disable-next-line mocha/no-hooks
     beforeEach(function () {
       ctx = TestContext.create();
       container = ctx.container;
@@ -678,7 +677,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     cache: 0,
     dependencies: [],
     bindables: {},
-    childrenObservers: {},
     containerless: false,
     injectable: null,
     isStrictBinding: false,

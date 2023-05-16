@@ -387,3 +387,11 @@ As you interact with this example, you can see that there is absolutely no chang
 ### Override configured history strategy
 
 You can use the [navigation options](./navigating.md#using-navigation-options) to override the configured history strategy for individual routing instructions.
+
+## Configure active class
+
+Using the `activeClass` option you can add a class name to the router configuration.
+This class name is used by the [`load` custom attribute](./navigating.md#using-the-load-custom-attribute) when the associated instruction is active.
+The default value for this option is `null`, which also means that the `load` custom attribute won't add any class proactively.
+Note that the router-lite does not define any CSS class out-of-the-box.
+If you want to use this feature, make sure that you defines the class as well in your stylesheet.

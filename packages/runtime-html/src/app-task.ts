@@ -11,7 +11,7 @@ export type TaskSlot =
   | 'deactivating'
   | 'deactivated';
 
-export const IAppTask = createInterface<IAppTask>('IAppTask');
+export const IAppTask = /*@__PURE__*/createInterface<IAppTask>('IAppTask');
 export interface IAppTask {
   readonly slot: TaskSlot;
   register(c: IContainer): IContainer;

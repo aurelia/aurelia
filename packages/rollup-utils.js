@@ -54,7 +54,7 @@ export function rollupTypeScript(overrides, isDevMode) {
     sourceMap: true,
     include: ['../global.d.ts', 'src/**/*.ts'],
     noEmitOnError: false,
-    removeComments: true,
+    removeComments: false,
     inlineSourceMap: isDevMode,
     ...overrides,
   });
@@ -65,9 +65,7 @@ export function rollupTypeScript(overrides, isDevMode) {
  */
 export function rollupTerser(overrides) {
   return terser({
-    compress: {
-      defaults: false,
-    },
+    compress: false,
     mangle: {
       properties: {
         regex: /^_/,
@@ -76,8 +74,11 @@ export function rollupTerser(overrides) {
     },
     nameCache: terserNameCache,
     format: {
+      comments: /@__PURE__/,
+      preserve_annotations: true,
       beautify: true,
     },
+    keep_fnames: true,
     keep_classnames: true,
     ...overrides,
   });

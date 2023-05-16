@@ -305,11 +305,10 @@ describe('1-kernel/di.spec.ts', function () {
     describe(`getDependencies()`, function () {
       let getDesignParamtypes: ISpy<typeof DI.getDesignParamtypes>;
 
-      // eslint-disable-next-line mocha/no-hooks
       beforeEach(function () {
         getDesignParamtypes = createSpy(DI, 'getDesignParamtypes', true);
       });
-      // eslint-disable-next-line mocha/no-hooks
+
       afterEach(function () {
         getDesignParamtypes.restore();
       });

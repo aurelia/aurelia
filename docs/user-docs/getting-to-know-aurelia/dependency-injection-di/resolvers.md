@@ -64,6 +64,7 @@ You can create your own resolver by implementing the `IResolver` interface. Here
 
 ```typescript
 export interface IResolver<T = any> {
+  $isResolver: true;
   resolve(handler: IContainer, requestor: IContainer): T;
   getFactory?(container: IContainer): IFactory<T> | null;
 }

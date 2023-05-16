@@ -1,7 +1,7 @@
 import { preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
-import { resolve, dirname } from 'node:path';
-import { promises } from 'node:fs';
+import { resolve, dirname } from 'path';
+import { promises } from 'fs';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -48,8 +48,10 @@ export default function au(options: {
         'router-lite',
       ].reduce((aliases, pkg) => {
         const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
-        const packageLocation = require.resolve(name);
-        aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
+        try {
+          const packageLocation = require.resolve(name);
+          aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
+        } catch {/* needs not to do anything */}
         return aliases;
       }, ((config.resolve ??= {}).alias ??= {}) as Record<string, string>);
     },

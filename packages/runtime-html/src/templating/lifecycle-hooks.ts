@@ -1,7 +1,8 @@
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
-import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 import { getOwnPropertyNames, objectFreeze, baseObjectPrototype } from '../utilities';
+
+import type { Constructable, IContainer, AnyFunction, FunctionPropNames } from '@aurelia/kernel';
 
 export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
   TViewModel[TKey] extends (AnyFunction | undefined)
@@ -9,7 +10,7 @@ export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
     : never;
 
 export type ILifecycleHooks<TViewModel = {}, TKey extends keyof TViewModel = keyof TViewModel> = { [K in TKey]-?: LifecycleHook<TViewModel, K>; };
-export const ILifecycleHooks = createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
+export const ILifecycleHooks = /*@__PURE__*/createInterface<ILifecycleHooks<object>>('ILifecycleHooks');
 
 export type LifecycleHooksLookup<TViewModel = {}> = {
   [K in FunctionPropNames<TViewModel>]?: readonly LifecycleHooksEntry<TViewModel, K>[];
@@ -41,7 +42,7 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
     while (proto !== baseObjectPrototype) {
       for (const name of getOwnPropertyNames(proto)) {
         // This is the only check we will do for now. Filtering on e.g. function types might not always work properly when decorators come into play. This would need more testing first.
-        if (name !== 'constructor') {
+        if (name !== 'constructor' && !name.startsWith('_')) {
           propertyNames.add(name);
         }
       }

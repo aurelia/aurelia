@@ -1,7 +1,7 @@
 import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
-import { IEventTarget, INode } from './dom';
+import { IEventTarget, registerHostNode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
@@ -15,7 +15,7 @@ import type {
 } from '@aurelia/kernel';
 
 export interface IAurelia extends Aurelia {}
-export const IAurelia = createInterface<IAurelia>('IAurelia');
+export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
 
 export class Aurelia implements IDisposable {
   /** @internal */
@@ -39,6 +39,7 @@ export class Aurelia implements IDisposable {
     if (this._root == null) {
       if (this.next == null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0767: root is not defined`);
         else
           throw createError(`AUR0767`);
@@ -56,14 +57,16 @@ export class Aurelia implements IDisposable {
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
   ) {
-    if (container.has(IAurelia, true)) {
+    if (container.has(IAurelia, true) || container.has(Aurelia, true)) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0768: An instance of Aurelia is already registered with the container or an ancestor of it.`);
       else
         throw createError(`AUR0768`);
     }
 
     registerResolver(container, IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
+    registerResolver(container, Aurelia, new InstanceProvider<IAurelia>('Aurelia', this));
     registerResolver(container, IAppRoot, this._rootProvider = new InstanceProvider('IAppRoot'));
   }
 
@@ -87,15 +90,7 @@ export class Aurelia implements IDisposable {
     const comp = config.component as unknown as K;
     let bc: ICustomElementViewModel & K;
     if (isFunction(comp)) {
-      registerResolver(
-        ctn,
-        p.HTMLElement,
-        registerResolver(
-          ctn,
-          p.Element,
-          registerResolver(ctn, INode, new InstanceProvider('ElementResolver', host))
-        )
-      );
+      registerHostNode(ctn, p, host);
       bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
     } else {
       bc = comp;
@@ -129,6 +124,7 @@ export class Aurelia implements IDisposable {
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
         if (__DEV__)
+          /* istanbul ignore next */
           throw createError(`AUR0769: Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
         else
           throw createError(`AUR0769`);
@@ -197,6 +193,7 @@ export class Aurelia implements IDisposable {
   public dispose(): void {
     if (this._isRunning || this._isStopping) {
       if (__DEV__)
+        /* istanbul ignore next */
         throw createError(`AUR0771: The aurelia instance must be fully stopped before it can be disposed`);
       else
         throw createError(`AUR0771`);

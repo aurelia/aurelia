@@ -11,7 +11,7 @@ export interface ISanitizer {
   sanitize(input: string): string;
 }
 
-export const ISanitizer = createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
+export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(): string {
     throw createError('"sanitize" method not implemented');
   }

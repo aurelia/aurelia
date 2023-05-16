@@ -42,6 +42,19 @@ The throttle behavior is particularly useful when binding events to methods on y
 <div mousemove.delegate="mouseMove($event) & throttle"></div>
 ```
 
+### Flush pending throttled calls
+
+Sometimes it's desirable to forcefully run the throttled update, so that the application syncs the latest values. This can happen in a form, when a user previously was typing into a throttled form field, and hit tab key to go to the next field, as an example.
+The `throttle` binding behavior supports this scenario via signal. These signals can be added via the 2nd parameter, like the following example:
+
+{% code title="my-app.html" lineNumbers="true" overflow="wrap" %}
+```html
+<input value.bind="value & throttle :200 :`finishTyping`" blur.trigger="signaler.dispatchSignal('finishTyping')">
+<!-- or it can be a list of signals -->
+<input value.bind="value & throttle :200 :[`finishTyping`, `newUpdate`]">
+```
+{% endcode %}
+
 ## Debounce
 
 The debounce binding behavior is another rate-limiting binding behavior. Debounce prevents the binding from being updated until a specified interval has passed without any changes.
@@ -70,7 +83,20 @@ Here's another example with the `mousemove` event:
 <div mousemove.delegate="mouseMove($event) & debounce:500"></div>
 ```
 
-## **UpdateTrigger**
+### Flush pending debounced calls
+
+Sometimes it's desirable to forcefully run the throttled update, so that the application syncs the latest values. This can happen in a form, when a user previously was typing into a throttled form field, and hit tab key to go to the next field, as an example.
+Similar to the [`throttle` binding behavior](#throttle), The `debounce` binding behavior supports this scenario via signal. These signals can be added via the 2nd parameter, like the following example:
+
+{% code title="my-app.html" lineNumbers="true" overflow="wrap" %}
+```html
+<input value.bind="value & debounce :200 :`finishTyping`" blur.trigger="signaler.dispatchSignal('finishTyping')">
+<!-- or it can be a list of signals -->
+<input value.bind="value & debounce :200 :[`finishTyping`, `newUpdate`]">
+```
+{% endcode %}
+
+## UpdateTrigger
 
 Update trigger allows you to override the input events that cause the element's value to be written to the view-model. The default events are `change` and `input`.
 

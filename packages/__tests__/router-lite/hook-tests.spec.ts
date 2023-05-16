@@ -3369,7 +3369,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook)/* , undefined, LogLevel.trace */);
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
 
             const queue = platform.taskQueue;
             const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
@@ -3428,6 +3428,198 @@ describe('router-lite/hook-tests.spec.ts', function () {
             await router.load('b');
             assert.html.textContent(host, 'b', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-a', 'ce-b'));
+
+            await tearDown();
+          });
+        }
+      });
+
+      describe('parent-child', function () {
+
+        function createCes(hook: string) {
+          const hookSpec = HookSpecs.create(ticks);
+          @route(['', 'gc-11'])
+          @customElement({ name: 'gc-11', template: 'gc-11' })
+          class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-12', template: 'gc-12' })
+          class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-13', template: 'gc-13' })
+          class Gc13 extends TestVM {
+            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                console.log('----------------- throwing error from gc13 -----------------------');
+                throw new Error(`Synthetic test error in ${hook}`);
+              });
+            }
+          }
+
+          @route(['', 'gc-21'])
+          @customElement({ name: 'gc-21', template: 'gc-21' })
+          class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-22', template: 'gc-22' })
+          class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-23', template: 'gc-23' })
+          class Gc23 extends TestVM {
+            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                console.log('----------------- throwing error from gc23 -----------------------');
+                throw new Error(`Synthetic test error in ${hook}`);
+              });
+            }
+          }
+
+          @route({
+            path: ['', 'p1'],
+            routes: [Gc11, Gc12, Gc13]
+          })
+          @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>` })
+          class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            path: 'p2',
+            routes: [Gc21, Gc22, Gc23]
+          })
+          @customElement({ name: 'p-2', template: `p2 <au-viewport></au-viewport>` })
+          class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [P1, P2]
+          })
+          @customElement({
+            name: 'my-app',
+            template: `
+            <a href="p1/gc-11"></a>
+            <a href="p1/gc-12"></a>
+            <a href="p1/gc-13"></a>
+            <a href="p2/gc-21"></a>
+            <a href="p2/gc-22"></a>
+            <a href="p2/gc-23"></a>
+            <au-viewport></au-viewport>`
+          })
+          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          return Root;
+        }
+
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) => any[]]> {
+          yield [
+            'canLoad',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === null
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  // because the previous instruction is scheduled and the *unload hooks are called bottom-up
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
+        }
+        for (const [hook, getExpectedErrorLog] of getTestData()) {
+          it(`error thrown from ${hook}`, async function () {
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook), undefined, LogLevel.trace);
+            const [p1gc11, p1gc12, p1gc13, p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+            const queue = platform.taskQueue;
+            assert.html.textContent(host, 'p1 gc-11', `start - text`);
+
+            // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
+            let phase = 'round#1';
+            console.log(`----------------- ${phase} -----------------------`);
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, null, 'gc-11', null, 'gc-13'));
+
+            // p1/gc-11 -> p1/gc-12
+            phase = 'round#2';
+            console.log(`----------------- ${phase} -----------------------`);
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p1gc12, queue);
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
+            verifyInvocationsEqual(
+              mgr.fullNotifyHistory,
+              [
+                ...$(phase, 'gc-11', ticks, 'canUnload'),
+                ...$(phase, 'gc-12', ticks, 'canLoad'),
+                ...$(phase, 'gc-11', ticks, 'unloading'),
+                ...$(phase, 'gc-12', ticks, 'loading'),
+                ...$(phase, 'gc-11', ticks, 'detaching', 'unbinding', 'dispose'),
+                ...$(phase, 'gc-12', ticks, 'binding', 'bound', 'attaching', 'attached'),
+              ]);
+
+            // p1/gc-12 -> p2/gc-22
+            phase = 'round#3';
+            console.log(`----------------- ${phase} -----------------------`);
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p2gc22, queue);
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(
+              mgr.fullNotifyHistory,
+              [
+                ...$(phase, ['gc-12', 'p-1'], ticks, 'canUnload'),
+                ...$(phase, 'p-2', ticks, 'canLoad'),
+                ...$(phase, ['gc-12', 'p-1'], ticks, 'unloading'),
+                ...$(phase, 'p-2', ticks, 'loading'),
+                ...$(phase, ['gc-12', 'p-1'], ticks, 'detaching'),
+                ...$(phase, ['gc-12', 'p-1'], ticks, 'unbinding'),
+                ...$(phase, ['p-1', 'gc-12'], ticks, 'dispose'),
+                ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ...$(phase, 'gc-22', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+              ]);
+
+            // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
+            phase = 'round#4';
+            console.log(`----------------- ${phase} -----------------------`);
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p2gc23, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, null, 'gc-22', null, 'gc-23'));
+
+            // p2/gc-22 -> p1/gc-13
+            phase = 'round#5';
+            console.log(`----------------- ${phase} -----------------------`);
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
             await tearDown();
           });

@@ -4,7 +4,7 @@ import {
   LogLevel,
   InstanceProvider,
   optional,
-  resolveAll,
+  onResolveAll,
   noop,
   IIndexable,
   AnyFunction,
@@ -605,14 +605,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
 
-      ret = resolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
+      ret = onResolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
     }
 
     if (this._hooks.hasBinding) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
-      ret = resolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
+      ret = onResolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
     }
 
     if (isPromise(ret)) {
@@ -669,14 +669,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
 
-      ret = resolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
+      ret = onResolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
     }
 
     if (this._hooks.hasBound) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
-      ret = resolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
+      ret = onResolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
     }
 
     if (isPromise(ret)) {
@@ -760,14 +760,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
 
-      ret = resolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
+      ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
     }
 
     if (this._hooks.hasAttaching) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = resolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
+      ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
     }
 
     if (isPromise(ret)) {
@@ -855,13 +855,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
           if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
-          ret = resolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+          ret = onResolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
         }
 
         if (this._hooks.hasDetaching) {
           if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
-          ret = resolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+          ret = onResolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
         }
       }
 
@@ -1026,14 +1026,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     if (--this._activatingStack === 0) {
       if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.attached != null) {
-        _retPromise = resolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
+        _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
 
       if (this._hooks.hasAttached) {
         /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
-        _retPromise = resolveAll(_retPromise, this._vm!.attached!(this.$initiator));
+        _retPromise = onResolveAll(_retPromise, this._vm!.attached!(this.$initiator));
       }
 
       if (isPromise(_retPromise)) {
@@ -1091,13 +1091,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
         if (cur._isBindingDone) {
           if (cur.vmKind !== ViewModelKind.synthetic && cur._lifecycleHooks!.unbinding != null) {
-            ret = resolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
+            ret = onResolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
           }
 
           if (cur._hooks.hasUnbinding) {
             if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-            ret = resolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+            ret = onResolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
           }
         }
 

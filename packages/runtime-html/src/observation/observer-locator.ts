@@ -1,4 +1,4 @@
-import { emptyObject, IServiceLocator } from '@aurelia/kernel';
+import { emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
   AccessorType,
   getObserverLookup,
@@ -123,12 +123,16 @@ export class NodeObserverLocator implements INodeObserverLocator {
   /** @internal */
   private readonly _globalOverrides: Record<string, true> = createLookup();
 
-  public constructor(
-    private readonly locator: IServiceLocator,
-    private readonly platform: IPlatform,
-    private readonly dirtyChecker: IDirtyChecker,
-    private readonly svgAnalyzer: ISVGAnalyzer,
-  ) {
+  /** @internal */
+  private readonly _locator = resolve(IServiceLocator);
+  /** @internal */
+  private readonly _platform = resolve(IPlatform);
+  /** @internal */
+  private readonly _dirtyChecker = resolve(IDirtyChecker);
+  /** @internal */
+  private readonly svg = resolve(ISVGAnalyzer);
+
+  public constructor() {
     // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
     // also a lot of tests assume default availability of observation
     // those 2 assumptions make it not the right time to extract the following line into a
@@ -176,7 +180,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
   // deepscan-disable-next-line
   public handles(obj: unknown, _key: PropertyKey): boolean {
-    return obj instanceof this.platform.Node;
+    return obj instanceof this._platform.Node;
   }
 
   public useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
@@ -255,7 +259,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
         if (nsProps !== undefined) {
           return AttributeNSAccessor.forNs(nsProps[1]);
         }
-        if (isDataAttribute(obj, key, this.svgAnalyzer)) {
+        if (isDataAttribute(obj, key, this.svg)) {
           return attrAccessor;
         }
         return elementPropertyAccessor;
@@ -304,7 +308,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
     const eventsConfig = this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
     let observer: INodeObserver;
     if (eventsConfig != null) {
-      observer = new (eventsConfig.type ?? ValueAttributeObserver)(el, key, eventsConfig, requestor, this.locator);
+      observer = new (eventsConfig.type ?? ValueAttributeObserver)(el, key, eventsConfig, requestor, this._locator);
       if (!observer.doNotCache) {
         getObserverLookup(el)[key] = observer;
       }
@@ -336,14 +340,14 @@ export class NodeObserverLocator implements INodeObserverLocator {
       //       for now it's a noop observer
       return AttributeNSAccessor.forNs(nsProps[1]);
     }
-    if (isDataAttribute(el, key, this.svgAnalyzer)) {
+    if (isDataAttribute(el, key, this.svg)) {
       // todo: invalid accessor returned for a get observer call
       //       for now it's a noop observer
       return attrAccessor;
     }
     if (key in el.constructor.prototype) {
       if (this.allowDirtyCheck) {
-        return this.dirtyChecker.createProperty(el, key as string);
+        return this._dirtyChecker.createProperty(el, key as string);
       }
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo

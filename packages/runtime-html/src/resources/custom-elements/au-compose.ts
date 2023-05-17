@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, onResolve, resolve, transient } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
@@ -29,12 +29,6 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 // <au-component template.bind="<string>" model.bind="" />
 //
 export class AuCompose {
-
-  /** @internal */
-  protected static get inject() {
-    return [IContainer, IController, INode, IRenderLocation, IPlatform, IInstruction, transient(CompositionContextFactory)];
-  }
-
   /* determine what template used to compose the component */
   @bindable
   public template?: string | Promise<string>;
@@ -83,25 +77,14 @@ export class AuCompose {
     return this._composition;
   }
 
-  /** @internal */ private readonly _rendering: IRendering;
-  /** @internal */ private readonly _instruction: HydrateElementInstruction;
-  /** @internal */ private readonly _contextFactory: CompositionContextFactory;
-
-  public constructor(
-    /** @internal */ private readonly _container: IContainer,
-    /** @internal */ private readonly parent: ISyntheticView | ICustomElementController,
-    /** @internal */ private readonly host: HTMLElement,
-    /** @internal */ private readonly _location: IRenderLocation,
-    /** @internal */ private readonly _platform: IPlatform,
-    // todo: use this to retrieve au-slot instruction
-    //        for later enhancement related to <au-slot/> + compose
-    instruction: HydrateElementInstruction,
-    contextFactory: CompositionContextFactory,
-  ) {
-    this._rendering = _container.get(IRendering);
-    this._instruction = instruction;
-    this._contextFactory = contextFactory;
-  }
+  /** @internal */ private readonly _container = resolve(IContainer);
+  /** @internal */ private readonly parent = resolve(IController) as ISyntheticView | ICustomElementController;
+  /** @internal */ private readonly host = resolve(INode) as HTMLElement;
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private readonly _rendering = resolve(IRendering);
+  /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
+  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._pending = onResolve(

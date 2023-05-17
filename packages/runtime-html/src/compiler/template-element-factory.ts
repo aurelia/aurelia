@@ -1,3 +1,4 @@
+import { resolve } from '@aurelia/kernel';
 import { IPlatform } from '../platform';
 import { isString } from '../utilities';
 import { createInterface } from '../utilities-di';
@@ -15,17 +16,9 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
   /** @internal */
-  public static inject = [IPlatform];
-
+  private readonly p = resolve(IPlatform);
   /** @internal */
-  private _template: HTMLTemplateElement;
-  /** @internal */
-  private readonly p: IPlatform;
-
-  public constructor(p: IPlatform) {
-    this.p = p;
-    this._template = createTemplate(this.p);
-  }
+  private _template = createTemplate(this.p);
 
   public createTemplate(markup: string): HTMLTemplateElement;
   public createTemplate(node: Node): HTMLTemplateElement;

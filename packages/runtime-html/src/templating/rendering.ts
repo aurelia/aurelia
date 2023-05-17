@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
@@ -14,8 +14,6 @@ export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering',
 export interface IRendering extends Rendering { }
 
 export class Rendering {
-  /** @internal */
-  protected static inject: unknown[] = [IContainer];
   /** @internal */
   private readonly _ctn: IContainer;
   /** @internal */
@@ -40,11 +38,9 @@ export class Rendering {
     }, createLookup<IRenderer>());
   }
 
-  public constructor(
-    container: IContainer,
-  ) {
-    const ctn = container.root;
-    this._platform = (this._ctn = ctn).get(IPlatform);
+  public constructor() {
+    const ctn = this._ctn = resolve(IContainer).root;
+    this._platform = ctn.get(IPlatform);
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
     this._empty = new FragmentNodeSequence(this._platform, this._platform.document.createDocumentFragment());

@@ -639,19 +639,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ii = 0;
-    // let ii = this._childrenObs.length;
     let ret: void | Promise<void>;
-    // timing: after binding, before bound
-    // reason: needs to start observing before all the bindings finish their bind phase,
-    //         so that changes in one binding can be reflected into the other, regardless the index of the binding
-    //
-    // todo: is this timing appropriate?
-    // if (ii > 0) {
-    //   while (ii > i) {
-    //     this._childrenObs[i].start();
-    //     ++i;
-    //   }
-    // }
 
     if (this.bindings !== null) {
       i = 0;
@@ -802,6 +790,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.state = State.deactivating;
         // we are about to deactivate, the error from activation can be ignored
         prevActivation = this.$promise?.catch(__DEV__
+          /* istanbul-ignore-next */
           ? err => {
             this.logger.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
           }
@@ -821,6 +810,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           throw createError(`AUR0505:${this.name} ${stringifyState(this.state)}`);
     }
 
+    /* istanbul-ignore-next */
     if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
 
     this.$initiator = initiator;
@@ -831,14 +821,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ret: void | Promise<void>;
-    // timing: before deactiving
-    // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
-    // todo: is this appropriate timing?
-    // if (this._childrenObs.length) {
-    //   for (; i < this._childrenObs.length; ++i) {
-    //     this._childrenObs[i].stop();
-    //   }
-    // }
 
     if (this.children !== null) {
       for (i = 0; i < this.children.length; ++i) {
@@ -846,8 +828,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         void this.children[i].deactivate(initiator, this as IHydratedController);
       }
     }
-    return onResolve(prevActivation, () => {
 
+    return onResolve(prevActivation, () => {
       if (this.isBound) {
         if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
           if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }

@@ -36,7 +36,7 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { createError, defineProp, objectKeys, isString } from './utilities';
+import { createError, objectKeys, isString, def } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
@@ -384,7 +384,7 @@ export function renderer<TType extends string>(targetType: TType): InstructionRe
     target.register = function (container: IContainer): void {
       singletonRegistration(IRenderer, this).register(container);
     };
-    defineProp(target.prototype, 'target', {
+    def(target.prototype, 'target', {
       configurable: true,
       get: function () { return targetType; }
     });

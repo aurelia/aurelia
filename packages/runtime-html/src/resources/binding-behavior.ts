@@ -69,7 +69,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
   }
 }
 
-const bbBaseName = getResourceKeyFor('binding-behavior');
+const bbBaseName = /*@__PURE__*/getResourceKeyFor('binding-behavior');
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(
   Type: Constructable,
   prop: K,

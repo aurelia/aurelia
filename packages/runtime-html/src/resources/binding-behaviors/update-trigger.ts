@@ -5,23 +5,16 @@ import { bindingBehavior } from '../binding-behavior';
 
 import { PropertyBinding } from '../../binding/property-binding';
 import { createError } from '../../utilities';
+import { resolve } from '@aurelia/kernel';
 
 export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
-  /** @internal */ protected static inject = [IObserverLocator, INodeObserverLocator];
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-  /** @internal */ private readonly _nodeObserverLocator: NodeObserverLocator;
-  public constructor(
-    observerLocator: IObserverLocator,
-    nodeObserverLocator: INodeObserverLocator,
-  ) {
-    if (!(nodeObserverLocator instanceof NodeObserverLocator)) {
-      throw createError('AURxxxx: updateTrigger binding behavior only works with the default implementation of Aurelia HTML observation. Implement your own node observation + updateTrigger');
-    }
-    this._observerLocator = observerLocator;
-    this._nodeObserverLocator = nodeObserverLocator;
-  }
+  /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
+  /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator) as NodeObserverLocator;
 
   public bind(_scope: Scope, binding: IBinding, ...events: string[]): void {
+    if (!(this._nodeObserverLocator instanceof NodeObserverLocator)) {
+      throw createError('AURxxxx: updateTrigger binding behavior only works with the default implementation of Aurelia HTML observation. Implement your own node observation + updateTrigger');
+    }
     if (events.length === 0) {
       if (__DEV__)
         throw createError(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);

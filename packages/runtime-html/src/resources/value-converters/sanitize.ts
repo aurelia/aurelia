@@ -1,3 +1,4 @@
+import { resolve } from '@aurelia/kernel';
 import { createError } from '../../utilities';
 import { createInterface } from '../../utilities-di';
 import { valueConverter } from '../value-converter';
@@ -21,9 +22,7 @@ export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer',
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export class SanitizeValueConverter {
-  public constructor(
-    /** @internal */ @ISanitizer private readonly _sanitizer: ISanitizer,
-  ) {}
+  /** @internal */ private readonly _sanitizer = resolve(ISanitizer);
 
   /**
    * Process the provided markup that flows to the view.

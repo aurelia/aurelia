@@ -2,18 +2,13 @@ import { ISignaler } from '@aurelia/runtime';
 import { bindingBehavior } from '../binding-behavior';
 import { addSignalListener, createError, removeSignalListener } from '../../utilities';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
+import { resolve } from '@aurelia/kernel';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {
   /** @internal */
-  protected static inject = [ISignaler];
-  /** @internal */
   private readonly _lookup: Map<IBinding, string[]> = new Map();
   /** @internal */
-  private readonly _signaler: ISignaler;
-
-  public constructor(signaler: ISignaler) {
-    this._signaler = signaler;
-  }
+  private readonly _signaler = resolve(ISignaler);
 
   public bind(scope: Scope, binding: IConnectableBinding, ...names: string[]): void {
     if (!('handleChange' in binding)) {

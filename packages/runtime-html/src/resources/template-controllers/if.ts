@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve } from '@aurelia/kernel';
+import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
@@ -11,8 +11,6 @@ import type { INode } from '../../dom';
 import { createError } from '../../utilities';
 
 export class If implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
-
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
   public ifView?: ISyntheticView = void 0;
@@ -31,16 +29,8 @@ export class If implements ICustomAttributeViewModel {
   private pending: void | Promise<void> = void 0;
   /** @internal */ private _wantsDeactivate: boolean = false;
   /** @internal */ private _swapId: number = 0;
-  /** @internal */ private readonly _ifFactory: IViewFactory;
-  /** @internal */ private readonly _location: IRenderLocation;
-
-  public constructor(
-    ifFactory: IViewFactory,
-    location: IRenderLocation,
-  ) {
-    this._ifFactory = ifFactory;
-    this._location = location;
-  }
+  /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     let view: ISyntheticView | undefined;
@@ -179,13 +169,7 @@ export class If implements ICustomAttributeViewModel {
 templateController('if')(If);
 
 export class Else implements ICustomAttributeViewModel {
-  /** @internal */ public static inject = [IViewFactory];
-
-  /** @internal */ private readonly _factory: IViewFactory;
-
-  public constructor(factory: IViewFactory) {
-    this._factory = factory;
-  }
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
 
   public link(
     controller: IHydratableController,

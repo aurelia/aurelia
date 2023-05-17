@@ -5,7 +5,7 @@ import {
   IDialogGlobalSettings,
 } from './dialog-interfaces';
 
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from '../../utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
@@ -22,14 +22,10 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
 
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
-
-  /** @internal */
-  protected static inject = [IPlatform];
-
-  public constructor(private readonly p: IPlatform) {}
+  private readonly p = resolve(IPlatform);
 
   public static register(container: IContainer) {
-    singletonRegistration(IDialogDomRenderer, this).register(container);
+    container.register(singletonRegistration(IDialogDomRenderer, this));
   }
 
   private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;

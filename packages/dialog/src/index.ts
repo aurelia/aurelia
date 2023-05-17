@@ -1,7 +1,7 @@
 export {
   // enums
-  DialogActionKey,
-  DialogMouseEventType,
+  type DialogActionKey,
+  type DialogMouseEventType,
   DialogDeactivationStatuses,
 
   // main interfaces
@@ -42,7 +42,7 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
-  DialogConfigurationProvider,
+  type DialogConfigurationProvider,
 } from './plugins/dialog/dialog-configuration';
 
 export {

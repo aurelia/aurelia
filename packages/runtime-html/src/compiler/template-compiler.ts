@@ -49,7 +49,7 @@ import type { IAuSlotProjections } from '../templating/controller.projection';
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): void {
     container.register(
-      singletonRegistration(ITemplateCompiler, this),
+      singletonRegistration(this, this),
       aliasRegistration(this, ITemplateCompiler)
     );
   }

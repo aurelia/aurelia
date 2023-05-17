@@ -18,6 +18,7 @@ import {
   IDialogController,
   DialogController,
   DefaultDialogDom,
+  DialogService,
 } from '@aurelia/dialog';
 import {
   createFixture,
@@ -55,7 +56,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
     it('reuses previous registration', async function () {
       let customized = false;
-      const { ctx, startPromise, tearDown } = createFixture(
+      const { ctx, startPromise } = createFixture(
         '',
         class App { },
         [
@@ -73,7 +74,14 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         template: () => '<div>Hello world</div>'
       });
       assert.strictEqual(customized, true);
-      await tearDown();
+    });
+
+    it('allows injection of both IDialogService and DialogService', function () {
+      const { container } = createFixture('', class { }, [DialogDefaultConfiguration]);
+      assert.strictEqual(
+        container.get(IDialogService),
+        container.get(DialogService)
+      );
     });
   });
 
@@ -137,27 +145,19 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'throws when @inject(DialogController) instead of IDialogController',
+        title: 'allows both @inject(DialogController) and @inject(IDialogController)',
         afterStarted: async (_, dialogService) => {
-          let error: Error;
           await dialogService.open({
             component: () => class {
-              public static inject = [DialogController];
+              public static inject = [DialogController, IDialogController];
               public constructor(
                 controller: DialogController,
-                dialogDom: DefaultDialogDom,
-                node: Element
+                controller2: IDialogController,
               ) {
-                assert.strictEqual(controller['dom'], dialogDom);
-                assert.strictEqual(dialogDom.contentHost, node);
+                assert.strictEqual(controller, controller2);
               }
             }
-          }).catch(ex => {
-            error = ex;
           });
-          assert.notStrictEqual(error, undefined);
-          assert.includes(error.message, 'AUR0902');
-          // assert.includes(error.message, 'Invalid injection of DialogController. Use IDialogController instead.');
         }
       },
       {

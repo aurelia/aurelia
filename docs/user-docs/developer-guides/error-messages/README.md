@@ -121,7 +121,6 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | Error Code | Plugin name | Description                                                                                                                        |
 | ---------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | AUR0901    | Dialog      | This happens when an application is closed with some dialogs still open                                                            |
-| AUR0902    | Dialog      | This happens when `DialogController` injection is requested. It's a error prevention for v1->v2 migration of the dialog plugin     |
 | AUR0903    | Dialog      | This happens when `IDialogService.open` is called without both `component` and `template` property                                 |
 | AUR0904    | Dialog      | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
 

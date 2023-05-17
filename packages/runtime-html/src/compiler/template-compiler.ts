@@ -29,14 +29,13 @@ import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
 import { BindingCommand, CommandType } from '../resources/binding-command';
 import { createError, createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
-import { allResources, createInterface, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, getPreviousSibling } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   IContainer,
-  IResolver,
   Constructable,
   Writable,
 } from '@aurelia/kernel';
@@ -48,8 +47,11 @@ import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import type { IAuSlotProjections } from '../templating/controller.projection';
 
 export class TemplateCompiler implements ITemplateCompiler {
-  public static register(container: IContainer): IResolver<ITemplateCompiler> {
-    return singletonRegistration(ITemplateCompiler, this).register(container);
+  public static register(container: IContainer): void {
+    container.register(
+      singletonRegistration(this, this),
+      aliasRegistration(this, ITemplateCompiler)
+    );
   }
 
   public debug: boolean = false;

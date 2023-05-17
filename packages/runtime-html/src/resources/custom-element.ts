@@ -12,7 +12,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { createError, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
+import { createError, def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 
 import type {
@@ -582,12 +582,11 @@ export const generateElementType = /*@__PURE__*/(function () {
     configurable: true,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const defaultProto = {} as any;
+  const defaultProto = {};
 
   return function <P extends {} = {}>(
     name: string,
-    proto: P = defaultProto,
+    proto: P = defaultProto as P,
   ): CustomElementType<Constructable<P>> {
     // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
     // looking similarly from the outside (when inspected via debugger, etc).
@@ -596,7 +595,7 @@ export const generateElementType = /*@__PURE__*/(function () {
     // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
     // even when minified.
     nameDescriptor.value = name;
-    Reflect.defineProperty(Type, 'name', nameDescriptor);
+    def(Type, 'name', nameDescriptor);
 
     // Assign anything from the prototype that was passed in
     if (proto !== defaultProto) {

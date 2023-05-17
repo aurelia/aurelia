@@ -54,7 +54,7 @@ export class DirtyChecker {
   public static inject = [IPlatform];
   public static register(c: IContainer) {
     c.register(
-      Registration.singleton(IDirtyChecker, this),
+      Registration.singleton(this, this),
       Registration.aliasTo(this, IDirtyChecker),
     );
   }

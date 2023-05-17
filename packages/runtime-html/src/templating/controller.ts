@@ -137,10 +137,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private readonly _rendering: IRendering;
 
   /** @internal */
-  public _hooks: HooksDefinition;
-  public get hooks(): HooksDefinition {
-    return this._hooks;
-  }
+  public _vmHooks: HooksDefinition;
 
   /** @internal */
   public _vm: BindingContext<C> | null;
@@ -149,7 +146,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   public set viewModel(v: BindingContext<C> | null) {
     this._vm = v;
-    this._hooks = v == null || this.vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(v);
+    this._vmHooks = v == null || this.vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(v);
   }
 
   public coercion: ICoercionConfiguration | undefined;
@@ -180,7 +177,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     location: IRenderLocation | null,
   ) {
     this._vm = viewModel;
-    this._hooks = vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(viewModel!);
+    this._vmHooks = vmKind === ViewModelKind.synthetic ? HooksDefinition.none : new HooksDefinition(viewModel!);
     if (__DEV__) {
       this.logger = null!;
       this.debug = false;
@@ -373,7 +370,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     createObservers(this, definition, instance as IIndexable<ICustomElementViewModel>);
 
-    if (this._hooks.hasDefine) {
+    if (this._vmHooks._define) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
@@ -416,7 +413,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
-    if (this._hooks.hasHydrating) {
+    if (this._vmHooks._hydrating) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
       (this._vm as BindingContext<C>).hydrating(this as ICustomElementController);
@@ -463,7 +460,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
     }
 
-    if (this._hooks.hasHydrated) {
+    if (this._vmHooks._hydrated) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
       (this._vm as BindingContext<C>).hydrated(this as ICustomElementController);
@@ -482,7 +479,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this._lifecycleHooks!.created !== void 0) {
       this._lifecycleHooks!.created.forEach(callCreatedHook, this);
     }
-    if (this._hooks.hasCreated) {
+    if (this._vmHooks._created) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this._vm as BindingContext<C>).created(this as ICustomElementController);
@@ -505,7 +502,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this._lifecycleHooks!.created !== void 0) {
       this._lifecycleHooks!.created.forEach(callCreatedHook, this);
     }
-    if (this._hooks.hasCreated) {
+    if (this._vmHooks._created) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this._vm as BindingContext<C>).created(this as ICustomAttributeController);
@@ -608,7 +605,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = onResolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
     }
 
-    if (this._hooks.hasBinding) {
+    if (this._vmHooks._binding) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
@@ -642,19 +639,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ii = 0;
-    // let ii = this._childrenObs.length;
     let ret: void | Promise<void>;
-    // timing: after binding, before bound
-    // reason: needs to start observing before all the bindings finish their bind phase,
-    //         so that changes in one binding can be reflected into the other, regardless the index of the binding
-    //
-    // todo: is this timing appropriate?
-    // if (ii > 0) {
-    //   while (ii > i) {
-    //     this._childrenObs[i].start();
-    //     ++i;
-    //   }
-    // }
 
     if (this.bindings !== null) {
       i = 0;
@@ -672,7 +657,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = onResolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
     }
 
-    if (this._hooks.hasBound) {
+    if (this._vmHooks._bound) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
@@ -763,7 +748,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
     }
 
-    if (this._hooks.hasAttaching) {
+    if (this._vmHooks._attaching) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
@@ -805,6 +790,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.state = State.deactivating;
         // we are about to deactivate, the error from activation can be ignored
         prevActivation = this.$promise?.catch(__DEV__
+          /* istanbul-ignore-next */
           ? err => {
             this.logger.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
           }
@@ -824,6 +810,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           throw createError(`AUR0505:${this.name} ${stringifyState(this.state)}`);
     }
 
+    /* istanbul-ignore-next */
     if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
 
     this.$initiator = initiator;
@@ -834,14 +821,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let i = 0;
     let ret: void | Promise<void>;
-    // timing: before deactiving
-    // reason: avoid queueing a callback from the mutation observer, caused by the changes of nodes by repeat/if etc...
-    // todo: is this appropriate timing?
-    // if (this._childrenObs.length) {
-    //   for (; i < this._childrenObs.length; ++i) {
-    //     this._childrenObs[i].stop();
-    //   }
-    // }
 
     if (this.children !== null) {
       for (i = 0; i < this.children.length; ++i) {
@@ -849,8 +828,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         void this.children[i].deactivate(initiator, this as IHydratedController);
       }
     }
-    return onResolve(prevActivation, () => {
 
+    return onResolve(prevActivation, () => {
       if (this.isBound) {
         if (this.vmKind !== ViewModelKind.synthetic && this._lifecycleHooks!.detaching != null) {
           if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
@@ -858,7 +837,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           ret = onResolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
         }
 
-        if (this._hooks.hasDetaching) {
+        if (this._vmHooks._detaching) {
           if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
 
           ret = onResolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
@@ -1029,7 +1008,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
 
-      if (this._hooks.hasAttached) {
+      if (this._vmHooks._attached) {
         /* istanbul ignore next */
         if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
@@ -1094,7 +1073,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             ret = onResolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
           }
 
-          if (cur._hooks.hasUnbinding) {
+          if (cur._vmHooks._unbinding) {
             if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
             ret = onResolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
@@ -1229,7 +1208,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     this.state |= State.disposed;
 
-    if (this._hooks.hasDispose) {
+    if (this._vmHooks._dispose) {
       this._vm!.dispose();
     }
 
@@ -1260,7 +1239,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return true;
     }
 
-    if (this._hooks.hasAccept && this._vm!.accept(visitor) === true) {
+    if (this._vmHooks._accept && this._vm!.accept(visitor) === true) {
       return true;
     }
 
@@ -1390,43 +1369,43 @@ export function isCustomElementViewModel(value: unknown): value is ICustomElemen
   return isObject(value) && isElementType(value.constructor);
 }
 
-export class HooksDefinition {
+class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly hasDefine: boolean;
+  public readonly _define: boolean;
 
-  public readonly hasHydrating: boolean;
-  public readonly hasHydrated: boolean;
-  public readonly hasCreated: boolean;
+  public readonly _hydrating: boolean;
+  public readonly _hydrated: boolean;
+  public readonly _created: boolean;
 
-  public readonly hasBinding: boolean;
-  public readonly hasBound: boolean;
-  public readonly hasAttaching: boolean;
-  public readonly hasAttached: boolean;
+  public readonly _binding: boolean;
+  public readonly _bound: boolean;
+  public readonly _attaching: boolean;
+  public readonly _attached: boolean;
 
-  public readonly hasDetaching: boolean;
-  public readonly hasUnbinding: boolean;
+  public readonly _detaching: boolean;
+  public readonly _unbinding: boolean;
 
-  public readonly hasDispose: boolean;
-  public readonly hasAccept: boolean;
+  public readonly _dispose: boolean;
+  public readonly _accept: boolean;
 
   public constructor(target: object) {
-    this.hasDefine = 'define' in target;
+    this._define = 'define' in target;
 
-    this.hasHydrating = 'hydrating' in target;
-    this.hasHydrated = 'hydrated' in target;
-    this.hasCreated = 'created' in target;
+    this._hydrating = 'hydrating' in target;
+    this._hydrated = 'hydrated' in target;
+    this._created = 'created' in target;
 
-    this.hasBinding = 'binding' in target;
-    this.hasBound = 'bound' in target;
-    this.hasAttaching = 'attaching' in target;
-    this.hasAttached = 'attached' in target;
+    this._binding = 'binding' in target;
+    this._bound = 'bound' in target;
+    this._attaching = 'attaching' in target;
+    this._attached = 'attached' in target;
 
-    this.hasDetaching = 'detaching' in target;
-    this.hasUnbinding = 'unbinding' in target;
+    this._detaching = 'detaching' in target;
+    this._unbinding = 'unbinding' in target;
 
-    this.hasDispose = 'dispose' in target;
-    this.hasAccept = 'accept' in target;
+    this._dispose = 'dispose' in target;
+    this._accept = 'accept' in target;
   }
 }
 

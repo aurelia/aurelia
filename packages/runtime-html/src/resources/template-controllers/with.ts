@@ -3,23 +3,15 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { resolve } from '@aurelia/kernel';
 
 export class With implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
-
-  public view: ISyntheticView;
-
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
   @bindable public value?: object;
 
-  public constructor(
-    factory: IViewFactory,
-    location: IRenderLocation
-  ) {
-    this.view = factory.create().setLocation(location);
-  }
+  private view = resolve(IViewFactory).create().setLocation(resolve(IRenderLocation));
 
   public valueChanged(
     newValue: unknown,

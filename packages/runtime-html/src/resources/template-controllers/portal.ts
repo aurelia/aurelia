@@ -1,4 +1,4 @@
-import { onResolve } from '@aurelia/kernel';
+import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
@@ -14,7 +14,6 @@ type ResolvedTarget = Element;
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
 export class Portal implements ICustomAttributeViewModel {
-  public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -51,11 +50,10 @@ export class Portal implements ICustomAttributeViewModel {
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _targetLocation: IRenderLocation;
 
-  public constructor(
-    factory: IViewFactory,
-    originalLoc: IRenderLocation,
-    p: IPlatform,
-  ) {
+  public constructor() {
+    const factory = resolve(IViewFactory);
+    const originalLoc = resolve(IRenderLocation);
+    const p = resolve(IPlatform);
     this._platform = p;
     // to make the shape of this object consistent.
     // todo: is this necessary

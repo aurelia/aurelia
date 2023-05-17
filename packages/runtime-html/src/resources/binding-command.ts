@@ -129,7 +129,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const cmdBaseName = getResourceKeyFor('binding-command');
+const cmdBaseName = /*@__PURE__*/getResourceKeyFor('binding-command');
 const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
 const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,

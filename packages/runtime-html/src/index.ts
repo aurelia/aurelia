@@ -346,7 +346,6 @@ export {
   isCustomElementController,
   isCustomElementViewModel,
   ViewModelKind,
-  HooksDefinition,
   State,
   type ControllerVisitor,
   type IViewModel,

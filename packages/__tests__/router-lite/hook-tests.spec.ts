@@ -3725,6 +3725,19 @@ describe('router-lite/hook-tests.spec.ts', function () {
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
+            // the router's load API yields the same result
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase = 'round#6');
+            try {
+              await router.load('p1/gc-13');
+              assert.fail('expected error');
+            } catch (ex) {
+              /* noop */
+            }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
+
             await tearDown();
           });
         }

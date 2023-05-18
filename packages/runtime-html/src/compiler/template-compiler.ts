@@ -572,7 +572,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // probably no need to replace
     // as the let itself can be used as is
     // though still need to mark el as target to ensure the instruction is matched with a target
-    return this._markAsTarget(el).nextSibling;
+    return this._markAsTarget(el, context).nextSibling;
   }
 
   /** @internal */
@@ -672,6 +672,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let processContentResult: boolean | undefined | void = true;
     let hasContainerless = false;
     let canCapture = false;
+    let needsMarker = false;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -993,7 +994,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         plainAttrInstructions ?? emptyArray,
       );
       // 3.1 mark as template for later hydration
-      this._markAsTarget(el);
+      // this._markAsTarget(el, context);
+      needsMarker = true;
     }
 
     // 4. compiling child nodes
@@ -1007,7 +1009,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       let template: HTMLTemplateElement;
       if (isMarker(el)) {
         template = context.t();
-        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), this._markAsTarget(context.h(MARKER_NODE_NAME))]);
+        appendManyToTemplate(template, [
+          context.h(MARKER_NODE_NAME),
+          context._comment(auStartComment),
+          context._comment(auEndComment),
+        ]);
       } else {
         // assumption: el.parentNode is not null
         // but not always the case: e.g compile/enhance an element without parent with TC on it
@@ -1137,8 +1143,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction!.projections = projections;
       }
 
-      if (isCustomElement && (hasContainerless || elDef.containerless)) {
-        this._replaceByMarker(el, context);
+      if (needsMarker) {
+        if (isCustomElement && (hasContainerless || elDef.containerless)) {
+          this._replaceByMarker(el, context);
+        } else {
+          this._markAsTarget(el, context);
+        }
       }
 
       shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
@@ -1183,8 +1193,13 @@ export class TemplateCompiler implements ITemplateCompiler {
         // is not really the parent of the most inner one
         // but it's only for the purpose of creating a marker,
         // so it's just an optimization hack
-        marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-        appendManyToTemplate(template, [context._comment(auStartComment), context._comment(auEndComment), marker]);
+        // marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
+        marker = context.h(MARKER_NODE_NAME);
+        appendManyToTemplate(template, [
+          marker,
+          context._comment(auStartComment),
+          context._comment(auEndComment),
+        ]);
 
         tcInstruction.def = CustomElementDefinition.create({
           name: generateElementName(),
@@ -1327,8 +1342,16 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // todo: shouldn't have to eagerly replace with a marker like this
       //       this should be the job of the renderer
-      if (isCustomElement && (hasContainerless || elDef.containerless)) {
-        this._replaceByMarker(el, context);
+      // if (isCustomElement && (hasContainerless || elDef.containerless)) {
+      //   // this._replaceByMarker(el, context);
+      //   this._markAsTarget(el, context);
+      // }
+      if (needsMarker) {
+        if (isCustomElement && (hasContainerless || elDef.containerless)) {
+          this._replaceByMarker(el, context);
+        } else {
+          this._markAsTarget(el, context);
+        }
       }
 
       shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
@@ -1366,9 +1389,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (i = 0, ii = expressions.length; ii > i; ++i) {
         // foreach expression part, turn into a marker
         insertManyBefore(parent, node, [
-          context._comment(auStartComment),
-          context._comment(auEndComment),
-          this._markAsTarget(context.h(MARKER_NODE_NAME)),
+          // context._comment(auStartComment),
+          // context._comment(auEndComment),
+          // this._markAsTarget(context.h(MARKER_NODE_NAME), context),
+          context.h(MARKER_NODE_NAME),
+          context._text(''),
         ]);
         // insertBefore(parent, this._markAsTarget(context.h(auMarkerName)), current);
         // foreach normal part, turn into a standard text node
@@ -1645,22 +1670,14 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * @internal
-   */
-  private _isMarker(el: Node) {
-    return el.nodeName === MARKER_NODE_NAME
-      && isComment($prevSibling = getPreviousSibling(el)) && $prevSibling.textContent === auEndComment
-      && isComment($prevSibling = getPreviousSibling($prevSibling)) && $prevSibling.textContent === auStartComment;
-  }
-
-  /**
    * Mark an element as target with a special css class
    * and return it
    *
    * @internal
    */
-  private _markAsTarget<T extends Element>(el: T): T {
-    el.classList.add('au');
+  private _markAsTarget<T extends Element>(el: T, context: CompilationContext): T {
+    insertBefore(el.parentNode!, context.h(MARKER_NODE_NAME), el);
+    // el.classList.add('au');
     return el;
   }
 
@@ -1675,9 +1692,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
-    const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
+    // const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
+    const marker = context.h(MARKER_NODE_NAME);
     // insertBefore(parent, marker, node);
-    insertManyBefore(parent, node, [context._comment(auStartComment), context._comment(auEndComment), marker]);
+    insertManyBefore(parent, node, [
+      marker,
+      context._comment(auStartComment),
+      context._comment(auEndComment),
+    ]);
     parent.removeChild(node);
     return marker;
   }

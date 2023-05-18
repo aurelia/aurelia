@@ -129,8 +129,10 @@ export class Rendering {
       if (__DEV__)
         /* istanbul ignore next */
         throw createError(`AUR0757: The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
-      else
+      else {
+        debugger;
         throw createError(`AUR0757:${ii}<>${rows.length}`);
+      }
     }
 
     let i = 0;

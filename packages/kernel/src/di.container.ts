@@ -372,6 +372,10 @@ export class Container implements IContainer {
     }
   }
 
+  public hasFactory<T extends Constructable>(key: T): boolean {
+    return this._factories.has(key);
+  }
+
   public getFactory<K extends Constructable>(Type: K): IFactory<K> {
     let factory = this._factories.get(Type);
     if (factory === void 0) {

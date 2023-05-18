@@ -3423,72 +3423,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
       describe('parent-child', function () {
 
-        function createCes(hook: string) {
-          const hookSpec = HookSpecs.create(ticks);
-          @route(['', 'gc-11'])
-          @customElement({ name: 'gc-11', template: 'gc-11' })
-          class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-          @customElement({ name: 'gc-12', template: 'gc-12' })
-          class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-          @customElement({ name: 'gc-13', template: 'gc-13' })
-          class Gc13 extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
-            public [hook](...args: any[]): any {
-              return onResolve(super[hook](...args), () => {
-                throw new Error(`Synthetic test error in ${hook}`);
-              });
-            }
-          }
-
-          @route(['', 'gc-21'])
-          @customElement({ name: 'gc-21', template: 'gc-21' })
-          class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-          @customElement({ name: 'gc-22', template: 'gc-22' })
-          class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-          @customElement({ name: 'gc-23', template: 'gc-23' })
-          class Gc23 extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
-            public [hook](...args: any[]): any {
-              return onResolve(super[hook](...args), () => {
-                throw new Error(`Synthetic test error in ${hook}`);
-              });
-            }
-          }
-
-          @route({
-            path: ['', 'p1'],
-            routes: [Gc11, Gc12, Gc13]
-          })
-          @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>` })
-          class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-          @route({
-            path: 'p2',
-            routes: [Gc21, Gc22, Gc23]
-          })
-          @customElement({ name: 'p-2', template: `p2 <au-viewport></au-viewport>` })
-          class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-          @route({
-            routes: [P1, P2]
-          })
-          @customElement({
-            name: 'my-app',
-            template: `
-            <a href="p1/gc-11"></a>
-            <a href="p1/gc-12"></a>
-            <a href="p1/gc-13"></a>
-            <a href="p2/gc-21"></a>
-            <a href="p2/gc-22"></a>
-            <a href="p2/gc-23"></a>
-            <au-viewport></au-viewport>`
-          })
-          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-
-          return Root;
-        }
-
-        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) => any[]]> {
+        function* getRootTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) => any[]]> {
           yield [
             'canLoad',
             function getExpectedErrorLog(phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) {
@@ -3671,9 +3606,70 @@ describe('router-lite/hook-tests.spec.ts', function () {
             }
           ];
         }
-        for (const [hook, getExpectedErrorLog] of getTestData()) {
-          it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook)/* , undefined, LogLevel.trace */);
+        for (const [hook, getExpectedErrorLog] of getRootTestData()) {
+          it(`error thrown from ${hook} - root`, async function () {
+            const hookSpec = HookSpecs.create(ticks);
+            @route(['', 'gc-11'])
+            @customElement({ name: 'gc-11', template: 'gc-11' })
+            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-12', template: 'gc-12' })
+            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-13', template: 'gc-13' })
+            class Gc13 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route(['', 'gc-21'])
+            @customElement({ name: 'gc-21', template: 'gc-21' })
+            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-22', template: 'gc-22' })
+            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-23', template: 'gc-23' })
+            class Gc23 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route({
+              path: ['', 'p1'],
+              routes: [Gc11, Gc12, Gc13]
+            })
+            @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>` })
+            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              path: 'p2',
+              routes: [Gc21, Gc22, Gc23]
+            })
+            @customElement({ name: 'p-2', template: `p2 <au-viewport></au-viewport>` })
+            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              routes: [P1, P2]
+            })
+            @customElement({
+              name: 'my-app',
+              template: `
+            <a href="p1/gc-11"></a>
+            <a href="p1/gc-12"></a>
+            <a href="p1/gc-13"></a>
+            <a href="p2/gc-21"></a>
+            <a href="p2/gc-22"></a>
+            <a href="p2/gc-23"></a>
+            <au-viewport></au-viewport>`
+            })
+            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             const queue = platform.taskQueue;
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
@@ -3734,6 +3730,284 @@ describe('router-lite/hook-tests.spec.ts', function () {
             } catch (ex) {
               /* noop */
             }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
+
+            await tearDown();
+          });
+
+          it(`error thrown from ${hook} - child`, async function () {
+            const hookSpec = HookSpecs.create(ticks);
+            @route(['', 'gc-11'])
+            @customElement({ name: 'gc-11', template: 'gc-11' })
+            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-12', template: 'gc-12' })
+            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-13', template: 'gc-13' })
+            class Gc13 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route(['', 'gc-21'])
+            @customElement({ name: 'gc-21', template: 'gc-21' })
+            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-22', template: 'gc-22' })
+            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-23', template: 'gc-23' })
+            class Gc23 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route({
+              path: ['', 'p1'],
+              routes: [Gc11, Gc12, Gc13]
+            })
+            @customElement({
+              name: 'p-1', template: `
+            <a href="gc-11"></a>
+            <a href="gc-12"></a>
+            <a href="gc-13"></a>
+            <a href="../p2/gc-21"></a>
+            <a href="../p2/gc-22"></a>
+            <a href="../p2/gc-23"></a>
+            p1
+            <au-viewport></au-viewport>` })
+            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              path: 'p2',
+              routes: [Gc21, Gc22, Gc23]
+            })
+            @customElement({
+              name: 'p-2', template: `
+            <a href="../p1/gc-11"></a>
+            <a href="../p1/gc-12"></a>
+            <a href="../p1/gc-13"></a>
+            <a href="gc-21"></a>
+            <a href="gc-22"></a>
+            <a href="gc-23"></a>
+            p2 <au-viewport></au-viewport>` })
+            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              routes: [P1, P2]
+            })
+            @customElement({
+              name: 'my-app',
+              template: `<au-viewport></au-viewport>`
+            })
+            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
+            let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+            const queue = platform.taskQueue;
+            assert.html.textContent(host, 'p1 gc-11', `start - text`);
+
+            // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
+            let phase = 'round#1';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p1/gc-11 -> p1/gc-12
+            phase = 'round#2';
+            await click(p1gc12, queue);
+            assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
+
+            // p1/gc-12 -> p2/gc-22
+            phase = 'round#3';
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+            await click(p2gc22, queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase = 'round#4');
+            await click(p2gc23, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase = 'round#5');
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
+
+            await tearDown();
+          });
+
+          it(`error thrown from ${hook} - grand child`, async function () {
+            const hookSpec = HookSpecs.create(ticks);
+            @route(['', 'gc-11'])
+            @customElement({ name: 'gc-11', template: `
+            <a href="../gc-11"></a>
+            <a href="../gc-12"></a>
+            <a href="../gc-13"></a>
+            <a href="../../p2/gc-21"></a>
+            <a href="../../p2/gc-22"></a>
+            <a href="../../p2/gc-23"></a>
+            gc-11` })
+            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-12', template: `
+            <a href="../gc-11"></a>
+            <a href="../gc-12"></a>
+            <a href="../gc-13"></a>
+            <a href="../../p2/gc-21"></a>
+            <a href="../../p2/gc-22"></a>
+            <a href="../../p2/gc-23"></a>
+            gc-12` })
+            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-13', template: 'gc-13' })
+            class Gc13 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route(['', 'gc-21'])
+            @customElement({ name: 'gc-21', template: `
+            <a href="../../p1/gc-11"></a>
+            <a href="../../p1/gc-12"></a>
+            <a href="../../p1/gc-13"></a>
+            <a href="../gc-21"></a>
+            <a href="../gc-22"></a>
+            <a href="../gc-23"></a>
+            gc-21` })
+            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-22', template: `
+            <a href="../../p1/gc-11"></a>
+            <a href="../../p1/gc-12"></a>
+            <a href="../../p1/gc-13"></a>
+            <a href="../gc-21"></a>
+            <a href="../gc-22"></a>
+            <a href="../gc-23"></a>
+            gc-22` })
+            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            @customElement({ name: 'gc-23', template: 'gc-23' })
+            class Gc23 extends TestVM {
+              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public [hook](...args: any[]): any {
+                return onResolve(super[hook].apply(this, args), () => {
+                  throw new Error(`Synthetic test error in ${hook}`);
+                });
+              }
+            }
+
+            @route({
+              path: ['', 'p1'],
+              routes: [Gc11, Gc12, Gc13]
+            })
+            @customElement({
+              name: 'p-1', template: `
+            p1
+            <au-viewport></au-viewport>` })
+            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              path: 'p2',
+              routes: [Gc21, Gc22, Gc23]
+            })
+            @customElement({
+              name: 'p-2', template: `
+            p2 <au-viewport></au-viewport>` })
+            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            @route({
+              routes: [P1, P2]
+            })
+            @customElement({
+              name: 'my-app',
+              template: `<au-viewport></au-viewport>`
+            })
+            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
+            let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+            const queue = platform.taskQueue;
+            assert.html.textContent(host, 'p1 gc-11', `start - text`);
+
+            // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
+            let phase = 'round#1';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p1/gc-11 -> p1/gc-12
+            phase = 'round#2';
+            await click(p1gc12, queue);
+            assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p1/gc-12 -> p2/gc-22
+            phase = 'round#3';
+            await click(p2gc22, queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase = 'round#4');
+            await click(p2gc23, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
+            [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+
+            // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase = 'round#5');
+            await click(p1gc13, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
             await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));

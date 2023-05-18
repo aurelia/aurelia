@@ -748,6 +748,7 @@ export class ViewportAgent {
         this.nextState = State.nextIsEmpty;
         break;
       case State.nextLoad:
+      case State.nextLoadDone:
       case State.nextActivate: {
         nextDeactivationPromise = onResolve(this.nextCA?._deactivate(null, this.hostController), () => {
           this.nextCA?._dispose();

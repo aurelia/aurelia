@@ -3488,11 +3488,11 @@ describe('router-lite/hook-tests.spec.ts', function () {
           return Root;
         }
 
-        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) => any[]]> {
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) => any[]]> {
           yield [
             'canLoad',
-            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
-              return currentParent === null
+            function getExpectedErrorLog(phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) {
+              return currentParent === nextParent
                 ? [
                   ...$(phase, currentChild, ticks, 'canUnload'),
                   ...$(phase, nextChild, ticks, 'canLoad'),
@@ -3515,10 +3515,41 @@ describe('router-lite/hook-tests.spec.ts', function () {
                 ];
             }
           ];
+
+          yield [
+            'loading',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === nextParent
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, currentChild, ticks, 'unloading'),
+                  ...$(phase, nextChild, ticks, 'loading'),
+                  ...$(phase, currentChild, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextChild, ticks, 'dispose'),
+                  ...$(phase, currentParent, ticks, 'detaching', 'unbinding', 'dispose', 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad', 'loading', 'dispose'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
         }
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook), undefined, LogLevel.trace);
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook)/* , undefined, LogLevel.trace */);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             const queue = platform.taskQueue;
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
@@ -3534,7 +3565,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             } catch { /* noop */ }
             await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
-            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, null, 'gc-11', null, 'gc-13'));
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
 
             // p1/gc-11 -> p1/gc-12
             phase = 'round#2';
@@ -3556,7 +3587,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             } catch { /* noop */ }
             await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
-            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, null, 'gc-22', null, 'gc-23'));
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
 
             // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;

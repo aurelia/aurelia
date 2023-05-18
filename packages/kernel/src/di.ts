@@ -74,6 +74,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
   invoke<T extends {}, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
+  hasFactory<T extends Constructable>(key: any): boolean;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
@@ -731,6 +732,23 @@ export type INewInstanceResolver<T> = IResolver<T> & {
 };
 
 const createNewInstance = (key: any, handler: IContainer, requestor: IContainer) => {
+  // 1. if there's a factory registration for the key
+  if (handler.hasFactory(key)) {
+    return handler.getFactory(key).construct(requestor);
+  }
+  // 2. if key is an interface
+  if (isInterface(key)) {
+    const hasDefault = isFunction((key as unknown as IRegistry).register);
+    const resolver = handler.getResolver(key, hasDefault) as IResolver<Constructable<typeof key>>;
+    const factory = resolver?.getFactory?.(handler);
+    // 2.1 and has factory
+    if (factory != null) {
+      return factory.construct(requestor);
+    }
+    // 2.2 cannot instantiate a dummy interface
+    throw cannotInstantiateInterfaceError(key);
+  }
+  // 3. jit factory, in case of newInstanceOf(SomeClass)
   return handler.getFactory(key).construct(requestor);
 };
 
@@ -983,6 +1001,12 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
     this._instance = null;
   }
 }
+
+const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;
+const cannotInstantiateInterfaceError = (key: InterfaceSymbol) =>
+  __DEV__
+    ? createError(`AURxxxx: Failed to instantiate ${key}, there's no registration and no default implementation.`)
+    : createError(`AURxxxx: ${key}`);
 
 const noInstanceError = (name?: string) => {
   if (__DEV__) {

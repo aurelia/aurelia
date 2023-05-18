@@ -725,12 +725,8 @@ export class ViewportAgent {
         this.currTransition = null;
         break;
       case State.currUnload:
-      case State.currDeactivate:
-        this.currState = State.currIsEmpty;
-        this.curCA = null;
-        this.currTransition = null;
-        break;
       case State.currUnloadDone:
+      case State.currDeactivate:
         currentDeactivationPromise = onResolve(this.curCA?._deactivate(null, this.hostController), () => {
           this.curCA?._dispose();
           this.currState = State.currIsEmpty;

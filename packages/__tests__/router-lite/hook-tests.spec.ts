@@ -3546,6 +3546,130 @@ describe('router-lite/hook-tests.spec.ts', function () {
                 ];
             }
           ];
+
+          yield [
+            'binding',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === nextParent
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, currentChild, ticks, 'unloading'),
+                  ...$(phase, nextChild, ticks, 'loading'),
+                  ...$(phase, currentChild, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextChild, ticks, 'binding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'detaching', 'unbinding', 'dispose', 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad', 'loading', 'binding', 'dispose'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
+
+          yield [
+            'bound',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === nextParent
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, currentChild, ticks, 'unloading'),
+                  ...$(phase, nextChild, ticks, 'loading'),
+                  ...$(phase, currentChild, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextChild, ticks, 'binding', 'bound', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'detaching', 'unbinding', 'dispose', 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'unbinding', 'dispose'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
+
+          yield [
+            'attaching',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === nextParent
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, currentChild, ticks, 'unloading'),
+                  ...$(phase, nextChild, ticks, 'loading'),
+                  ...$(phase, currentChild, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextChild, ticks, 'binding', 'bound', 'attaching', 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'detaching', 'unbinding', 'dispose', 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
+
+          yield [
+            'attached',
+            function getExpectedErrorLog(phase: string, currentParent: string | null, currentChild: string, nextParent: string | null, nextChild: string) {
+              return currentParent === nextParent
+                ? [
+                  ...$(phase, currentChild, ticks, 'canUnload'),
+                  ...$(phase, nextChild, ticks, 'canLoad'),
+                  ...$(phase, currentChild, ticks, 'unloading'),
+                  ...$(phase, nextChild, ticks, 'loading'),
+                  ...$(phase, currentChild, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextChild, ticks, 'binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'detaching', 'unbinding', 'dispose', 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ]
+                : [
+                  ...$(phase, [currentChild, currentParent], ticks, 'canUnload'),
+                  ...$(phase, nextParent, ticks, 'canLoad'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unloading'),
+                  ...$(phase, nextParent, ticks, 'loading'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'detaching'),
+                  ...$(phase, [currentChild, currentParent], ticks, 'unbinding'),
+                  ...$(phase, [currentParent, currentChild], ticks, 'dispose'),
+                  ...$(phase, nextParent, ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, nextChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, nextParent, ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, currentParent, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, currentChild, ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
+                ];
+            }
+          ];
         }
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {

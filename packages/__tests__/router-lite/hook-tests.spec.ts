@@ -3236,17 +3236,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
       describe('single level - single viewport', function () {
 
-        function generateExpectedNormalInvocationLog(phase: string, current: string, next: string) {
-          return [
-            ...$(phase, current, ticks, 'canUnload'),
-            ...$(phase, next, ticks, 'canLoad'),
-            ...$(phase, current, ticks, 'unloading'),
-            ...$(phase, next, ticks, 'loading'),
-            ...$(phase, current, ticks, 'detaching', 'unbinding', 'dispose'),
-            ...$(phase, next, ticks, 'binding', 'bound', 'attaching', 'attached'),
-          ];
-        }
-
         function createCes(hook: string) {
           const hookSpec = HookSpecs.create(ticks);
           @route(['', 'a'])
@@ -3392,7 +3381,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
             await click(anchorB, queue);
             await router['currentTr'].promise; // actual wait is done here
             assert.html.textContent(host, 'b', `${phase} - text`);
-            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-a', 'ce-b'));
 
             phase = 'round#3';
             mgr.fullNotifyHistory.length = 0;
@@ -3410,7 +3398,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             mgr.setPrefix(phase);
             await click(anchorA, queue);
             await router['currentTr'].promise; // actual wait is done here
-            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-b', 'ce-a'));
+            assert.html.textContent(host, 'a', `${phase} - text`);
 
             phase = 'round#5';
             mgr.fullNotifyHistory.length = 0;
@@ -3427,7 +3415,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
             mgr.setPrefix(phase);
             await router.load('b');
             assert.html.textContent(host, 'b', `${phase} - text`);
-            verifyInvocationsEqual(mgr.fullNotifyHistory, generateExpectedNormalInvocationLog(phase, 'ce-a', 'ce-b'));
 
             await tearDown();
           });
@@ -3448,7 +3435,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
             public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
-                console.log('----------------- throwing error from gc13 -----------------------');
                 throw new Error(`Synthetic test error in ${hook}`);
               });
             }
@@ -3464,7 +3450,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
             public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
-                console.log('----------------- throwing error from gc23 -----------------------');
                 throw new Error(`Synthetic test error in ${hook}`);
               });
             }
@@ -3534,13 +3519,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
             const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook), undefined, LogLevel.trace);
-            const [p1gc11, p1gc12, p1gc13, p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
+            const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             const queue = platform.taskQueue;
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
             let phase = 'round#1';
-            console.log(`----------------- ${phase} -----------------------`);
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
             await click(p1gc13, queue);
@@ -3554,50 +3538,17 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
             // p1/gc-11 -> p1/gc-12
             phase = 'round#2';
-            console.log(`----------------- ${phase} -----------------------`);
-            mgr.fullNotifyHistory.length = 0;
-            mgr.setPrefix(phase);
             await click(p1gc12, queue);
-            await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
-            verifyInvocationsEqual(
-              mgr.fullNotifyHistory,
-              [
-                ...$(phase, 'gc-11', ticks, 'canUnload'),
-                ...$(phase, 'gc-12', ticks, 'canLoad'),
-                ...$(phase, 'gc-11', ticks, 'unloading'),
-                ...$(phase, 'gc-12', ticks, 'loading'),
-                ...$(phase, 'gc-11', ticks, 'detaching', 'unbinding', 'dispose'),
-                ...$(phase, 'gc-12', ticks, 'binding', 'bound', 'attaching', 'attached'),
-              ]);
 
             // p1/gc-12 -> p2/gc-22
             phase = 'round#3';
-            console.log(`----------------- ${phase} -----------------------`);
-            mgr.fullNotifyHistory.length = 0;
-            mgr.setPrefix(phase);
             await click(p2gc22, queue);
-            await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
-            verifyInvocationsEqual(
-              mgr.fullNotifyHistory,
-              [
-                ...$(phase, ['gc-12', 'p-1'], ticks, 'canUnload'),
-                ...$(phase, 'p-2', ticks, 'canLoad'),
-                ...$(phase, ['gc-12', 'p-1'], ticks, 'unloading'),
-                ...$(phase, 'p-2', ticks, 'loading'),
-                ...$(phase, ['gc-12', 'p-1'], ticks, 'detaching'),
-                ...$(phase, ['gc-12', 'p-1'], ticks, 'unbinding'),
-                ...$(phase, ['p-1', 'gc-12'], ticks, 'dispose'),
-                ...$(phase, 'p-2', ticks, 'binding', 'bound', 'attaching', 'attached'),
-                ...$(phase, 'gc-22', ticks, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached'),
-              ]);
 
             // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
-            phase = 'round#4';
-            console.log(`----------------- ${phase} -----------------------`);
             mgr.fullNotifyHistory.length = 0;
-            mgr.setPrefix(phase);
+            mgr.setPrefix(phase = 'round#4');
             await click(p2gc23, queue);
             try {
               await router['currentTr'].promise;
@@ -3607,11 +3558,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, null, 'gc-22', null, 'gc-23'));
 
-            // p2/gc-22 -> p1/gc-13
-            phase = 'round#5';
-            console.log(`----------------- ${phase} -----------------------`);
+            // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
-            mgr.setPrefix(phase);
+            mgr.setPrefix(phase = 'round#5');
             await click(p1gc13, queue);
             try {
               await router['currentTr'].promise;

@@ -427,7 +427,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
   function* getTestData() {
     function wrap(content: string, isDefault: boolean = false) {
       const host = isDefault ? 'default-case-host' : 'case-host';
-      return `<${host} class="au">${content}</${host}>`;
+      return `<${host}>${content}</${host}>`;
     }
     for (const config of configFactories) {
       const MyEcho = createComponentType('my-echo', `Echoed '\${message}'`, ['message']);
@@ -927,7 +927,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           registrations: [MyEcho],
         },
         config(),
-        `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo class="au">Echoed 'awesome possum'</my-echo>`,
+        `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo>Echoed 'awesome possum'</my-echo>`,
         [...getActivationSequenceFor('my-echo'), 1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
         getDeactivationSequenceFor(['case-host-4', 'my-echo']),
       );
@@ -1287,7 +1287,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       `,
         },
         config(),
-        `<foo-bar class="au"> <div> ${wrap('Delivered.')} </div> </foo-bar>`,
+        `<foo-bar> <div> ${wrap('Delivered.')} </div> </foo-bar>`,
         null,
         getDeactivationSequenceFor('case-host-4'),
         (ctx) => {
@@ -1321,7 +1321,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       `,
         },
         config(),
-        '<foo-bar class="au"> <div> <span>Projection</span> </div> </foo-bar>',
+        '<foo-bar> <div> <span>Projection</span> </div> </foo-bar>',
         null,
         [],
         async (ctx) => {
@@ -1332,7 +1332,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
-            '<foo-bar class="au"> <div> Delivered. </div> </foo-bar>',
+            '<foo-bar> <div> Delivered. </div> </foo-bar>',
             new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`),
           );
         }
@@ -1362,7 +1362,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
-            '<my-echo class="au">Echoed \'Delivered.\'</my-echo>',
+            '<my-echo>Echoed \'Delivered.\'</my-echo>',
             [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('my-echo')]
           );
         }
@@ -1390,7 +1390,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       `,
         },
         config(),
-        `<foo-bar class="au"> ${wrap('Order received.')} </foo-bar>`,
+        `<foo-bar> ${wrap('Order received.')} </foo-bar>`,
         null,
         getDeactivationSequenceFor('case-host-4'),
         async (ctx) => {
@@ -1401,7 +1401,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           await ctx.assertChange(
             $switch,
             () => { ctx.app.status = Status.delivered; },
-            `<foo-bar class="au"> ${wrap('Delivered.')} </foo-bar>`,
+            `<foo-bar> ${wrap('Delivered.')} </foo-bar>`,
             [...new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`), ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-4')],
           );
         }
@@ -1449,7 +1449,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       // </template>`,
       //   },
       //   config(),
-      //   `<foo-bar class="au"> ${wrap('On the way.')} foo bar </foo-bar>`,
+      //   `<foo-bar> ${wrap('On the way.')} foo bar </foo-bar>`,
       //   [1, ...getActivationSequenceFor('case-host-1')],
       //   getDeactivationSequenceFor('case-host-1')
       // );
@@ -1476,7 +1476,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       // </template>`,
       //   },
       //   config(),
-      //   `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('On the way.')} fiz baz </fiz-baz> foo bar </foo-bar>`,
+      //   `<foo-bar> <fiz-baz> ${wrap('On the way.')} fiz baz </fiz-baz> foo bar </foo-bar>`,
       //   [1, ...getActivationSequenceFor('case-host-1')],
       //   getDeactivationSequenceFor('case-host-1')
       // );

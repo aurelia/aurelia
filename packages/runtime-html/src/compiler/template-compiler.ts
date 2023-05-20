@@ -30,7 +30,7 @@ import { CustomElement, CustomElementDefinition, CustomElementType, defineElemen
 import { BindingCommand, CommandType } from '../resources/binding-command';
 import { createError, createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
-import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, getPreviousSibling } from '../utilities-dom';
+import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -692,17 +692,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       ii = attrs.length;
     }
 
-    if (context.root.def.enhance && el.classList.contains('au')) {
-      if (__DEV__)
-        throw createError(`AUR0705: `
-          + 'Trying to enhance with a template that was probably compiled before. '
-          + 'This is likely going to cause issues. '
-          + 'Consider enhancing only untouched elements or first remove all "au" classes.'
-        );
-      else
-        throw createError(`AUR0705`);
-    }
-
     // 1. walk and compile through all attributes
     //    for each of them, put in appropriate group.
     //    ex. plain attr with binding -> plain attr instruction list
@@ -951,6 +940,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         const template = context.t();
         const fallbackContentContext = context._createChild();
         let node: Node | null = el.firstChild;
+        let count = 0;
         while (node !== null) {
           // a special case:
           // <au-slot> doesn't have its own template
@@ -958,15 +948,27 @@ export class TemplateCompiler implements ITemplateCompiler {
           // doing so during compilation via removing the node,
           // instead of considering it as part of the fallback view
           if (node.nodeType === 1 && (node as Element).hasAttribute(AU_SLOT)) {
+            if (__DEV__) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[DEV:aurelia] detected [au-slot] attribute on a child node`,
+                `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
+                `This element will be ignored and removed`
+              );
+            }
             el.removeChild(node);
           } else {
             appendToTemplate(template, node);
+            count++;
             // template.content.appendChild(node);
           }
           node = el.firstChild;
         }
 
-        this._compileNode(template.content, fallbackContentContext);
+        if (count > 0) {
+          this._compileNode(template.content, fallbackContentContext);
+        }
+
         elementInstruction.auSlot = {
           name: slotName,
           fallback: CustomElementDefinition.create({
@@ -978,7 +980,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         };
         // todo: shouldn't have to eagerly replace everything like this
         // this is a leftover refactoring work from the old binder
-        el = this._replaceByMarker(el, context);
+        // el = this._replaceByMarker(el, context);
       }
     }
 
@@ -1393,7 +1395,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           // context._comment(auEndComment),
           // this._markAsTarget(context.h(MARKER_NODE_NAME), context),
           context.h(MARKER_NODE_NAME),
-          context._text(''),
+          context._text(' '),
         ]);
         // insertBefore(parent, this._markAsTarget(context.h(auMarkerName)), current);
         // foreach normal part, turn into a standard text node
@@ -1705,16 +1707,16 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 }
 
-let $prevSibling: Node | null;
+// let nextSibling: Node | null;
 const MARKER_NODE_NAME = 'AU-M';
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
 const auStartComment = 'au-start';
 const auEndComment = 'au-end';
 const isMarker = (el: Node): boolean =>
-  el.nodeName === MARKER_NODE_NAME
-    && isComment($prevSibling = getPreviousSibling(el)) && $prevSibling.textContent === auEndComment
-    && isComment($prevSibling = getPreviousSibling($prevSibling)) && $prevSibling.textContent === auStartComment;
-const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;
+  el.nodeName === MARKER_NODE_NAME;
+    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auStartComment
+    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auEndComment;
+// const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved

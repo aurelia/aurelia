@@ -1,5 +1,5 @@
 import {
-  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
+  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType, PartialCustomElementDefinition
 } from '@aurelia/runtime-html';
 import {
   assert, TestContext
@@ -39,6 +39,10 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     }
   }
 
+  // it('compiles 2 <au-slot> next to each other', function () {
+  //   const {} = compileWithAuSlot('<au-slot><au-slot>');
+  // });
+
   function* getTestData() {
     // projections verification
     yield new TestData(
@@ -62,7 +66,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     yield new TestData(
       `<my-element><au-slot au-slot><div au-slot="s1">p1</div><div au-slot="s1">p2</div></au-slot></my-element>`,
       [$createCustomElement('', 'my-element')],
-      [['my-element', { 'default': '<!--au-start--><!--au-end--><au-m class="au"></au-m>' }]],
+      [['my-element', { 'default': '<au-m></au-m><!--au-start--><!--au-end-->' }]],
       [],
     );
 
@@ -153,5 +157,20 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
         }
       }
     });
+  }
+
+  function compileWithAuSlot(template: string, ...registrations: unknown[]) {
+    const { container, sut } = createFixture();
+    container.register(AuSlot, ...registrations);
+
+    const templateDefinition = {
+      name: 'ano',
+      template,
+      instructions: [],
+      surrogates: [],
+      shadowOptions: { mode: 'open' }
+    } satisfies PartialCustomElementDefinition;
+
+    return sut.compile(templateDefinition, container, { projections: null });
   }
 });

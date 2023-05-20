@@ -314,6 +314,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
   private _value: unknown = '';
   /** @internal */
   private readonly _controller: IBindingController;
+  /** @internal */
+  private _needsRemoveNode: boolean = false;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -336,18 +338,18 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
   public updateTarget(value: unknown): void {
     const target = this.target;
-    const NodeCtor = this.p.Node;
     const oldValue = this._value;
     this._value = value;
-    if (oldValue instanceof NodeCtor) {
-      oldValue.parentNode?.removeChild(oldValue);
+    if (this._needsRemoveNode) {
+      (oldValue as Node).parentNode?.removeChild(oldValue as Node);
+      this._needsRemoveNode = false;
     }
-    if (value instanceof NodeCtor) {
-      target.textContent = '';
+    if (value instanceof this.p.Node) {
       target.parentNode?.insertBefore(value, target);
-    } else {
-      target.textContent = safeString(value);
+      value = '';
+      this._needsRemoveNode = true;
     }
+    target.textContent = safeString(value);
   }
 
   public handleChange(): void {
@@ -434,6 +436,9 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);
+    if (this._needsRemoveNode) {
+      (this._value as Node).parentNode?.removeChild(this._value as Node);
+    }
 
     // TODO: should existing value (either connected node, or a string)
     // be removed when this binding is unbound?

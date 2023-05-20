@@ -59,10 +59,13 @@ export class If implements ICustomAttributeViewModel {
           : this.elseFactory?.create()
         );
       }
+      // if the value is falsy
+      // and there's no [else], `view` will be null
       if (view == null) {
         return;
       }
-      // todo: else view should set else location
+      // todo: location should be based on either the [if]/[else] attribute
+      //       instead of always of the [if]
       view.setLocation(this._location);
 
       // Promise return values from user VM hooks are awaited by the initiator
@@ -132,11 +135,13 @@ export class If implements ICustomAttributeViewModel {
               : this.elseFactory?.create()
             );
           }
+          // if the value is falsy
+          // and there's no [else], `view` will be null
           if (view == null) {
             return;
           }
           // todo: location should be based on either the [if]/[else] attribute
-          //       instead of always the if
+          //       instead of always of the [if]
           view.setLocation(this._location);
           return onResolve(
             view.activate(view, ctrl, ctrl.scope),

@@ -11,7 +11,7 @@ import {
 } from '@aurelia/testing';
 import { isFirefox, isNode } from '../util.js';
 
-describe('3-runtime-html/template-compiler.harmony.spec.ts', function () {
+describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;

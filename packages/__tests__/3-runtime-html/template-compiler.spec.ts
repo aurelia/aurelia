@@ -43,6 +43,7 @@ import {
   PropertyBindingInstruction,
   InterpolationInstruction,
   InstructionType,
+  DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -283,6 +284,23 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             return e;
           });
           verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
+        });
+
+        it('enables binding commands to override custom attribute', function () {
+          const { template, instructions } = compileWith(
+            `<el foo.trigger="1">`,
+            [DefaultBindingSyntax, CustomAttribute.define('foo', class {})]
+          );
+
+          assertTemplateHtml(template, '<au-m></au-m><el></el>');
+          verifyInstructions(instructions[0], [
+            { toVerify: ['type', 'from', 'to', 'capture'],
+              type: TT.listenerBinding,
+              from: new PrimitiveLiteralExpression(1),
+              to: 'foo',
+              capture: false
+            },
+          ]);
         });
 
         describe('with template controller', function () {

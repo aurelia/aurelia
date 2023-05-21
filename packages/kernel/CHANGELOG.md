@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+### Features:
+
+* **di:** ability to use newInstance()/forScope() with interface (#1767) ([a0d39e9](https://github.com/aurelia/aurelia/commit/a0d39e9))
+* **bindable:** support getter/setter (#1753) ([4279851](https://github.com/aurelia/aurelia/commit/4279851))
+
+
+### Refactorings:
+
+* ***:** rename resolveAll -> onResolveAll (#1764) ([fdf0747](https://github.com/aurelia/aurelia/commit/fdf0747))
+* ***:** cleanup up unused code & decouple interface from default impl (#1761) ([7a71d43](https://github.com/aurelia/aurelia/commit/7a71d43))
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

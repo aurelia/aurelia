@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+### Features:
+
+* **templating:** allow deactivate when activating (#1729) ([1c9c97c](https://github.com/aurelia/aurelia/commit/1c9c97c))
+
+
+### Refactorings:
+
+* **compiler:** avoid using au class to find targets (#1768) ([0d30998](https://github.com/aurelia/aurelia/commit/0d30998))
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

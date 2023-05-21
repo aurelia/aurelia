@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+### Refactorings:
+
+* **router:** add warning for unsupported behavior (#1757) ([ce87339](https://github.com/aurelia/aurelia/commit/ce87339))
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

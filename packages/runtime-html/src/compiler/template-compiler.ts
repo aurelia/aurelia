@@ -960,7 +960,6 @@ export class TemplateCompiler implements ITemplateCompiler {
           } else {
             appendToTemplate(template, node);
             count++;
-            // template.content.appendChild(node);
           }
           node = el.firstChild;
         }

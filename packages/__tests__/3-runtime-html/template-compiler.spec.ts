@@ -1482,87 +1482,42 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar { });
       const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz { });
 
-      // todo: continue to de-loop the compiler tests, most are redundant/repeated
-      it('compiles 2 template controllers on an element with other attributes [after]', function () {
-        const { createProp, result: { template, instructions } } = compileWith('<div foo bar a.bind="b">', Foo, Bar);
-        const [[{
-          res: fooDef,
-          def: {
-            template: fooTemplate,
-            instructions: fooInnerInstructions
-          }
-        }]] = instructions as [HydrateTemplateController][];
+      for (const [otherAttrPosition, appTemplate] of [
+        ['before', '<div a.bind="b" foo bar>'],
+        ['middle', '<div foo a.bind="b" bar>'],
+        ['after', '<div foo bar a.bind="b">']]
+      ) {
+        it(`compiles 2 template controller on an elements with another attribute in ${otherAttrPosition}`, function () {
+          const { createProp, result: { template, instructions } } = compileWith(appTemplate, Foo, Bar);
+          const [[{
+            res: fooDef,
+            def: {
+              template: fooTemplate,
+              instructions: fooInnerInstructions
+            }
+          }]] = instructions as [HydrateTemplateController][];
 
-        const [[{
-          res: barDef,
-          def: {
-            template: barTemplate,
-            instructions: barInnerInstructions
-          }
-        }]] = fooInnerInstructions as [HydrateTemplateController][];
+          const [[{
+            res: barDef,
+            def: {
+              template: barTemplate,
+              instructions: barInnerInstructions
+            }
+          }]] = fooInnerInstructions as [HydrateTemplateController][];
 
-        assertTemplateHtml(template, '<au-m></au-m><!--au-start--><!--au-end-->');
+          assertTemplateHtml(template, '<au-m></au-m><!--au-start--><!--au-end-->');
 
-        assert.strictEqual((fooDef as AttrDef<typeof Foo>).Type, Foo);
-        assertTemplateHtml(fooTemplate, '<au-m></au-m><!--au-start--><!--au-end-->');
+          assert.strictEqual((fooDef as AttrDef<typeof Foo>).Type, Foo);
+          assertTemplateHtml(fooTemplate, '<au-m></au-m><!--au-start--><!--au-end-->');
 
-        assert.strictEqual((barDef as AttrDef<typeof Foo>).Type, Bar);
-        assertTemplateHtml(barTemplate, '<au-m></au-m><div></div>');
-        verifyBindingInstructionsEqual(
-          barInnerInstructions[0],
-          [createProp({ from: 'b', to: 'a' })]
-        );
-      });
-
-      it('compiles 2 template controllers on an element with other attributes [before]', function () {
-        const { createProp, result: { template, instructions } } = compileWith('<div foo bar a.bind="b">', Foo, Bar);
-        const [[{
-          def: {
-            template: fooTemplate,
-            instructions: fooInnerInstructions
-          }
-        }]] = instructions as [HydrateTemplateController][];
-
-        const [[{
-          def: {
-            template: barTemplate,
-            instructions: barInnerInstructions
-          }
-        }]] = fooInnerInstructions as [HydrateTemplateController][];
-
-        assertTemplateHtml(template, '<au-m></au-m><!--au-start--><!--au-end-->');
-        assertTemplateHtml(fooTemplate, '<au-m></au-m><!--au-start--><!--au-end-->');
-        assertTemplateHtml(barTemplate, '<au-m></au-m><div></div>');
-        verifyBindingInstructionsEqual(
-          barInnerInstructions[0],
-          [createProp({ from: 'b', to: 'a' })]
-        );
-      });
-
-      it('compiles 2 template controllers on an element with other attributes in the [middle]', function () {
-        const { createProp, result: { template, instructions } } = compileWith('<div foo a.bind="b" bar >', Foo, Bar);
-        const [[{
-          def: {
-            template: fooTemplate,
-            instructions: fooInnerInstructions
-          }
-        }]] = instructions as [HydrateTemplateController][];
-
-        const [[{
-          def: {
-            template: barTemplate,
-            instructions: barInnerInstructions
-          }
-        }]] = fooInnerInstructions as [HydrateTemplateController][];
-
-        assertTemplateHtml(template, '<au-m></au-m><!--au-start--><!--au-end-->');
-        assertTemplateHtml(fooTemplate, '<au-m></au-m><!--au-start--><!--au-end-->');
-        assertTemplateHtml(barTemplate, '<au-m></au-m><div></div>');
-        verifyBindingInstructionsEqual(
-          barInnerInstructions[0],
-          [createProp({ from: 'b', to: 'a' })]
-        );
-      });
+          assert.strictEqual((barDef as AttrDef<typeof Foo>).Type, Bar);
+          assertTemplateHtml(barTemplate, '<au-m></au-m><div></div>');
+          verifyBindingInstructionsEqual(
+            barInnerInstructions[0],
+            [createProp({ from: 'b', to: 'a' })]
+          );
+        });
+      }
 
       eachCartesianJoinFactory([
         [

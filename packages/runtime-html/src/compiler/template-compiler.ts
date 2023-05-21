@@ -1342,12 +1342,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         elementInstruction!.projections = projections;
       }
 
-      // todo: shouldn't have to eagerly replace with a marker like this
-      //       this should be the job of the renderer
-      // if (isCustomElement && (hasContainerless || elDef.containerless)) {
-      //   // this._replaceByMarker(el, context);
-      //   this._markAsTarget(el, context);
-      // }
       if (needsMarker) {
         if (isCustomElement && (hasContainerless || elDef.containerless)) {
           this._replaceByMarker(el, context);
@@ -1391,13 +1385,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (i = 0, ii = expressions.length; ii > i; ++i) {
         // foreach expression part, turn into a marker
         insertManyBefore(parent, node, [
-          // context._comment(auStartComment),
-          // context._comment(auEndComment),
-          // this._markAsTarget(context.h(MARKER_NODE_NAME), context),
           context.h(MARKER_NODE_NAME),
+          // empty text node will not be cloned when doing fragment.cloneNode()
+          // so give it an empty space instead
           context._text(' '),
         ]);
-        // insertBefore(parent, this._markAsTarget(context.h(auMarkerName)), current);
         // foreach normal part, turn into a standard text node
         if ((part = parts[i + 1])) {
           insertBefore(parent, context._text(part), node);

@@ -98,8 +98,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
       describe('with nested <template> without template controller', function () {
         it('does not compile <template> without template controller', function () {
-          const definition = compileWith(`<template><template>\${prop}</template></template>`, []);
-          assert.deepStrictEqual(definition.instructions, [], `definition.instructions`);
+          const { instructions } = compileWith(`<template><template>\${prop}</template></template>`, []);
+          assert.deepStrictEqual(instructions, [], `definition.instructions`);
         });
       });
 
@@ -391,8 +391,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         describe('<let/> element', function () {
 
           it('compiles', function () {
-            const { instructions } = compileWith(`<template><let></let></template>`);
+            const { template, instructions } = compileWith(`<template><let></let></template>`);
             assert.strictEqual(instructions.length, 1, `instructions.length`);
+            assert.strictEqual((template as Element).outerHTML, '<template><au-m></au-m><let></let></template>');
           });
 
           it('does not generate instructions when there is no bindings', function () {

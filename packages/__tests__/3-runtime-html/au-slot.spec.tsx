@@ -386,7 +386,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         { },
         (ctx) => {
-          assert.html.innerEqual(ctx.host, '<my-child class="au">hello</my-child>');
+          assert.html.innerEqual(ctx.host, '<my-child>hello</my-child>');
         },
       );
     }
@@ -413,7 +413,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         { },
         (ctx) => {
-          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+          assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
       );
     }
@@ -428,7 +428,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         { },
         async (ctx) => {
-          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+          assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
       );
     }
@@ -443,7 +443,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         { },
         async (ctx) => {
-          assert.html.innerEqual(ctx.host, '<my-child class="au">0</my-child><my-child class="au">1</my-child><my-child class="au">2</my-child>');
+          assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
       );
     }
@@ -933,9 +933,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             ListBox, Assignee, ItemRow
           ],
           {
-            'item-row': ['<div><assignee class="au"><list-box class="au"><div> 0 </div></list-box></assignee></div>',null],
-            'item-row+item-row': ['<div><assignee class="au"><list-box class="au"><div> 1 </div></list-box></assignee></div>',null],
-            'item-row+item-row+item-row': ['<div><assignee class="au"><list-box class="au"><div> 2 </div></list-box></assignee></div>',null],
+            'item-row': ['<div><assignee><list-box><div> 0 </div></list-box></assignee></div>',null],
+            'item-row+item-row': ['<div><assignee><list-box><div> 1 </div></list-box></assignee></div>',null],
+            'item-row+item-row+item-row': ['<div><assignee><list-box><div> 2 </div></list-box></assignee></div>',null],
           },
         );
       }
@@ -1080,7 +1080,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
       );
 
       yield new TestData(
@@ -1099,7 +1099,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         { 'my-element': [
-          '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+          '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
           new AuSlotsInfo(['content'])
         ]},
       );
@@ -1120,7 +1120,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
       );
 
       yield new TestData(
@@ -1141,7 +1141,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         {
           'my-element': [
-            '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+            '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
             new AuSlotsInfo(['content'])
           ],
         }
@@ -1157,7 +1157,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
       );
 
       yield new TestData(
@@ -1194,7 +1194,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
           CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
         ],
-        { 'my-element-s11': ['p1 <my-element-s12 class="au"> p2 </my-element-s12>', null] },
+        { 'my-element-s11': ['p1 <my-element-s12> p2 </my-element-s12>', null] },
       );
 
       yield new TestData(
@@ -1204,7 +1204,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
           CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
         ],
-        { 'my-element': ['<foo-bar class="au">inner</foo-bar>', null] },
+        { 'my-element': ['<foo-bar>inner</foo-bar>', null] },
       );
 
       yield new TestData(
@@ -1216,7 +1216,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
           CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
         ],
-        { 'my-element': ['<foo-bar class="au">root</foo-bar>', new AuSlotsInfo(['s1'])] },
+        { 'my-element': ['<foo-bar>root</foo-bar>', new AuSlotsInfo(['s1'])] },
       );
 
       {
@@ -1239,7 +1239,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             ),
             CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
           ],
-          { 'my-element': ['<foo-bar class="au">inner</foo-bar>', new AuSlotsInfo(['s1'])] },
+          { 'my-element': ['<foo-bar>inner</foo-bar>', new AuSlotsInfo(['s1'])] },
         );
       }
 
@@ -1352,7 +1352,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
           CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"></au-slot></template></lvl-zero>` }, class LvlOne { }),
         ],
-        { '': ['<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>', null] },
+        { '': ['<lvl-one><lvl-zero><div>p</div></lvl-zero></lvl-one>', null] },
       );
       yield new TestData(
         'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE - with same slot name',
@@ -1361,7 +1361,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
           CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="x"><au-slot name="x"></au-slot></template></lvl-zero>` }, class LvlOne { }),
         ],
-        { '': ['<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>', null] },
+        { '': ['<lvl-one><lvl-zero><div>p</div></lvl-zero></lvl-one>', null] },
       );
 
       // tag: nonsense-example, utterly-complex
@@ -1394,10 +1394,10 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
          * However if the root instead is used a normal CE in another CE, the same au-slot then advertise projection slot.
          */
         {
-          // '': ['<parent-element class="au"><child-element class="au"> <div id="1">p</div><div id="3"><div id="1">p</div></div></child-element></parent-element>', null],
+          // '': ['<parent-element><child-element> <div id="1">p</div><div id="3"><div id="1">p</div></div></child-element></parent-element>', null],
           '': [
-            <parent-element class="au">
-              <child-element class="au">
+            <parent-element>
+              <child-element>
                 <div id="3">
                   <div id="1"> p </div>
                 </div>
@@ -1542,8 +1542,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           `<elem text="1"></elem><elem text="2"></elem>`,
           [Elem, Notch, Child],
           {
-            'elem': ['Parent 1 <notch class="au">Notch <child class="au">Id: 0. Child 1</child></notch> 0', null],
-            'elem+elem': ['Parent 2 <notch class="au">Notch <child class="au">Id: 1. Child 2</child></notch> 1', null],
+            'elem': ['Parent 1 <notch>Notch <child>Id: 0. Child 1</child></notch> 0', null],
+            'elem+elem': ['Parent 2 <notch>Notch <child>Id: 1. Child 2</child></notch> 1', null],
           }
         );
       }
@@ -1615,7 +1615,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <input au-slot type="text" value.two-way="$host.foo">
       </my-element>`,
         [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, MyElement)],
-        { 'my-element': ['<input type="text" class="au">', new AuSlotsInfo(['default'])] },
+        { 'my-element': ['<input type="text">', new AuSlotsInfo(['default'])] },
         async function ({ host, platform }) {
           const el = host.querySelector('my-element');
           const vm = CustomElement.for(el).viewModel as any;
@@ -1634,7 +1634,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <input au-slot type="text" value.two-way="people[0].firstName">
       </my-element>`,
       [createMyElement(`<au-slot></au-slot>`)],
-      { 'my-element': ['<input type="text" class="au">', new AuSlotsInfo(['default'])] },
+      { 'my-element': ['<input type="text">', new AuSlotsInfo(['default'])] },
       async function ({ app, host, platform }) {
         const el = host.querySelector('my-element');
         const input = el.querySelector('input');
@@ -1665,7 +1665,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
-          assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
+          assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
           const meuScope = CustomElement.for(meu).scope;
           const meScope = CustomElement.for(me).scope;
           assert.strictEqual(meuScope.bindingContext.foo, fooValue, 'meuScope.bc.foo');
@@ -1697,7 +1697,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
-          assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
+          assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
           const meuScope = CustomElement.for(meu).scope;
           const meScope = CustomElement.for(me).scope;
           assert.strictEqual(meuScope.bindingContext.foo, undefined, 'meuScope.bc.foo');
@@ -1719,7 +1719,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       </template>
       `,
       [],
-      { '': ['<ce-with-au-slot class="au"> <div>p</div> </ce-with-au-slot>', null] },
+      { '': ['<ce-with-au-slot> <div>p</div> </ce-with-au-slot>', null] },
     );
 
     {
@@ -1797,7 +1797,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         {
           'ce-one': ['dfb<span>s1p</span>', new AuSlotsInfo(['s1'])],
           'ce-two': ['ce two', new AuSlotsInfo([])],
-          'ce-three': ['<div>s1p</div><ce-one class="au"><span>dp</span>s1fb</ce-one><ce-two class="au">ce two</ce-two>', new AuSlotsInfo(['s1'])],
+          'ce-three': ['<div>s1p</div><ce-one><span>dp</span>s1fb</ce-one><ce-two>ce two</ce-two>', new AuSlotsInfo(['s1'])],
           'ce-three>ce-one': ['<span>dp</span>s1fb', new AuSlotsInfo(['default'])],
           'ce-three>ce-two': ['ce two', new AuSlotsInfo([])],
         }
@@ -1829,7 +1829,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element><div au-slot>\${$host.value}</div>`,
         [createMyElement('<input value.bind="message"/><au-slot expose.bind="{ value: message }">')],
         {
-          'my-element': ['<input class="au"><div>undefined</div>', undefined]
+          'my-element': ['<input><div>undefined</div>', undefined]
         },
         function ({ host, platform }) {
           const input = host.querySelector('input');
@@ -1845,7 +1845,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element>`,
         [createMyElement(`<input value.bind="message"/><au-slot expose.bind="{ value: message }">\${message}</au-slot>`)],
         {
-          'my-element': ['<input class="au">undefined', undefined]
+          'my-element': ['<input>undefined', undefined]
         },
         function ({ host, platform }) {
           const input = host.querySelector('input');

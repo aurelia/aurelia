@@ -177,7 +177,6 @@ describe('router-lite/resources/load.spec.ts', function () {
         const anchor = anchors[i];
         const item = expected[i];
         assert.strictEqual(anchor.href.endsWith(item.href), true, `${message} - #${i} href - actual: ${anchor.href} - expected: ${item.href}`);
-        assert.strictEqual(anchor.classList.value, 'au', `${message} - #${i} active`);
       }
     }
   });

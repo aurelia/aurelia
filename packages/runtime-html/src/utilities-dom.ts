@@ -68,21 +68,47 @@ export const appendManyToTemplate = (parent: HTMLTemplateElement, children: Arra
 };
 
 /** @internal */
-export const markerToLocation = (el: Element) => {
-  const previousSibling = el.previousSibling;
+export const markerToTarget = (el: Element) => {
+  const nextSibling = el.nextSibling;
+  let locationStart: Comment;
   let locationEnd: IRenderLocation;
 
-  if (previousSibling?.nodeType === /* Comment */8 && previousSibling.textContent === 'au-end') {
-    locationEnd = previousSibling as IRenderLocation;
-    if ((locationEnd.$start = locationEnd.previousSibling! as IRenderLocation) == null) {
-      throw markerMalformedError();
-    }
-    el.parentNode?.removeChild(el);
-    return locationEnd;
-  } else {
+  if (nextSibling == null) {
     throw markerMalformedError();
   }
+
+  if (nextSibling.nodeType === /* Comment */8) {
+    if (nextSibling.textContent === 'au-start') {
+      locationStart = nextSibling as Comment;
+      if ((locationEnd = locationStart.nextSibling! as IRenderLocation) == null) {
+        throw markerMalformedError();
+      }
+      el.remove();
+      locationEnd.$start = locationStart;
+      return locationEnd;
+    } else {
+      throw markerMalformedError();
+    }
+  }
+
+  el.remove();
+  return nextSibling;
 };
+// export const markerToLocation = (el: Element) => {
+//   const previousSibling = el.previousSibling;
+//   let locationEnd: IRenderLocation;
+
+//   if (previousSibling?.nodeType === /* Comment */8 && previousSibling.textContent === 'au-end') {
+//     locationEnd = previousSibling as IRenderLocation;
+//     if ((locationEnd.$start = locationEnd.previousSibling! as IRenderLocation) == null) {
+//       throw markerMalformedError();
+//     }
+//     el.parentNode?.removeChild(el);
+//     return locationEnd;
+//   } else {
+//     throw markerMalformedError();
+//   }
+// };
 
 /** @internal */
 export const createMutationObserver = (node: Node, callback: MutationCallback) => new node.ownerDocument!.defaultView!.MutationObserver(callback);

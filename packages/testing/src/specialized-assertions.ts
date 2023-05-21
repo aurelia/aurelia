@@ -126,6 +126,10 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
     errors = [];
   }
   if (!(expected instanceof Object) || !(actual instanceof Object)) {
+    if (actual?.nodeType > 0 && typeof expected === 'string' || typeof actual === 'string' && expected?.nodeType > 0) {
+      actual = typeof actual === 'string' ? actual : actual.outerHTML;
+      expected = typeof expected === 'string' ? expected : expected.outerHTML;
+    }
     if (actual !== expected) {
       // Special treatment for generated names (TODO: we *can* predict the values and we might want to at some point,
       // because this exception is essentially a loophole that will eventually somehow cause a bug to slip through)

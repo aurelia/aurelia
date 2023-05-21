@@ -1,5 +1,6 @@
+import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
 import {
-  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType
+  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType, PartialCustomElementDefinition, IInstruction, DefaultBindingSyntax, PropertyBindingInstruction, TextBindingInstruction
 } from '@aurelia/runtime-html';
 import {
   assert, TestContext
@@ -12,6 +13,8 @@ export function createAttribute(name: string, value: string): Attr {
 }
 
 describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
+  /** Used to ignore some assertion when needed, e.g nested instructions */
+  const anything = {} as any;
   function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;
@@ -39,6 +42,200 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     }
   }
 
+  it('compiles default <au-slot> as the only child', function () {
+    const { template, instructions } = compileWith('<au-slot></au-slot>');
+    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end-->');
+    assertAuSlotFallback(instructions[0][0], { template: '', instructions: [] });
+  });
+
+  it('compiles 2 default <au-slot>s', function () {
+    const { template, instructions } = compileWith(
+      '<au-slot></au-slot><au-slot></au-slot>'
+    );
+    assertTemplateEqual(
+      template,
+      '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><!--au-start--><!--au-end-->'
+    );
+    assertAuSlotFallback(instructions[0][0], { template: '', instructions: [] });
+    assertAuSlotFallback(instructions[1][0], { template: '', instructions: [] });
+  });
+
+  it('compiles default <au-slot> with fallback', function () {
+    const { template, instructions, createProp } = compileWith(
+      '<au-slot><div a.bind="b"></div></au-slot>'
+    );
+    assertTemplateEqual(
+      template,
+      '<au-m></au-m><!--au-start--><!--au-end-->'
+    );
+    assertAuSlotFallback(
+      instructions[0][0],
+      { template: '<au-m></au-m><div></div>', instructions: [
+        [createProp({ from: 'b', to: 'a' })]
+      ]}
+    );
+  });
+
+  it('compiles default <au-slot> with [interpolation] fallback', function () {
+    const { template, instructions, createTextInterpolation } = compileWith(
+      '<au-slot>${message}</au-slot>'
+    );
+    assertTemplateEqual(
+      template,
+      '<au-m></au-m><!--au-start--><!--au-end-->'
+    );
+    assertAuSlotFallback(
+      instructions[0][0],
+      { template: '<au-m></au-m> ', instructions: [
+        [createTextInterpolation({ from: 'message' })]
+      ]}
+    );
+  });
+
+  it('compiles together with slot', function () {
+    const { template, instructions } = compileWith('<slot></slot><au-slot></au-slot>');
+    assertTemplateEqual(template, '<slot></slot><au-m></au-m><!--au-start--><!--au-end-->');
+    assertAuSlotFallback(instructions[0][0], { template: '', instructions: [] });
+  });
+
+  it('compiles named <au-slot>', function () {
+    const { template, instructions } = compileWith('<au-slot name="s1"></au-slot>');
+    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end-->');
+    assertAuSlotFallback(instructions[0][0], { name: 's1', template: '', instructions: [] });
+  });
+
+  it('compiles default <au-slot> mixed with named <au-slot>', function () {
+    const { template, instructions } = compileWith('<au-slot name="s1"></au-slot><au-slot></au-slot>');
+    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><!--au-start--><!--au-end-->');
+    assertAuSlotFallback(instructions[0][0], { name: 's1', template: '', instructions: [] });
+    assertAuSlotFallback(instructions[1][0], { template: '', instructions: [] });
+  });
+
+  it('compiles projection with default [au-slot]', function () {
+    const { template, instructions, createProp } = compileWith(
+      '<el><div au-slot a.bind="b">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { default: {
+      template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
+    } });
+  });
+
+  it('compiles content without the need of [au-slot]', function () {
+    const { template, instructions } = compileWith(
+      '<el><div>',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { default: {
+      template: '<div></div>', instructions: []
+    } });
+  });
+
+  it('compiles projection with default [au-slot] as empty string', function () {
+    const { template, instructions } = compileWith(
+      '<el><div au-slot="">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { default: {
+      template: '<div></div>', instructions: []
+    } });
+  });
+
+  it('does not get confused when theres a slot with the same name with project in the template', function () {
+    const { template, instructions } = compileWith(
+      '<au-slot></au-slot><el><div au-slot="">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><el></el>');
+    assertAuSlotFallback(instructions[0][0], { template: '', instructions: [] });
+    assertProjection(instructions[1][0], { default: {
+      template: '<div></div>', instructions: []
+    } });
+  });
+
+  it('compiles projection with specific [au-slot] name', function () {
+    const { template, instructions, createProp } = compileWith(
+      '<el><div au-slot="s1" a.bind="b">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { s1: {
+      template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
+    } });
+  });
+
+  it('compiles auto projection with named projection', function () {
+    const { template, instructions } = compileWith(
+      '<el><div></div><div au-slot="s1">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], {
+      default: { template: '<div></div>', instructions: [] },
+      s1: { template: '<div></div>', instructions: [] },
+    });
+  });
+
+  it('compiles projection that has <au-slot>', function () {
+    const { template, instructions } = compileWith(
+      '<el><au-slot au-slot">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { default: {
+      template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything
+    } });
+    assertAuSlotFallback(
+      (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
+      { template: '', instructions: [] }
+    );
+  });
+
+  it('compiles default <au-slot> in projection with fallback', function () {
+    const { template, instructions, createProp } = compileWith(
+      '<el><au-slot au-slot"><div a.bind="b">',
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], { default: {
+      template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything
+    } });
+    assertAuSlotFallback(
+      (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
+      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
+    );
+  });
+
+  it('compiles multiple <au-slot>s in projection with fallback', function () {
+    const { template, instructions, createProp } = compileWith(
+      ['<el>',
+        '<au-slot au-slot">',
+          '<div a.bind="b"></div>',
+        '</au-slot>',
+        '<au-slot au-slot="s1">',
+          '<div b.bind="a"></div>',
+        '</au-slot>'
+      ].join(''),
+      $createCustomElement('', 'el')
+    );
+    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertProjection(instructions[0][0], {
+      default: { template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything },
+      s1: { template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything }
+    });
+    assertAuSlotFallback(
+      (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
+      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
+    );
+    assertAuSlotFallback(
+      (instructions[0][0] as HydrateElementInstruction).projections.s1.instructions[0][0],
+      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'a', to: 'b' })]] }
+    );
+  });
+
   function* getTestData() {
     // projections verification
     yield new TestData(
@@ -62,7 +259,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     yield new TestData(
       `<my-element><au-slot au-slot><div au-slot="s1">p1</div><div au-slot="s1">p2</div></au-slot></my-element>`,
       [$createCustomElement('', 'my-element')],
-      [['my-element', { 'default': '<!--au-start--><!--au-end--><au-m class="au"></au-m>' }]],
+      [['my-element', { 'default': '<au-m></au-m><!--au-start--><!--au-end-->' }]],
       [],
     );
 
@@ -153,5 +350,74 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
         }
       }
     });
+  }
+
+  function compileWith(template: string, ...registrations: unknown[]) {
+    const { container, sut } = createFixture();
+    container.register(DefaultBindingSyntax, ...registrations);
+
+    const templateDefinition = {
+      name: 'ano',
+      template,
+      instructions: [],
+      surrogates: [],
+      shadowOptions: { mode: 'open' },
+      isStrictBinding: true,
+    } satisfies PartialCustomElementDefinition;
+    const parser = container.get(IExpressionParser);
+
+    return {
+      ...sut.compile(templateDefinition, container, { projections: null }),
+      createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
+        new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode),
+      createTextInterpolation: ({ from }: { from: string }) =>
+        new TextBindingInstruction(parser.parse(from, ExpressionType.IsProperty), true),
+    };
+  }
+
+  function assertTemplateEqual(template: string | Node, expected: string | Node, message?: string) {
+    assert.strictEqual(
+      typeof template === 'string' ? template : (template as Element).innerHTML,
+      typeof expected === 'string' ? expected : (expected as Element).innerHTML,
+      message
+    );
+  }
+
+  function assertAuSlotFallback(
+    instruction: IInstruction,
+    {
+      name: expectedName = 'default',
+      template: expectedTemplate,
+      instructions: expectedInstructions
+    }: Pick<CustomElementDefinition, 'template' | 'instructions'> & { name?: string },
+    message?: string,
+  ) {
+    const $instruction = instruction as HydrateElementInstruction;
+    const { name, fallback: { template, instructions } } = $instruction.auSlot ?? {};
+    assert.strictEqual($instruction.type, InstructionType.hydrateElement, `#instruction.type ${message}`);
+    assert.strictEqual(name, expectedName, `#fallback.slotname ${message}`);
+    assertTemplateEqual(template, expectedTemplate, `#fallback.template ${message}`);
+    if (expectedInstructions !== anything) {
+      assert.deepStrictEqual(instructions, expectedInstructions, `#fallback.instructions ${message}`);
+    }
+  }
+
+  function assertProjection(
+    instruction: IInstruction,
+    expected: Record<string, Pick<CustomElementDefinition, 'template' | 'instructions'>>,
+    message?: string,
+  ) {
+    const $instruction = instruction as HydrateElementInstruction;
+    const projections = $instruction.projections;
+    for (const slotName in expected) {
+      const projection = projections[slotName];
+      assert.notEqual(projection, null, `#projection@slot[${slotName}] is [null] - ${message}`);
+      const { template, instructions } = projection;
+      const { template: expectedTemplate, instructions: expectedInstructions } = expected[slotName];
+      assertTemplateEqual(template, expectedTemplate, `#projection@slot[${slotName}] ${message}`);
+      if (expectedInstructions !== anything) {
+        assert.deepStrictEqual(instructions, expectedInstructions, `#projection@slot[${slotName}] ${message}`);
+      }
+    }
   }
 });

@@ -42,7 +42,6 @@ import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/cont
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
-import { createText, insertBefore } from './utilities-dom';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -862,7 +861,7 @@ export class TextBindingRenderer implements IRenderer {
       platform.domWriteQueue,
       platform,
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
-      insertBefore(target.parentNode!, createText(platform, ''), target),
+      target as Text,
       instruction.strict,
     ));
   }

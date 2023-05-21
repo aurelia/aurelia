@@ -1,4 +1,4 @@
-import { FragmentNodeSequence } from '@aurelia/runtime-html';
+import { FragmentNodeSequence, isRenderLocation } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('3-runtime-html/dom.spec.ts', function () {
@@ -6,44 +6,20 @@ describe('3-runtime-html/dom.spec.ts', function () {
   let sut: FragmentNodeSequence;
 
   const widthArr = [1, 2, 3];
-  describe('constructor', function () {
-    for (const width of widthArr) {
-      it(`should correctly assign children (depth=1,width=${width})`, function () {
-        const node = ctx.doc.createElement('div');
-        const fragment = createFragment(ctx, node, 0, 1, width);
-        sut = new FragmentNodeSequence(ctx.platform, fragment);
-        assert.strictEqual(sut.childNodes.length, width, `sut.childNodes.length`);
-        assert.strictEqual(sut.childNodes[0] === sut.firstChild, true, `sut.childNodes[0] === sut.firstChild`);
-        assert.strictEqual(sut.childNodes[width - 1] === sut.lastChild, true, `sut.childNodes[width - 1] === sut.lastChild`);
-      });
-    }
-  });
   const depthArr = [0, 1, 2, 3];
-  describe('findTargets', function () {
-    for (const width of widthArr) {
-      for (const depth of depthArr) {
-        // note: these findTargets tests are quite redundant, but the basic setup might come in handy later
-        it(`should return empty array when there are no targets (depth=${depth},width=${width})`, function () {
-          const node = ctx.doc.createElement('div');
-          const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment);
-          const actual = sut.findTargets();
-          assert.strictEqual(actual.length, 0, `actual.length`);
-        });
-
-        it(`should return all elements when all are targets targets (depth=${depth},width=${width})`, function () {
-          const node = ctx.doc.createElement('div');
-          node.classList.add('au');
-          const fragment = createFragment(ctx, node, 0, depth, width);
-          sut = new FragmentNodeSequence(ctx.platform, fragment);
-          const actual = sut.findTargets();
-          assert.strictEqual(actual.length, fragment.querySelectorAll('div').length, `actual.length`);
-        });
-      }
-    }
+  describe('[UNIT] findTargets', function () {
+    it(`should return all elements at all depths`, function () {
+      const node = ctx.doc.createElement('div');
+      node.innerHTML = '<template><au-m></au-m><!--au-start--><!--au-end--><div><au-m></au-m><el></el></div>';
+      const fragment = (node.firstChild as HTMLTemplateElement).content;
+      sut = new FragmentNodeSequence(ctx.platform, fragment);
+      const actual = sut.findTargets();
+      assert.strictEqual(isRenderLocation(actual[0]), true);
+      assert.strictEqual(actual[1], fragment.querySelector('el'));
+    });
   });
 
-  describe('insertBefore', function () {
+  describe('[UNIT] insertBefore', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
         it(`should insert the view before the refNode under the parent of the refNode (depth=${depth},width=${width})`, function () {

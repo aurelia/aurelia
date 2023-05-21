@@ -182,39 +182,39 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       const receiver = component.receiver;
       component.value = 1;
 
-      assert.strictEqual(receiver.className, 'au', 'target value pre #1');
+      assert.strictEqual(receiver.className, '', 'target value pre #1');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au', 'target value #1');
+      assert.strictEqual(receiver.className, '', 'target value #1');
 
       component.value = false;
 
-      assert.strictEqual(receiver.className, 'au', 'target value pre #2');
+      assert.strictEqual(receiver.className, '', 'target value pre #2');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au', 'target value #2');
+      assert.strictEqual(receiver.className, '', 'target value #2');
 
       component.value = true;
 
-      assert.strictEqual(receiver.className, 'au', 'target value pre #3');
+      assert.strictEqual(receiver.className, '', 'target value pre #3');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au', 'target value #3');
+      assert.strictEqual(receiver.className, '', 'target value #3');
 
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au', 'target value #4');
+      assert.strictEqual(receiver.className, '', 'target value #4');
 
       await ctx.platform.taskQueue.yield();
-      assert.strictEqual(receiver.className, 'au selected', 'target value pre #5');
+      assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
 
       component.value = false;
-      assert.strictEqual(receiver.className, 'au selected', 'target value pre #5');
+      assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au selected', 'target value #5');
+      assert.strictEqual(receiver.className, 'selected', 'target value #5');
 
       ctx.platform.domWriteQueue.flush();
-      assert.strictEqual(receiver.className, 'au selected', 'target value #6');
+      assert.strictEqual(receiver.className, 'selected', 'target value #6');
 
       ctx.platform.domWriteQueue.flush();
       await ctx.platform.taskQueue.yield();
-      assert.strictEqual(receiver.className, 'au', 'target value #6');
+      assert.strictEqual(receiver.className, '', 'target value #6');
 
       await au.stop();
 

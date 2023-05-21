@@ -3,11 +3,11 @@ import {
 } from '@aurelia/kernel';
 import {
   ValueConverter,
-  CustomElement,
   Aurelia,
 } from '@aurelia/runtime-html';
 import {
   assert,
+  createFixture,
   TestContext
 } from '@aurelia/testing';
 
@@ -366,70 +366,53 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
       ? it.only(_title, fn)
       : it(_title, fn);
 
-    suit(title, async function (): Promise<void> {
-      const ctx = TestContext.create();
+    suit(title, function (): Promise<void> {
+      // const ctx = TestContext.create();
 
-      let body: HTMLElement;
+      let au: Aurelia;
+      let component: Root;
+      let ctx: TestContext;
+      // let body: HTMLElement;
       let host: HTMLElement;
+
       try {
-        const App = CustomElement.define({ name: `app`, template }, Root);
-        const au = new Aurelia(ctx.container);
+        // au.app({ host, component: App });
+        // await au.start();
+        ({ component, au, ctx, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
+        assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
+      } catch (ex) {
+        if (testWillThrow) {
+          // dont try to assert anything on throw
+          // just bails
+          try {
+            void au.stop();
+          } catch {/* and ignore all errors trying to stop */}
+          return;
+        }
+        throw ex;
+      }
 
-        body = ctx.doc.body;
-        host = body.appendChild(ctx.createElement(`app`));
-        ctx.container.register(
-          IdentityValueConverter,
-          CloneValueConverter
-        );
+      if (testWillThrow) {
+        throw new Error(`Expected test to throw, but did NOT`);
+      }
 
-        let component: Root;
-        try {
-          au.app({ host, component: App });
-          await au.start();
-          component = au.root.controller.viewModel as unknown as Root;
-          assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
-        } catch (ex) {
-          if (testWillThrow) {
-            // dont try to assert anything on throw
-            // just bails
-            try {
-              await au.stop();
-            } catch {/* and ignore all errors trying to stop */}
-            return;
+      try {
+        mutate(component.items, component);
+        ctx.platform.domWriteQueue.flush();
+
+        assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
+
+        void au.stop();
+      } catch (ex) {
+        if (!mutationWillThrow) {
+          try {
+            void au.stop();
+          } catch {
+            /* and ignore all errors trying to stop */
+          } finally {
+            au.dispose();
           }
           throw ex;
-        }
-
-        if (testWillThrow) {
-          throw new Error(`Expected test to throw, but did NOT`);
-        }
-
-        try {
-          mutate(component.items, component);
-          ctx.platform.domWriteQueue.flush();
-
-          assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
-
-          await au.stop();
-        } catch (ex) {
-          if (!mutationWillThrow) {
-            try {
-              await au.stop();
-            } catch {
-              /* and ignore all errors trying to stop */
-            } finally {
-              au.dispose();
-            }
-            throw ex;
-          }
-        }
-
-      } finally {
-        if (host) {
-          host.remove();
-        }
-        if (body) {
-          body.focus();
         }
       }
     });

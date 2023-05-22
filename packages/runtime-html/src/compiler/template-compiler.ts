@@ -1011,7 +1011,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (isMarker(el)) {
         template = context.t();
         appendManyToTemplate(template, [
-          context.h(MARKER_NODE_NAME),
+          context._comment(MARKER_NODE_NAME),
           context._comment(auStartComment),
           context._comment(auEndComment),
         ]);
@@ -1037,7 +1037,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
       let slotTemplate: Node | Element | DocumentFragment;
-      let marker: HTMLElement;
+      let marker: Comment;
       let projectionCompilationContext: CompilationContext;
       let j = 0, jj = 0;
       // 4.1.1.1.
@@ -1195,7 +1195,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // but it's only for the purpose of creating a marker,
         // so it's just an optimization hack
         // marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-        marker = context.h(MARKER_NODE_NAME);
+        marker = context._comment(MARKER_NODE_NAME);
         appendManyToTemplate(template, [
           marker,
           context._comment(auStartComment),
@@ -1384,7 +1384,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (i = 0, ii = expressions.length; ii > i; ++i) {
         // foreach expression part, turn into a marker
         insertManyBefore(parent, node, [
-          context.h(MARKER_NODE_NAME),
+          context._comment(MARKER_NODE_NAME),
           // empty text node will not be cloned when doing fragment.cloneNode()
           // so give it an empty space instead
           context._text(' '),
@@ -1669,7 +1669,7 @@ export class TemplateCompiler implements ITemplateCompiler {
    * @internal
    */
   private _markAsTarget<T extends Element>(el: T, context: CompilationContext): T {
-    insertBefore(el.parentNode!, context.h(MARKER_NODE_NAME), el);
+    insertBefore(el.parentNode!, context._comment(MARKER_NODE_NAME), el);
     // el.classList.add('au');
     return el;
   }
@@ -1679,14 +1679,14 @@ export class TemplateCompiler implements ITemplateCompiler {
    *
    * @internal
    */
-  private _replaceByMarker(node: Node, context: CompilationContext): HTMLElement {
+  private _replaceByMarker(node: Node, context: CompilationContext): Comment {
     if (isMarker(node)) {
-      return node as HTMLElement;
+      return node as Comment;
     }
     // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
     // const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-    const marker = context.h(MARKER_NODE_NAME);
+    const marker = context._comment(MARKER_NODE_NAME);
     // insertBefore(parent, marker, node);
     insertManyBefore(parent, node, [
       marker,
@@ -1699,12 +1699,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 // let nextSibling: Node | null;
-const MARKER_NODE_NAME = 'AU-M';
+const MARKER_NODE_NAME = 'au-m';
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
 const auStartComment = 'au-start';
 const auEndComment = 'au-end';
 const isMarker = (el: Node): boolean =>
-  el.nodeName === MARKER_NODE_NAME;
+  el.nodeValue === MARKER_NODE_NAME;
     // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auStartComment
     // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auEndComment;
 // const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;

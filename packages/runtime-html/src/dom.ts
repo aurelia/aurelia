@@ -5,7 +5,7 @@ import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
-import { markerToTarget } from './utilities-dom';
+import { createError } from './utilities';
 
 export class Refs {
   [key: string]: IHydratedController | undefined;
@@ -246,26 +246,38 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
   ) {
-    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
+    this.f = fragment;
+    const targets: Node[] = this.t = [];
+    let current: Node | void | null = fragment.firstChild;
+    let marker: Node | null;
+    let locationStart: Comment;
     let i = 0;
-    let ii = targetNodeList.length;
-    // let target: Element;
-    // eslint-disable-next-line
-    let targets = this.t = Array(ii);
-
-    while (ii > i) {
-      // eagerly convert all markers to RenderLocations (otherwise the renderer
-      // will do it anyway) and store them in the target list (since the comments
-      // can't be queried)
-      //
-      // note the renderer will still call this method, but it will just return the
-      // location if it sees it's already a location
-      targets[i] = markerToTarget(targetNodeList[i]);
-      ++i;
+    while (current != null) {
+      if (current.nodeType === 8 && current.nodeValue === 'au-m') {
+        marker = current;
+        current = marker.nextSibling!;
+        if (__DEV__ && current == null) {
+          throw markerMalformedError();
+        }
+        if (current.nodeType === 8) {
+          if (__DEV__ && current.nodeValue !== 'au-start') {
+            throw markerMalformedError();
+          }
+          (current = ((locationStart = current as Comment).nextSibling as IRenderLocation)).$start = locationStart;
+          if (__DEV__ && (current.nodeType !== 8 || current.nodeValue !== 'au-end')) {
+            throw markerMalformedError();
+          }
+        }
+        targets[targets.length] = current;
+        marker.parentNode!.removeChild(marker);
+      }
+      // depth first query
+      current = current.firstChild ?? current.nextSibling ?? current.parentNode?.nextSibling;
     }
 
     const childNodeList = fragment.childNodes;
-    const childNodes = this.childNodes = Array(ii = childNodeList.length) as Node[];
+    const ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii) as Node[];
     i = 0;
     while (ii > i) {
       childNodes[i] = childNodeList[i];
@@ -516,3 +528,8 @@ export const registerHostNode = (container: IContainer, platform: IPlatform, hos
   );
   return container;
 };
+
+const markerMalformedError = () =>
+  __DEV__
+    ? createError(`AURxxxx: marker is malformed.`)
+    : createError(`AURxxxx`);

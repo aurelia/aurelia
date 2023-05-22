@@ -68,6 +68,26 @@ export const appendManyToTemplate = (parent: HTMLTemplateElement, children: Arra
 };
 
 /** @internal */
+export const validateTarget = (node: Node) => {
+  let locationStart: Comment;
+
+  if (node == null) {
+    throw markerMalformedError();
+  }
+
+  if (node.nodeType === /* Comment */8) {
+    if (node.textContent === 'au-start') {
+      locationStart = node as Comment;
+      if (locationStart.nextSibling?.nodeType !== 8 || locationStart.nextSibling?.nodeValue !== 'au-end') {
+        throw markerMalformedError();
+      }
+    } else {
+      throw markerMalformedError();
+    }
+  }
+};
+
+/** @internal */
 export const markerToTarget = (el: Element) => {
   const nextSibling = el.nextSibling;
   let locationStart: Comment;

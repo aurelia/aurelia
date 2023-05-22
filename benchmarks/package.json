@@ -2,11 +2,11 @@
   "scripts": {
     "build": "npm run build:local && npm run build:latest",
     "build:local": "cd local && npm run build",
-    "build:latest": "cd latest && npm run build",
+    "build:latest": "cd latest && npm i && npm run build",
     "build:kernel": "cd ../packages/kernel && npm run build",
     "build:runtime": "cd ../packages/runtime && npm run build",
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",
-    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
+    "build:deps": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
     "bench": "npm run bench rerender1k && npm run bench:startup1k && npm run bench:update1k",
     "bench:rerender10k": "tach --config rerender-10k.json --json-file results/rerender-10k.json",
     "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",

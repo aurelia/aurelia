@@ -2,18 +2,19 @@ import { Constructable, ILogger } from '@aurelia/kernel';
 import {
   bindable,
   customElement,
-  ICustomElementViewModel,
-  IHydratedController,
-  ICustomElementController,
+  CustomElement,
   ICompiledCustomElementController,
-  CustomElement
+  ICustomElementController,
+  ICustomElementViewModel,
+  IHydratedController
 } from '@aurelia/runtime-html';
 
-import type { ViewportAgent } from '../viewport-agent';
-import { IRouteContext } from '../route-context';
+import { traceEvent, TraceEvents } from '../events';
 import { defaultViewportName, IViewportInstruction } from '../instructions';
-import { type RouteNode } from '../route-tree';
 import { FallbackFunction, Routeable } from '../options';
+import { IRouteContext } from '../route-context';
+import { type RouteNode } from '../route-tree';
+import type { ViewportAgent } from '../viewport-agent';
 
 export interface IViewport {
   readonly name: string;
@@ -35,12 +36,12 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   private controller: ICustomElementController = (void 0)!;
 
   public constructor(
-    @ILogger private readonly logger: ILogger,
+    @ILogger private readonly _logger: ILogger,
     @IRouteContext private readonly ctx: IRouteContext,
   ) {
-    this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
+    this._logger = _logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
 
-    this.logger.trace('constructor()');
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpCreated);
   }
 
   /** @internal */
@@ -53,26 +54,26 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   public hydrated(controller: ICompiledCustomElementController): void {
-    this.logger.trace('hydrated()');
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpHydrated);
 
     this.controller = controller as ICustomElementController;
     this.agent = this.ctx.registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    this.logger.trace('attaching()');
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpAttaching);
 
     return this.agent._activateFromViewport(initiator, this.controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    this.logger.trace('detaching()');
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpDetaching);
 
     return this.agent._deactivateFromViewport(initiator, this.controller);
   }
 
   public dispose(): void {
-    this.logger.trace('dispose()');
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpDispose);
 
     this.ctx.unregisterViewport(this);
     this.agent._dispose();

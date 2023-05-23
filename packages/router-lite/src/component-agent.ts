@@ -1,16 +1,17 @@
 import { ILogger } from '@aurelia/kernel';
-import type { ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import type { ICustomElementController, ICustomElementViewModel, IHydratedController, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import type { RouteNode } from './route-tree';
-import { IRouteContext } from './route-context';
+import { TraceEvents, traceEvent } from './events';
 import {
-  Params,
   NavigationInstruction,
+  Params,
   ViewportInstructionTree
 } from './instructions';
+import type { IRouteConfig, RouterOptions } from './options';
+import { IRouteContext } from './route-context';
+import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import { Batch } from './util';
-import type { RouterOptions, IRouteConfig } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
@@ -48,7 +49,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   ) {
     this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
-    this._logger.trace(`constructor()`);
+    if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caCreated);
 
     const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
     this._canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
@@ -64,11 +65,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      this._logger.trace(`activate() - initial`);
+      if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caActivateSelf);
       return this.controller.activate(this.controller, parent);
     }
 
-    this._logger.trace(`activate()`);
+    if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.activate(initiator, parent);
   }
@@ -76,18 +77,18 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      this._logger.trace(`deactivate() - initial`);
+      if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caDeactivateSelf);
       return this.controller.deactivate(this.controller, parent);
     }
 
-    this._logger.trace(`deactivate()`);
+    if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.deactivate(initiator, parent);
   }
 
   /** @internal */
   public _dispose(): void {
-    this._logger.trace(`dispose()`);
+    if(__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.caDispose);
 
     this.controller.dispose();
   }

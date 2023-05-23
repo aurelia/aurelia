@@ -1,33 +1,29 @@
 {
-  "name": "au-parcel-ts",
+  "name": "@__e2e__/hmr-parcel",
+  "license": "MIT",
+  "private": true,
   "description": "An Aurelia 2 client application with Parcel bundler.",
   "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "???"
   },
-  "license": "UNLICENSED",
   "dependencies": {
     "aurelia": "2.0.0-beta.6",
     "@aurelia/router": "2.0.0-beta.6"
   },
   "devDependencies": {
-    "eslint": "^8.30.0",
     "@aurelia/testing": "2.0.0-beta.6",
-    "htmlhint": "^1.1.4",
     "@aurelia/parcel-transformer": "2.0.0-beta.6",
     "@parcel/transformer-typescript-tsc": "^2.8.3",
     "@parcel/transformer-inline-string": "^2.8.3",
     "parcel": "^2.8.3",
-    "@types/node": "^18.11.18",
-    "typescript": "^4.9.4",
-    "tslib": "^2.4.1",
-    "@typescript-eslint/eslint-plugin": "^5.47.1",
-    "@typescript-eslint/parser": "^5.47.1"
+    "typescript": "5.0.2",
+    "tslib": "^2.4.1"
   },
   "scripts": {
     "start": "npm run dev",
-    "dev": "parcel -p 9009",
+    "dev": "parcel -p 9009 --no-cache",
     "test:e2e": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9009 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",

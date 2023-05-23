@@ -3871,7 +3871,8 @@ describe('router-lite/hook-tests.spec.ts', function () {
           it(`error thrown from ${hook} - grand-child`, async function () {
             const hookSpec = HookSpecs.create(ticks);
             @route(['', 'gc-11'])
-            @customElement({ name: 'gc-11', template: `
+            @customElement({
+              name: 'gc-11', template: `
             <a href="../gc-11"></a>
             <a href="../gc-12"></a>
             <a href="../gc-13"></a>
@@ -3880,7 +3881,8 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../../p2/gc-23"></a>
             gc-11` })
             class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-            @customElement({ name: 'gc-12', template: `
+            @customElement({
+              name: 'gc-12', template: `
             <a href="../gc-11"></a>
             <a href="../gc-12"></a>
             <a href="../gc-13"></a>
@@ -3900,7 +3902,8 @@ describe('router-lite/hook-tests.spec.ts', function () {
             }
 
             @route(['', 'gc-21'])
-            @customElement({ name: 'gc-21', template: `
+            @customElement({
+              name: 'gc-21', template: `
             <a href="../../p1/gc-11"></a>
             <a href="../../p1/gc-12"></a>
             <a href="../../p1/gc-13"></a>
@@ -3909,7 +3912,8 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../gc-23"></a>
             gc-21` })
             class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
-            @customElement({ name: 'gc-22', template: `
+            @customElement({
+              name: 'gc-22', template: `
             <a href="../../p1/gc-11"></a>
             <a href="../../p1/gc-12"></a>
             <a href="../../p1/gc-13"></a>
@@ -4279,6 +4283,538 @@ describe('router-lite/hook-tests.spec.ts', function () {
               assert.fail('expected error');
             } catch { /* noop */ }
             assert.html.textContent(host, 'ba', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
+
+            await tearDown();
+          });
+        }
+      });
+
+      describe('parentsiblings-childsiblings', function () {
+        function createCes(hook: string) {
+          const hookSpec = HookSpecs.create(ticks);
+          @customElement({ name: 'gc-11', template: 'gc-11' })
+          class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-12', template: 'gc-12' })
+          class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-13', template: 'gc-13' })
+          class Gc13 extends TestVM {
+            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                throw new Error(`Synthetic test error in ${hook}`);
+              });
+            }
+          }
+          @customElement({ name: 'gc-21', template: 'gc-21' })
+          class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-22', template: 'gc-22' })
+          class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          @customElement({ name: 'gc-23', template: 'gc-23' })
+          class Gc23 extends TestVM {
+            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                throw new Error(`Synthetic test error in ${hook}`);
+              });
+            }
+          }
+
+          @route({
+            routes: [
+              { path: 'gc-11', component: Gc11 },
+              { path: 'gc-12', component: Gc12 },
+              { path: 'gc-13', component: Gc13 },
+            ]
+          })
+          @customElement({ name: 'p-1', template: 'p1 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
+          class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'gc-21', component: Gc21 },
+              { path: 'gc-22', component: Gc22 },
+              { path: 'gc-23', component: Gc23 },
+            ]
+          })
+          @customElement({ name: 'p-2', template: 'p2 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
+          class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route({
+            routes: [
+              { path: 'p1', component: P1 },
+              { path: 'p2', component: P2 },
+            ]
+          })
+          @customElement({
+            name: 'my-app',
+            template: '<au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>'
+          })
+          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          return Root;
+        }
+
+        type Phase = 'round#2' | 'round#4';
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: Phase) => any[]]> {
+          yield [
+            'canLoad',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'canUnload'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'), // <-- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+
+          yield [
+            'loading',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'unloading'),
+
+                  ...$(phase, ['gc-13'], ticks, 'loading'), // <-- this is the error
+
+                  // dispose old stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load old stuffs
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'), // <-- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+
+          yield [
+            'binding',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'unloading'),
+
+                  ...$(phase, ['gc-13'], ticks, 'loading'),
+                  ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'binding'), // <-- this is the error
+
+                  // dispose old stuffs
+                  ...$(phase, ['gc-11'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load old stuffs
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
+                  ...$(phase, ['gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-23'], ticks, 'binding'), // <- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-23'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+
+          yield [
+            'bound',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'unloading'),
+
+                  ...$(phase, ['gc-13'], ticks, 'loading'),
+                  ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'binding', 'bound'), // <-- this is the error
+
+                  // dispose old stuffs
+                  ...$(phase, ['gc-11'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load old stuffs
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
+                  ...$(phase, ['gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-23'], ticks, 'binding', 'bound'), // <- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-23'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+
+          yield [
+            'attaching',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'unloading'),
+
+                  ...$(phase, ['gc-13'], ticks, 'loading'),
+                  ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'binding', 'bound', 'attaching'), // <-- this is the error
+
+                  // dispose old stuffs
+                  ...$(phase, ['gc-11', 'gc-13', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load old stuffs
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
+                  ...$(phase, ['gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-23'], ticks, 'binding', 'bound', 'attaching'), // <- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-23', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+
+          yield [
+            'attached',
+            (phase: Phase) => {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),
+                  ...$(phase, ['gc-13'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12'], ticks, 'unloading'),
+
+                  ...$(phase, ['gc-13'], ticks, 'loading'),
+                  ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'binding', 'bound', 'attaching', 'attached'), // <-- this is the error
+
+                  // dispose old stuffs
+                  ...$(phase, ['gc-11', 'gc-13', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load old stuffs
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-22'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4': return [
+                  ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2', 'gc-12', 'gc-11', 'p-1'], ticks, 'unloading'),
+                  ...$(phase, ['p-1', 'p-2'], ticks, 'loading'),
+
+                  // dispose the old stuffs
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'detaching'),
+                  ...$(phase, ['gc-22', 'gc-21', 'p-2'], ticks, 'unbinding'),
+                  ...$(phase, ['p-2', 'gc-22', 'gc-21'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'detaching'),
+                  ...$(phase, ['gc-12', 'gc-11', 'p-1'], ticks, 'unbinding'),
+                  ...$(phase, ['p-1', 'gc-12', 'gc-11'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+
+                  // start loading new stuffs
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'loading'),
+                  ...$(phase, ['gc-11', 'gc-12'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
+                  ...$(phase, ['gc-21', 'gc-23'], ticks, 'binding', 'bound', 'attaching', 'attached'), // <- this is the error
+
+                  // dispose the new stuffs
+                  ...$(phase, ['gc-11', 'gc-12', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21', 'gc-23', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+
+                  // load the old stuffs
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'loading'),
+                  ...$(phase, ['p-2', 'p-1'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'loading'),
+                  ...$(phase, ['gc-22', 'gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'canLoad'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'loading'),
+                  ...$(phase, ['gc-12', 'gc-11'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+              }
+            }
+          ];
+        }
+
+        for (const [hook, getExpectedErrorLog] of getTestData()) {
+          it(`error thrown from ${hook}`, async function () {
+
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
+            const queue = platform.taskQueue;
+
+            // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
+            let phase = 'round#1';
+            await router.load('p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)');
+            assert.html.textContent(host, 'p1 gc-11gc-12 p2 gc-21gc-22', `${phase} - text`);
+
+            // load p1@$1/(gc-11@$1+gc-13@$2)+p2@$2/(gc-21@$1+gc-22@$2)
+            phase = 'round#2';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            try {
+              await router.load('p1@$1/(gc-11@$1+gc-13@$2)+p2@$2/(gc-21@$1+gc-22@$2)');
+              assert.fail(`${phase} - expected error`);
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p1 gc-11gc-12 p2 gc-21gc-22', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
+
+            // load p2@$1/(gc-22@$1+gc-21@$2)+p1@$2/(gc-12@$1+gc-11@$2)
+            phase = 'round#3';
+            await router.load('p2@$1/(gc-22@$1+gc-21@$2)+p1@$2/(gc-12@$1+gc-11@$2)');
+            assert.html.textContent(host, 'p2 gc-22gc-21 p1 gc-12gc-11', `${phase} - text`);
+
+            // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-23@$2)
+            phase = 'round#4';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            try {
+              await router.load('p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-23@$2)');
+              assert.fail(`${phase} - expected error`);
+            } catch { /* noop */ }
+            await waitForQueuedTasks(queue);
+            assert.html.textContent(host, 'p2 gc-22gc-21 p1 gc-12gc-11', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
 
             await tearDown();

@@ -3423,7 +3423,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
       describe('parent-child', function () {
 
-        function* getRootTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) => any[]]> {
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) => any[]]> {
           yield [
             'canLoad',
             function getExpectedErrorLog(phase: string, currentParent: string, currentChild: string, nextParent: string, nextChild: string) {
@@ -3606,7 +3606,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             }
           ];
         }
-        for (const [hook, getExpectedErrorLog] of getRootTestData()) {
+        for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook} - root`, async function () {
             const hookSpec = HookSpecs.create(ticks);
             @route(['', 'gc-11'])
@@ -3868,7 +3868,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             await tearDown();
           });
 
-          it(`error thrown from ${hook} - grand child`, async function () {
+          it(`error thrown from ${hook} - grand-child`, async function () {
             const hookSpec = HookSpecs.create(ticks);
             @route(['', 'gc-11'])
             @customElement({ name: 'gc-11', template: `
@@ -4011,6 +4011,275 @@ describe('router-lite/hook-tests.spec.ts', function () {
             await waitForQueuedTasks(queue);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
+
+            await tearDown();
+          });
+        }
+      });
+
+      describe('siblings', function () {
+
+        function createCes(hook: string) {
+          const hookSpec = HookSpecs.create(ticks);
+          @route('a')
+          @customElement({ name: 'ce-a', template: 'a' })
+          class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route('b')
+          @customElement({ name: 'ce-b', template: 'b' })
+          class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          @route('c')
+          @customElement({ name: 'ce-c', template: 'c' })
+          class C extends TestVM {
+            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public [hook](...args: any[]): any {
+              return onResolve(super[hook](...args), () => {
+                throw new Error(`Synthetic test error in ${hook}`);
+              });
+            }
+          }
+
+          @route({
+            routes: [A, B, C]
+          })
+          @customElement({
+            name: 'my-app',
+            template: `
+            <a href="a+b"></a>
+            <a href="a+c"></a>
+            <a href="b+a"></a>
+            <a href="c+b"></a>
+            <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>`
+          })
+          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+
+          return Root;
+        }
+
+        type Phase = 'round#2' | 'round#4';
+        function* getTestData(): Generator<[hook: HookName, getExpectedErrorLog: (phase: Phase) => any[]]> {
+          yield [
+            'canLoad',
+            function getExpectedErrorLog(phase: Phase) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                  ];
+              }
+            }
+          ];
+          yield [
+            'loading',
+            function getExpectedErrorLog(phase: Phase) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-b'], ticks, 'unloading'),
+                  ...$(phase, ['ce-c'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'dispose'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'unloading'),
+                    ...$(phase, ['ce-c'], ticks, 'loading'),
+                    ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-c'], ticks, 'dispose'),
+                    ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'loading'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ];
+              }
+            }
+          ];
+          yield [
+            'binding',
+            function getExpectedErrorLog(phase: Phase) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-b'], ticks, 'unloading'),
+                  ...$(phase, ['ce-c'], ticks, 'loading'),
+                  ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'binding'),
+                  ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'dispose'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'unloading'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'loading'),
+                    ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-c'], ticks, 'binding', 'dispose'),
+                    ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-b'], ticks, 'dispose'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'loading'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ];
+              }
+            }
+          ];
+          yield [
+            'bound',
+            function getExpectedErrorLog(phase: Phase) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-b'], ticks, 'unloading'),
+                  ...$(phase, ['ce-c'], ticks, 'loading'),
+                  ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'binding', 'bound'),
+                  ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'unloading'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'loading'),
+                    ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-b'], ticks, 'dispose'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'loading'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ];
+              }
+            }
+          ];
+          yield [
+            'attaching',
+            function getExpectedErrorLog(phase: string) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-b'], ticks, 'unloading'),
+                  ...$(phase, ['ce-c'], ticks, 'loading'),
+                  ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching'),
+                  ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'unloading'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'loading'),
+                    ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching', 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-b'], ticks, 'dispose'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'loading'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ];
+              }
+            }
+          ];
+          yield [
+            'attached',
+            function getExpectedErrorLog(phase: Phase) {
+              switch (phase) {
+                case 'round#2': return [
+                  ...$(phase, ['ce-b'], ticks, 'canUnload'),
+                  ...$(phase, ['ce-c'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-b'], ticks, 'unloading'),
+                  ...$(phase, ['ce-c'], ticks, 'loading'),
+                  ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
+                  ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                ];
+                case 'round#4':
+                  return [
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canUnload'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'unloading'),
+                    ...$(phase, ['ce-c', 'ce-b'], ticks, 'loading'),
+                    ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
+                    ...$(phase, ['ce-b'], ticks, 'dispose'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'canLoad'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'loading'),
+                    ...$(phase, ['ce-b', 'ce-a'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ];
+              }
+            }
+          ];
+        }
+
+        for (const [hook, getExpectedErrorLog] of getTestData()) {
+          it(`error thrown from ${hook}`, async function () {
+            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
+
+            const queue = platform.taskQueue;
+            const [ab, ac, ba, cb] = Array.from(host.querySelectorAll('a'));
+
+            let phase = 'round#1';
+            await click(ab, queue);
+            assert.html.textContent(host, 'ab', `${phase} - text`);
+
+            phase = 'round#2';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(ac, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            assert.html.textContent(host, 'ab', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
+
+            phase = 'round#3';
+            await click(ba, queue);
+            assert.html.textContent(host, 'ba', `${phase} - text`);
+
+            phase = 'round#4';
+            mgr.fullNotifyHistory.length = 0;
+            mgr.setPrefix(phase);
+            await click(cb, queue);
+            try {
+              await router['currentTr'].promise;
+              assert.fail('expected error');
+            } catch { /* noop */ }
+            assert.html.textContent(host, 'ba', `${phase} - text`);
+            verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
 
             await tearDown();
           });

@@ -7,6 +7,7 @@
     "packages/__tests__",
     "packages/__e2e__/hmr-vite",
     "packages/__e2e__/hmr-webpack",
+    "packages/__e2e__/hmr-parcel",
     "packages/__e2e__/i18n",
     "packages/__e2e__/router",
     "packages/__e2e__/router-lite",

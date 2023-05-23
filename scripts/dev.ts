@@ -41,6 +41,7 @@ const validE2e = [
   'router-lite',
   'hmr-vite',
   'hmr-webpack',
+  'hmr-parcel',
   'select-safari16',
   'i18n',
   'ui-virtualization',

@@ -110,7 +110,7 @@ const validToolingPackages = fs.readdirSync(path.resolve(__dirname, '../packages
     p !== '__tests__'
     && p !== 'aot'
     && fs.statSync(path.resolve(__dirname, '../packages-tooling', p)).isDirectory()
-  )
+  );
 // const a = [
 //   'plugin-conventions',
 //   'plugin-gulp',

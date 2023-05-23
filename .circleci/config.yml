@@ -815,6 +815,12 @@ workflows:
       #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_hmr_parcel
+          path: "packages/__e2e__/hmr-parcel"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
           path: "packages/__e2e__/hmr-vite"
           requires:
@@ -889,6 +895,7 @@ workflows:
             - test_toolings
             # - lint_packages
             - webpack_conventions_ts
+            - e2e_hmr_parcel
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
@@ -972,6 +979,12 @@ workflows:
 
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_hmr_parcel
+          path: "packages/__e2e__/hmr-parcel"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
           path: "packages/__e2e__/hmr-vite"
           requires:
@@ -1022,6 +1035,7 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
+            - e2e_hmr_parcel
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite

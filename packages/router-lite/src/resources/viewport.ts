@@ -1,4 +1,4 @@
-import { Constructable, ILogger } from '@aurelia/kernel';
+import { Constructable, ILogger, resolve } from '@aurelia/kernel';
 import {
   bindable,
   customElement,
@@ -35,14 +35,10 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   private agent: ViewportAgent = (void 0)!;
   private controller: ICustomElementController = (void 0)!;
 
-  public constructor(
-    @ILogger private readonly _logger: ILogger,
-    @IRouteContext private readonly ctx: IRouteContext,
-  ) {
-    this._logger = _logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
-
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpCreated);
-  }
+  /** @internal */
+  private readonly _ctx: IRouteContext = resolve(IRouteContext);
+  /** @internal */
+  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx.friendlyPath}>`));
 
   /** @internal */
   public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
@@ -57,7 +53,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpHydrated);
 
     this.controller = controller as ICustomElementController;
-    this.agent = this.ctx.registerViewport(this);
+    this.agent = this._ctx.registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
@@ -75,7 +71,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   public dispose(): void {
     if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpDispose);
 
-    this.ctx.unregisterViewport(this);
+    this._ctx.unregisterViewport(this);
     this.agent._dispose();
     this.agent = (void 0)!;
   }
@@ -102,7 +98,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
         }
       }
     }
-    return `VP(ctx:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
+    return `VP(ctx:'${this._ctx.friendlyPath}',${propStrings.join(',')})`;
   }
 }
 

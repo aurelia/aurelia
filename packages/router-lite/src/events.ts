@@ -8,11 +8,10 @@ _START_CONST_ENUM();
  */
 export const enum TraceEvents {
   // viewport
-  vpCreated = 3300,
-  vpHydrated = 3301,
-  vpAttaching = 3302,
-  vpDetaching = 3303,
-  vpDispose = 3304,
+  vpHydrated = 3300,
+  vpAttaching = 3301,
+  vpDetaching = 3302,
+  vpDispose = 3303,
 
   // component agent
   caCreated = 3310,
@@ -21,11 +20,14 @@ export const enum TraceEvents {
   caDeactivateSelf = 3313,
   caDeactivateInitiator = 3314,
   caDispose = 3315,
+  caCanUnload = 3316,
+  caCanLoad = 3317,
+  caUnloading = 3318,
+  caLoading = 3319,
 }
 _END_CONST_ENUM();
 
 const traceEventsMap: Record<TraceEvents, string> = {
-  [TraceEvents.vpCreated]: 'created',
   [TraceEvents.vpHydrated]: 'hydrated',
   [TraceEvents.vpAttaching]: 'attaching',
   [TraceEvents.vpDetaching]: 'detaching',
@@ -37,6 +39,10 @@ const traceEventsMap: Record<TraceEvents, string> = {
   [TraceEvents.caDeactivateSelf]: 'deactivating - self',
   [TraceEvents.caDeactivateInitiator]: 'deactivating - via initiator',
   [TraceEvents.caDispose]: 'disposing',
+  [TraceEvents.caCanUnload]: 'canUnload(next:%s) - invoking %s hooks',
+  [TraceEvents.caCanLoad]: 'canLoad(next:%s) - invoking %s hooks',
+  [TraceEvents.caUnloading]: 'unloading(next:%s) - invoking %s hooks',
+  [TraceEvents.caLoading]: 'loading(next:%s) - invoking %s hooks',
 };
 
 /** @internal */

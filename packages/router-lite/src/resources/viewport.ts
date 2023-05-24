@@ -9,7 +9,7 @@ import {
   IHydratedController
 } from '@aurelia/runtime-html';
 
-import { traceEvent, TraceEvents } from '../events';
+import { traceEvent, Events } from '../events';
 import { defaultViewportName, IViewportInstruction } from '../instructions';
 import { FallbackFunction, Routeable } from '../options';
 import { IRouteContext } from '../route-context';
@@ -50,26 +50,26 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   public hydrated(controller: ICompiledCustomElementController): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpHydrated);
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.vpHydrated);
 
     this.controller = controller as ICustomElementController;
     this.agent = this._ctx.registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpAttaching);
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.vpAttaching);
 
     return this.agent._activateFromViewport(initiator, this.controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpDetaching);
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.vpDetaching);
 
     return this.agent._deactivateFromViewport(initiator, this.controller);
   }
 
   public dispose(): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, TraceEvents.vpDispose);
+    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.vpDispose);
 
     this._ctx.unregisterViewport(this);
     this.agent._dispose();

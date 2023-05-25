@@ -7,6 +7,7 @@ import { ILogger } from '@aurelia/kernel';
  * - location manager: 3100 - 3149
  * - route-context   : 3150 - 3199
  * - router-events   : 3200 - 3249
+ * - router          : 3250 - 3299
  */
 
 _START_CONST_ENUM();
@@ -14,13 +15,13 @@ _START_CONST_ENUM();
  * @internal
  */
 export const enum Events {
-  // viewport
+  // #region viewport
   vpHydrated = 3300,
   vpAttaching = 3301,
   vpDetaching = 3302,
   vpDispose = 3303,
-
-  // component agent
+  // #endregion
+  // #region component agent
   caCreated = 3050,
   caActivateSelf = 3051,
   caActivateInitiator = 3052,
@@ -31,8 +32,8 @@ export const enum Events {
   caCanLoad = 3057,
   caUnloading = 3058,
   caLoading = 3059,
-
-  // location manager
+  // #endregion
+  // #region location manager
   lmBaseHref = 3100,
   lmStartListening = 3101,
   lmStopListening = 3102,
@@ -40,8 +41,8 @@ export const enum Events {
   lmReplaceState = 3104,
   lmPushStateNonSerializable = 3105,
   lmReplaceStateNonSerializable = 3106,
-
-  // route context
+  // #endregion
+  // #region route context
   rcCreated = 3150,
   rcNodeChanged = 3151,
   rcResolveNullishContext = 3152,
@@ -59,21 +60,43 @@ export const enum Events {
   rcRecognizePath = 3164,
   rcAddRoute = 3165,
   rcEagerPathGenerationFailed = 3166,
-
-  // router events
+  // #endregion
+  // #region router events
   rePublishingEvent = 3200,
   reInvokingSubscriber = 3201,
+  // #endregion
+  // #region router
+  rtrLoading = 3250,
+  rtrIsActive = 3251,
+  rtrResolvingRcExisting = 3252,
+  rtrResolvingRcNew = 3253,
+  rtrIgnoringIdenticalNav = 3254,
+  rtrReusingPromise = 3255,
+  rtrSchedulingTr = 3256,
+  rtrTrSucceeded = 3257,
+  rtrRunBegin = 3258,
+  rtrRunCancelled = 3259,
+  rtrRunVitCompile = 3260,
+  rtrRunCanUnload = 3261,
+  rtrRunCanLoad = 3262,
+  rtrRunUnloading = 3263,
+  rtrRunLoading = 3264,
+  rtrRunSwapping = 3265,
+  rtrRunFinalizing = 3266,
+  rtrCancelNavigationStart = 3267,
+  rtrCancelNavigationCompleted = 3268,
 }
 _END_CONST_ENUM();
 
 const eventMessageMap: Record<Events, string> = {
-  // viewport
+  // #region viewport
   [Events.vpHydrated]: 'hydrated',
   [Events.vpAttaching]: 'attaching',
   [Events.vpDetaching]: 'detaching',
   [Events.vpDispose]: 'dispose',
+  // #endregion
 
-  // component agent
+  // #region component agent
   [Events.caCreated]: 'created',
   [Events.caActivateSelf]: 'activating - self',
   [Events.caActivateInitiator]: 'activating - via initiator',
@@ -84,8 +107,9 @@ const eventMessageMap: Record<Events, string> = {
   [Events.caCanLoad]: 'canLoad(next:%s) - invoking %s hooks',
   [Events.caUnloading]: 'unloading(next:%s) - invoking %s hooks',
   [Events.caLoading]: 'loading(next:%s) - invoking %s hooks',
+  // #endregion
 
-  // location manager
+  // #region location manager
   [Events.lmBaseHref]: 'baseHref set to path: %s',
   [Events.lmStartListening]: 'starting listening to %s',
   [Events.lmStopListening]: 'stopping listening to %s',
@@ -93,8 +117,9 @@ const eventMessageMap: Record<Events, string> = {
   [Events.lmReplaceState]: 'replacing history state: %s (title: \'%s\', url: \'%s\')',
   [Events.lmPushStateNonSerializable]: 'pushing to history state: NOT_SERIALIZABLE (title: \'%s\', url: \'%s\')',
   [Events.lmReplaceStateNonSerializable]: 'replacing history state: NOT_SERIALIZABLE (title: \'%s\', url: \'%s\')',
+  // #endregion
 
-  // route context
+  // #region route context
   [Events.rcCreated]: 'created',
   [Events.rcNodeChanged]: 'Node changed from %s to %s',
   [Events.rcResolveNullishContext]: 'The given context is nullish (%s); resolving to root RouteContext',
@@ -112,10 +137,34 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcRecognizePath]: 'Recognizing path: %s',
   [Events.rcAddRoute]: 'Adding route: %s',
   [Events.rcEagerPathGenerationFailed]: 'Unable to eagerly generate path for %s; reasons: %s',
+  // #endregion
 
-  // router events
+  // #region router events
   [Events.rePublishingEvent]: 'Publishing event: %s',
   [Events.reInvokingSubscriber]: 'Invoking subscriber #%s (event: %s)',
+  // #endregion
+
+  // #region router
+  [Events.rtrLoading]: 'Loading instruction: %s',
+  [Events.rtrIsActive]: 'Checking if the route %s is active in context %s',
+  [Events.rtrResolvingRcExisting]: 'Resolving existing RouteContext for %s',
+  [Events.rtrResolvingRcNew]: 'Creating new RouteContext for %s',
+  [Events.rtrIgnoringIdenticalNav]: 'Ignoring navigation triggered by \'%s\' because it is the same URL as the previous navigation which was triggered by \'api\'.',
+  [Events.rtrReusingPromise]: 'Reusing promise/resolve/reject from the previously failed transition %s',
+  [Events.rtrSchedulingTr]: 'Scheduling transition: %s',
+  [Events.rtrTrSucceeded]: 'Transition succeeded: %s',
+  [Events.rtrRunBegin]: 'Running transition: %s',
+  [Events.rtrRunCancelled]: 'Aborting transition %s because a new transition was queued in response to the NavigationStartEvent',
+  [Events.rtrRunVitCompile]: 'Compiling viewport instructions tree %s',
+  [Events.rtrRunCanUnload]: 'invoking canUnload on %s nodes',
+  [Events.rtrRunCanLoad]: 'invoking canLoad on %s nodes',
+  [Events.rtrRunUnloading]: 'invoking unloading on %s nodes',
+  [Events.rtrRunLoading]: 'invoking loading on %s nodes',
+  [Events.rtrRunSwapping]: 'invoking swapping on %s nodes',
+  [Events.rtrRunFinalizing]: 'finalizing transition',
+  [Events.rtrCancelNavigationStart]: 'navigation %s',
+  [Events.rtrCancelNavigationCompleted]: 'navigation %s; finished.',
+  // #endregion
 };
 
 /**

@@ -1,5 +1,5 @@
 import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, IResolver } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, IResolver, resolve } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -13,6 +13,7 @@ import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { isPartialViewportInstruction } from './validation';
+import { Events, debug, trace } from './events';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -108,10 +109,10 @@ export class Router {
   private get ctx(): RouteContext {
     let ctx = this._ctx;
     if (ctx === null) {
-      if (!this.container.has(IRouteContext, true)) {
+      if (!this._container.has(IRouteContext, true)) {
         throw new Error(`Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?`);
       }
-      ctx = this._ctx = this.container.get(IRouteContext);
+      ctx = this._ctx = this._container.get(IRouteContext);
     }
     return ctx;
   }
@@ -184,17 +185,16 @@ export class Router {
     return this._isNavigating;
   }
 
-  public constructor(
-    @IContainer private readonly container: IContainer,
-    @IPlatform private readonly p: IPlatform,
-    @ILogger private readonly logger: ILogger,
-    @IRouterEvents private readonly events: IRouterEvents,
-    @ILocationManager private readonly locationMgr: ILocationManager,
-    @IRouterOptions public readonly options: Readonly<RouterOptions>,
-  ) {
-    this.logger = logger.root.scopeTo('Router');
-    this.instructions = ViewportInstructionTree.create('', options);
-    container.registerResolver(Router, Registration.instance(Router, this) as unknown as IResolver<Router>);
+  /** @internal */ private readonly _container: IContainer = resolve(IContainer);
+  /** @internal */ private readonly _p: IPlatform = resolve(IPlatform);
+  /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
+  /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
+  /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+  public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
+
+  public constructor() {
+    this.instructions = ViewportInstructionTree.create('', this.options);
+    this._container.registerResolver(Router, Registration.instance(Router, this) as unknown as IResolver<Router>);
   }
 
   /**
@@ -216,13 +216,13 @@ export class Router {
   public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
-    this.locationMgr.startListening();
-    this.locationChangeSubscription = this.events.subscribe('au:router:location-change', e => {
+    this._locationMgr.startListening();
+    this.locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
       // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
       // If the throttle limit is hit, then add a throttle config.
-      this.p.taskQueue.queueTask(() => {
+      this._p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
         const routerOptions = this.options;
@@ -238,12 +238,12 @@ export class Router {
     });
 
     if (!this.navigated && performInitialNavigation) {
-      return this.load(this.locationMgr.getPath(), { historyStrategy: 'replace' });
+      return this.load(this._locationMgr.getPath(), { historyStrategy: 'replace' });
     }
   }
 
   public stop(): void {
-    this.locationMgr.stopListening();
+    this._locationMgr.stopListening();
     this.locationChangeSubscription?.dispose();
   }
 
@@ -320,7 +320,7 @@ export class Router {
   public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean> {
     const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
-    this.logger.trace('load(instructions:%s)', instructions);
+    if (__DEV__) trace(this._logger, Events.rtrLoading, instructions);
 
     return this.enqueue(instructions, 'api', null, null);
   }
@@ -331,7 +331,7 @@ export class Router {
       ? instructionOrInstructions
       : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
 
-    this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
+    if (__DEV__) trace(this._logger, Events.rtrIsActive, instructions, ctx);
 
     return this.routeTree.contains(instructions, { matchEndpoint: false });
   }
@@ -356,7 +356,7 @@ export class Router {
     parentContext: IRouteContext | null,
     $rdConfig: RouteConfig | null,
   ): IRouteContext | Promise<IRouteContext> {
-    const logger = container.get(ILogger).scopeTo('RouteContext');
+    const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     // getRouteConfig is prioritized over the statically configured routes via @route decorator.
     return onResolve(
@@ -377,10 +377,10 @@ export class Router {
 
         let routeContext = routeConfigLookup.get(rdConfig);
         if (routeContext !== void 0) {
-          logger.trace(`returning existing RouteContext for %s`, rdConfig);
+          if (__DEV__) trace(logger, Events.rtrResolvingRcExisting, rdConfig);
           return routeContext;
         }
-        logger.trace(`creating new RouteContext for %s`, rdConfig);
+        if (__DEV__) trace(logger, Events.rtrResolvingRcNew, rdConfig);
 
         const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
@@ -405,7 +405,7 @@ export class Router {
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (typeof instructionOrInstructions === 'string') {
-      instructionOrInstructions = this.locationMgr.removeBaseHref(instructionOrInstructions);
+      instructionOrInstructions = this._locationMgr.removeBaseHref(instructionOrInstructions);
     }
 
     const isVpInstr = isPartialViewportInstruction(instructionOrInstructions);
@@ -449,11 +449,11 @@ export class Router {
     failedTr: Transition | null,
   ): boolean | Promise<boolean> {
     const lastTr = this.currentTr;
-    const logger = this.logger;
+    const logger = this._logger;
 
     if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
-      logger.debug(`Ignoring navigation triggered by '%s' because it is the same URL as the previous navigation which was triggered by 'api'.`, trigger);
+      if (__DEV__) debug(logger, Events.rtrIgnoringIdenticalNav, trigger);
       return true;
     }
 
@@ -467,7 +467,7 @@ export class Router {
     } else {
       // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
       // any previously failed transition that caused a recovering backwards navigation.
-      logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
+      if (__DEV__) debug(logger, Events.rtrReusingPromise, failedTr);
       promise = failedTr.promise!;
       resolve = failedTr.resolve!;
       reject = failedTr.reject!;
@@ -494,7 +494,7 @@ export class Router {
       error: void 0,
     });
 
-    logger.debug(`Scheduling transition: %s`, nextTr);
+    if (__DEV__) debug(logger, Events.rtrSchedulingTr, nextTr);
 
     if (!this._isNavigating) {
       // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
@@ -506,7 +506,7 @@ export class Router {
     }
 
     return nextTr.promise!.then(ret => {
-      logger.debug(`Transition succeeded: %s`, nextTr);
+      if (__DEV__) debug(logger, Events.rtrTrSucceeded, nextTr);
       return ret;
     }).catch(err => {
       logger.error(`Transition %s failed: %s`, nextTr, err);
@@ -514,7 +514,7 @@ export class Router {
         this.cancelNavigation(nextTr);
       } else {
         this._isNavigating = false;
-        this.events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
+        this._events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
         if (restorePrevRT) {
           this.cancelNavigation(nextTr);
         } else {
@@ -548,21 +548,22 @@ export class Router {
 
     this._isNavigating = true;
     let navigationContext = this.resolveContext(tr.options.context);
+    const logger = /*@__PURE__*/ this._logger.scopeTo('run()');
 
-    this.logger.trace(`run(tr:%s) - processing route`, tr);
+    if (__DEV__) trace(logger, Events.rtrRunBegin, tr);
 
-    this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
+    this._events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
     // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
     if (this.nextTr !== null) {
-      this.logger.debug(`run(tr:%s) - aborting because a new transition was queued in response to the NavigationStartEvent`, tr);
+      if (__DEV__) debug(logger, Events.rtrRunCancelled, tr);
       return this.run(this.nextTr);
     }
 
     tr.run(() => {
       const vit = tr.finalInstructions;
-      this.logger.trace(`run() - compiling route tree: %s`, vit);
+      if (__DEV__) trace(logger, Events.rtrRunVitCompile, vit);
 
       /**
        * Updating route tree:
@@ -587,7 +588,7 @@ export class Router {
       (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
       (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
 
-      const log = navigationContext.container.get(ILogger).scopeTo('RouteTree');
+      const log = /*@__PURE__*/ navigationContext.container.get(ILogger).scopeTo('RouteTree');
       if (vit.isAbsolute) {
         navigationContext = rootCtx;
       }
@@ -607,7 +608,7 @@ export class Router {
       const all = mergeDistinct(prev, next);
 
       Batch.start(b => {
-        this.logger.trace(`run() - invoking canUnload on ${prev.length} nodes`);
+        if (__DEV__) trace(logger, Events.rtrRunCanUnload, prev.length);
         for (const node of prev) {
           node.context.vpa._canUnload(tr, b);
         }
@@ -617,7 +618,7 @@ export class Router {
           this.cancelNavigation(tr);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking canLoad on ${next.length} nodes`);
+        if (__DEV__) trace(logger, Events.rtrRunCanLoad, next.length);
         for (const node of next) {
           node.context.vpa._canLoad(tr, b);
         }
@@ -627,22 +628,22 @@ export class Router {
           this.cancelNavigation(tr);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking unloading on ${prev.length} nodes`);
+        if (__DEV__) trace(logger, Events.rtrRunUnloading, prev.length);
         for (const node of prev) {
           node.context.vpa._unloading(tr, b);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking loading on ${next.length} nodes`);
+        if (__DEV__) trace(logger, Events.rtrRunLoading, next.length);
         for (const node of next) {
           node.context.vpa._loading(tr, b);
         }
       }).continueWith(b => {
-        this.logger.trace(`run() - invoking swap on ${all.length} nodes`);
+        if (__DEV__) trace(logger, Events.rtrRunSwapping, all.length);
         for (const node of all) {
           node.context.vpa._swap(tr, b);
         }
       }).continueWith(() => {
-        this.logger.trace(`run() - finalizing transition`);
+        if (__DEV__) trace(logger, Events.rtrRunFinalizing);
         // order doesn't matter for this operation
         all.forEach(function (node) {
           node.context.vpa._endTransition();
@@ -659,14 +660,14 @@ export class Router {
             // do nothing
             break;
           case 'push':
-            this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
             break;
           case 'replace':
-            this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
             break;
         }
 
-        this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
+        this._events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
         tr.resolve!(true);
 
@@ -693,13 +694,14 @@ export class Router {
       }
     }
     if (title.length > 0) {
-      this.p.document.title = title;
+      this._p.document.title = title;
     }
-    return this.p.document.title;
+    return this._p.document.title;
   }
 
   private cancelNavigation(tr: Transition): void {
-    this.logger.trace(`cancelNavigation(tr:%s)`, tr);
+    const logger = /*@__PURE__*/ this._logger.scopeTo('cancelNavigation()');
+    if(__DEV__) trace(logger, Events.rtrCancelNavigationStart, tr);
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
@@ -713,7 +715,7 @@ export class Router {
     this._routeTree = tr.previousRouteTree;
     this._isNavigating = false;
     const guardsResult = tr.guardsResult;
-    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
+    this._events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
 
     if (guardsResult === false) {
       tr.resolve!(false);
@@ -728,15 +730,15 @@ export class Router {
       else instructions = guardsResult;
 
       void onResolve(this.enqueue(instructions, 'api', tr.managedState, tr), () => {
-        this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
+        if(__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
       });
     }
   }
 
   private runNextTransition(): void {
     if (this.nextTr === null) return;
-    this.logger.trace(`scheduling nextTransition: %s`, this.nextTr);
-    this.p.taskQueue.queueTask(
+    this._logger.trace(`scheduling nextTransition: %s`, this.nextTr);
+    this._p.taskQueue.queueTask(
       () => {
         // nextTransition is allowed to change up until the point when it's actually time to process it,
         // so we need to check it for null again when the scheduled task runs.

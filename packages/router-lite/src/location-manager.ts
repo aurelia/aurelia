@@ -3,7 +3,7 @@ import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
 import { IRouterOptions } from './options';
 
 import { IRouterEvents, LocationChangeEvent } from './router-events';
-import { Events, debugEvent, traceEvent, warnEvent } from './events';
+import { Events, debug, trace, warn } from './events';
 
 export interface IPopStateEvent extends PopStateEvent { }
 export interface IHashChangeEvent extends HashChangeEvent { }
@@ -31,17 +31,17 @@ export class BrowserLocationManager {
   /** @internal */ private readonly _event: 'hashchange' | 'popstate' = resolve(IRouterOptions).useUrlFragmentHash ? 'hashchange' : 'popstate';
 
   public constructor() {
-    if (__DEV__) debugEvent(this._logger, Events.lmBaseHref, this._baseHref.href);
+    if (__DEV__) debug(this._logger, Events.lmBaseHref, this._baseHref.href);
   }
 
   public startListening(): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.lmStartListening, this._event);
+    if (__DEV__) trace(this._logger, Events.lmStartListening, this._event);
 
     this._window.addEventListener(this._event, this, false);
   }
 
   public stopListening(): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.lmStopListening, this._event);
+    if (__DEV__) trace(this._logger, Events.lmStopListening, this._event);
 
     this._window.removeEventListener(this._event, this, false);
   }
@@ -60,9 +60,9 @@ export class BrowserLocationManager {
     if (__DEV__) {
       try {
         const stateString = JSON.stringify(state);
-       /*@__PURE__*/ traceEvent(this._logger, Events.lmPushState, stateString, title, url);
+        trace(this._logger, Events.lmPushState, stateString, title, url);
       } catch (_err) {
-        /*@__PURE__*/ warnEvent(this._logger, Events.lmPushStateNonSerializable, title, url);
+        warn(this._logger, Events.lmPushStateNonSerializable, title, url);
       }
     }
 
@@ -74,9 +74,9 @@ export class BrowserLocationManager {
     if (__DEV__) {
       try {
         const stateString = JSON.stringify(state);
-       /*@__PURE__*/ traceEvent(this._logger, Events.lmReplaceState, stateString, title, url);
+        trace(this._logger, Events.lmReplaceState, stateString, title, url);
       } catch (err) {
-        /*@__PURE__*/ warnEvent(this._logger, Events.lmReplaceStateNonSerializable, title, url);
+        warn(this._logger, Events.lmReplaceStateNonSerializable, title, url);
       }
     }
 

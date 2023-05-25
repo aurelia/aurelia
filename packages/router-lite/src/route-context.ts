@@ -55,6 +55,7 @@ import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
+import { Events, debug, error, trace } from './events';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -141,7 +142,7 @@ export class RouteContext {
     const prev = this.prevNode = this._node;
     if (prev !== value) {
       this._node = value;
-      this.logger.trace(`Node changed from %s to %s`, this.prevNode, value);
+      if (__DEV__) trace(this._logger, Events.rcNodeChanged, this.prevNode, value);
     }
   }
 
@@ -160,12 +161,11 @@ export class RouteContext {
   }
   public readonly container: IContainer;
 
-  private readonly moduleLoader: IModuleLoader;
-  private readonly logger: ILogger;
-  private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
-  /** @internal */
-  public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
-  private _childRoutesConfigured: boolean = false;
+  /** @internal */ private readonly _moduleLoader: IModuleLoader;
+  /** @internal */ private readonly _logger: ILogger;
+  /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
+  /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
+  /** @internal */ private _childRoutesConfigured: boolean = false;
 
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
@@ -190,16 +190,16 @@ export class RouteContext {
       this.path = [...parent.path, this];
       this.friendlyPath = `${parent.friendlyPath}/${component.name}`;
     }
-    this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
-    this.logger.trace('constructor()');
+    this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
+    if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    this.moduleLoader = parentContainer.get(IModuleLoader);
+    this._moduleLoader = parentContainer.get(IModuleLoader);
 
     const container = this.container = parentContainer.createChild();
 
     container.registerResolver(
       IController,
-      this.hostControllerProvider = new InstanceProvider(),
+      this._hostControllerProvider = new InstanceProvider(),
       true,
     );
 
@@ -330,17 +330,18 @@ export class RouteContext {
     const rootContainer = root.container;
     const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
 
-    if (context === null || context === void 0) {
-      logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
+    if (context == null) {
+      if (__DEV__) trace(logger, Events.rcResolveNullishContext, context);
       return root;
     }
 
     if (isRouteContext(context)) {
-      logger.trace(`resolve(context:%s) - returning provided RouteContext`, context);
+      if (__DEV__) trace(logger, Events.rcResolveInstance, context);
       return context;
     }
 
     if (context instanceof rootContainer.get(IPlatform).Node) {
+      if (__DEV__) trace(logger, Events.rcResolveNode, context.nodeName);
       try {
         // CustomElement.for can theoretically throw in (as of yet) unknown situations.
         // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
@@ -348,23 +349,22 @@ export class RouteContext {
         // That's why we catch, log and re-throw instead of just letting the error bubble up.
         // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
         const controller = CustomElement.for(context, { searchParents: true });
-        logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.definition.name}') - resolving RouteContext from controller's RenderContext`);
         return controller.container.get(IRouteContext);
       } catch (err) {
-        logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
+        error(logger, Events.rcResolveNodeFailed, context.nodeName, err);
         throw err;
       }
     }
 
     if (isCustomElementViewModel(context)) {
       const controller = context.$controller!;
-      logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
+      if (__DEV__) trace(logger, Events.rcResolveCe, controller.definition.name);
       return controller.container.get(IRouteContext);
     }
 
     if (isCustomElementController(context)) {
       const controller = context;
-      logger.trace(`resolve(context:CustomElementController(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
+      if (__DEV__) trace(logger, Events.rcResolveCtrl, controller.definition.name);
       return controller.container.get(IRouteContext);
     }
 
@@ -376,7 +376,7 @@ export class RouteContext {
   }
 
   public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
-    this.logger.trace(`resolveViewportAgent(req:%s)`, req);
+    if (__DEV__) trace(this._logger, Events.rcResolveVpa, req);
 
     const agent = this.childViewportAgents.find(x => { return x._handles(req); });
 
@@ -402,9 +402,9 @@ export class RouteContext {
    * @param routeNode - The routeNode that describes the component + state.
    */
   public createComponentAgent(hostController: ICustomElementController, routeNode: RouteNode): ComponentAgent | Promise<ComponentAgent> {
-    this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
+    if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
 
-    this.hostControllerProvider.prepare(hostController);
+    this._hostControllerProvider.prepare(hostController);
     const container = this.container;
     const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
@@ -418,7 +418,7 @@ export class RouteContext {
       const controller = Controller.$el(container, componentInstance, hostController.host, null);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
-      this.hostControllerProvider.dispose();
+      this._hostControllerProvider.dispose();
 
       return componentAgent;
     });
@@ -427,27 +427,27 @@ export class RouteContext {
   public registerViewport(viewport: IViewport): ViewportAgent {
     const agent = ViewportAgent.for(viewport, this);
     if (this.childViewportAgents.includes(agent)) {
-      this.logger.trace(`registerViewport(agent:%s) -> already registered, so skipping`, agent);
-    } else {
-      this.logger.trace(`registerViewport(agent:%s) -> adding`, agent);
-      this.childViewportAgents.push(agent);
+      if (__DEV__) trace(this._logger, Events.rcRegisterVpSkip, agent);
+      return agent;
     }
 
+    if (__DEV__) trace(this._logger, Events.rcRegisterVp, agent);
+    this.childViewportAgents.push(agent);
     return agent;
   }
 
   public unregisterViewport(viewport: IViewport): void {
     const agent = ViewportAgent.for(viewport, this);
-    if (this.childViewportAgents.includes(agent)) {
-      this.logger.trace(`unregisterViewport(agent:%s) -> unregistering`, agent);
-      this.childViewportAgents.splice(this.childViewportAgents.indexOf(agent), 1);
-    } else {
-      this.logger.trace(`unregisterViewport(agent:%s) -> not registered, so skipping`, agent);
+    if (!this.childViewportAgents.includes(agent)) {
+      if (__DEV__) trace(this._logger, Events.rcUnregisterVpSkip, agent);
+      return;
     }
+    if (__DEV__) trace(this._logger, Events.rcUnregisterVp, agent);
+    this.childViewportAgents.splice(this.childViewportAgents.indexOf(agent), 1);
   }
 
   public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
-    this.logger.trace(`recognize(path:'${path}')`);
+    if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteContext = this;
     let _continue = true;
@@ -473,7 +473,7 @@ export class RouteContext {
   private addRoute(routeable: Promise<IModule>): Promise<void>;
   private addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   private addRoute(routeable: Routeable): void | Promise<void> {
-    this.logger.trace(`addRoute(routeable:'${routeable}')`);
+    if(__DEV__) trace(this._logger, Events.rcAddRoute, routeable);
     return onResolve(
       resolveRouteConfiguration(routeable, true, this.config, null, this),
       rdConfig => {
@@ -494,7 +494,7 @@ export class RouteContext {
   }
 
   public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
-    return this.moduleLoader.load(promise, m => {
+    return this._moduleLoader.load(promise, m => {
       // when we have import('./some-path').then(x => x.somethingSpecific)
       const raw = m.raw;
       if (typeof raw === 'function') {
@@ -517,7 +517,7 @@ export class RouteContext {
         }
       }
 
-      if(defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.`);
+      if (defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.`);
 
       return firstNonDefaultExport ?? defaultExport!;
     });
@@ -564,9 +564,8 @@ export class RouteContext {
     if (numPaths === 1) {
       const result = core(paths[0]);
       if (result === null) {
-        const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
-        if (throwError) throw new Error(message);
-        this.logger.debug(message);
+        if (throwError) throw new Error(`Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`);
+        if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
         return null;
       }
       return {
@@ -595,9 +594,8 @@ export class RouteContext {
     }
 
     if (result === null) {
-      const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
-      if (throwError) throw new Error(message);
-      this.logger.debug(message);
+      if (throwError) throw new Error(`Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`);
+      if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
       return null;
     }
     return {
@@ -672,6 +670,7 @@ function isRouteContext(value: unknown): value is IRouteContext {
   return value instanceof RouteContext;
 }
 
+// TODO: use event code
 function logAndThrow(err: Error, logger: ILogger): never {
   logger.error(err);
   throw err;

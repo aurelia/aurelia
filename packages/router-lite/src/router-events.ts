@@ -1,6 +1,7 @@
-import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
+import { DI, IEventAggregator, IDisposable, ILogger, resolve } from '@aurelia/kernel';
 
 import type { ViewportInstructionTree } from './instructions';
+import { Events, trace } from './events';
 
 export type RoutingTrigger = 'popstate' | 'hashchange' | 'api';
 
@@ -30,42 +31,38 @@ class Subscription implements IDisposable {
       this.disposed = true;
 
       this.inner.dispose();
-      const subscriptions = this.events['subscriptions'];
+      const subscriptions = this.events['_subscriptions'];
       subscriptions.splice(subscriptions.indexOf(this), 1);
     }
   }
 }
 
 export const IRouterEvents = /*@__PURE__*/DI.createInterface<IRouterEvents>('IRouterEvents', x => x.singleton(RouterEvents));
-export interface IRouterEvents extends RouterEvents {}
+export interface IRouterEvents extends RouterEvents { }
 export class RouterEvents implements IRouterEvents {
-  private subscriptionSerial: number = 0;
-  private readonly subscriptions: Subscription[] = [];
+  /** @internal */ private _subscriptionSerial: number = 0;
+  /** @internal */ private readonly _subscriptions: Subscription[] = [];
 
-  public constructor(
-    @IEventAggregator private readonly ea: IEventAggregator,
-    @ILogger private readonly logger: ILogger,
-  ) {
-    this.logger = logger.scopeTo('RouterEvents');
-  }
+  /** @internal */ private readonly _ea: IEventAggregator = resolve(IEventAggregator);
+  /** @internal */ private readonly _logger: ILogger = resolve(ILogger).scopeTo('RouterEvents');
 
   public publish(event: RouterEvent): void {
-    this.logger.trace(`publishing %s`, event);
+    if(__DEV__) trace(this._logger, Events.rePublishingEvent, event);
 
-    this.ea.publish(event.name, event);
+    this._ea.publish(event.name, event);
   }
 
   public subscribe<T extends RouterEvent['name']>(event: T, callback: (message: NameToEvent[T]) => void): IDisposable {
     const subscription = new Subscription(
       this,
-      ++this.subscriptionSerial,
-      this.ea.subscribe(event, (message: NameToEvent[T]) => {
-        this.logger.trace(`handling %s for subscription #${subscription.serial}`, event);
+      ++this._subscriptionSerial,
+      this._ea.subscribe(event, (message: NameToEvent[T]) => {
+        if(__DEV__) trace(this._logger, Events.reInvokingSubscriber, subscription.serial, event);
         callback(message);
       })
     );
 
-    this.subscriptions.push(subscription);
+    this._subscriptions.push(subscription);
     return subscription;
   }
 }

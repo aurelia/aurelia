@@ -1,7 +1,7 @@
 import { ILogger } from '@aurelia/kernel';
 import type { ICustomElementController, ICustomElementViewModel, IHydratedController, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import { Events, traceEvent } from './events';
+import { Events, trace } from './events';
 import {
   NavigationInstruction,
   Params,
@@ -47,9 +47,9 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     public readonly ctx: IRouteContext,
     private readonly routerOptions: RouterOptions,
   ) {
-    this._logger = /*@__PURE__*/ ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+    this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caCreated);
+    if (__DEV__) trace(this._logger, Events.caCreated);
 
     const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
     this._canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
@@ -65,11 +65,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caActivateSelf);
+      if (__DEV__) trace(this._logger, Events.caActivateSelf);
       return this.controller.activate(this.controller, parent);
     }
 
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caActivateInitiator);
+    if (__DEV__) trace(this._logger, Events.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.activate(initiator, parent);
   }
@@ -77,25 +77,25 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caDeactivateSelf);
+      if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
       return this.controller.deactivate(this.controller, parent);
     }
 
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caDeactivateInitiator);
+    if (__DEV__) trace(this._logger, Events.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
     void this.controller.deactivate(initiator, parent);
   }
 
   /** @internal */
   public _dispose(): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caDispose);
+    if (__DEV__) trace(this._logger, Events.caDispose);
 
     this.controller.dispose();
   }
 
   /** @internal */
   public _canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caCanUnload, next, this._canUnloadHooks.length);
+    if (__DEV__) trace(this._logger, Events.caCanUnload, next, this._canUnloadHooks.length);
     b.push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canUnloadHooks) {
@@ -140,7 +140,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _canLoad(tr: Transition, next: RouteNode, b: Batch): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
+    if (__DEV__) trace(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
     const rootCtx = this.ctx.root;
     b.push();
     let promise: Promise<void> = Promise.resolve();
@@ -186,7 +186,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _unloading(tr: Transition, next: RouteNode | null, b: Batch): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caUnloading, next, this._unloadHooks.length);
+    if (__DEV__) trace(this._logger, Events.caUnloading, next, this._unloadHooks.length);
     b.push();
     for (const hook of this._unloadHooks) {
       tr.run(() => {
@@ -209,7 +209,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _loading(tr: Transition, next: RouteNode, b: Batch): void {
-    if (__DEV__) /*@__PURE__*/ traceEvent(this._logger, Events.caLoading, next, this._loadHooks.length);
+    if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
     b.push();
     for (const hook of this._loadHooks) {
       tr.run(() => {

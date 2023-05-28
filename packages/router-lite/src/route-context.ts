@@ -55,7 +55,7 @@ import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
-import { Events, debug, error, trace } from './events';
+import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -296,16 +296,16 @@ export class RouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     if (!container.has(IAppRoot, true)) {
-      logAndThrow(new Error(`The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app's component tree.`), logger);
+      logAndThrow(new Error(getMessage(Events.rcNoAppRoot)), logger);
     }
 
     if (container.has(IRouteContext, true)) {
-      logAndThrow(new Error(`A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.`), logger);
+      logAndThrow(new Error(getMessage(Events.rcHasRootContext)), logger);
     }
 
     const { controller } = container.get(IAppRoot);
     if (controller === void 0) {
-      logAndThrow(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), logger);
+      logAndThrow(new Error(getMessage(Events.rcNoRootCtrl)), logger);
     }
 
     const router = container.get(IRouter);
@@ -368,7 +368,7 @@ export class RouteContext {
       return controller.container.get(IRouteContext);
     }
 
-    logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);
+    logAndThrow(new Error(getMessage(Events.rcResolveInvalidCtxType, Object.prototype.toString.call(context))), logger);
   }
 
   public dispose(): void {
@@ -668,12 +668,6 @@ export class RouteContext {
 
 function isRouteContext(value: unknown): value is IRouteContext {
   return value instanceof RouteContext;
-}
-
-// TODO: use event code
-function logAndThrow(err: Error, logger: ILogger): never {
-  logger.error(err);
-  throw err;
 }
 
 function isCustomElementDefinition(value: ResourceDefinition): value is CustomElementDefinition {

@@ -61,6 +61,10 @@ export const enum Events {
   rcRecognizePath = 3164,
   rcAddRoute = 3165,
   rcEagerPathGenerationFailed = 3166,
+  rcNoAppRoot = 3167,
+  rcHasRootContext = 3168,
+  rcNoRootCtrl = 3169,
+  rcResolveInvalidCtxType = 3170,
   // #endregion
   // #region router events
   rePublishingEvent = 3200,
@@ -193,6 +197,10 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcRecognizePath]: 'Recognizing path: %s',
   [Events.rcAddRoute]: 'Adding route: %s',
   [Events.rcEagerPathGenerationFailed]: 'Unable to eagerly generate path for %s; reasons: %s',
+  [Events.rcNoAppRoot]: 'The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app\'s component tree.',
+  [Events.rcHasRootContext]: 'A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.',
+  [Events.rcNoRootCtrl]: 'The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called',
+  [Events.rcResolveInvalidCtxType]: 'Invalid context type: %s',
   // #endregion
 
   // #region router events
@@ -316,4 +324,22 @@ export function error(logger: ILogger, event: Events, ...optionalParameters: unk
   } else {
     logger.error(`AUR${event}`);
   }
+}
+
+/** @internal */
+export function getMessage(event: Events, ...optionalParameters: unknown[]) {
+  if (__DEV__) {
+    let message = eventMessageMap[event];
+    let offset = 0;
+    while (message.includes('%s') || offset < optionalParameters.length) {
+      message = message.replace('%s', String(optionalParameters[offset++]));
+    }
+    return `AUR${event}: ${message}`;
+  }
+  return `AUR${event}`;
+}
+
+export function logAndThrow(err: Error, logger: ILogger): never {
+  logger.error(err);
+  throw err;
 }

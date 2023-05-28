@@ -85,6 +85,8 @@ export const enum Events {
   rtrRunFinalizing = 3266,
   rtrCancelNavigationStart = 3267,
   rtrCancelNavigationCompleted = 3268,
+  rtrNextTr = 3269,
+  rtrTrFailed = 3270,
 }
 _END_CONST_ENUM();
 
@@ -164,6 +166,8 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrRunFinalizing]: 'finalizing transition',
   [Events.rtrCancelNavigationStart]: 'navigation %s',
   [Events.rtrCancelNavigationCompleted]: 'navigation %s; finished.',
+  [Events.rtrNextTr]: 'scheduling next transition: %s',
+  [Events.rtrTrFailed]: 'Transition %s failed with error: %s',
   // #endregion
 };
 

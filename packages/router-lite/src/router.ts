@@ -13,7 +13,7 @@ import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { isPartialViewportInstruction } from './validation';
-import { Events, debug, trace } from './events';
+import { Events, debug, error, trace } from './events';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -509,7 +509,7 @@ export class Router {
       if (__DEV__) debug(logger, Events.rtrTrSucceeded, nextTr);
       return ret;
     }).catch(err => {
-      logger.error(`Transition %s failed: %s`, nextTr, err);
+      error(logger, Events.rtrTrFailed, nextTr, err);
       if (nextTr.erredWithUnknownRoute) {
         this.cancelNavigation(nextTr);
       } else {
@@ -737,7 +737,7 @@ export class Router {
 
   private runNextTransition(): void {
     if (this.nextTr === null) return;
-    this._logger.trace(`scheduling nextTransition: %s`, this.nextTr);
+    if(__DEV__) trace(this._logger, Events.rtrNextTr, this.nextTr);
     this._p.taskQueue.queueTask(
       () => {
         // nextTransition is allowed to change up until the point when it's actually time to process it,

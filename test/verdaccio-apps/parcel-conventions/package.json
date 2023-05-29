@@ -19,7 +19,8 @@
     "@parcel/transformer-inline-string": "^2.8.3",
     "parcel": "^2.8.3",
     "typescript": "5.0.2",
-    "tslib": "^2.4.1"
+    "tslib": "^2.4.1",
+    "@playwright/test": "1.34.3"
   },
   "scripts": {
     "start": "npm run dev",

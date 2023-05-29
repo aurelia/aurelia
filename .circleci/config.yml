@@ -81,6 +81,10 @@ executors:
     docker:
       - image: "cimg/node:16.14.2-browsers"
 
+  docker_playwright_jammy:
+    docker:
+      - image: mcr.microsoft.com/playwright:v1.34.3-jammy
+
   docker_verdaccio:
     working_directory: *working_dir
     resource_class: large
@@ -638,6 +642,7 @@ jobs:
       - run:
           name: "Build test app"
           command: |
+            npx playwright install webkit
             cd << parameters.path >>
             npx concurrently 'npm run build' 'http-server dist --silent' 'playwright test' --kill-others --success last
           no_output_timeout: "1m"

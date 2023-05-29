@@ -600,7 +600,7 @@ jobs:
 
   # Standalone playwright test jobs
   e2e_verdaccio:
-    executor: docker_verdaccio
+    executor: docker_circleci
     parameters:
       path:
         type: string
@@ -619,11 +619,6 @@ jobs:
           to: develop
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
-      - run:
-          name: "Install playwright"
-          command: |
-            cd test/playwright
-            npm ci
       - when:
           condition: << parameters.use_verdaccio >>
           steps:
@@ -644,19 +639,7 @@ jobs:
           name: "Build test app"
           command: |
             cd << parameters.path >>
-            npm run build
-      - run:
-          name: "Serve playwright test app"
-          background: true
-          command: |
-            cd << parameters.path >>
-            npm run serve
-      - run:
-          name: "Run playwright test"
-          command: |
-            cd test/playwright
-            npm run build
-            npm run e2e:<< parameters.suite >>
+            npx concurrently 'npm run build' 'http-server dist --silent' 'playwright test' --kill-others --success last
           no_output_timeout: "1m"
 
   tacho_benchmark_prep:
@@ -806,8 +789,8 @@ workflows:
 
       - e2e_verdaccio:
           <<: *filter_ignore_develop_release
-          name: webpack_conventions_ts
-          path: "examples/jit-webpack-conventions-ts"
+          name: e2e_verdaccio_parcel_ts
+          path: "test/verdaccio-apps/parcel-conventions"
           requires:
             - build_release
 
@@ -819,12 +802,6 @@ workflows:
       #     path: "packages/__e2e__/select-safari16"
       #     requires:
       #       - check_doc_abort
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_hmr_parcel
-          path: "packages/__e2e__/hmr-parcel"
-          requires:
-            - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
@@ -900,8 +877,7 @@ workflows:
             - test_node
             - test_toolings
             # - lint_packages
-            - webpack_conventions_ts
-            - e2e_hmr_parcel
+            - e2e_verdaccio_parcel_ts
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
@@ -985,12 +961,6 @@ workflows:
 
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_hmr_parcel
-          path: "packages/__e2e__/hmr-parcel"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
           path: "packages/__e2e__/hmr-vite"
           requires:
@@ -1041,7 +1011,6 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
-            - e2e_hmr_parcel
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite

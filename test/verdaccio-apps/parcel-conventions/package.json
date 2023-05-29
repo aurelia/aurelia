@@ -1,5 +1,5 @@
 {
-  "name": "@__e2e__/hmr-parcel",
+  "name": "@__e2e__verdacio/hmr-parcel",
   "license": "MIT",
   "private": true,
   "description": "An Aurelia 2 client application with Parcel bundler.",
@@ -9,12 +9,12 @@
     "url": "???"
   },
   "dependencies": {
-    "aurelia": "2.0.0-beta.6",
-    "@aurelia/router": "2.0.0-beta.6"
+    "aurelia": "dev",
+    "@aurelia/router": "dev"
   },
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-beta.6",
-    "@aurelia/parcel-transformer": "2.0.0-beta.6",
+    "@aurelia/testing": "dev",
+    "@aurelia/parcel-transformer": "dev",
     "@parcel/transformer-typescript-tsc": "^2.8.3",
     "@parcel/transformer-inline-string": "^2.8.3",
     "parcel": "^2.8.3",

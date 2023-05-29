@@ -81,6 +81,12 @@ executors:
     docker:
       - image: "cimg/node:16.14.2-browsers"
 
+  docker_verdaccio:
+    working_directory: *working_dir
+    resource_class: large
+    docker:
+      - image: "oven/bun"
+
 # # # # # # # # # # # # # # # #
 # - Commands -
 # # # # # # # # # # # # # # # #
@@ -593,8 +599,8 @@ jobs:
           no_output_timeout: "1m"
 
   # Standalone playwright test jobs
-  e2e_playwright:
-    executor: docker_circleci
+  e2e_verdaccio:
+    executor: docker_verdaccio
     parameters:
       path:
         type: string
@@ -798,7 +804,7 @@ workflows:
           requires:
             - checkout_install
 
-      - e2e_playwright:
+      - e2e_verdaccio:
           <<: *filter_ignore_develop_release
           name: webpack_conventions_ts
           path: "examples/jit-webpack-conventions-ts"
@@ -878,7 +884,7 @@ workflows:
           requires:
             - tacho_benchmark_prep
 
-      # - e2e_playwright:
+      # - e2e_verdaccio:
       #     <<: *filter_ignore_develop_release
       #     name: webpack_vanilla_ts
       #     path: "examples/jit-webpack-vanilla-ts"

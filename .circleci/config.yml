@@ -152,6 +152,7 @@ commands:
       - common/configure_git
       # - checkout_install:
       #     install_drivers: false
+      - checkout
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:

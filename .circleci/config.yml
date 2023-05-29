@@ -644,7 +644,7 @@ jobs:
           command: |
             cd << parameters.path >>
             npx playwright install chromium
-            npx concurrently 'npm run build' 'http-server dist --silent' 'playwright test' --kill-others --success last
+            npx concurrently 'npm run build' 'http-server dist --silent -p 8081' 'playwright test' --kill-others --success last
           no_output_timeout: "30s"
 
   tacho_benchmark_prep:

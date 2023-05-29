@@ -152,9 +152,8 @@ commands:
       - common/configure_git
       # - checkout_install:
       #     install_drivers: false
-      - checkout
-      # - restore_cache:
-      #     key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
           key: cache-{{ .Revision }}-build-true
@@ -642,8 +641,8 @@ jobs:
       - run:
           name: "Build test app"
           command: |
-            npx playwright install webkit
             cd << parameters.path >>
+            npx playwright install chromium
             npx concurrently 'npm run build' 'http-server dist --silent' 'playwright test' --kill-others --success last
           no_output_timeout: "30s"
 

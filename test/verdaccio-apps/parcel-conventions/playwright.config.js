@@ -9,6 +9,6 @@ module.exports = {
   //   port: port,
   // }
   use: {
-    baseURL: 'http://localhost:' + 8081,
+    baseURL: 'http://localhost:8080',
   }
 };

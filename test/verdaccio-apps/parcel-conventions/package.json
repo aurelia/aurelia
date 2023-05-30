@@ -32,7 +32,8 @@
     "test:e2e": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9009 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test": "concurrently 'npm run build && http-server dist --silent -p 8081' 'playwright test' --kill-others --success first",
+    "pretest": "npm run build",
+    "test": "concurrently 'http-server ./dist' 'playwright test' --kill-others --success first",
     "test:watch": "npm run test:e2e:watch",
     "build": "parcel build --no-scope-hoist"
   },

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('examples/hmr-parcel/app.spec.ts', function () {
+test.describe('test/vedaccio-apps/parcel-conventions', function () {
   test.beforeEach(async ({ page, baseURL }) => {
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });

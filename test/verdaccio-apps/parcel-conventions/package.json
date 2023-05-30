@@ -20,6 +20,8 @@
     "parcel": "^2.8.3",
     "typescript": "5.0.2",
     "tslib": "^2.4.1",
+    "http-server": "14.1.1",
+    "playwright": "1.34.3",
     "@playwright/test": "1.34.3",
     "concurrently": "7.6.0"
   },
@@ -29,7 +31,7 @@
     "test:e2e": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9009 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9009 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test": "concurrently 'npm run build' 'npx http-server dist --silent -p 8081' 'playwright test' --kill-others --success command-2",
+    "test": "concurrently 'npm run build' 'npx http-server dist --silent -p 8081' 'npx playwright test' --kill-others --success command-2",
     "test:watch": "npm run test:e2e:watch",
     "build": "parcel build --no-scope-hoist"
   },

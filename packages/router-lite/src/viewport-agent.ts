@@ -11,7 +11,7 @@ import type { NavigationOptions, TransitionPlan } from './options';
 import type { Transition } from './router';
 import { Batch, mergeDistinct } from './util';
 import { ViewportInstruction, defaultViewportName } from './instructions';
-import { Events, trace } from './events';
+import { Events, getMessage, trace } from './events';
 
 export class ViewportRequest {
   public constructor(
@@ -92,9 +92,7 @@ export class ViewportAgent {
             this._unexpectedState('activateFromViewport 1');
         }
       case State.nextLoadDone: {
-        if (this.currTransition === null) {
-          throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
-        }
+        if (this.currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedActivation, this));
         if (__DEV__) trace(logger, Events.vpaActivateFromVpNext, this);
         const b = Batch.start(b1 => { this._activate(initiator, this.currTransition!, b1); });
         const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
@@ -126,9 +124,7 @@ export class ViewportAgent {
         if (__DEV__) trace(logger, Events.vpaDeactivationFromVpRunning, this);
         return;
       default: {
-        if (this.currTransition === null) {
-          throw new Error(`Unexpected viewport deactivation outside of a transition context at ${this}`);
-        }
+        if (this.currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedDeactivation, this));
         if (__DEV__) trace(logger, Events.vpaDeactivateFromVpCurrent, this);
         const b = Batch.start(b1 => { this._deactivate(initiator, this.currTransition!, b1); });
         const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
@@ -852,14 +848,12 @@ export class ViewportAgent {
 
   /** @internal */
   private _unexpectedState(label: string): never {
-    throw new Error(`Unexpected state at ${label} of ${this}`);
+    throw new Error(getMessage(Events.vpaUnexpectedState, label, this));
   }
 }
 
 function ensureGuardsResultIsTrue(vpa: ViewportAgent, tr: Transition): void {
-  if (tr.guardsResult !== true) {
-    throw new Error(`Unexpected guardsResult ${tr.guardsResult} at ${vpa}`);
-  }
+  if (tr.guardsResult !== true) throw new Error(getMessage(Events.vpaUnexpectedGuardsResult, tr.guardsResult, vpa));
 }
 
 function ensureTransitionHasNotErrored(tr: Transition): void {
@@ -867,23 +861,23 @@ function ensureTransitionHasNotErrored(tr: Transition): void {
 }
 
 const enum State {
-  curr = 0b1111111_0000000,
-  currIsEmpty = 0b1000000_0000000,
-  currIsActive = 0b0100000_0000000,
-  currCanUnload = 0b0010000_0000000,
+  curr              = 0b1111111_0000000,
+  currIsEmpty       = 0b1000000_0000000,
+  currIsActive      = 0b0100000_0000000,
+  currCanUnload     = 0b0010000_0000000,
   currCanUnloadDone = 0b0001000_0000000,
-  currUnload = 0b0000100_0000000,
-  currUnloadDone = 0b0000010_0000000,
-  currDeactivate = 0b0000001_0000000,
-  next = 0b0000000_1111111,
-  nextIsEmpty = 0b0000000_1000000,
-  nextIsScheduled = 0b0000000_0100000,
-  nextCanLoad = 0b0000000_0010000,
-  nextCanLoadDone = 0b0000000_0001000,
-  nextLoad = 0b0000000_0000100,
-  nextLoadDone = 0b0000000_0000010,
-  nextActivate = 0b0000000_0000001,
-  bothAreEmpty = 0b1000000_1000000,
+  currUnload        = 0b0000100_0000000,
+  currUnloadDone    = 0b0000010_0000000,
+  currDeactivate    = 0b0000001_0000000,
+  next              = 0b0000000_1111111,
+  nextIsEmpty       = 0b0000000_1000000,
+  nextIsScheduled   = 0b0000000_0100000,
+  nextCanLoad       = 0b0000000_0010000,
+  nextCanLoadDone   = 0b0000000_0001000,
+  nextLoad          = 0b0000000_0000100,
+  nextLoadDone      = 0b0000000_0000010,
+  nextActivate      = 0b0000000_0000001,
+  bothAreEmpty      = 0b1000000_1000000,
 }
 
 type CurrState = (

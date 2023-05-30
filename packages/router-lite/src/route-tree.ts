@@ -47,6 +47,7 @@ import {
   ViewportRequest,
 } from './viewport-agent';
 import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { Events, getMessage } from './events';
 
 export interface IRouteNode {
   path: string;
@@ -453,7 +454,7 @@ export function createAndAppendNodes(
             const fallback = vpa !== null
               ? vpa.viewport._getFallback(vi, node, ctx)
               : ctx.config._getFallback(vi, node, ctx);
-            if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx.friendlyPath, vp, name, ctx.component.name));
 
             if (typeof fallback === 'string') {
               // fallback: id -> route -> CEDefn (Route configuration)
@@ -603,7 +604,7 @@ function createConfiguredNode(
         origCur = origPath.root;
         break;
       default:
-        throw new Error(`Unexpected expression kind ${origPath.root.kind}`);
+        throw new Error(getMessage(Events.exprUnexpectedKind, origPath.root.kind));
     }
     switch (redirPath.root.kind) {
       case ExpressionKind.ScopedSegment:
@@ -611,7 +612,7 @@ function createConfiguredNode(
         redirCur = redirPath.root;
         break;
       default:
-        throw new Error(`Unexpected expression kind ${redirPath.root.kind}`);
+        throw new Error(getMessage(Events.exprUnexpectedKind, redirPath.root.kind));
     }
 
     let origSeg: SegmentExpression | null;
@@ -632,10 +633,10 @@ function createConfiguredNode(
             origCur = origCur.right;
             break;
           default:
-            throw new Error(`Unexpected expression kind ${origCur.right.kind}`);
+            throw new Error(getMessage(Events.exprUnexpectedKind, origCur.right.kind));
         }
       } else {
-        throw new Error(`Unexpected expression kind ${origCur.left.kind}`);
+        throw new Error(getMessage(Events.exprUnexpectedKind, origCur.left.kind));
       }
       if (redirDone) {
         redirSeg = null;
@@ -650,10 +651,10 @@ function createConfiguredNode(
             redirCur = redirCur.right;
             break;
           default:
-            throw new Error(`Unexpected expression kind ${redirCur.right.kind}`);
+            throw new Error(getMessage(Events.exprUnexpectedKind, redirCur.right.kind));
         }
       } else {
-        throw new Error(`Unexpected expression kind ${redirCur.left.kind}`);
+        throw new Error(getMessage(Events.exprUnexpectedKind, redirCur.left.kind));
       }
 
       if (redirSeg !== null) {
@@ -668,7 +669,7 @@ function createConfiguredNode(
     const newPath = newSegs.filter(Boolean).join('/');
 
     const redirRR = ctx.recognize(newPath);
-    if (redirRR === null) throw new UnknownRouteError(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
+    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx.friendlyPath, newPath, ctx.component.name));
 
     return createConfiguredNode(
       log,

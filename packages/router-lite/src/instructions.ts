@@ -21,6 +21,7 @@ import { expectType, isPartialViewportInstruction, shallowEquals } from './valid
 import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
+import { Events, getMessage } from './events';
 
 export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
@@ -483,7 +484,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     if (isCustomElementViewModel(instruction)) return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
-    throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
+    throw new Error(getMessage(Events.instrInvalid, tryStringify(instruction)));
   }
 
   public equals(this: ITypedNavigationInstruction_T, other: ITypedNavigationInstruction_T): boolean {

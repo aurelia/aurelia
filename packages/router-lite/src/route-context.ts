@@ -133,9 +133,7 @@ export class RouteContext {
   private _node: RouteNode | null = null;
   public get node(): RouteNode {
     const node = this._node;
-    if (node === null) {
-      throw new Error(`Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: ${this}`);
-    }
+    if (node === null) throw new Error(getMessage(Events.rcNoNode, this));
     return node;
   }
   public set node(value: RouteNode) {
@@ -154,9 +152,7 @@ export class RouteContext {
    */
   public get vpa(): ViewportAgent {
     const vpa = this._vpa;
-    if (vpa === null) {
-      throw new Error(`RouteContext has no ViewportAgent: ${this}`);
-    }
+    if (vpa === null) throw new Error(getMessage(Events.rcNoVpa, this));
     return vpa;
   }
   public readonly container: IContainer;
@@ -247,7 +243,7 @@ export class RouteContext {
       } else {
         const rdResolution = resolveRouteConfiguration(childRoute, true, config, null, this);
         if (rdResolution instanceof Promise) {
-          if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
+          if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(getMessage(Events.rcNoPathLazyImport));
           for (const path of ensureArrayOfStrings(childRoute.path)) {
             this.$addRoute(path, childRoute.caseSensitive ?? false, rdResolution);
           }
@@ -380,9 +376,7 @@ export class RouteContext {
 
     const agent = this.childViewportAgents.find(x => { return x._handles(req); });
 
-    if (agent === void 0) {
-      throw new Error(`Failed to resolve ${req} at:\n${this.printTree()}`);
-    }
+    if (agent === void 0) throw new Error(getMessage(Events.rcNoAvailableVpa, req, this.printTree()));
 
     return agent;
   }
@@ -517,7 +511,7 @@ export class RouteContext {
         }
       }
 
-      if (defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.`);
+      if (defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(getMessage(Events.rcInvalidLazyImport, promise));
 
       return firstNonDefaultExport ?? defaultExport!;
     });
@@ -564,7 +558,7 @@ export class RouteContext {
     if (numPaths === 1) {
       const result = core(paths[0]);
       if (result === null) {
-        if (throwError) throw new Error(`Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`);
+        if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
         if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
         return null;
       }
@@ -594,7 +588,7 @@ export class RouteContext {
     }
 
     if (result === null) {
-      if (throwError) throw new Error(`Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`);
+      if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
       if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
       return null;
     }
@@ -785,7 +779,7 @@ class NavigationRoute implements INavigationRoute {
       const routerOptions = router.options;
       trees = this._trees = this.path.map(p => {
         const ep = context._recognizer.getEndpoint(p);
-        if (ep === null) throw new Error(`No endpoint found for path '${p}'`);
+        if (ep === null) throw new Error(getMessage(Events.nmNoEndpoint, p));
         return new ViewportInstructionTree(
           NavigationOptions.create(routerOptions, { context }),
           false,

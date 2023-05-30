@@ -9,6 +9,7 @@ import { CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
+import { Events, getMessage } from './events';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
 
@@ -149,7 +150,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   /** @internal */
   public _applyFromConfigurationHook(instance: IRouteViewModel, parent: IRouteConfig | null, routeNode: RouteNode | null): void | Promise<void> {
     // start strict
-    if (this._configurationFromHookApplied) throw new Error('Invalid operation, the configuration from the get hook is already applied.');
+    if (this._configurationFromHookApplied) throw new Error(getMessage(Events.rtConfigFromHookApplied));
     if (typeof instance.getRouteConfig !== 'function') return;
     return onResolve(
       instance.getRouteConfig(parent, routeNode),
@@ -315,10 +316,10 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
   let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
   switch (instruction.type) {
     case NavigationInstructionType.string: {
-      if (context == null) throw new Error(`When retrieving the RouteConfig for a component name, a RouteContext (that can resolve it) must be provided`);
+      if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
       const component = context.container.find(CustomElement, instruction.value);
-      if (component === null) throw new Error(`Could not find a CustomElement named '${instruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);
+      if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
       ceDef = component;
       break;
@@ -331,8 +332,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
       ceDef = CustomElement.getDefinition(instruction.value.constructor as RouteType);
       break;
     case NavigationInstructionType.Promise:
-      if (context == null)
-        throw new Error(`RouteContext must be provided when resolving an imported module`);
+      if (context == null) throw new Error(getMessage(Events.rtNoCtxLazyImport));
       ceDef = context.resolveLazy(instruction.value);
       break;
   }

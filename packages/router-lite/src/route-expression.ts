@@ -5,6 +5,7 @@
 // const componentTerminal = [...actionTerminal, '.'];
 // const paramTerminal = ['=', ',', ')'];
 
+import { Events, getMessage } from './events';
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { type NavigationOptions } from './options';
 import { emptyQuery } from './router';
@@ -55,12 +56,12 @@ class ParserState {
   }
 
   public expect(msg: string): void {
-    throw new Error(`Expected ${msg} at index ${this.index} of '${this.input}', but got: '${this.rest}' (rest='${this.rest}')`);
+    throw new Error(getMessage(Events.exprUnexpectedSegment, msg, this.index, this.input, this.rest, this.rest));
   }
 
   public ensureDone(): void {
     if (!this.done) {
-      throw new Error(`Unexpected '${this.rest}' at index ${this.index} of '${this.input}'`);
+      throw new Error(getMessage(Events.exprNotDone, this.rest, this.index, this.input));
     }
   }
 

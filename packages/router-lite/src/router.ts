@@ -13,7 +13,7 @@ import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { isPartialViewportInstruction } from './validation';
-import { Events, debug, error, trace } from './events';
+import { Events, debug, error, getMessage, trace } from './events';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -107,14 +107,10 @@ export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => 
 export class Router {
   private _ctx: RouteContext | null = null;
   private get ctx(): RouteContext {
-    let ctx = this._ctx;
-    if (ctx === null) {
-      if (!this._container.has(IRouteContext, true)) {
-        throw new Error(`Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?`);
-      }
-      ctx = this._ctx = this._container.get(IRouteContext);
-    }
-    return ctx;
+    const ctx = this._ctx;
+    if (ctx !== null) return ctx;
+    if (!this._container.has(IRouteContext, true)) throw new Error(getMessage(Events.rtrNoCtx));
+    return this._ctx = this._container.get(IRouteContext);
   }
 
   private _routeTree: RouteTree | null = null;

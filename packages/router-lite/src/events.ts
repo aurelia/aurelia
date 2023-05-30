@@ -9,6 +9,10 @@ import { ILogger } from '@aurelia/kernel';
  * - router-events   : 3200 - 3249
  * - router          : 3250 - 3299
  * - viewport agent  : 3300 - 3400
+ * - instruction     : 3400 - 3449
+ * - navigation model: 3450 - 3499
+ * - expression      : 3500 - 3549
+ * - route           : 3550 - 3599
  */
 
 _START_CONST_ENUM();
@@ -65,6 +69,11 @@ export const enum Events {
   rcHasRootContext = 3168,
   rcNoRootCtrl = 3169,
   rcResolveInvalidCtxType = 3170,
+  rcNoNode = 3171,
+  rcNoVpa = 3172,
+  rcNoPathLazyImport = 3173,
+  rcNoAvailableVpa = 3174,
+  rcInvalidLazyImport = 3175,
   // #endregion
   // #region router events
   rePublishingEvent = 3200,
@@ -92,6 +101,7 @@ export const enum Events {
   rtrCancelNavigationCompleted = 3268,
   rtrNextTr = 3269,
   rtrTrFailed = 3270,
+  rtrNoCtx = 3271,
   // #endregion
   // #region viewport agent
   vpaCreated = 3300,
@@ -144,6 +154,33 @@ export const enum Events {
   vpaEndTransitionActiveCurrLifecycle = 3347,
   vpaEndTransitionActiveCurrReplace = 3348,
   vpaDispose = 3349,
+  vpaUnexpectedActivation = 3350,
+  vpaUnexpectedDeactivation = 3351,
+  vpaUnexpectedState = 3352,
+  vpaUnexpectedGuardsResult = 3353,
+  // #endregion
+  // #region instruction
+  instrInvalid = 3400,
+  instrNoFallback = 3401,
+  instrUnknownRedirect = 3402,
+  // #endregion
+  // #region navigation model
+  nmNoEndpoint = 3450,
+  // #endregion
+  // #region expression
+  exprUnexpectedSegment = 3500,
+  exprNotDone = 3501,
+  exprUnexpectedKind = 3502,
+  // #endregion
+  // #region route
+  rtConfigFromHookApplied = 3550,
+  rtNoCtxStrComponent = 3551,
+  rtNoComponent = 3552,
+  rtNoCtxLazyImport = 3553,
+  rtInvalidConfigProperty = 3554,
+  rtInvalidConfig = 3555,
+  rtUnknownConfigProperty = 3556,
+  rtUnknownRedirectConfigProperty = 3557,
   // #endregion
 }
 _END_CONST_ENUM();
@@ -201,6 +238,11 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcHasRootContext]: 'A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.',
   [Events.rcNoRootCtrl]: 'The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called',
   [Events.rcResolveInvalidCtxType]: 'Invalid context type: %s',
+  [Events.rcNoNode]: 'Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: %s',
+  [Events.rcNoVpa]: 'RouteContext has no ViewportAgent: %s',
+  [Events.rcNoPathLazyImport]: 'Invalid route config. When the component property is a lazy import, the path must be specified.',
+  [Events.rcNoAvailableVpa]: 'Failed to resolve %s at:\n%s',
+  [Events.rcInvalidLazyImport]: '%s does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.',
   // #endregion
 
   // #region router events
@@ -230,6 +272,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrCancelNavigationCompleted]: 'navigation %s; finished.',
   [Events.rtrNextTr]: 'scheduling next transition: %s',
   [Events.rtrTrFailed]: 'Transition %s failed with error: %s',
+  [Events.rtrNoCtx]: 'Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?',
   // #endregion
 
   // #region viewport agent
@@ -283,6 +326,37 @@ const eventMessageMap: Record<Events, string> = {
   [Events.vpaEndTransitionActiveCurrLifecycle]: 'setting currState to State.currIsActive at %s',
   [Events.vpaEndTransitionActiveCurrReplace]: 'setting currState to State.currIsActive and reassigning curCA at %s',
   [Events.vpaDispose]: 'disposing at %s',
+  [Events.vpaUnexpectedActivation]: 'Unexpected viewport activation outside of a transition context at %s',
+  [Events.vpaUnexpectedDeactivation]: 'Unexpected viewport deactivation outside of a transition context at %s',
+  [Events.vpaUnexpectedState]: 'Unexpected state at %s of %s',
+  [Events.vpaUnexpectedGuardsResult]: 'Unexpected guardsResult %s at %s',
+  // #endregion
+
+  // #region instruction
+  [Events.instrInvalid]: 'Invalid component %s: must be either a class, a custom element ViewModel, or a (partial) custom element definition',
+  [Events.instrNoFallback]: 'Neither the route \'%s\' matched any configured route at \'%s\' nor a fallback is configured for the viewport \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
+  [Events.instrUnknownRedirect]: '\'%s\' did not match any configured route or registered component name at \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
+  // #endregion
+
+  // #region navigation model
+  [Events.nmNoEndpoint]: 'No endpoint found for path \'%s\'',
+  // #endregion
+
+  // #region expression
+  [Events.exprUnexpectedSegment]: 'Expected %s at index %s of \'%s\', but got: \'%s\' (rest=\'%s\')',
+  [Events.exprNotDone]: 'Unexpected \'%s\' at index %s of \'%s\'',
+  [Events.exprUnexpectedKind]: 'Unexpected expression kind %s',
+  // #endregion
+
+  // #region route
+  [Events.rtConfigFromHookApplied]: 'Invalid operation, the configuration from the get hook is already applied.',
+  [Events.rtNoCtxStrComponent]: 'When retrieving the RouteConfig for a component name, a RouteContext (that can resolve it) must be provided',
+  [Events.rtNoComponent]: 'Could not find a CustomElement named \'%s\' in the current container scope of %s. This means the component is neither registered at Aurelia startup nor via the \'dependencies\' decorator or static property.',
+  [Events.rtNoCtxLazyImport]: 'RouteContext must be provided when resolving an imported module',
+  [Events.rtInvalidConfigProperty]: 'Invalid route config property: "%s". Expected %s, but got %s.',
+  [Events.rtInvalidConfig]: 'Invalid route config: expected an object or string, but got: %s',
+  [Events.rtUnknownConfigProperty]: 'Unknown route config property: "%s.%s". Please specify known properties only.',
+  [Events.rtUnknownRedirectConfigProperty]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.'
   // #endregion
 };
 
@@ -312,7 +386,7 @@ export function warn(logger: ILogger, event: Events, ...optionalParameters: unkn
     const message = eventMessageMap[event];
     logger.warn(`AUR${event}: ${message}`, ...optionalParameters);
   } else {
-    logger.warn(`AUR${event}`);
+    logger.warn(`AUR${event}`, ...optionalParameters);
   }
 }
 
@@ -322,7 +396,7 @@ export function error(logger: ILogger, event: Events, ...optionalParameters: unk
     const message = eventMessageMap[event];
     logger.error(`AUR${event}: ${message}`, ...optionalParameters);
   } else {
-    logger.error(`AUR${event}`);
+    logger.error(`AUR${event}`, ...optionalParameters);
   }
 }
 
@@ -336,7 +410,7 @@ export function getMessage(event: Events, ...optionalParameters: unknown[]) {
     }
     return `AUR${event}: ${message}`;
   }
-  return `AUR${event}`;
+  return `AUR${event}:${optionalParameters.map(p => String(p)).join(':')}`;
 }
 
 export function logAndThrow(err: Error, logger: ILogger): never {

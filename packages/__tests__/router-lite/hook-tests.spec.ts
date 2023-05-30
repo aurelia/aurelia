@@ -1713,7 +1713,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         phase = 'phase1';
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
-        await assert.rejects(() => router.load('unconfigured'), /Neither the route 'unconfigured' matched any configured route/);
+        await assert.rejects(() => router.load('unconfigured'), /AUR3401.+unconfigured/);
         verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
         // phase 2: load configured
@@ -1738,7 +1738,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         phase = 'phase3';
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
-        await assert.rejects(() => router.load('unconfigured1/unconfigured2'), /Neither the route 'unconfigured1' matched any configured route/);
+        await assert.rejects(() => router.load('unconfigured1/unconfigured2'), /AUR3401.+unconfigured1/);
         verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
         // phase 4: load configured
@@ -1759,7 +1759,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         phase = 'phase5';
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
-        await assert.rejects(() => router.load('unconfigured/b'), /Neither the route 'unconfigured' matched any configured route/);
+        await assert.rejects(() => router.load('unconfigured/b'), /AUR3401.+unconfigured/);
         verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
         // phase 6: load configured
@@ -1948,14 +1948,14 @@ describe('router-lite/hook-tests.spec.ts', function () {
       phase = 'phase1';
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
-      await assert.rejects(() => router.load('s1@$1+unconfigured@$2'), /Neither the route 'unconfigured' matched any configured route/);
+      await assert.rejects(() => router.load('s1@$1+unconfigured@$2'), /AUR3401.+unconfigured/);
       verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
       // phase 2: load configured
       mgr.fullNotifyHistory.length = 0;
       phase = 'phase2';
       mgr.setPrefix(phase);
-      await assert.rejects(() => router.load('s1@$1+s2@$2'), /Failed to resolve VR/);
+      await assert.rejects(() => router.load('s1@$1+s2@$2'), /AUR3174/);
       verifyInvocationsEqual(mgr.fullNotifyHistory, []);
 
       // stop

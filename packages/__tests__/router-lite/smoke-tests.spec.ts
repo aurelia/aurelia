@@ -4525,7 +4525,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
           await au.app({ component: Root, host }).start();
           assert.fail('expected error');
         } catch (er) {
-          assert.match((er as Error).message, /does not appear to be a component or CustomElement recognizable by Aurelia/);
+          assert.match((er as Error).message, /AUR3175/);
         }
 
         await au.stop(true);
@@ -4764,7 +4764,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await router.load('bar');
       assert.fail('Expected error for non-simple redirect.');
     } catch (e) {
-      assert.match((e as Error).message, /^Unexpected expression kind/, 'Expected error due to unexpected path segment.');
+      assert.match((e as Error).message, /AUR3502/, 'Expected error due to unexpected path segment.');
     }
 
     await au.stop(true);
@@ -4888,14 +4888,14 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load({ component: 'bar', params: { x: '1' } });
         assert.fail('expected error1');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+bar.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+bar/);
       }
 
       try {
         await router.load({ component: 'fizz', params: { id: '1' } });
         assert.fail('expected error2');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+fizz.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+fizz/);
       }
 
       // using component
@@ -4994,14 +4994,14 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'bar', params: { x: '1' } }]);
         assert.fail('expected error1');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+bar.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+bar/);
       }
 
       try {
         await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'fizz', params: { id: '1' } }]);
         assert.fail('expected error2');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+fizz.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+fizz/);
       }
 
       // using component
@@ -6442,28 +6442,28 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load('c-1');
         assert.fail('expected error 1');
       } catch (er) {
-        assert.match((er as Error).message, /'c-1' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-1/);
       }
 
       try {
         await router.load('c-a');
         assert.fail('expected error 2');
       } catch (er) {
-        assert.match((er as Error).message, /'c-a' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-a/);
       }
 
       try {
         await router.load('c-2');
         assert.fail('expected error 3');
       } catch (er) {
-        assert.match((er as Error).message, /'c-2' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-2/);
       }
 
       try {
         await router.load('c-b');
         assert.fail('expected error 4');
       } catch (er) {
-        assert.match((er as Error).message, /'c-b' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-b/);
       }
 
       await au.stop();

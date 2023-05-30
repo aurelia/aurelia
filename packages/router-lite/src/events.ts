@@ -396,7 +396,7 @@ export function error(logger: ILogger, event: Events, ...optionalParameters: unk
     const message = eventMessageMap[event];
     logger.error(`AUR${event}: ${message}`, ...optionalParameters);
   } else {
-    logger.error(`AUR${event}`, ...optionalParameters);
+    logger.error(`AUR${event}`, ...optionalParameters.map(p => String(p)));
   }
 }
 

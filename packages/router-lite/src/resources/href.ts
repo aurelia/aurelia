@@ -29,6 +29,11 @@ import { resolve } from '@aurelia/kernel';
 
 @customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
+
+  /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
+  /** @internal */private readonly _router: IRouter = resolve(IRouter);
+  /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
+
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -41,10 +46,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public readonly $controller!: ICustomAttributeController<this>;
-
-  /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
-  /** @internal */private readonly _router: IRouter = resolve(IRouter);
-  /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
 
   public constructor() {
     if (

@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, resolve } from '@aurelia/kernel';
 import {
   BindingMode,
   customAttribute,
@@ -16,6 +16,13 @@ import { ILocationManager } from '../location-manager';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
+
+  /** @internal */ private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
+  /** @internal */ private readonly _router: IRouter = resolve(IRouter);
+  /** @internal */ private readonly _ctx: IRouteContext = resolve(IRouteContext);
+  /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
+  /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+
   @bindable({ mode: BindingMode.toView, primary: true, callback: 'valueChanged' })
   public route: unknown;
 
@@ -34,34 +41,29 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
   public context?: IRouteContext;
 
-  private href: string | null = null;
-  private instructions: ViewportInstructionTree | null = null;
-  private navigationEndListener: IDisposable | null = null;
-  private readonly isEnabled: boolean;
-  private readonly activeClass: string | null;
+  /** @internal */ private _href: string | null = null;
+  /** @internal */ private _instructions: ViewportInstructionTree | null = null;
+  /** @internal */ private _navigationEndListener: IDisposable | null = null;
+  /** @internal */ private readonly _isEnabled: boolean;
+  /** @internal */ private readonly _activeClass: string | null;
 
-  public constructor(
-    @INode private readonly el: INode<HTMLElement>,
-    @IRouter private readonly router: IRouter,
-    @IRouterEvents private readonly events: IRouterEvents,
-    @IRouteContext private readonly ctx: IRouteContext,
-    @ILocationManager private readonly locationMgr: ILocationManager,
-  ) {
+  public constructor() {
+    const el = this._el;
     // Ensure the element is not explicitly marked as external.
-    this.isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
-    this.activeClass = router.options.activeClass;
+    this._isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
+    this._activeClass = this._router.options.activeClass;
   }
 
   public binding(): void {
-    if (this.isEnabled) {
-      this.el.addEventListener('click', this.onClick as EventListener);
+    if (this._isEnabled) {
+      this._el.addEventListener('click', this.onClick as EventListener);
     }
     this.valueChanged();
-    this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
-      const active = this.active = this.instructions !== null && this.router.isActive(this.instructions, this.context!);
-      const activeClass = this.activeClass;
+    this._navigationEndListener = this._events.subscribe('au:router:navigation-end', _e => {
+      const active = this.active = this._instructions !== null && this._router.isActive(this._instructions, this.context!);
+      const activeClass = this._activeClass;
       if (activeClass === null) return;
-      this.el.classList.toggle(activeClass, active);
+      this._el.classList.toggle(activeClass, active);
     });
   }
 
@@ -76,51 +78,51 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public unbinding(): void {
-    if (this.isEnabled) {
-      this.el.removeEventListener('click', this.onClick);
+    if (this._isEnabled) {
+      this._el.removeEventListener('click', this.onClick);
     }
-    this.navigationEndListener!.dispose();
+    this._navigationEndListener!.dispose();
   }
 
   public valueChanged(): void {
-    const router = this.router;
+    const router = this._router;
     const useHash = router.options.useUrlFragmentHash;
     const component = this.route as NavigationInstruction;
     // this allows binding context to null for navigation from root; unbound vs explicit null binding
     let ctx = this.context;
     if (ctx === void 0) {
-      ctx = this.context = this.ctx;
+      ctx = this.context = this._ctx;
     } else if (ctx === null) {
-      ctx = this.context = this.ctx.root;
+      ctx = this.context = this._ctx.root;
     }
     if (component != null && ctx.allResolved === null) {
       const params = this.params;
-      const instructions = this.instructions = router.createViewportInstructions(
+      const instructions = this._instructions = router.createViewportInstructions(
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
         { context: ctx });
-      this.href = instructions.toUrl(useHash);
+      this._href = instructions.toUrl(useHash);
     } else {
-      this.instructions = null;
-      this.href = null;
+      this._instructions = null;
+      this._href = null;
     }
 
-    const controller = CustomElement.for(this.el, { optional: true });
+    const controller = CustomElement.for(this._el, { optional: true });
     if (controller !== null) {
-      (controller.viewModel as IIndexable)[this.attribute] = this.instructions;
+      (controller.viewModel as IIndexable)[this.attribute] = this._instructions;
     } else {
-      if (this.href === null) {
-        this.el.removeAttribute(this.attribute);
+      if (this._href === null) {
+        this._el.removeAttribute(this.attribute);
       } else {
-        const value = useHash ? this.href : this.locationMgr.addBaseHref(this.href);
-        this.el.setAttribute(this.attribute, value);
+        const value = useHash ? this._href : this._locationMgr.addBaseHref(this._href);
+        this._el.setAttribute(this.attribute, value);
       }
     }
   }
 
   private readonly onClick = (e: MouseEvent): void => {
-    if (this.instructions === null) {
+    if (this._instructions === null) {
       return;
     }
 
@@ -131,6 +133,6 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-    void this.router.load(this.instructions, { context: this.context });
+    void this._router.load(this._instructions, { context: this.context });
   };
 }

@@ -30,6 +30,7 @@ import {
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
 import {
+  IExtendedViewportInstruction,
   ITypedNavigationInstruction_Component,
   ITypedNavigationInstruction_string,
   IViewportInstruction,
@@ -520,8 +521,8 @@ export class RouteContext {
   /** @internal */
   public generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
   public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
-  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
-  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null {
     if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
     let paths: string[] | undefined;
@@ -568,8 +569,8 @@ export class RouteContext {
           component: result.path,
           children: (instruction as IViewportInstruction).children,
           viewport: (instruction as IViewportInstruction).viewport,
-          open: (instruction as IViewportInstruction).open,
-          close: (instruction as IViewportInstruction).close,
+          open: (instruction as IExtendedViewportInstruction).open,
+          close: (instruction as IExtendedViewportInstruction).close,
         }),
         query: result.query,
       };
@@ -598,8 +599,8 @@ export class RouteContext {
         component: result.path,
         children: (instruction as IViewportInstruction).children,
         viewport: (instruction as IViewportInstruction).viewport,
-        open: (instruction as IViewportInstruction).open,
-        close: (instruction as IViewportInstruction).close,
+        open: (instruction as IExtendedViewportInstruction).open,
+        close: (instruction as IExtendedViewportInstruction).close,
       }),
       query: result.query,
     };

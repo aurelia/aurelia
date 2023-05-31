@@ -48,9 +48,10 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 
 export type Params = { [key: string]: string | undefined };
 
+// TODO: check usage in public API
+export type IExtendedViewportInstruction = IViewportInstruction & { readonly open?: number; readonly close?: number };
+
 export interface IViewportInstruction {
-  readonly open?: number;
-  readonly close?: number;
   /**
    * The component to load.
    *
@@ -84,10 +85,10 @@ export interface IViewportInstruction {
   readonly recognizedRoute: $RecognizedRoute | null;
 }
 
-export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
+export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IExtendedViewportInstruction {
   private constructor(
-    public open: number,
-    public close: number,
+    public readonly _open: number,
+    public readonly _close: number,
     public readonly recognizedRoute: $RecognizedRoute | null,
     public readonly component: TComponent,
     public readonly viewport: string | null,
@@ -95,7 +96,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly children: ViewportInstruction[],
   ) { }
 
-  public static create(instruction: NavigationInstruction): ViewportInstruction {
+  public static create(instruction: NavigationInstruction | IExtendedViewportInstruction): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
 
     if (isPartialViewportInstruction(instruction)) {
@@ -113,7 +114,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       );
     }
 
-    const typedInstruction = TypedNavigationInstruction.create(instruction);
+    const typedInstruction = TypedNavigationInstruction.create(instruction) as ITypedNavigationInstruction_Component;
     return new ViewportInstruction(0, 0, null, typedInstruction, null, null, []);
   }
 
@@ -165,8 +166,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public clone(): this {
     return new ViewportInstruction(
-      this.open,
-      this.close,
+      this._open,
+      this._close,
       this.recognizedRoute,
       this.component.clone(),
       this.viewport,
@@ -181,7 +182,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
      * Note on the parenthesized parameters:
      * We will land on this branch if and only if the component cannot be eagerly recognized (in the RouteContext#generateViewportInstruction) AND the parameters are also provided.
      * When the routes are eagerly recognized, then there is no parameters left at this point and everything is already packed in the generated path as well as in the recognized route.
-     * Thus, in normal scenarios the users will never land where, and when they do.
+     * Thus, in normal scenarios the users will never land here.
      *
      * Whenever, they are using a hand composed (string) path, then in that case there is no question of having parameters at this point, rather the given path is recognized in the createAndAppendNodes.
      * It might be a rare edge case where users provide half the parameters in the string path and half as form of parameters; example: `load="route: r1/id1; params.bind: {id2}"`.
@@ -197,7 +198,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
-    const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
+    const thisPart = `${'('.repeat(this._open)}${component}${params}${viewport}${')'.repeat(this._close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {
       if (childPart.length > 0) {

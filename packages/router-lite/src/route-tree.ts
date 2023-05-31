@@ -430,8 +430,8 @@ export function createAndAppendNodes(
             const eagerResult = ctx.generateViewportInstruction({
               component: vi.component.value,
               params: vi.params ?? emptyObject,
-              open: vi.open,
-              close: vi.close,
+              open: vi._open,
+              close: vi._close,
               viewport: vi.viewport,
               children: vi.children.slice(),
             });
@@ -510,8 +510,8 @@ export function createAndAppendNodes(
           const { vi: newVi, query } = rc.generateViewportInstruction({
             component: ced,
             params: vi.params ?? emptyObject,
-            open: vi.open,
-            close: vi.close,
+            open: vi._open,
+            close: vi._close,
             viewport: vi.viewport,
             children: vi.children.slice(),
           })!;
@@ -679,8 +679,8 @@ function createConfiguredNode(
         component: newPath,
         children: vi.children,
         viewport: vi.viewport,
-        open: vi.open,
-        close: vi.close,
+        open: vi._open,
+        close: vi._close,
       }) as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
       redirRR,
       originalVi,

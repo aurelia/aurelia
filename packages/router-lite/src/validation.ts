@@ -2,7 +2,7 @@ import type { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
-import type { IViewportInstruction, Params, RouteableComponent } from './instructions';
+import type { IExtendedViewportInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
 import { tryStringify } from './util';
 import { Events, getMessage } from './events';
 
@@ -46,7 +46,7 @@ export function isPartialRedirectRouteConfig(value: RouteableComponent | IChildR
 
 // Yes, `isPartialChildRouteConfig` and `isPartialViewportInstruction` have identical logic but since that is coincidental,
 // and the two are intended to be used in specific contexts, we keep these as two separate functions for now.
-export function isPartialViewportInstruction(value: RouteableComponent | IViewportInstruction | null | undefined): value is IViewportInstruction {
+export function isPartialViewportInstruction(value: RouteableComponent | IViewportInstruction | null | undefined): value is IExtendedViewportInstruction {
   // 'component' is the only mandatory property of a INavigationInstruction
   // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
   return (

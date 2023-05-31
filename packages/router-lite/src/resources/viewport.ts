@@ -32,8 +32,8 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   @bindable public default: string = '';
   @bindable public fallback: Routeable | FallbackFunction = '';
 
-  private agent: ViewportAgent = (void 0)!;
-  private controller: ICustomElementController = (void 0)!;
+  /** @internal */ private _agent: ViewportAgent = (void 0)!;
+  /** @internal */ private _controller: ICustomElementController = (void 0)!;
 
   /** @internal */
   private readonly _ctx: IRouteContext = resolve(IRouteContext);
@@ -52,28 +52,28 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   public hydrated(controller: ICompiledCustomElementController): void {
     if (__DEV__) trace(this._logger, Events.vpHydrated);
 
-    this.controller = controller as ICustomElementController;
-    this.agent = this._ctx.registerViewport(this);
+    this._controller = controller as ICustomElementController;
+    this._agent = this._ctx.registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     if (__DEV__) trace(this._logger, Events.vpAttaching);
 
-    return this.agent._activateFromViewport(initiator, this.controller);
+    return this._agent._activateFromViewport(initiator, this._controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     if (__DEV__) trace(this._logger, Events.vpDetaching);
 
-    return this.agent._deactivateFromViewport(initiator, this.controller);
+    return this._agent._deactivateFromViewport(initiator, this._controller);
   }
 
   public dispose(): void {
     if (__DEV__) trace(this._logger, Events.vpDispose);
 
     this._ctx.unregisterViewport(this);
-    this.agent._dispose();
-    this.agent = (void 0)!;
+    this._agent._dispose();
+    this._agent = (void 0)!;
   }
 
   public toString(): string {

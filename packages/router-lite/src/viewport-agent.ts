@@ -693,7 +693,7 @@ export class ViewportAgent {
         this._unexpectedState('scheduleUpdate 2');
     }
 
-    const cur = this.curCA?.routeNode ?? null;
+    const cur = this.curCA?._routeNode ?? null;
     if (cur === null || cur.component !== next.component) {
       // Component changed (or is cleared), so set to 'replace'
       this.$plan = 'replace';

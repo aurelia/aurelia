@@ -27,6 +27,8 @@ export interface IRouteViewModel extends ICustomElementViewModel {
  * A component agent handles an instance of a routed view-model (a component).
  * It deals with invoking the hooks (`canLoad`, `loading`, `canUnload`, `unloading`),
  * and activating, deactivating, and disposing the component (via the associated controller).
+ *
+ * @internal
  */
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _logger: ILogger;
@@ -41,56 +43,56 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unloading'>[];
 
   public constructor(
-    public readonly instance: T,
-    public readonly controller: ICustomElementController<T>,
-    public readonly routeNode: RouteNode,
-    public readonly ctx: IRouteContext,
-    private readonly routerOptions: RouterOptions,
+    /** @internal */ private readonly _instance: T,
+    /** @internal */ private readonly _controller: ICustomElementController<T>,
+    /** @internal */ public readonly _routeNode: RouteNode,
+    /** @internal */ private readonly _ctx: IRouteContext,
+    /** @internal */ private readonly _routerOptions: RouterOptions,
   ) {
-    this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+    this._logger = _ctx.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx.friendlyPath}>`);
 
     if (__DEV__) trace(this._logger, Events.caCreated);
 
-    const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
+    const lifecycleHooks = _controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
     this._canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
     this._loadHooks = (lifecycleHooks.loading ?? []).map(x => x.instance);
     this._canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
     this._unloadHooks = (lifecycleHooks.unloading ?? []).map(x => x.instance);
-    this._hasCanLoad = 'canLoad' in instance;
-    this._hasLoad = 'loading' in instance;
-    this._hasCanUnload = 'canUnload' in instance;
-    this._hasUnload = 'unloading' in instance;
+    this._hasCanLoad = 'canLoad' in _instance;
+    this._hasLoad = 'loading' in _instance;
+    this._hasCanUnload = 'canUnload' in _instance;
+    this._hasUnload = 'unloading' in _instance;
   }
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caActivateSelf);
-      return this.controller.activate(this.controller, parent);
+      return this._controller.activate(this._controller, parent);
     }
 
     if (__DEV__) trace(this._logger, Events.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.activate(initiator, parent);
+    void this._controller.activate(initiator, parent);
   }
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
-      return this.controller.deactivate(this.controller, parent);
+      return this._controller.deactivate(this._controller, parent);
     }
 
     if (__DEV__) trace(this._logger, Events.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.deactivate(initiator, parent);
+    void this._controller.deactivate(initiator, parent);
   }
 
   /** @internal */
   public _dispose(): void {
     if (__DEV__) trace(this._logger, Events.caDispose);
 
-    this.controller.dispose();
+    this._controller.dispose();
   }
 
   /** @internal */
@@ -107,7 +109,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr.run(() => {
-          return hook.canUnload(this.instance, next, this.routeNode);
+          return hook.canUnload(this._instance, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
@@ -126,7 +128,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr.run(() => {
-          return this.instance.canUnload!(next, this.routeNode);
+          return this._instance.canUnload!(next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
@@ -141,7 +143,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _canLoad(tr: Transition, next: RouteNode, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
-    const rootCtx = this.ctx.root;
+    const rootCtx = this._ctx.root;
     b.push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canLoadHooks) {
@@ -153,10 +155,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr.run(() => {
-          return hook.canLoad(this.instance, next.params, next, this.routeNode);
+          return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
           b.pop();
           res();
@@ -172,10 +174,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr.run(() => {
-          return this.instance.canLoad!(next.params, next, this.routeNode);
+          return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
           b.pop();
         });
@@ -191,7 +193,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this._unloadHooks) {
       tr.run(() => {
         b.push();
-        return hook.unloading(this.instance, next, this.routeNode);
+        return hook.unloading(this._instance, next, this._routeNode);
       }, () => {
         b.pop();
       });
@@ -199,7 +201,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasUnload) {
       tr.run(() => {
         b.push();
-        return this.instance.unloading!(next, this.routeNode);
+        return this._instance.unloading!(next, this._routeNode);
       }, () => {
         b.pop();
       });
@@ -214,7 +216,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this._loadHooks) {
       tr.run(() => {
         b.push();
-        return hook.loading(this.instance, next.params, next, this.routeNode);
+        return hook.loading(this._instance, next.params, next, this._routeNode);
       }, () => {
         b.pop();
       });
@@ -222,7 +224,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasLoad) {
       tr.run(() => {
         b.push();
-        return this.instance.loading!(next.params, next, this.routeNode);
+        return this._instance.loading!(next.params, next, this._routeNode);
       }, () => {
         b.pop();
       });

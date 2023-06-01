@@ -49,7 +49,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     /** @internal */ private readonly _ctx: IRouteContext,
     /** @internal */ private readonly _routerOptions: RouterOptions,
   ) {
-    this._logger = _ctx.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx.friendlyPath}>`);
+    this._logger = _ctx.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
 
     if (__DEV__) trace(this._logger, Events.caCreated);
 

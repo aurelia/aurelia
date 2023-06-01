@@ -87,8 +87,8 @@ export interface IViewportInstruction {
 
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IExtendedViewportInstruction {
   private constructor(
-    public readonly _open: number,
-    public readonly _close: number,
+    public readonly open: number,
+    public readonly close: number,
     public readonly recognizedRoute: $RecognizedRoute | null,
     public readonly component: TComponent,
     public readonly viewport: string | null,
@@ -166,8 +166,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
 
   public clone(): this {
     return new ViewportInstruction(
-      this._open,
-      this._close,
+      this.open,
+      this.close,
       this.recognizedRoute,
       this.component.clone(),
       this.viewport,
@@ -198,7 +198,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
-    const thisPart = `${'('.repeat(this._open)}${component}${params}${viewport}${')'.repeat(this._close)}`;
+    const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {
       if (childPart.length > 0) {
@@ -244,57 +244,6 @@ function stringifyParams(params: Params): string {
   return values.join(',');
 }
 
-export interface IRedirectInstruction {
-  readonly path: string;
-  readonly redirectTo: string;
-}
-
-export class RedirectInstruction implements IRedirectInstruction {
-  private constructor(
-    public readonly path: string,
-    public readonly redirectTo: string,
-  ) { }
-
-  public static create(instruction: IRedirectInstruction): RedirectInstruction {
-    if (instruction instanceof RedirectInstruction) {
-      return instruction;
-    }
-
-    return new RedirectInstruction(instruction.path, instruction.redirectTo);
-  }
-
-  public equals(other: RedirectInstruction): boolean {
-    return this.path === other.path && this.redirectTo === other.redirectTo;
-  }
-
-  public toUrlComponent(): string {
-    return this.path;
-  }
-
-  public toString(): string {
-    return `RI(path:'${this.path}',redirectTo:'${this.redirectTo}')`;
-  }
-}
-
-/**
- * Associate the object with an id so it can be stored in history as a serialized url segment.
- *
- * WARNING: As the implementation is right now, this is a memory leak disaster.
- * This is really a placeholder implementation at the moment and should NOT be used / advertised for production until a leak-free solution is made.
- */
-const getObjectId = (function () {
-  let lastId = 0;
-  const objectIdMap = new Map<object, number>();
-
-  return function (obj: object): number {
-    let id = objectIdMap.get(obj);
-    if (id === void 0) {
-      objectIdMap.set(obj, id = ++lastId);
-    }
-    return id;
-  };
-})();
-
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
@@ -324,7 +273,7 @@ export class ViewportInstructionTree {
       const query = new URLSearchParams($options.queryParams ?? emptyObject);
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
-        const eagerVi = hasContext ? context.generateViewportInstruction(instruction) : null;
+        const eagerVi = hasContext ? context._generateViewportInstruction(instruction) : null;
         if (eagerVi !== null) {
           children[i] = eagerVi.vi;
           mergeURLSearchParams(query, eagerVi.query, false);
@@ -341,7 +290,7 @@ export class ViewportInstructionTree {
     }
 
     const eagerVi = hasContext
-      ? context.generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
+      ? context._generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
         ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
         : { component: instructionOrInstructions, params: emptyObject }
       )
@@ -513,7 +462,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
         return this.value.name;
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.Promise:
-        return `au$obj${getObjectId(this.value)}`;
+        throw new Error(getMessage(Events.instrInvalidUrlComponentOperation, this.type));
       case NavigationInstructionType.ViewportInstruction:
         return this.value.toUrlComponent();
       case NavigationInstructionType.string:

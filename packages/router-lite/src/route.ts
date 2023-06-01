@@ -333,7 +333,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
       break;
     case NavigationInstructionType.Promise:
       if (context == null) throw new Error(getMessage(Events.rtNoCtxLazyImport));
-      ceDef = context.resolveLazy(instruction.value);
+      ceDef = context._resolveLazy(instruction.value);
       break;
   }
   return [instruction, ceDef];

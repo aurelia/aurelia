@@ -54,7 +54,7 @@ export class ViewportAgent {
     public readonly hostController: ICustomElementController,
     ctx: IRouteContext,
   ) {
-    this.logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
+    this.logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx._friendlyPath}>`);
 
     if (__DEV__) trace(this.logger, Events.vpaCreated);
   }
@@ -266,7 +266,7 @@ export class ViewportAgent {
             case 'replace':
               b1.push();
               void onResolve(
-                this.nextNode!.context.createComponentAgent(this.hostController, this.nextNode!),
+                this.nextNode!.context._createComponentAgent(this.hostController, this.nextNode!),
                 ca => {
                   (this.nextCA = ca)._canLoad(tr, this.nextNode!, b1);
                   b1.pop();
@@ -296,7 +296,7 @@ export class ViewportAgent {
           b1.push();
           const ctx = next.context;
           void onResolve(
-            ctx.resolved,
+            ctx.allResolved,
             () => onResolve(
               onResolve(
                 onResolveAll(
@@ -617,7 +617,7 @@ export class ViewportAgent {
     tr.run(() => {
       b.push();
       const ctx = next.context;
-      return onResolve(ctx.resolved, () => {
+      return onResolve(ctx.allResolved, () => {
         const existingChildren = next.children.slice();
         return onResolve(
           onResolveAll(...next

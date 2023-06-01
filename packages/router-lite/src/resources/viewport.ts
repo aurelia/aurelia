@@ -38,7 +38,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   /** @internal */
   private readonly _ctx: IRouteContext = resolve(IRouteContext);
   /** @internal */
-  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx.friendlyPath}>`));
+  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx._friendlyPath}>`));
 
   /** @internal */
   public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
@@ -53,7 +53,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     if (__DEV__) trace(this._logger, Events.vpHydrated);
 
     this._controller = controller as ICustomElementController;
-    this._agent = this._ctx.registerViewport(this);
+    this._agent = this._ctx._registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
@@ -71,7 +71,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   public dispose(): void {
     if (__DEV__) trace(this._logger, Events.vpDispose);
 
-    this._ctx.unregisterViewport(this);
+    this._ctx._unregisterViewport(this);
     this._agent._dispose();
     this._agent = (void 0)!;
   }
@@ -98,7 +98,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
         }
       }
     }
-    return `VP(ctx:'${this._ctx.friendlyPath}',${propStrings.join(',')})`;
+    return `VP(ctx:'${this._ctx._friendlyPath}',${propStrings.join(',')})`;
   }
 }
 

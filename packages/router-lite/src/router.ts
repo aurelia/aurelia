@@ -593,11 +593,11 @@ export class Router {
         rootCtx.node = rt.root;
       }
 
-      const suffix = navigationContext.resolved instanceof Promise ? ' - awaiting promise' : '';
+      const suffix = navigationContext.allResolved instanceof Promise ? ' - awaiting promise' : '';
       log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
       // Wait till the promises to resolve the child routes are resolved.
       // Note that a route configuration can be a promise.
-      return onResolve(navigationContext.resolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
+      return onResolve(navigationContext.allResolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
     }, () => {
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;

@@ -313,7 +313,7 @@ export class RouteNode implements IRouteNode {
       }).join(',')}`);
     }
 
-    return `RN(ctx:'${this.context?.friendlyPath}',${props.join(',')})`;
+    return `RN(ctx:'${this.context?._friendlyPath}',${props.join(',')})`;
   }
 }
 
@@ -386,7 +386,7 @@ export function createAndAppendNodes(
           // However, when that's not the case, then we perhaps try to lookup the route-id.
           // This is another early termination.
           if (vi.children.length === 0) {
-            const result = ctx.generateViewportInstruction(vi);
+            const result = ctx._generateViewportInstruction(vi);
             if (result !== null) {
               (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, result.query, true);
               const newVi = result.vi;
@@ -427,11 +427,11 @@ export function createAndAppendNodes(
           // Therefore the path matches the configured empty route and puts the whole path into residue.
           if (rr === null || residue === path) {
             // check if a route-id is used
-            const eagerResult = ctx.generateViewportInstruction({
+            const eagerResult = ctx._generateViewportInstruction({
               component: vi.component.value,
               params: vi.params ?? emptyObject,
-              open: vi._open,
-              close: vi._close,
+              open: vi.open,
+              close: vi.close,
               viewport: vi.viewport,
               children: vi.children.slice(),
             });
@@ -454,7 +454,7 @@ export function createAndAppendNodes(
             const fallback = vpa !== null
               ? vpa.viewport._getFallback(vi, node, ctx)
               : ctx.config._getFallback(vi, node, ctx);
-            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx.friendlyPath, vp, name, ctx.component.name));
+            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx._friendlyPath, vp, name, ctx.component.name));
 
             if (typeof fallback === 'string') {
               // fallback: id -> route -> CEDefn (Route configuration)
@@ -507,11 +507,11 @@ export function createAndAppendNodes(
       return onResolve(
         resolveCustomElementDefinition(vi.component.value, rc)[1],
         ced => {
-          const { vi: newVi, query } = rc.generateViewportInstruction({
+          const { vi: newVi, query } = rc._generateViewportInstruction({
             component: ced,
             params: vi.params ?? emptyObject,
-            open: vi._open,
-            close: vi._close,
+            open: vi.open,
+            close: vi.close,
             viewport: vi.viewport,
             children: vi.children.slice(),
           })!;
@@ -549,7 +549,7 @@ function createConfiguredNode(
         resolveCustomElementDefinition($handler.component, ctx)[1],
         ced => {
 
-          const vpa = ctx.resolveViewportAgent(new ViewportRequest(
+          const vpa = ctx._resolveViewportAgent(new ViewportRequest(
             vpName,
             ced.name,
           ));
@@ -669,7 +669,7 @@ function createConfiguredNode(
     const newPath = newSegs.filter(Boolean).join('/');
 
     const redirRR = ctx.recognize(newPath);
-    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx.friendlyPath, newPath, ctx.component.name));
+    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx._friendlyPath, newPath, ctx.component.name));
 
     return createConfiguredNode(
       log,
@@ -679,8 +679,8 @@ function createConfiguredNode(
         component: newPath,
         children: vi.children,
         viewport: vi.viewport,
-        open: vi._open,
-        close: vi._close,
+        open: vi.open,
+        close: vi.close,
       }) as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
       redirRR,
       originalVi,

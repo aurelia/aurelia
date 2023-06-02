@@ -6,7 +6,8 @@
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "development": "./dist/esm/index.dev.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",

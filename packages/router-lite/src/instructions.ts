@@ -48,7 +48,6 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 
 export type Params = { [key: string]: string | undefined };
 
-// TODO: check usage in public API
 export type IExtendedViewportInstruction = IViewportInstruction & { readonly open?: number; readonly close?: number };
 
 export interface IViewportInstruction {

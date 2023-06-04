@@ -36,12 +36,13 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { createError, objectKeys, isString, def } from './utilities';
+import { objectKeys, isString, def } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
+import { ErrorNames, createMappedError } from './errors';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -414,12 +415,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!;
     case 'view':
-      // todo: returns node sequences for fun?
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0750: Not supported API`);
-      else
-        throw createError(`AUR0750`);
+      throw createMappedError(ErrorNames.not_supported_view_ref_api);
     case 'view-model':
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
@@ -430,11 +426,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       }
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
-        else
-          throw createError(`AUR0751:${refTargetName}`);
+        throw createMappedError(ErrorNames.ref_not_found, refTargetName);
       }
       return ceController.viewModel;
     }
@@ -492,10 +484,7 @@ export class CustomElementRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
-          if (__DEV__)
-            throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.element_res_not_found, res, (renderingCtrl as Controller)['name']);
         }
         break;
       // constructor based instruction
@@ -578,11 +567,7 @@ export class CustomAttributeRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          if (__DEV__)
-            /* istanbul ignore next */
-            throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.attribute_res_not_found, instruction.res, (renderingCtrl as Controller)['name']);
         }
         break;
       // constructor based instruction
@@ -657,11 +642,7 @@ export class TemplateControllerRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          if (__DEV__)
-            /* istanbul ignore next */
-            throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction.res, (renderingCtrl as Controller)['name']);
         }
         break;
       // constructor based instruction
@@ -1064,7 +1045,7 @@ export class SpreadRenderer implements IRenderer {
         --currentLevel;
       }
       if (currentContext == null) {
-        throw createError('No scope context for spread binding.');
+        throw createMappedError(ErrorNames.no_spread_scope_context_found);
       }
       return currentContext as IHydrationContext<object>;
     };
@@ -1145,7 +1126,7 @@ class SpreadBinding implements IBinding {
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
-      throw createError('Invalid spreading. Context scope is null/undefined');
+      throw createMappedError(ErrorNames.no_spread_scope_context_found);
     }
 
     this._innerBindings.forEach(b => b.bind(innerScope));
@@ -1162,7 +1143,7 @@ class SpreadBinding implements IBinding {
 
   public addChild(controller: IController) {
     if (controller.vmKind !== ViewModelKind.customAttribute) {
-      throw createError('Spread binding does not support spreading custom attributes/template controllers');
+      throw createMappedError(ErrorNames.no_spread_template_controller);
     }
     this.ctrl.addChild(controller);
   }
@@ -1233,18 +1214,10 @@ class ViewFactoryProvider implements IResolver {
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
-      else
-        throw createError(`AUR7055`);
+      throw createMappedError(ErrorNames.view_factory_provider_not_ready);
     }
     if (!isString(f.name) || f.name.length === 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
-      else
-        throw createError(`AUR0756`);
+      throw createMappedError(ErrorNames.view_factory_invalid_name);
     }
     return f;
   }

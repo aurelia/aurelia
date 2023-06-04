@@ -17,12 +17,13 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createError, createLookup, isDataAttribute, isString, objectAssign, safeString } from '../utilities';
+import { createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom';
+import { createMappedError, ErrorNames } from '../errors';
 
 // https://infra.spec.whatwg.org/#namespaces
 // const htmlNS = 'http://www.w3.org/1999/xhtml';
@@ -351,11 +352,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       }
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0652: Unable to observe property ${safeString(key)}. Register observation mapping with .useConfig().`);
-      else
-        throw createError(`AUR0652:${safeString(key)}`);
+      throw createMappedError(ErrorNames.node_observer_strategy_not_found, key);
     } else {
       // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
       // but let's start with simplest scenario
@@ -377,9 +374,5 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 }
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
-  if (__DEV__)
-    /* istanbul ignore next */
-    throw createError(`AUR0653: Mapping for property ${safeString(key)} of <${nodeName} /> already exists`);
-  else
-    throw createError(`AUR0653:${safeString(key)}@${nodeName}`);
+  throw createMappedError(ErrorNames.node_observer_mapping_existed, nodeName, key);
 }

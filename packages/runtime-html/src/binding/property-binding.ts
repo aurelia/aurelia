@@ -13,8 +13,8 @@ import type {
   IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
-import { createError } from '../utilities';
 import type { IBindingController } from './interfaces-bindings';
+import { createMappedError, ErrorNames } from '../errors';
 
 export interface PropertyBinding extends IAstEvaluator, IConnectableBinding {}
 
@@ -188,7 +188,7 @@ export class PropertyBinding implements IBinding {
    */
   public useTargetSubscriber(subscriber: ISubscriber): void {
     if (this._targetSubscriber != null) {
-      throw createError(`AURxxxx: binding already has a target subscriber`);
+      throw createMappedError(ErrorNames.binding_already_has_target_subscriber);
     }
     this._targetSubscriber = subscriber;
   }

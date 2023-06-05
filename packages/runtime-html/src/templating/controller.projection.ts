@@ -5,6 +5,7 @@ import { type ISubscribable, type ISubscriberCollection, subscriberCollection } 
 import { type Constructable, emptyArray, type Key, type IContainer, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
+import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialSlottedDefinition = {
   callback?: PropertyKey;
@@ -150,7 +151,7 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
 
   /* istanbul ignore next */
   public get(): ReturnType<IServiceLocator['get']> {
-    throw new Error('not implemented');
+    throw createMappedError(ErrorNames.method_not_implemented, 'get');
   }
 }
 
@@ -231,7 +232,7 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
     config.name = $prop;
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw new Error(`Invalid usage. @slotted can only be used on a field`);
+      throw createMappedError(ErrorNames.slotted_decorator_invalid_usage);
     }
 
     const target = ($target as object).constructor as Constructable;

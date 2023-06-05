@@ -2,12 +2,13 @@ import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable, Co
 import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
 import { CustomElement, findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { createError, def, isString, objectAssign, safeString } from '../utilities';
+import { def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { createMutationObserver } from '../utilities-dom';
 
 import type { INode } from '../dom';
+import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialChildrenDefinition = {
   callback?: PropertyKey;
@@ -57,7 +58,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
     }
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw new Error(`Invalid usage. @children can only be used on a field`);
+      throw createMappedError(ErrorNames.children_decorator_invalid_usage);
     }
 
     const target = ($target as object).constructor as Constructable;
@@ -174,7 +175,7 @@ export class ChildrenBinding implements IBinding {
   }
 
   public get(): ReturnType<IServiceLocator['get']> {
-    throw notImplemented('get');
+    throw createMappedError(ErrorNames.method_not_implemented, 'get');
   }
 
   /** @internal */
@@ -186,7 +187,6 @@ export class ChildrenBinding implements IBinding {
 }
 
 const childObserverOptions: MutationObserverInit = { childList: true };
-const notImplemented = (name: string) => createError(`Method "${name}": not implemented`);
 
 const defaultChildQuery = (controller: ICustomElementController): ArrayLike<INode> => controller.host.childNodes;
 

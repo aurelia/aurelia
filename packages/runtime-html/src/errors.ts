@@ -11,6 +11,7 @@ export const createMappedError: CreateError = __DEV__
 _START_CONST_ENUM();
 /** @internal */
 export const enum ErrorNames {
+  method_not_implemented = 99,
 
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
@@ -47,6 +48,12 @@ export const enum ErrorNames {
   watch_invalid_change_handler = 773,
   watch_non_method_decorator_usage = 774,
 
+  repeat_invalid_key_binding_command = 775,
+  repeat_extraneous_binding = 776,
+  repeat_non_iterable = 777,
+  repeat_non_countable = 778,
+  repeat_mismatch_length = 814,
+
   self_behavior_invalid_usage = 801,
   update_trigger_behavior_no_triggers = 802,
   update_trigger_invalid_usage = 803,
@@ -54,6 +61,13 @@ export const enum ErrorNames {
   au_compose_containerless = 806,
   au_compose_invalid_run = 807,
   au_compose_duplicate_deactivate = 808,
+  else_without_if = 810,
+  portal_query_empty = 811,
+  portal_no_target = 812,
+  promise_invalid_usage = 813,
+  switch_invalid_usage = 815,
+  switch_no_multiple_default = 816,
+
   signal_behavior_invalid_usage = 817,
   signal_behavior_no_signals = 818,
 
@@ -65,10 +79,15 @@ export const enum ErrorNames {
   attr_behavior_invalid_binding = 9994,
   update_trigger_behavior_not_supported = 9993,
   update_trigger_behavior_node_property_not_observable = 9992,
+
+  children_decorator_invalid_usage = 9991,
+  slotted_decorator_invalid_usage = 9990,
 }
 _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string> = {
+  [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
+
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No definition found for type {{0}}`,
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
@@ -95,9 +114,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.invalid_dispose_call]: `The aurelia instance must be fully stopped before it can be disposed`,
   [ErrorNames.not_supported_view_ref_api]: `view.ref is not supported. If you are migrating from v1, this can be understood as the controller.`,
   [ErrorNames.ref_not_found]: `Attempted to reference "{{0}}", but it was not found amongst the target's API.`,
-  [ErrorNames.element_res_not_found]: `Element {{0}} is not registered in {{1}}.`,
-  [ErrorNames.attribute_res_not_found]: `Attribute {{0}} is not registered in {{1}}.`,
-  [ErrorNames.attribute_tc_res_not_found]: `Attribute {{0}} is not registered in {{1}}.`,
+  [ErrorNames.element_res_not_found]: `Element {{0:.res}} is not registered in {{1:name}}.`,
+  [ErrorNames.attribute_res_not_found]: `Attribute {{0:.res}} is not registered in {{1:name}}.`,
+  [ErrorNames.attribute_tc_res_not_found]: `Attribute {{0:.res}} is not registered in {{1:name}}.`,
   [ErrorNames.view_factory_provider_not_ready]: `Cannot resolve ViewFactory before the provider was prepared.`,
   [ErrorNames.view_factory_invalid_name]: `Cannot resolve ViewFactory without a (valid) name.`,
 
@@ -106,6 +125,12 @@ const errorsMap: Record<ErrorNames, string> = {
     + `Method "{{0}}" not found in class {{1}}`,
   [ErrorNames.watch_non_method_decorator_usage]: `Invalid @watch decorator usage: decorated target {{0}} is not a class method.`,
 
+  [ErrorNames.repeat_invalid_key_binding_command]: `Invalid command "{{0}}" usage with [repeat]`,
+  [ErrorNames.repeat_extraneous_binding]: `Invalid [repeat] usage, found extraneous target "{{0}}"`,
+  [ErrorNames.repeat_non_iterable]: `Unsupported: [repeat] cannot iterate over {{0:toString}}`,
+  [ErrorNames.repeat_non_countable]: `Unsupported: [repeat] cannot count {{0:toString}}`,
+  [ErrorNames.repeat_mismatch_length]: `[repeat] encountered an error: number of views != number of items {{0:join(!=)}}`,
+
   [ErrorNames.self_behavior_invalid_usage]: `"& self" binding behavior only supports listener binding via trigger/capture command.`,
   [ErrorNames.update_trigger_behavior_no_triggers]: `"& updateTrigger" invalid usage. This binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`,
   [ErrorNames.update_trigger_invalid_usage]: `"& updateTrigger" invalid usage. This binding behavior can only be applied to two-way/ from-view bindings.`,
@@ -113,6 +138,12 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.au_compose_containerless]: `Containerless custom element {{0:name}} is not supported by <au-compose />`,
   [ErrorNames.au_compose_invalid_run]: `Composition has already been activated/deactivated. Id: {{0:controller}}`,
   [ErrorNames.au_compose_duplicate_deactivate]: `Composition has already been deactivated.`,
+  [ErrorNames.else_without_if]: `Invalid [else] usage, it should follow an [if]`,
+  [ErrorNames.portal_query_empty]: `Invalid portal strict target query, empty query.`,
+  [ErrorNames.portal_no_target]: `Invalid portal strict target resolution, target not found.`,
+  [ErrorNames.promise_invalid_usage]: `Invalid [pending]/[then]/[catch] usage. The parent [promise].resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`,
+  [ErrorNames.switch_invalid_usage]: `Invalid [case/default-case] usage. The parent [switch] not found; only "*[switch] > *[case|default-case]" relation is supported.`,
+  [ErrorNames.switch_no_multiple_default]: `Invalid [default-case] usage. Multiple 'default-case's are not allowed.`,
   [ErrorNames.signal_behavior_invalid_usage]: `"& signal" binding behavior can only be used with bindings that have a "handleChange" method`,
   [ErrorNames.signal_behavior_no_signals]: `"& signal" invalid usage. At least one signal name must be passed to the signal behavior, e.g. "expr & signal:'my-signal'"`,
 
@@ -125,6 +156,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.attr_behavior_invalid_binding]: `"& attr" can be only used on property binding. It's used on {{0:ctor}}`,
   [ErrorNames.update_trigger_behavior_not_supported]: '"& updateTrigger" binding behavior only works with the default implementation of Aurelia HTML observation. Implement your own node observation + updateTrigger',
   [ErrorNames.update_trigger_behavior_node_property_not_observable]: `"& updateTrigger" uses node observer to observe, but it does not know how to use events to observe property <{{0:target@property}} />`,
+
+  [ErrorNames.children_decorator_invalid_usage]: `Invalid @children usage. @children decorator can only be used on a field`,
+  [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -139,11 +173,14 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
       if (value != null) {
         switch (method.slice(1)) {
           case 'nodeName': value = (value as Node).nodeName.toLowerCase(); break;
-          case 'name': value = (value as { name: string}).name; break;
+          case 'name': value = (value as { name: string }).name; break;
           case 'typeof': value = typeof value; break;
           case 'ctor': value = (value as object).constructor.name; break;
           case 'controller': value = value.controller.name; break;
           case 'target@property': value = `${value.target}@${value.targetProperty}`; break;
+          case 'toString': value = Object.prototype.toString.call(value); break;
+          case 'join(!=)': value = (value as unknown[]).join('!='); break;
+          case '.res': value = value.res; break;
           default: value = safeString(value);
         }
       }

@@ -16,11 +16,12 @@ import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
 import { BindingMode } from '../../binding/interfaces-bindings';
-import { createError, isArray } from '../../utilities';
+import { isArray } from '../../utilities';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
 import type { IInstruction } from '../../renderer';
+import { createMappedError, ErrorNames } from '../../errors';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
@@ -273,11 +274,7 @@ export class Case implements ICustomAttributeViewModel {
       this.$switch = $switch;
       this.linkToSwitch($switch);
     } else {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0815: The parent switch not found; only "*[switch] > *[case|default-case]" relation is supported.`);
-      else
-        throw createError(`AUR0815`);
+      throw createMappedError(ErrorNames.switch_invalid_usage);
     }
   }
 
@@ -356,11 +353,7 @@ export class DefaultCase extends Case {
 
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0816: Multiple 'default-case's are not allowed.`);
-      else
-        throw createError(`AUR0816`);
+      throw createMappedError(ErrorNames.switch_no_multiple_default);
     }
     $switch.defaultCase = this;
   }

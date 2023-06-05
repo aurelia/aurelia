@@ -484,7 +484,7 @@ export class CustomElementRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
-          throw createMappedError(ErrorNames.element_res_not_found, res, (renderingCtrl as Controller)['name']);
+          throw createMappedError(ErrorNames.element_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction
@@ -567,7 +567,7 @@ export class CustomAttributeRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw createMappedError(ErrorNames.attribute_res_not_found, instruction.res, (renderingCtrl as Controller)['name']);
+          throw createMappedError(ErrorNames.attribute_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction
@@ -642,7 +642,7 @@ export class TemplateControllerRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction.res, (renderingCtrl as Controller)['name']);
+          throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction

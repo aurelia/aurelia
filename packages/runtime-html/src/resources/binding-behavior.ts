@@ -1,10 +1,11 @@
 import { firstDefined, mergeArrays, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
-import { createError, isFunction, isString, objectFreeze } from '../utilities';
+import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
 import type { Constructable, IContainer, IResourceKind, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
+import { createMappedError, ErrorNames } from '../errors';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
@@ -94,11 +95,7 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
     const def = getOwnMetadata(bbBaseName, Type) as BindingBehaviorDefinition<T>;
     if (def === void 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0151: No definition found for type ${Type.name}`);
-      else
-        throw createError(`AUR0151:${Type.name}`);
+      throw createMappedError(ErrorNames.binding_behavior_def_not_found, Type);
     }
 
     return def;

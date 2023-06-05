@@ -1,8 +1,9 @@
 import { ISignaler } from '@aurelia/runtime';
 import { bindingBehavior } from '../binding-behavior';
-import { addSignalListener, createError, removeSignalListener } from '../../utilities';
+import { addSignalListener, removeSignalListener } from '../../utilities';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {
   /** @internal */
@@ -12,18 +13,10 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
 
   public bind(scope: Scope, binding: IConnectableBinding, ...names: string[]): void {
     if (!('handleChange' in binding)) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0817: The signal behavior can only be used with bindings that have a "handleChange" method`);
-      else
-        throw createError(`AUR0817`);
+      throw createMappedError(ErrorNames.signal_behavior_invalid_usage);
     }
     if (names.length === 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0818: At least one signal name must be passed to the signal behavior, e.g. "expr & signal:'my-signal'"`);
-      else
-        throw createError(`AUR0818`);
+      throw createMappedError(ErrorNames.signal_behavior_no_signals);
     }
 
     this._lookup.set(binding, names);

@@ -16,6 +16,16 @@ export const enum ErrorNames {
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
 
+  controller_cached_not_found = 500,
+  controller_no_shadow_on_containerless = 501,
+  controller_activating_disposed = 502,
+  controller_activation_unexpected_state = 503,
+  controller_activation_synthetic_no_scope = 504,
+  controller_deactivation_unexpected_state = 505,
+  controller_watch_invalid_callback = 506,
+  controller_property_not_coercible = 507,
+  controller_property_no_change_handler = 508,
+
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
   select_observer_array_on_non_multi_select = 654,
@@ -34,6 +44,8 @@ export const enum ErrorNames {
   attribute_tc_res_not_found = 754,
   view_factory_provider_not_ready = 755,
   view_factory_invalid_name = 756,
+
+  rendering_mismatch_length = 757,
 
   attribute_def_not_found = 759,
   element_def_not_found = 760,
@@ -89,7 +101,18 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
-  [ErrorNames.value_converter_def_not_found]: `No definition found for type {{0}}`,
+  [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
+
+  [ErrorNames.controller_cached_not_found]: `There is no cached controller for the provided ViewModel: {{0}}`,
+  [ErrorNames.controller_no_shadow_on_containerless]: `Invalid combination: cannot combine the containerless custom element option with Shadow DOM.`,
+  [ErrorNames.controller_activating_disposed]: `Trying to activate a disposed controller: {{0}}.`,
+  [ErrorNames.controller_activation_unexpected_state]: `Controller at {{0}} is in an unexpected state: {{1}} during activation.`,
+  [ErrorNames.controller_activation_synthetic_no_scope]: `Synthetic view at {{0}} is being activated with null/undefined scope.`,
+  [ErrorNames.controller_deactivation_unexpected_state]: `Controller at {{0}} is in an unexpected state: {{1}} during deactivation.`,
+  [ErrorNames.controller_watch_invalid_callback]: `Invalid callback for @watch decorator: {{0}}`,
+  [ErrorNames.controller_property_not_coercible]: `Observer for bindable property {{0}} does not support coercion.`,
+  [ErrorNames.controller_property_no_change_handler]: `Observer for property {{0}} does not support change handler.`,
+
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
   [ErrorNames.element_def_not_found]: `No element definition found for type {{0:name}}`,
   [ErrorNames.element_only_name]: `Cannot create a custom element definition with only a name and no type: {{0}}`,
@@ -119,6 +142,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.attribute_tc_res_not_found]: `Attribute {{0:.res}} is not registered in {{1:name}}.`,
   [ErrorNames.view_factory_provider_not_ready]: `Cannot resolve ViewFactory before the provider was prepared.`,
   [ErrorNames.view_factory_invalid_name]: `Cannot resolve ViewFactory without a (valid) name.`,
+
+  [ErrorNames.rendering_mismatch_length]: `AUR0757: The compiled template is not aligned with the render instructions. There are {{0}} targets and {{1}} instructions.`,
 
   [ErrorNames.watch_null_config]: `Invalid @watch decorator config. Expected an expression or a fn but received null/undefined.`,
   [ErrorNames.watch_invalid_change_handler]: `Invalid @watch decorator change handler config.`

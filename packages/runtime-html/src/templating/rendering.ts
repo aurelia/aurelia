@@ -5,10 +5,11 @@ import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
 import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { createError, createLookup, isString } from '../utilities';
+import { createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
+import { ErrorNames, createMappedError } from '../errors';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering extends Rendering { }
@@ -125,20 +126,17 @@ export class Rendering {
     const rows = definition.instructions;
     const renderers = this.renderers;
     const ii = targets.length;
-    if (targets.length !== rows.length) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0757: The compiled template is not aligned with the render instructions. There are ${ii} targets and ${rows.length} instructions.`);
-      else
-        throw createError(`AUR0757:${ii}<>${rows.length}`);
-    }
 
     let i = 0;
     let j = 0;
-    let jj = 0;
+    let jj = rows.length;
     let row: readonly IInstruction[];
     let instruction: IInstruction;
     let target: INode;
+
+    if (ii !== jj) {
+      throw createMappedError(ErrorNames.rendering_mismatch_length, ii, jj);
+    }
 
     if (ii > 0) {
       while (ii > i) {

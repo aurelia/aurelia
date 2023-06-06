@@ -145,7 +145,7 @@ describe('1-kernel/eventaggregator.spec.ts', function () {
       const callback = function () { return; };
 
       it('throws if channelOrType is undefined', function () {
-        assert.throws(() => { ea.subscribe(undefined, callback); }, /Invalid channel name or type/);
+        assert.throws(() => { ea.subscribe(undefined, callback); }, /AUR0019/);
       });
 
     });
@@ -377,7 +377,7 @@ describe('1-kernel/eventaggregator.spec.ts', function () {
       const ea: IEventAggregator = new EventAggregator();
 
       it('throws if channelOrType is undefined', function () {
-        assert.throws(() => { ea.publish(undefined, {}); }, /Invalid channel name or instance: undefined./);
+        assert.throws(() => { ea.publish(undefined, {}); }, /AUR0018:undefined/);
       });
 
     });

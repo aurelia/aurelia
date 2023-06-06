@@ -5,7 +5,7 @@ import { IEventTarget, registerHostNode } from './dom';
 import { IPlatform } from './platform';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
-import { createError, isFunction, isPromise } from './utilities';
+import { isFunction, isPromise } from './utilities';
 import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
 import type {
@@ -13,6 +13,7 @@ import type {
   IContainer,
   IDisposable,
 } from '@aurelia/kernel';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -38,11 +39,7 @@ export class Aurelia implements IDisposable {
   public get root(): IAppRoot {
     if (this._root == null) {
       if (this.next == null) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0767: root is not defined`);
-        else
-          throw createError(`AUR0767`);
+        throw createMappedError(ErrorNames.root_not_found);
       }
       return this.next;
     }
@@ -58,11 +55,7 @@ export class Aurelia implements IDisposable {
     public readonly container: IContainer = DI.createContainer(),
   ) {
     if (container.has(IAurelia, true) || container.has(Aurelia, true)) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0768: An instance of Aurelia is already registered with the container or an ancestor of it.`);
-      else
-        throw createError(`AUR0768`);
+      throw createMappedError(ErrorNames.aurelia_instance_existed_in_container);
     }
 
     registerResolver(container, IAurelia, new InstanceProvider<IAurelia>('IAurelia', this));
@@ -123,11 +116,7 @@ export class Aurelia implements IDisposable {
     let p: IPlatform;
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0769: Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
-        else
-          throw createError(`AUR0769`);
+        throw createMappedError(ErrorNames.invalid_platform_impl);
       }
       p = new BrowserPlatform(host.ownerDocument.defaultView);
       this.container.register(instanceRegistration(IPlatform, p));
@@ -141,10 +130,7 @@ export class Aurelia implements IDisposable {
   private _startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == null) {
-      if (__DEV__)
-        throw createError(`AUR0770: There is no composition root`);
-      else
-        throw createError(`AUR0770`);
+      throw createMappedError(ErrorNames.no_composition_root);
     }
 
     if (isPromise(this._startPromise)) {
@@ -192,11 +178,7 @@ export class Aurelia implements IDisposable {
 
   public dispose(): void {
     if (this._isRunning || this._isStopping) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0771: The aurelia instance must be fully stopped before it can be disposed`);
-      else
-        throw createError(`AUR0771`);
+      throw createMappedError(ErrorNames.invalid_dispose_call);
     }
     this.container.dispose();
   }

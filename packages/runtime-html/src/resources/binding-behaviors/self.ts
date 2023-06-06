@@ -2,16 +2,12 @@ import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { ListenerBinding } from '../../binding/listener-binding';
 import { bindingBehavior } from '../binding-behavior';
 
-import { createError } from '../../utilities';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class SelfBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: ListenerBinding): void {
     if (!(binding instanceof ListenerBinding)) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0801: Self binding behavior only supports listener binding via trigger/capture command.`);
-      else
-        throw createError(`AUR0801`);
+      throw createMappedError(ErrorNames.self_behavior_invalid_usage);
     }
 
     binding.self = true;

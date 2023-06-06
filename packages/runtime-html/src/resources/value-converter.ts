@@ -4,7 +4,7 @@ import {
   firstDefined,
 } from '@aurelia/kernel';
 import { registerAliases } from '../utilities-di';
-import { createError, isFunction, isString, objectFreeze } from '../utilities';
+import { isFunction, isString, objectFreeze } from '../utilities';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
 import type {
@@ -16,6 +16,7 @@ import type {
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
+import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 
@@ -103,11 +104,7 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
     const def = getOwnMetadata(vcBaseName, Type);
     if (def === void 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0152: No definition found for type ${Type.name}`);
-      else
-        throw createError(`AUR0152:${Type.name}`);
+      throw createMappedError(ErrorNames.value_converter_def_not_found, Type);
     }
 
     return def;

@@ -12,7 +12,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { createError, def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
+import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 
 import type {
@@ -33,6 +33,7 @@ import type { Controller, ICustomElementViewModel, ICustomElementController } fr
 import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
+import { ErrorNames, createMappedError } from '../errors';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -261,11 +262,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     if (Type === null) {
       const def = nameOrDef;
       if (isString(def)) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0761: Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
-        else
-          throw createError(`AUR0761:${nameOrDef}`);
+        throw createMappedError(ErrorNames.element_only_name, nameOrDef);
       }
 
       const name = fromDefinitionOrDefault('name', def, generateElementName);
@@ -396,6 +393,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       registerAliases(aliases, CustomElement, key, container);
     }
   }
+
+  public toString() {
+    return `au:ce:${this.name}`;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
@@ -461,11 +462,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       if (opts.optional === true) {
         return null!;
       }
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0762: The provided node is not a custom element or containerless host.`);
-      else
-        throw createError(`AUR0762`);
+      throw createMappedError(ErrorNames.node_is_not_a_host, node);
     }
     return controller as unknown as ICustomElementController<C>;
   }
@@ -473,11 +470,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     if (opts.searchParents !== true) {
       const controller = getRef(node, elementBaseName) as Controller<C> | null;
       if (controller === null) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0763: The provided node is not a custom element or containerless host.`);
-        else
-          throw createError(`AUR0763`);
+        throw createMappedError(ErrorNames.node_is_not_a_host2, node);
       }
 
       if (controller.is(opts.name)) {
@@ -505,11 +498,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       return (void 0)!;
     }
 
-    if (__DEV__)
-      /* istanbul ignore next */
-      throw createError(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
-    else
-      throw createError(`AUR0764`);
+    throw createMappedError(ErrorNames.node_is_not_part_of_aurelia_app, node);
   }
 
   let cur = node as INode | null;
@@ -522,11 +511,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     cur = getEffectiveParentNode(cur);
   }
 
-  if (__DEV__)
-    /* istanbul ignore next */
-    throw createError(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
-  else
-    throw createError(`AUR0765`);
+  throw createMappedError(ErrorNames.node_is_not_part_of_aurelia_app2, node);
 };
 
 const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
@@ -539,10 +524,7 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
   const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
   if (def === void 0) {
-    if (__DEV__)
-      throw createError(`AUR0760: No definition found for type ${Type.name}`);
-    else
-      throw createError(`AUR0760:${Type.name}`);
+    throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
 
   return def;
@@ -650,11 +632,7 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
   }
 
   if (!isFunction(hook)) {
-    if (__DEV__)
-      /* istanbul ignore next */
-      throw createError(`AUR0766: Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
-    else
-      throw createError(`AUR0766:${typeof hook}`);
+    throw createMappedError(ErrorNames.invalid_process_content_hook, hook);
   }
   return hook;
 }

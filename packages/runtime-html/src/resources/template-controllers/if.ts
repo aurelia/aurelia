@@ -8,7 +8,7 @@ import { bindable } from '../../bindable';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
-import { createError } from '../../utilities';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class If implements ICustomAttributeViewModel {
   public elseFactory?: IViewFactory = void 0;
@@ -189,11 +189,7 @@ export class Else implements ICustomAttributeViewModel {
     } else if (ifBehavior.viewModel instanceof If) {
       ifBehavior.viewModel.elseFactory = this._factory;
     } else {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0810: Unsupported If behavior`);
-      else
-        throw createError(`AUR0810`);
+      throw createMappedError(ErrorNames.else_without_if);
     }
   }
 }

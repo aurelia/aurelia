@@ -26,11 +26,12 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { areEqual, createError, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
+import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { ErrorNames, createMappedError } from '../../errors';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -87,20 +88,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         } else if (command === 'bind') {
           this.key = parser.parse(value, ExpressionType.IsProperty);
         } else {
-          if (__DEV__) {
-            /* istanbul ignore next */
-            throw createError(`AUR775:invalid command ${command}`);
-          } else {
-            throw createError(`AUR775:${command}`);
-          }
+          throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }
       } else {
-        if (__DEV__) {
-          /* istanbul ignore next */
-          throw createError(`AUR776:invalid target ${to}`);
-        } else {
-          throw createError(`AUR776:${to}`);
-        }
+        throw createMappedError(ErrorNames.repeat_extraneous_binding, to);
       }
     }
     this._location = location;
@@ -553,7 +544,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      throw mismatchedLengthError(views.length, mapLen);
+      throw createMappedError(ErrorNames.repeat_mismatch_length, [views.length, mapLen]);
     }
 
     const parentScope = $controller.scope;
@@ -712,10 +703,6 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
-const mismatchedLengthError = (viewCount: number, itemCount: number) =>
-  __DEV__
-    ? createError(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
-    : createError(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;
@@ -741,8 +728,7 @@ const getCount = (result: AcceptableCollection): number => {
     case '[object Number]': return result as number;
     case '[object Null]': return 0;
     case '[object Undefined]': return 0;
-    // todo: remove this count method
-    default: throw createError(`Cannot count ${toStringTag.call(result) as string}`);
+    default: throw createMappedError(ErrorNames.repeat_non_countable, result);
   }
 };
 
@@ -755,7 +741,7 @@ const iterate = (result: AcceptableCollection, func: (item: unknown, index: numb
     case '[object Null]': return;
     case '[object Undefined]': return;
     // todo: remove this count method
-    default: throw createError(`Cannot iterate over ${toStringTag.call(result) as string}`);
+    default: createMappedError(ErrorNames.repeat_non_iterable, result);
   }
 };
 

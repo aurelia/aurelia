@@ -26,7 +26,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { createError, getOwnPropertyNames, isFunction, isPromise, isString, safeString } from '../utilities';
+import { getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, optionalResource, registerResolver } from '../utilities-di';
 
@@ -50,6 +50,7 @@ import type { IViewFactory } from './view';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
+import { ErrorNames, createMappedError } from '../errors';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -196,11 +197,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> {
     const $el = Controller.getCached(viewModel);
     if ($el === void 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0500: There is no cached controller for the provided ViewModel: ${viewModel}`);
-      else
-        throw createError(`AUR0500:${viewModel}`);
+      throw createMappedError(ErrorNames.controller_cached_not_found, viewModel);
     }
     return $el as ICustomElementController<C>;
   }
@@ -436,11 +433,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     setRef(this.host!, this.definition!.key, this as IHydratedController);
     if (shadowOptions !== null || hasSlots) {
       if (location != null) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0501: Cannot combine the containerless custom element option with Shadow DOM.`);
-        else
-          throw createError(`AUR0501`);
+        throw createMappedError(ErrorNames.controller_no_shadow_on_containerless);
       }
       setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), elementBaseName, this as IHydratedController);
       setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
@@ -545,17 +538,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // If we're already activated, no need to do anything.
         return;
       case State.disposed:
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0502: ${this.name} trying to activate a controller that is disposed.`);
-        else
-          throw createError(`AUR0502:${this.name}`);
+        throw createMappedError(ErrorNames.controller_activating_disposed, this.name);
       default:
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0503: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
-        else
-          throw createError(`AUR0503:${this.name} ${stringifyState(this.state)}`);
+        throw createMappedError(ErrorNames.controller_activation_unexpected_state, this.name, stringifyState(this.state));
     }
 
     this.parent = parent;
@@ -575,11 +560,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case ViewModelKind.synthetic:
         // maybe only check when there's not already a scope
         if (scope === void 0 || scope === null) {
-          if (__DEV__)
-            /* istanbul ignore next */
-            throw createError(`AUR0504: Scope is null or undefined`);
-          else
-            throw createError(`AUR0504`);
+          throw createMappedError(ErrorNames.controller_activation_synthetic_no_scope, this.name);
         }
 
         if (!this.hasLockedScope) {
@@ -803,11 +784,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
       default:
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0505: ${this.name} unexpected state: ${stringifyState(this.state)}.`);
-        else
-          throw createError(`AUR0505:${this.name} ${stringifyState(this.state)}`);
+        throw createMappedError(ErrorNames.controller_deactivation_unexpected_state, this.name, this.state);
     }
 
     /* istanbul-ignore-next */
@@ -1272,10 +1249,7 @@ function createObservers(
 
       if (bindable.set !== noop) {
         if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
-          if (__DEV__)
-            throw createError(`AURxxxx: observer for property ${safeString(name)} does not support coercion.`);
-          else
-            throw createError(`AURxxxx: coercion(${safeString(name)})`);
+          throw createMappedError(ErrorNames.controller_property_not_coercible, name);
         }
       }
       if (instance[handler] != null || instance.propertyChanged != null) {
@@ -1286,10 +1260,7 @@ function createObservers(
           }
         };
         if (obs.useCallback?.(callback) !== true) {
-          if (__DEV__)
-            throw createError(`AURxxxx: observer for property ${safeString(name)} does not support change handler.`);
-          else
-            throw createError(`AURxxx: changed(${safeString})`);
+          throw createMappedError(ErrorNames.controller_property_no_change_handler, name);
         }
       }
     }
@@ -1331,11 +1302,7 @@ function createWatchers(
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
     if (!isFunction(callback)) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0506: Invalid callback for @watch decorator: ${safeString(callback)}`);
-      else
-        throw createError(`AUR0506:${safeString(callback)}`);
+      throw createMappedError(ErrorNames.controller_watch_invalid_callback, callback);
     }
     if (isFunction(expression)) {
       controller.addBinding(new ComputedWatcher(

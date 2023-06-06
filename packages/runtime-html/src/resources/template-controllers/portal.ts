@@ -4,9 +4,10 @@ import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { createError, isPromise, isString, rethrow } from '../../utilities';
+import { isPromise, isString, rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export type PortalTarget = string | Element | null | undefined;
 type ResolvedTarget = Element;
@@ -226,10 +227,7 @@ export class Portal implements ICustomAttributeViewModel {
 
     if (target === '') {
       if (this.strict) {
-        if (__DEV__)
-          throw createError(`AUR0811: Empty querySelector`);
-        else
-          throw createError(`AUR0811`);
+        throw createMappedError(ErrorNames.portal_query_empty);
       }
       return $document.body;
     }
@@ -251,11 +249,7 @@ export class Portal implements ICustomAttributeViewModel {
 
     if (target == null) {
       if (this.strict) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0812: Portal target not found`);
-        else
-          throw createError(`AUR0812`);
+        throw createMappedError(ErrorNames.portal_no_target);
       }
       return $document.body;
     }

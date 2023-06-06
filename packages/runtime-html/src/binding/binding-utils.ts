@@ -3,9 +3,10 @@ import { ITask, TaskStatus } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
-import { addSignalListener, createError, def, defineHiddenProp, removeSignalListener } from '../utilities';
+import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
+import { ErrorNames, createMappedError } from '../errors';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -154,7 +155,7 @@ const withLimitationBindings = new WeakSet<IBinding>();
 export const mixingBindingLimited = <T extends IBinding>(target: Constructable<T>, getMethodName: (binding: T, opts: IRateLimitOptions) => keyof T) => {
   defineHiddenProp(target.prototype, 'limit', function (this: T, opts: IRateLimitOptions) {
     if (withLimitationBindings.has(this)) {
-      throw createError(`AURXXXX: a rate limit has already been applied.`);
+      throw createMappedError(ErrorNames.binding_already_has_rate_limited);
     }
     withLimitationBindings.add(this);
     const prop = getMethodName(this, opts);

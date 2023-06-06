@@ -1,5 +1,6 @@
+import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createError, createObject } from './utilities';
+import { createObject } from './utilities';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -282,7 +283,7 @@ export const firstDefined = <T>(...values: readonly (T | undefined)[]): T => {
       return value;
     }
   }
-  throw createError(`No default value found`);
+  throw createMappedError(ErrorNames.first_defined_no_value);
 };
 
 /**

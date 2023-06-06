@@ -6,9 +6,10 @@ import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { createError, isFunction, isPromise } from '../../utilities';
+import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
+import { ErrorNames, createMappedError } from '../../errors';
 
 /**
  * An optional interface describing the dialog activate convention.
@@ -53,11 +54,7 @@ export class AuCompose {
       if (v === 'scoped' || v === 'auto') {
         return v;
       }
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
-      else
-        throw createError(`AUR0805`);
+      throw createMappedError(ErrorNames.au_compose_invalid_scope_behavior, v);
     }
   })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
@@ -187,11 +184,7 @@ export class AuCompose {
 
     if (vmDef !== null) {
       if (vmDef.containerless) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
-        else
-          throw createError(`AUR0806`);
+        throw createMappedError(ErrorNames.au_compose_containerless, vmDef);
       }
       if (loc == null) {
         compositionHost = host;
@@ -401,11 +394,7 @@ class CompositionController implements ICompositionController {
 
   public activate(initiator?: IHydratedController) {
     if (this.state !== 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
-      else
-        throw createError(`AUR0807:${this.controller.name}`);
+      throw createMappedError(ErrorNames.au_compose_invalid_run, this);
     }
     this.state = 1;
     return this.start(initiator);
@@ -417,11 +406,7 @@ class CompositionController implements ICompositionController {
         this.state = -1;
         return this.stop(detachInitator);
       case -1:
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0808: Composition has already been deactivated.`);
-        else
-          throw createError(`AUR0808`);
+        throw createMappedError(ErrorNames.au_compose_duplicate_deactivate);
       default:
         this.state = -1;
     }

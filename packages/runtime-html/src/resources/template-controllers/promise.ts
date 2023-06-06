@@ -18,7 +18,8 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
 import { templateController } from '../custom-attribute';
-import { createError, isPromise, safeString } from '../../utilities';
+import { isPromise, safeString } from '../../utilities';
+import { ErrorNames, createMappedError } from '../../errors';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
@@ -68,8 +69,10 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private swap(initiator: IHydratedController | null): void {
     const value = this.value;
     if (!isPromise(value)) {
-      /* istanbul ignore next */
-      this.logger.warn(`The value '${safeString(value)}' is not a promise. No change will be done.`);
+      if (__DEV__) {
+        /* istanbul ignore next */
+        this.logger.warn(`The value '${safeString(value)}' is not a promise. No change will be done.`);
+      }
       return;
     }
     const q = this._platform.domWriteQueue;
@@ -300,10 +303,7 @@ function getPromiseController(controller: IHydratableController) {
   if ($promise instanceof PromiseTemplateController) {
     return $promise;
   }
-  if (__DEV__)
-    throw createError(`AUR0813: The parent promise.resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`);
-  else
-    throw createError(`AUR0813`);
+  throw createMappedError(ErrorNames.promise_invalid_usage);
 }
 
 @attributePattern({ pattern: 'promise.resolve', symbols: '' })

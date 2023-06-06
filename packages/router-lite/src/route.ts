@@ -123,7 +123,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
    *
    * @internal
    */
-  public applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
+  public _applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
     validateRouteConfig(config, this.path[0] ?? '');
     const path = ensureArrayOfStrings(config.path ?? this.path);
     return new RouteConfig(
@@ -142,7 +142,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     );
   }
 
-  public getTransitionPlan(cur: RouteNode, next: RouteNode) {
+  /** @internal */
+  public _getTransitionPlan(cur: RouteNode, next: RouteNode) {
     const plan = this.transitionPlan ?? defaultReentryBehavior;
     return typeof plan === 'function' ? plan(cur, next) : plan;
   }
@@ -244,7 +245,7 @@ export const Route = {
     if (!Route.isConfigured(Type)) {
       // This means there was no @route decorator on the class.
       // However there might still be static properties, and this API provides a unified way of accessing those.
-      Route.configure({}, Type/* , false */);
+      Route.configure({}, Type);
     }
 
     return Metadata.getOwn(Route.name, Type) as RouteConfig;
@@ -278,7 +279,7 @@ export function route(config: IRouteConfig): RouteDecorator;
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
   return function (target) {
-    return Route.configure(configOrPath, target/* , true */);
+    return Route.configure(configOrPath, target);
   };
 }
 
@@ -293,7 +294,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
     const routeConfig = Route.getConfig(type);
 
     // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
-    if (isPartialChildRouteConfig(routeable)) return routeConfig.applyChildRouteConfig(routeable, parent);
+    if (isPartialChildRouteConfig(routeable)) return routeConfig._applyChildRouteConfig(routeable, parent);
 
     // If the component is used as a child, then return a clone.
     // Rationale: as this component can be used multiple times as child (either under same parent or different parents), we don't want to mutate the original route config for the type.

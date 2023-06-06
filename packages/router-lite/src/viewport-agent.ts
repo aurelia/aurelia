@@ -699,7 +699,7 @@ export class ViewportAgent {
       this.$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      this.$plan = options.transitionPlan ?? next.context.config.getTransitionPlan(cur, next);
+      this.$plan = options.transitionPlan ?? next.context.config._getTransitionPlan(cur, next);
     }
 
     if (__DEV__) trace(this.logger, Events.vpaScheduleUpdate, this);

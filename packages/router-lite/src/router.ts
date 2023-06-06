@@ -150,7 +150,7 @@ export class Router {
         trigger: 'api',
         options: NavigationOptions.create(this.options, {}),
         managedState: null,
-        previousRouteTree: this.routeTree.clone(),
+        previousRouteTree: this.routeTree._clone(),
         routeTree: this.routeTree,
         resolve: null,
         reject: null,
@@ -485,7 +485,7 @@ export class Router {
       resolve,
       reject,
       previousRouteTree: this.routeTree,
-      routeTree: this._routeTree = this.routeTree.clone(),
+      routeTree: this._routeTree = this.routeTree._clone(),
       guardsResult: true,
       error: void 0,
     });
@@ -581,15 +581,15 @@ export class Router {
       const rt = tr.routeTree;
 
       (rt as Writable<RouteTree>).options = vit.options;
-      (rt as Writable<RouteTree>).queryParams = (rootCtx.node.tree as Writable<RouteTree>).queryParams = vit.queryParams;
-      (rt as Writable<RouteTree>).fragment = (rootCtx.node.tree as Writable<RouteTree>).fragment = vit.fragment;
+      (rt as Writable<RouteTree>).queryParams = (rootCtx.node._tree as Writable<RouteTree>).queryParams = vit.queryParams;
+      (rt as Writable<RouteTree>).fragment = (rootCtx.node._tree as Writable<RouteTree>).fragment = vit.fragment;
 
       const log = /*@__PURE__*/ navigationContext.container.get(ILogger).scopeTo('RouteTree');
       if (vit.isAbsolute) {
         navigationContext = rootCtx;
       }
       if (navigationContext === rootCtx) {
-        rt.root.setTree(rt);
+        rt.root._setTree(rt);
         rootCtx.node = rt.root;
       }
 
@@ -646,7 +646,7 @@ export class Router {
         });
         this.navigated = true;
 
-        this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
+        this.instructions = tr.finalInstructions = tr.routeTree._finalizeInstructions();
         this._isNavigating = false;
 
         // apply history state
@@ -758,15 +758,15 @@ function updateNode(
 ): Promise<void> | void {
   log.trace(`updateNode(ctx:%s,node:%s)`, ctx, node);
 
-  node.queryParams = vit.queryParams;
-  node.fragment = vit.fragment;
+  (node as Writable<RouteNode>).queryParams = vit.queryParams;
+  (node as Writable<RouteNode>).fragment = vit.fragment;
 
   if (!node.context.isRoot) {
-    node.context.vpa._scheduleUpdate(node.tree.options, node);
+    node.context.vpa._scheduleUpdate(node._tree.options, node);
   }
   if (node.context === ctx) {
     // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
-    node.clearChildren();
+    node._clearChildren();
     // - first append the nodes as children, compiling the viewport instructions.
     // - if afterward, any viewports are still available
     //   - look at the default value of those viewports

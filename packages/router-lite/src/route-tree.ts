@@ -59,14 +59,12 @@ export interface IRouteNode {
   queryParams?: Readonly<URLSearchParams>;
   fragment?: string | null;
   data?: Record<string, unknown>;
-  viewport?: string | null;
+  _viewport?: string | null;
   title?: string | ((node: RouteNode) => string | null) | null;
   component: CustomElementDefinition;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
 }
-
-let nodeId: number = 0;
 
 export interface RouteNodeMatchOptions {
   /** Endpoints will be matched instead of instruction */
@@ -76,13 +74,11 @@ export interface RouteNodeMatchOptions {
 }
 
 export class RouteNode implements IRouteNode {
-  /** @internal */
-  public tree!: RouteTree;
-  /** @internal */
-  public version: number = 1;
+  /** @internal */ public _tree!: RouteTree;
+  /** @internal */ public _version: number = 1;
 
   public get root(): RouteNode {
-    return this.tree.root;
+    return this._tree.root;
   }
 
   /** @internal */
@@ -90,16 +86,14 @@ export class RouteNode implements IRouteNode {
   public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
 
   private constructor(
-    /** @internal */
-    public id: number,
     /**
      * The original configured path pattern that was matched.
      */
-    public path: string,
+    public readonly path: string,
     /**
      * If one or more redirects have occurred, then this is the final path match, in all other cases this is identical to `path`
      */
-    public finalPath: string,
+    public readonly finalPath: string,
     /**
      * The `RouteContext` associated with this route.
      *
@@ -109,23 +103,28 @@ export class RouteNode implements IRouteNode {
      */
     public readonly context: IRouteContext,
     /** @internal */
-    public readonly originalInstruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
+    public readonly _originalInstruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     /** Can only be `null` for the composition root */
     public readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
-    public params: Params,
-    public queryParams: Readonly<URLSearchParams>,
-    public fragment: string | null,
-    public data: Record<string, unknown>,
+    public readonly params: Readonly<Params>,
+    public readonly queryParams: Readonly<URLSearchParams>,
+    public readonly fragment: string | null,
+    public readonly data: Readonly<Record<string, unknown>>,
     /**
      * The viewport is always `null` for the root `RouteNode`.
      *
      * NOTE: It might make sense to have a `null` viewport mean other things as well (such as, don't load this component)
      * but that is currently not a deliberately implemented feature and we might want to explicitly validate against it
      * if we decide not to implement that.
+     *
+     * This is used simply on metadata level. Hence hiding it from the public API.
+     * If need be, we can expose it later.
+     *
+     * @internal
      */
-    public viewport: string | null,
-    public title: string | ((node: RouteNode) => string | null) | null,
-    public component: CustomElementDefinition,
+    public readonly _viewport: string | null,
+    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    public readonly component: CustomElementDefinition,
     public readonly children: RouteNode[],
     /**
      * Not-yet-resolved viewport instructions.
@@ -137,24 +136,23 @@ export class RouteNode implements IRouteNode {
      */
     public readonly residue: ViewportInstruction[],
   ) {
-    this.originalInstruction ??= instruction;
+    this._originalInstruction ??= instruction;
   }
 
   public static create(input: IRouteNode & { originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null }): RouteNode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(
-      /*          id */++nodeId,
       /*        path */input.path,
       /*   finalPath */input.finalPath,
       /*     context */input.context,
       /* originalIns */input.originalInstruction ?? input.instruction,
       /* instruction */input.instruction,
-      /*      params */params,
+      /*      params */Object.freeze(params),
       /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
-      /*        data */input.data ?? {},
-      /*    viewport */input.viewport ?? null,
+      /*        data */Object.freeze(input.data) ?? emptyObject,
+      /*    viewport */input._viewport ?? null,
       /*       title */input.title ?? null,
       /*   component */input.component,
       /*    children */input.children ?? [],
@@ -174,7 +172,7 @@ export class RouteNode implements IRouteNode {
           const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
           const nodeChild = nodeChildren[i + j] ?? null;
           const instruction = nodeChild !== null
-            ? !matchOriginalInstruction && nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild.originalInstruction
+            ? !matchOriginalInstruction && nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
             : null;
           const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
           if (i + j < ii
@@ -198,14 +196,16 @@ export class RouteNode implements IRouteNode {
     });
   }
 
-  public appendChild(child: RouteNode): void {
+  /** @internal */
+  public _appendChild(child: RouteNode): void {
     this.children.push(child);
-    child.setTree(this.tree);
+    child._setTree(this._tree);
   }
 
-  public clearChildren(): void {
+  /** @internal */
+  public _clearChildren(): void {
     for (const c of this.children) {
-      c.clearChildren();
+      c._clearChildren();
       c.context.vpa._cancelUpdate();
     }
     this.children.length = 0;
@@ -214,19 +214,9 @@ export class RouteNode implements IRouteNode {
   public getTitle(separator: string): string | null {
     const titleParts = [
       ...this.children.map(x => x.getTitle(separator)),
-      this.getTitlePart(),
+      typeof this.title === 'function' ? this.title.call(void 0, this) : this.title,
     ].filter(x => x !== null);
-    if (titleParts.length === 0) {
-      return null;
-    }
-    return titleParts.join(separator);
-  }
-
-  public getTitlePart(): string | null {
-    if (typeof this.title === 'function') {
-      return this.title.call(void 0, this);
-    }
-    return this.title;
+    return titleParts.length === 0 ? null : titleParts.join(separator);
   }
 
   public computeAbsolutePath(): string {
@@ -235,52 +225,49 @@ export class RouteNode implements IRouteNode {
     }
     const parentPath = this.context.parent!.node.computeAbsolutePath();
     const thisPath = this.instruction!.toUrlComponent(false);
-    if (parentPath.length > 0) {
-      if (thisPath.length > 0) {
-        return [parentPath, thisPath].join('/');
-      }
-      return parentPath;
-    }
-    return thisPath;
+    return parentPath.length > 0
+      ? thisPath.length > 0
+        ? `${parentPath}/${thisPath}`
+        : parentPath
+      : thisPath;
   }
 
   /** @internal */
-  public setTree(tree: RouteTree): void {
-    this.tree = tree;
+  public _setTree(tree: RouteTree): void {
+    this._tree = tree;
     for (const child of this.children) {
-      child.setTree(tree);
+      child._setTree(tree);
     }
   }
 
   /** @internal */
-  public finalizeInstruction(): ViewportInstruction {
+  public _finalizeInstruction(): ViewportInstruction {
     this._isInstructionsFinalized = true;
-    const children = this.children.map(x => x.finalizeInstruction());
+    const children = this.children.map(x => x._finalizeInstruction());
     const instruction = this.instruction!.clone();
     instruction.children.splice(0, instruction.children.length, ...children);
     return (this as Writable<this>).instruction = instruction;
   }
 
   /** @internal */
-  public clone(): RouteNode {
+  public _clone(): RouteNode {
     const clone = new RouteNode(
-      this.id,
       this.path,
       this.finalPath,
       this.context,
-      this.originalInstruction,
+      this._originalInstruction,
       this.instruction,
       { ...this.params },
       new URLSearchParams(this.queryParams),
       this.fragment,
       { ...this.data },
-      this.viewport,
+      this._viewport,
       this.title,
       this.component,
-      this.children.map(x => x.clone()),
+      this.children.map(x => x._clone()),
       [...this.residue],
     );
-    clone.version = this.version + 1;
+    clone._version = this._version + 1;
     if (clone.context.node === this) {
       clone.context.node = clone;
     }
@@ -329,22 +316,24 @@ export class RouteTree {
     return this.root.contains(instructions, options);
   }
 
-  public clone(): RouteTree {
+  /** @internal */
+  public _clone(): RouteTree {
     const clone = new RouteTree(
       this.options.clone(),
       new URLSearchParams(this.queryParams),
       this.fragment,
-      this.root.clone(),
+      this.root._clone(),
     );
-    clone.root.setTree(this);
+    clone.root._setTree(this);
     return clone;
   }
 
-  public finalizeInstructions(): ViewportInstructionTree {
+  /** @internal */
+  public _finalizeInstructions(): ViewportInstructionTree {
     return new ViewportInstructionTree(
       this.options,
       true,
-      this.root.children.map(x => x.finalizeInstruction()),
+      this.root.children.map(x => x._finalizeInstruction()),
       this.queryParams,
       this.fragment,
     );
@@ -368,7 +357,7 @@ export function createAndAppendNodes(
         case '..':
           // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
           node = node.context.parent?.node ?? node;
-          node.clearChildren();
+          node._clearChildren();
         // falls through
         case '.':
           return onResolveAll(...vi.children.map(childVI => {
@@ -388,7 +377,7 @@ export function createAndAppendNodes(
           if (vi.children.length === 0) {
             const result = ctx._generateViewportInstruction(vi);
             if (result !== null) {
-              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, result.query, true);
+              (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, result.query, true);
               const newVi = result.vi;
               (newVi.children as NavigationInstruction[]).push(...vi.children);
               return appendNode(
@@ -436,7 +425,7 @@ export function createAndAppendNodes(
               children: vi.children.slice(),
             });
             if (eagerResult !== null) {
-              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, eagerResult.query, true);
+              (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, eagerResult.query, true);
               return appendNode(log, node, createConfiguredNode(
                 log,
                 node,
@@ -515,7 +504,7 @@ export function createAndAppendNodes(
             viewport: vi.viewport,
             children: vi.children.slice(),
           })!;
-          (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
+          (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, query, true);
           return appendNode(log, node, createConfiguredNode(
             log,
             node,
@@ -536,7 +525,7 @@ function createConfiguredNode(
   route: ConfigurableRoute<RouteConfig | Promise<RouteConfig>> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
-  const rt = node.tree;
+  const rt = node._tree;
   return onResolve(route.handler, $handler => {
     route.handler = $handler;
 
@@ -575,13 +564,13 @@ function createConfiguredNode(
                 queryParams: rt.queryParams,
                 fragment: rt.fragment,
                 data: $handler.data,
-                viewport: vpName,
+                _viewport: vpName,
                 component: ced,
                 title: $handler.title,
                 // Note: at this point, the residue from the recognized route should be converted to VI children. Hence the residues are not added back to the RouteNode.
                 residue: vi.children.slice(),
               });
-              $node.setTree(node.tree);
+              $node._setTree(node._tree);
 
               log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
 
@@ -695,8 +684,8 @@ function appendNode(
 ): void | Promise<void> {
   return onResolve(childNode, $childNode => {
     log.trace(`appendNode($childNode:%s)`, $childNode);
-    node.appendChild($childNode);
-    return $childNode.context.vpa._scheduleUpdate(node.tree.options, $childNode);
+    node._appendChild($childNode);
+    return $childNode.context.vpa._scheduleUpdate(node._tree.options, $childNode);
   });
 }
 

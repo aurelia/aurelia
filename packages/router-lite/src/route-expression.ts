@@ -446,7 +446,7 @@ export class SegmentExpression {
     return [
       ViewportInstruction.create({
         component: this.component.name,
-        params: this.component.parameterList.toObject(),
+        params: this.component.parameterList._toObject(),
         viewport: this.viewport.name,
         open,
         close,
@@ -643,7 +643,8 @@ export class ParameterListExpression {
     return new ParameterListExpression(raw, expressions);
   }
 
-  public toObject(): Params {
+  /** @internal */
+  public _toObject(): Params {
     const params: Params = {};
     for (const expr of this.expressions) {
       params[expr.key] = expr.value;

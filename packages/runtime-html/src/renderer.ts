@@ -8,6 +8,7 @@ import {
   type IRegistry,
   type Constructable,
   type IResolver,
+  resolve,
 } from '@aurelia/kernel';
 import {
   ExpressionType,
@@ -455,14 +456,9 @@ export class SetPropertyRenderer implements IRenderer {
 @renderer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
-  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateElement;
-
-  public constructor(rendering: IRendering) {
-    this._rendering = rendering;
-  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -540,14 +536,9 @@ export class CustomElementRenderer implements IRenderer {
 @renderer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
-  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateAttribute;
-
-  public constructor(rendering: IRendering) {
-    this._rendering = rendering;
-  }
 
   public render(
     /**
@@ -617,15 +608,9 @@ export class CustomAttributeRenderer implements IRenderer {
 @renderer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering, IPlatform]; }
-  /** @internal */ private readonly _rendering: IRendering;
-  /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateTemplateController;
-  public constructor(rendering: IRendering, platform: IPlatform) {
-    this._rendering = rendering;
-    this._platform = platform;
-  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -658,7 +643,7 @@ export class TemplateControllerRenderer implements IRenderer {
     const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
     const renderLocation = convertToRenderLocation(target);
     const results = invokeAttribute(
-      /* platform         */this._platform,
+      /* platform         */platform,
       /* attr definition  */def,
       /* parentController */renderingCtrl,
       /* host             */target,
@@ -1018,13 +1003,10 @@ export class AttributeBindingRenderer implements IRenderer {
 
 @renderer(InstructionType.spreadBinding)
 export class SpreadRenderer implements IRenderer {
-  /** @internal */ protected static get inject() { return [ITemplateCompiler, IRendering]; }
+  /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.spreadBinding;
-  public constructor(
-    /** @internal */ private readonly _compiler: ITemplateCompiler,
-    /** @internal */ private readonly _rendering: IRendering,
-  ) {}
 
   public render(
     renderingCtrl: IHydratableController,

@@ -3,7 +3,7 @@ import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { createError, isFunction, objectFreeze, safeString } from './utilities';
+import { isFunction, objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';

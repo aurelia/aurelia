@@ -147,6 +147,10 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     aliasRegistration(key, Type).register(container);
     registerAliases(aliases, CustomAttribute, key, container);
   }
+
+  public toString() {
+    return `au:ca:${this.name}`;
+  }
 }
 
 /** @internal */

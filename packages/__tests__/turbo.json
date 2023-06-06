@@ -3,7 +3,7 @@
     "extends": ["//"],
     "pipeline": {
       "build": {
-        "inputs": ["**/*.ts", "**/*.tsx", "esbuild.dev.cjs", "!z-scripts"],
+        "inputs": [],
         "outputs": ["dist/**/*", "!dist/tsconfig.tsbuildinfo"]
       }
     }

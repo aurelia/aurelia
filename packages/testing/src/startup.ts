@@ -49,7 +49,7 @@ export function createFixture<T extends object>(
         return $class;
       } as unknown as Constructable<K>;
 
-  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register'>)[] =
+  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register' | 'toString'>)[] =
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {

@@ -393,6 +393,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       registerAliases(aliases, CustomElement, key, container);
     }
   }
+
+  public toString() {
+    return `au:ce:${this.name}`;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars

@@ -1,7 +1,8 @@
-import { createError, createLookup, isDataAttribute } from '../utilities';
+import { createLookup, isDataAttribute } from '../utilities';
 import { ISVGAnalyzer } from '../observation/svg-analyzer';
 import { createInterface } from '../utilities-di';
 import { resolve } from '@aurelia/kernel';
+import { ErrorNames, createMappedError } from '../errors';
 
 export interface IAttrMapper extends AttrMapper {}
 export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
@@ -58,7 +59,7 @@ export class AttrMapper {
       targetAttrMapping = this._tagAttrMap[tagName] ??= createLookup();
       for (attr in newAttrMapping) {
         if (targetAttrMapping[attr] !== void 0) {
-          throw createMappedError(attr, tagName);
+          throw createError(attr, tagName);
         }
         targetAttrMapping[attr] = newAttrMapping[attr];
       }
@@ -73,7 +74,7 @@ export class AttrMapper {
     const mapper = this._globalAttrMap;
     for (const attr in config) {
       if (mapper[attr] !== void 0) {
-        throw createMappedError(attr, '*');
+        throw createError(attr, '*');
       }
       mapper[attr] = config[attr];
     }
@@ -140,6 +141,6 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   }
 }
 
-function createMappedError(attr: string, tagName: string) {
-  return createError(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
+function createError(attr: string, tagName: string) {
+  return createMappedError(ErrorNames.compiler_attr_mapper_duplicate_mapping, attr, tagName);
 }

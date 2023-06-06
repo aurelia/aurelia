@@ -28,7 +28,7 @@ import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
 import { BindingCommand, CommandType } from '../resources/binding-command';
-import { createError, createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
+import { createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
@@ -45,6 +45,7 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import type { IAuSlotProjections } from '../templating/controller.projection';
+import { ErrorNames, createMappedError } from '../errors';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): void {
@@ -88,10 +89,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     if (template.hasAttribute(localTemplateIdentifier)) {
-      if (__DEV__)
-        throw createError(`AUR0701: The root cannot be a local template itself.`);
-      else
-        throw createError(`AUR0701`);
+      throw createMappedError(ErrorNames.compiler_root_is_local, definition);
     }
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
@@ -164,10 +162,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrDef = context._findAttr(attrTarget);
       if (attrDef !== null) {
         if (attrDef.isTemplateController) {
-          if (__DEV__)
-            throw createError(`AUR0703: Spreading template controller ${attrTarget} is not supported.`);
-          else
-            throw createError(`AUR0703:${attrTarget}`);
+          throw createMappedError(ErrorNames.no_spread_template_controller, attrTarget);
         }
         bindablesInfo = BindablesInfo.from(attrDef, true);
         // Custom attributes are always in multiple binding mode,
@@ -337,10 +332,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrValue = attrSyntax.rawValue;
 
       if (invalidSurrogateAttribute[realAttrTarget]) {
-        if (__DEV__)
-          throw createError(`AUR0702: Attribute ${attrName} is invalid on surrogate.`);
-        else
-          throw createError(`AUR0702:${attrName}`);
+        throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrName);
       }
 
       bindingCommand = context._createCommand(attrSyntax);
@@ -364,10 +356,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrDef = context._findAttr(realAttrTarget);
       if (attrDef !== null) {
         if (attrDef.isTemplateController) {
-          if (__DEV__)
-            throw createError(`AUR0703: Template controller ${realAttrTarget} is invalid on surrogate.`);
-          else
-            throw createError(`AUR0703:${realAttrTarget}`);
+          throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
         }
         bindableInfo = BindablesInfo.from(attrDef, true);
         // Custom attributes are always in multiple binding mode,
@@ -545,10 +534,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             camelCase(realAttrTarget)
           ));
         } else {
-          if (__DEV__)
-            throw createError(`AUR0704: Invalid command ${attrSyntax.command} for <let>. Only to-view/bind supported.`);
-          else
-            throw createError(`AUR0704:${attrSyntax.command}`);
+          throw createMappedError(ErrorNames.compiler_invalid_let_command, attrSyntax);
         }
         continue;
       }
@@ -676,10 +662,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
-        if (__DEV__)
-          throw createError(`AUR0717: detect a usage of "<slot>" element without specifying shadow DOM options in element: ${context.root.def.name}`);
-        else
-          throw createError(`AUR0717:${context.root.def.name}`);
+        throw createMappedError(ErrorNames.compiler_slot_without_shadowdom, context.root.def.name);
       }
       context.root.hasSlot = true;
     }
@@ -1082,10 +1065,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           } else {
             if (targetSlot !== null) {
               targetSlot = targetSlot || DEFAULT_SLOT_NAME;
-              if (__DEV__)
-                throw createError(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-              else
-                throw createError(`AUR0706:${elName}[${targetSlot}]`);
+              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
             child = child.nextSibling;
           }
@@ -1282,10 +1262,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           } else {
             if (targetSlot !== null) {
               targetSlot = targetSlot || DEFAULT_SLOT_NAME;
-              if (__DEV__)
-                throw createError(`AUR0706: Projection with [au-slot="${targetSlot}"] is attempted on a non custom element ${el.nodeName}.`);
-              else
-                throw createError(`AUR0706:${elName}[${targetSlot}]`);
+              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
             child = child.nextSibling;
           }
@@ -1464,10 +1441,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         command = context._createCommand(attrSyntax);
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
-          if (__DEV__)
-            throw createError(`AUR0707: Bindable ${attrSyntax.target} not found on ${attrDef.name}.`);
-          else
-            throw createError(`AUR0707:${attrDef.name}.${attrSyntax.target}`);
+          throw createMappedError(ErrorNames.compiler_binding_to_non_bindable, attrSyntax.target, attrDef.name);
         }
         if (command === null) {
           expr = context._exprParser.parse(attrValue, ExpressionType.Interpolation);
@@ -1500,28 +1474,23 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   /** @internal */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
+    const elName = context.root.def.name;
     const root: Element | DocumentFragment = template;
     const localTemplates = toArray(root.querySelectorAll<HTMLTemplateElement>('template[as-custom-element]'));
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
     if (numLocalTemplates === root.childElementCount) {
-      if (__DEV__)
-        throw createError(`AUR0708: The custom element does not have any content other than local template(s).`);
-      else
-        throw createError(`AUR0708`);
+      throw createMappedError(ErrorNames.compiler_template_only_local_template, elName);
     }
     const localTemplateNames: Set<string> = new Set();
     const localElTypes: CustomElementType[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
-        if (__DEV__)
-          throw createError(`AUR0709: Local templates needs to be defined directly under root.`);
-        else
-          throw createError(`AUR0709`);
+        throw createMappedError(ErrorNames.compiler_local_el_not_under_root, elName);
       }
 
-      const name = processTemplateName(localTemplate, localTemplateNames);
+      const name = processTemplateName(elName, localTemplate, localTemplateNames);
 
       const content = localTemplate.content;
       const bindableEls = toArray(content.querySelectorAll('bindable'));
@@ -1529,27 +1498,18 @@ export class TemplateCompiler implements ITemplateCompiler {
       const attributes = new Set<string>();
       const bindables = bindableEls.reduce((allBindables: Record<string, PartialBindableDefinition>, bindableEl) => {
         if (bindableEl.parentNode !== content) {
-          if (__DEV__)
-            throw createError(`AUR0710: Bindable properties of local templates needs to be defined directly under root.`);
-          else
-            throw createError(`AUR0710`);
+          throw createMappedError(ErrorNames.compiler_local_el_bindable_not_under_root, name);
         }
         const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
         if (property === null) {
-          if (__DEV__)
-            throw createError(`AUR0711: The attribute 'property' is missing in ${bindableEl.outerHTML}`);
-          else
-            throw createError(`AUR0711`);
+          throw createMappedError(ErrorNames.compiler_local_el_bindable_name_missing, bindableEl, name);
         }
         const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute);
         if (attribute !== null
           && attributes.has(attribute)
           || properties.has(property)
         ) {
-          if (__DEV__)
-            throw createError(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
-          else
-            throw createError(`AUR0712:${property}+${attribute}`);
+          throw createMappedError(ErrorNames.compiler_local_el_bindable_duplicate, properties, attribute);
         } else {
           if (attribute !== null) {
             attributes.add(attribute);
@@ -1832,21 +1792,7 @@ class CompilationContext {
     if (result === void 0) {
       result = this.c.create(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
-        if (__DEV__)
-          throw createError(`AUR0713: Unknown binding command: ${name}.
-${name === 'delegate'
-  ? `The ".delegate" binding command has been removed in v2. Binding command ".trigger" should be used instead.
-If you are migrating v1 application, install compat package to add back the ".delegate" binding command for ease of migration.
-`
-  : ''
-}${name === 'call'
-  ? `The ".call" binding command has been removed in v2.
-If you want to pass a callback that preserves the context of the function call, you can use lambda instead. Refer to lambda expression doc for more details.`
-  : ''
-}
-`);
-        else
-          throw createError(`AUR0713:${name}`);
+        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
       }
       this._commands[name] = result;
     }
@@ -1931,10 +1877,7 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
         attr = bindable.attribute;
         if (bindable.primary === true) {
           if (hasPrimary) {
-            if (__DEV__)
-              throw createError(`AUR0714: Primary already exists on ${def.name}`);
-            else
-              throw createError(`AUR0714:${def.name}`);
+            throw createMappedError(ErrorNames.compiler_primary_already_existed, def);
           }
           hasPrimary = true;
           primary = bindable;
@@ -1975,19 +1918,13 @@ const allowedLocalTemplateBindableAttributes: readonly string[] = objectFreeze([
 ]);
 const localTemplateIdentifier = 'as-custom-element';
 
-const processTemplateName = (localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string => {
+const processTemplateName = (owningElementName: string, localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string => {
   const name = localTemplate.getAttribute(localTemplateIdentifier);
   if (name === null || name === '') {
-    if (__DEV__)
-      throw createError(`AUR0715: The value of "as-custom-element" attribute cannot be empty for local template`);
-    else
-      throw createError(`AUR0715`);
+    throw createMappedError(ErrorNames.compiler_local_name_empty, owningElementName);
   }
   if (localTemplateNames.has(name)) {
-    if (__DEV__)
-      throw createError(`AUR0716: Duplicate definition of the local template named ${name}`);
-    else
-      throw createError(`AUR0716:${name}`);
+    throw createMappedError(ErrorNames.compiler_duplicate_local_name, name, owningElementName);
   } else {
     localTemplateNames.add(name);
     localTemplate.removeAttribute(localTemplateIdentifier);

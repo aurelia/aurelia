@@ -233,7 +233,7 @@ export class ViewportAgent {
             if (__DEV__) trace(logger, Events.vpaCanUnloadNone, this);
             return;
           default:
-            tr.handleError(new Error(`Unexpected state at canUnload of ${this}`));
+            tr._handleError(new Error(`Unexpected state at canUnload of ${this}`));
         }
       })._continueWith(() => {
         b._pop();
@@ -456,7 +456,7 @@ export class ViewportAgent {
           case 'replace': {
             const controller = this.hostController;
             const curCa = this._curCA!;
-            tr.run(() => {
+            tr._run(() => {
               return onResolve(curCa._deactivate(initiator, controller), () => {
                 // Call dispose if initiator is null. If there is an initiator present, then the curCa will be disposed when the initiator is disposed.
                 if (initiator === null) {
@@ -517,7 +517,7 @@ export class ViewportAgent {
               return;
             case 'replace': {
               const controller = this.hostController;
-              tr.run(() => {
+              tr._run(() => {
                 b1._push();
                 return this._nextCA!._activate(initiator, controller);
               }, () => {
@@ -584,14 +584,14 @@ export class ViewportAgent {
         const nextCA = this._nextCA!;
         b._push();
         Batch._start(b1 => {
-          tr.run(() => {
+          tr._run(() => {
             b1._push();
             return onResolve(curCA._deactivate(null, controller), () => curCA._dispose());
           }, () => {
             b1._pop();
           });
         })._continueWith(b1 => {
-          tr.run(() => {
+          tr._run(() => {
             b1._push();
             return nextCA._activate(null, controller);
           }, () => {
@@ -612,7 +612,7 @@ export class ViewportAgent {
     if (__DEV__) trace(this._logger, Events.vpaProcessDynamicChildren, this);
     const next = this._nextNode!;
 
-    tr.run(() => {
+    tr._run(() => {
       b._push();
       const ctx = next.context;
       return onResolve(ctx.allResolved, () => {
@@ -640,7 +640,7 @@ export class ViewportAgent {
     }, newChildren => {
       Batch._start(b1 => {
         for (const node of newChildren) {
-          tr.run(() => {
+          tr._run(() => {
             b1._push();
             return node.context.vpa._canLoad(tr, b1);
           }, () => {
@@ -649,7 +649,7 @@ export class ViewportAgent {
         }
       })._continueWith(b1 => {
         for (const node of newChildren) {
-          tr.run(() => {
+          tr._run(() => {
             b1._push();
             return node.context.vpa._loading(tr, b1);
           }, () => {
@@ -658,7 +658,7 @@ export class ViewportAgent {
         }
       })._continueWith(b1 => {
         for (const node of newChildren) {
-          tr.run(() => {
+          tr._run(() => {
             b1._push();
             return node.context.vpa._activate(null, tr, b1);
           }, () => {

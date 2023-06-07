@@ -1,23 +1,22 @@
 import { Class, DI, IDisposable, LogLevel, noop } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, IViewport, Params, route, RouterConfiguration, Transition, ViewportAgent } from '@aurelia/router-lite';
-import { AppTask, Aurelia, CustomElement, customElement } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { IRouter, IRouterEvents, Params, RouterConfiguration, route } from '@aurelia/router-lite';
+import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
+import { TestContext, assert } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
 describe('router-lite/events.spec.ts', function () {
   type RouterTestStartOptions<TAppRoot> = {
     appRoot: Class<TAppRoot>;
     registrations?: any[];
-    restorePreviousRouteTreeOnError?: boolean;
   };
 
-  async function start<TAppRoot>({ appRoot, registrations = [], restorePreviousRouteTreeOnError = true }: RouterTestStartOptions<TAppRoot>) {
+  async function start<TAppRoot>({ appRoot, registrations = [] }: RouterTestStartOptions<TAppRoot>) {
     const ctx = TestContext.create();
     const { container } = ctx;
 
     container.register(
       TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration.customize({ restorePreviousRouteTreeOnError }),
+      RouterConfiguration,
       ...registrations,
       IRouterEventLoggerService,
       AppTask.creating(IRouterEventLoggerService, noop), // force the service creation
@@ -261,7 +260,7 @@ describe('router-lite/events.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, restorePreviousRouteTreeOnError: false });
+    const { au, host, container } = await start({ appRoot: Root });
     const service = container.get(IRouterEventLoggerService);
     const router = container.get(IRouter);
 
@@ -280,15 +279,11 @@ describe('router-lite/events.spec.ts', function () {
     assert.deepStrictEqual(service.log, [
       'au:router:navigation-start - 2 - \'c2\'',
       'au:router:navigation-error - 2 - \'c2\' - Error: synthetic test error',
+      'au:router:navigation-cancel - 2 - \'c2\' - guardsResult is true',
+      'au:router:navigation-start - 3 - \'\'',
+      'au:router:navigation-end - 3 - \'\'',
     ]);
 
-    // workaround to clear error till the error recovery is properly implemented.
-    // TODO(Sayan): reactor later when error recovery is properly implemented.
-    const vpEl = host.querySelector('au-viewport');
-    const vpa = ViewportAgent.for(CustomElement.for<IViewport>(vpEl).viewModel, null);
-    const transition = vpa['currTransition'] as Transition;
-    transition.guardsResult = true;
-    transition.error = void 0;
     await au.stop(true);
   });
 });

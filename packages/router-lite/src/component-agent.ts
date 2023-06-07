@@ -108,7 +108,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           res();
           return;
         }
-        tr.run(() => {
+        tr._run(() => {
           return hook.canUnload(this._instance, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
@@ -127,7 +127,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           b._pop();
           return;
         }
-        tr.run(() => {
+        tr._run(() => {
           return this._instance.canUnload!(next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
@@ -154,7 +154,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           res();
           return;
         }
-        tr.run(() => {
+        tr._run(() => {
           return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
@@ -173,7 +173,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           b._pop();
           return;
         }
-        tr.run(() => {
+        tr._run(() => {
           return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
@@ -191,7 +191,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (__DEV__) trace(this._logger, Events.caUnloading, next, this._unloadHooks.length);
     b._push();
     for (const hook of this._unloadHooks) {
-      tr.run(() => {
+      tr._run(() => {
         b._push();
         return hook.unloading(this._instance, next, this._routeNode);
       }, () => {
@@ -199,7 +199,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
       });
     }
     if (this._hasUnload) {
-      tr.run(() => {
+      tr._run(() => {
         b._push();
         return this._instance.unloading!(next, this._routeNode);
       }, () => {
@@ -214,7 +214,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
     b._push();
     for (const hook of this._loadHooks) {
-      tr.run(() => {
+      tr._run(() => {
         b._push();
         return hook.loading(this._instance, next.params, next, this._routeNode);
       }, () => {
@@ -222,7 +222,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
       });
     }
     if (this._hasLoad) {
-      tr.run(() => {
+      tr._run(() => {
         b._push();
         return this._instance.loading!(next.params, next, this._routeNode);
       }, () => {

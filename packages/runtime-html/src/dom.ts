@@ -5,7 +5,6 @@ import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
-import { markerToTarget } from './utilities-dom';
 
 export class Refs {
   [key: string]: IHydratedController | undefined;
@@ -252,18 +251,15 @@ export class FragmentNodeSequence implements INodeSequence {
     let current: Node | null | undefined = (this.f = fragment).firstChild;
     let next: Node | null = null;
     while (current != null) {
-      switch (current.nodeType) {
-        case 8:
-          if (current.nodeValue === 'au*') {
-            next = current.nextSibling!;
-            current.parentNode!.removeChild(current);
-            if (next.nodeType === 8) {
-              (current = next.nextSibling as IRenderLocation).$start = next as Comment;
-              $targets[i++] = current;
-            } else {
-              current = ($targets[i++] = next);
-            }
-          }
+      if (current.nodeType === 8 && current.nodeValue === 'au*') {
+        next = current.nextSibling!;
+        current.parentNode!.removeChild(current);
+        if (next.nodeType === 8) {
+          (current = next.nextSibling as IRenderLocation).$start = next as Comment;
+          $targets[i++] = current;
+        } else {
+          current = ($targets[i++] = next);
+        }
       }
 
       current = current.firstChild ?? current.nextSibling ?? current.parentNode?.nextSibling;
@@ -276,32 +272,6 @@ export class FragmentNodeSequence implements INodeSequence {
       childNodes[i] = childNodeList[i];
       ++i;
     }
-
-    // const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
-    // let i = 0;
-    // let ii = targetNodeList.length;
-    // // let target: Element;
-    // // eslint-disable-next-line
-    // let targets = this.t = Array(ii);
-
-    // while (ii > i) {
-    //   // eagerly convert all markers to RenderLocations (otherwise the renderer
-    //   // will do it anyway) and store them in the target list (since the comments
-    //   // can't be queried)
-    //   //
-    //   // note the renderer will still call this method, but it will just return the
-    //   // location if it sees it's already a location
-    //   targets[i] = markerToTarget(targetNodeList[i]);
-    //   ++i;
-    // }
-
-    // const childNodeList = fragment.childNodes;
-    // const childNodes = this.childNodes = Array(ii = childNodeList.length) as Node[];
-    // i = 0;
-    // while (ii > i) {
-    //   childNodes[i] = childNodeList[i];
-    //   ++i;
-    // }
 
     this._firstChild = fragment.firstChild;
     this._lastChild = fragment.lastChild;

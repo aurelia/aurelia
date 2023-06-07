@@ -98,13 +98,13 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caCanUnload, next, this._canUnloadHooks.length);
-    b.push();
+    b._push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canUnloadHooks) {
-      b.push();
+      b._push();
       promise = promise.then(() => new Promise((res) => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           res();
           return;
         }
@@ -114,17 +114,17 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
           }
-          b.pop();
+          b._pop();
           res();
         });
       }));
     }
     if (this._hasCanUnload) {
-      b.push();
+      b._push();
       // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           return;
         }
         tr.run(() => {
@@ -133,24 +133,24 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
           }
-          b.pop();
+          b._pop();
         });
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _canLoad(tr: Transition, next: RouteNode, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
     const rootCtx = this._ctx.root;
-    b.push();
+    b._push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canLoadHooks) {
-      b.push();
+      b._push();
       promise = promise.then(() => new Promise((res) => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           res();
           return;
         }
@@ -160,17 +160,17 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
-          b.pop();
+          b._pop();
           res();
         });
       }));
     }
     if (this._hasCanLoad) {
-      b.push();
+      b._push();
       // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           return;
         }
         tr.run(() => {
@@ -179,56 +179,56 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
-          b.pop();
+          b._pop();
         });
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _unloading(tr: Transition, next: RouteNode | null, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caUnloading, next, this._unloadHooks.length);
-    b.push();
+    b._push();
     for (const hook of this._unloadHooks) {
       tr.run(() => {
-        b.push();
+        b._push();
         return hook.unloading(this._instance, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
     if (this._hasUnload) {
       tr.run(() => {
-        b.push();
+        b._push();
         return this._instance.unloading!(next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _loading(tr: Transition, next: RouteNode, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
-    b.push();
+    b._push();
     for (const hook of this._loadHooks) {
       tr.run(() => {
-        b.push();
+        b._push();
         return hook.loading(this._instance, next.params, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
     if (this._hasLoad) {
       tr.run(() => {
-        b.push();
+        b._push();
         return this._instance.loading!(next.params, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
-    b.pop();
+    b._pop();
   }
 }

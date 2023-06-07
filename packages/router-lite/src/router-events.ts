@@ -13,25 +13,25 @@ export type ManagedState = {
 };
 
 class Subscription implements IDisposable {
-  private disposed: boolean = false;
+  /** @internal */ private _disposed: boolean = false;
 
   public constructor(
-    private readonly events: IRouterEvents,
+    /** @internal */ private readonly _events: IRouterEvents,
     /**
      * A unique serial number that makes individual subscribers more easily distinguishable in chronological order.
      *
      * Mainly for debugging purposes.
      */
-    public readonly serial: number,
-    private readonly inner: IDisposable,
+    /** @internal */ public readonly _serial: number,
+    /** @internal */ private readonly _inner: IDisposable,
   ) {}
 
   public dispose(): void {
-    if (!this.disposed) {
-      this.disposed = true;
+    if (!this._disposed) {
+      this._disposed = true;
 
-      this.inner.dispose();
-      const subscriptions = this.events['_subscriptions'];
+      this._inner.dispose();
+      const subscriptions = this._events['_subscriptions'];
       subscriptions.splice(subscriptions.indexOf(this), 1);
     }
   }
@@ -57,7 +57,7 @@ export class RouterEvents implements IRouterEvents {
       this,
       ++this._subscriptionSerial,
       this._ea.subscribe(event, (message: NameToEvent[T]) => {
-        if(__DEV__) trace(this._logger, Events.reInvokingSubscriber, subscription.serial, event);
+        if(__DEV__) trace(this._logger, Events.reInvokingSubscriber, subscription._serial, event);
         callback(message);
       })
     );

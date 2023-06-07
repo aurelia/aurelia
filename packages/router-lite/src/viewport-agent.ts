@@ -27,36 +27,34 @@ export class ViewportRequest {
 const viewportAgentLookup: WeakMap<object, ViewportAgent> = new WeakMap();
 
 export class ViewportAgent {
-  private readonly logger: ILogger;
+  /** @internal */ private readonly _logger: ILogger;
 
-  private isActive: boolean = false;
+  /** @internal */ private _isActive: boolean = false;
 
-  private curCA: ComponentAgent | null = null;
-  private nextCA: ComponentAgent | null = null;
+  /** @internal */ private _curCA: ComponentAgent | null = null;
+  /** @internal */ private _nextCA: ComponentAgent | null = null;
 
-  private get $state(): string { return $state(this.state); }
-  private state: State = State.bothAreEmpty;
-  private get currState(): CurrState { return this.state & State.curr; }
-  private set currState(state: CurrState) { this.state = (this.state & State.next) | state; }
-  private get nextState(): NextState { return this.state & State.next; }
-  private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
+  /** @internal */ private _state: State = State.bothAreEmpty;
+  /** @internal */ private get _currState(): CurrState { return this._state & State.curr; }
+  /** @internal */ private set _currState(state: CurrState) { this._state = (this._state & State.next) | state; }
+  /** @internal */ private get _nextState(): NextState { return this._state & State.next; }
+  /** @internal */ private set _nextState(state: NextState) { this._state = (this._state & State.curr) | state; }
 
-  private $plan: TransitionPlan = 'replace';
-  private currNode: RouteNode | null = null;
-  private nextNode: RouteNode | null = null;
+  /** @internal */ private _$plan: TransitionPlan = 'replace';
+  /** @internal */ private _currNode: RouteNode | null = null;
+  /** @internal */ private _nextNode: RouteNode | null = null;
 
-  private currTransition: Transition | null = null;
-  /** @internal */
-  private _cancellationPromise: Promise<void> | void | null = null;
+  /** @internal */ private _currTransition: Transition | null = null;
+  /** @internal */ private _cancellationPromise: Promise<void> | void | null = null;
 
   private constructor(
     public readonly viewport: IViewport,
     public readonly hostController: ICustomElementController,
     ctx: IRouteContext,
   ) {
-    this.logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx._friendlyPath}>`);
+    this._logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx._friendlyPath}>`);
 
-    if (__DEV__) trace(this.logger, Events.vpaCreated);
+    if (__DEV__) trace(this._logger, Events.vpaCreated);
   }
 
   public static for(viewport: IViewport, ctx: IRouteContext): ViewportAgent {
@@ -74,29 +72,29 @@ export class ViewportAgent {
 
   /** @internal */
   public _activateFromViewport(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
-    const tr = this.currTransition;
+    const tr = this._currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
-    this.isActive = true;
+    this._isActive = true;
 
-    const logger = /*@__PURE__*/ this.logger.scopeTo('activateFromViewport()');
-    switch (this.nextState) {
+    const logger = /*@__PURE__*/ this._logger.scopeTo('activateFromViewport()');
+    switch (this._nextState) {
       case State.nextIsEmpty:
-        switch (this.currState) {
+        switch (this._currState) {
           case State.currIsEmpty:
             if (__DEV__) trace(logger, Events.vpaActivateFromVpNone, this);
             return;
           case State.currIsActive:
             if (__DEV__) trace(logger, Events.vpaActivateFromVpExisting, this);
-            return this.curCA!._activate(initiator, parent);
+            return this._curCA!._activate(initiator, parent);
           default:
             this._unexpectedState('activateFromViewport 1');
         }
       case State.nextLoadDone: {
-        if (this.currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedActivation, this));
+        if (this._currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedActivation, this));
         if (__DEV__) trace(logger, Events.vpaActivateFromVpNext, this);
-        const b = Batch.start(b1 => { this._activate(initiator, this.currTransition!, b1); });
-        const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
-        return b.start().done ? void 0 : p;
+        const b = Batch._start(b1 => { this._activate(initiator, this._currTransition!, b1); });
+        const p = new Promise<void>(resolve => { b._continueWith(() => { resolve(); }); });
+        return b._start()._done ? void 0 : p;
       }
       default:
         this._unexpectedState('activateFromViewport 2');
@@ -105,18 +103,18 @@ export class ViewportAgent {
 
   /** @internal */
   public _deactivateFromViewport(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
-    const tr = this.currTransition;
+    const tr = this._currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
-    this.isActive = false;
+    this._isActive = false;
 
-    const logger = /*@__PURE__*/ this.logger.scopeTo('deactivateFromViewport()');
-    switch (this.currState) {
+    const logger = /*@__PURE__*/ this._logger.scopeTo('deactivateFromViewport()');
+    switch (this._currState) {
       case State.currIsEmpty:
         if (__DEV__) trace(logger, Events.vpaDeactivateFromVpNone, this);
         return;
       case State.currIsActive:
         if (__DEV__) trace(logger, Events.vpaDeactivateFromVpExisting, this);
-        return this.curCA!._deactivate(initiator, parent);
+        return this._curCA!._deactivate(initiator, parent);
       case State.currDeactivate:
         // This will happen with bottom-up deactivation because the child is already deactivated, the parent
         // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
@@ -124,11 +122,11 @@ export class ViewportAgent {
         if (__DEV__) trace(logger, Events.vpaDeactivationFromVpRunning, this);
         return;
       default: {
-        if (this.currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedDeactivation, this));
+        if (this._currTransition === null) throw new Error(getMessage(Events.vpaUnexpectedDeactivation, this));
         if (__DEV__) trace(logger, Events.vpaDeactivateFromVpCurrent, this);
-        const b = Batch.start(b1 => { this._deactivate(initiator, this.currTransition!, b1); });
-        const p = new Promise<void>(resolve => { b.continueWith(() => { resolve(); }); });
-        return b.start().done ? void 0 : p;
+        const b = Batch._start(b1 => { this._deactivate(initiator, this._currTransition!, b1); });
+        const p = new Promise<void>(resolve => { b._continueWith(() => { resolve(); }); });
+        return b._start()._done ? void 0 : p;
       }
     }
   }
@@ -142,7 +140,7 @@ export class ViewportAgent {
     const $vp = this.viewport;
     const reqVp = req.viewportName;
     const vp = $vp.name;
-    const logger = /*@__PURE__*/ this.logger.scopeTo('handles()');
+    const logger = /*@__PURE__*/ this._logger.scopeTo('handles()');
     /*
                      Name from viewport request
 
@@ -179,14 +177,14 @@ export class ViewportAgent {
 
   /** @internal */
   public _isAvailable(): boolean {
-    const logger = /*@__PURE__*/ this.logger.scopeTo('isAvailable()');
-    if (!this.isActive) {
+    const logger = /*@__PURE__*/ this._logger.scopeTo('isAvailable()');
+    if (!this._isActive) {
       if (__DEV__) trace(logger, Events.vpaIsAvailableInactive);
       return false;
     }
 
-    if (this.nextState !== State.nextIsEmpty) {
-      if (__DEV__) trace(logger, Events.vpaIsAvailableScheduled, this.nextNode);
+    if (this._nextState !== State.nextIsEmpty) {
+      if (__DEV__) trace(logger, Events.vpaIsAvailableScheduled, this._nextNode);
       return false;
     }
 
@@ -195,40 +193,40 @@ export class ViewportAgent {
 
   /** @internal */
   public _canUnload(tr: Transition, b: Batch): void {
-    if (this.currTransition === null) { this.currTransition = tr; }
+    if (this._currTransition === null) { this._currTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) { return; }
 
-    b.push();
+    b._push();
 
-    const logger = /*@__PURE__*/ this.logger.scopeTo('canUnload()');
+    const logger = /*@__PURE__*/ this._logger.scopeTo('canUnload()');
     void onResolve(this._cancellationPromise, () => {
       // run canUnload bottom-up
-      Batch.start(b1 => {
+      Batch._start(b1 => {
         if (__DEV__) trace(logger, Events.vpaCanUnloadChildren, this);
-        for (const node of this.currNode!.children) {
+        for (const node of this._currNode!.children) {
           node.context.vpa._canUnload(tr, b1);
         }
-      }).continueWith(b1 => {
-        switch (this.currState) {
+      })._continueWith(b1 => {
+        switch (this._currState) {
           case State.currIsActive:
             if (__DEV__) trace(logger, Events.vpaCanUnloadExisting, this);
-            switch (this.$plan) {
+            switch (this._$plan) {
               case 'none':
-                this.currState = State.currCanUnloadDone;
+                this._currState = State.currCanUnloadDone;
                 return;
               case 'invoke-lifecycles':
               case 'replace':
-                this.currState = State.currCanUnload;
-                b1.push();
-                Batch.start(b2 => {
+                this._currState = State.currCanUnload;
+                b1._push();
+                Batch._start(b2 => {
                   if (__DEV__) trace(logger, Events.vpaCanUnloadSelf, this);
-                  this.curCA!._canUnload(tr, this.nextNode, b2);
-                }).continueWith(() => {
+                  this._curCA!._canUnload(tr, this._nextNode, b2);
+                })._continueWith(() => {
                   if (__DEV__) trace(logger, Events.vpaCanUnloadFinished, this);
-                  this.currState = State.currCanUnloadDone;
-                  b1.pop();
-                }).start();
+                  this._currState = State.currCanUnloadDone;
+                  b1._pop();
+                })._start();
                 return;
             }
           case State.currIsEmpty:
@@ -237,39 +235,39 @@ export class ViewportAgent {
           default:
             tr.handleError(new Error(`Unexpected state at canUnload of ${this}`));
         }
-      }).continueWith(() => {
-        b.pop();
-      }).start();
+      })._continueWith(() => {
+        b._pop();
+      })._start();
     });
   }
 
   /** @internal */
   public _canLoad(tr: Transition, b: Batch): void {
-    if (this.currTransition === null) { this.currTransition = tr; }
+    if (this._currTransition === null) { this._currTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) { return; }
 
-    b.push();
+    b._push();
 
-    const logger = /*@__PURE__*/ this.logger.scopeTo('canLoad()');
+    const logger = /*@__PURE__*/ this._logger.scopeTo('canLoad()');
     // run canLoad top-down
-    Batch.start(b1 => {
-      switch (this.nextState) {
+    Batch._start(b1 => {
+      switch (this._nextState) {
         case State.nextIsScheduled:
           if (__DEV__) trace(logger, Events.vpaCanLoadNext, this);
-          this.nextState = State.nextCanLoad;
-          switch (this.$plan) {
+          this._nextState = State.nextCanLoad;
+          switch (this._$plan) {
             case 'none':
               return;
             case 'invoke-lifecycles':
-              return this.curCA!._canLoad(tr, this.nextNode!, b1);
+              return this._curCA!._canLoad(tr, this._nextNode!, b1);
             case 'replace':
-              b1.push();
+              b1._push();
               void onResolve(
-                this.nextNode!.context._createComponentAgent(this.hostController, this.nextNode!),
+                this._nextNode!.context._createComponentAgent(this.hostController, this._nextNode!),
                 ca => {
-                  (this.nextCA = ca)._canLoad(tr, this.nextNode!, b1);
-                  b1.pop();
+                  (this._nextCA = ca)._canLoad(tr, this._nextNode!, b1);
+                  b1._pop();
                 }
               );
           }
@@ -279,12 +277,12 @@ export class ViewportAgent {
         default:
           this._unexpectedState('canLoad');
       }
-    }).continueWith(b1 => {
-      const next = this.nextNode!;
-      switch (this.$plan) {
+    })._continueWith(b1 => {
+      const next = this._nextNode!;
+      switch (this._$plan) {
         case 'none':
         case 'invoke-lifecycles': {
-          if (__DEV__) trace(logger, Events.vpaCanLoadResidue, next, this.$plan);
+          if (__DEV__) trace(logger, Events.vpaCanLoadResidue, next, this._$plan);
 
           // These plans can only occur if there is already a current component active in this viewport,
           // and it is the same component as `next`.
@@ -293,24 +291,24 @@ export class ViewportAgent {
           // first pass of activation, instead of lazily in a later pass after `processResidue`.
           // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
           // their target viewports have the appropriate updates scheduled.
-          b1.push();
+          b1._push();
           const ctx = next.context;
           void onResolve(
             ctx.allResolved,
             () => onResolve(
               onResolve(
                 onResolveAll(
-                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this.logger, next, vi))
+                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi))
                 ),
                 () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
                   const vp = vpa.viewport;
                   const component = vp.default;
                   if (component === null) return acc;
-                  acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                  acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
                   return acc;
                 }, ([] as (void | Promise<void>)[]))),
               ),
-              () => { b1.pop(); }
+              () => { b1._pop(); }
             )
           );
           return;
@@ -319,12 +317,12 @@ export class ViewportAgent {
           if (__DEV__) trace(logger, Events.vpaCanLoadResidueDelay, next);
           return;
       }
-    }).continueWith(b1 => {
-      switch (this.nextState) {
+    })._continueWith(b1 => {
+      switch (this._nextState) {
         case State.nextCanLoad:
           if (__DEV__) trace(logger, Events.vpaCanLoadChildren, this);
-          this.nextState = State.nextCanLoadDone;
-          for (const node of this.nextNode!.children) {
+          this._nextState = State.nextCanLoadDone;
+          for (const node of this._nextNode!.children) {
             node.context.vpa._canLoad(tr, b1);
           }
           return;
@@ -333,10 +331,10 @@ export class ViewportAgent {
         default:
           this._unexpectedState('canLoad');
       }
-    }).continueWith(() => {
+    })._continueWith(() => {
       if (__DEV__) trace(logger, Events.vpaCanLoadFinished, this);
-      b.pop();
-    }).start();
+      b._pop();
+    })._start();
   }
 
   /** @internal */
@@ -344,49 +342,49 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    b.push();
-    const logger = /*@__PURE__*/ this.logger.scopeTo('unloading()');
+    b._push();
+    const logger = /*@__PURE__*/ this._logger.scopeTo('unloading()');
 
     // run unloading bottom-up
-    Batch.start(b1 => {
+    Batch._start(b1 => {
       if (__DEV__) trace(logger, Events.vpaUnloadingChildren, this);
-      for (const node of this.currNode!.children) {
+      for (const node of this._currNode!.children) {
         node.context.vpa._unloading(tr, b1);
       }
-    }).continueWith(b1 => {
-      switch (this.currState) {
+    })._continueWith(b1 => {
+      switch (this._currState) {
         case State.currCanUnloadDone:
           if (__DEV__) trace(logger, Events.vpaUnloadingExisting, this);
-          switch (this.$plan) {
+          switch (this._$plan) {
             case 'none':
-              this.currState = State.currUnloadDone;
+              this._currState = State.currUnloadDone;
               return;
             case 'invoke-lifecycles':
             case 'replace':
-              this.currState = State.currUnload;
-              b1.push();
-              Batch.start(b2 => {
+              this._currState = State.currUnload;
+              b1._push();
+              Batch._start(b2 => {
                 if (__DEV__) trace(logger, Events.vpaUnloadingSelf, this);
-                this.curCA!._unloading(tr, this.nextNode, b2);
-              }).continueWith(() => {
+                this._curCA!._unloading(tr, this._nextNode, b2);
+              })._continueWith(() => {
                 if (__DEV__) trace(logger, Events.vpaUnloadingFinished, this);
-                this.currState = State.currUnloadDone;
-                b1.pop();
-              }).start();
+                this._currState = State.currUnloadDone;
+                b1._pop();
+              })._start();
               return;
           }
         case State.currIsEmpty:
           if (__DEV__) trace(logger, Events.vpaUnloadingNone, this);
-          for (const node of this.currNode!.children) {
+          for (const node of this._currNode!.children) {
             node.context.vpa._unloading(tr, b);
           }
           return;
         default:
           this._unexpectedState('unloading');
       }
-    }).continueWith(() => {
-      b.pop();
-    }).start();
+    })._continueWith(() => {
+      b._pop();
+    })._start();
   }
 
   /** @internal */
@@ -394,22 +392,22 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    b.push();
-    const logger = /*@__PURE__*/ this.logger.scopeTo('loading()');
+    b._push();
+    const logger = /*@__PURE__*/ this._logger.scopeTo('loading()');
 
     // run load top-down
-    Batch.start(b1 => {
-      switch (this.nextState) {
+    Batch._start(b1 => {
+      switch (this._nextState) {
         case State.nextCanLoadDone: {
           if (__DEV__) trace(logger, Events.vpaLoadingNext, this);
-          this.nextState = State.nextLoad;
-          switch (this.$plan) {
+          this._nextState = State.nextLoad;
+          switch (this._$plan) {
             case 'none':
               return;
             case 'invoke-lifecycles':
-              return this.curCA!._loading(tr, this.nextNode!, b1);
+              return this._curCA!._loading(tr, this._nextNode!, b1);
             case 'replace':
-              return this.nextCA!._loading(tr, this.nextNode!, b1);
+              return this._nextCA!._loading(tr, this._nextNode!, b1);
           }
         }
         case State.nextIsEmpty:
@@ -418,12 +416,12 @@ export class ViewportAgent {
         default:
           this._unexpectedState('loading');
       }
-    }).continueWith(b1 => {
-      switch (this.nextState) {
+    })._continueWith(b1 => {
+      switch (this._nextState) {
         case State.nextLoad:
           if (__DEV__) trace(logger, Events.vpaLoadingChildren, this);
-          this.nextState = State.nextLoadDone;
-          for (const node of this.nextNode!.children) {
+          this._nextState = State.nextLoadDone;
+          for (const node of this._nextNode!.children) {
             node.context.vpa._loading(tr, b1);
           }
           return;
@@ -432,10 +430,10 @@ export class ViewportAgent {
         default:
           this._unexpectedState('loading');
       }
-    }).continueWith(() => {
+    })._continueWith(() => {
       if (__DEV__) trace(logger, Events.vpaLoadingFinished, this);
-      b.pop();
-    }).start();
+      b._pop();
+    })._start();
   }
 
   /** @internal */
@@ -443,21 +441,21 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    b.push();
-    const logger = /*@__PURE__*/ this.logger.scopeTo('deactivate()');
+    b._push();
+    const logger = /*@__PURE__*/ this._logger.scopeTo('deactivate()');
 
-    switch (this.currState) {
+    switch (this._currState) {
       case State.currUnloadDone:
         if (__DEV__) trace(logger, Events.vpaDeactivateCurrent, this);
-        this.currState = State.currDeactivate;
-        switch (this.$plan) {
+        this._currState = State.currDeactivate;
+        switch (this._$plan) {
           case 'none':
           case 'invoke-lifecycles':
-            b.pop();
+            b._pop();
             return;
           case 'replace': {
             const controller = this.hostController;
-            const curCa = this.curCA!;
+            const curCa = this._curCA!;
             tr.run(() => {
               return onResolve(curCa._deactivate(initiator, controller), () => {
                 // Call dispose if initiator is null. If there is an initiator present, then the curCa will be disposed when the initiator is disposed.
@@ -466,18 +464,18 @@ export class ViewportAgent {
                 }
               });
             }, () => {
-              b.pop();
+              b._pop();
             });
           }
         }
         return;
       case State.currIsEmpty:
         if (__DEV__) trace(logger, Events.vpaDeactivateNone, this);
-        b.pop();
+        b._pop();
         return;
       case State.currDeactivate:
         if (__DEV__) trace(logger, Events.vpaDeactivationRunning, this);
-        b.pop();
+        b._pop();
         return;
       default:
         this._unexpectedState('deactivate');
@@ -489,53 +487,53 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    b.push();
-    const logger = /*@__PURE__*/ this.logger.scopeTo('activate()');
+    b._push();
+    const logger = /*@__PURE__*/ this._logger.scopeTo('activate()');
 
-    if (this.nextState === State.nextIsScheduled) {
+    if (this._nextState === State.nextIsScheduled) {
       if (__DEV__) trace(logger, Events.vpaActivateNextScheduled, this);
       // This is the default v2 mode "lazy loading" situation
-      Batch.start(b1 => {
+      Batch._start(b1 => {
         this._canLoad(tr, b1);
-      }).continueWith(b1 => {
+      })._continueWith(b1 => {
         this._loading(tr, b1);
-      }).continueWith(b1 => {
+      })._continueWith(b1 => {
         this._activate(initiator, tr, b1);
-      }).continueWith(() => {
-        b.pop();
-      }).start();
+      })._continueWith(() => {
+        b._pop();
+      })._start();
       return;
     }
 
-    switch (this.nextState) {
+    switch (this._nextState) {
       case State.nextLoadDone:
         if (__DEV__) trace(logger, Events.vpaActivateNext, this);
-        this.nextState = State.nextActivate;
+        this._nextState = State.nextActivate;
         // run activate top-down
-        Batch.start(b1 => {
-          switch (this.$plan) {
+        Batch._start(b1 => {
+          switch (this._$plan) {
             case 'none':
             case 'invoke-lifecycles':
               return;
             case 'replace': {
               const controller = this.hostController;
               tr.run(() => {
-                b1.push();
-                return this.nextCA!._activate(initiator, controller);
+                b1._push();
+                return this._nextCA!._activate(initiator, controller);
               }, () => {
-                b1.pop();
+                b1._pop();
               });
             }
           }
-        }).continueWith(b1 => {
+        })._continueWith(b1 => {
           this._processDynamicChildren(tr, b1);
-        }).continueWith(() => {
-          b.pop();
-        }).start();
+        })._continueWith(() => {
+          b._pop();
+        })._start();
         return;
       case State.nextIsEmpty:
         if (__DEV__) trace(logger, Events.vpaActivateNone, this);
-        b.pop();
+        b._pop();
         return;
       default:
         this._unexpectedState('activate');
@@ -544,13 +542,13 @@ export class ViewportAgent {
 
   /** @internal */
   public _swap(tr: Transition, b: Batch): void {
-    const logger = /*@__PURE__*/ this.logger.scopeTo('swap()');
-    if (this.currState === State.currIsEmpty) {
+    const logger = /*@__PURE__*/ this._logger.scopeTo('swap()');
+    if (this._currState === State.currIsEmpty) {
       if (__DEV__) trace(logger, Events.vpaSwapEmptyCurr, this);
       this._activate(null, tr, b);
       return;
     }
-    if (this.nextState === State.nextIsEmpty) {
+    if (this._nextState === State.nextIsEmpty) {
       if (__DEV__) trace(logger, Events.vpaSwapEmptyNext, this);
       this._deactivate(null, tr, b);
       return;
@@ -560,20 +558,20 @@ export class ViewportAgent {
     ensureGuardsResultIsTrue(this, tr);
 
     if (!(
-      this.currState === State.currUnloadDone &&
-      this.nextState === State.nextLoadDone
+      this._currState === State.currUnloadDone &&
+      this._nextState === State.nextLoadDone
     )) {
       this._unexpectedState('swap');
     }
 
-    this.currState = State.currDeactivate;
-    this.nextState = State.nextActivate;
+    this._currState = State.currDeactivate;
+    this._nextState = State.nextActivate;
 
-    switch (this.$plan) {
+    switch (this._$plan) {
       case 'none':
       case 'invoke-lifecycles': {
         if (__DEV__) trace(logger, Events.vpaSwapSkipToChildren, this);
-        const nodes = mergeDistinct(this.nextNode!.children, this.currNode!.children);
+        const nodes = mergeDistinct(this._nextNode!.children, this._currNode!.children);
         for (const node of nodes) {
           node.context.vpa._swap(tr, b);
         }
@@ -582,28 +580,28 @@ export class ViewportAgent {
       case 'replace': {
         if (__DEV__) trace(logger, Events.vpaSwap, this);
         const controller = this.hostController;
-        const curCA = this.curCA!;
-        const nextCA = this.nextCA!;
-        b.push();
-        Batch.start(b1 => {
+        const curCA = this._curCA!;
+        const nextCA = this._nextCA!;
+        b._push();
+        Batch._start(b1 => {
           tr.run(() => {
-            b1.push();
+            b1._push();
             return onResolve(curCA._deactivate(null, controller), () => curCA._dispose());
           }, () => {
-            b1.pop();
+            b1._pop();
           });
-        }).continueWith(b1 => {
+        })._continueWith(b1 => {
           tr.run(() => {
-            b1.push();
+            b1._push();
             return nextCA._activate(null, controller);
           }, () => {
-            b1.pop();
+            b1._pop();
           });
-        }).continueWith(b1 => {
+        })._continueWith(b1 => {
           this._processDynamicChildren(tr, b1);
-        }).continueWith(() => {
-          b.pop();
-        }).start();
+        })._continueWith(() => {
+          b._pop();
+        })._start();
         return;
       }
     }
@@ -611,11 +609,11 @@ export class ViewportAgent {
 
   /** @internal */
   private _processDynamicChildren(tr: Transition, b: Batch): void {
-    if (__DEV__) trace(this.logger, Events.vpaProcessDynamicChildren, this);
-    const next = this.nextNode!;
+    if (__DEV__) trace(this._logger, Events.vpaProcessDynamicChildren, this);
+    const next = this._nextNode!;
 
     tr.run(() => {
-      b.push();
+      b._push();
       const ctx = next.context;
       return onResolve(ctx.allResolved, () => {
         const existingChildren = next.children.slice();
@@ -623,7 +621,7 @@ export class ViewportAgent {
           onResolveAll(...next
             .residue
             .splice(0)
-            .map(vi => createAndAppendNodes(this.logger, next, vi))),
+            .map(vi => createAndAppendNodes(this._logger, next, vi))),
           () => onResolve(
             onResolveAll(...ctx
               .getAvailableViewportAgents()
@@ -631,7 +629,7 @@ export class ViewportAgent {
                 const vp = vpa.viewport;
                 const component = vp.default;
                 if (component === null) return acc;
-                acc.push(createAndAppendNodes(this.logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
                 return acc;
               }, ([] as (void | Promise<void>)[]))
             ),
@@ -640,51 +638,51 @@ export class ViewportAgent {
         );
       });
     }, newChildren => {
-      Batch.start(b1 => {
+      Batch._start(b1 => {
         for (const node of newChildren) {
           tr.run(() => {
-            b1.push();
+            b1._push();
             return node.context.vpa._canLoad(tr, b1);
           }, () => {
-            b1.pop();
+            b1._pop();
           });
         }
-      }).continueWith(b1 => {
+      })._continueWith(b1 => {
         for (const node of newChildren) {
           tr.run(() => {
-            b1.push();
+            b1._push();
             return node.context.vpa._loading(tr, b1);
           }, () => {
-            b1.pop();
+            b1._pop();
           });
         }
-      }).continueWith(b1 => {
+      })._continueWith(b1 => {
         for (const node of newChildren) {
           tr.run(() => {
-            b1.push();
+            b1._push();
             return node.context.vpa._activate(null, tr, b1);
           }, () => {
-            b1.pop();
+            b1._pop();
           });
         }
-      }).continueWith(() => {
-        b.pop();
-      }).start();
+      })._continueWith(() => {
+        b._pop();
+      })._start();
     });
   }
 
   /** @internal */
   public _scheduleUpdate(options: NavigationOptions, next: RouteNode): void {
-    switch (this.nextState) {
+    switch (this._nextState) {
       case State.nextIsEmpty:
-        this.nextNode = next;
-        this.nextState = State.nextIsScheduled;
+        this._nextNode = next;
+        this._nextState = State.nextIsScheduled;
         break;
       default:
         this._unexpectedState('scheduleUpdate 1');
     }
 
-    switch (this.currState) {
+    switch (this._currState) {
       case State.currIsEmpty:
       case State.currIsActive:
       case State.currCanUnloadDone:
@@ -693,73 +691,73 @@ export class ViewportAgent {
         this._unexpectedState('scheduleUpdate 2');
     }
 
-    const cur = this.curCA?._routeNode ?? null;
+    const cur = this._curCA?._routeNode ?? null;
     if (cur === null || cur.component !== next.component) {
       // Component changed (or is cleared), so set to 'replace'
-      this.$plan = 'replace';
+      this._$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      this.$plan = options.transitionPlan ?? next.context.config._getTransitionPlan(cur, next);
+      this._$plan = options.transitionPlan ?? next.context.config._getTransitionPlan(cur, next);
     }
 
-    if (__DEV__) trace(this.logger, Events.vpaScheduleUpdate, this);
+    if (__DEV__) trace(this._logger, Events.vpaScheduleUpdate, this);
   }
 
   /** @internal */
   public _cancelUpdate(): void {
-    if (this.currNode !== null) {
-      this.currNode.children.forEach(function (node) {
+    if (this._currNode !== null) {
+      this._currNode.children.forEach(function (node) {
         node.context.vpa._cancelUpdate();
       });
     }
-    if (this.nextNode !== null) {
-      this.nextNode.children.forEach(function (node) {
+    if (this._nextNode !== null) {
+      this._nextNode.children.forEach(function (node) {
         node.context.vpa._cancelUpdate();
       });
     }
 
-    if(__DEV__) trace(this.logger, Events.vpaCancelUpdate, this.nextNode);
+    if(__DEV__) trace(this._logger, Events.vpaCancelUpdate, this._nextNode);
 
     let currentDeactivationPromise: void | Promise<void> | null = null;
     let nextDeactivationPromise: void | Promise<void> | null = null;
-    switch (this.currState) {
+    switch (this._currState) {
       case State.currIsEmpty:
       case State.currIsActive:
-        this.currTransition = null;
+        this._currTransition = null;
         break;
       case State.currCanUnload:
       case State.currCanUnloadDone:
-        this.currState = State.currIsActive;
-        this.currTransition = null;
+        this._currState = State.currIsActive;
+        this._currTransition = null;
         break;
       case State.currUnload:
       case State.currUnloadDone:
       case State.currDeactivate:
-        currentDeactivationPromise = onResolve(this.curCA?._deactivate(null, this.hostController), () => {
-          this.curCA?._dispose();
-          this.currState = State.currIsEmpty;
-          this.curCA = null;
+        currentDeactivationPromise = onResolve(this._curCA?._deactivate(null, this.hostController), () => {
+          this._curCA?._dispose();
+          this._currState = State.currIsEmpty;
+          this._curCA = null;
         });
         break;
     }
 
-    switch (this.nextState) {
+    switch (this._nextState) {
       case State.nextIsEmpty:
       case State.nextIsScheduled:
       case State.nextCanLoad:
       case State.nextCanLoadDone:
-        this.nextNode = null;
-        this.nextState = State.nextIsEmpty;
+        this._nextNode = null;
+        this._nextState = State.nextIsEmpty;
         break;
       case State.nextLoad:
       case State.nextLoadDone:
       case State.nextActivate: {
-        nextDeactivationPromise = onResolve(this.nextCA?._deactivate(null, this.hostController), () => {
-          this.nextCA?._dispose();
-          this.$plan = 'replace';
-          this.nextState = State.nextIsEmpty;
-          this.nextCA = null;
-          this.nextNode = null;
+        nextDeactivationPromise = onResolve(this._nextCA?._deactivate(null, this.hostController), () => {
+          this._nextCA?._dispose();
+          this._$plan = 'replace';
+          this._nextState = State.nextIsEmpty;
+          this._nextCA = null;
+          this._nextNode = null;
         });
         break;
       }
@@ -767,7 +765,7 @@ export class ViewportAgent {
 
     if (currentDeactivationPromise !== null && nextDeactivationPromise !== null) {
       this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
-        this.currTransition = null;
+        this._currTransition = null;
         this._cancellationPromise = null;
       });
     }
@@ -775,50 +773,50 @@ export class ViewportAgent {
 
   /** @internal */
   public _endTransition(): void {
-    if (this.currNode !== null) {
-      this.currNode.children.forEach(function (node) {
+    if (this._currNode !== null) {
+      this._currNode.children.forEach(function (node) {
         node.context.vpa._endTransition();
       });
     }
-    if (this.nextNode !== null) {
-      this.nextNode.children.forEach(function (node) {
+    if (this._nextNode !== null) {
+      this._nextNode.children.forEach(function (node) {
         node.context.vpa._endTransition();
       });
     }
 
-    if (this.currTransition !== null) {
-      const logger = /*@__PURE__*/ this.logger.scopeTo('endTransition()');
-      ensureTransitionHasNotErrored(this.currTransition);
-      switch (this.nextState) {
+    if (this._currTransition !== null) {
+      const logger = /*@__PURE__*/ this._logger.scopeTo('endTransition()');
+      ensureTransitionHasNotErrored(this._currTransition);
+      switch (this._nextState) {
         case State.nextIsEmpty:
-          switch (this.currState) {
+          switch (this._currState) {
             case State.currIsEmpty:
             case State.currDeactivate:
               if(__DEV__) trace(logger, Events.vpaEndTransitionEmptyCurr, this);
-              this.currState = State.currIsEmpty;
-              this.curCA = null;
+              this._currState = State.currIsEmpty;
+              this._curCA = null;
               break;
             default:
               this._unexpectedState('endTransition 1');
           }
           break;
         case State.nextActivate:
-          switch (this.currState) {
+          switch (this._currState) {
             case State.currIsEmpty:
             case State.currDeactivate:
-              switch (this.$plan) {
+              switch (this._$plan) {
                 case 'none':
                 case 'invoke-lifecycles':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrLifecycle, this);
-                  this.currState = State.currIsActive;
+                  this._currState = State.currIsActive;
                   break;
                 case 'replace':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrReplace, this);
-                  this.currState = State.currIsActive;
-                  this.curCA = this.nextCA;
+                  this._currState = State.currIsActive;
+                  this._curCA = this._nextCA;
                   break;
               }
-              this.currNode = this.nextNode!;
+              this._currNode = this._nextNode!;
               break;
             default:
               this._unexpectedState('endTransition 2');
@@ -828,22 +826,22 @@ export class ViewportAgent {
           this._unexpectedState('endTransition 3');
       }
 
-      this.$plan = 'replace';
-      this.nextState = State.nextIsEmpty;
-      this.nextNode = null;
-      this.nextCA = null;
-      this.currTransition = null;
+      this._$plan = 'replace';
+      this._nextState = State.nextIsEmpty;
+      this._nextNode = null;
+      this._nextCA = null;
+      this._currTransition = null;
     }
   }
 
   public toString(): string {
-    return `VPA(state:${this.$state},plan:'${this.$plan}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
+    return `VPA(state:${/* @__PURE__ */ $state(this._state)},plan:'${this._$plan}',n:${this._nextNode},c:${this._currNode},viewport:${this.viewport})`;
   }
 
   /** @internal */
   public _dispose(): void {
-    if (__DEV__) trace(this.logger, Events.vpaDispose, this);
-    this.curCA?._dispose();
+    if (__DEV__) trace(this._logger, Events.vpaDispose, this);
+    this._curCA?._dispose();
   }
 
   /** @internal */

@@ -603,42 +603,42 @@ export class Router {
       const next = tr.routeTree.root.children;
       const all = mergeDistinct(prev, next);
 
-      Batch.start(b => {
+      Batch._start(b => {
         if (__DEV__) trace(logger, Events.rtrRunCanUnload, prev.length);
         for (const node of prev) {
           node.context.vpa._canUnload(tr, b);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (tr.guardsResult !== true) {
-          b.push(); // prevent the next step in the batch from running
+          b._push(); // prevent the next step in the batch from running
           this.cancelNavigation(tr);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (__DEV__) trace(logger, Events.rtrRunCanLoad, next.length);
         for (const node of next) {
           node.context.vpa._canLoad(tr, b);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (tr.guardsResult !== true) {
-          b.push();
+          b._push();
           this.cancelNavigation(tr);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (__DEV__) trace(logger, Events.rtrRunUnloading, prev.length);
         for (const node of prev) {
           node.context.vpa._unloading(tr, b);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (__DEV__) trace(logger, Events.rtrRunLoading, next.length);
         for (const node of next) {
           node.context.vpa._loading(tr, b);
         }
-      }).continueWith(b => {
+      })._continueWith(b => {
         if (__DEV__) trace(logger, Events.rtrRunSwapping, all.length);
         for (const node of all) {
           node.context.vpa._swap(tr, b);
         }
-      }).continueWith(() => {
+      })._continueWith(() => {
         if (__DEV__) trace(logger, Events.rtrRunFinalizing);
         // order doesn't matter for this operation
         all.forEach(function (node) {
@@ -668,7 +668,7 @@ export class Router {
         tr.resolve!(true);
 
         this.runNextTransition();
-      }).start();
+      })._start();
     });
   }
 

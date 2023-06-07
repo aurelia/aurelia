@@ -129,7 +129,8 @@ export class NavigationOptions implements INavigationOptions {
     );
   }
 
-  public clone(): NavigationOptions {
+  /** @internal */
+  public _clone(): NavigationOptions {
     return new NavigationOptions(
       this.historyStrategy,
       this.title,

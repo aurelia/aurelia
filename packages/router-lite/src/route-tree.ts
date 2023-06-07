@@ -244,7 +244,7 @@ export class RouteNode implements IRouteNode {
   public _finalizeInstruction(): ViewportInstruction {
     this._isInstructionsFinalized = true;
     const children = this.children.map(x => x._finalizeInstruction());
-    const instruction = this.instruction!.clone();
+    const instruction = this.instruction!._clone();
     instruction.children.splice(0, instruction.children.length, ...children);
     return (this as Writable<this>).instruction = instruction;
   }
@@ -319,7 +319,7 @@ export class RouteTree {
   /** @internal */
   public _clone(): RouteTree {
     const clone = new RouteTree(
-      this.options.clone(),
+      this.options._clone(),
       new URLSearchParams(this.queryParams),
       this.fragment,
       this.root._clone(),
@@ -366,7 +366,7 @@ export function createAndAppendNodes(
         default: {
           log.trace(`createAndAppendNodes invoking createNode`);
           const ctx = node.context;
-          const originalInstruction = (vi as ViewportInstruction<ITypedNavigationInstruction_string>).clone();
+          const originalInstruction = (vi as ViewportInstruction<ITypedNavigationInstruction_string>)._clone();
           let rr = vi.recognizedRoute;
           // early return; we already have a recognized route, don't bother with the rest.
           if (rr !== null) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, rr, originalInstruction));

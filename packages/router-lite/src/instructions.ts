@@ -163,12 +163,13 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     return true;
   }
 
-  public clone(): this {
+  /** @internal */
+  public _clone(): this {
     return new ViewportInstruction(
       this.open,
       this.close,
       this.recognizedRoute,
-      this.component.clone(),
+      this.component._clone(),
       this.viewport,
       this.params === null ? null : { ...this.params },
       [...this.children],
@@ -370,7 +371,7 @@ export interface ITypedNavigationInstruction<
   readonly value: TInstruction;
   equals(other: ITypedNavigationInstruction_T): boolean;
   toUrlComponent(): string;
-  clone(): this;
+  _clone(): this;
 }
 export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> { }
 export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> { }
@@ -448,7 +449,8 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     }
   }
 
-  public clone(): this {
+  /** @internal */
+  public _clone(): this {
     return new TypedNavigationInstruction(
       this.type,
       this.value

@@ -248,12 +248,13 @@ export class FragmentNodeSequence implements INodeSequence {
     const $targets: Node[] = this.t = [];
     let i = 0;
     let ii = 0;
-    let current: Node | null | undefined = (this.f = fragment).firstChild;
+    let parent: Node = this.f = fragment;
+    let current: Node | null | undefined = parent.firstChild;
     let next: Node | null = null;
     while (current != null) {
       if (current.nodeType === 8 && current.nodeValue === 'au*') {
         next = current.nextSibling!;
-        current.parentNode!.removeChild(current);
+        parent.removeChild(current);
         if (next.nodeType === 8) {
           (current = next.nextSibling as IRenderLocation).$start = next as Comment;
           $targets[i++] = current;
@@ -262,7 +263,24 @@ export class FragmentNodeSequence implements INodeSequence {
         }
       }
 
-      current = current.firstChild ?? current.nextSibling ?? current.parentNode?.nextSibling;
+      next = current?.firstChild;
+      if (next == null) {
+        next = current?.nextSibling;
+        if (next == null) {
+          current = parent.nextSibling;
+          parent = parent.parentNode!;
+          while (current == null && parent != null) {
+            current = parent.nextSibling;
+            parent = parent.parentNode!;
+          }
+        } else {
+          current = next;
+        }
+      } else {
+        parent = current;
+        current = next;
+      }
+
     }
 
     const childNodeList = fragment.childNodes;

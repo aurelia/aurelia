@@ -643,6 +643,7 @@ export class RouteContext {
     }
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const vpAgents = this._childViewportAgents;
     const viewports = vpAgents.map(String).join(',');
@@ -670,6 +671,7 @@ export class $RecognizedRoute {
   ) { }
 
   public toString(): string {
+    if(!__DEV__) return 'RR';
     const route = this.route;
     const cr = route.endpoint.route;
     return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;

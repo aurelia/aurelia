@@ -388,7 +388,7 @@ export function warn(logger: ILogger, event: Events, ...optionalParameters: unkn
     const message = eventMessageMap[event];
     logger.warn(`AUR${event}: ${message}`, ...optionalParameters);
   } else {
-    logger.warn(`AUR${event}`, ...optionalParameters);
+    logger.warn(`AUR${event}`, ...optionalParameters.map(p => String(p)));
   }
 }
 

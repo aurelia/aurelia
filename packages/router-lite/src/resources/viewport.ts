@@ -76,6 +76,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     this._agent = (void 0)!;
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const propStrings: string[] = [];
     for (const prop of props) {

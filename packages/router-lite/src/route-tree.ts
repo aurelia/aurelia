@@ -274,6 +274,7 @@ export class RouteNode implements IRouteNode {
     return clone;
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const props: string[] = [];
 

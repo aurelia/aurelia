@@ -209,6 +209,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     return childPart;
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const component = `c:${this.component}`;
     const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `viewport:${this.viewport}`;
@@ -351,6 +352,7 @@ export class ViewportInstructionTree {
     return this.children.map(x => x.toUrlComponent()).join('+');
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     return `[${this.children.map(String).join(',')}]`;
   }
@@ -471,6 +473,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     }
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(this: ITypedNavigationInstruction_T): string {
     switch (this.type) {
       case NavigationInstructionType.CustomElementDefinition:

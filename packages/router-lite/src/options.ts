@@ -67,18 +67,14 @@ export class RouterOptions {
     );
   }
 
-  /** @internal */
-  public _stringifyProperties(): string {
-    return ([
+  public toString(): string {
+    if(!__DEV__) return 'RO';
+    return `RO(${([
       ['historyStrategy', 'history'],
     ] as const).map(([key, name]) => {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
-    }).join(',');
-  }
-
-  public toString(): string {
-    return `RO(${this._stringifyProperties()})`;
+    }).join(',')})`;
   }
 }
 

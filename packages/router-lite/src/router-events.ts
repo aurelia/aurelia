@@ -78,7 +78,9 @@ export class LocationChangeEvent {
   ) {}
 
   public toString(): string {
-    return `LocationChangeEvent(id:${this.id},url:'${this.url}',trigger:'${this.trigger}')`;
+    return __DEV__
+      ? `LocationChangeEvent(id:${this.id},url:'${this.url}',trigger:'${this.trigger}')`
+      : `LocationChangeEvent`;
   }
 }
 
@@ -93,7 +95,9 @@ export class NavigationStartEvent {
   ) {}
 
   public toString(): string {
-    return `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`;
+    return __DEV__
+      ? `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`
+      : `NavigationStartEvent`;
   }
 }
 
@@ -107,7 +111,9 @@ export class NavigationEndEvent {
   ) {}
 
   public toString(): string {
-    return `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`;
+    return __DEV__
+      ? `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`
+      : `NavigationEndEvent`;
   }
 }
 
@@ -121,7 +127,9 @@ export class NavigationCancelEvent {
   ) {}
 
   public toString(): string {
-    return `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`;
+    return __DEV__
+      ? `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`
+      : `NavigationCancelEvent`;
   }
 }
 
@@ -135,7 +143,9 @@ export class NavigationErrorEvent {
   ) {}
 
   public toString(): string {
-    return `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`;
+    return __DEV__
+      ? `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`
+      : `NavigationErrorEvent`;
   }
 }
 

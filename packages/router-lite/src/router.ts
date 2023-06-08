@@ -97,8 +97,9 @@ export class Transition {
     this.reject!(this.error = err);
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
-    return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions},options:${this.options})`;
+    return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions})`;
   }
 }
 

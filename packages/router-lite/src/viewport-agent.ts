@@ -19,6 +19,7 @@ export class ViewportRequest {
     public readonly componentName: string,
   ) { }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     return `VR(viewport:'${this.viewportName}',component:'${this.componentName}')`;
   }
@@ -834,8 +835,9 @@ export class ViewportAgent {
     }
   }
 
+  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
-    return `VPA(state:${/* @__PURE__ */ $state(this._state)},plan:'${this._$plan}',n:${this._nextNode},c:${this._currNode},viewport:${this.viewport})`;
+    return `VPA(state:${$state(this._state)},plan:'${this._$plan}',n:${this._nextNode},c:${this._currNode},viewport:${this.viewport})`;
   }
 
   /** @internal */

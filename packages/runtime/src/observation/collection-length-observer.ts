@@ -1,6 +1,6 @@
 import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { createError, ensureProto } from '../utilities-objects';
+import { createError, ensureProto } from '../utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {

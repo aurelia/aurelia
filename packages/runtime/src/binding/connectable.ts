@@ -1,4 +1,4 @@
-import { createError, def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities-objects';
+import { createError, def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities';
 import { getArrayObserver } from '../observation/array-observer';
 import { getSetObserver } from '../observation/set-observer';
 import { getMapObserver } from '../observation/map-observer';
@@ -15,6 +15,7 @@ import type {
   ICollectionSubscribable,
 } from '../observation';
 import type { IObserverLocator } from '../observation/observer-locator';
+import { ErrorNames, createMappedError } from '../errors';
 
 export interface IConnectableBinding extends IConnectable, IBinding, ISubscriber, ICollectionSubscriber {
   oL: IObserverLocator;
@@ -52,17 +53,11 @@ function subscribeTo(this: IConnectableBinding, subscribable: ISubscribable | IC
 }
 
 function noopHandleChange() {
-  if (__DEV__)
-    throw createError(`AUR2011: method "handleChange" not implemented`);
-  else
-    throw createError(`AUR2011:handleChange`);
+  throw createMappedError(ErrorNames.method_not_implemented, 'handleChange');
 }
 
 function noopHandleCollectionChange() {
-  if (__DEV__)
-    throw createError(`AUR2011: method "handleCollectionChange" not implemented`);
-  else
-    throw createError(`AUR2011:handleCollectionChange`);
+  throw createMappedError(ErrorNames.method_not_implemented, 'handleCollectionChange');
 }
 
 type ObservationRecordImplType = {

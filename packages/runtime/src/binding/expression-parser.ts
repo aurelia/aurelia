@@ -40,7 +40,7 @@ import {
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
 } from './ast';
-import { createError, createInterface, createLookup, objectAssign } from '../utilities-objects';
+import { createError, createInterface, createLookup, objectAssign } from '../utilities';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));

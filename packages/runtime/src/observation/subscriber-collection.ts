@@ -1,4 +1,4 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects';
+import { def, defineHiddenProp, ensureProto } from '../utilities';
 
 import type {
   Collection,

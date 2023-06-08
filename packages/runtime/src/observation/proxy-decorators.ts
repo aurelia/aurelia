@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { defineHiddenProp, safeString } from '../utilities-objects';
+import { defineHiddenProp, safeString } from '../utilities';
 import { nowrapClassKey, nowrapPropKey } from './proxy-observation';
 
 /**

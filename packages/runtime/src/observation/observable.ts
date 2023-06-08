@@ -1,5 +1,5 @@
 import { AccessorType, IAccessor, IObserver, ISubscriberCollection } from '../observation';
-import { safeString, def, createError, isFunction, areEqual } from '../utilities-objects';
+import { safeString, def, createError, isFunction, areEqual } from '../utilities';
 import { currentConnectable } from './connectable-switcher';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';

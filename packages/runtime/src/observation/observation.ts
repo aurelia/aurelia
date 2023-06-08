@@ -1,7 +1,7 @@
 import { connectable } from '../binding/connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
-import { createError, createInterface } from '../utilities-objects';
+import { createError, createInterface } from '../utilities';
 
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
 import type { BindingObserverRecord } from '../binding/connectable';

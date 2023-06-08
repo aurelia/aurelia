@@ -1,5 +1,5 @@
 import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
-import { createError } from '../utilities-objects';
+import { createError } from '../utilities';
 
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small

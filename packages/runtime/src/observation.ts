@@ -1,5 +1,5 @@
 import { DI, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { isArray } from './utilities-objects';
+import { isArray } from './utilities';
 
 import type { Scope } from './observation/scope';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';

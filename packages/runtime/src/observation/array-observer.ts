@@ -16,7 +16,7 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 

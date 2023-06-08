@@ -1,5 +1,5 @@
 import type { IConnectable } from '../observation';
-import { createError } from '../utilities-objects';
+import { createError } from '../utilities';
 
 /**
  * Current subscription collector

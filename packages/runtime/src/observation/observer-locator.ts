@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities-objects';
+import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities';
 
 import type {
   Collection,

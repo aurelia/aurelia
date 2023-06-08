@@ -8,7 +8,7 @@ import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, createError, isFunction } from '../utilities-objects';
+import { areEqual, createError, isFunction } from '../utilities';
 
 import type {
   ISubscriber,

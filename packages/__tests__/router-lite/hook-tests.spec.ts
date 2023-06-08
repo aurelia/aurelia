@@ -687,9 +687,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
           @route({
             routes: [
               { path: 'a02', component: PcA02 },
+              { path: 'a12', component: PcA12 },
             ]
           })
-
           @customElement({ name: 'a12', template: vp(1) })
           class PcA12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
 
@@ -698,6 +698,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
               { path: 'a01', component: PcA01 },
               { path: 'a02', component: PcA02 },
               { path: 'a12', component: PcA12 },
+              { path: 'a11', component: PcA11 },
             ]
           })
           @customElement({ name: 'a11', template: vp(1) })
@@ -742,35 +743,32 @@ describe('router-lite/hook-tests.spec.ts', function () {
           for (const { t1, t2 } of [
             // Only parent changes with every nav
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a12' } },
-            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
-            // { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a12', c: 'a12' } },
-            // { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a12' } },
+            { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a12', c: 'a12' } },
+            { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a12' } },
 
             // Only child changes with every nav
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a02' } },
             { t1: { p: 'a11', c: '' }, t2: { p: 'a11', c: 'a02' } },
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: '' } },
 
-            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
-            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
-            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
 
-            // { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
-            // { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
 
             // Both parent and child change with every nav
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: 'a02' } },
             { t1: { p: 'a11', c: '' }, t2: { p: 'a12', c: 'a02' } },
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: '' } },
 
-            // the following routes self reference components as child. do we want to support this as configured route? TODO(sayan).
-            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
-            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
-            // { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
 
-            // { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
-            // { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
-            // { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
 
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a14' } },
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a11' } },
@@ -1918,7 +1916,6 @@ describe('router-lite/hook-tests.spec.ts', function () {
       });
     }
 
-    // this test sort of asserts the current "incorrect" behavior, until the "undo" (refer ViewportAgent#cancelUpdate) is implemented. TODO(sayan): implement "undo" later and refactor this test.
     it(`without fallback - sibling viewport`, async function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
@@ -1961,11 +1958,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
       // stop
       mgr.fullNotifyHistory.length = 0;
       phase = 'stop';
-      try {
-        await tearDown();
-      } catch (e) {
-        console.error(e);
-      }
+      await tearDown();
       verifyInvocationsEqual(mgr.fullNotifyHistory, [
         ...$(phase, ['root'], ticks, 'detaching'),
         ...$(phase, ['root'], ticks, 'unbinding'),

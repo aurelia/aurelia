@@ -48,21 +48,20 @@ export class HookSpecs {
     input: Partial<HookSpecs>,
   ): HookSpecs {
     return new HookSpecs(
-      // TODO: use '??' instead of '||' but gotta figure out first why ts-node doesn't understand ES2020 syntax
-      input.binding || hookSpecsMap.binding.sync,
-      input.bound || hookSpecsMap.bound.sync,
-      input.attaching || hookSpecsMap.attaching.sync,
-      input.attached || hookSpecsMap.attached.sync,
+      input.binding ?? hookSpecsMap.binding.sync,
+      input.bound ?? hookSpecsMap.bound.sync,
+      input.attaching ?? hookSpecsMap.attaching.sync,
+      input.attached ?? hookSpecsMap.attached.sync,
 
-      input.detaching || hookSpecsMap.detaching.sync,
-      input.unbinding || hookSpecsMap.unbinding.sync,
+      input.detaching ?? hookSpecsMap.detaching.sync,
+      input.unbinding ?? hookSpecsMap.unbinding.sync,
 
       hookSpecsMap.dispose,
 
-      input.canLoad || hookSpecsMap.canLoad.sync,
-      input.loading || hookSpecsMap.loading.sync,
-      input.canUnload || hookSpecsMap.canUnload.sync,
-      input.unloading || hookSpecsMap.unloading.sync,
+      input.canLoad ?? hookSpecsMap.canLoad.sync,
+      input.loading ?? hookSpecsMap.loading.sync,
+      input.canUnload ?? hookSpecsMap.canUnload.sync,
+      input.unloading ?? hookSpecsMap.unloading.sync,
     );
   }
 

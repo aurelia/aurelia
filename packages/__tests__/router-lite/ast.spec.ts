@@ -50,7 +50,7 @@ describe('router-lite/ast.spec.ts', function () {
     ),
   ];
 
-  const noViewport = new ViewportExpression('', '');
+  const noViewport = new ViewportExpression('', null);
   const viewportSpecs = [
     noViewport,
     new ViewportExpression('@foo', 'foo'),
@@ -420,7 +420,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected component name`),
+        /AUR3500.+component name/,
       );
     });
   }
@@ -431,7 +431,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected method name`),
+        /AUR3500.+method name/,
       );
     });
   }
@@ -442,7 +442,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected viewport name`),
+        /AUR3500.+viewport name/,
       );
     });
   }
@@ -453,7 +453,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected parameter key`),
+        /AUR3500.+parameter key/,
       );
     });
   }
@@ -464,7 +464,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected parameter value`),
+        /AUR3500.+parameter value/,
       );
     });
   }
@@ -529,7 +529,7 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Expected ')'`),
+        /AUR3500.+'\)'/,
       );
     });
   }
@@ -576,12 +576,8 @@ describe('router-lite/ast.spec.ts', function () {
         function () {
           RouteExpression.parse(path, false);
         },
-        regex(`Unexpected '${path.slice(-1)}'`),
+        new RegExp(`AUR3501.+${path.slice(-1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
       );
     });
   }
 });
-
-function regex(str: string): RegExp {
-  return new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-}

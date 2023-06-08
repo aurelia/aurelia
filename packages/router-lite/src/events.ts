@@ -21,10 +21,10 @@ _START_CONST_ENUM();
  */
 export const enum Events {
   // #region viewport
-  vpHydrated = 3300,
-  vpAttaching = 3301,
-  vpDetaching = 3302,
-  vpDispose = 3303,
+  vpHydrated = 3000,
+  vpAttaching = 3001,
+  vpDetaching = 3002,
+  vpDispose = 3003,
   // #endregion
   // #region component agent
   caCreated = 3050,

@@ -14,10 +14,10 @@ describe('3-runtime-html/dom.spec.ts', function () {
       <template>
         <div>
           <div>
-            <!--au*--><!--au-start--><!--au-end-->
+            <au-m></au-m><!--au-start--><!--au-end-->
           </div>
         </div>
-        <p>hey</p><!--au*--><el></el>
+        <p>hey</p><au-m></au-m><el></el>
       </template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);

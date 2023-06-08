@@ -76,7 +76,7 @@ export class Rendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
+      return new FragmentNodeSequence(this._platform, this._transformMarker(definition.template as Node) as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
     let needsImportNode = false;
@@ -105,6 +105,8 @@ export class Rendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
+      this._transformMarker(fragment);
+
       cache.set(definition, fragment);
     }
     return fragment == null
@@ -164,5 +166,54 @@ export class Rendering {
         }
       }
     }
+  }
+
+  /** @internal */
+  private _marker() {
+    return this._platform.document.createElement('au-m');
+  }
+
+  /** @internal */
+  private _transformMarker(fragment: Node | null) {
+    if (fragment == null) {
+      return null;
+    }
+    let parent: Node = fragment;
+    let current: Node | null | undefined = parent.firstChild;
+    let next: Node | null | undefined = null;
+
+    while (current != null) {
+      if (current.nodeType === 8 && current.nodeValue === 'au*') {
+        next = current.nextSibling!;
+        parent.removeChild(current);
+        parent.insertBefore(this._marker(), next);
+        if (next.nodeType === 8) {
+          current = next.nextSibling;
+          // todo: maybe validate?
+        } else {
+          current = next;
+        }
+      }
+
+      next = current?.firstChild;
+      if (next == null) {
+        next = current?.nextSibling;
+        if (next == null) {
+          current = parent.nextSibling;
+          parent = parent.parentNode!;
+          // needs to keep walking up all the way til a valid next node
+          while (current == null && parent != null) {
+            current = parent.nextSibling;
+            parent = parent.parentNode!;
+          }
+        } else {
+          current = next;
+        }
+      } else {
+        parent = current!;
+        current = next;
+      }
+    }
+    return fragment;
   }
 }

@@ -245,42 +245,24 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
   ) {
-    const $targets: Node[] = this.t = [];
+    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
     let i = 0;
-    let ii = 0;
-    let parent: Node = this.f = fragment;
-    let current: Node | null | undefined = parent.firstChild;
-    let next: Node | null = null;
-    while (current != null) {
-      if (current.nodeType === 8 && current.nodeValue === 'au*') {
-        next = current.nextSibling!;
-        parent.removeChild(current);
-        if (next.nodeType === 8) {
-          (current = next.nextSibling as IRenderLocation).$start = next as Comment;
-          $targets[i++] = current;
-        } else {
-          current = ($targets[i++] = next);
-        }
-      }
+    let ii = targetNodeList.length;
+    // eslint-disable-next-line
+    let targets = this.t = Array(ii);
+    let target: Node | IRenderLocation;
+    let marker: Element;
 
-      next = current?.firstChild;
-      if (next == null) {
-        next = current?.nextSibling;
-        if (next == null) {
-          current = parent.nextSibling;
-          parent = parent.parentNode!;
-          while (current == null && parent != null) {
-            current = parent.nextSibling;
-            parent = parent.parentNode!;
-          }
-        } else {
-          current = next;
-        }
-      } else {
-        parent = current;
-        current = next;
+    while (ii > i) {
+      marker = targetNodeList[i];
+      target = marker.nextSibling!;
+      marker.remove();
+      if (target.nodeType === 8) {
+        marker = target as Element;
+        (target = target.nextSibling as IRenderLocation).$start = marker as unknown as Comment;
       }
-
+      targets[i] = target;
+      ++i;
     }
 
     const childNodeList = fragment.childNodes;

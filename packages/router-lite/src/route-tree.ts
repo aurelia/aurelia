@@ -151,7 +151,7 @@ export class RouteNode implements IRouteNode {
       /*      params */Object.freeze(params),
       /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
-      /*        data */Object.freeze(input.data) ?? emptyObject,
+      /*        data */Object.freeze(input.data ?? emptyObject),
       /*    viewport */input._viewport ?? null,
       /*       title */input.title ?? null,
       /*   component */input.component,

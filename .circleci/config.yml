@@ -670,7 +670,9 @@ jobs:
           key: cache-{{ .Revision }}-benchmark-app
           paths:
             - benchmarks/latest/dist/app.latest.js
+            - benchmarks/latest/dist/app-big-template.latest.js
             - benchmarks/local/dist/app.local.js
+            - benchmarks/local/dist/app-big-template.local.js
 
   tacho_benchmark:
     executor: docker_circleci_bench
@@ -857,6 +859,18 @@ workflows:
           <<: *filter_ignore_develop_release
           name: benchmark_rerender
           command: npm run bench:rerender10k
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_rerender1k-big-template
+          command: npm run bench:rerender1k-big
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_startup1k-big-template
+          command: npm run bench:startup1k-big
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:

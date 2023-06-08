@@ -10,8 +10,16 @@ describe('3-runtime-html/dom.spec.ts', function () {
   describe('[UNIT] findTargets', function () {
     it(`should return all elements at all depths`, function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = '<template><au-m></au-m><!--au-start--><!--au-end--><div><au-m></au-m><el></el></div>';
-      const fragment = (node.firstChild as HTMLTemplateElement).content;
+      node.innerHTML = `
+      <template>
+        <div>
+          <div>
+            <au-m></au-m><!--au-start--><!--au-end-->
+          </div>
+        </div>
+        <p>hey</p><au-m></au-m><el></el>
+      </template>`;
+      const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
       assert.strictEqual(isRenderLocation(actual[0]), true);

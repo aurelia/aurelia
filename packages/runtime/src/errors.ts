@@ -25,6 +25,19 @@ export const enum ErrorNames {
   ast_name_is_not_a_function = 111,
   ast_destruct_null = 112,
 
+  null_scope = 203,
+  create_scope_with_null_context = 204,
+  switch_on_null_connectable = 206,
+  switch_active_connectable = 207,
+  switch_off_null_connectable = 208,
+  switch_off_inactive_connectable = 209,
+  non_recognisable_collection_type = 210,
+  assign_readonly_size = 220,
+  assign_readonly_readonly_property_from_computed = 221,
+  invalid_observable_decorator_usage = 224,
+  stopping_a_stopped_effect = 225,
+  effect_maximum_recursion_reached = 226,
+
   parse_invalid_start = 151,
   parse_no_spread = 152,
   parse_expected_identifier = 153,
@@ -51,6 +64,7 @@ export const enum ErrorNames {
   parse_rest_must_be_last = 176,
   parse_no_arrow_fn_body = 178,
   parse_unexpected_double_dot = 179,
+  observing_null_undefined = 199,
 }
 _END_CONST_ENUM();
 
@@ -95,6 +109,21 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.parse_rest_must_be_last]: `Expression error: rest parameter must be last formal parameter in arrow function: "{{0}}"`,
   [ErrorNames.parse_no_arrow_fn_body]: `Expression error: arrow function with function body is not supported: "{{0}}"`,
   [ErrorNames.parse_unexpected_double_dot]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
+
+  [ErrorNames.observing_null_undefined]: `Trying to observe property {{0}} on null/undefined`,
+  [ErrorNames.null_scope]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
+  [ErrorNames.create_scope_with_null_context]: 'Trying to create a scope with null/undefined binding context',
+
+  [ErrorNames.switch_on_null_connectable]: `Trying to switch to a null/undefined connectable`,
+  [ErrorNames.switch_active_connectable]: `Trying to enter an active connectable`,
+  [ErrorNames.switch_off_null_connectable]: `Trying to pop a null/undefined connectable`,
+  [ErrorNames.switch_off_inactive_connectable]: `Trying to exit an inactive connectable`,
+  [ErrorNames.non_recognisable_collection_type]: `Unrecognised collection type {{0:toString}}.`,
+  [ErrorNames.assign_readonly_size]: `Map/Set "size" is a readonly property`,
+  [ErrorNames.assign_readonly_readonly_property_from_computed]: `Trying to assign value to readonly property "{{0}}" through computed observer.`,
+  [ErrorNames.invalid_observable_decorator_usage]: `Invalid @observable decorator usage, cannot determine property name`,
+  [ErrorNames.stopping_a_stopped_effect]: `Trying to stop an effect that has already been stopped`,
+  [ErrorNames.effect_maximum_recursion_reached]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

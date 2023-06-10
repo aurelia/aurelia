@@ -1,4 +1,4 @@
-import { createError, def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities';
+import { def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities';
 import { getArrayObserver } from '../observation/array-observer';
 import { getSetObserver } from '../observation/set-observer';
 import { getMapObserver } from '../observation/map-observer';
@@ -40,10 +40,7 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
   } else if (isMap(collection)) {
     obs = getMapObserver(collection);
   } else {
-    if (__DEV__)
-      throw createError(`AUR0210: Unrecognised collection type.`);
-    else
-      throw createError(`AUR0210`);
+    throw createMappedError(ErrorNames.non_recognisable_collection_type, collection);
   }
   this.obs.add(obs);
 }

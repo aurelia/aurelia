@@ -3,61 +3,62 @@ import type { RouteNode } from './route-tree';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
+/** @internal */
 export class Batch {
-  public done: boolean = false;
-  public readonly head: Batch;
-  private next: Batch | null = null;
+  public _done: boolean = false;
+  public readonly _head: Batch;
+  private _next: Batch | null = null;
 
   private constructor(
-    private stack: number,
-    private cb: ((b: Batch) => void) | null,
+    private _stack: number,
+    private _cb: ((b: Batch) => void) | null,
     head: Batch | null,
   ) {
-    this.head = head ?? this;
+    this._head = head ?? this;
   }
 
-  public static start(cb: (b: Batch) => void): Batch {
+  public static _start(cb: (b: Batch) => void): Batch {
     return new Batch(0, cb, null);
   }
 
-  public push(): void {
+  public _push(): void {
     let cur = this as Batch;
     do {
-      ++cur.stack;
-      cur = cur.next!;
+      ++cur._stack;
+      cur = cur._next!;
     } while (cur !== null);
   }
 
-  public pop(): void {
+  public _pop(): void {
     let cur = this as Batch;
     do {
-      if (--cur.stack === 0) {
-        cur.invoke();
+      if (--cur._stack === 0) {
+        cur._invoke();
       }
-      cur = cur.next!;
+      cur = cur._next!;
     } while (cur !== null);
   }
 
-  private invoke(): void {
-    const cb = this.cb;
+  private _invoke(): void {
+    const cb = this._cb;
     if (cb !== null) {
-      this.cb = null;
+      this._cb = null;
       cb(this);
-      this.done = true;
+      this._done = true;
     }
   }
 
-  public continueWith(cb: (b: Batch) => void): Batch {
-    if (this.next === null) {
-      return this.next = new Batch(this.stack, cb, this.head);
+  public _continueWith(cb: (b: Batch) => void): Batch {
+    if (this._next === null) {
+      return this._next = new Batch(this._stack, cb, this._head);
     } else {
-      return this.next.continueWith(cb);
+      return this._next._continueWith(cb);
     }
   }
 
-  public start(): Batch {
-    this.head.push();
-    this.head.pop();
+  public _start(): Batch {
+    this._head._push();
+    this._head._pop();
     return this;
   }
 }

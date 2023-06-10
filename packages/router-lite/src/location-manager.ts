@@ -1,15 +1,16 @@
-import { DI, ILogger } from '@aurelia/kernel';
+import { DI, ILogger, resolve } from '@aurelia/kernel';
 import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
-import { type RouterOptions, IRouterOptions } from './options';
+import { IRouterOptions } from './options';
 
 import { IRouterEvents, LocationChangeEvent } from './router-events';
+import { Events, debug, trace, warn } from './events';
 
-export interface IPopStateEvent extends PopStateEvent {}
-export interface IHashChangeEvent extends HashChangeEvent {}
+export interface IPopStateEvent extends PopStateEvent { }
+export interface IHashChangeEvent extends HashChangeEvent { }
 
 export const IBaseHref = /*@__PURE__*/DI.createInterface<URL>('IBaseHref');
 export const ILocationManager = /*@__PURE__*/DI.createInterface<ILocationManager>('ILocationManager', x => x.singleton(BrowserLocationManager));
-export interface ILocationManager extends BrowserLocationManager {}
+export interface ILocationManager extends BrowserLocationManager { }
 
 /**
  * Default browser location manager.
@@ -19,39 +20,35 @@ export interface ILocationManager extends BrowserLocationManager {}
  * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
  */
 export class BrowserLocationManager {
-  private eventId: number = 0;
-  /** @internal */
-  private readonly _event: 'hashchange' | 'popstate';
+  /** @internal */ private _eventId: number = 0;
 
-  public constructor(
-    @ILogger private readonly logger: ILogger,
-    @IRouterEvents private readonly events: IRouterEvents,
-    @IHistory private readonly history: IHistory,
-    @ILocation private readonly location: ILocation,
-    @IWindow private readonly window: IWindow,
-    @IBaseHref private readonly baseHref: URL,
-    @IRouterOptions routerOptions: Readonly<RouterOptions>,
-  ) {
-    logger = this.logger = logger.root.scopeTo('LocationManager');
-    logger.debug(`baseHref set to path: ${baseHref.href}`);
-    this._event = routerOptions.useUrlFragmentHash ? 'hashchange' : 'popstate';
+  /** @internal */ private readonly _logger: ILogger = resolve(ILogger).root.scopeTo('LocationManager');
+  /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
+  /** @internal */ private readonly _history: IHistory = resolve(IHistory);
+  /** @internal */ private readonly _location: ILocation = resolve(ILocation);
+  /** @internal */ private readonly _window: IWindow = resolve(IWindow);
+  /** @internal */ private readonly _baseHref: URL = resolve(IBaseHref);
+  /** @internal */ private readonly _event: 'hashchange' | 'popstate' = resolve(IRouterOptions).useUrlFragmentHash ? 'hashchange' : 'popstate';
+
+  public constructor() {
+    if (__DEV__) debug(this._logger, Events.lmBaseHref, this._baseHref.href);
   }
 
   public startListening(): void {
-    this.logger.trace(`startListening()`);
+    if (__DEV__) trace(this._logger, Events.lmStartListening, this._event);
 
-    this.window.addEventListener(this._event, this, false);
+    this._window.addEventListener(this._event, this, false);
   }
 
   public stopListening(): void {
-    this.logger.trace(`stopListening()`);
+    if (__DEV__) trace(this._logger, Events.lmStopListening, this._event);
 
-    this.window.removeEventListener(this._event, this, false);
+    this._window.removeEventListener(this._event, this, false);
   }
 
   public handleEvent(event: IPopStateEvent | IHashChangeEvent): void {
-    this.events.publish(new LocationChangeEvent(
-      ++this.eventId,
+    this._events.publish(new LocationChangeEvent(
+      ++this._eventId,
       this.getPath(),
       this._event,
       'state' in event ? event.state : null,
@@ -60,50 +57,41 @@ export class BrowserLocationManager {
 
   public pushState(state: {} | null, title: string, url: string): void {
     url = this.addBaseHref(url);
-    try {
-      const stateString = JSON.stringify(state);
-      this.logger.trace(`pushState(state:${stateString},title:'${title}',url:'${url}')`);
-    } catch (err) {
-      this.logger.warn(`pushState(state:NOT_SERIALIZABLE,title:'${title}',url:'${url}')`);
+    if (__DEV__) {
+      try {
+        const stateString = JSON.stringify(state);
+        trace(this._logger, Events.lmPushState, stateString, title, url);
+      } catch (_err) {
+        warn(this._logger, Events.lmPushStateNonSerializable, title, url);
+      }
     }
 
-    this.history.pushState(state, title, url);
+    this._history.pushState(state, title, url);
   }
 
   public replaceState(state: {} | null, title: string, url: string): void {
     url = this.addBaseHref(url);
-    try {
-      const stateString = JSON.stringify(state);
-      this.logger.trace(`replaceState(state:${stateString},title:'${title}',url:'${url}')`);
-    } catch (err) {
-      this.logger.warn(`replaceState(state:NOT_SERIALIZABLE,title:'${title}',url:'${url}')`);
+    if (__DEV__) {
+      try {
+        const stateString = JSON.stringify(state);
+        trace(this._logger, Events.lmReplaceState, stateString, title, url);
+      } catch (err) {
+        warn(this._logger, Events.lmReplaceStateNonSerializable, title, url);
+      }
     }
 
-    this.history.replaceState(state, title, url);
+    this._history.replaceState(state, title, url);
   }
 
   public getPath(): string {
-    const { pathname, search, hash } = this.location;
-    const path = this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
-
-    this.logger.trace(`getPath() -> '${path}'`);
-
-    return path;
-  }
-
-  public currentPathEquals(path: string): boolean {
-    const equals = this.getPath() === this.removeBaseHref(path);
-
-    this.logger.trace(`currentPathEquals(path:'${path}') -> ${equals}`);
-
-    return equals;
+    const { pathname, search, hash } = this._location;
+    return this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
   }
 
   public addBaseHref(path: string): string {
-    const initialPath = path;
     let fullPath: string;
 
-    let base = this.baseHref.href;
+    let base = this._baseHref.href;
     if (base.endsWith('/')) {
       base = base.slice(0, -1);
     }
@@ -116,28 +104,22 @@ export class BrowserLocationManager {
       }
       fullPath = `${base}/${path}`;
     }
-
-    this.logger.trace(`addBaseHref(path:'${initialPath}') -> '${fullPath}'`);
-
     return fullPath;
   }
 
   public removeBaseHref(path: string): string {
-    const $path = path;
-    const basePath = this.baseHref.pathname;
+    const basePath = this._baseHref.pathname;
     if (path.startsWith(basePath)) {
       path = path.slice(basePath.length);
     }
-    path = normalizePath(path);
-
-    this.logger.trace(`removeBaseHref(path:'${$path}') -> '${path}'`);
-
-    return path;
+    return normalizePath(path);
   }
 }
 
 /**
  * Strip trailing `/index.html` and trailing `/` from the path, if present.
+ *
+ * @internal
  */
 export function normalizePath(path: string): string {
   let start: string;

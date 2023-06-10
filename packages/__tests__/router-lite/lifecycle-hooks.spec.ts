@@ -10,7 +10,17 @@
  * However, that misses the `@lifeCycleHooks`. Hence, this spec focuses on that.
  */
 
-import { Class, DefaultLogEvent, DI, IContainer, ILogger, ISink, LogLevel, Registration } from '@aurelia/kernel';
+import {
+  Class,
+  /* ConsoleSink, */
+  DefaultLogEvent,
+  DI,
+  IContainer,
+  ILogger,
+  ISink,
+  LogLevel,
+  Registration,
+} from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';

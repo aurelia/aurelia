@@ -1,4 +1,4 @@
-import { IRouteContext, Params, route, RouteNode } from '@aurelia/router-lite';
+import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router-lite';
 import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
@@ -698,6 +698,38 @@ describe('router-lite/resources/load.spec.ts', function () {
     anchors[2].click();
     await queue.yield();
     assert.html.textContent(host, 'ce2');
+
+    await au.stop(true);
+  });
+
+  it('supports routing instruction with parenthesized parameters', async function () {
+    @route('c1/:id1/:id2?')
+    @customElement({ name: 'c-1', template: 'c1 ${id1} ${id2}' })
+    class C1 implements IRouteViewModel {
+      private id1: string;
+      private id2: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id1 = params.id1;
+        this.id2 = params.id2;
+      }
+    }
+
+    @route({ routes: [{ id: 'c1', component: C1 }] })
+    @customElement({ name: 'ro-ot', template: '<a load="c1(id1=1)"></a> <a load="c1(id1=2,id2=3)"></a> <au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const queue = container.get(IPlatform).domWriteQueue;
+
+    assert.html.textContent(host, '', 'init');
+
+    host.querySelector('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'c1 1', 'round#1');
+
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await queue.yield();
+    assert.html.textContent(host, 'c1 2 3', 'round#2');
 
     await au.stop(true);
   });

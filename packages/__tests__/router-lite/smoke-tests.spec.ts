@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, ViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -277,6 +277,39 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assertIsActive(router, A11, router.routeTree.root.context, true, 3);
 
     await tearDown();
+  });
+
+  it('root can load sibling components and can determine if it\'s active', async function () {
+    @route('c1')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({ routes: [C1, C2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '', 'init');
+
+    await router.load('c1+c2');
+    assert.html.textContent(host, 'c1 c2', 'init');
+
+    const ctx = router.routeTree.root.context;
+
+    assertIsActive(router, 'c1+c2', ctx, true, 1);
+    assertIsActive(router, 'c1@$1+c2@$2', ctx, true, 2);
+    assertIsActive(router, 'c2@$1+c1@$2', ctx, false, 3);
+    assertIsActive(router, 'c1@$2+c2@$1', ctx, false, 4);
+    assertIsActive(router, 'c2+c1', ctx, false, 5);
+    assertIsActive(router, 'c2$2+c1$1', ctx, false, 6); // the contains check is not order-invariant.
+
+    await au.stop(true);
   });
 
   it(`root1 can load a11/a01,a11/a02 in order with context`, async function () {
@@ -1159,7 +1192,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
       },
     })
@@ -1236,7 +1269,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
         return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
       },
     })
@@ -1299,7 +1332,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): string {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? 'r2' : 'r3';
       }
     }
@@ -1339,7 +1372,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
   it('function as fallback is supported - viewport - hierarchical', async function () {
 
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
       return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
     }
 
@@ -1521,7 +1554,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
       },
     })
@@ -1582,7 +1615,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return rn.component.Type === P1 ? NF1 : NF2;
       },
     })
@@ -1709,7 +1742,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r2', path: ['nf1'], component: NF1 },
         { id: 'r3', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
       },
     })
@@ -1770,7 +1803,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
       },
     })
@@ -1910,7 +1943,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return (vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2;
       }
     }
@@ -1933,7 +1966,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   });
 
   it('function returning class as fallback is supported - viewport - hierarchical', async function () {
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
       return rn.component.Type === P1 ? NF1 : NF2;
     }
 
@@ -2111,7 +2144,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       template: `root<au-viewport fallback.bind>`,
     })
     class Root {
-      fallback(vi: ViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(vi: IViewportInstruction, _rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve((vi.component as ITypedNavigationInstruction_string).value === 'foo' ? NF1 : NF2);
       }
     }
@@ -2134,7 +2167,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   });
 
   it('function returning a promise resolving to class as fallback is supported - viewport - hierarchical', async function () {
-    function fallback(vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+    function fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
       return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
     }
 
@@ -3240,6 +3273,44 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  it('children are supported as residue as well as structured children array', async function () {
+    @route('c1')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({ path: 'p1', routes: [C1, C2] })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+    class P1 { }
+
+    @route(['', 'p2'])
+    @customElement({ name: 'p-2', template: 'p2' })
+    class P2 { }
+
+    @route({ routes: [P1, P2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const queue = container.get(IPlatform).taskQueue;
+
+    assert.html.textContent(host, 'p2');
+
+    await router.load({
+      component: 'p1/c1',
+      children: [{ component: C2, viewport: '$2' }]
+    });
+    await queue.yield();
+
+    assert.html.textContent(host, 'p1 c1 c2');
+    await au.stop(true);
+  });
+
   // TODO(sayan): add more tests for parameter parsing with multiple route parameters including optional parameter.
 
   it('does not interfere with standard "href" attribute', async function () {
@@ -4454,7 +4525,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
           await au.app({ component: Root, host }).start();
           assert.fail('expected error');
         } catch (er) {
-          assert.match((er as Error).message, /does not appear to be a component or CustomElement recognizable by Aurelia/);
+          assert.match((er as Error).message, /AUR3175/);
         }
 
         await au.stop(true);
@@ -4693,7 +4764,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await router.load('bar');
       assert.fail('Expected error for non-simple redirect.');
     } catch (e) {
-      assert.match((e as Error).message, /^Unexpected expression kind/, 'Expected error due to unexpected path segment.');
+      assert.match((e as Error).message, /AUR3502/, 'Expected error due to unexpected path segment.');
     }
 
     await au.stop(true);
@@ -4817,14 +4888,14 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load({ component: 'bar', params: { x: '1' } });
         assert.fail('expected error1');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+bar.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+bar/);
       }
 
       try {
         await router.load({ component: 'fizz', params: { id: '1' } });
         assert.fail('expected error2');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+fizz.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+fizz/);
       }
 
       // using component
@@ -4923,14 +4994,14 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'bar', params: { x: '1' } }]);
         assert.fail('expected error1');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+bar.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+bar/);
       }
 
       try {
         await router.load([{ component: 'foo', params: { id: '3' } }, { component: 'fizz', params: { id: '1' } }]);
         assert.fail('expected error2');
       } catch (er) {
-        assert.match((er as Error).message, /Neither.+fizz.+configured route.+nor a fallback/);
+        assert.match((er as Error).message, /AUR3401.+fizz/);
       }
 
       // using component
@@ -6371,28 +6442,28 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         await router.load('c-1');
         assert.fail('expected error 1');
       } catch (er) {
-        assert.match((er as Error).message, /'c-1' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-1/);
       }
 
       try {
         await router.load('c-a');
         assert.fail('expected error 2');
       } catch (er) {
-        assert.match((er as Error).message, /'c-a' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-a/);
       }
 
       try {
         await router.load('c-2');
         assert.fail('expected error 3');
       } catch (er) {
-        assert.match((er as Error).message, /'c-2' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-2/);
       }
 
       try {
         await router.load('c-b');
         assert.fail('expected error 4');
       } catch (er) {
-        assert.match((er as Error).message, /'c-b' matched any configured route/);
+        assert.match((er as Error).message, /AUR3401.+c-b/);
       }
 
       await au.stop();
@@ -6506,6 +6577,75 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.strictEqual(Object.is(routerOptions, c1vm.routerOptions), true, 'options != c1 options');
 
     assert.strictEqual(Object.is(c1vm.ctx, c1vm.ictx), true, 'RouteCtx != IRouteCtx');
+
+    await au.stop(true);
+  });
+
+  it('supports routing instruction with parenthesized parameters', async function () {
+    @route('c1/:id1/:id2?')
+    @customElement({ name: 'c-1', template: 'c1 ${id1} ${id2}' })
+    class C1 implements IRouteViewModel {
+      private id1: string;
+      private id2: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id1 = params.id1;
+        this.id2 = params.id2;
+      }
+    }
+
+    @route({ routes: [{ id: 'c1', component: C1 }] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(Router);
+
+    assert.html.textContent(host, '', 'init');
+
+    await router.load('c1(id1=1)');
+    assert.html.textContent(host, 'c1 1', 'round#1');
+
+    await router.load('c1(id1=2,id2=3)');
+    assert.html.textContent(host, 'c1 2 3', 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('self-referencing routing configuration', async function () {
+    @route('')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 { }
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>', aliases: ['p1'] })
+    class P1 implements IRouteViewModel {
+      public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig {
+        return {
+          routes: [
+            C1,
+            C2,
+            P1,
+          ]
+        };
+      }
+    }
+
+    @route({ routes: [{ path: ['', 'p1'], component: P1 }] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, 'p1 c1', 'init');
+
+    await router.load('p1/p1');
+    assert.html.textContent(host, 'p1 p1 c1', 'round#1');
+
+    await router.load('p1/p1/p1/c2');
+    assert.html.textContent(host, 'p1 p1 p1 c2', 'round#2');
 
     await au.stop(true);
   });

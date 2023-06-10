@@ -18,7 +18,6 @@ export {
 
 export {
   type IRouteViewModel,
-  ComponentAgent,
 } from './component-agent';
 
 export {

@@ -1,7 +1,7 @@
 import { IContainer, IPlatform, Registration } from '@aurelia/kernel';
 import { AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { createError, createInterface, safeString } from '../utilities-objects';
+import { createError, createInterface, safeString } from '../utilities';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';

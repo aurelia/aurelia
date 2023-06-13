@@ -761,11 +761,22 @@ export const enum ResolverStrategy {
 _END_CONST_ENUM();
 
 export class Resolver implements IResolver, IRegistration {
+  /** @internal */
+  public _key: Key;
+  /** @internal */
+  public _strategy: ResolverStrategy;
+  /** @internal */
+  public _state: any;
+
   public constructor(
-    public _key: Key,
-    public _strategy: ResolverStrategy,
-    public _state: any,
-  ) {}
+    key: Key,
+    strategy: ResolverStrategy,
+    state: any,
+  ) {
+    this._key = key;
+    this._strategy = strategy;
+    this._state = state;
+  }
 
   public get $isResolver(): true { return true; }
 

@@ -8,7 +8,7 @@ import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, createError, isFunction } from '../utilities-objects';
+import { areEqual, isFunction } from '../utilities';
 
 import type {
   ISubscriber,
@@ -18,6 +18,7 @@ import type {
 } from '../observation';
 import type { IConnectableBinding } from '../binding/connectable';
 import type { IObserverLocator } from './observer-locator';
+import { ErrorNames, createMappedError } from '../errors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
@@ -119,10 +120,7 @@ export class ComputedObserver<T extends object> implements
         this.run();
       }
     } else {
-      if (__DEV__)
-        throw createError(`AUR0221: Property is readonly`);
-      else
-        throw createError(`AUR0221`);
+      throw createMappedError(ErrorNames.assign_readonly_readonly_property_from_computed);
     }
   }
 

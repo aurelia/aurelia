@@ -40,7 +40,8 @@ import {
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
 } from './ast';
-import { createError, createInterface, createLookup, objectAssign } from '../utilities-objects';
+import { createInterface, createLookup, objectAssign } from '../utilities';
+import { ErrorNames, createMappedError } from '../errors';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
@@ -503,7 +504,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         nextToken();
         if (consumeOpt(Token.Arrow)) {
           if (($currentToken as Token) === Token.OpenBrace) {
-            throw functionBodyInArrowFN();
+            throw functionBodyInArrowFn();
           }
           const _optional = $optional;
           const _scopeDepth = $scopeDepth;
@@ -1158,7 +1159,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
     if (paramsState === ArrowFnParams.Valid) {
       nextToken();
       if (($currentToken as Token) === Token.OpenBrace) {
-        throw functionBodyInArrowFN();
+        throw functionBodyInArrowFn();
       }
       const _optional = $optional;
       const _scopeDepth = $scopeDepth;
@@ -1599,214 +1600,72 @@ const consume = (token: Token): void => {
 
 // #region errors
 
-const invalidStartOfExpression = () => {
-  if (__DEV__) {
-    return createError(`AUR0151: Invalid start of expression: '${$input}'`);
-  } else {
-    return createError(`AUR0151:${$input}`);
-  }
-};
+const invalidStartOfExpression = () => createMappedError(ErrorNames.parse_invalid_start, $input);
 
-const invalidSpreadOp = () => {
-  if (__DEV__) {
-    return createError(`AUR0152: Spread operator is not supported: '${$input}'`);
-  } else {
-    return createError(`AUR0152:${$input}`);
-  }
-};
+const invalidSpreadOp = () => createMappedError(ErrorNames.parse_no_spread, $input);
 
-const expectedIdentifier = () => {
-  if (__DEV__) {
-    return createError(`AUR0153: Expected identifier: '${$input}'`);
-  } else {
-    return createError(`AUR0153:${$input}`);
-  }
-};
+const expectedIdentifier = () => createMappedError(ErrorNames.parse_expected_identifier, $input);
 
-const invalidMemberExpression = () => {
-  if (__DEV__) {
-    return createError(`AUR0154: Invalid member expression: '${$input}'`);
-  } else {
-    return createError(`AUR0154:${$input}`);
-  }
-};
+const invalidMemberExpression = () => createMappedError(ErrorNames.parse_invalid_member_expr, $input);
 
-const unexpectedEndOfExpression = () => {
-  if (__DEV__) {
-    return createError(`AUR0155: Unexpected end of expression: '${$input}'`);
-  } else {
-    return createError(`AUR0155:${$input}`);
-  }
-};
+const unexpectedEndOfExpression = () => createMappedError(ErrorNames.parse_unexpected_end, $input);
 
-const unconsumedToken = () => {
-  if (__DEV__) {
-    return createError(`AUR0156: Unconsumed token: '${$tokenRaw()}' at position ${$index} of '${$input}'`);
-  } else {
-    return createError(`AUR0156:${$input}`);
-  }
-};
+const unconsumedToken = () => createMappedError(ErrorNames.parse_unconsumed_token, $tokenRaw(), $index, $input);
 
-const invalidEmptyExpression = () => {
-  if (__DEV__) {
-    return createError(`AUR0157: Invalid expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)`);
-  } else {
-    return createError(`AUR0157`);
-  }
-};
+const invalidEmptyExpression = () => createMappedError(ErrorNames.parse_invalid_empty);
 
-const lhsNotAssignable = () => {
-  if (__DEV__) {
-    return createError(`AUR0158: Left hand side of expression is not assignable: '${$input}'`);
-  } else {
-    return createError(`AUR0158:${$input}`);
-  }
-};
+const lhsNotAssignable = () => createMappedError(ErrorNames.parse_left_hand_side_not_assignable, $input);
 
-const expectedValueConverterIdentifier = () => {
-  if (__DEV__) {
-    return createError(`AUR0159: Expected identifier to come after ValueConverter operator: '${$input}'`);
-  } else {
-    return createError(`AUR0159:${$input}`);
-  }
-};
+const expectedValueConverterIdentifier = () => createMappedError(ErrorNames.parse_expected_converter_identifier, $input);
 
-const expectedBindingBehaviorIdentifier = () => {
-  if (__DEV__) {
-    return createError(`AUR0160: Expected identifier to come after BindingBehavior operator: '${$input}'`);
-  } else {
-    return createError(`AUR0160:${$input}`);
-  }
-};
+const expectedBindingBehaviorIdentifier = () => createMappedError(ErrorNames.parse_expected_behavior_identifier, $input);
 
-const unexpectedOfKeyword = () => {
-  if (__DEV__) {
-    return createError(`AUR0161: Unexpected keyword "of": '${$input}'`);
-  } else {
-    return createError(`AUR0161:${$input}`);
-  }
-};
+const unexpectedOfKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_of, $input);
 
-const invalidLHSBindingIdentifierInForOf = () => {
-  if (__DEV__) {
-    return createError(`AUR0163: Invalid BindingIdentifier at left hand side of "of": '${$input}'`);
-  } else {
-    return createError(`AUR0163:${$input}`);
-  }
-};
+const invalidLHSBindingIdentifierInForOf = () => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input);
 
-const invalidPropDefInObjLiteral = () => {
-  if (__DEV__) {
-    return createError(`AUR0164: Invalid or unsupported property definition in object literal: '${$input}'`);
-  } else {
-    return createError(`AUR0164:${$input}`);
-  }
-};
+const invalidPropDefInObjLiteral = () => createMappedError(ErrorNames.parse_invalid_identifier_object_literal_key, $input);
 
-const unterminatedStringLiteral = () => {
-  if (__DEV__) {
-    return createError(`AUR0165: Unterminated quote in string literal: '${$input}'`);
-  } else {
-    return createError(`AUR0165:${$input}`);
-  }
-};
+const unterminatedStringLiteral = () => createMappedError(ErrorNames.parse_unterminated_string, $input);
 
-const unterminatedTemplateLiteral = () => {
-  if (__DEV__) {
-    return createError(`AUR0166: Unterminated template string: '${$input}'`);
-  } else {
-    return createError(`AUR0166:${$input}`);
-  }
-};
+const unterminatedTemplateLiteral = () => createMappedError(ErrorNames.parse_unterminated_template_string, $input);
 
-const missingExpectedToken = (token: Token) => {
-  if (__DEV__) {
-    return createError(`AUR0167: Missing expected token '${TokenValues[token & Token.Type]}' in '${$input}' `);
-  } else {
-    return createError(`AUR0167:${$input}<${TokenValues[token & Token.Type]}`);
-  }
-};
+const missingExpectedToken = (token: Token) =>
+  __DEV__
+    ? createMappedError(ErrorNames.parse_missing_expected_token, TokenValues[token & Token.Type], $input)
+    : createMappedError(ErrorNames.parse_missing_expected_token, $input);
 
 const unexpectedCharacter: CharScanner = () => {
-  if (__DEV__) {
-    throw createError(`AUR0168: Unexpected character: '${$input}'`);
-  } else {
-    throw createError(`AUR0168:${$input}`);
-  }
+  throw createMappedError(ErrorNames.parse_unexpected_character, $input);
 };
 unexpectedCharacter.notMapped = true;
 
-const unexpectedTokenInDestructuring = () => {
-  if (__DEV__) {
-    return createError(`AUR0170: Unexpected '${$tokenRaw()}' at position ${$index - 1} for destructuring assignment in ${$input}`);
-  } else {
-    return createError(`AUR0170:${$input}`);
-  }
-};
+const unexpectedTokenInDestructuring = () =>
+  __DEV__
+    ? createMappedError(ErrorNames.parse_unexpected_token_destructuring, $tokenRaw(), $index, $input)
+    : createMappedError(ErrorNames.parse_unexpected_token_destructuring, $input);
 
-const unexpectedTokenInOptionalChain = () => {
-  if (__DEV__) {
-    return createError(`AUR0171: Unexpected '${$tokenRaw()}' at position ${$index - 1} for optional chain in ${$input}`);
-  } else {
-    return createError(`AUR0171:${$input}`);
-  }
-};
+const unexpectedTokenInOptionalChain = () =>
+  __DEV__
+    ? createMappedError(ErrorNames.parse_unexpected_token_optional_chain, $tokenRaw(), $index - 1, $input)
+    : createMappedError(ErrorNames.parse_unexpected_token_optional_chain, $input);
 
-const invalidTaggedTemplateOnOptionalChain = () => {
-  if (__DEV__) {
-    return createError(`AUR0172: Invalid tagged template on optional chain in ${$input}`);
-  } else {
-    return createError(`AUR0172:${$input}`);
-  }
-};
+const invalidTaggedTemplateOnOptionalChain = () => createMappedError(ErrorNames.parse_invalid_tag_in_optional_chain, $input);
 
-const invalidArrowParameterList = () => {
-  if (__DEV__) {
-    return createError(`AUR0173: Invalid arrow parameter list in ${$input}`);
-  } else {
-    return createError(`AUR0173:${$input}`);
-  }
-};
+const invalidArrowParameterList = () => createMappedError(ErrorNames.parse_invalid_arrow_params, $input);
 
-const defaultParamsInArrowFn = () => {
-  if (__DEV__) {
-    return createError(`AUR0174: Arrow function with default parameters is not supported: ${$input}`);
-  } else {
-    return createError(`AUR0174:${$input}`);
-  }
-};
+const defaultParamsInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow_param_default_value, $input);
 
-const destructuringParamsInArrowFn = () => {
-  if (__DEV__) {
-    return createError(`AUR0175: Arrow function with destructuring parameters is not supported: ${$input}`);
-  } else {
-    return createError(`AUR0175:${$input}`);
-  }
-};
+const destructuringParamsInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow_param_destructuring, $input);
 
-const restParamsMustBeLastParam = () => {
-  if (__DEV__) {
-    return createError(`AUR0176: Rest parameter must be last formal parameter in arrow function: ${$input}`);
-  } else {
-    return createError(`AUR0176:${$input}`);
-  }
-};
+const restParamsMustBeLastParam = () => createMappedError(ErrorNames.parse_rest_must_be_last, $input);
 
-const functionBodyInArrowFN = () => {
-  if (__DEV__) {
-    return createError(`AUR0178: Arrow function with function body is not supported: ${$input}`);
-  } else {
-    return createError(`AUR0178:${$input}`);
-  }
-};
+const functionBodyInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow_fn_body, $input);
 
-const unexpectedDoubleDot = () => {
-  if (__DEV__) {
-    return createError(`AUR0179: Unexpected token '.' at position ${$index - 1} in ${$input}`);
-  } else {
-    return createError(`AUR0179:${$input}`);
-  }
-};
+const unexpectedDoubleDot = () =>
+  __DEV__
+    ? createMappedError(ErrorNames.parse_unexpected_double_dot, $index - 1, $input)
+    : createMappedError(ErrorNames.parse_unexpected_double_dot, $input);
 
 // #endregion
 

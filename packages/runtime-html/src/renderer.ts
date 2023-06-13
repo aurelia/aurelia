@@ -1071,30 +1071,30 @@ class SpreadBinding implements IBinding {
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
 
-  public readonly ctrl: ICustomElementController;
+  public readonly $controller: ICustomElementController;
 
   public get container() {
     return this.locator;
   }
 
   public get definition(): CustomElementDefinition | CustomElementDefinition {
-    return this.ctrl.definition;
+    return this.$controller.definition;
   }
 
   public get isStrictBinding() {
-    return this.ctrl.isStrictBinding;
+    return this.$controller.isStrictBinding;
   }
 
   public get state() {
-    return this.ctrl.state;
+    return this.$controller.state;
   }
 
   public constructor(
     /** @internal */ private readonly _innerBindings: IBinding[],
     /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
   ) {
-    this.ctrl = _hydrationContext.controller;
-    this.locator = this.ctrl.container;
+    this.$controller = _hydrationContext.controller;
+    this.locator = this.$controller.container;
   }
 
   public get(key: Key) {
@@ -1127,7 +1127,7 @@ class SpreadBinding implements IBinding {
     if (controller.vmKind !== ViewModelKind.customAttribute) {
       throw createMappedError(ErrorNames.no_spread_template_controller);
     }
-    this.ctrl.addChild(controller);
+    this.$controller.addChild(controller);
   }
 }
 
@@ -1208,18 +1208,18 @@ class ViewFactoryProvider implements IResolver {
 function invokeAttribute(
   p: IPlatform,
   definition: CustomAttributeDefinition,
-  renderingCtrl: IController,
+  $renderingCtrl: IController | { $controller: IController },
   host: HTMLElement,
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
+  const renderingCtrl = $renderingCtrl instanceof Controller
+    ? $renderingCtrl
+    : ($renderingCtrl as { $controller: IController }).$controller;
   const ctn = renderingCtrl.container.createChild();
   registerHostNode(ctn, p, host);
-  renderingCtrl = renderingCtrl instanceof Controller
-    ? renderingCtrl
-    : (renderingCtrl as unknown as SpreadBinding).ctrl;
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null

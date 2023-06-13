@@ -336,26 +336,29 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(useUrlFragmentHash: boolean = false): string {
+  public toUrl(isFinalInstruction: boolean, useUrlFragmentHash: boolean): string {
     let pathname: string;
     let hash: string;
-    const parentPaths: string[] = [];
+    let parentPath = '';
 
-    let ctx: IRouteContext | null = this.options.context as IRouteContext | null;
-    if (ctx != null && !(ctx instanceof RouteContext)) throw new Error('Invalid operation; incompatible navigation context.');
+    if (!isFinalInstruction) {
+      const parentPaths: string[] = [];
+      let ctx: IRouteContext | null = this.options.context as IRouteContext | null;
+      if (ctx != null && !(ctx instanceof RouteContext)) throw new Error('Invalid operation; incompatible navigation context.');
 
-    while (ctx != null && !ctx.isRoot) {
-      const vpa = ctx.vpa;
-      const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
-      if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');
+      while (ctx != null && !ctx.isRoot) {
+        const vpa = ctx.vpa;
+        const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
+        if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');
 
-      parentPaths.splice(0, 0, node.instruction!.toUrlComponent());
-      ctx = ctx.parent;
+        parentPaths.splice(0, 0, node.instruction!.toUrlComponent());
+        ctx = ctx.parent;
+      }
+      if (parentPaths[0] === '') {
+        parentPaths.splice(0, 1);
+      }
+      parentPath = parentPaths.join('/');
     }
-    if (parentPaths[0] === '') {
-      parentPaths.splice(0, 1);
-    }
-    const parentPath = parentPaths.join('/');
 
     const currentPath = this.toPath();
     if (useUrlFragmentHash) {

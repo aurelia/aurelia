@@ -16,7 +16,7 @@ import {
 } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
-import { type RouteConfig, RouteType } from './route';
+import { RouteType } from './route';
 import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
 import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
 import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';

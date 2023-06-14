@@ -662,7 +662,7 @@ export class Router {
         this._isNavigating = false;
 
         // apply history state
-        const newUrl = tr.finalInstructions.toUrl(this.options.useUrlFragmentHash);
+        const newUrl = tr.finalInstructions.toUrl(true, this.options.useUrlFragmentHash);
         switch (tr.options._getHistoryStrategy(this._instructions)) {
           case 'none':
             // do nothing

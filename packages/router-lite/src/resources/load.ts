@@ -102,7 +102,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
           ? { component, params }
           : component,
         { context: ctx });
-      this._href = instructions.toUrl(useHash);
+      this._href = instructions.toUrl(false, useHash);
     } else {
       this._instructions = null;
       this._href = null;

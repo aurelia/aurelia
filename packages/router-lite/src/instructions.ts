@@ -4,6 +4,7 @@ import {
   emptyObject,
   IModule,
   isArrayIndex,
+  Writable,
 } from '@aurelia/kernel';
 import {
   ICustomElementViewModel,
@@ -22,6 +23,7 @@ import { INavigationOptions, NavigationOptions, type RouterOptions } from './opt
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 import { Events, getMessage } from './events';
+import { State } from './viewport-agent';
 
 export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
@@ -264,7 +266,7 @@ export class ViewportInstructionTree {
 
     let context = $options.context as RouteContext;
     if (!(context instanceof RouteContext) && rootCtx != null) {
-      context = RouteContext.resolve(rootCtx, context);
+      context = ($options as Writable<NavigationOptions>).context = RouteContext.resolve(rootCtx, context);
     }
     const hasContext = context != null;
 
@@ -286,7 +288,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
+      const expr = RouteExpression.parse(instructionOrInstructions as string, routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }
 
@@ -330,14 +332,36 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(useUrlFragmentHash: boolean = false): string {
+  public toUrl(isFinalInstruction: boolean, useUrlFragmentHash: boolean): string {
     let pathname: string;
     let hash: string;
+    let parentPath = '';
+
+    if (!isFinalInstruction) {
+      const parentPaths: string[] = [];
+      let ctx: IRouteContext | null = this.options.context as IRouteContext | null;
+      if (ctx != null && !(ctx instanceof RouteContext)) throw new Error('Invalid operation; incompatible navigation context.');
+
+      while (ctx != null && !ctx.isRoot) {
+        const vpa = ctx.vpa;
+        const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
+        if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');
+
+        parentPaths.splice(0, 0, node.instruction!.toUrlComponent());
+        ctx = ctx.parent;
+      }
+      if (parentPaths[0] === '') {
+        parentPaths.splice(0, 1);
+      }
+      parentPath = parentPaths.join('/');
+    }
+
+    const currentPath = this.toPath();
     if (useUrlFragmentHash) {
       pathname = '';
-      hash = `#${this.toPath()}`;
+      hash = parentPath.length > 0 ? `#${parentPath}/${currentPath}` : `#${currentPath}`;
     } else {
-      pathname = this.toPath();
+      pathname = parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath;
       const fragment = this.fragment;
       hash = fragment !== null && fragment.length > 0 ? `#${fragment}` : '';
     }

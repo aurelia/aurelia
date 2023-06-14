@@ -163,13 +163,10 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
       const anchor = host.querySelector('a');
-      console.log('anchor.href', anchor.href);
-      console.log('------------ START nav3 ------------');
       anchor.click();
       await queue.yield();
       assert.html.textContent(host, 'c1 gc2', 'nav3');
       assert.deepStrictEqual(eventLog, [], 'nav1 event log');
-      console.log('------------ END nav3 ------------');
 
       // navigate through history states - round#1
       const history = container.get(IHistory);
@@ -182,10 +179,8 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
       eventLog.length = 0;
-      console.log('doing forward1');
       history.forward();
       await queue.yield();
-      console.log('done forward1');
 
       assert.html.textContent(host, 'c1 gc2', 'forward1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');

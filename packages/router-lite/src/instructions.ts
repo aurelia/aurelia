@@ -288,10 +288,6 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      if (hasContext) {
-        const config = (context.childRoutes as RouteConfig[]).find(x => x.id === instructionOrInstructions);
-        instructionOrInstructions = config?.path.find(x => x) ?? instructionOrInstructions;
-      }
       const expr = RouteExpression.parse(instructionOrInstructions as string, routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }

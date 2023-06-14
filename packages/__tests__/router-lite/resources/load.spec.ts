@@ -1,6 +1,6 @@
 import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router-lite';
-import { customElement, IPlatform } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
+import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
 describe('router-lite/resources/load.spec.ts', function () {
@@ -703,109 +703,403 @@ describe('router-lite/resources/load.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('href attribute value is correctly generated for child components', async function () {
-
-    @customElement({ name: 'gc-11', template: 'gc11' })
-    class GrandChildOneOne { }
-
-    @customElement({ name: 'gc-12', template: 'gc12' })
-    class GrandChildOneTwo { }
-
-    @route({
-      routes: [
-        { path: '', redirectTo: 'gc11' },
-        { id: 'r1', path: 'gc11', component: GrandChildOneOne },
-        { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
+  class HrefGenerationForChildComponentTestData {
+    public constructor(
+      public readonly name: string,
+      public readonly templates: [root: string, c1: string, c2: string],
+      public readonly expectedHrefs: [expectations1: { href: string }[], expectations2: { href: string }[]],
+    ) { }
+  }
+  function* getHrefGenerationForChildComponentTestData() {
+    yield new HrefGenerationForChildComponentTestData(
+      'using path',
+      [
+        `
+    <a load="c1">C1</a>
+    <a load="c2">C2</a>
+    <au-viewport></au-viewport>`,
+        `c1
+    <a load="gc11">gc11</a>
+    <a load="gc12">gc12</a>
+    <a load="route: c2; context.bind: parentCtx">c2</a>
+    <au-viewport></au-viewport>`,
+        `c2
+    <a load="gc21">gc21</a>
+    <a load="gc22">gc22</a>
+    <a load="route: c1; context.bind: parentCtx">c1</a>
+    <au-viewport></au-viewport>`
       ],
-    })
-    @customElement({
-      name: 'c-one',
-      template: `c1
+      [
+        [
+          { href: 'c1' },
+          { href: 'c2' },
+          { href: 'c1/gc11' },
+          { href: 'c1/gc12' },
+          { href: 'c2' },
+        ],
+        [
+          { href: 'c1' },
+          { href: 'c2' },
+          { href: 'c2/gc21' },
+          { href: 'c2/gc22' },
+          { href: 'c1' },
+        ]
+      ]
+    );
+    yield new HrefGenerationForChildComponentTestData(
+      'using route-id',
+      [
+        `
+    <a load="r1">C1</a>
+    <a load="r2">C2</a>
+    <au-viewport></au-viewport>`,
+        `c1
     <a load="r1">gc11</a>
     <a load="r2">gc12</a>
     <a load="route: r2; context.bind: parentCtx">c2</a>
     <au-viewport></au-viewport>`,
-    })
-    class ChildOne {
-      private readonly parentCtx: IRouteContext;
-      public constructor(@IRouteContext ctx: IRouteContext) {
-        this.parentCtx = ctx.parent;
-      }
-    }
-
-    @customElement({ name: 'gc-21', template: 'gc21' })
-    class GrandChildTwoOne { }
-
-    @customElement({ name: 'gc-22', template: 'gc22' })
-    class GrandChildTwoTwo { }
-
-    @route({
-      routes: [
-        { path: '', redirectTo: 'gc21' },
-        { id: 'r1', path: 'gc21', component: GrandChildTwoOne },
-        { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
-      ],
-    })
-    @customElement({
-      name: 'c-two',
-      template: `c2
+        `c2
     <a load="r1">gc21</a>
     <a load="r2">gc22</a>
     <a load="route: r1; context.bind: parentCtx">c1</a>
-    <au-viewport></au-viewport>`,
-    })
-    class ChildTwo {
-      private readonly parentCtx: IRouteContext;
-      public constructor(@IRouteContext ctx: IRouteContext) {
-        this.parentCtx = ctx.parent;
-      }
-    }
-
-    @route({
-      routes: [
-        {
-          path: '',
-          redirectTo: 'c1',
-        },
-        {
-          id: 'r1',
-          path: 'c1',
-          component: ChildOne,
-        },
-        {
-          id: 'r2',
-          path: 'c2',
-          component: ChildTwo,
-        },
+    <au-viewport></au-viewport>`
       ],
-    })
-    @customElement({
-      name: 'my-app', template: `
+      [
+        [
+          { href: 'r1' },
+          { href: 'r2' },
+          { href: 'c1/r1' },
+          { href: 'c1/r2' },
+          { href: 'r2' },
+        ],
+        [
+          { href: 'r1' },
+          { href: 'r2' },
+          { href: 'c2/r1' },
+          { href: 'c2/r2' },
+          { href: 'r1' },
+        ]
+      ]
+    );
+  }
+  for (const {
+    name,
+    templates: [rt, t1, t2],
+    expectedHrefs: [expectations1, expectations2]
+  } of getHrefGenerationForChildComponentTestData()) {
+    it(`href attribute value is correctly generated for child components - ${name}`, async function () {
+
+      @customElement({ name: 'gc-11', template: 'gc11' })
+      class GrandChildOneOne { }
+
+      @customElement({ name: 'gc-12', template: 'gc12' })
+      class GrandChildOneTwo { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'gc11' },
+          { id: 'r1', path: 'gc11', component: GrandChildOneOne },
+          { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
+        ],
+      })
+      @customElement({ name: 'c-one', template: t1 })
+      class ChildOne {
+        private readonly parentCtx: IRouteContext;
+        public constructor(@IRouteContext ctx: IRouteContext) {
+          this.parentCtx = ctx.parent;
+        }
+      }
+
+      @customElement({ name: 'gc-21', template: 'gc21' })
+      class GrandChildTwoOne { }
+
+      @customElement({ name: 'gc-22', template: 'gc22' })
+      class GrandChildTwoTwo { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'gc21' },
+          { id: 'r1', path: 'gc21', component: GrandChildTwoOne },
+          { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
+        ],
+      })
+      @customElement({ name: 'c-two', template: t2 })
+      class ChildTwo {
+        private readonly parentCtx: IRouteContext;
+        public constructor(@IRouteContext ctx: IRouteContext) {
+          this.parentCtx = ctx.parent;
+        }
+      }
+
+      @route({
+        routes: [
+          {
+            path: '',
+            redirectTo: 'c1',
+          },
+          {
+            id: 'r1',
+            path: 'c1',
+            component: ChildOne,
+          },
+          {
+            id: 'r2',
+            path: 'c2',
+            component: ChildTwo,
+          },
+        ],
+      })
+      @customElement({ name: 'my-app', template: rt })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root });
+      const location = container.get<MockBrowserHistoryLocation>(ILocation);
+      const queue = container.get(IPlatform).domWriteQueue;
+      await queue.yield();
+
+      let anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations1, 'round#1 - anchors', false);
+      assert.match(location.path, /c1\/gc11$/, 'round#1 - location.path');
+
+      anchors[3].click();
+      await queue.yield();
+      assertAnchors(anchors, expectations1, 'round#2 - anchors', false);
+      assert.match(location.path, /c1\/gc12$/, 'round#2 - location.path');
+
+      anchors[2].click();
+      await queue.yield();
+      assertAnchors(anchors, expectations1, 'round#3 - anchors', false);
+      assert.match(location.path, /c1\/gc11$/, 'round#3 - location.path');
+
+      anchors[1].click();
+      await queue.yield();
+      anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations2, 'round#4', false);
+      assert.match(location.path, /c2\/gc21$/, 'round#4 - location.path');
+
+      anchors[3].click();
+      await queue.yield();
+      assertAnchors(anchors, expectations2, 'round#5 - anchors', false);
+      assert.match(location.path, /c2\/gc22$/, 'round#5 - location.path');
+
+      anchors[2].click();
+      await queue.yield();
+      assertAnchors(anchors, expectations2, 'round#6 - anchors', false);
+      assert.match(location.path, /c2\/gc21$/, 'round#6 - location.path');
+
+      anchors[4].click();
+      await queue.yield();
+      anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations1, 'round#7', false);
+      assert.match(location.path, /c1\/gc11$/, 'round#7 - location.path');
+
+      await au.stop(true);
+    });
+  }
+
+  class HrefGenerationForChildComponentSiblingTestData {
+    public constructor(
+      public readonly name: string,
+      public readonly templates: [root: string, c1: string, c2: string],
+      public readonly expectedHrefs: [expectations1: { href: string }[], expectations2: { href: string }[]],
+    ) { }
+  }
+  function* getHrefGenerationForChildComponentSiblingTestData() {
+    yield new HrefGenerationForChildComponentSiblingTestData(
+      'using path',
+      [
+        `
+    <a load="c1">C1</a>
+    <a load="c2">C2</a>
+    <au-viewport></au-viewport>`,
+        `c1
+    <a load="gc11+gc12">gc11+gc12</a>
+    <a load="gc12+gc13">gc12+gc13</a>
+    <a load="gc13+gc11">gc13+gc11</a>
+    <au-viewport default.bind="null"></au-viewport><au-viewport default.bind="null"></au-viewport>`,
+        `c2
+    <a load="gc21+gc22">gc21+gc22</a>
+    <a load="gc22+gc23">gc22+gc23</a>
+    <a load="gc23+gc21">gc23+gc21</a>
+    <au-viewport default.bind="null"></au-viewport><au-viewport default.bind="null"></au-viewport>`
+      ],
+      [
+        [
+          { href: 'c1' },
+          { href: 'c2' },
+          { href: 'c1/gc11+gc12' },
+          { href: 'c1/gc12+gc13' },
+          { href: 'c1/gc13+gc11' },
+        ],
+        [
+          { href: 'c1' },
+          { href: 'c2' },
+          { href: 'c2/gc21+gc22' },
+          { href: 'c2/gc22+gc23' },
+          { href: 'c2/gc23+gc21' },
+        ]
+      ]
+    );
+    yield new HrefGenerationForChildComponentSiblingTestData(
+      'using route-id',
+      [
+        `
     <a load="r1">C1</a>
     <a load="r2">C2</a>
-    <au-viewport></au-viewport>` })
-    class Root { }
-
-    const { au, host, container } = await start({ appRoot: Root });
-    const queue = container.get(IPlatform).domWriteQueue;
-    await queue.yield();
-
-    const anchors = host.querySelectorAll('a');
-    assertAnchors(
-      anchors,
-      [
-        { href: 'c1' },
-        { href: 'c2' },
-        { href: 'c1/gc11' },
-        { href: 'c1/gc12' },
-        { href: 'c2' },
+    <au-viewport></au-viewport>`,
+        `c1
+    <a load="r1+r2">gc11+gc12</a>
+    <a load="r2+r3">gc12+gc13</a>
+    <a load="r3+r1">gc13+gc11</a>
+    <au-viewport default.bind="null"></au-viewport><au-viewport default.bind="null"></au-viewport>`,
+        `c2
+    <a load="r1+r2">gc21+gc22</a>
+    <a load="r2+r3">gc22+gc23</a>
+    <a load="r3+r1">gc23+gc21</a>
+    <au-viewport default.bind="null"></au-viewport><au-viewport default.bind="null"></au-viewport>`
       ],
-      'round#1',
-      false,
+      [
+        [
+          { href: 'r1' },
+          { href: 'r2' },
+          { href: 'c1/r1+r2' },
+          { href: 'c1/r2+r3' },
+          { href: 'c1/r3+r1' },
+        ],
+        [
+          { href: 'r1' },
+          { href: 'r2' },
+          { href: 'c2/r1+r2' },
+          { href: 'c2/r2+r3' },
+          { href: 'c2/r3+r1' },
+        ]
+      ]
     );
+  }
+  for (const {
+    name,
+    templates: [rt, t1, t2],
+    expectedHrefs: [expectations1, expectations2]
+  } of getHrefGenerationForChildComponentSiblingTestData()) {
+    it(`href attribute value is correctly generated for child components - sibling instructions - ${name}`, async function () {
 
-    await au.stop(true);
-  });
+      @customElement({ name: 'gc-11', template: 'gc11' })
+      class GrandChildOneOne { }
+
+      @customElement({ name: 'gc-12', template: 'gc12' })
+      class GrandChildOneTwo { }
+
+      @customElement({ name: 'gc-13', template: 'gc13' })
+      class GrandChildOneThree { }
+
+      @route({
+        routes: [
+          { id: 'r1', path: 'gc11', component: GrandChildOneOne },
+          { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
+          { id: 'r3', path: 'gc13', component: GrandChildOneThree },
+        ],
+      })
+      @customElement({ name: 'c-one', template: t1 })
+      class ChildOne {
+        private readonly parentCtx: IRouteContext;
+        public constructor(@IRouteContext ctx: IRouteContext) {
+          this.parentCtx = ctx.parent;
+        }
+      }
+
+      @customElement({ name: 'gc-21', template: 'gc21' })
+      class GrandChildTwoOne { }
+
+      @customElement({ name: 'gc-22', template: 'gc22' })
+      class GrandChildTwoTwo { }
+
+      @customElement({ name: 'gc-23', template: 'gc23' })
+      class GrandChildTwoThree { }
+
+      @route({
+        routes: [
+          { id: 'r1', path: 'gc21', component: GrandChildTwoOne },
+          { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
+          { id: 'r3', path: 'gc23', component: GrandChildTwoThree },
+        ],
+      })
+      @customElement({ name: 'c-two', template: t2 })
+      class ChildTwo {
+        private readonly parentCtx: IRouteContext;
+        public constructor(@IRouteContext ctx: IRouteContext) {
+          this.parentCtx = ctx.parent;
+        }
+      }
+
+      @route({
+        routes: [
+          {
+            path: '',
+            redirectTo: 'c1',
+          },
+          {
+            id: 'r1',
+            path: 'c1',
+            component: ChildOne,
+          },
+          {
+            id: 'r2',
+            path: 'c2',
+            component: ChildTwo,
+          },
+        ],
+      })
+      @customElement({ name: 'my-app', template: rt })
+      class Root { }
+
+      const { au, host, container } = await start({ appRoot: Root });
+      const location = container.get<MockBrowserHistoryLocation>(ILocation);
+      const queue = container.get(IPlatform).domWriteQueue;
+      await queue.yield();
+
+      let anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations1, 'round#1 - anchors', false);
+      assert.match(location.path, /c1$/, 'round#1 - location.path');
+
+      anchors[2].click();
+      await queue.yield();
+      assert.match(location.path, /c1\/gc11\+gc12$/, 'round#2 - location.path');
+
+      anchors[3].click();
+      await queue.yield();
+      assert.match(location.path, /c1\/gc12\+gc13$/, 'round#3 - location.path');
+
+      anchors[4].click();
+      await queue.yield();
+      assert.match(location.path, /c1\/gc13\+gc11$/, 'round#4 - location.path');
+
+      anchors[1].click();
+      await queue.yield();
+      anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations2, 'round#5 - anchors', false);
+      assert.match(location.path, /c2$/, 'round#5 - location.path');
+
+      anchors[2].click();
+      await queue.yield();
+      assert.match(location.path, /c2\/gc21\+gc22$/, 'round#6 - location.path');
+
+      anchors[3].click();
+      await queue.yield();
+      assert.match(location.path, /c2\/gc22\+gc23$/, 'round#7 - location.path');
+
+      anchors[4].click();
+      await queue.yield();
+      assert.match(location.path, /c2\/gc23\+gc21$/, 'round#8 - location.path');
+
+      anchors[0].click();
+      await queue.yield();
+      anchors = host.querySelectorAll('a');
+      assertAnchors(anchors, expectations1, 'round#9 - anchors', false);
+      assert.match(location.path, /c1$/, 'round#9 - location.path');
+
+      await au.stop(true);
+    });
+  }
 
   it('supports routing instruction with parenthesized parameters', async function () {
     @route('c1/:id1/:id2?')

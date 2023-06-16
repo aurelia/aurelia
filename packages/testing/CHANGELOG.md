@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Features:
+
+* **build:** add a development entry point (#1770) ([69ff445](https://github.com/aurelia/aurelia/commit/69ff445))
+
+
+### Refactorings:
+
+* **runtime-html:** cleanup errors, remove unused code. (#1771) ([750210d](https://github.com/aurelia/aurelia/commit/750210d))
+
 <a name="2.0.0-beta.6"></a>
 # 2.0.0-beta.6 (2023-05-21)
 

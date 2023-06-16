@@ -3,6 +3,48 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Features:
+
+* **router-lite:** error recovery ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+
+
+### Bug Fixes:
+
+* **router-lite:** hash compatibility with v1 (#1779) ([9302db5](https://github.com/aurelia/aurelia/commit/9302db5))
+* **router-lite:** URL generation in child component (#1778) ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **router-lite:** broken tests ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **router-lite:** viewport name match for contains check in RouteNode ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error recovery from child's hook ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** tests ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** deepscan issue ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+
+
+### Refactorings:
+
+* **router-lite:** miscellaneous changes (#1773) ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** residue handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** component-agent event trc ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** loc-mngr event log ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** router event log ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite/vi:** removed obtrusive props from public API ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **compiler:** use comment to mark target (#1774) ([e37802c](https://github.com/aurelia/aurelia/commit/e37802c))
+* **runtime-html:** cleanup errors, remove unused code. (#1771) ([750210d](https://github.com/aurelia/aurelia/commit/750210d))
+
 <a name="2.0.0-beta.6"></a>
 # 2.0.0-beta.6 (2023-05-21)
 

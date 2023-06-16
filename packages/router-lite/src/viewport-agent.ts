@@ -860,6 +860,8 @@ function ensureTransitionHasNotErrored(tr: Transition): void {
   if (tr.error !== void 0 && !tr.erredWithUnknownRoute) throw tr.error;
 }
 
+_START_CONST_ENUM();
+/** @internal */
 export const enum State {
   curr              = 0b1111111_0000000,
   currIsEmpty       = 0b1000000_0000000,
@@ -879,6 +881,7 @@ export const enum State {
   nextActivate      = 0b0000000_0000001,
   bothAreEmpty      = 0b1000000_1000000,
 }
+_END_CONST_ENUM();
 
 type CurrState = (
   State.currIsEmpty |

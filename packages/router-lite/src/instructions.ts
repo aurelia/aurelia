@@ -288,7 +288,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions as string, routerOptions.useUrlFragmentHash);
+      const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
       return expr.toInstructionTree($options);
     }
 
@@ -358,8 +358,8 @@ export class ViewportInstructionTree {
 
     const currentPath = this.toPath();
     if (useUrlFragmentHash) {
-      pathname = '';
-      hash = parentPath.length > 0 ? `#${parentPath}/${currentPath}` : `#${currentPath}`;
+      pathname = '/';
+      hash = parentPath.length > 0 ? `#/${parentPath}/${currentPath}` : `#/${currentPath}`;
     } else {
       pathname = parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath;
       const fragment = this.fragment;
@@ -382,6 +382,10 @@ export class ViewportInstructionTree {
   }
 }
 
+_START_CONST_ENUM();
+/**
+ * @internal
+ */
 export const enum NavigationInstructionType {
   string,
   ViewportInstruction,
@@ -389,6 +393,8 @@ export const enum NavigationInstructionType {
   Promise,
   IRouteViewModel,
 }
+_END_CONST_ENUM();
+
 export interface ITypedNavigationInstruction<
   TInstruction extends NavigationInstruction,
   TType extends NavigationInstructionType

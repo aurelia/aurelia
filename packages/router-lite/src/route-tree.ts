@@ -257,10 +257,10 @@ export class RouteNode implements IRouteNode {
       this.context,
       this._originalInstruction,
       this.instruction,
-      { ...this.params },
-      new URLSearchParams(this.queryParams),
+      this.params,      // as this is frozen, it's safe to share
+      this.queryParams, // as this is frozen, it's safe to share
       this.fragment,
-      { ...this.data },
+      this.data,        // as this is frozen, it's safe to share
       this._viewport,
       this.title,
       this.component,
@@ -321,7 +321,7 @@ export class RouteTree {
   public _clone(): RouteTree {
     const clone = new RouteTree(
       this.options._clone(),
-      new URLSearchParams(this.queryParams),
+      this.queryParams, // as this is frozen, it's safe to share
       this.fragment,
       this.root._clone(),
     );
@@ -338,6 +338,11 @@ export class RouteTree {
       this.queryParams,
       this.fragment,
     );
+  }
+
+  /** @internal */
+  public _mergeQuery(other: Params): void {
+    (this as Writable<RouteTree>).queryParams = Object.freeze(mergeURLSearchParams(this.queryParams, other, true));
   }
 
   public toString(): string {
@@ -378,7 +383,7 @@ export function createAndAppendNodes(
           if (vi.children.length === 0) {
             const result = ctx._generateViewportInstruction(vi);
             if (result !== null) {
-              (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, result.query, true);
+              node._tree._mergeQuery(result.query);
               const newVi = result.vi;
               (newVi.children as NavigationInstruction[]).push(...vi.children);
               return appendNode(
@@ -423,10 +428,10 @@ export function createAndAppendNodes(
               open: vi.open,
               close: vi.close,
               viewport: vi.viewport,
-              children: vi.children.slice(),
+              children: vi.children,
             });
             if (eagerResult !== null) {
-              (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, eagerResult.query, true);
+              node._tree._mergeQuery(eagerResult.query);
               return appendNode(log, node, createConfiguredNode(
                 log,
                 node,
@@ -503,9 +508,9 @@ export function createAndAppendNodes(
             open: vi.open,
             close: vi.close,
             viewport: vi.viewport,
-            children: vi.children.slice(),
+            children: vi.children,
           })!;
-          (node._tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node._tree.queryParams, query, true);
+          node._tree._mergeQuery(query);
           return appendNode(log, node, createConfiguredNode(
             log,
             node,
@@ -559,9 +564,7 @@ function createConfiguredNode(
                 context: childCtx,
                 instruction: vi,
                 originalInstruction: originalVi,
-                params: {
-                  ...rr.route.params,
-                },
+                params: rr.route.params,
                 queryParams: rt.queryParams,
                 fragment: rt.fragment,
                 data: $handler.data,

@@ -93,7 +93,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     public readonly recognizedRoute: $RecognizedRoute | null,
     public readonly component: TComponent,
     public readonly viewport: string | null,
-    public readonly params: Params | null,
+    public readonly params: Readonly<Params> | null,
     public readonly children: ViewportInstruction[],
   ) { }
 
@@ -110,7 +110,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
         instruction.recognizedRoute ?? null,
         component,
         instruction.viewport ?? null,
-        instruction.params ?? null,
+        Object.freeze(instruction.params ?? null),
         children,
       );
     }
@@ -173,42 +173,22 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       this.recognizedRoute,
       this.component._clone(),
       this.viewport,
-      this.params === null ? null : { ...this.params },
+      this.params,
       [...this.children],
     ) as this;
   }
 
   public toUrlComponent(recursive: boolean = true): string {
     const component = this.component.toUrlComponent();
-    /**
-     * Note on the parenthesized parameters:
-     * We will land on this branch if and only if the component cannot be eagerly recognized (in the RouteContext#generateViewportInstruction) AND the parameters are also provided.
-     * When the routes are eagerly recognized, then there is no parameters left at this point and everything is already packed in the generated path as well as in the recognized route.
-     * Thus, in normal scenarios the users will never land here.
-     *
-     * Whenever, they are using a hand composed (string) path, then in that case there is no question of having parameters at this point, rather the given path is recognized in the createAndAppendNodes.
-     * It might be a rare edge case where users provide half the parameters in the string path and half as form of parameters; example: `load="route: r1/id1; params.bind: {id2}"`.
-     * We might not want to officially support such cases.
-     *
-     * However, as the route recognition is inherently lazy (think about child routes, whose routing configuration are not resolved till a child routing context is created, or
-     * the usage of instance level getRouteConfig), the component cannot be recognized fully eagerly. Thus, it is difficult at this point to correctly handle parameters as defined by the path templates defined for the component.
-     * This artifact is kept here for the purpose of fallback.
-     *
-     * We can think about a stricter mode where we throw error if any params remains unconsumed at this point.
-     * Or simply ignore the params while creating the URL. However, that does not feel right at all.
-     */
-    const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(${stringifyParams(this.params)})`;
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
-    const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
+    const thisPart = `${'('.repeat(this.open)}${component}${stringifyParams(this.params)}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
-    if (thisPart.length > 0) {
-      if (childPart.length > 0) {
-        return [thisPart, childPart].join('/');
-      }
-      return thisPart;
-    }
-    return childPart;
+    return thisPart.length > 0
+      ? childPart.length > 0
+        ? `${thisPart}/${childPart}`
+        : thisPart
+      : childPart;
   }
 
   // Should not be adjust for DEV as it is also used of logging in production build.
@@ -221,9 +201,29 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 }
 
-function stringifyParams(params: Params): string {
+/**
+ * Note on the parenthesized parameters:
+ * We will land on this branch if and only if the component cannot be eagerly recognized (in the RouteContext#generateViewportInstruction) AND the parameters are also provided.
+ * When the routes are eagerly recognized, then there is no parameters left at this point and everything is already packed in the generated path as well as in the recognized route.
+ * Thus, in normal scenarios the users will never land here.
+ *
+ * Whenever, they are using a hand composed (string) path, then in that case there is no question of having parameters at this point, rather the given path is recognized in the createAndAppendNodes.
+ * It might be a rare edge case where users provide half the parameters in the string path and half as form of parameters; example: `load="route: r1/id1; params.bind: {id2}"`.
+ * We might not want to officially support such cases.
+ *
+ * However, as the route recognition is inherently lazy (think about child routes, whose routing configuration are not resolved till a child routing context is created, or
+ * the usage of instance level getRouteConfig), the component cannot be recognized fully eagerly. Thus, it is difficult at this point to correctly handle parameters as defined by the path templates defined for the component.
+ * This artifact is kept here for the purpose of fallback.
+ *
+ * We can think about a stricter mode where we throw error if any params remains unconsumed at this point.
+ * Or simply ignore the params while creating the URL. However, that does not feel right at all.
+ */
+function stringifyParams(params: Readonly<Params> | null): string {
+  if (params === null) return '';
   const keys = Object.keys(params);
-  const values = Array<string>(keys.length);
+  const numKeys = keys.length;
+  if (numKeys === 0) return '';
+  const values = Array<string>(numKeys);
   const indexKeys: number[] = [];
   const namedKeys: string[] = [];
   for (const key of keys) {
@@ -234,7 +234,7 @@ function stringifyParams(params: Params): string {
     }
   }
 
-  for (let i = 0; i < keys.length; ++i) {
+  for (let i = 0; i < numKeys; ++i) {
     const indexKeyIdx = indexKeys.indexOf(i);
     if (indexKeyIdx > -1) {
       values[i] = params[i] as string;
@@ -244,7 +244,7 @@ function stringifyParams(params: Params): string {
       values[i] = `${namedKey}=${params[namedKey]}`;
     }
   }
-  return values.join(',');
+  return `(${values.join(',')})`;
 }
 
 export class ViewportInstructionTree {
@@ -254,26 +254,28 @@ export class ViewportInstructionTree {
     public readonly children: ViewportInstruction[],
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-  ) { }
+  ) {
+    Object.freeze(queryParams);
+  }
 
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
     routerOptions: RouterOptions,
-    options?: INavigationOptions,
+    options?: INavigationOptions | NavigationOptions,
     rootCtx?: IRouteContext | null,
   ): ViewportInstructionTree {
-    const $options = NavigationOptions.create(routerOptions, { ...options });
+    options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
 
-    let context = $options.context as RouteContext;
+    let context = options.context as RouteContext;
     if (!(context instanceof RouteContext) && rootCtx != null) {
-      context = ($options as Writable<NavigationOptions>).context = RouteContext.resolve(rootCtx, context);
+      context = (options as Writable<NavigationOptions>).context = RouteContext.resolve(rootCtx, context);
     }
     const hasContext = context != null;
 
     if (instructionOrInstructions instanceof Array) {
       const len = instructionOrInstructions.length;
       const children = new Array(len);
-      const query = new URLSearchParams($options.queryParams ?? emptyObject);
+      const query = new URLSearchParams(options.queryParams ?? emptyObject);
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         const eagerVi = hasContext ? context._generateViewportInstruction(instruction) : null;
@@ -284,12 +286,12 @@ export class ViewportInstructionTree {
           children[i] = ViewportInstruction.create(instruction);
         }
       }
-      return new ViewportInstructionTree($options, false, children, query, $options.fragment);
+      return new ViewportInstructionTree(options as NavigationOptions, false, children, query, (options as NavigationOptions).fragment);
     }
 
     if (typeof instructionOrInstructions === 'string') {
       const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
-      return expr.toInstructionTree($options);
+      return expr.toInstructionTree(options as NavigationOptions);
     }
 
     const eagerVi = hasContext
@@ -298,21 +300,21 @@ export class ViewportInstructionTree {
         : { component: instructionOrInstructions, params: emptyObject }
       )
       : null;
-    const query = new URLSearchParams($options.queryParams ?? emptyObject);
+    const query = new URLSearchParams(options.queryParams ?? emptyObject);
     return eagerVi !== null
       ? new ViewportInstructionTree(
-        $options,
+        options as NavigationOptions,
         false,
         [eagerVi.vi],
         mergeURLSearchParams(query, eagerVi.query, false),
-        $options.fragment,
+        (options as NavigationOptions).fragment,
       )
       : new ViewportInstructionTree(
-        $options,
+        options as NavigationOptions,
         false,
         [ViewportInstruction.create(instructionOrInstructions)],
         query,
-        $options.fragment,
+        (options as NavigationOptions).fragment,
       );
   }
 

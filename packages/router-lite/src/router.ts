@@ -146,27 +146,23 @@ export class Router {
   /** @internal */
   private _currentTr: Transition | null = null;
   public get currentTr(): Transition {
-    let currentTr = this._currentTr;
-    if (currentTr === null) {
-      currentTr = this._currentTr = Transition._create({
-        id: 0,
-        prevInstructions: this._instructions,
-        instructions: this._instructions,
-        finalInstructions: this._instructions,
-        instructionsChanged: true,
-        trigger: 'api',
-        options: NavigationOptions.create(this.options, {}),
-        managedState: null,
-        previousRouteTree: this.routeTree._clone(),
-        routeTree: this.routeTree,
-        resolve: null,
-        reject: null,
-        promise: null,
-        guardsResult: true,
-        error: void 0,
-      });
-    }
-    return currentTr;
+    return this._currentTr ??= Transition._create({
+      id: 0,
+      prevInstructions: this._instructions,
+      instructions: this._instructions,
+      finalInstructions: this._instructions,
+      instructionsChanged: true,
+      trigger: 'api',
+      options: NavigationOptions.create(this.options, {}),
+      managedState: null,
+      previousRouteTree: this.routeTree._clone(),
+      routeTree: this.routeTree,
+      resolve: null,
+      reject: null,
+      promise: null,
+      guardsResult: true,
+      error: void 0,
+    });
   }
   /** @internal */
   private set currentTr(value: Transition) {

@@ -14,6 +14,7 @@ export {
 
 export const enum ExpressionKind {
   AccessThis,
+  AccessGlobal,
   AccessScope,
   ArrayLiteral,
   ObjectLiteral,
@@ -48,7 +49,7 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 
-export type IsPrimary = AccessThisExpression | AccessScopeExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
+export type IsPrimary = AccessThisExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLeftHandSide = IsPrimary | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
@@ -145,6 +146,14 @@ export class ConditionalExpression {
     public readonly condition: IsBinary,
     public readonly yes: IsAssign,
     public readonly no: IsAssign,
+  ) {}
+}
+
+export class AccessGlobalExpression {
+  public readonly $kind: ExpressionKind.AccessGlobal = ExpressionKind.AccessGlobal;
+
+  public constructor(
+    public readonly name: string,
   ) {}
 }
 
@@ -386,6 +395,8 @@ export class ArrowFunction {
   boundFn?: boolean;
   /** describe whether the evaluator wants to evaluate the function call in strict mode */
   strictFnCall?: boolean;
+  /** Allow an AST to retrieve a value from the global context if `useGlobal` has been enabled */
+  getGlobal?(name: string): unknown;
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */

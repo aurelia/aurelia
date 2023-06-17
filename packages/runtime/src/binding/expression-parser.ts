@@ -39,8 +39,11 @@ import {
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
+  AccessGlobalExpression,
 } from './ast';
 import { createError, createInterface, createLookup, objectAssign } from '../utilities-objects';
+import { IContainer, resolve } from '@aurelia/kernel';
+import { getGlobalContext, IGlobalContext } from '../global-context';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
@@ -49,6 +52,7 @@ export class ExpressionParser {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
   /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
   /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
+  /** @internal */ private readonly _globalContext: IGlobalContext | undefined = getGlobalContext(resolve(IContainer));
 
   public parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
   public parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
@@ -106,6 +110,8 @@ export class ExpressionParser {
     $currentChar = $charCodeAt(0);
     $assignable = true;
     $optional = false;
+    $accessGlobal = true;
+    $globalContext = this._globalContext;
     $semicolonIndex = -1;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
@@ -352,6 +358,8 @@ let $tokenValue: string | number = '';
 let $currentChar: number;
 let $assignable: boolean = true;
 let $optional: boolean = false;
+let $accessGlobal: boolean = true;
+let $globalContext: IGlobalContext | undefined = void 0;
 let $semicolonIndex: number = -1;
 
 const stringFromCharCode = String.fromCharCode;
@@ -370,6 +378,8 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
   $currentChar = $charCodeAt(0);
   $assignable = true;
   $optional = false;
+  $accessGlobal = true;
+  $globalContext = void 0;
   $semicolonIndex = -1;
   return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
@@ -401,6 +411,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
 
   $assignable = Precedence.Binary > minPrecedence;
   $optional = false;
+  $accessGlobal = Precedence.LeftHandSide > minPrecedence;
   let optionalThisTail = false;
   let result = void 0 as unknown as IsExpressionOrStatement;
   let ancestor = 0;
@@ -461,6 +472,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       case Token.ParentScope: // $parent
         ancestor = $scopeDepth;
         $assignable = false;
+        $accessGlobal = false;
         do {
           nextToken();
           ++ancestor;
@@ -496,6 +508,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         const id = $tokenValue as string;
         if (expressionType & ExpressionType.IsIterator) {
           result = new BindingIdentifier(id);
+        } else if ($accessGlobal && ($globalContext?.[id] !== void 0)) {
+          result = new AccessGlobalExpression(id);
         } else {
           result = new AccessScopeExpression(id, ancestor);
         }

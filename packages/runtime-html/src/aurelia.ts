@@ -14,6 +14,7 @@ import type {
   IDisposable,
 } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from './errors';
+import { registerGlobalContext } from '@aurelia/runtime';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -102,6 +103,10 @@ export class Aurelia implements IDisposable {
       view.activate(view, parentController),
       () => view
     );
+  }
+
+  public useGlobals() {
+    registerGlobalContext(this.container);
   }
 
   public async waitForIdle(): Promise<void> {

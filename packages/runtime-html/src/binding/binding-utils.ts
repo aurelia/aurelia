@@ -1,6 +1,6 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
 import { ITask, TaskStatus } from '@aurelia/platform';
-import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
+import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance, getGlobalContext } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '../utilities';
@@ -74,6 +74,9 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
     defineHiddenProp(proto, 'get', function (this: T, key: Key) {
       return this.l.get(key);
+    });
+    defineHiddenProp(proto, 'getGlobal', function (this: T, name: string) {
+      return getGlobalContext(this.l.root)?.[name];
     });
     defineHiddenProp(proto, 'getSignaler', function (this: T) {
       return this.l.root.get(ISignaler);

@@ -3,7 +3,7 @@ import { IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/scope';
 import { createError, isArray, isFunction, isObject, safeString } from '../utilities-objects';
-import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
+import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance, IsLeftHandSide } from './ast';
 import { IConnectableBinding } from './connectable';
 
 const getContext = Scope.getContext;
@@ -44,6 +44,8 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           ? evaluatedValue.bind(obj)
           : evaluatedValue;
     }
+    case ExpressionKind.AccessGlobal:
+      return e?.getGlobal?.(ast.name);
     case ExpressionKind.ArrayLiteral:
       return ast.elements.map(expr => astEvaluate(expr, s, e, c));
     case ExpressionKind.ObjectLiteral: {
@@ -147,7 +149,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         if (instance == null) {
           return undefined;
         }
-        if (c !== null) {
+        if (c !== null && !isAccessGlobalChain(ast.object)) {
           c.observe(instance, ast.name);
         }
         ret = instance[ast.name];
@@ -156,7 +158,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         }
         return ret;
       }
-      if (c !== null && isObject(instance)) {
+      if (c !== null && isObject(instance) && !isAccessGlobalChain(ast.object)) {
         c.observe(instance, ast.name);
       }
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -173,7 +175,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
       const key = astEvaluate(ast.key, s, e, c) as string;
       if (isObject(instance)) {
-        if (c !== null) {
+        if (c !== null && !isAccessGlobalChain(ast.object)) {
           c.observe(instance, key);
         }
         return instance[key];
@@ -634,6 +636,14 @@ const isStringOrDate = (value: unknown): value is string | Date => {
     default:
       return false;
   }
+};
+
+const isAccessGlobalChain = (object: IsLeftHandSide): boolean => {
+  return (
+    object.$kind === ExpressionKind.AccessGlobal
+    || object.$kind === ExpressionKind.AccessMember && isAccessGlobalChain(object.object)
+    || object.$kind === ExpressionKind.CallMember && isAccessGlobalChain(object.object)
+  );
 };
 
 const autoObserveArrayMethods =

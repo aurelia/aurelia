@@ -1,4 +1,4 @@
-import { createGlobalContext, type IBinding, type IBindingContext, type IGlobalContext, type IOverrideContext } from '../observation';
+import { type IBinding, type IBindingContext, type IOverrideContext } from '../observation';
 import { createError } from '../utilities-objects';
 
 /**
@@ -21,7 +21,6 @@ export class Scope {
     public parent: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
-    public globalContext: IGlobalContext,
     public readonly isBoundary: boolean,
   ) { }
 
@@ -29,7 +28,6 @@ export class Scope {
     if (scope == null) {
       throw nullScopeError();
     }
-    const globalContext = scope.globalContext;
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;
 
@@ -67,15 +65,11 @@ export class Scope {
     }
 
     if (currentScope == null) {
-      return name in globalContext ? globalContext : scope.bindingContext;
+      return scope.bindingContext;
     }
 
     overrideContext = currentScope.overrideContext;
-    return name in overrideContext
-      ? overrideContext
-      : name in globalContext
-        ? globalContext
-        : currentScope.bindingContext;
+    return name in overrideContext ? overrideContext : currentScope.bindingContext;
   }
 
   /**
@@ -111,15 +105,14 @@ export class Scope {
     if (bc == null) {
       throw nullContextError();
     }
-    const globalContext = createGlobalContext(globalThis);
-    return new Scope(null, bc as IBindingContext, oc == null ? new OverrideContext() : oc, globalContext, isBoundary ?? false);
+    return new Scope(null, bc as IBindingContext, oc == null ? new OverrideContext() : oc, isBoundary ?? false);
   }
 
   public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
       throw nullScopeError();
     }
-    return new Scope(ps, bc as IBindingContext, new OverrideContext(), ps.globalContext, false);
+    return new Scope(ps, bc as IBindingContext, new OverrideContext(), false);
   }
 }
 

@@ -8,6 +8,7 @@ export {
   AssignExpression,
   ConditionalExpression,
   AccessThisExpression,
+  AccessGlobalExpression,
   AccessScopeExpression,
   AccessMemberExpression,
   AccessKeyedExpression,
@@ -189,3 +190,9 @@ export {
   createIndexMap,
   ICoercionConfiguration,
 } from './observation';
+
+export {
+  type IGlobalContext,
+  getGlobalContext,
+  registerGlobalContext,
+} from './global-context';

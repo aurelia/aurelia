@@ -1,6 +1,6 @@
 import { AccessorType, ICoercionConfiguration, IObserver, InterceptorFunc } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { areEqual, def, objectAssign } from '../utilities-objects';
+import { areEqual, def, objectAssign } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {

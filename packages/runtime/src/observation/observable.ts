@@ -1,5 +1,5 @@
 import { AccessorType, IAccessor, IObserver, ISubscriberCollection } from '../observation';
-import { safeString, def, createError, isFunction, areEqual } from '../utilities-objects';
+import { safeString, def, isFunction, areEqual } from '../utilities';
 import { currentConnectable } from './connectable-switcher';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
@@ -7,6 +7,7 @@ import type { IBindingContext, InterceptorFunc, IObservable } from '../observati
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
 import { subscriberCollection } from './subscriber-collection';
+import { ErrorNames, createMappedError } from '../errors';
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -99,10 +100,7 @@ export function observable(
     }
 
     if (key == null || key === '') {
-      if (__DEV__)
-        throw createError(`AUR0224: Invalid usage, cannot determine property name for @observable`);
-      else
-        throw createError(`AUR0224`);
+      throw createMappedError(ErrorNames.invalid_observable_decorator_usage);
     }
 
     // determine callback name based on config or convention.

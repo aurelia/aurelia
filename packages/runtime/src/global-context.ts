@@ -1,5 +1,5 @@
 import { DI, IContainer, IPlatform, IServiceLocator, Registration, optional } from '@aurelia/kernel';
-import { objectAssign, objectCreate, objectFreeze, objectFromEntries } from './utilities-objects';
+import { objectAssign, objectCreate, objectFreeze, objectFromEntries } from './utilities';
 
 export const globalNames = objectFreeze([
   // https://262.ecma-international.org/#sec-value-properties-of-the-global-object

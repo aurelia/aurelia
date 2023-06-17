@@ -39,16 +39,16 @@ describe('router-lite/events.spec.ts', function () {
     public constructor(@IRouterEvents events: IRouterEvents) {
       this.subscriptions = [
         events.subscribe('au:router:navigation-start', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}'`);
         }),
         events.subscribe('au:router:navigation-end', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}'`);
         }),
         events.subscribe('au:router:navigation-cancel', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}' - ${String(event.reason)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}' - ${String(event.reason)}`);
         }),
         events.subscribe('au:router:navigation-error', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}' - ${String(event.error)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}' - ${String(event.error)}`);
         }),
       ];
     }
@@ -74,8 +74,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
@@ -207,8 +207,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
@@ -253,8 +253,8 @@ describe('router-lite/events.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: ChildOne },
-        { path: 'c2', component: ChildTwo },
+        { id:'r1', path: ['', 'c1'], component: ChildOne },
+        { id:'r2', path: 'c2', component: ChildTwo },
       ]
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })

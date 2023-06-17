@@ -1,7 +1,7 @@
 import { createIndexMap, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities-objects';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
 
 import type {
   CollectionKind,

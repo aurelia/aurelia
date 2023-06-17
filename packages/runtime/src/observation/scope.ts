@@ -1,5 +1,5 @@
-import { type IBinding, type IBindingContext, type IOverrideContext } from '../observation';
-import { createError } from '../utilities-objects';
+import { ErrorNames, createMappedError } from '../errors';
+import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
 
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small
@@ -26,7 +26,7 @@ export class Scope {
 
   public static getContext(scope: Scope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null) {
-      throw nullScopeError();
+      throw createMappedError(ErrorNames.null_scope);
     }
     let overrideContext: IOverrideContext | null = scope.overrideContext;
     let currentScope: Scope | null = scope;
@@ -103,29 +103,18 @@ export class Scope {
   public static create(bc: object, oc: null, isBoundary?: boolean): Scope;
   public static create(bc: object, oc?: IOverrideContext | null, isBoundary?: boolean): Scope {
     if (bc == null) {
-      throw nullContextError();
+      throw createMappedError(ErrorNames.create_scope_with_null_context);
     }
     return new Scope(null, bc as IBindingContext, oc == null ? new OverrideContext() : oc, isBoundary ?? false);
   }
 
   public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
-      throw nullScopeError();
+      throw createMappedError(ErrorNames.null_scope);
     }
     return new Scope(ps, bc as IBindingContext, new OverrideContext(), false);
   }
 }
-
-const nullScopeError = () => {
-  return __DEV__
-    ? createError(`AUR0203: scope is null/undefined.`)
-    : createError(`AUR0203`);
-};
-const nullContextError = () => {
-  return __DEV__
-    ? createError('AUR0204: binding context is null/undefined')
-    : createError('AUR0204');
-};
 
 class OverrideContext implements IOverrideContext {
   [key: PropertyKey]: unknown;

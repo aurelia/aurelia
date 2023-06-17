@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Features:
+
+* **router-lite:** error recovery ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **build:** add a development entry point (#1770) ([69ff445](https://github.com/aurelia/aurelia/commit/69ff445))
+
+
+### Bug Fixes:
+
+* **router-lite:** hash compatibility with v1 (#1779) ([9302db5](https://github.com/aurelia/aurelia/commit/9302db5))
+* **router-lite:** URL generation in child component (#1778) ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **resolver:** mark private as internal ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
+* **router-lite:** viewport name match for contains check in RouteNode ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error recovery from child's hook ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **plugin-conventions:** fill up explicit .js/.ts dep filename in html module (#1752) ([17af0c8](https://github.com/aurelia/aurelia/commit/17af0c8))
+
+
+### Refactorings:
+
+* **runtime:** cleanup, extract error to const enums (#1775) ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
+* **router-lite:** residue handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **compiler:** use comment to mark target (#1774) ([e37802c](https://github.com/aurelia/aurelia/commit/e37802c))
+* **runtime-html:** cleanup errors, remove unused code. (#1771) ([750210d](https://github.com/aurelia/aurelia/commit/750210d))
+
 <a name="2.0.0-beta.6"></a>
 # 2.0.0-beta.6 (2023-05-21)
 

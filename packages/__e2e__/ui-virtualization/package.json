@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.6",
+  "version": "2.0.0-beta.7",
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",
@@ -16,22 +16,22 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.6",
-    "@aurelia/metadata": "2.0.0-beta.6",
-    "@aurelia/platform": "2.0.0-beta.6",
-    "@aurelia/platform-browser": "2.0.0-beta.6",
-    "@aurelia/router": "2.0.0-beta.6",
-    "@aurelia/router-lite": "2.0.0-beta.6",
-    "@aurelia/runtime-html": "2.0.0-beta.6",
-    "@aurelia/runtime": "2.0.0-beta.6",
-    "@aurelia/ui-virtualization": "2.0.0-beta.6"
+    "@aurelia/kernel": "2.0.0-beta.7",
+    "@aurelia/metadata": "2.0.0-beta.7",
+    "@aurelia/platform": "2.0.0-beta.7",
+    "@aurelia/platform-browser": "2.0.0-beta.7",
+    "@aurelia/router": "2.0.0-beta.7",
+    "@aurelia/router-lite": "2.0.0-beta.7",
+    "@aurelia/runtime-html": "2.0.0-beta.7",
+    "@aurelia/runtime": "2.0.0-beta.7",
+    "@aurelia/ui-virtualization": "2.0.0-beta.7"
   },
   "devDependencies": {
     "webpack-cli": "^4.9.2",
     "webpack": "^5.72.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "html-webpack-plugin": "^5.5.0",
-    "@aurelia/webpack-loader": "2.0.0-beta.6",
+    "@aurelia/webpack-loader": "2.0.0-beta.7",
     "ts-loader": "^9.3.0",
     "@types/node": "^14.18.14",
     "typescript": "5.0.2"

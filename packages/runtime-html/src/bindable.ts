@@ -14,7 +14,7 @@ export type PartialBindableDefinition = {
   mode?: BindingMode;
   callback?: string;
   attribute?: string;
-  property?: string;
+  name?: string;
   primary?: boolean;
   set?: InterceptorFunc;
   type?: PropertyType;
@@ -27,7 +27,7 @@ export type PartialBindableDefinition = {
   nullable?: boolean;
 };
 
-type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 'property'>;
+type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 'name'>;
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
@@ -58,7 +58,7 @@ export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?:
       // Invocation with or w/o opts:
       // - @bindable()
       // - @bindable({...opts})
-      config.property = $prop;
+      config.name = $prop;
     }
 
     defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
@@ -113,7 +113,7 @@ export const Bindable = objectFreeze({
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof BindableDefinition) {
-        bindables[maybeList.property] = maybeList;
+        bindables[maybeList.name] = maybeList;
       } else if (maybeList !== void 0) {
         objectKeys(maybeList).forEach(name => addDescription(name, maybeList[name]));
       }
@@ -152,7 +152,7 @@ export class BindableDefinition {
     public readonly callback: string,
     public readonly mode: BindingMode,
     public readonly primary: boolean,
-    public readonly property: string,
+    public readonly name: string,
     public readonly set: InterceptorFunc,
   ) { }
 
@@ -162,7 +162,7 @@ export class BindableDefinition {
       def.callback ?? `${prop}Changed`,
       def.mode ?? BindingMode.toView,
       def.primary ?? false,
-      def.property ?? prop,
+      def.name ?? prop,
       def.set ?? getInterceptor(prop, target, def),
     );
   }

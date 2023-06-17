@@ -58,7 +58,7 @@ export class StateBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
-      target = info.bindable.property;
+      target = info.bindable.name;
     }
     return new StateBindingInstruction(value, target);
   }

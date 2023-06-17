@@ -188,8 +188,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(attrValue, ExpressionType.Interpolation);
             attrBindableInstructions = [
               expr === null
-                ? new SetPropertyInstruction(attrValue, primaryBindable.property)
-                : new InterpolationInstruction(expr, primaryBindable.property)
+                ? new SetPropertyInstruction(attrValue, primaryBindable.name)
+                : new InterpolationInstruction(expr, primaryBindable.name)
             ];
           } else {
             // custom attribute with binding command:
@@ -230,8 +230,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             instructions.push(
               new SpreadElementPropBindingInstruction(
                 expr == null
-                  ? new SetPropertyInstruction(attrValue, bindable.property)
-                  : new InterpolationInstruction(expr, bindable.property)
+                  ? new SetPropertyInstruction(attrValue, bindable.name)
+                  : new InterpolationInstruction(expr, bindable.name)
               )
             );
 
@@ -382,8 +382,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);
             attrBindableInstructions = [
               expr === null
-                ? new SetPropertyInstruction(realAttrValue, primaryBindable.property)
-                : new InterpolationInstruction(expr, primaryBindable.property)
+                ? new SetPropertyInstruction(realAttrValue, primaryBindable.name)
+                : new InterpolationInstruction(expr, primaryBindable.name)
             ];
           } else {
             // custom attribute with binding command:
@@ -773,8 +773,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);
             attrBindableInstructions = [
               expr === null
-                ? new SetPropertyInstruction(realAttrValue, primaryBindable.property)
-                : new InterpolationInstruction(expr, primaryBindable.property)
+                ? new SetPropertyInstruction(realAttrValue, primaryBindable.name)
+                : new InterpolationInstruction(expr, primaryBindable.name)
             ];
           } else {
             // custom attribute with binding command:
@@ -826,8 +826,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(realAttrValue, ExpressionType.Interpolation);
             (elBindableInstructions ??= []).push(
               expr == null
-                ? new SetPropertyInstruction(realAttrValue, bindable.property)
-                : new InterpolationInstruction(expr, bindable.property)
+                ? new SetPropertyInstruction(realAttrValue, bindable.name)
+                : new InterpolationInstruction(expr, bindable.name)
             );
 
             removeAttr();
@@ -1449,8 +1449,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (command === null) {
           expr = context._exprParser.parse(attrValue, ExpressionType.Interpolation);
           instructions.push(expr === null
-            ? new SetPropertyInstruction(attrValue, bindable.property)
-            : new InterpolationInstruction(expr, bindable.property)
+            ? new SetPropertyInstruction(attrValue, bindable.name)
+            : new InterpolationInstruction(expr, bindable.name)
           );
         } else {
           commandBuildInfo.node = node;
@@ -1503,7 +1503,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (bindableEl.parentNode !== content) {
           throw createMappedError(ErrorNames.compiler_local_el_bindable_not_under_root, name);
         }
-        const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
+        const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.name);
         if (property === null) {
           throw createMappedError(ErrorNames.compiler_local_el_bindable_name_missing, bindableEl, name);
         }
@@ -1913,13 +1913,13 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
 
 _START_CONST_ENUM();
 const enum LocalTemplateBindableAttributes {
-  property = "property",
+  name = "name",
   attribute = "attribute",
   mode = "mode",
 }
 _END_CONST_ENUM();
 const allowedLocalTemplateBindableAttributes: readonly string[] = objectFreeze([
-  LocalTemplateBindableAttributes.property,
+  LocalTemplateBindableAttributes.name,
   LocalTemplateBindableAttributes.attribute,
   LocalTemplateBindableAttributes.mode
 ]);

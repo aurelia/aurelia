@@ -2075,7 +2075,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             <div au-slot="rejected">r2</div>
           </foo-bar>
           <template as-custom-element="foo-bar">
-            <bindable property="p"></bindable>
+            <bindable name="p"></bindable>
             <template ${pattribute}="p">
               <au-slot name="pending" pending></au-slot>
               <au-slot then></au-slot>

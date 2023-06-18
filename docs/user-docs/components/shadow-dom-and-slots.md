@@ -598,7 +598,7 @@ Let's consider another example of `$host` which highlights the communication bet
 {% tab title="my-app.html" %}
 ```markup
 <template as-custom-element="my-element">
-  <bindable property="people"></bindable>
+  <bindable name="people"></bindable>
   <au-slot name="grid">
     <au-slot name="header">
       <h4>First Name</h4>

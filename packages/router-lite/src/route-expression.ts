@@ -362,7 +362,6 @@ export class SegmentGroupExpression {
   public get kind(): ExpressionKind.SegmentGroup { return ExpressionKind.SegmentGroup; }
 
   public constructor(
-    public readonly raw: string,
     public readonly expression: CompositeSegmentExpressionOrHigher,
   ) {}
 
@@ -374,8 +373,8 @@ export class SegmentGroupExpression {
       const expression = CompositeSegmentExpression._parse(state);
       state._consume(')');
 
-      const raw = state._playback();
-      return new SegmentGroupExpression(raw, expression);
+      state._discard();
+      return new SegmentGroupExpression(expression);
     }
 
     state._discard();
@@ -385,10 +384,6 @@ export class SegmentGroupExpression {
   /** @internal */
   public _toInstructions(open: number, close: number): ViewportInstruction[] {
     return this.expression._toInstructions(open + 1, close + 1);
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

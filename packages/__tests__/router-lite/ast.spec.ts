@@ -92,7 +92,6 @@ describe('router-lite/ast.spec.ts', function () {
           specs[`/${raw}/${raw}`] = [new RouteExpression(
             true,
             new ScopedSegmentExpression(
-              `${raw}/${raw}`,
               new SegmentExpression(raw, component, action, viewport, scoped),
               new SegmentExpression(raw, component, action, viewport, scoped),
             ),
@@ -187,15 +186,15 @@ describe('router-lite/ast.spec.ts', function () {
   x['+b+c'] = [new CompositeSegmentExpression([x['b'][0], x['c'][0]]), 'b+c'];
   x['+c+d'] = [new CompositeSegmentExpression([x['c'][0], x['d'][0]]), 'c+d'];
 
-  x['(a)/b'] = [new ScopedSegmentExpression('(a)/b', x['(a)'][0], x['b'][0]), '(a)/b'];
-  x['a/(b)'] = [new ScopedSegmentExpression('a/(b)', x['a'][0], x['(b)'][0]), 'a/(b)'];
+  x['(a)/b'] = [new ScopedSegmentExpression(x['(a)'][0], x['b'][0]), '(a)/b'];
+  x['a/(b)'] = [new ScopedSegmentExpression(x['a'][0], x['(b)'][0]), 'a/(b)'];
 
   x['+(a)/b'] = [new CompositeSegmentExpression([x['(a)/b'][0]]), '(a)/b'];
   x['+a/(b)'] = [new CompositeSegmentExpression([x['a/(b)'][0]]), 'a/(b)'];
 
-  x['a/b'] = [new ScopedSegmentExpression('a/b', x['a'][0], x['b'][0]), 'a/b'];
-  x['b/c'] = [new ScopedSegmentExpression('b/c', x['b'][0], x['c'][0]), 'b/c'];
-  x['c/d'] = [new ScopedSegmentExpression('c/d', x['c'][0], x['d'][0]), 'c/d'];
+  x['a/b'] = [new ScopedSegmentExpression(x['a'][0], x['b'][0]), 'a/b'];
+  x['b/c'] = [new ScopedSegmentExpression(x['b'][0], x['c'][0]), 'b/c'];
+  x['c/d'] = [new ScopedSegmentExpression(x['c'][0], x['d'][0]), 'c/d'];
 
   x['+a/b'] = [new CompositeSegmentExpression([x['a/b'][0]]), 'a/b'];
   x['+b/c'] = [new CompositeSegmentExpression([x['b/c'][0]]), 'b/c'];
@@ -237,11 +236,11 @@ describe('router-lite/ast.spec.ts', function () {
   x['b+c/d']   = [new CompositeSegmentExpression([x['b'][0],     x['c/d'][0],                ]), 'b+c/d'];
   x['b+(c/d)'] = [new CompositeSegmentExpression([x['b'][0],     x['(c/d)'][0],              ]), 'b+(c/d)'];
 
-  x['a/b/c']   = [new ScopedSegmentExpression('a/b/c',   x['a'][0],     x['b/c'][0]),   'a/b/c'];
-  x['a/(b/c)'] = [new ScopedSegmentExpression('a/(b/c)', x['a'][0],     x['(b/c)'][0]), 'a/(b/c)'];
-  x['a/(b+c)'] = [new ScopedSegmentExpression('a/(b+c)', x['a'][0],     x['(b+c)'][0]), 'a/(b+c)'];
-  x['(a/b)/c'] = [new ScopedSegmentExpression('(a/b)/c', x['(a/b)'][0], x['c'][0]),     '(a/b)/c'];
-  x['(a+b)/c'] = [new ScopedSegmentExpression('(a+b)/c', x['(a+b)'][0], x['c'][0]),     '(a+b)/c'];
+  x['a/b/c']   = [new ScopedSegmentExpression(x['a'][0],     x['b/c'][0]),   'a/b/c'];
+  x['a/(b/c)'] = [new ScopedSegmentExpression(x['a'][0],     x['(b/c)'][0]), 'a/(b/c)'];
+  x['a/(b+c)'] = [new ScopedSegmentExpression(x['a'][0],     x['(b+c)'][0]), 'a/(b+c)'];
+  x['(a/b)/c'] = [new ScopedSegmentExpression(x['(a/b)'][0], x['c'][0]),     '(a/b)/c'];
+  x['(a+b)/c'] = [new ScopedSegmentExpression(x['(a+b)'][0], x['c'][0]),     '(a+b)/c'];
 
   x['+a/b/c']   = [new CompositeSegmentExpression([x['a/b/c'][0]]), 'a/b/c'];
   x['+a/(b/c)'] = [new CompositeSegmentExpression([x['a/(b/c)'][0]]), 'a/(b/c)'];
@@ -249,11 +248,11 @@ describe('router-lite/ast.spec.ts', function () {
   x['+(a/b)/c'] = [new CompositeSegmentExpression([x['(a/b)/c'][0]]), '(a/b)/c'];
   x['+(a+b)/c'] = [new CompositeSegmentExpression([x['(a+b)/c'][0]]), '(a+b)/c'];
 
-  x['b/c/d']   = [new ScopedSegmentExpression('b/c/d',   x['b'][0],     x['c/d'][0]),   'b/c/d'];
-  x['b/(c/d)'] = [new ScopedSegmentExpression('b/(c/d)', x['b'][0],     x['(c/d)'][0]), 'b/(c/d)'];
-  x['b/(c+d)'] = [new ScopedSegmentExpression('b/(c+d)', x['b'][0],     x['(c+d)'][0]), 'b/(c+d)'];
-  x['(b/c)/d'] = [new ScopedSegmentExpression('(b/c)/d', x['(b/c)'][0], x['d'][0]),     '(b/c)/d'];
-  x['(b+c)/d'] = [new ScopedSegmentExpression('(b+c)/d', x['(b+c)'][0], x['d'][0]),     '(b+c)/d'];
+  x['b/c/d']   = [new ScopedSegmentExpression(x['b'][0],     x['c/d'][0]),   'b/c/d'];
+  x['b/(c/d)'] = [new ScopedSegmentExpression(x['b'][0],     x['(c/d)'][0]), 'b/(c/d)'];
+  x['b/(c+d)'] = [new ScopedSegmentExpression(x['b'][0],     x['(c+d)'][0]), 'b/(c+d)'];
+  x['(b/c)/d'] = [new ScopedSegmentExpression(x['(b/c)'][0], x['d'][0]),     '(b/c)/d'];
+  x['(b+c)/d'] = [new ScopedSegmentExpression(x['(b+c)'][0], x['d'][0]),     '(b+c)/d'];
 
   x['(a+b+c)']   = [new SegmentGroupExpression('(a+b+c)',   x['a+b+c'][0]),   '(a+b+c)'];
   x['((a+b)+c)'] = [new SegmentGroupExpression('((a+b)+c)', x['(a+b)+c'][0]), '((a+b)+c)'];
@@ -343,47 +342,47 @@ describe('router-lite/ast.spec.ts', function () {
   x['a+((b/c)/d)'] = [new CompositeSegmentExpression([x['a'][0],         x['((b/c)/d)'][0], ]), 'a+((b/c)/d)'];
   x['a+(b/(c/d))'] = [new CompositeSegmentExpression([x['a'][0],         x['(b/(c/d))'][0], ]), 'a+(b/(c/d))'];
 
-  x['a/b/c/d']     = [new ScopedSegmentExpression('a/b/c/d',     x['a'][0],         x['b/c/d'][0]),     'a/b/c/d'];
-  x['(a/b)/c/d']   = [new ScopedSegmentExpression('(a/b)/c/d',   x['(a/b)'][0],     x['c/d'][0]),       '(a/b)/c/d'];
-  x['a/(b/c)/d']   = [new ScopedSegmentExpression('a/(b/c)/d',   x['a'][0],         x['(b/c)/d'][0]),   'a/(b/c)/d'];
-  x['a/b/(c/d)']   = [new ScopedSegmentExpression('a/b/(c/d)',   x['a'][0],         x['b/(c/d)'][0]),   'a/b/(c/d)'];
-  x['(a/b)/(c/d)'] = [new ScopedSegmentExpression('(a/b)/(c/d)', x['(a/b)'][0],     x['(c/d)'][0]),     '(a/b)/(c/d)'];
-  x['(a/b/c)/d']   = [new ScopedSegmentExpression('(a/b/c)/d',   x['(a/b/c)'][0],   x['d'][0]),         '(a/b/c)/d'];
-  x['((a/b)/c)/d'] = [new ScopedSegmentExpression('((a/b)/c)/d', x['((a/b)/c)'][0], x['d'][0]),         '((a/b)/c)/d'];
-  x['(a/(b/c))/d'] = [new ScopedSegmentExpression('(a/(b/c))/d', x['(a/(b/c))'][0], x['d'][0]),         '(a/(b/c))/d'];
-  x['a/(b/c/d)']   = [new ScopedSegmentExpression('a/(b/c/d)',   x['a'][0],         x['(b/c/d)'][0]),   'a/(b/c/d)'];
-  x['a/((b/c)/d)'] = [new ScopedSegmentExpression('a/((b/c)/d)', x['a'][0],         x['((b/c)/d)'][0]), 'a/((b/c)/d)'];
-  x['a/(b/(c/d))'] = [new ScopedSegmentExpression('a/(b/(c/d))', x['a'][0],         x['(b/(c/d))'][0]), 'a/(b/(c/d))'];
+  x['a/b/c/d']     = [new ScopedSegmentExpression(x['a'][0],         x['b/c/d'][0]),     'a/b/c/d'];
+  x['(a/b)/c/d']   = [new ScopedSegmentExpression(x['(a/b)'][0],     x['c/d'][0]),       '(a/b)/c/d'];
+  x['a/(b/c)/d']   = [new ScopedSegmentExpression(x['a'][0],         x['(b/c)/d'][0]),   'a/(b/c)/d'];
+  x['a/b/(c/d)']   = [new ScopedSegmentExpression(x['a'][0],         x['b/(c/d)'][0]),   'a/b/(c/d)'];
+  x['(a/b)/(c/d)'] = [new ScopedSegmentExpression(x['(a/b)'][0],     x['(c/d)'][0]),     '(a/b)/(c/d)'];
+  x['(a/b/c)/d']   = [new ScopedSegmentExpression(x['(a/b/c)'][0],   x['d'][0]),         '(a/b/c)/d'];
+  x['((a/b)/c)/d'] = [new ScopedSegmentExpression(x['((a/b)/c)'][0], x['d'][0]),         '((a/b)/c)/d'];
+  x['(a/(b/c))/d'] = [new ScopedSegmentExpression(x['(a/(b/c))'][0], x['d'][0]),         '(a/(b/c))/d'];
+  x['a/(b/c/d)']   = [new ScopedSegmentExpression(x['a'][0],         x['(b/c/d)'][0]),   'a/(b/c/d)'];
+  x['a/((b/c)/d)'] = [new ScopedSegmentExpression(x['a'][0],         x['((b/c)/d)'][0]), 'a/((b/c)/d)'];
+  x['a/(b/(c/d))'] = [new ScopedSegmentExpression(x['a'][0],         x['(b/(c/d))'][0]), 'a/(b/(c/d))'];
 
-  x['(a+b)/c/d']   = [new ScopedSegmentExpression('(a+b)/c/d',   x['(a+b)'][0],     x['c/d'][0]),   '(a+b)/c/d'];
-  x['(a+b)/(c/d)'] = [new ScopedSegmentExpression('(a+b)/(c/d)', x['(a+b)'][0],     x['(c/d)'][0]), '(a+b)/(c/d)'];
-  x['(a+b/c)/d']   = [new ScopedSegmentExpression('(a+b/c)/d',   x['(a+b/c)'][0],   x['d'][0]),     '(a+b/c)/d'];
-  x['((a+b)/c)/d'] = [new ScopedSegmentExpression('((a+b)/c)/d', x['((a+b)/c)'][0], x['d'][0]),     '((a+b)/c)/d'];
-  x['(a+(b/c))/d'] = [new ScopedSegmentExpression('(a+(b/c))/d', x['(a+(b/c))'][0], x['d'][0]),     '(a+(b/c))/d'];
+  x['(a+b)/c/d']   = [new ScopedSegmentExpression(x['(a+b)'][0],     x['c/d'][0]),   '(a+b)/c/d'];
+  x['(a+b)/(c/d)'] = [new ScopedSegmentExpression(x['(a+b)'][0],     x['(c/d)'][0]), '(a+b)/(c/d)'];
+  x['(a+b/c)/d']   = [new ScopedSegmentExpression(x['(a+b/c)'][0],   x['d'][0]),     '(a+b/c)/d'];
+  x['((a+b)/c)/d'] = [new ScopedSegmentExpression(x['((a+b)/c)'][0], x['d'][0]),     '((a+b)/c)/d'];
+  x['(a+(b/c))/d'] = [new ScopedSegmentExpression(x['(a+(b/c))'][0], x['d'][0]),     '(a+(b/c))/d'];
 
-  x['a/(b+c)/d']   = [new ScopedSegmentExpression('a/(b+c)/d',   x['a'][0],         x['(b+c)/d'][0]),   'a/(b+c)/d'];
-  x['(a/b+c)/d']   = [new ScopedSegmentExpression('(a/b+c)/d',   x['(a/b+c)'][0],   x['d'][0]),         '(a/b+c)/d'];
-  x['((a/b)+c)/d'] = [new ScopedSegmentExpression('((a/b)+c)/d', x['((a/b)+c)'][0], x['d'][0]),         '((a/b)+c)/d'];
-  x['(a/(b+c))/d'] = [new ScopedSegmentExpression('(a/(b+c))/d', x['(a/(b+c))'][0], x['d'][0]),         '(a/(b+c))/d'];
-  x['a/(b+c/d)']   = [new ScopedSegmentExpression('a/(b+c/d)',   x['a'][0],         x['(b+c/d)'][0]),   'a/(b+c/d)'];
-  x['a/((b+c)/d)'] = [new ScopedSegmentExpression('a/((b+c)/d)', x['a'][0],         x['((b+c)/d)'][0]), 'a/((b+c)/d)'];
-  x['a/(b+(c/d))'] = [new ScopedSegmentExpression('a/(b+(c/d))', x['a'][0],         x['(b+(c/d))'][0]), 'a/(b+(c/d))'];
+  x['a/(b+c)/d']   = [new ScopedSegmentExpression(x['a'][0],         x['(b+c)/d'][0]),   'a/(b+c)/d'];
+  x['(a/b+c)/d']   = [new ScopedSegmentExpression(x['(a/b+c)'][0],   x['d'][0]),         '(a/b+c)/d'];
+  x['((a/b)+c)/d'] = [new ScopedSegmentExpression(x['((a/b)+c)'][0], x['d'][0]),         '((a/b)+c)/d'];
+  x['(a/(b+c))/d'] = [new ScopedSegmentExpression(x['(a/(b+c))'][0], x['d'][0]),         '(a/(b+c))/d'];
+  x['a/(b+c/d)']   = [new ScopedSegmentExpression(x['a'][0],         x['(b+c/d)'][0]),   'a/(b+c/d)'];
+  x['a/((b+c)/d)'] = [new ScopedSegmentExpression(x['a'][0],         x['((b+c)/d)'][0]), 'a/((b+c)/d)'];
+  x['a/(b+(c/d))'] = [new ScopedSegmentExpression(x['a'][0],         x['(b+(c/d))'][0]), 'a/(b+(c/d))'];
 
-  x['a/b/(c+d)']   = [new ScopedSegmentExpression('a/b/(c+d)',   x['a'][0],         x['b/(c+d)'][0]),   'a/b/(c+d)'];
-  x['(a/b)/(c+d)'] = [new ScopedSegmentExpression('(a/b)/(c+d)', x['(a/b)'][0],     x['(c+d)'][0]),     '(a/b)/(c+d)'];
-  x['a/(b/c+d)']   = [new ScopedSegmentExpression('a/(b/c+d)',   x['a'][0],         x['(b/c+d)'][0]),   'a/(b/c+d)'];
-  x['a/((b/c)+d)'] = [new ScopedSegmentExpression('a/((b/c)+d)', x['a'][0],         x['((b/c)+d)'][0]), 'a/((b/c)+d)'];
-  x['a/(b/(c+d))'] = [new ScopedSegmentExpression('a/(b/(c+d))', x['a'][0],         x['(b/(c+d))'][0]), 'a/(b/(c+d))'];
+  x['a/b/(c+d)']   = [new ScopedSegmentExpression(x['a'][0],         x['b/(c+d)'][0]),   'a/b/(c+d)'];
+  x['(a/b)/(c+d)'] = [new ScopedSegmentExpression(x['(a/b)'][0],     x['(c+d)'][0]),     '(a/b)/(c+d)'];
+  x['a/(b/c+d)']   = [new ScopedSegmentExpression(x['a'][0],         x['(b/c+d)'][0]),   'a/(b/c+d)'];
+  x['a/((b/c)+d)'] = [new ScopedSegmentExpression(x['a'][0],         x['((b/c)+d)'][0]), 'a/((b/c)+d)'];
+  x['a/(b/(c+d))'] = [new ScopedSegmentExpression(x['a'][0],         x['(b/(c+d))'][0]), 'a/(b/(c+d))'];
 
-  x['(a+b)/(c+d)'] = [new ScopedSegmentExpression('(a+b)/(c+d)', x['(a+b)'][0],     x['(c+d)'][0]), '(a+b)/(c+d)'];
+  x['(a+b)/(c+d)'] = [new ScopedSegmentExpression(x['(a+b)'][0],     x['(c+d)'][0]), '(a+b)/(c+d)'];
 
-  x['(a+b+c)/d']   = [new ScopedSegmentExpression('(a+b+c)/d',   x['(a+b+c)'][0],   x['d'][0]), '(a+b+c)/d'];
-  x['((a+b)+c)/d'] = [new ScopedSegmentExpression('((a+b)+c)/d', x['((a+b)+c)'][0], x['d'][0]), '((a+b)+c)/d'];
-  x['(a+(b+c))/d'] = [new ScopedSegmentExpression('(a+(b+c))/d', x['(a+(b+c))'][0], x['d'][0]), '(a+(b+c))/d'];
+  x['(a+b+c)/d']   = [new ScopedSegmentExpression(x['(a+b+c)'][0],   x['d'][0]), '(a+b+c)/d'];
+  x['((a+b)+c)/d'] = [new ScopedSegmentExpression(x['((a+b)+c)'][0], x['d'][0]), '((a+b)+c)/d'];
+  x['(a+(b+c))/d'] = [new ScopedSegmentExpression(x['(a+(b+c))'][0], x['d'][0]), '(a+(b+c))/d'];
 
-  x['a/(b+c+d)']   = [new ScopedSegmentExpression('a/(b+c+d)',   x['a'][0],         x['(b+c+d)'][0]),   'a/(b+c+d)'];
-  x['a/((b+c)+d)'] = [new ScopedSegmentExpression('a/((b+c)+d)', x['a'][0],         x['((b+c)+d)'][0]), 'a/((b+c)+d)'];
-  x['a/(b+(c+d))'] = [new ScopedSegmentExpression('a/(b+(c+d))', x['a'][0],         x['(b+(c+d))'][0]), 'a/(b+(c+d))'];
+  x['a/(b+c+d)']   = [new ScopedSegmentExpression(x['a'][0],         x['(b+c+d)'][0]),   'a/(b+c+d)'];
+  x['a/((b+c)+d)'] = [new ScopedSegmentExpression(x['a'][0],         x['((b+c)+d)'][0]), 'a/((b+c)+d)'];
+  x['a/(b+(c+d))'] = [new ScopedSegmentExpression(x['a'][0],         x['(b+(c+d))'][0]), 'a/(b+(c+d))'];
 
   for (const path in x) {
     const [route, url] = x[path];

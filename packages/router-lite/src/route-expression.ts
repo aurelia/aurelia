@@ -293,7 +293,6 @@ export class ScopedSegmentExpression {
   public get kind(): ExpressionKind.ScopedSegment { return ExpressionKind.ScopedSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly left: SegmentGroupExpressionOrHigher,
     public readonly right: ScopedSegmentExpressionOrHigher,
   ) {}
@@ -307,8 +306,8 @@ export class ScopedSegmentExpression {
     if (state._consumeOptional('/')) {
       const right = ScopedSegmentExpression._parse(state);
 
-      const raw = state._playback();
-      return new ScopedSegmentExpression(raw, left, right);
+      state._discard();
+      return new ScopedSegmentExpression(left, right);
     }
 
     state._discard();
@@ -325,10 +324,6 @@ export class ScopedSegmentExpression {
     }
     cur.children.push(...rightInstructions);
     return leftInstructions;
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

@@ -153,7 +153,7 @@ export type FallbackFunction = (viewportInstruction: IViewportInstruction, route
  * - `IChildRouteConfig`: a standalone child route config object.
  * - `RouteableComponent`: see `RouteableComponent`.
  *
- * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
+ * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportInstruction`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
  * as well as `IRedirectRouteConfig`
  */

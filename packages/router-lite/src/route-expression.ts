@@ -111,24 +111,20 @@ export const enum ExpressionKind {
   Parameter,
 }
 
-const fragmentRouteExpressionCache = new Map<string, RouteExpression>();
-const routeExpressionCache = new Map<string, RouteExpression>();
+const cache = new Map<string, RouteExpression>();
 
 export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | RouteExpression;
 export class RouteExpression {
   public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
 
   public constructor(
-    public readonly raw: string,
     public readonly isAbsolute: boolean,
     public readonly root: CompositeSegmentExpressionOrHigher,
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-    public readonly fragmentIsRoute: boolean,
   ) {}
 
   public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    const cache = fragmentIsRoute ? fragmentRouteExpressionCache : routeExpressionCache;
     let result = cache.get(path);
     if (result === void 0) {
       cache.set(path, result = RouteExpression._$parse(path, fragmentIsRoute));
@@ -161,12 +157,10 @@ export class RouteExpression {
     }
     if (path === '') {
       return new RouteExpression(
-        '',
         false,
         SegmentExpression.EMPTY,
         queryParams != null ? Object.freeze(queryParams) : emptyQuery,
         fragment,
-        fragmentIsRoute,
       );
     }
 
@@ -190,8 +184,7 @@ export class RouteExpression {
     const root = CompositeSegmentExpression._parse(state);
     state._ensureDone();
 
-    const raw = state._playback();
-    return new RouteExpression(raw, isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
+    return new RouteExpression(isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
@@ -202,10 +195,6 @@ export class RouteExpression {
       mergeURLSearchParams(this.queryParams, options.queryParams, true),
       this.fragment ?? options.fragment,
     );
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

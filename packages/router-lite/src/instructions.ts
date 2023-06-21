@@ -34,7 +34,7 @@ export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustom
  * - `IViewportInstruction`: a viewport instruction object.
  * - `RouteableComponent`: see `RouteableComponent`.
  *
- * NOTE: differs from `Routeable` only in having `IViewportIntruction` instead of `IChildRouteConfig`
+ * NOTE: differs from `Routeable` only in having `IViewportInstruction` instead of `IChildRouteConfig`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
  */
 export type NavigationInstruction = string | IViewportInstruction | RouteableComponent;

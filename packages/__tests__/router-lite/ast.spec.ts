@@ -74,15 +74,12 @@ describe('router-lite/ast.spec.ts', function () {
           const url = `${component.raw}${viewport.raw}`;
 
           specs[`/${raw}`] = [new RouteExpression(
-            `/${raw}`,
             true,
             new SegmentExpression(raw, component, action, viewport, scoped),
             emptyQuerystring,
             null,
-            false,
           ), url];
           specs[`/(${raw})`] = [new RouteExpression(
-            `/(${raw})`,
             true,
             new SegmentGroupExpression(
               `(${raw})`,
@@ -90,11 +87,9 @@ describe('router-lite/ast.spec.ts', function () {
             ),
             emptyQuerystring,
             null,
-            false,
           ), `(${url})`];
 
           specs[`/${raw}/${raw}`] = [new RouteExpression(
-            `/${raw}/${raw}`,
             true,
             new ScopedSegmentExpression(
               `${raw}/${raw}`,
@@ -103,11 +98,9 @@ describe('router-lite/ast.spec.ts', function () {
             ),
             emptyQuerystring,
             null,
-            false,
           ), `${url}/${url}`];
 
           specs[`/${raw}+${raw}`] = [new RouteExpression(
-            `/${raw}+${raw}`,
             true,
             new CompositeSegmentExpression(
               `${raw}+${raw}`,
@@ -118,34 +111,27 @@ describe('router-lite/ast.spec.ts', function () {
             ),
             emptyQuerystring,
             null,
-            false,
           ), `${url}+${url}`];
 
           specs[`/${raw}?foo=bar`] = [new RouteExpression(
-            `/${raw}`,
             true,
             new SegmentExpression(raw, component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar')),
             null,
-            false,
           ), `${url}?foo=bar`];
 
           specs[`/${raw}?foo=bar&fiz=baz`] = [new RouteExpression(
-            `/${raw}`,
             true,
             new SegmentExpression(raw, component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar&fiz=baz')),
             null,
-            false,
           ), `${url}?foo=bar&fiz=baz`];
 
           specs[`/${raw}?foo=bar1&fiz=baz&foo=bar2`] = [new RouteExpression(
-            `/${raw}`,
             true,
             new SegmentExpression(raw, component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar1&fiz=baz&foo=bar2')),
             null,
-            false,
           ), `${url}?foo=bar1&fiz=baz&foo=bar2`];
         }
       }
@@ -402,7 +388,7 @@ describe('router-lite/ast.spec.ts', function () {
 
   for (const path in x) {
     const [route, url] = x[path];
-    specs[`/${route.raw}`] = [new RouteExpression(`/${route.raw}`, true, route, emptyQuerystring, null, false), url];
+    specs[`/${route.raw}`] = [new RouteExpression(true, route, emptyQuerystring, null), url];
   }
 
   for (const path in specs) {

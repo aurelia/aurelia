@@ -103,7 +103,6 @@ describe('router-lite/ast.spec.ts', function () {
           specs[`/${raw}+${raw}`] = [new RouteExpression(
             true,
             new CompositeSegmentExpression(
-              `${raw}+${raw}`,
               [
                 new SegmentExpression(raw, component, action, viewport, scoped),
                 new SegmentExpression(raw, component, action, viewport, scoped),
@@ -154,10 +153,10 @@ describe('router-lite/ast.spec.ts', function () {
   x['c'] = [new SegmentExpression('c', comp['c'], noAction,  noViewport, true), 'c'];
   x['d'] = [new SegmentExpression('d', comp['d'], noAction,  noViewport, true), 'd'];
 
-  x['+a'] = [new CompositeSegmentExpression('+a', [x['a'][0]]), 'a'];
-  x['+b'] = [new CompositeSegmentExpression('+b', [x['b'][0]]), 'b'];
-  x['+c'] = [new CompositeSegmentExpression('+c', [x['c'][0]]), 'c'];
-  x['+d'] = [new CompositeSegmentExpression('+d', [x['d'][0]]), 'd'];
+  x['+a'] = [new CompositeSegmentExpression([x['a'][0]]), 'a'];
+  x['+b'] = [new CompositeSegmentExpression([x['b'][0]]), 'b'];
+  x['+c'] = [new CompositeSegmentExpression([x['c'][0]]), 'c'];
+  x['+d'] = [new CompositeSegmentExpression([x['d'][0]]), 'd'];
 
   x['(a)'] = [new SegmentGroupExpression('(a)', x['a'][0]), '(a)'];
   x['(b)'] = [new SegmentGroupExpression('(b)', x['b'][0]), '(b)'];
@@ -169,38 +168,38 @@ describe('router-lite/ast.spec.ts', function () {
   x['(+c)'] = [new SegmentGroupExpression('(+c)', x['+c'][0]), '(c)'];
   x['(+d)'] = [new SegmentGroupExpression('(+d)', x['+d'][0]), '(d)'];
 
-  x['+(a)'] = [new CompositeSegmentExpression('+(a)', [x['(a)'][0]]), '(a)'];
-  x['+(b)'] = [new CompositeSegmentExpression('+(b)', [x['(b)'][0]]), '(b)'];
-  x['+(c)'] = [new CompositeSegmentExpression('+(c)', [x['(c)'][0]]), '(c)'];
-  x['+(d)'] = [new CompositeSegmentExpression('+(d)', [x['(d)'][0]]), '(d)'];
+  x['+(a)'] = [new CompositeSegmentExpression([x['(a)'][0]]), '(a)'];
+  x['+(b)'] = [new CompositeSegmentExpression([x['(b)'][0]]), '(b)'];
+  x['+(c)'] = [new CompositeSegmentExpression([x['(c)'][0]]), '(c)'];
+  x['+(d)'] = [new CompositeSegmentExpression([x['(d)'][0]]), '(d)'];
 
-  x['(a)+b'] = [new CompositeSegmentExpression('(a)+b', [x['(a)'][0], x['b'][0]]), '(a)+b'];
-  x['a+(b)'] = [new CompositeSegmentExpression('a+(b)', [x['a'][0], x['(b)'][0]]), 'a+(b)'];
+  x['(a)+b'] = [new CompositeSegmentExpression([x['(a)'][0], x['b'][0]]), '(a)+b'];
+  x['a+(b)'] = [new CompositeSegmentExpression([x['a'][0], x['(b)'][0]]), 'a+(b)'];
 
-  x['+(a)+b'] = [new CompositeSegmentExpression('+(a)+b', [x['(a)'][0], x['b'][0]]), '(a)+b'];
-  x['+a+(b)'] = [new CompositeSegmentExpression('+a+(b)', [x['a'][0], x['(b)'][0]]), 'a+(b)'];
+  x['+(a)+b'] = [new CompositeSegmentExpression([x['(a)'][0], x['b'][0]]), '(a)+b'];
+  x['+a+(b)'] = [new CompositeSegmentExpression([x['a'][0], x['(b)'][0]]), 'a+(b)'];
 
-  x['a+b'] = [new CompositeSegmentExpression('a+b', [x['a'][0], x['b'][0]]), 'a+b'];
-  x['b+c'] = [new CompositeSegmentExpression('b+c', [x['b'][0], x['c'][0]]), 'b+c'];
-  x['c+d'] = [new CompositeSegmentExpression('c+d', [x['c'][0], x['d'][0]]), 'c+d'];
+  x['a+b'] = [new CompositeSegmentExpression([x['a'][0], x['b'][0]]), 'a+b'];
+  x['b+c'] = [new CompositeSegmentExpression([x['b'][0], x['c'][0]]), 'b+c'];
+  x['c+d'] = [new CompositeSegmentExpression([x['c'][0], x['d'][0]]), 'c+d'];
 
-  x['+a+b'] = [new CompositeSegmentExpression('+a+b', [x['a'][0], x['b'][0]]), 'a+b'];
-  x['+b+c'] = [new CompositeSegmentExpression('+b+c', [x['b'][0], x['c'][0]]), 'b+c'];
-  x['+c+d'] = [new CompositeSegmentExpression('+c+d', [x['c'][0], x['d'][0]]), 'c+d'];
+  x['+a+b'] = [new CompositeSegmentExpression([x['a'][0], x['b'][0]]), 'a+b'];
+  x['+b+c'] = [new CompositeSegmentExpression([x['b'][0], x['c'][0]]), 'b+c'];
+  x['+c+d'] = [new CompositeSegmentExpression([x['c'][0], x['d'][0]]), 'c+d'];
 
   x['(a)/b'] = [new ScopedSegmentExpression('(a)/b', x['(a)'][0], x['b'][0]), '(a)/b'];
   x['a/(b)'] = [new ScopedSegmentExpression('a/(b)', x['a'][0], x['(b)'][0]), 'a/(b)'];
 
-  x['+(a)/b'] = [new CompositeSegmentExpression('+(a)/b', [x['(a)/b'][0]]), '(a)/b'];
-  x['+a/(b)'] = [new CompositeSegmentExpression('+a/(b)', [x['a/(b)'][0]]), 'a/(b)'];
+  x['+(a)/b'] = [new CompositeSegmentExpression([x['(a)/b'][0]]), '(a)/b'];
+  x['+a/(b)'] = [new CompositeSegmentExpression([x['a/(b)'][0]]), 'a/(b)'];
 
   x['a/b'] = [new ScopedSegmentExpression('a/b', x['a'][0], x['b'][0]), 'a/b'];
   x['b/c'] = [new ScopedSegmentExpression('b/c', x['b'][0], x['c'][0]), 'b/c'];
   x['c/d'] = [new ScopedSegmentExpression('c/d', x['c'][0], x['d'][0]), 'c/d'];
 
-  x['+a/b'] = [new CompositeSegmentExpression('+a/b', [x['a/b'][0]]), 'a/b'];
-  x['+b/c'] = [new CompositeSegmentExpression('+b/c', [x['b/c'][0]]), 'b/c'];
-  x['+c/d'] = [new CompositeSegmentExpression('+c/d', [x['c/d'][0]]), 'c/d'];
+  x['+a/b'] = [new CompositeSegmentExpression([x['a/b'][0]]), 'a/b'];
+  x['+b/c'] = [new CompositeSegmentExpression([x['b/c'][0]]), 'b/c'];
+  x['+c/d'] = [new CompositeSegmentExpression([x['c/d'][0]]), 'c/d'];
 
   x['(a+b)'] = [new SegmentGroupExpression('(a+b)', x['a+b'][0]), '(a+b)'];
   x['(b+c)'] = [new SegmentGroupExpression('(b+c)', x['b+c'][0]), '(b+c)'];
@@ -210,33 +209,33 @@ describe('router-lite/ast.spec.ts', function () {
   x['(b/c)'] = [new SegmentGroupExpression('(b/c)', x['b/c'][0]), '(b/c)'];
   x['(c/d)'] = [new SegmentGroupExpression('(c/d)', x['c/d'][0]), '(c/d)'];
 
-  x['+(a+b)'] = [new CompositeSegmentExpression('+(a+b)', [x['(a+b)'][0]]), '(a+b)'];
-  x['+(b+c)'] = [new CompositeSegmentExpression('+(b+c)', [x['(b+c)'][0]]), '(b+c)'];
-  x['+(c+d)'] = [new CompositeSegmentExpression('+(c+d)', [x['(c+d)'][0]]), '(c+d)'];
+  x['+(a+b)'] = [new CompositeSegmentExpression([x['(a+b)'][0]]), '(a+b)'];
+  x['+(b+c)'] = [new CompositeSegmentExpression([x['(b+c)'][0]]), '(b+c)'];
+  x['+(c+d)'] = [new CompositeSegmentExpression([x['(c+d)'][0]]), '(c+d)'];
 
-  x['a+b+c']   = [new CompositeSegmentExpression('a+b+c',   [x['a'][0],     x['b'][0],     x['c'][0],   ]), 'a+b+c'];
-  x['(a+b)+c'] = [new CompositeSegmentExpression('(a+b)+c', [x['(a+b)'][0], x['c'][0],                  ]), '(a+b)+c'];
-  x['a+(b+c)'] = [new CompositeSegmentExpression('a+(b+c)', [x['a'][0],     x['(b+c)'][0],              ]), 'a+(b+c)'];
-  x['a/b+c']   = [new CompositeSegmentExpression('a/b+c',   [x['a/b'][0],   x['c'][0],                  ]), 'a/b+c'];
-  x['(a/b)+c'] = [new CompositeSegmentExpression('(a/b)+c', [x['(a/b)'][0], x['c'][0],                  ]), '(a/b)+c'];
-  x['a+b/c']   = [new CompositeSegmentExpression('a+b/c',   [x['a'][0],     x['b/c'][0],                ]), 'a+b/c'];
-  x['a+(b/c)'] = [new CompositeSegmentExpression('a+(b/c)', [x['a'][0],     x['(b/c)'][0],              ]), 'a+(b/c)'];
+  x['a+b+c']   = [new CompositeSegmentExpression([x['a'][0],     x['b'][0],     x['c'][0],   ]), 'a+b+c'];
+  x['(a+b)+c'] = [new CompositeSegmentExpression([x['(a+b)'][0], x['c'][0],                  ]), '(a+b)+c'];
+  x['a+(b+c)'] = [new CompositeSegmentExpression([x['a'][0],     x['(b+c)'][0],              ]), 'a+(b+c)'];
+  x['a/b+c']   = [new CompositeSegmentExpression([x['a/b'][0],   x['c'][0],                  ]), 'a/b+c'];
+  x['(a/b)+c'] = [new CompositeSegmentExpression([x['(a/b)'][0], x['c'][0],                  ]), '(a/b)+c'];
+  x['a+b/c']   = [new CompositeSegmentExpression([x['a'][0],     x['b/c'][0],                ]), 'a+b/c'];
+  x['a+(b/c)'] = [new CompositeSegmentExpression([x['a'][0],     x['(b/c)'][0],              ]), 'a+(b/c)'];
 
-  x['+a+b+c']   = [new CompositeSegmentExpression('+a+b+c',   [x['a'][0],     x['b'][0],     x['c'][0], ]), 'a+b+c'];
-  x['+(a+b)+c'] = [new CompositeSegmentExpression('+(a+b)+c', [x['(a+b)'][0], x['c'][0],                ]), '(a+b)+c'];
-  x['+a+(b+c)'] = [new CompositeSegmentExpression('+a+(b+c)', [x['a'][0],     x['(b+c)'][0],            ]), 'a+(b+c)'];
-  x['+a/b+c']   = [new CompositeSegmentExpression('+a/b+c',   [x['a/b'][0],   x['c'][0],                ]), 'a/b+c'];
-  x['+(a/b)+c'] = [new CompositeSegmentExpression('+(a/b)+c', [x['(a/b)'][0], x['c'][0],                ]), '(a/b)+c'];
-  x['+a+b/c']   = [new CompositeSegmentExpression('+a+b/c',   [x['a'][0],     x['b/c'][0],              ]), 'a+b/c'];
-  x['+a+(b/c)'] = [new CompositeSegmentExpression('+a+(b/c)', [x['a'][0],     x['(b/c)'][0],            ]), 'a+(b/c)'];
+  x['+a+b+c']   = [new CompositeSegmentExpression([x['a'][0],     x['b'][0],     x['c'][0], ]), 'a+b+c'];
+  x['+(a+b)+c'] = [new CompositeSegmentExpression([x['(a+b)'][0], x['c'][0],                ]), '(a+b)+c'];
+  x['+a+(b+c)'] = [new CompositeSegmentExpression([x['a'][0],     x['(b+c)'][0],            ]), 'a+(b+c)'];
+  x['+a/b+c']   = [new CompositeSegmentExpression([x['a/b'][0],   x['c'][0],                ]), 'a/b+c'];
+  x['+(a/b)+c'] = [new CompositeSegmentExpression([x['(a/b)'][0], x['c'][0],                ]), '(a/b)+c'];
+  x['+a+b/c']   = [new CompositeSegmentExpression([x['a'][0],     x['b/c'][0],              ]), 'a+b/c'];
+  x['+a+(b/c)'] = [new CompositeSegmentExpression([x['a'][0],     x['(b/c)'][0],            ]), 'a+(b/c)'];
 
-  x['b+c+d']   = [new CompositeSegmentExpression('b+c+d',   [x['b'][0],     x['c'][0],     x['d'][0],   ]), 'b+c+d'];
-  x['(b+c)+d'] = [new CompositeSegmentExpression('(b+c)+d', [x['(b+c)'][0], x['d'][0],                  ]), '(b+c)+d'];
-  x['b+(c+d)'] = [new CompositeSegmentExpression('b+(c+d)', [x['b'][0],     x['(c+d)'][0],              ]), 'b+(c+d)'];
-  x['b/c+d']   = [new CompositeSegmentExpression('b/c+d',   [x['b/c'][0],   x['d'][0],                  ]), 'b/c+d'];
-  x['(b/c)+d'] = [new CompositeSegmentExpression('(b/c)+d', [x['(b/c)'][0], x['d'][0],                  ]), '(b/c)+d'];
-  x['b+c/d']   = [new CompositeSegmentExpression('b+c/d',   [x['b'][0],     x['c/d'][0],                ]), 'b+c/d'];
-  x['b+(c/d)'] = [new CompositeSegmentExpression('b+(c/d)', [x['b'][0],     x['(c/d)'][0],              ]), 'b+(c/d)'];
+  x['b+c+d']   = [new CompositeSegmentExpression([x['b'][0],     x['c'][0],     x['d'][0],   ]), 'b+c+d'];
+  x['(b+c)+d'] = [new CompositeSegmentExpression([x['(b+c)'][0], x['d'][0],                  ]), '(b+c)+d'];
+  x['b+(c+d)'] = [new CompositeSegmentExpression([x['b'][0],     x['(c+d)'][0],              ]), 'b+(c+d)'];
+  x['b/c+d']   = [new CompositeSegmentExpression([x['b/c'][0],   x['d'][0],                  ]), 'b/c+d'];
+  x['(b/c)+d'] = [new CompositeSegmentExpression([x['(b/c)'][0], x['d'][0],                  ]), '(b/c)+d'];
+  x['b+c/d']   = [new CompositeSegmentExpression([x['b'][0],     x['c/d'][0],                ]), 'b+c/d'];
+  x['b+(c/d)'] = [new CompositeSegmentExpression([x['b'][0],     x['(c/d)'][0],              ]), 'b+(c/d)'];
 
   x['a/b/c']   = [new ScopedSegmentExpression('a/b/c',   x['a'][0],     x['b/c'][0]),   'a/b/c'];
   x['a/(b/c)'] = [new ScopedSegmentExpression('a/(b/c)', x['a'][0],     x['(b/c)'][0]), 'a/(b/c)'];
@@ -244,11 +243,11 @@ describe('router-lite/ast.spec.ts', function () {
   x['(a/b)/c'] = [new ScopedSegmentExpression('(a/b)/c', x['(a/b)'][0], x['c'][0]),     '(a/b)/c'];
   x['(a+b)/c'] = [new ScopedSegmentExpression('(a+b)/c', x['(a+b)'][0], x['c'][0]),     '(a+b)/c'];
 
-  x['+a/b/c']   = [new CompositeSegmentExpression('+a/b/c',   [x['a/b/c'][0]]), 'a/b/c'];
-  x['+a/(b/c)'] = [new CompositeSegmentExpression('+a/(b/c)', [x['a/(b/c)'][0]]), 'a/(b/c)'];
-  x['+a/(b+c)'] = [new CompositeSegmentExpression('+a/(b+c)', [x['a/(b+c)'][0]]), 'a/(b+c)'];
-  x['+(a/b)/c'] = [new CompositeSegmentExpression('+(a/b)/c', [x['(a/b)/c'][0]]), '(a/b)/c'];
-  x['+(a+b)/c'] = [new CompositeSegmentExpression('+(a+b)/c', [x['(a+b)/c'][0]]), '(a+b)/c'];
+  x['+a/b/c']   = [new CompositeSegmentExpression([x['a/b/c'][0]]), 'a/b/c'];
+  x['+a/(b/c)'] = [new CompositeSegmentExpression([x['a/(b/c)'][0]]), 'a/(b/c)'];
+  x['+a/(b+c)'] = [new CompositeSegmentExpression([x['a/(b+c)'][0]]), 'a/(b+c)'];
+  x['+(a/b)/c'] = [new CompositeSegmentExpression([x['(a/b)/c'][0]]), '(a/b)/c'];
+  x['+(a+b)/c'] = [new CompositeSegmentExpression([x['(a+b)/c'][0]]), '(a+b)/c'];
 
   x['b/c/d']   = [new ScopedSegmentExpression('b/c/d',   x['b'][0],     x['c/d'][0]),   'b/c/d'];
   x['b/(c/d)'] = [new ScopedSegmentExpression('b/(c/d)', x['b'][0],     x['(c/d)'][0]), 'b/(c/d)'];
@@ -284,65 +283,65 @@ describe('router-lite/ast.spec.ts', function () {
   x['((b/c)/d)'] = [new SegmentGroupExpression('((b/c)/d)', x['(b/c)/d'][0]), '((b/c)/d)'];
   x['((b+c)/d)'] = [new SegmentGroupExpression('((b+c)/d)', x['(b+c)/d'][0]), '((b+c)/d)'];
 
-  x['a+b+c+d']     = [new CompositeSegmentExpression('a+b+c+d',     [x['a'][0],         x['b'][0],         x['c'][0],     x['d'][0], ]), 'a+b+c+d'];
-  x['(a+b)+c+d']   = [new CompositeSegmentExpression('(a+b)+c+d',   [x['(a+b)'][0],     x['c'][0],         x['d'][0],                ]), '(a+b)+c+d'];
-  x['a+(b+c)+d']   = [new CompositeSegmentExpression('a+(b+c)+d',   [x['a'][0],         x['(b+c)'][0],     x['d'][0],                ]), 'a+(b+c)+d'];
-  x['a+b+(c+d)']   = [new CompositeSegmentExpression('a+b+(c+d)',   [x['a'][0],         x['b'][0],         x['(c+d)'][0],            ]), 'a+b+(c+d)'];
-  x['(a+b)+(c+d)'] = [new CompositeSegmentExpression('(a+b)+(c+d)', [x['(a+b)'][0],     x['(c+d)'][0],                               ]), '(a+b)+(c+d)'];
-  x['(a+b+c)+d']   = [new CompositeSegmentExpression('(a+b+c)+d',   [x['(a+b+c)'][0],   x['d'][0],                                   ]), '(a+b+c)+d'];
-  x['((a+b)+c)+d'] = [new CompositeSegmentExpression('((a+b)+c)+d', [x['((a+b)+c)'][0], x['d'][0],                                   ]), '((a+b)+c)+d'];
-  x['(a+(b+c))+d'] = [new CompositeSegmentExpression('(a+(b+c))+d', [x['(a+(b+c))'][0], x['d'][0],                                   ]), '(a+(b+c))+d'];
-  x['a+(b+c+d)']   = [new CompositeSegmentExpression('a+(b+c+d)',   [x['a'][0],         x['(b+c+d)'][0],                             ]), 'a+(b+c+d)'];
-  x['a+((b+c)+d)'] = [new CompositeSegmentExpression('a+((b+c)+d)', [x['a'][0],         x['((b+c)+d)'][0],                           ]), 'a+((b+c)+d)'];
-  x['a+(b+(c+d))'] = [new CompositeSegmentExpression('a+(b+(c+d))', [x['a'][0],         x['(b+(c+d))'][0],                           ]), 'a+(b+(c+d))'];
+  x['a+b+c+d']     = [new CompositeSegmentExpression([x['a'][0],         x['b'][0],         x['c'][0],     x['d'][0], ]), 'a+b+c+d'];
+  x['(a+b)+c+d']   = [new CompositeSegmentExpression([x['(a+b)'][0],     x['c'][0],         x['d'][0],                ]), '(a+b)+c+d'];
+  x['a+(b+c)+d']   = [new CompositeSegmentExpression([x['a'][0],         x['(b+c)'][0],     x['d'][0],                ]), 'a+(b+c)+d'];
+  x['a+b+(c+d)']   = [new CompositeSegmentExpression([x['a'][0],         x['b'][0],         x['(c+d)'][0],            ]), 'a+b+(c+d)'];
+  x['(a+b)+(c+d)'] = [new CompositeSegmentExpression([x['(a+b)'][0],     x['(c+d)'][0],                               ]), '(a+b)+(c+d)'];
+  x['(a+b+c)+d']   = [new CompositeSegmentExpression([x['(a+b+c)'][0],   x['d'][0],                                   ]), '(a+b+c)+d'];
+  x['((a+b)+c)+d'] = [new CompositeSegmentExpression([x['((a+b)+c)'][0], x['d'][0],                                   ]), '((a+b)+c)+d'];
+  x['(a+(b+c))+d'] = [new CompositeSegmentExpression([x['(a+(b+c))'][0], x['d'][0],                                   ]), '(a+(b+c))+d'];
+  x['a+(b+c+d)']   = [new CompositeSegmentExpression([x['a'][0],         x['(b+c+d)'][0],                             ]), 'a+(b+c+d)'];
+  x['a+((b+c)+d)'] = [new CompositeSegmentExpression([x['a'][0],         x['((b+c)+d)'][0],                           ]), 'a+((b+c)+d)'];
+  x['a+(b+(c+d))'] = [new CompositeSegmentExpression([x['a'][0],         x['(b+(c+d))'][0],                           ]), 'a+(b+(c+d))'];
 
-  x['a/b+c+d']     = [new CompositeSegmentExpression('a/b+c+d',     [x['a/b'][0],       x['c'][0],         x['d'][0],                ]), 'a/b+c+d'];
-  x['(a/b)+c+d']   = [new CompositeSegmentExpression('(a/b)+c+d',   [x['(a/b)'][0],     x['c'][0],         x['d'][0],                ]), '(a/b)+c+d'];
-  x['a/(b+c)+d']   = [new CompositeSegmentExpression('a/(b+c)+d',   [x['a/(b+c)'][0],   x['d'][0],                                   ]), 'a/(b+c)+d'];
-  x['a/b+(c+d)']   = [new CompositeSegmentExpression('a/b+(c+d)',   [x['a/b'][0],       x['(c+d)'][0],                               ]), 'a/b+(c+d)'];
-  x['(a/b)+(c+d)'] = [new CompositeSegmentExpression('(a/b)+(c+d)', [x['(a/b)'][0],     x['(c+d)'][0],                               ]), '(a/b)+(c+d)'];
-  x['(a/b+c)+d']   = [new CompositeSegmentExpression('(a/b+c)+d',   [x['(a/b+c)'][0],   x['d'][0],                                   ]), '(a/b+c)+d'];
-  x['((a/b)+c)+d'] = [new CompositeSegmentExpression('((a/b)+c)+d', [x['((a/b)+c)'][0], x['d'][0],                                   ]), '((a/b)+c)+d'];
-  x['(a/(b+c))+d'] = [new CompositeSegmentExpression('(a/(b+c))+d', [x['(a/(b+c))'][0], x['d'][0],                                   ]), '(a/(b+c))+d'];
+  x['a/b+c+d']     = [new CompositeSegmentExpression([x['a/b'][0],       x['c'][0],         x['d'][0],                ]), 'a/b+c+d'];
+  x['(a/b)+c+d']   = [new CompositeSegmentExpression([x['(a/b)'][0],     x['c'][0],         x['d'][0],                ]), '(a/b)+c+d'];
+  x['a/(b+c)+d']   = [new CompositeSegmentExpression([x['a/(b+c)'][0],   x['d'][0],                                   ]), 'a/(b+c)+d'];
+  x['a/b+(c+d)']   = [new CompositeSegmentExpression([x['a/b'][0],       x['(c+d)'][0],                               ]), 'a/b+(c+d)'];
+  x['(a/b)+(c+d)'] = [new CompositeSegmentExpression([x['(a/b)'][0],     x['(c+d)'][0],                               ]), '(a/b)+(c+d)'];
+  x['(a/b+c)+d']   = [new CompositeSegmentExpression([x['(a/b+c)'][0],   x['d'][0],                                   ]), '(a/b+c)+d'];
+  x['((a/b)+c)+d'] = [new CompositeSegmentExpression([x['((a/b)+c)'][0], x['d'][0],                                   ]), '((a/b)+c)+d'];
+  x['(a/(b+c))+d'] = [new CompositeSegmentExpression([x['(a/(b+c))'][0], x['d'][0],                                   ]), '(a/(b+c))+d'];
 
-  x['a+b/c+d']     = [new CompositeSegmentExpression('a+b/c+d',     [x['a'][0],         x['b/c'][0],       x['d'][0],                ]), 'a+b/c+d'];
-  x['(a+b)/c+d']   = [new CompositeSegmentExpression('(a+b)/c+d',   [x['(a+b)/c'][0],   x['d'][0],                                   ]), '(a+b)/c+d'];
-  x['a+(b/c)+d']   = [new CompositeSegmentExpression('a+(b/c)+d',   [x['a'][0],         x['(b/c)'][0],     x['d'][0],                ]), 'a+(b/c)+d'];
-  x['a+b/(c+d)']   = [new CompositeSegmentExpression('a+b/(c+d)',   [x['a'][0],         x['b/(c+d)'][0],                             ]), 'a+b/(c+d)'];
-  x['(a+b/c)+d']   = [new CompositeSegmentExpression('(a+b/c)+d',   [x['(a+b/c)'][0],   x['d'][0],                                   ]), '(a+b/c)+d'];
-  x['((a+b)/c)+d'] = [new CompositeSegmentExpression('((a+b)/c)+d', [x['((a+b)/c)'][0], x['d'][0],                                   ]), '((a+b)/c)+d'];
-  x['(a+(b/c))+d'] = [new CompositeSegmentExpression('(a+(b/c))+d', [x['(a+(b/c))'][0], x['d'][0],                                   ]), '(a+(b/c))+d'];
-  x['a+(b/c+d)']   = [new CompositeSegmentExpression('a+(b/c+d)',   [x['a'][0],         x['(b/c+d)'][0],                             ]), 'a+(b/c+d)'];
-  x['a+((b/c)+d)'] = [new CompositeSegmentExpression('a+((b/c)+d)', [x['a'][0],         x['((b/c)+d)'][0],                           ]), 'a+((b/c)+d)'];
-  x['a+(b/(c+d))'] = [new CompositeSegmentExpression('a+(b/(c+d))', [x['a'][0],         x['(b/(c+d))'][0],                           ]), 'a+(b/(c+d))'];
+  x['a+b/c+d']     = [new CompositeSegmentExpression([x['a'][0],         x['b/c'][0],       x['d'][0],                ]), 'a+b/c+d'];
+  x['(a+b)/c+d']   = [new CompositeSegmentExpression([x['(a+b)/c'][0],   x['d'][0],                                   ]), '(a+b)/c+d'];
+  x['a+(b/c)+d']   = [new CompositeSegmentExpression([x['a'][0],         x['(b/c)'][0],     x['d'][0],                ]), 'a+(b/c)+d'];
+  x['a+b/(c+d)']   = [new CompositeSegmentExpression([x['a'][0],         x['b/(c+d)'][0],                             ]), 'a+b/(c+d)'];
+  x['(a+b/c)+d']   = [new CompositeSegmentExpression([x['(a+b/c)'][0],   x['d'][0],                                   ]), '(a+b/c)+d'];
+  x['((a+b)/c)+d'] = [new CompositeSegmentExpression([x['((a+b)/c)'][0], x['d'][0],                                   ]), '((a+b)/c)+d'];
+  x['(a+(b/c))+d'] = [new CompositeSegmentExpression([x['(a+(b/c))'][0], x['d'][0],                                   ]), '(a+(b/c))+d'];
+  x['a+(b/c+d)']   = [new CompositeSegmentExpression([x['a'][0],         x['(b/c+d)'][0],                             ]), 'a+(b/c+d)'];
+  x['a+((b/c)+d)'] = [new CompositeSegmentExpression([x['a'][0],         x['((b/c)+d)'][0],                           ]), 'a+((b/c)+d)'];
+  x['a+(b/(c+d))'] = [new CompositeSegmentExpression([x['a'][0],         x['(b/(c+d))'][0],                           ]), 'a+(b/(c+d))'];
 
-  x['a+b+c/d']     = [new CompositeSegmentExpression('a+b+c/d',     [x['a'][0],         x['b'][0],         x['c/d'][0],              ]), 'a+b+c/d'];
-  x['(a+b)+c/d']   = [new CompositeSegmentExpression('(a+b)+c/d',   [x['(a+b)'][0],     x['c/d'][0],                                 ]), '(a+b)+c/d'];
-  x['a+(b+c)/d']   = [new CompositeSegmentExpression('a+(b+c)/d',   [x['a'][0],         x['(b+c)/d'][0],                             ]), 'a+(b+c)/d'];
-  x['a+b+(c/d)']   = [new CompositeSegmentExpression('a+b+(c/d)',   [x['a'][0],         x['b'][0],         x['(c/d)'][0],            ]), 'a+b+(c/d)'];
-  x['(a+b)+(c/d)'] = [new CompositeSegmentExpression('(a+b)+(c/d)', [x['(a+b)'][0],     x['(c/d)'][0],                               ]), '(a+b)+(c/d)'];
-  x['a+(b+c/d)']   = [new CompositeSegmentExpression('a+(b+c/d)',   [x['a'][0],         x['(b+c/d)'][0],                             ]), 'a+(b+c/d)'];
-  x['a+((b+c)/d)'] = [new CompositeSegmentExpression('a+((b+c)/d)', [x['a'][0],         x['((b+c)/d)'][0],                           ]), 'a+((b+c)/d)'];
-  x['a+(b+(c/d))'] = [new CompositeSegmentExpression('a+(b+(c/d))', [x['a'][0],         x['(b+(c/d))'][0],                           ]), 'a+(b+(c/d))'];
+  x['a+b+c/d']     = [new CompositeSegmentExpression([x['a'][0],         x['b'][0],         x['c/d'][0],              ]), 'a+b+c/d'];
+  x['(a+b)+c/d']   = [new CompositeSegmentExpression([x['(a+b)'][0],     x['c/d'][0],                                 ]), '(a+b)+c/d'];
+  x['a+(b+c)/d']   = [new CompositeSegmentExpression([x['a'][0],         x['(b+c)/d'][0],                             ]), 'a+(b+c)/d'];
+  x['a+b+(c/d)']   = [new CompositeSegmentExpression([x['a'][0],         x['b'][0],         x['(c/d)'][0],            ]), 'a+b+(c/d)'];
+  x['(a+b)+(c/d)'] = [new CompositeSegmentExpression([x['(a+b)'][0],     x['(c/d)'][0],                               ]), '(a+b)+(c/d)'];
+  x['a+(b+c/d)']   = [new CompositeSegmentExpression([x['a'][0],         x['(b+c/d)'][0],                             ]), 'a+(b+c/d)'];
+  x['a+((b+c)/d)'] = [new CompositeSegmentExpression([x['a'][0],         x['((b+c)/d)'][0],                           ]), 'a+((b+c)/d)'];
+  x['a+(b+(c/d))'] = [new CompositeSegmentExpression([x['a'][0],         x['(b+(c/d))'][0],                           ]), 'a+(b+(c/d))'];
 
-  x['a/b+c/d']     = [new CompositeSegmentExpression('a/b+c/d',     [x['a/b'][0],       x['c/d'][0],       ]), 'a/b+c/d'];
-  x['(a/b)+c/d']   = [new CompositeSegmentExpression('(a/b)+c/d',   [x['(a/b)'][0],     x['c/d'][0],       ]), '(a/b)+c/d'];
-  x['a/b+(c/d)']   = [new CompositeSegmentExpression('a/b+(c/d)',   [x['a/b'][0],       x['(c/d)'][0],     ]), 'a/b+(c/d)'];
-  x['(a/b)+(c/d)'] = [new CompositeSegmentExpression('(a/b)+(c/d)', [x['(a/b)'][0],     x['(c/d)'][0],     ]), '(a/b)+(c/d)'];
+  x['a/b+c/d']     = [new CompositeSegmentExpression([x['a/b'][0],       x['c/d'][0],       ]), 'a/b+c/d'];
+  x['(a/b)+c/d']   = [new CompositeSegmentExpression([x['(a/b)'][0],     x['c/d'][0],       ]), '(a/b)+c/d'];
+  x['a/b+(c/d)']   = [new CompositeSegmentExpression([x['a/b'][0],       x['(c/d)'][0],     ]), 'a/b+(c/d)'];
+  x['(a/b)+(c/d)'] = [new CompositeSegmentExpression([x['(a/b)'][0],     x['(c/d)'][0],     ]), '(a/b)+(c/d)'];
 
-  x['a/b/c+d']     = [new CompositeSegmentExpression('a/b/c+d',     [x['a/b/c'][0],     x['d'][0],         ]), 'a/b/c+d'];
-  x['(a/b)/c+d']   = [new CompositeSegmentExpression('(a/b)/c+d',   [x['(a/b)/c'][0],   x['d'][0],         ]), '(a/b)/c+d'];
-  x['a/(b/c)+d']   = [new CompositeSegmentExpression('a/(b/c)+d',   [x['a/(b/c)'][0],   x['d'][0],         ]), 'a/(b/c)+d'];
-  x['(a/b/c)+d']   = [new CompositeSegmentExpression('(a/b/c)+d',   [x['(a/b/c)'][0],   x['d'][0],         ]), '(a/b/c)+d'];
-  x['((a/b)/c)+d'] = [new CompositeSegmentExpression('((a/b)/c)+d', [x['((a/b)/c)'][0], x['d'][0],         ]), '((a/b)/c)+d'];
-  x['(a/(b/c))+d'] = [new CompositeSegmentExpression('(a/(b/c))+d', [x['(a/(b/c))'][0], x['d'][0],         ]), '(a/(b/c))+d'];
+  x['a/b/c+d']     = [new CompositeSegmentExpression([x['a/b/c'][0],     x['d'][0],         ]), 'a/b/c+d'];
+  x['(a/b)/c+d']   = [new CompositeSegmentExpression([x['(a/b)/c'][0],   x['d'][0],         ]), '(a/b)/c+d'];
+  x['a/(b/c)+d']   = [new CompositeSegmentExpression([x['a/(b/c)'][0],   x['d'][0],         ]), 'a/(b/c)+d'];
+  x['(a/b/c)+d']   = [new CompositeSegmentExpression([x['(a/b/c)'][0],   x['d'][0],         ]), '(a/b/c)+d'];
+  x['((a/b)/c)+d'] = [new CompositeSegmentExpression([x['((a/b)/c)'][0], x['d'][0],         ]), '((a/b)/c)+d'];
+  x['(a/(b/c))+d'] = [new CompositeSegmentExpression([x['(a/(b/c))'][0], x['d'][0],         ]), '(a/(b/c))+d'];
 
-  x['a+b/c/d']     = [new CompositeSegmentExpression('a+b/c/d',     [x['a'][0],         x['b/c/d'][0],     ]), 'a+b/c/d'];
-  x['a+(b/c)/d']   = [new CompositeSegmentExpression('a+(b/c)/d',   [x['a'][0],         x['(b/c)/d'][0],   ]), 'a+(b/c)/d'];
-  x['a+b/(c/d)']   = [new CompositeSegmentExpression('a+b/(c/d)',   [x['a'][0],         x['b/(c/d)'][0],   ]), 'a+b/(c/d)'];
-  x['a+(b/c/d)']   = [new CompositeSegmentExpression('a+(b/c/d)',   [x['a'][0],         x['(b/c/d)'][0],   ]), 'a+(b/c/d)'];
-  x['a+((b/c)/d)'] = [new CompositeSegmentExpression('a+((b/c)/d)', [x['a'][0],         x['((b/c)/d)'][0], ]), 'a+((b/c)/d)'];
-  x['a+(b/(c/d))'] = [new CompositeSegmentExpression('a+(b/(c/d))', [x['a'][0],         x['(b/(c/d))'][0], ]), 'a+(b/(c/d))'];
+  x['a+b/c/d']     = [new CompositeSegmentExpression([x['a'][0],         x['b/c/d'][0],     ]), 'a+b/c/d'];
+  x['a+(b/c)/d']   = [new CompositeSegmentExpression([x['a'][0],         x['(b/c)/d'][0],   ]), 'a+(b/c)/d'];
+  x['a+b/(c/d)']   = [new CompositeSegmentExpression([x['a'][0],         x['b/(c/d)'][0],   ]), 'a+b/(c/d)'];
+  x['a+(b/c/d)']   = [new CompositeSegmentExpression([x['a'][0],         x['(b/c/d)'][0],   ]), 'a+(b/c/d)'];
+  x['a+((b/c)/d)'] = [new CompositeSegmentExpression([x['a'][0],         x['((b/c)/d)'][0], ]), 'a+((b/c)/d)'];
+  x['a+(b/(c/d))'] = [new CompositeSegmentExpression([x['a'][0],         x['(b/(c/d))'][0], ]), 'a+(b/(c/d))'];
 
   x['a/b/c/d']     = [new ScopedSegmentExpression('a/b/c/d',     x['a'][0],         x['b/c/d'][0]),     'a/b/c/d'];
   x['(a/b)/c/d']   = [new ScopedSegmentExpression('(a/b)/c/d',   x['(a/b)'][0],     x['c/d'][0]),       '(a/b)/c/d'];
@@ -388,7 +387,7 @@ describe('router-lite/ast.spec.ts', function () {
 
   for (const path in x) {
     const [route, url] = x[path];
-    specs[`/${route.raw}`] = [new RouteExpression(true, route, emptyQuerystring, null), url];
+    specs[`/${path}`] = [new RouteExpression(true, route, emptyQuerystring, null), url];
   }
 
   for (const path in specs) {

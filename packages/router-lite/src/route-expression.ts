@@ -184,6 +184,7 @@ export class RouteExpression {
     const root = CompositeSegmentExpression._parse(state);
     state._ensureDone();
 
+    state._discard();
     return new RouteExpression(isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment);
   }
 
@@ -225,7 +226,6 @@ export class CompositeSegmentExpression {
   public get kind(): ExpressionKind.CompositeSegment { return ExpressionKind.CompositeSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
   ) {}
 
@@ -246,8 +246,8 @@ export class CompositeSegmentExpression {
       return siblings[0];
     }
 
-    const raw = state._playback();
-    return new CompositeSegmentExpression(raw, siblings);
+    state._discard();
+    return new CompositeSegmentExpression(siblings);
   }
 
   /** @internal */
@@ -271,10 +271,6 @@ export class CompositeSegmentExpression {
           ...this.siblings[this.siblings.length - 1]._toInstructions(0, close),
         ];
     }
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

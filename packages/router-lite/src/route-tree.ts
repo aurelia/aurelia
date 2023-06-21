@@ -654,7 +654,7 @@ function createConfiguredNode(
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
           newSegs.push(rr.route.params[redirSeg.component.parameterName] as string);
         } else {
-          newSegs.push(redirSeg.raw);
+          newSegs.push(redirSeg.component.name);
         }
       }
     }

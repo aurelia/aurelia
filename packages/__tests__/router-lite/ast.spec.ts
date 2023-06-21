@@ -75,14 +75,14 @@ describe('router-lite/ast.spec.ts', function () {
 
           specs[`/${raw}`] = [new RouteExpression(
             true,
-            new SegmentExpression(raw, component, action, viewport, scoped),
+            new SegmentExpression(component, action, viewport, scoped),
             emptyQuerystring,
             null,
           ), url];
           specs[`/(${raw})`] = [new RouteExpression(
             true,
             new SegmentGroupExpression(
-              new SegmentExpression(raw, component, action, viewport, scoped),
+              new SegmentExpression(component, action, viewport, scoped),
             ),
             emptyQuerystring,
             null,
@@ -91,8 +91,8 @@ describe('router-lite/ast.spec.ts', function () {
           specs[`/${raw}/${raw}`] = [new RouteExpression(
             true,
             new ScopedSegmentExpression(
-              new SegmentExpression(raw, component, action, viewport, scoped),
-              new SegmentExpression(raw, component, action, viewport, scoped),
+              new SegmentExpression(component, action, viewport, scoped),
+              new SegmentExpression(component, action, viewport, scoped),
             ),
             emptyQuerystring,
             null,
@@ -102,8 +102,8 @@ describe('router-lite/ast.spec.ts', function () {
             true,
             new CompositeSegmentExpression(
               [
-                new SegmentExpression(raw, component, action, viewport, scoped),
-                new SegmentExpression(raw, component, action, viewport, scoped),
+                new SegmentExpression(component, action, viewport, scoped),
+                new SegmentExpression(component, action, viewport, scoped),
               ],
             ),
             emptyQuerystring,
@@ -112,21 +112,21 @@ describe('router-lite/ast.spec.ts', function () {
 
           specs[`/${raw}?foo=bar`] = [new RouteExpression(
             true,
-            new SegmentExpression(raw, component, action, viewport, scoped),
+            new SegmentExpression(component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar')),
             null,
           ), `${url}?foo=bar`];
 
           specs[`/${raw}?foo=bar&fiz=baz`] = [new RouteExpression(
             true,
-            new SegmentExpression(raw, component, action, viewport, scoped),
+            new SegmentExpression(component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar&fiz=baz')),
             null,
           ), `${url}?foo=bar&fiz=baz`];
 
           specs[`/${raw}?foo=bar1&fiz=baz&foo=bar2`] = [new RouteExpression(
             true,
-            new SegmentExpression(raw, component, action, viewport, scoped),
+            new SegmentExpression(component, action, viewport, scoped),
             Object.freeze(new URLSearchParams('foo=bar1&fiz=baz&foo=bar2')),
             null,
           ), `${url}?foo=bar1&fiz=baz&foo=bar2`];
@@ -145,11 +145,11 @@ describe('router-lite/ast.spec.ts', function () {
 
   const x = {};
 
-  x['-'] = [new SegmentExpression('-', comp['-'], noAction,  noViewport, true), '-'];
-  x['a'] = [new SegmentExpression('a', comp['a'], noAction,  noViewport, true), 'a'];
-  x['b'] = [new SegmentExpression('b', comp['b'], noAction,  noViewport, true), 'b'];
-  x['c'] = [new SegmentExpression('c', comp['c'], noAction,  noViewport, true), 'c'];
-  x['d'] = [new SegmentExpression('d', comp['d'], noAction,  noViewport, true), 'd'];
+  x['-'] = [new SegmentExpression(comp['-'], noAction,  noViewport, true), '-'];
+  x['a'] = [new SegmentExpression(comp['a'], noAction,  noViewport, true), 'a'];
+  x['b'] = [new SegmentExpression(comp['b'], noAction,  noViewport, true), 'b'];
+  x['c'] = [new SegmentExpression(comp['c'], noAction,  noViewport, true), 'c'];
+  x['d'] = [new SegmentExpression(comp['d'], noAction,  noViewport, true), 'd'];
 
   x['+a'] = [new CompositeSegmentExpression([x['a'][0]]), 'a'];
   x['+b'] = [new CompositeSegmentExpression([x['b'][0]]), 'b'];

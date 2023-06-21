@@ -393,10 +393,9 @@ export class SegmentGroupExpression {
 export class SegmentExpression {
   public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
 
-  public static get EMPTY(): SegmentExpression { return new SegmentExpression('', ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
+  public static get EMPTY(): SegmentExpression { return new SegmentExpression(ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
 
   public constructor(
-    public readonly raw: string,
     public readonly component: ComponentExpression,
     public readonly action: ActionExpression,
     public readonly viewport: ViewportExpression,
@@ -412,8 +411,8 @@ export class SegmentExpression {
     const viewport = ViewportExpression._parse(state);
     const scoped = !state._consumeOptional('!');
 
-    const raw = state._playback();
-    return new SegmentExpression(raw, component, action, viewport, scoped);
+    state._discard();
+    return new SegmentExpression(component, action, viewport, scoped);
   }
 
   /** @internal */
@@ -427,10 +426,6 @@ export class SegmentExpression {
         close,
       }),
     ];
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

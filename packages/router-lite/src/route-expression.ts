@@ -432,7 +432,7 @@ export class SegmentExpression {
 export class ComponentExpression {
   public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
 
-  public static get EMPTY(): ComponentExpression { return new ComponentExpression('', '', ParameterListExpression.EMPTY); }
+  public static get EMPTY(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.EMPTY); }
 
   /**
    * A single segment matching parameter, e.g. `:foo` (will match `a` but not `a/b`)
@@ -452,7 +452,6 @@ export class ComponentExpression {
   public readonly parameterName: string;
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string,
     public readonly parameterList: ParameterListExpression,
   ) {
@@ -501,12 +500,8 @@ export class ComponentExpression {
     }
     const parameterList = ParameterListExpression._parse(state);
 
-    const raw = state._playback();
-    return new ComponentExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ComponentExpression(name, parameterList);
   }
 }
 

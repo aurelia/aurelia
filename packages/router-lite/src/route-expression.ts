@@ -573,10 +573,9 @@ export class ViewportExpression {
 export class ParameterListExpression {
   public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
 
-  public static get EMPTY(): ParameterListExpression { return new ParameterListExpression('', []); }
+  public static get EMPTY(): ParameterListExpression { return new ParameterListExpression([]); }
 
   public constructor(
-    public readonly raw: string,
     public readonly expressions: readonly ParameterExpression[],
   ) {}
 
@@ -594,8 +593,8 @@ export class ParameterListExpression {
       state._consume(')');
     }
 
-    const raw = state._playback();
-    return new ParameterListExpression(raw, expressions);
+    state._discard();
+    return new ParameterListExpression(expressions);
   }
 
   /** @internal */
@@ -605,10 +604,6 @@ export class ParameterListExpression {
       params[expr.key] = expr.value;
     }
     return params;
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 

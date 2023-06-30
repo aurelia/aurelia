@@ -64,11 +64,11 @@ describe('router-lite/ast.spec.ts', function () {
     ],
   ] as const;
 
-  const noViewport = new ViewportExpression('', null);
+  const noViewport = ['', new ViewportExpression(null)] as const;
   const viewportSpecs = [
     noViewport,
-    new ViewportExpression('@foo', 'foo'),
-  ];
+    ['@foo', new ViewportExpression('foo')],
+  ] as [string, ViewportExpression][];
 
   const componentSpecs = [
     ...paramSpecs.map(([raw, x]) => [`a${raw}`, new ComponentExpression('a', x)]),
@@ -81,11 +81,11 @@ describe('router-lite/ast.spec.ts', function () {
   ] as [string, ActionExpression][];
 
   for (const [rawComponent, component] of componentSpecs) {
-    for (const viewport of viewportSpecs) {
+    for (const [rawViewport, viewport] of viewportSpecs) {
       for (const [rawAction, action] of actionSpecs) {
         for (const scoped of [true, false]) {
-          const raw = `${rawComponent}${rawAction}${viewport.raw}${scoped ? '' : '!'}`;
-          const url = `${rawComponent}${viewport.raw}`;
+          const raw = `${rawComponent}${rawAction}${rawViewport}${scoped ? '' : '!'}`;
+          const url = `${rawComponent}${rawViewport}`;
 
           specs[`/${raw}`] = [new RouteExpression(
             true,
@@ -159,11 +159,11 @@ describe('router-lite/ast.spec.ts', function () {
 
   const x = {};
 
-  x['-'] = [new SegmentExpression(comp['-'], noAction[1], noViewport, true), '-'];
-  x['a'] = [new SegmentExpression(comp['a'], noAction[1], noViewport, true), 'a'];
-  x['b'] = [new SegmentExpression(comp['b'], noAction[1], noViewport, true), 'b'];
-  x['c'] = [new SegmentExpression(comp['c'], noAction[1], noViewport, true), 'c'];
-  x['d'] = [new SegmentExpression(comp['d'], noAction[1], noViewport, true), 'd'];
+  x['-'] = [new SegmentExpression(comp['-'], noAction[1], noViewport[1], true), '-'];
+  x['a'] = [new SegmentExpression(comp['a'], noAction[1], noViewport[1], true), 'a'];
+  x['b'] = [new SegmentExpression(comp['b'], noAction[1], noViewport[1], true), 'b'];
+  x['c'] = [new SegmentExpression(comp['c'], noAction[1], noViewport[1], true), 'c'];
+  x['d'] = [new SegmentExpression(comp['d'], noAction[1], noViewport[1], true), 'd'];
 
   x['+a'] = [new CompositeSegmentExpression([x['a'][0]]), 'a'];
   x['+b'] = [new CompositeSegmentExpression([x['b'][0]]), 'b'];

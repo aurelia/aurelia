@@ -542,10 +542,9 @@ export class ActionExpression {
 export class ViewportExpression {
   public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
 
-  public static get EMPTY(): ViewportExpression { return new ViewportExpression('', ''); }
+  public static get EMPTY(): ViewportExpression { return new ViewportExpression(''); }
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string | null,
   ) {}
 
@@ -566,12 +565,8 @@ export class ViewportExpression {
       }
     }
 
-    const raw = state._playback();
-    return new ViewportExpression(raw, name);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ViewportExpression(name);
   }
 }
 

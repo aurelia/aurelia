@@ -508,10 +508,9 @@ export class ComponentExpression {
 export class ActionExpression {
   public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
 
-  public static get EMPTY(): ActionExpression { return new ActionExpression('', '', ParameterListExpression.EMPTY); }
+  public static get EMPTY(): ActionExpression { return new ActionExpression('', ParameterListExpression.EMPTY); }
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string,
     public readonly parameterList: ParameterListExpression,
   ) {}
@@ -535,12 +534,8 @@ export class ActionExpression {
 
     const parameterList = ParameterListExpression._parse(state);
 
-    const raw = state._playback();
-    return new ActionExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ActionExpression(name, parameterList);
   }
 }
 

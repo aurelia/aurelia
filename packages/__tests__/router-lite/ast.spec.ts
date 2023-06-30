@@ -27,7 +27,7 @@ describe('router-lite/ast.spec.ts', function () {
       '(1)',
       new ParameterListExpression(
         [
-          new ParameterExpression('1', '0', '1'),
+          new ParameterExpression('0', '1'),
         ],
       )
     ],
@@ -35,7 +35,7 @@ describe('router-lite/ast.spec.ts', function () {
       '($1=1)',
       new ParameterListExpression(
         [
-          new ParameterExpression('$1=1', '$1', '1'),
+          new ParameterExpression('$1', '1'),
         ],
       )
     ],
@@ -43,8 +43,8 @@ describe('router-lite/ast.spec.ts', function () {
       '(1,2)',
       new ParameterListExpression(
         [
-          new ParameterExpression('1', '0', '1'),
-          new ParameterExpression('2', '1', '2'),
+          new ParameterExpression('0', '1'),
+          new ParameterExpression('1', '2'),
         ],
       )
     ],
@@ -52,8 +52,8 @@ describe('router-lite/ast.spec.ts', function () {
       '($1=1,$2=2)',
       new ParameterListExpression(
         [
-          new ParameterExpression('$1=1', '$1', '1'),
-          new ParameterExpression('$2=2', '$2', '2'),
+          new ParameterExpression('$1', '1'),
+          new ParameterExpression('$2', '2'),
         ],
       )
     ],

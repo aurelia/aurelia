@@ -610,10 +610,9 @@ export class ParameterListExpression {
 export class ParameterExpression {
   public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
 
-  public static get EMPTY(): ParameterExpression { return new ParameterExpression('', '', ''); }
+  public static get EMPTY(): ParameterExpression { return new ParameterExpression('', ''); }
 
   public constructor(
-    public readonly raw: string,
     public readonly key: string,
     public readonly value: string,
   ) {}
@@ -646,12 +645,8 @@ export class ParameterExpression {
       key = index.toString();
     }
 
-    const raw = state._playback();
-    return new ParameterExpression(raw, key, value);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ParameterExpression(key, value);
   }
 }
 

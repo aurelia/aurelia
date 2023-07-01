@@ -48,6 +48,7 @@ import {
 } from './viewport-agent';
 import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 import { Events, getMessage } from './events';
+import { PathUrlSerializer } from './url-serializer';
 
 export interface IRouteNode {
   path: string;
@@ -178,7 +179,7 @@ export class RouteNode implements IRouteNode {
           if (i + j < ii
             && (
               (instructionEndpoint?.equalsOrResidual(childEndpoint) ?? false)
-               || (instruction?.contains(instructionChild) ?? false)
+              || (instruction?.contains(instructionChild) ?? false)
             )
           ) {
             if (j + 1 === jj) {
@@ -586,8 +587,9 @@ function createConfiguredNode(
     }
 
     // Migrate parameters to the redirect
-    const origPath = RouteExpression.parse(route.path, false);
-    const redirPath = RouteExpression.parse($handler.redirectTo, false);
+    const urlSerializer = PathUrlSerializer.instance;
+    const origPath = RouteExpression.parse(urlSerializer.serialize(route.path));
+    const redirPath = RouteExpression.parse(urlSerializer.serialize($handler.redirectTo));
     let origCur: ScopedSegmentExpression | SegmentExpression;
     let redirCur: ScopedSegmentExpression | SegmentExpression;
     const newSegs: string[] = [];

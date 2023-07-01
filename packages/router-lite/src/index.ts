@@ -111,3 +111,9 @@ export {
 export {
   ViewportAgent,
 } from './viewport-agent';
+
+export {
+  IUrlSerializer,
+  PathUrlSerializer,
+  FragmentUrlSerializer,
+} from './url-serializer';

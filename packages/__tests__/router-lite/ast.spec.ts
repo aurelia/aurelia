@@ -12,6 +12,7 @@ import {
   ParameterExpression,
   NavigationOptions,
   RouterOptions,
+  PathUrlSerializer,
 } from '@aurelia/router-lite';
 
 const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
@@ -399,7 +400,7 @@ describe('router-lite/ast.spec.ts', function () {
   for (const path in specs) {
     const expected = specs[path];
     it(path, function () {
-      const actual = RouteExpression.parse(path, false);
+      const actual = RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
       assert.deepStrictEqual(actual, expected[0]);
       assert.strictEqual(actual.toInstructionTree(NavigationOptions.create(RouterOptions.create({}), {})).toUrl(false, false), expected[1]);
     });
@@ -409,7 +410,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on empty component name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+component name/,
       );
@@ -420,7 +421,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on empty method name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+method name/,
       );
@@ -431,7 +432,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on empty viewport name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+viewport name/,
       );
@@ -442,7 +443,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on empty parameter key '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+parameter key/,
       );
@@ -453,7 +454,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on empty parameter value '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+parameter value/,
       );
@@ -518,7 +519,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on missing closing paren '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         /AUR3500.+'\)'/,
       );
@@ -565,7 +566,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(`throws on unexpected '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path, false);
+          RouteExpression.parse(PathUrlSerializer.instance.serialize(path));
         },
         new RegExp(`AUR3501.+${path.slice(-1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
       );

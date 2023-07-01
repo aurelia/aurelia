@@ -8,7 +8,7 @@
 import { Events, getMessage } from './events';
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { type NavigationOptions } from './options';
-import { emptyQuery } from './router';
+import { SerializedUrl } from './url-serializer';
 import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
@@ -124,43 +124,24 @@ export class RouteExpression {
     public readonly fragment: string | null,
   ) {}
 
-  public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    let result = cache.get(path);
+  public static parse(value: SerializedUrl): RouteExpression {
+    const key = value.toString();
+    let result = cache.get(key);
     if (result === void 0) {
-      cache.set(path, result = RouteExpression._$parse(path, fragmentIsRoute));
+      cache.set(key, result = RouteExpression._$parse(value));
     }
     return result;
   }
 
   /** @internal */
-  private static _$parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    // First strip off the fragment (and if fragment should be used as route, set it as the path)
-    let fragment: string | null = null;
-    const fragmentStart = path.indexOf('#');
-    if (fragmentStart >= 0) {
-      const rawFragment = path.slice(fragmentStart + 1);
-      fragment = decodeURIComponent(rawFragment);
-      if (fragmentIsRoute) {
-        path = fragment;
-      } else {
-        path = path.slice(0, fragmentStart);
-      }
-    }
-
-    // Strip off and parse the query string using built-in URLSearchParams.
-    let queryParams: URLSearchParams | null = null;
-    const queryStart = path.indexOf('?');
-    if (queryStart >= 0) {
-      const queryString = path.slice(queryStart + 1);
-      path = path.slice(0, queryStart);
-      queryParams = new URLSearchParams(queryString);
-    }
+  private static _$parse(value: SerializedUrl): RouteExpression {
+    const path = value.path;
     if (path === '') {
       return new RouteExpression(
         false,
         SegmentExpression.EMPTY,
-        queryParams != null ? Object.freeze(queryParams) : emptyQuery,
-        fragment,
+        value.query,
+        value.fragment,
       );
     }
 
@@ -185,7 +166,7 @@ export class RouteExpression {
     state._ensureDone();
 
     state._discard();
-    return new RouteExpression(isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment);
+    return new RouteExpression(isAbsolute, root, value.query, value.fragment);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {

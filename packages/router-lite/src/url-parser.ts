@@ -21,6 +21,7 @@ export class ParsedUrl {
 export interface IUrlParser {
   parse(value: string): ParsedUrl;
   stringify(value: ParsedUrl): string;
+  stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null): string;
 }
 
 /**
@@ -57,8 +58,26 @@ export class PathUrlParser implements IUrlParser {
     );
   }
 
-  public stringify(value: ParsedUrl): string {
-    throw new Error('Not implemented');
+  public stringify(value: ParsedUrl): string;
+  public stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null): string;
+  public stringify(pathOrParsedUrl: ParsedUrl | string, query?: Readonly<URLSearchParams>, fragment?: string | null): string {
+    // normalize the input
+    let path: string;
+    if (typeof pathOrParsedUrl === 'string') {
+      path = pathOrParsedUrl;
+    } else {
+      path = pathOrParsedUrl.path;
+      query = pathOrParsedUrl.query;
+      fragment = pathOrParsedUrl.fragment;
+    }
+    query ??= emptyQuery;
+
+    // compose the path, query and fragment to compose the serialized URL
+    let queryString = query.toString();
+    queryString = queryString === '' ? '' : `?${queryString}`;
+    const hash = fragment != null && fragment.length > 0 ? `#${encodeURIComponent(fragment)}` : '';
+
+    return `${path}${queryString}${hash}`;
   }
 }
 
@@ -95,7 +114,23 @@ export class FragmentUrlParser implements IUrlParser {
     );
   }
 
-  public stringify(value: ParsedUrl): string {
-    throw new Error('Not implemented');
+  public stringify(value: ParsedUrl): string;
+  public stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null): string;
+  public stringify(pathOrParsedUrl: ParsedUrl | string, query?: Readonly<URLSearchParams>, _fragment?: string | null): string {
+    // normalize the input
+    let path: string;
+    if (typeof pathOrParsedUrl === 'string') {
+      path = pathOrParsedUrl;
+    } else {
+      path = pathOrParsedUrl.path;
+      query = pathOrParsedUrl.query;
+    }
+    query ??= emptyQuery;
+
+    // compose the path, query and fragment to compose the serialized URL; ignore the fragment
+    let queryString = query.toString();
+    queryString = queryString === '' ? '' : `?${queryString}`;
+
+    return `/#/${path}${queryString}`;
   }
 }

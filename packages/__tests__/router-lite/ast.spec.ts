@@ -402,7 +402,7 @@ describe('router-lite/ast.spec.ts', function () {
     it(path, function () {
       const actual = RouteExpression.parse(PathUrlParser.instance.parse(path));
       assert.deepStrictEqual(actual, expected[0]);
-      assert.strictEqual(actual.toInstructionTree(NavigationOptions.create(RouterOptions.create({}), {})).toUrl(false, false), expected[1]);
+      assert.strictEqual(actual.toInstructionTree(NavigationOptions.create(RouterOptions.create({}), {})).toUrl(false, PathUrlParser.instance), expected[1]);
     });
   }
 

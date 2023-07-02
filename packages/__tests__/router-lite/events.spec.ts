@@ -1,5 +1,5 @@
 import { Class, DI, IDisposable, LogLevel, noop } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, Params, RouterConfiguration, route } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, Params, PathUrlParser, RouterConfiguration, route } from '@aurelia/router-lite';
 import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -37,18 +37,19 @@ describe('router-lite/events.spec.ts', function () {
     private readonly subscriptions: IDisposable[];
     public log: string[] = [];
     public constructor(@IRouterEvents events: IRouterEvents) {
+      const parser = PathUrlParser.instance;
       this.subscriptions = [
         events.subscribe('au:router:navigation-start', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, parser)}'`);
         }),
         events.subscribe('au:router:navigation-end', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, parser)}'`);
         }),
         events.subscribe('au:router:navigation-cancel', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}' - ${String(event.reason)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, parser)}' - ${String(event.reason)}`);
         }),
         events.subscribe('au:router:navigation-error', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, false)}' - ${String(event.error)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, parser)}' - ${String(event.error)}`);
         }),
       ];
     }

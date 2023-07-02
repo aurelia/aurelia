@@ -1,7 +1,6 @@
-import { DI } from '@aurelia/kernel';
 import { emptyQuery } from './router';
 
-export class SerializedUrl {
+export class ParsedUrl {
 
   private readonly id: string;
 
@@ -19,19 +18,18 @@ export class SerializedUrl {
   }
 }
 
-export interface IUrlSerializer {
-  serialize(value: string): SerializedUrl;
-  deserialize(value: SerializedUrl): string;
+export interface IUrlParser {
+  parse(value: string): ParsedUrl;
+  stringify(value: ParsedUrl): string;
 }
-const IUrlSerializer = DI.createInterface<IUrlSerializer>();
 
 /**
  * Extracts the route from path.
  */
-export class PathUrlSerializer implements IUrlSerializer {
-  public static readonly instance = new PathUrlSerializer();
+export class PathUrlParser implements IUrlParser {
+  public static readonly instance = new PathUrlParser();
   private constructor() { }
-  public serialize(value: string): SerializedUrl {
+  public parse(value: string): ParsedUrl {
     /**
      * Look for the fragment first and strip it away.
      * Next, look for the query string and strip it away.
@@ -52,22 +50,25 @@ export class PathUrlSerializer implements IUrlSerializer {
       value = value.slice(0, queryStart);
       queryParams = new URLSearchParams(queryString);
     }
-    return new SerializedUrl(
+    return new ParsedUrl(
       value,
       queryParams != null ? queryParams : emptyQuery,
       fragment,
     );
   }
 
-  public deserialize(value: SerializedUrl): string {
+  public stringify(value: ParsedUrl): string {
     throw new Error('Not implemented');
   }
 }
 
-export class FragmentUrlSerializer implements IUrlSerializer {
-  public static readonly instance = new FragmentUrlSerializer();
+/**
+ * Extracts the route from fragment.
+ */
+export class FragmentUrlParser implements IUrlParser {
+  public static readonly instance = new FragmentUrlParser();
   private constructor() { }
-  public serialize(value: string): SerializedUrl {
+  public parse(value: string): ParsedUrl {
     /**
      * Look for the fragment; if found then take it and discard the rest.
      * Otherwise, the entire value is the fragment.
@@ -87,14 +88,14 @@ export class FragmentUrlSerializer implements IUrlSerializer {
       value = value.slice(0, queryStart);
       queryParams = new URLSearchParams(queryString);
     }
-    return new SerializedUrl(
+    return new ParsedUrl(
       value,
       queryParams != null ? queryParams : emptyQuery,
       null,
     );
   }
 
-  public deserialize(value: SerializedUrl): string {
+  public stringify(value: ParsedUrl): string {
     throw new Error('Not implemented');
   }
 }

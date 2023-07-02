@@ -8,7 +8,7 @@
 import { Events, getMessage } from './events';
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { type NavigationOptions } from './options';
-import { SerializedUrl } from './url-serializer';
+import { ParsedUrl } from './url-parser';
 import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
@@ -124,7 +124,7 @@ export class RouteExpression {
     public readonly fragment: string | null,
   ) {}
 
-  public static parse(value: SerializedUrl): RouteExpression {
+  public static parse(value: ParsedUrl): RouteExpression {
     const key = value.toString();
     let result = cache.get(key);
     if (result === void 0) {
@@ -134,7 +134,7 @@ export class RouteExpression {
   }
 
   /** @internal */
-  private static _$parse(value: SerializedUrl): RouteExpression {
+  private static _$parse(value: ParsedUrl): RouteExpression {
     const path = value.path;
     if (path === '') {
       return new RouteExpression(

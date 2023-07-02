@@ -113,7 +113,7 @@ export {
 } from './viewport-agent';
 
 export {
-  IUrlSerializer,
-  PathUrlSerializer,
-  FragmentUrlSerializer,
-} from './url-serializer';
+  IUrlParser,
+  PathUrlParser,
+  FragmentUrlParser,
+} from './url-parser';

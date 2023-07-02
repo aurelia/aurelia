@@ -3,7 +3,7 @@ import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import type { IRouteContext } from './route-context';
-import { FragmentUrlSerializer, IUrlSerializer, PathUrlSerializer } from './url-serializer';
+import { FragmentUrlParser, IUrlParser, PathUrlParser } from './url-parser';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -18,7 +18,7 @@ export const IRouterOptions = /*@__PURE__*/DI.createInterface<Readonly<RouterOpt
 export interface IRouterOptions extends Partial<RouterOptions> {}
 export class RouterOptions {
   /** @internal */
-  public readonly _urlSerializer: IUrlSerializer;
+  public readonly _urlParser: IUrlParser;
 
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
@@ -58,7 +58,7 @@ export class RouterOptions {
      */
     public readonly restorePreviousRouteTreeOnError: boolean,
   ) {
-    this._urlSerializer = useUrlFragmentHash ? FragmentUrlSerializer.instance : PathUrlSerializer.instance;
+    this._urlParser = useUrlFragmentHash ? FragmentUrlParser.instance : PathUrlParser.instance;
    }
 
   public static create(input: IRouterOptions): RouterOptions {

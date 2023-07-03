@@ -249,7 +249,7 @@ This section includes few more interesting examples that you might encounter in 
   {% code title="my-app.html" %}
   ```html
   <template as-custom-element="foo-bar">
-    <bindable property="status"></bindable>
+    <bindable name="status"></bindable>
     <div switch.bind="status">
       <au-slot name="s1" case="received">Order received.</au-slot>
       <au-slot name="s2" case="dispatched">On the way.</au-slot>

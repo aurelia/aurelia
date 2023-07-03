@@ -58,7 +58,7 @@ export class TranslationBindingCommand implements BindingCommandInstance {
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
-      target = info.bindable.property;
+      target = info.bindable.name;
     }
     return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue) as IsBindingBehavior, target);
   }
@@ -122,7 +122,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
         // use the default behavior, which is camel-casing
         ?? camelCase(info.attr.target);
     } else {
-      target = info.bindable.property;
+      target = info.bindable.name;
     }
     return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
   }

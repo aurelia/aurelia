@@ -1274,7 +1274,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.delivered,
           template: `
       <template as-custom-element="foo-bar">
-        <bindable property="status"></bindable>
+        <bindable name="status"></bindable>
         <div switch.bind="status">
           <case-host case="received"   ce-id="1">Order received.</case-host>
           <case-host case="dispatched" ce-id="2">On the way.</case-host>
@@ -1306,7 +1306,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
           initialStatus: Status.received,
           template: `
       <template as-custom-element="foo-bar">
-        <bindable property="status"></bindable>
+        <bindable name="status"></bindable>
         <div switch.bind="status">
           <au-slot name="s1" case="received">Order received.</au-slot>
           <au-slot name="s2" case="dispatched">On the way.</au-slot>

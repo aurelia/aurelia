@@ -21,8 +21,6 @@ export interface IRouteViewModel extends ICustomElementViewModel {
   unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
 }
 
-// type IHooksFn<T, Fn extends (...args: any[]) => unknown> = (vm: T, ...args: Parameters<Fn>) => ReturnType<Fn>;
-
 /**
  * A component agent handles an instance of a routed view-model (a component).
  * It deals with invoking the hooks (`canLoad`, `loading`, `canUnload`, `unloading`),

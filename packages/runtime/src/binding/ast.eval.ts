@@ -1,5 +1,5 @@
 /* eslint-disable no-fallthrough */
-import { IIndexable, isArrayIndex } from '@aurelia/kernel';
+import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
@@ -43,7 +43,17 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           : evaluatedValue;
     }
     case ExpressionKind.AccessGlobal:
-      return e?.getGlobal?.(ast.name);
+      return e?.getGlobalThis()[ast.name as keyof typeof globalThis];
+    case ExpressionKind.CallGlobal: {
+      const func = e?.getGlobalThis()[ast.name as keyof typeof globalThis] as AnyFunction;
+      if (isFunction(func)) {
+        return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+      }
+      if (!e?.strictFnCall && func == null) {
+        return void 0;
+      }
+      throw createMappedError(ErrorNames.ast_not_a_function);
+    }
     case ExpressionKind.ArrayLiteral:
       return ast.elements.map(expr => astEvaluate(expr, s, e, c));
     case ExpressionKind.ObjectLiteral: {

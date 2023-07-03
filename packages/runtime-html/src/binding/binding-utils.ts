@@ -1,12 +1,13 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
 import { ITask, TaskStatus } from '@aurelia/platform';
-import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance, getGlobalContext } from '@aurelia/runtime';
+import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
+import { IPlatform } from '../platform';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -75,8 +76,8 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
     defineHiddenProp(proto, 'get', function (this: T, key: Key) {
       return this.l.get(key);
     });
-    defineHiddenProp(proto, 'getGlobal', function (this: T, name: string) {
-      return getGlobalContext(this.l.root)?.[name];
+    defineHiddenProp(proto, 'getGlobalThis', function (this: T) {
+      return this.l.root.get(IPlatform).globalThis;
     });
     defineHiddenProp(proto, 'getSignaler', function (this: T) {
       return this.l.root.get(ISignaler);

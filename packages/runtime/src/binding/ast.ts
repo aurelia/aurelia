@@ -24,6 +24,7 @@ export const enum ExpressionKind {
   CallScope,
   CallMember,
   CallFunction,
+  CallGlobal,
   AccessMember,
   AccessKeyed,
   TaggedTemplate,
@@ -51,7 +52,7 @@ export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 
 
 export type IsPrimary = AccessThisExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
-export type IsLeftHandSide = IsPrimary | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
+export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
 export type IsBinary = IsUnary | BinaryExpression;
 export type IsConditional = IsBinary | ConditionalExpression;
@@ -220,6 +221,14 @@ export class CallFunctionExpression {
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
     public readonly optional: boolean = false,
+  ) {}
+}
+
+export class CallGlobalExpression {
+  public readonly $kind = ExpressionKind.CallGlobal;
+  public constructor(
+    public readonly name: string,
+    public readonly args: readonly IsAssign[]
   ) {}
 }
 
@@ -395,8 +404,8 @@ export class ArrowFunction {
   boundFn?: boolean;
   /** describe whether the evaluator wants to evaluate the function call in strict mode */
   strictFnCall?: boolean;
-  /** Allow an AST to retrieve a value from the global context if `useGlobal` has been enabled */
-  getGlobal?(name: string): unknown;
+  /** Allow an AST to retrieve a value from the globalThis */
+  getGlobalThis?(): typeof globalThis;
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */

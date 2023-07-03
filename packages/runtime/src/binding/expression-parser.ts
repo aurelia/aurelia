@@ -40,11 +40,11 @@ import {
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
   AccessGlobalExpression,
+  CallGlobalExpression,
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
-import { IGlobalContext, getGlobalContext } from '../global-context';
-import { IContainer, resolve } from '@aurelia/kernel';
+import { globalNames } from '../global-context';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
@@ -53,7 +53,6 @@ export class ExpressionParser {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
   /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
   /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
-  /** @internal */ private readonly _globalContext: IGlobalContext | undefined = getGlobalContext(resolve(IContainer));
 
   public parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
   public parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
@@ -112,7 +111,6 @@ export class ExpressionParser {
     $assignable = true;
     $optional = false;
     $accessGlobal = true;
-    $globalContext = this._globalContext;
     $semicolonIndex = -1;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
@@ -360,7 +358,6 @@ let $currentChar: number;
 let $assignable: boolean = true;
 let $optional: boolean = false;
 let $accessGlobal: boolean = true;
-let $globalContext: IGlobalContext | undefined = void 0;
 let $semicolonIndex: number = -1;
 
 const stringFromCharCode = String.fromCharCode;
@@ -380,7 +377,6 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
   $assignable = true;
   $optional = false;
   $accessGlobal = true;
-  $globalContext = void 0;
   $semicolonIndex = -1;
   return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
@@ -509,7 +505,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         const id = $tokenValue as string;
         if (expressionType & ExpressionType.IsIterator) {
           result = new BindingIdentifier(id);
-        } else if ($accessGlobal && ($globalContext?.[id] !== void 0)) {
+        } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
           result = new AccessGlobalExpression(id);
         } else {
           result = new AccessScopeExpression(id, ancestor);
@@ -696,6 +692,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             result = new CallScopeExpression(result.name, parseArguments(), result.ancestor, false);
           } else if (result.$kind === ExpressionKind.AccessMember) {
             result = new CallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
+          } else if (result.$kind === ExpressionKind.AccessGlobal) {
+            result = new CallGlobalExpression(result.name, parseArguments());
           } else {
             result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), false);
           }

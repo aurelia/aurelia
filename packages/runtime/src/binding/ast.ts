@@ -176,6 +176,14 @@ export class AccessScopeExpression {
   ) {}
 }
 
+const isAccessGlobal = (ast: IsLeftHandSide) => (
+  ast.$kind === ExpressionKind.AccessGlobal ||
+  (
+    ast.$kind === ExpressionKind.AccessMember ||
+    ast.$kind === ExpressionKind.AccessKeyed
+  ) && ast.accessGlobal
+);
+
 export class AccessMemberExpression {
   public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
   public readonly accessGlobal: boolean;
@@ -184,17 +192,20 @@ export class AccessMemberExpression {
     public readonly name: string,
     public readonly optional: boolean = false,
   ) {
-    this.accessGlobal = object.$kind === ExpressionKind.AccessGlobal || object.$kind === ExpressionKind.AccessMember && object.accessGlobal;
+    this.accessGlobal = isAccessGlobal(object);
   }
 }
 
 export class AccessKeyedExpression {
   public readonly $kind = ExpressionKind.AccessKeyed;
+  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly key: IsAssign,
     public readonly optional: boolean = false,
-  ) {}
+  ) {
+    this.accessGlobal = isAccessGlobal(object);
+  }
 }
 
 export class CallScopeExpression {
@@ -209,16 +220,13 @@ export class CallScopeExpression {
 
 export class CallMemberExpression {
   public readonly $kind = ExpressionKind.CallMember;
-  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly optionalMember: boolean = false,
     public readonly optionalCall: boolean = false,
-  ) {
-    this.accessGlobal = object.$kind === ExpressionKind.AccessGlobal || object.$kind === ExpressionKind.AccessMember && object.accessGlobal;
-  }
+  ) {}
 }
 
 export class CallFunctionExpression {

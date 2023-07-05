@@ -151,7 +151,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         if (instance == null) {
           return undefined;
         }
-        if (c !== null && !isAccessGlobalChain(ast.object)) {
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, ast.name);
         }
         ret = instance[ast.name];
@@ -160,7 +160,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         }
         return ret;
       }
-      if (c !== null && isObject(instance) && !isAccessGlobalChain(ast.object)) {
+      if (c !== null && isObject(instance) && !ast.accessGlobal) {
         c.observe(instance, ast.name);
       }
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -177,7 +177,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
       const key = astEvaluate(ast.key, s, e, c) as string;
       if (isObject(instance)) {
-        if (c !== null && !isAccessGlobalChain(ast.object)) {
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, key);
         }
         return instance[key];
@@ -592,16 +592,6 @@ const isStringOrDate = (value: unknown): value is string | Date => {
     default:
       return false;
   }
-};
-
-const isAccessGlobalChain = (object: IsLeftHandSide): boolean => {
-  return (
-    object.$kind === ExpressionKind.AccessGlobal ||
-    (
-      object.$kind === ExpressionKind.AccessMember ||
-      object.$kind === ExpressionKind.CallMember
-    ) && object.accessGlobal
-  );
 };
 
 const autoObserveArrayMethods =

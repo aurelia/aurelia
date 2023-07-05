@@ -1726,6 +1726,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       });
     }
 
+    for (const input of [`import`, `import()`, `import('foo')`, `import(foo)`, `import.foo`, `import.meta.url`]) {
+      it(`throw 'Unexpected keyword "import"' on "${input} of"`, function () {
+        verifyResultOrError(input, null, 'AUR0162');
+      });
+    }
+
     // missing => (need to verify when __DEV__ is enabled in test env)
     it(`throw missingExpectedToken on "()"`, function () {
       verifyResultOrError(`()`, null, 'AUR0167');

@@ -507,6 +507,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           result = new BindingIdentifier(id);
         } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
           result = new AccessGlobalExpression(id);
+        } else if ($accessGlobal && id === 'import') {
+          throw unexpectedImportKeyword();
         } else {
           result = new AccessScopeExpression(id, ancestor);
         }
@@ -1633,6 +1635,8 @@ const expectedValueConverterIdentifier = () => createMappedError(ErrorNames.pars
 const expectedBindingBehaviorIdentifier = () => createMappedError(ErrorNames.parse_expected_behavior_identifier, $input);
 
 const unexpectedOfKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_of, $input);
+
+const unexpectedImportKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_import, $input);
 
 const invalidLHSBindingIdentifierInForOf = () => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input);
 

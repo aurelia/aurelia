@@ -178,11 +178,14 @@ export class AccessScopeExpression {
 
 export class AccessMemberExpression {
   public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
+  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly optional: boolean = false,
-  ) {}
+  ) {
+    this.accessGlobal = object.$kind === ExpressionKind.AccessGlobal || object.$kind === ExpressionKind.AccessMember && object.accessGlobal;
+  }
 }
 
 export class AccessKeyedExpression {
@@ -206,13 +209,16 @@ export class CallScopeExpression {
 
 export class CallMemberExpression {
   public readonly $kind = ExpressionKind.CallMember;
+  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly optionalMember: boolean = false,
     public readonly optionalCall: boolean = false,
-  ) {}
+  ) {
+    this.accessGlobal = object.$kind === ExpressionKind.AccessGlobal || object.$kind === ExpressionKind.AccessMember && object.accessGlobal;
+  }
 }
 
 export class CallFunctionExpression {

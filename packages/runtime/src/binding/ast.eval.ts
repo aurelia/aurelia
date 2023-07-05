@@ -596,9 +596,11 @@ const isStringOrDate = (value: unknown): value is string | Date => {
 
 const isAccessGlobalChain = (object: IsLeftHandSide): boolean => {
   return (
-    object.$kind === ExpressionKind.AccessGlobal
-    || object.$kind === ExpressionKind.AccessMember && isAccessGlobalChain(object.object)
-    || object.$kind === ExpressionKind.CallMember && isAccessGlobalChain(object.object)
+    object.$kind === ExpressionKind.AccessGlobal ||
+    (
+      object.$kind === ExpressionKind.AccessMember ||
+      object.$kind === ExpressionKind.CallMember
+    ) && object.accessGlobal
   );
 };
 

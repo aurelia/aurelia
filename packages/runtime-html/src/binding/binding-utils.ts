@@ -76,9 +76,6 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
     defineHiddenProp(proto, 'get', function (this: T, key: Key) {
       return this.l.get(key);
     });
-    defineHiddenProp(proto, 'getGlobalThis', function (this: T) {
-      return this.l.root.get(IPlatform).globalThis;
-    });
     defineHiddenProp(proto, 'getSignaler', function (this: T) {
       return this.l.root.get(ISignaler);
     });

@@ -404,8 +404,6 @@ export class ArrowFunction {
   boundFn?: boolean;
   /** describe whether the evaluator wants to evaluate the function call in strict mode */
   strictFnCall?: boolean;
-  /** Allow an AST to retrieve a value from the globalThis */
-  getGlobalThis?(): typeof globalThis;
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */

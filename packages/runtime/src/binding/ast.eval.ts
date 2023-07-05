@@ -43,9 +43,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           : evaluatedValue;
     }
     case ExpressionKind.AccessGlobal:
-      return e?.getGlobalThis()[ast.name as keyof typeof globalThis];
+      return globalThis[ast.name as keyof typeof globalThis];
     case ExpressionKind.CallGlobal: {
-      const func = e?.getGlobalThis()[ast.name as keyof typeof globalThis] as AnyFunction;
+      const func = globalThis[ast.name as keyof typeof globalThis] as AnyFunction;
       if (isFunction(func)) {
         return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
       }

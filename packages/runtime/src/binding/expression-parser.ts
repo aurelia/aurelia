@@ -39,6 +39,8 @@ import {
   DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
   ArrowFunction,
+  AccessGlobalExpression,
+  CallGlobalExpression,
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
@@ -107,6 +109,7 @@ export class ExpressionParser {
     $currentChar = $charCodeAt(0);
     $assignable = true;
     $optional = false;
+    $accessGlobal = true;
     $semicolonIndex = -1;
     return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
   }
@@ -329,8 +332,8 @@ const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
-const $this = AccessThisExpression.$this;
-const $parent = AccessThisExpression.$parent;
+const $this = new AccessThisExpression(0);
+const $parent = new AccessThisExpression(1);
 
 export const enum ExpressionType {
           None = 0,
@@ -353,12 +356,17 @@ let $tokenValue: string | number = '';
 let $currentChar: number;
 let $assignable: boolean = true;
 let $optional: boolean = false;
+let $accessGlobal: boolean = true;
 let $semicolonIndex: number = -1;
 
 const stringFromCharCode = String.fromCharCode;
 const $charCodeAt = (index: number) => $input.charCodeAt(index);
 
 const $tokenRaw = (): string => $input.slice($startIndex, $index);
+
+const globalNames =
+  ('Infinity NaN isFinite isNaN parseFloat parseInt decodeURI decodeURIComponent encodeURI encodeURIComponent' +
+  ' Array BigInt Boolean Date Map Number Object RegExp Set String JSON Math Intl').split(' ');
 
 export function parseExpression(input: string, expressionType?: ExpressionType): AnyBindingExpression {
   $input = input;
@@ -371,6 +379,7 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
   $currentChar = $charCodeAt(0);
   $assignable = true;
   $optional = false;
+  $accessGlobal = true;
   $semicolonIndex = -1;
   return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
 }
@@ -402,6 +411,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
 
   $assignable = Precedence.Binary > minPrecedence;
   $optional = false;
+  $accessGlobal = Precedence.LeftHandSide > minPrecedence;
   let optionalThisTail = false;
   let result = void 0 as unknown as IsExpressionOrStatement;
   let ancestor = 0;
@@ -462,6 +472,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       case Token.ParentScope: // $parent
         ancestor = $scopeDepth;
         $assignable = false;
+        $accessGlobal = false;
         do {
           nextToken();
           ++ancestor;
@@ -497,6 +508,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         const id = $tokenValue as string;
         if (expressionType & ExpressionType.IsIterator) {
           result = new BindingIdentifier(id);
+        } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
+          result = new AccessGlobalExpression(id);
+        } else if ($accessGlobal && id === 'import') {
+          throw unexpectedImportKeyword();
         } else {
           result = new AccessScopeExpression(id, ancestor);
         }
@@ -682,6 +697,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             result = new CallScopeExpression(result.name, parseArguments(), result.ancestor, false);
           } else if (result.$kind === ExpressionKind.AccessMember) {
             result = new CallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
+          } else if (result.$kind === ExpressionKind.AccessGlobal) {
+            result = new CallGlobalExpression(result.name, parseArguments());
           } else {
             result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), false);
           }
@@ -1621,6 +1638,8 @@ const expectedValueConverterIdentifier = () => createMappedError(ErrorNames.pars
 const expectedBindingBehaviorIdentifier = () => createMappedError(ErrorNames.parse_expected_behavior_identifier, $input);
 
 const unexpectedOfKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_of, $input);
+
+const unexpectedImportKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_import, $input);
 
 const invalidLHSBindingIdentifierInForOf = () => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input);
 

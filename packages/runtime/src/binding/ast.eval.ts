@@ -1,9 +1,17 @@
 /* eslint-disable no-fallthrough */
-import { IIndexable, isArrayIndex } from '@aurelia/kernel';
+import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
-import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance } from './ast';
+import {
+  ExpressionKind,
+  type IsExpressionOrStatement,
+  type IAstEvaluator,
+  type DestructuringAssignmentExpression,
+  type DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  BindingBehaviorInstance
+} from './ast';
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -41,6 +49,19 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         : e?.boundFn && isFunction(evaluatedValue)
           ? evaluatedValue.bind(obj)
           : evaluatedValue;
+    }
+    case ExpressionKind.AccessGlobal:
+      return globalThis[ast.name as keyof typeof globalThis];
+    case ExpressionKind.CallGlobal: {
+      const func = globalThis[ast.name as keyof typeof globalThis] as AnyFunction;
+      if (isFunction(func)) {
+        return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+      }
+      /* istanbul-ignore-next */
+      if (!e?.strictFnCall && func == null) {
+        return void 0;
+      }
+      throw createMappedError(ErrorNames.ast_not_a_function);
     }
     case ExpressionKind.ArrayLiteral:
       return ast.elements.map(expr => astEvaluate(expr, s, e, c));
@@ -139,7 +160,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         if (instance == null) {
           return undefined;
         }
-        if (c !== null) {
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, ast.name);
         }
         ret = instance[ast.name];
@@ -148,7 +169,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         }
         return ret;
       }
-      if (c !== null && isObject(instance)) {
+      if (c !== null && isObject(instance) && !ast.accessGlobal) {
         c.observe(instance, ast.name);
       }
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -165,7 +186,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
       const key = astEvaluate(ast.key, s, e, c) as string;
       if (isObject(instance)) {
-        if (c !== null) {
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, key);
         }
         return instance[key];

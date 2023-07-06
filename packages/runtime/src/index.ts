@@ -8,6 +8,7 @@ export {
   AssignExpression,
   ConditionalExpression,
   AccessThisExpression,
+  AccessGlobalExpression,
   AccessScopeExpression,
   AccessMemberExpression,
   AccessKeyedExpression,

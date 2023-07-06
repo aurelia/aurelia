@@ -66,9 +66,6 @@ export function ensureProto<T extends object, K extends keyof T>(
 }
 
 /** @internal */ export const objectAssign = Object.assign;
-/** @internal */ export const objectFreeze = Object.freeze;
-/** @internal */ export const objectCreate = Object.create;
-/** @internal */ export const objectFromEntries = Object.fromEntries;
 // this is used inside template literal, since TS errs without String(...value)
 /** @internal */ export const safeString = String;
 /** @internal */ export const createInterface = DI.createInterface;

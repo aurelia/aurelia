@@ -760,6 +760,7 @@ export const enum ResolverStrategy {
 }
 _END_CONST_ENUM();
 
+/** @internal */
 export class Resolver implements IResolver, IRegistration {
   /** @internal */
   public _key: Key;

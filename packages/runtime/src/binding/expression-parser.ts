@@ -44,7 +44,6 @@ import {
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
-import { globalNames } from '../global-context';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
@@ -333,8 +332,8 @@ const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
-const $this = AccessThisExpression.$this;
-const $parent = AccessThisExpression.$parent;
+const $this = new AccessThisExpression(0);
+const $parent = new AccessThisExpression(1);
 
 export const enum ExpressionType {
           None = 0,
@@ -364,6 +363,10 @@ const stringFromCharCode = String.fromCharCode;
 const $charCodeAt = (index: number) => $input.charCodeAt(index);
 
 const $tokenRaw = (): string => $input.slice($startIndex, $index);
+
+const globalNames =
+  ('Infinity NaN isFinite isNaN parseFloat parseInt decodeURI decodeURIComponent encodeURI encodeURIComponent' +
+  ' Array BigInt Boolean Date Map Number Object RegExp Set String JSON Math Intl').split(' ');
 
 export function parseExpression(input: string, expressionType?: ExpressionType): AnyBindingExpression {
   $input = input;

@@ -1,8 +1,5 @@
 import { AccessGlobalExpression, ExpressionType, IExpressionParser } from '@aurelia/runtime';
-import { Aurelia, CustomElement } from '@aurelia/runtime-html';
-import {
-  assert, TestContext,
-} from '@aurelia/testing';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 const globalNames = [
   'Infinity',
@@ -38,13 +35,6 @@ const getParser = () => {
   const container = ctx.container;
   const parser = container.get(IExpressionParser);
   return parser;
-};
-
-const createFixture = () => {
-  const ctx = TestContext.create();
-  const au = new Aurelia(ctx.container);
-  const host = ctx.createElement("div");
-  return { au, host, ctx };
 };
 
 const ensureGlobalsAreUntouched = ($globalThis: typeof globalThis) => {
@@ -120,94 +110,84 @@ describe('2-runtime/global-context.spec.ts', function () {
   });
 
   describe('evaluation of global expressions - ensure parameters are reactive but the globals+properties are not observed', function () {
-    it('Math.max', async function () {
-      const { au, host, ctx } = createFixture();
-      const App = CustomElement.define({ name: 'app', template: '${num1},${num2},${Math.max(num1, num2)}' }, class {
-        num1 = 1;
-        num2 = 2;
-      });
-      const component = new App();
-      au.app({ host, component });
-      await au.start();
+    it('Math.max', function () {
+      const { ctx, component, assertText, flush, stop } = createFixture(
+        '${num1},${num2},${Math.max(num1, num2)}',
+        class { num1 = 1; num2 = 2; }
+      );
 
-      assert.visibleTextEqual(host, '1,2,2', 'initial evaluation');
+      assertText('1,2,2');
       component.num1 = 3;
-      ctx.platform.domWriteQueue.flush();
-      assert.visibleTextEqual(host, '3,2,3', 'evaluation after update');
+      flush();
+      assertText('3,2,3');
 
-      await au.stop();
+      void stop(true);
       ensureGlobalsAreUntouched(ctx.wnd.globalThis);
     });
 
-    it('Object.prototype.toString.call', async function () {
-      const { au, host, ctx } = createFixture();
-      const App = CustomElement.define({ name: 'app', template: '${Object.prototype.toString.call(value)}' }, class {
-        value: any = 0;
+    it('throws on trying to call a global that is not a function', function () {
+      assert.throws(() => {
+        createFixture('${JSON()}');
       });
-      const component = new App();
-      au.app({ host, component });
-      await au.start();
+    });
 
-      assert.visibleTextEqual(host, '[object Number]', 'initial evaluation');
+    it('Object.prototype.toString.call', function () {
+      const { ctx, component, assertText, flush, stop } = createFixture(
+        '${Object.prototype.toString.call(value)}',
+        class { value: any = 0; }
+      );
+
+      assertText('[object Number]');
       component.value = '0';
-      ctx.platform.domWriteQueue.flush();
-      assert.visibleTextEqual(host, '[object String]', 'evaluation after update');
+      flush();
+      assertText('[object String]');
 
-      await au.stop();
+      void stop(true);
       ensureGlobalsAreUntouched(ctx.wnd.globalThis);
     });
 
-    it('instanceof Object', async function () {
-      const { au, host, ctx } = createFixture();
-      const App = CustomElement.define({ name: 'app', template: '${value instanceof Object ? "object" : "something else"}' }, class {
-        value: any = {};
-      });
-      const component = new App();
-      au.app({ host, component });
-      await au.start();
+    it('instanceof Object', function () {
+      const { ctx, component, assertText, flush, stop } = createFixture(
+        '${value instanceof Object ? "object" : "something else"}',
+        class { value: any = {}; }
+      );
 
-      assert.visibleTextEqual(host, 'object', 'initial evaluation');
+      assertText('object');
       component.value = null;
-      ctx.platform.domWriteQueue.flush();
-      assert.visibleTextEqual(host, 'something else', 'evaluation after update');
+      flush();
+      assertText('something else');
 
-      await au.stop();
+      void stop(true);
       ensureGlobalsAreUntouched(ctx.wnd.globalThis);
     });
 
-    it('isNaN', async function () {
-      const { au, host, ctx } = createFixture();
-      const App = CustomElement.define({ name: 'app', template: '${isNaN(value === 0 ? NaN : value) ? "its NaN" : value' }, class {
-        value: any = 0;
-      });
-      const component = new App();
-      au.app({ host, component });
-      await au.start();
+    it('isNaN', function () {
+      const { ctx, component, assertText, flush, stop } = createFixture(
+        '${isNaN(value === 0 ? NaN : value) ? "its NaN" : value',
+        class { value: any = 0; }
+      );
 
-      assert.visibleTextEqual(host, 'its NaN', 'initial evaluation');
+      assertText('its NaN');
       component.value = 1;
-      ctx.platform.domWriteQueue.flush();
-      assert.visibleTextEqual(host, '1', 'evaluation after update');
+      flush();
+      assertText('1');
 
-      await au.stop();
+      void stop(true);
       ensureGlobalsAreUntouched(ctx.wnd.globalThis);
     });
 
     it('isFinite', async function () {
-      const { au, host, ctx } = createFixture();
-      const App = CustomElement.define({ name: 'app', template: '${isFinite(value === 0 ? Infinity : value) ? "finite" : "infinite"' }, class {
-        value: any = 0;
-      });
-      const component = new App();
-      au.app({ host, component });
-      await au.start();
+      const { ctx, component, assertText, flush, stop } = createFixture(
+        '${isFinite(value === 0 ? Infinity : value) ? "finite" : "infinite"',
+        class { value: any = 0; }
+      );
 
-      assert.visibleTextEqual(host, 'infinite', 'initial evaluation');
+      assertText('infinite');
       component.value = 1;
-      ctx.platform.domWriteQueue.flush();
-      assert.visibleTextEqual(host, 'finite', 'evaluation after update');
+      flush();
+      assertText('finite');
 
-      await au.stop();
+      void stop(true);
       ensureGlobalsAreUntouched(ctx.wnd.globalThis);
     });
   });

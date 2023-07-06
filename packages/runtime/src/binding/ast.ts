@@ -159,8 +159,6 @@ export class AccessGlobalExpression {
 }
 
 export class AccessThisExpression {
-  public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
-  public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
   public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
 
   public constructor(

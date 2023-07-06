@@ -7,7 +7,6 @@ import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
-import { IPlatform } from '../platform';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding

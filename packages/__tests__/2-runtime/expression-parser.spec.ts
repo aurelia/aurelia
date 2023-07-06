@@ -65,8 +65,8 @@ const $str = PrimitiveLiteralExpression.$empty;
 const $tpl = TemplateExpression.$empty;
 const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
-const $this = AccessThisExpression.$this;
-const $parent = AccessThisExpression.$parent;
+const $this = new AccessThisExpression(0);
+const $parent = new AccessThisExpression(1);
 
 const $a = new AccessScopeExpression('a');
 const $b = new AccessScopeExpression('b');
@@ -1391,6 +1391,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       [`[a,,b]`,                         new DAE(aknd, [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ForOfStatements: [string, any][] = [
       ...SimpleForDeclarations.map(([decInput, decExpr]) => [
         ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr, -1)])
@@ -1421,6 +1422,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [input, expected] of SimpleForDeclarations.map(([decInput, decExpr]) => [
 
     ] as [string, any][]).reduce((a, c) => a.concat(c))) {

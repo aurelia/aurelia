@@ -3,7 +3,15 @@ import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
-import { ExpressionKind, IsExpressionOrStatement, IAstEvaluator, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, BindingBehaviorInstance, IsLeftHandSide } from './ast';
+import {
+  ExpressionKind,
+  type IsExpressionOrStatement,
+  type IAstEvaluator,
+  type DestructuringAssignmentExpression,
+  type DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  BindingBehaviorInstance
+} from './ast';
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -49,6 +57,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       if (isFunction(func)) {
         return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
       }
+      /* istanbul-ignore-next */
       if (!e?.strictFnCall && func == null) {
         return void 0;
       }

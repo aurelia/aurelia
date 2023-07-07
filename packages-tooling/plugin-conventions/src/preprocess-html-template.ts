@@ -1,8 +1,9 @@
 import * as path from 'path';
-import modifyCode, { ModifyCodeResult } from 'modify-code';
+import modifyCode, { type ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 import { resourceName } from './resource-name';
+import { fileExists } from './file-exists';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
@@ -12,7 +13,12 @@ import { resourceName } from './resource-name';
 // We cannot use
 //   import d0 from './foo.css';
 // because most bundler by default will inject that css into HTML head.
-export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions, hasViewModel?: boolean): ModifyCodeResult {
+export function preprocessHtmlTemplate(
+  unit: IFileUnit,
+  options: IPreprocessOptions,
+  hasViewModel?: boolean,
+  _fileExists = fileExists,
+): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
   const { html, deps, containerless, hasSlot, bindables, aliases, capture } = stripped;
@@ -42,7 +48,20 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   }
 
   deps.forEach((d, i) => {
-    const ext = path.extname(d);
+    let ext = path.extname(d);
+
+    if (!ext) {
+      // When possible, fill up explicit file extension.
+      // Parcel requires this to work.
+      // https://github.com/aurelia/aurelia/issues/1657
+      if (_fileExists(unit, `${d}.ts`)) {
+        ext = '.ts';
+      } else if (_fileExists(unit, `${d}.js`)) {
+        ext = '.js';
+      }
+      d = d + ext;
+    }
+
     // All known resource types
     if (!ext || ext === '.js' || ext === '.ts') {
       statements.push(`import * as d${i} from ${s(d)};\n`);

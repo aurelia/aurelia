@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, onResolve, transient } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, onResolve, resolve, transient } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
@@ -6,9 +6,10 @@ import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { createError, isFunction, isPromise } from '../../utilities';
+import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
+import { ErrorNames, createMappedError } from '../../errors';
 
 /**
  * An optional interface describing the dialog activate convention.
@@ -29,12 +30,6 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 // <au-component template.bind="<string>" model.bind="" />
 //
 export class AuCompose {
-
-  /** @internal */
-  protected static get inject() {
-    return [IContainer, IController, INode, IRenderLocation, IPlatform, IInstruction, transient(CompositionContextFactory)];
-  }
-
   /* determine what template used to compose the component */
   @bindable
   public template?: string | Promise<string>;
@@ -59,11 +54,7 @@ export class AuCompose {
       if (v === 'scoped' || v === 'auto') {
         return v;
       }
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0805: Invalid scope behavior config. Only "scoped" or "auto" allowed.`);
-      else
-        throw createError(`AUR0805`);
+      throw createMappedError(ErrorNames.au_compose_invalid_scope_behavior, v);
     }
   })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
@@ -83,25 +74,14 @@ export class AuCompose {
     return this._composition;
   }
 
-  /** @internal */ private readonly _rendering: IRendering;
-  /** @internal */ private readonly _instruction: HydrateElementInstruction;
-  /** @internal */ private readonly _contextFactory: CompositionContextFactory;
-
-  public constructor(
-    /** @internal */ private readonly _container: IContainer,
-    /** @internal */ private readonly parent: ISyntheticView | ICustomElementController,
-    /** @internal */ private readonly host: HTMLElement,
-    /** @internal */ private readonly _location: IRenderLocation,
-    /** @internal */ private readonly _platform: IPlatform,
-    // todo: use this to retrieve au-slot instruction
-    //        for later enhancement related to <au-slot/> + compose
-    instruction: HydrateElementInstruction,
-    contextFactory: CompositionContextFactory,
-  ) {
-    this._rendering = _container.get(IRendering);
-    this._instruction = instruction;
-    this._contextFactory = contextFactory;
-  }
+  /** @internal */ private readonly _container = resolve(IContainer);
+  /** @internal */ private readonly parent = resolve(IController) as ISyntheticView | ICustomElementController;
+  /** @internal */ private readonly host = resolve(INode) as HTMLElement;
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private readonly _rendering = resolve(IRendering);
+  /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
+  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._pending = onResolve(
@@ -123,7 +103,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  protected propertyChanged(name: ChangeSource): void {
+  public propertyChanged(name: ChangeSource): void {
     if (name === 'model' && this._composition != null) {
       // eslint-disable-next-line
       this._composition.update(this.model);
@@ -204,11 +184,7 @@ export class AuCompose {
 
     if (vmDef !== null) {
       if (vmDef.containerless) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0806: Containerless custom element is not supported by <au-compose/>`);
-        else
-          throw createError(`AUR0806`);
+        throw createMappedError(ErrorNames.au_compose_containerless, vmDef);
       }
       if (loc == null) {
         compositionHost = host;
@@ -418,11 +394,7 @@ class CompositionController implements ICompositionController {
 
   public activate(initiator?: IHydratedController) {
     if (this.state !== 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0807: Composition has already been activated/deactivated. Id: ${this.controller.name}`);
-      else
-        throw createError(`AUR0807:${this.controller.name}`);
+      throw createMappedError(ErrorNames.au_compose_invalid_run, this);
     }
     this.state = 1;
     return this.start(initiator);
@@ -434,11 +406,7 @@ class CompositionController implements ICompositionController {
         this.state = -1;
         return this.stop(detachInitator);
       case -1:
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0808: Composition has already been deactivated.`);
-        else
-          throw createError(`AUR0808`);
+        throw createMappedError(ErrorNames.au_compose_duplicate_deactivate);
       default:
         this.state = -1;
     }

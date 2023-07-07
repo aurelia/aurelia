@@ -102,7 +102,7 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | AUR0803    | This happens when `& updateTrigger` binding behavior is used on binding without view -> view model observation                |
 | AUR0804    | This happens when `& updateTrigger` binding behavior is used on binding that does not target a DOM element                    |
 | AUR0805    | This happens when `<au-compose>` `scopeBehavior` property is assigned a value that is not either `auto` or `scoped`           |
-| AUR0806    | This happens when `<au-compose>` `component` binding is used with a custom element with `containerless = true`               |
+| AUR0806    | This happens when `<au-compose>` `component` binding is used with a custom element with `containerless = true`                |
 | AUR0807    | This happens when there's a corrupted internal state of `<au-compose>` and activation is called twice                         |
 | AUR0808    | This happens when there's a corrupted internal state of `<au-compose>` and deactivation is called twice                       |
 | AUR0809    | This happens when `<au-render>` `component` binding is given a string value, and there's no custom element with matching name |
@@ -121,7 +121,6 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | Error Code | Plugin name | Description                                                                                                                        |
 | ---------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | AUR0901    | Dialog      | This happens when an application is closed with some dialogs still open                                                            |
-| AUR0902    | Dialog      | This happens when `DialogController` injection is requested. It's a error prevention for v1->v2 migration of the dialog plugin     |
 | AUR0903    | Dialog      | This happens when `IDialogService.open` is called without both `component` and `template` property                                 |
 | AUR0904    | Dialog      | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
 
@@ -189,3 +188,46 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | AUR0224    | Encounters an invalid usage of `@observable`                                                                 |
 | AUR0225    | An effect is attempted to run again, after it has stopped                                                    |
 | AUR0226    | An effect has reach its limit of recursive update                                                            |
+
+## Router-Lite
+
+Router-Lite logs various events.
+Majority of those events are traces.
+The non-warn, non-error events are not logged in non-dev build, and are only available for troubleshooting in the dev-build.
+This section only lists the error codes.
+
+| Error Code | Description                                                                                                                                                                                                            |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AUR3155    | The route context cannot be resolved from the given DOM node. This happens if the given node is not a custom element or not a child-node of a custom element.                                                          |
+| AUR3166    | This happens when an attempt to eagerly (without involving the route recognizer) recognize a routing instruction failed. If you are getting this error, please report it.                                              |
+| AUR3167    | This happens when the application root is not yet set, but the router is trying to set a routing root. If you are getting this error, please report it.                                                                |
+| AUR3168    | This happens when a route context already exist for the application root; for example if it attempted to set the routing root more than once.                                                                          |
+| AUR3169    | This happens when no controller exists for the application root.  If you are getting this error, please report it.                                                                                                     |
+| AUR3170    | A route context cannot be resolved for the given input.                                                                                                                                                                |
+| AUR3171    | This happens when the route node of the route context is not set. If you are getting this error, please report it.                                                                                                     |
+| AUR3172    | This happens when the viewport agent of the route context is not set. If you are getting this error, please report it.                                                                                                 |
+| AUR3173    | This happens the `import()` function is used as `component`, while configuring a route, but no `path` has been specified. This is not supported.                                                                       |
+| AUR3174    | No viewport agent can be resolved for a given request.                                                                                                                                                                 |
+| AUR3175    | This happens the `import()` function is used as `component`, while configuring a route, but the module does not export any aurelia custom element.                                                                     |
+| AUR3270    | A routing transition failed.                                                                                                                                                                                           |
+| AUR3271    | The routing context of the router is not set. If you are getting this error, please report it.                                                                                                                         |
+| AUR3350    | Activation of component from a viewport failed due to incorrect state. If you are getting this error, please report it.                                                                                                |
+| AUR3351    | Deactivation of component from a viewport failed due to incorrect state. If you are getting this error, please report it.                                                                                              |
+| AUR3352    | The state of the viewport agent is not as expected. If you are getting this error, please report it.                                                                                                                   |
+| AUR3353    | The transition was either erred or cancelled via one of the `can*` hooks, but the router attempts to continue with the current instruction instead of cancelling it. If you are getting this error, please report it. |
+| AUR3400    | A navigation instruction cannot be created.                                                                                                                                                                            |
+| AUR3401    | Neither the given routing instruction can be recognized, nor a `fallback` is configured.                                                                                                                               |
+| AUR3401    | The redirect route cannot be recognized.                                                                                                                                                                               |
+| AUR3403    | `toUrlComponent` is invoked on a navigation instruction with incompatible type. This happens when the type of the instruction is a promise or a view-model.                                                            |
+| AUR3450    | Thrown by the navigation model when the endpoint for a path is not found.                                                                                                                                              |
+| AUR3500    | Thrown by the route expression parser upon encountering an unexpected segment.                                                                                                                                         |
+| AUR3501    | Thrown by the route expression parser when all of the given input string cannot be consumed.                                                                                                                           |
+| AUR3502    | Thrown if an unexpected segment is encountered during migrating parameters for redirect route.                                                                                                                         |
+| AUR3550    | Thrown when a re-attempt is made to call the `getRouteConfig` hook for the same component. If you are getting this error, please report it.                                                                            |
+| AUR3551    | A custom element definition could not be resolved from the given string name, as no route context was provided. If you are getting this error, please report it.                                                       |
+| AUR3552    | A custom element definition could not be resolved from the given string name, as it is potentially not a custom element.                                                                                               |
+| AUR3553    | A custom element definition could not be resolved from the`import()` function, as no route context was provided to resolve it.                                                                                         |
+| AUR3554    | The validation of a route config failed due to unexpected type of property.                                                                                                                                            |
+| AUR3555    | The validation of a route config failed, as the config is either `undefined` or `null`.                                                                                                                                |
+| AUR3556    | The validation of a route config failed due to unexpected property.                                                                                                                                                    |
+| AUR3556    | The validation of a redirect route config failed due to unexpected property.                                                                                                                                           |

@@ -1,4 +1,4 @@
-import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
@@ -12,7 +12,7 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);
-    } catch(ex) {
+    } catch (ex) {
       console.log('(!) Error in fixture:created callback');
       console.log(ex);
     }
@@ -43,13 +43,13 @@ export function createFixture<T extends object>(
   const $$class: Constructable<K> = typeof $class === 'function'
     ? $class as unknown as Constructable<K>
     : $class == null
-      ? class {} as Constructable<K>
+      ? class { } as Constructable<K>
       : function $Ctor() {
         Object.setPrototypeOf($class, $Ctor.prototype);
         return $class;
       } as unknown as Constructable<K>;
 
-  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register'>)[] =
+  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register' | 'toString'>)[] =
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
@@ -147,7 +147,7 @@ export function createFixture<T extends object>(
       if (el === null) {
         throw new Error(`No element found for selector "${selectorOrHtml}" to compare innerHTML against "${html}"`);
       }
-      assert.strictEqual(getInnerHtml(el, compact) , html);
+      assert.strictEqual(getInnerHtml(el, compact), html);
     } else {
       assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
     }
@@ -188,13 +188,15 @@ export function createFixture<T extends object>(
     el.dispatchEvent(new ctx.CustomEvent(event, init));
   }
   ['click', 'change', 'input', 'scroll'].forEach(event => {
-    Object.defineProperty(trigger, event, { configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-      const el = queryBy(selector);
-      if (el === null) {
-        throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+    Object.defineProperty(trigger, event, {
+      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
+        const el = queryBy(selector);
+        if (el === null) {
+          throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+        }
+        el.dispatchEvent(new ctx.CustomEvent(event, init));
       }
-      el.dispatchEvent(new ctx.CustomEvent(event, init));
-    } });
+    });
   });
   function type(selector: string | Element, value: string): void {
     const el = typeof selector === 'string' ? queryBy(selector) : selector;
@@ -218,6 +220,32 @@ export function createFixture<T extends object>(
     ctx.platform.domWriteQueue.flush(time);
   };
 
+  const stop = (dispose: boolean = false): void | Promise<void> => {
+    let ret: MaybePromise<void>;
+    try {
+      ret = au.stop(dispose);
+    } finally {
+      if (dispose) {
+        if (++tornCount > 1) {
+          console.log('(!) Fixture has already been torn down');
+        } else {
+          const $dispose = () => {
+            root.remove();
+            au.dispose();
+          };
+          if (ret instanceof Promise) {
+            ret = ret.then($dispose);
+          } else {
+            $dispose();
+          }
+        }
+      }
+    }
+    return ret;
+  };
+
+  let app: ReturnType<Aurelia['app']>;
+
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
     public ctx = ctx;
@@ -232,24 +260,14 @@ export function createFixture<T extends object>(
     public hJsx = hJsx.bind(ctx.doc);
 
     public start() {
-      return au.app({ host: host, component }).start();
+      return (app ??= au.app({ host: host, component })).start();
     }
 
     public tearDown() {
-      if (++tornCount === 2) {
-        console.log('(!) Fixture has already been torn down');
-        return;
-      }
-      const dispose = () => {
-        root.remove();
-        au.dispose();
-      };
-      const ret = au.stop();
-      if (ret instanceof Promise)
-        return ret.then(dispose);
-      else
-        return dispose();
+      return stop(true);
     }
+
+    public stop = stop;
 
     public get torn() {
       return tornCount > 0;
@@ -299,7 +317,11 @@ export interface IFixture<T> {
   readonly logger: ILogger;
   readonly torn: boolean;
   start(): void | Promise<void>;
+  /**
+   * @deprecated use `stop(true)` instead
+   */
   tearDown(): void | Promise<void>;
+  stop(dispose?: boolean): void | Promise<void>;
   readonly started: Promise<IFixture<T>>;
 
   /**
@@ -456,7 +478,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
   return result;
 }
 
-createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
+createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values);
 createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
 

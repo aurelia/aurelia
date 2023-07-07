@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "declarationDir": "dist/types",
+    "esModuleInterop": true,
     "outDir": "dist/cjs",
     "types": [
       "node"

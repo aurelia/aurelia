@@ -1,11 +1,9 @@
-import { AccessorType } from '../observation';
+import { AccessorType, ICoercionConfiguration, IObserver, InterceptorFunc } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { areEqual, def, isFunction } from '../utilities-objects';
+import { areEqual, def, objectAssign } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
-  IAccessor,
-  InterceptorFunc,
   ISubscriber,
   ISubscriberCollection,
 } from '../observation';
@@ -16,7 +14,7 @@ export interface SetterObserver extends ISubscriberCollection {}
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-export class SetterObserver implements IAccessor, ISubscriberCollection {
+export class SetterObserver implements IObserver, ISubscriberCollection {
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Observer;
 
@@ -24,6 +22,13 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
   private _value: unknown = void 0;
   /** @internal */
   private _observing: boolean = false;
+
+  /** @internal */
+  private _callback?: (newValue: unknown, oldValue: unknown) => void = void 0;
+  /** @internal */
+  private _coercer?: InterceptorFunc = void 0;
+  /** @internal */
+  private _coercionConfig?: ICoercionConfiguration = void 0;
 
   /** @internal */ private readonly _obj: IIndexable;
   /** @internal */ private readonly _key: PropertyKey;
@@ -41,12 +46,16 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
   }
 
   public setValue(newValue: unknown): void {
+    if (this._coercer !== void 0) {
+      newValue = this._coercer.call(void 0, newValue, this._coercionConfig);
+    }
     if (this._observing) {
       if (areEqual(newValue, this._value)) {
         return;
       }
       oV = this._value;
       this._value = newValue;
+      this._callback?.(newValue, oV);
       this.subs.notify(newValue, oV);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -55,8 +64,22 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
       // is unmodified and we need to explicitly set the property value.
       // This will happen in one-time, to-view and two-way bindings during bind, meaning that the bind will not actually update the target value.
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether bind updated the target or not.
-      this._obj[this._key] = newValue;
+      this._value = this._obj[this._key] = newValue;
+      this._callback?.(newValue, oV);
     }
+  }
+
+  public useCallback(callback: (newValue: unknown, oldValue: unknown) => void): boolean {
+    this._callback = callback;
+    this.start();
+    return true;
+  }
+
+  public useCoercer(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration | undefined): boolean {
+    this._coercer = coercer;
+    this._coercionConfig = coercionConfig;
+    this.start();
+    return true;
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -77,7 +100,7 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
         {
           enumerable: true,
           configurable: true,
-          get: (/* Setter Observer */) => this.getValue(),
+          get: objectAssign((/* Setter Observer */) => this.getValue(), { getObserver: () => this }),
           set: (/* Setter Observer */value) => {
             this.setValue(value);
           },
@@ -102,63 +125,7 @@ export class SetterObserver implements IAccessor, ISubscriberCollection {
   }
 }
 
-type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown) => void;
-
-export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
-
-export class SetterNotifier implements IAccessor {
-  public readonly type: AccessorType = AccessorType.Observer;
-
-  /** @internal */
-  private _value: unknown = void 0;
-  /** @internal */
-  private _oldValue: unknown = void 0;
-  /** @internal */
-  private readonly cb?: ChangeHandlerCallback;
-  /** @internal */
-  private readonly _obj: object;
-  /** @internal */
-  private readonly _setter: InterceptorFunc | undefined;
-  /** @internal */
-  private readonly _hasSetter: boolean;
-
-  public constructor(
-    obj: object,
-    callbackKey: PropertyKey,
-    set: InterceptorFunc | undefined,
-    initialValue: unknown,
-  ) {
-    this._obj = obj;
-    this._setter = set;
-    this._hasSetter = isFunction(set);
-    const callback = (obj as IIndexable)[callbackKey as string];
-    this.cb = isFunction(callback) ? callback as ChangeHandlerCallback : void 0;
-    this._value = initialValue;
-  }
-
-  public getValue(): unknown {
-    return this._value;
-  }
-
-  public setValue(value: unknown): void {
-    if (this._hasSetter) {
-      value = this._setter!(value, null);
-    }
-    if (!areEqual(value, this._value)) {
-      this._oldValue = this._value;
-      this._value = value;
-      this.cb?.call(this._obj, this._value, this._oldValue);
-      // this._value might have been updated during the callback
-      // we only want to notify subscribers with the latest values
-      oV = this._oldValue;
-      this._oldValue = this._value;
-      this.subs.notify(this._value, oV);
-    }
-  }
-}
-
 subscriberCollection(SetterObserver);
-subscriberCollection(SetterNotifier);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

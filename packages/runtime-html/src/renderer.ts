@@ -8,6 +8,7 @@ import {
   type IRegistry,
   type Constructable,
   type IResolver,
+  resolve,
 } from '@aurelia/kernel';
 import {
   ExpressionType,
@@ -36,13 +37,13 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { createError, defineProp, objectKeys, isString } from './utilities';
+import { objectKeys, isString, def } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
-import { createText, insertBefore } from './utilities-dom';
+import { ErrorNames, createMappedError } from './errors';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -384,7 +385,7 @@ export function renderer<TType extends string>(targetType: TType): InstructionRe
     target.register = function (container: IContainer): void {
       singletonRegistration(IRenderer, this).register(container);
     };
-    defineProp(target.prototype, 'target', {
+    def(target.prototype, 'target', {
       configurable: true,
       get: function () { return targetType; }
     });
@@ -415,12 +416,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!;
     case 'view':
-      // todo: returns node sequences for fun?
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0750: Not supported API`);
-      else
-        throw createError(`AUR0750`);
+      throw createMappedError(ErrorNames.not_supported_view_ref_api);
     case 'view-model':
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
@@ -431,11 +427,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       }
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
-        if (__DEV__)
-          /* istanbul ignore next */
-          throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
-        else
-          throw createError(`AUR0751:${refTargetName}`);
+        throw createMappedError(ErrorNames.ref_not_found, refTargetName);
       }
       return ceController.viewModel;
     }
@@ -464,14 +456,9 @@ export class SetPropertyRenderer implements IRenderer {
 @renderer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
-  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateElement;
-
-  public constructor(rendering: IRendering) {
-    this._rendering = rendering;
-  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -493,10 +480,7 @@ export class CustomElementRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
-          if (__DEV__)
-            throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.element_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction
@@ -552,14 +536,9 @@ export class CustomElementRenderer implements IRenderer {
 @renderer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
-  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateAttribute;
-
-  public constructor(rendering: IRendering) {
-    this._rendering = rendering;
-  }
 
   public render(
     /**
@@ -579,11 +558,7 @@ export class CustomAttributeRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          if (__DEV__)
-            /* istanbul ignore next */
-            throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.attribute_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction
@@ -633,15 +608,9 @@ export class CustomAttributeRenderer implements IRenderer {
 @renderer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
-  /** @internal */ protected static get inject(): unknown[] { return [IRendering, IPlatform]; }
-  /** @internal */ private readonly _rendering: IRendering;
-  /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.hydrateTemplateController;
-  public constructor(rendering: IRendering, platform: IPlatform) {
-    this._rendering = rendering;
-    this._platform = platform;
-  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -658,11 +627,7 @@ export class TemplateControllerRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          if (__DEV__)
-            /* istanbul ignore next */
-            throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
-          else
-            throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
+          throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction, renderingCtrl);
         }
         break;
       // constructor based instruction
@@ -678,7 +643,7 @@ export class TemplateControllerRenderer implements IRenderer {
     const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
     const renderLocation = convertToRenderLocation(target);
     const results = invokeAttribute(
-      /* platform         */this._platform,
+      /* platform         */platform,
       /* attr definition  */def,
       /* parentController */renderingCtrl,
       /* host             */target,
@@ -862,7 +827,7 @@ export class TextBindingRenderer implements IRenderer {
       platform.domWriteQueue,
       platform,
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
-      insertBefore(target.parentNode!, createText(platform, ''), target),
+      target as Text,
       instruction.strict,
     ));
   }
@@ -1038,13 +1003,10 @@ export class AttributeBindingRenderer implements IRenderer {
 
 @renderer(InstructionType.spreadBinding)
 export class SpreadRenderer implements IRenderer {
-  /** @internal */ protected static get inject() { return [ITemplateCompiler, IRendering]; }
+  /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
+  /** @internal */ private readonly _rendering = resolve(IRendering);
 
   public target!: InstructionType.spreadBinding;
-  public constructor(
-    /** @internal */ private readonly _compiler: ITemplateCompiler,
-    /** @internal */ private readonly _rendering: IRendering,
-  ) {}
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1065,7 +1027,7 @@ export class SpreadRenderer implements IRenderer {
         --currentLevel;
       }
       if (currentContext == null) {
-        throw createError('No scope context for spread binding.');
+        throw createMappedError(ErrorNames.no_spread_scope_context_found);
       }
       return currentContext as IHydrationContext<object>;
     };
@@ -1109,30 +1071,30 @@ class SpreadBinding implements IBinding {
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
 
-  public readonly ctrl: ICustomElementController;
+  public readonly $controller: ICustomElementController;
 
   public get container() {
     return this.locator;
   }
 
   public get definition(): CustomElementDefinition | CustomElementDefinition {
-    return this.ctrl.definition;
+    return this.$controller.definition;
   }
 
   public get isStrictBinding() {
-    return this.ctrl.isStrictBinding;
+    return this.$controller.isStrictBinding;
   }
 
   public get state() {
-    return this.ctrl.state;
+    return this.$controller.state;
   }
 
   public constructor(
     /** @internal */ private readonly _innerBindings: IBinding[],
     /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
   ) {
-    this.ctrl = _hydrationContext.controller;
-    this.locator = this.ctrl.container;
+    this.$controller = _hydrationContext.controller;
+    this.locator = this.$controller.container;
   }
 
   public get(key: Key) {
@@ -1146,7 +1108,7 @@ class SpreadBinding implements IBinding {
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
-      throw createError('Invalid spreading. Context scope is null/undefined');
+      throw createMappedError(ErrorNames.no_spread_scope_context_found);
     }
 
     this._innerBindings.forEach(b => b.bind(innerScope));
@@ -1163,9 +1125,9 @@ class SpreadBinding implements IBinding {
 
   public addChild(controller: IController) {
     if (controller.vmKind !== ViewModelKind.customAttribute) {
-      throw createError('Spread binding does not support spreading custom attributes/template controllers');
+      throw createMappedError(ErrorNames.no_spread_template_controller);
     }
-    this.ctrl.addChild(controller);
+    this.$controller.addChild(controller);
   }
 }
 
@@ -1234,18 +1196,10 @@ class ViewFactoryProvider implements IResolver {
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
-      else
-        throw createError(`AUR7055`);
+      throw createMappedError(ErrorNames.view_factory_provider_not_ready);
     }
     if (!isString(f.name) || f.name.length === 0) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
-      else
-        throw createError(`AUR0756`);
+      throw createMappedError(ErrorNames.view_factory_invalid_name);
     }
     return f;
   }
@@ -1254,18 +1208,18 @@ class ViewFactoryProvider implements IResolver {
 function invokeAttribute(
   p: IPlatform,
   definition: CustomAttributeDefinition,
-  renderingCtrl: IController,
+  $renderingCtrl: IController | { $controller: IController },
   host: HTMLElement,
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
+  const renderingCtrl = $renderingCtrl instanceof Controller
+    ? $renderingCtrl
+    : ($renderingCtrl as { $controller: IController }).$controller;
   const ctn = renderingCtrl.container.createChild();
   registerHostNode(ctn, p, host);
-  renderingCtrl = renderingCtrl instanceof Controller
-    ? renderingCtrl
-    : (renderingCtrl as unknown as SpreadBinding).ctrl;
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null

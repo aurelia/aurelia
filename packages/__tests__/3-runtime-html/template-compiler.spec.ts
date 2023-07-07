@@ -43,6 +43,7 @@ import {
   PropertyBindingInstruction,
   InterpolationInstruction,
   InstructionType,
+  DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -56,6 +57,8 @@ export function createAttribute(name: string, value: string): Attr {
   attr.value = value;
   return attr;
 }
+
+type AttrDef<T> = CustomAttributeDefinition<Constructable<T>>;
 
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {
@@ -96,8 +99,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
       describe('with nested <template> without template controller', function () {
         it('does not compile <template> without template controller', function () {
-          const definition = compileWith(`<template><template>\${prop}</template></template>`, []);
-          assert.deepStrictEqual(definition.instructions, [], `definition.instructions`);
+          const { instructions } = compileWith(`<template><template>\${prop}</template></template>`, []);
+          assert.deepStrictEqual(instructions, [], `definition.instructions`);
         });
       });
 
@@ -283,6 +286,23 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
         });
 
+        it('enables binding commands to override custom attribute', function () {
+          const { template, instructions } = compileWith(
+            `<el foo.trigger="1">`,
+            [DefaultBindingSyntax, CustomAttribute.define('foo', class {})]
+          );
+
+          assertTemplateHtml(template, '<!--au*--><el></el>');
+          verifyInstructions(instructions[0], [
+            { toVerify: ['type', 'from', 'to', 'capture'],
+              type: TT.listenerBinding,
+              from: new PrimitiveLiteralExpression(1),
+              to: 'foo',
+              capture: false
+            },
+          ]);
+        });
+
         describe('with template controller', function () {
           it('compiles', function () {
             @customAttribute({
@@ -296,7 +316,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               `<template><el prop.bind="p"></el></template>`,
               [Prop]
             );
-            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au*--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
             const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
             assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', `(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML`);
           });
@@ -313,7 +333,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
               [Prop]
             );
-            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au*--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
             const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
             verifyInstructions(hydratePropAttrInstruction.props, [
               {
@@ -389,8 +409,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         describe('<let/> element', function () {
 
           it('compiles', function () {
-            const { instructions } = compileWith(`<template><let></let></template>`);
+            const { template, instructions } = compileWith(`<template><let></let></template>`);
             assert.strictEqual(instructions.length, 1, `instructions.length`);
+            assert.strictEqual((template as Element).outerHTML, '<template><!--au*--><let></let></template>');
           });
 
           it('does not generate instructions when there is no bindings', function () {
@@ -441,6 +462,44 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
               ]);
             });
+          });
+        });
+
+        describe('with containerless', function () {
+          it('compiles [containerless] attribute', function () {
+            const { template } = compileWith(
+              '<el containerless>',
+              [CustomElement.define({ name: 'el' })]
+            );
+
+            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end-->');
+          });
+
+          it('compiles [containerless] after an interpolation', function () {
+            const { template } = compileWith(
+              '${message}<el containerless>',
+              [CustomElement.define({ name: 'el' })]
+            );
+
+            assertTemplateHtml(template, '<!--au*--> <!--au*--><!--au-start--><!--au-end-->');
+          });
+
+          it('compiles [containerless] before an interpolation', function () {
+            const { template } = compileWith(
+              '<el containerless></el>${message}',
+              [CustomElement.define({ name: 'el' })]
+            );
+
+            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end--><!--au*--> ');
+          });
+
+          it('compiles [containerless] next to each other', function () {
+            const { template } = compileWith(
+              '<el containerless></el><el containerless></el>',
+              [CustomElement.define({ name: 'el' })]
+            );
+
+            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end-->'.repeat(2));
           });
         });
       });
@@ -528,8 +587,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         for (prop in bindables) {
           bindable = bindables[prop];
           // explicitly provided property name has priority over the implicit property name
-          if (bindable.property !== void 0) {
-            prop = bindable.property;
+          if (bindable.name !== void 0) {
+            prop = bindable.name;
           }
           // explicitly provided attribute name has priority over the derived implicit attribute name
           if (bindable.attribute !== void 0) {
@@ -606,8 +665,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         for (prop in bindables) {
           bindable = bindables[prop];
           // explicitly provided property name has priority over the implicit property name
-          if (bindable.property !== void 0) {
-            prop = bindable.property;
+          if (bindable.name !== void 0) {
+            prop = bindable.name;
           }
           if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
             mode = bindable.mode;
@@ -736,7 +795,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           ...defaultCustomElementDefinitionProperties,
           name: stringOrUnnamed(target),
           key: `au:resource:custom-element:${stringOrUnnamed(target)}`,
-          template: ctx.createElementFromMarkup(`<template><!--au-start--><!--au-end--><au-m class="au"></au-m></template>`),
+          template: ctx.createElementFromMarkup(`<template><!--au*--><!--au-start--><!--au-end--></template>`),
           instructions: [[childInstr]],
           needsCompile: false,
           enhance: false,
@@ -751,7 +810,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       } as unknown as PartialCustomElementDefinition;
       const output: PartialCustomElementDefinition = {
         ...defaultCustomElementDefinitionProperties,
-        template: ctx.createElementFromMarkup(`<template><div><!--au-start--><!--au-end--><au-m class="au"></au-m></div></template>`),
+        template: ctx.createElementFromMarkup(`<template><div><!--au*--><!--au-start--><!--au-end--></div></template>`),
         instructions: [[instruction]],
         needsCompile: false,
         enhance: false,
@@ -766,7 +825,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         compiledMarkup = `<${tagName}></${tagName}>`;
         instructions = [];
       } else {
-        compiledMarkup = `<${tagName}><!--au-start--><!--au-end--><au-m class="au"></au-m></${tagName}>`;
+        compiledMarkup = `<${tagName}><!--au*--><!--au-start--><!--au-end--></${tagName}>`;
         instructions = [[childInstr]];
       }
       const instruction: Partial<HydrateTemplateController & { def: PartialCustomElementDefinition & { key: string } }> = {
@@ -792,7 +851,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       } as unknown as PartialCustomElementDefinition;
       const output: PartialCustomElementDefinition = {
         ...defaultCustomElementDefinitionProperties,
-        template: ctx.createElementFromMarkup(finalize ? `<template><div><!--au-start--><!--au-end--><au-m class="au"></au-m></div></template>` : `<!--au-start--><!--au-end--><au-m class="au"></au-m>`),
+        template: finalize
+          ? ctx.createElementFromMarkup(
+            `<template><div><!--au*--><!--au-start--><!--au-end--></div></template>`
+          )
+          : `<!--au*--><!--au-start--><!--au-end-->`,
         instructions: [[instruction]],
         needsCompile: false,
         enhance: false,
@@ -856,15 +919,16 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         })
         .map(a => `${a[0]}="${a[1]}"`)
         .join(' ');
-    const outputMarkup = ctx.createElementFromMarkup(
-      `<${def.name} ${outputAttributeMarkup}>${(childOutput?.template.outerHTML) || ''}</${def.name}>`
-    );
-    outputMarkup.classList.add('au');
+    // const outputMarkup = ctx.createElementFromMarkup(
+    //   `<!--au*--><${def.name} ${outputAttributeMarkup}>${(childOutput?.template.outerHTML) || ''}</${def.name}>`
+    // );
+    // outputMarkup.classList.add('au');
+    const outputMarkup =`<!--au*--><${def.name} ${outputAttributeMarkup}>${(childOutput?.template.outerHTML) || ''}</${def.name}>`;
     const output = {
       ...defaultCustomElementDefinitionProperties,
       name: 'unnamed',
       key: 'au:resource:custom-element:unnamed',
-      template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
+      template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup}</div></template>`) : outputMarkup,
       instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
       needsCompile: false,
       enhance: false,
@@ -903,13 +967,14 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     // const outputMarkup = ctx.createElementFromMarkup(`<div ${resName}="${attributeMarkup}">${(childOutput && childOutput.template.outerHTML) || ''}</div>`);
 
     // new behavior: if it's custom attribute, remove
-    const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput?.template.outerHTML) || ''}</div>`);
-    outputMarkup.classList.add('au');
+    // const outputMarkup = ctx.createElementFromMarkup(`<div>${(childOutput?.template.outerHTML) || ''}</div>`);
+    // outputMarkup.classList.add('au');
+    const outputMarkup = `<!--au*--><div>${(childOutput?.template.outerHTML) || ''}</div>`;
     const output: PartialCustomElementDefinition & { key: string } = {
       ...defaultCustomElementDefinitionProperties,
       name: 'unnamed',
       key: 'au:resource:custom-element:unnamed',
-      template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
+      template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup}</div></template>`) : outputMarkup,
       instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
       needsCompile: false,
       enhance: false,
@@ -940,18 +1005,18 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     if (!!bindableDescription) {
       if (!!cmd && validCommands.includes(cmd)) {
         const type = TT.propertyBinding;
-        const to = bindableDescription.property;
+        const to = bindableDescription.name;
         const from = parseExpression(attributeValue);
         return { type, to, mode, from };
       } else {
         const from = parseExpression(attributeValue, ExpressionType.Interpolation);
         if (!!from) {
           const type = TT.interpolation;
-          const to = bindableDescription.property;
+          const to = bindableDescription.name;
           return { type, to, from };
         } else {
           const type = TT.setProperty;
-          const to = bindableDescription.property;
+          const to = bindableDescription.name;
           const value = attributeValue;
           return { type, to, value };
         }
@@ -1029,7 +1094,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             } as unknown as PartialCustomElementDefinition;
             const expected: PartialCustomElementDefinition = {
               ...defaultCustomElementDefinitionProperties,
-              template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" class="abc au" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
+              template: ctx.createElementFromMarkup(`<template><!--au*--><${el} plain data-attr="value" class="abc" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
               instructions: [[i1]],
               surrogates: [],
               needsCompile: false,
@@ -1055,7 +1120,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             } as unknown as PartialCustomElementDefinition;
             const expected: PartialCustomElementDefinition = {
               ...defaultCustomElementDefinitionProperties,
-              template: ctx.createElementFromMarkup(`<template><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}class="au"></${el}></template>`),
+              template: ctx.createElementFromMarkup(`<template><!--au*--><${el} plain data-attr="value" ${debugMode ? `${n1}="${v1}" ` : ''}></${el}></template>`),
               instructions: [[i1]],
               surrogates: [],
               needsCompile: false,
@@ -1086,7 +1151,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           const expected = {
             ...defaultCustomElementDefinitionProperties,
             template: ctx.createElementFromMarkup(
-              `<template><span plain data-attr="value" class="${debugMode ? `abc-\${value} ` : ''}au"></span></template>`
+              `<template><!--au*--><span plain data-attr="value"${debugMode ? ` class="abc-\${value}"` : ''}></span></template>`
             ),
             instructions: [[
               {
@@ -1129,10 +1194,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         [
           (_ctx) => [undefined, undefined, 'value'],
           (_ctx) => [{}, undefined, 'value'] as any,
-          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
-          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
-          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
-          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
+          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', name: 'bazBaz', mode: BindingMode.oneTime }), BindingMode.oneTime, 'bazBaz'],
+          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', name: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
+          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', name: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
+          (_ctx) => [BindableDefinition.create('asdf', class MyClass { }, { attribute: 'bazBaz', name: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
         ] as ((ctx: TestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
         [
           (_ctx) => ['foo', '', class Foo1 { }],
@@ -1177,10 +1242,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             const expected = {
               ...defaultCustomElementDefinitionProperties,
               // old behavior:
-              // template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+              // template: ctx.createElementFromMarkup(`<template><!--au*--><div ${name}="${value}"></div></template>`),
               // new behavior
               // todo: ability to configure whether attr should be removed
-              template: ctx.createElementFromMarkup(`<template><div class="au"></div></template>`),
+              template: ctx.createElementFromMarkup(`<template><!--au*--><div></div></template>`),
               instructions: [[instruction]],
               surrogates: [],
               needsCompile: false,
@@ -1215,11 +1280,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
         ] as ((ctx: TestContext, $1: string) => string)[],
         [
-          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default }) }),
-          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime }) }),
-          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView }) }),
-          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
-          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay }) })
+          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default }) }),
+          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime }) }),
+          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView }) }),
+          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
+          (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay }) })
         ] as ((ctx: TestContext, $1: string, $2: string) => Bindables)[],
         [
           (_ctx) => [``, `''`],
@@ -1435,6 +1500,43 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar { });
       const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz { });
 
+      for (const [otherAttrPosition, appTemplate] of [
+        ['before', '<div a.bind="b" foo bar>'],
+        ['middle', '<div foo a.bind="b" bar>'],
+        ['after', '<div foo bar a.bind="b">']]
+      ) {
+        it(`compiles 2 template controller on an elements with another attribute in ${otherAttrPosition}`, function () {
+          const { createProp, result: { template, instructions } } = compileWith(appTemplate, Foo, Bar);
+          const [[{
+            res: fooDef,
+            def: {
+              template: fooTemplate,
+              instructions: fooInnerInstructions
+            }
+          }]] = instructions as [HydrateTemplateController][];
+
+          const [[{
+            res: barDef,
+            def: {
+              template: barTemplate,
+              instructions: barInnerInstructions
+            }
+          }]] = fooInnerInstructions as [HydrateTemplateController][];
+
+          assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end-->');
+
+          assert.strictEqual((fooDef as AttrDef<typeof Foo>).Type, Foo);
+          assertTemplateHtml(fooTemplate, '<!--au*--><!--au-start--><!--au-end-->');
+
+          assert.strictEqual((barDef as AttrDef<typeof Foo>).Type, Bar);
+          assertTemplateHtml(barTemplate, '<!--au*--><div></div>');
+          verifyBindingInstructionsEqual(
+            barInnerInstructions[0],
+            [createProp({ from: 'b', to: 'a' })]
+          );
+        });
+      }
+
       eachCartesianJoinFactory([
         [
           () => {
@@ -1483,10 +1585,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           sut.resolveResources = resolveRes;
 
-          const getOuterHtml = (node: any) =>
-            /au-m/i.test(node.nodeName)
-              ? `<!--au-start--><!--au-end-->${node.outerHTML}`
-              : node.outerHTML;
+          const getOuterHtml = (node: any) => {
+            return typeof node === 'string'
+              ? node
+              : /au-m/i.test(node.nodeName)
+                ? `<!--au-start--><!--au-end-->${node.outerHTML}`
+                : node.outerHTML;
+          };
 
           const output: PartialCustomElementDefinition = {
             ...defaultCustomElementDefinitionProperties,
@@ -1512,6 +1617,27 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           }
         });
       });
+
+      function compileWith(markup: string | Element, ...extraResources: any[]) {
+        const ctx = TestContext.create();
+        const container = ctx.container;
+        const sut = ctx.templateCompiler;
+        container.register(...extraResources);
+        const templateDefinition: PartialCustomElementDefinition = {
+          template: markup,
+          instructions: [],
+          surrogates: [],
+          shadowOptions: { mode: 'open' }
+        } as unknown as PartialCustomElementDefinition;
+        const parser = container.get(IExpressionParser);
+
+        return {
+          result: sut.compile(templateDefinition, container, null),
+          parser,
+          createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
+            new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode)
+        };
+      }
     });
 
     describe('TemplateCompiler - combinations -- attributes on custom elements', function () {
@@ -1532,11 +1658,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
         ] as ((ctx: TestContext, $1: string, $2: string) => string)[],
         [
-          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: pdAttr, mode: BindingMode.default }) }),
-          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime }) }),
-          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView }) }),
-          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
-          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay }) })
+          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: pdAttr, mode: BindingMode.default }) }),
+          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: pdAttr, mode: BindingMode.oneTime }) }),
+          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: pdAttr, mode: BindingMode.toView }) }),
+          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
+          (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, class MyClass { }, { name: pdProp, attribute: pdAttr, mode: BindingMode.twoWay }) })
         ] as ((ctx: TestContext, $1: string, $2: string, $3: string) => Bindables)[],
         [
           (_ctx) => [``, `''`],
@@ -1934,5 +2060,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       public readonly bindables: Record<string, BindableDefinition>,
       public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
     ) { }
+  }
+
+  function assertTemplateHtml(template: string | Node, expected: string) {
+    assert.strictEqual(typeof template === 'string'
+      ? template
+      : (template as HTMLTemplateElement).innerHTML,
+      expected
+    );
   }
 });

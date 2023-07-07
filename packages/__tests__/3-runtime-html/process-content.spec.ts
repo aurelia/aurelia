@@ -353,7 +353,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': '<div><span-ce class="au"><span>foo</span></span-ce><strong-ce class="au"><strong>bar</strong></strong-ce></div>' },
+      { 'my-element': '<div><span-ce><span>foo</span></span-ce><strong-ce><strong>bar</strong></strong-ce></div>' },
     );
 
     function processContentWithNewBinding(compile: boolean) {
@@ -464,7 +464,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': `<div><span-ce class="au"><span>foo</span></span-ce><strong-ce class="au"><strong>bar</strong></strong-ce></div>` },
+      { 'my-element': `<div><span-ce><span>foo</span></span-ce><strong-ce><strong>bar</strong></strong-ce></div>` },
       noop,
       true,
     );

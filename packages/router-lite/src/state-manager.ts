@@ -2,50 +2,54 @@ import { ICustomElementController } from '@aurelia/runtime-html';
 import { DI } from '@aurelia/kernel';
 
 class ScrollState {
-  private readonly top: number;
-  private readonly left: number;
+  /** @internal */ private readonly _top: number;
+  /** @internal */ private readonly _left: number;
 
-  public constructor(private el: Element) {
-    this.top = el.scrollTop;
-    this.left = el.scrollLeft;
+  public constructor(/** @internal */ private _el: Element) {
+    this._top = _el.scrollTop;
+    this._left = _el.scrollLeft;
   }
 
-  public static has(el: Element): boolean {
+  /** @internal */
+  public static _has(el: Element): boolean {
     return el.scrollTop > 0 || el.scrollLeft > 0;
   }
 
-  public restore(): void {
-    this.el.scrollTo(this.left, this.top);
-    this.el = null!;
+  /** @internal */
+  public _restore(): void {
+    this._el.scrollTo(this._left, this._top);
+    this._el = null!;
   }
 }
 
 function restoreState(state: ScrollState): void {
-  state.restore();
+  state._restore();
 }
 
 class HostElementState {
-  private scrollStates: ScrollState[] = [];
+  /** @internal */ private _scrollStates: ScrollState[] = [];
 
   public constructor(host: Element) {
-    this.save(host.children);
+    this._save(host.children);
   }
 
-  private save(elements: HTMLCollection): void {
+  /** @internal */
+  private _save(elements: HTMLCollection): void {
     let el: Element;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       el = elements[i];
-      if (ScrollState.has(el)) {
-        this.scrollStates.push(new ScrollState(el));
+      if (ScrollState._has(el)) {
+        this._scrollStates.push(new ScrollState(el));
       }
 
-      this.save(el.children);
+      this._save(el.children);
     }
   }
 
-  public restore(): void {
-    this.scrollStates.forEach(restoreState);
-    this.scrollStates = null!;
+  /** @internal */
+  public _restore(): void {
+    this._scrollStates.forEach(restoreState);
+    this._scrollStates = null!;
   }
 }
 
@@ -56,17 +60,17 @@ export interface IStateManager {
 }
 
 export class ScrollStateManager implements IStateManager {
-  private readonly cache: WeakMap<HTMLElement, HostElementState> = new WeakMap();
+  private readonly _cache: WeakMap<HTMLElement, HostElementState> = new WeakMap();
 
   public saveState(controller: ICustomElementController): void {
-    this.cache.set(controller.host, new HostElementState(controller.host));
+    this._cache.set(controller.host, new HostElementState(controller.host));
   }
 
   public restoreState(controller: ICustomElementController): void {
-    const state = this.cache.get(controller.host);
+    const state = this._cache.get(controller.host);
     if (state !== void 0) {
-      state.restore();
-      this.cache.delete(controller.host);
+      state._restore();
+      this._cache.delete(controller.host);
     }
   }
 }

@@ -1,13 +1,10 @@
 import { ComputedObserver, IDirtyChecker, IObserverLocator } from '@aurelia/runtime';
 import {
-  CustomElement,
-  Aurelia,
-} from '@aurelia/runtime-html';
-import {
   Constructable,
 } from '@aurelia/kernel';
 import {
   assert,
+  createFixture,
   eachCartesianJoin,
   TestContext,
 } from '@aurelia/testing';
@@ -243,7 +240,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(component.nameProp, 'value') as ComputedObserver;
+          .getObserver(component.nameProp, 'value') as ComputedObserver<Property>;
 
         assert.instanceOf(namePropValueObserver, ComputedObserver);
         assert.strictEqual(
@@ -291,7 +288,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(component.nameProp, 'value',) as ComputedObserver;
+          .getObserver(component.nameProp, 'value',) as ComputedObserver<any>;
 
         assert.instanceOf(namePropValueObserver, ComputedObserver);
       },
@@ -388,7 +385,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       // eslint-disable-next-line mocha/no-exclusive-tests
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
       $it(title, async function () {
-        const { ctx, component, testHost, tearDown } = await createFixture<any>(
+        const { ctx, component, testHost, tearDown } = createFixture<any>(
           template,
           ViewModel,
         );
@@ -401,7 +398,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
   );
 
   it('works with two layers of getter', async function () {
-    const { appHost, tearDown } = await createFixture(
+    const { assertText } = createFixture(
       `\${msg}`,
       class MyApp {
         public get one() {
@@ -417,13 +414,11 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       }
     );
 
-    assert.html.textContent(appHost, 'One two');
-
-    await tearDown();
+    assertText('One two');
   });
 
   it('observers property in 2nd layer getter', async function () {
-    const { ctx, component, appHost, tearDown } = await createFixture(
+    const { component, assertText, flush } = createFixture(
       `\${msg}`,
       class MyApp {
         public message = 'One';
@@ -440,45 +435,12 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       }
     );
 
-    assert.html.textContent(appHost, 'One two');
+    assertText('One two');
 
     component.message = '1';
-    ctx.platform.domWriteQueue.flush();
-    assert.html.textContent(appHost, '1 two');
-
-    await tearDown();
+    flush();
+    assertText('1 two');
   });
-
-  async function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
-    const ctx = TestContext.create();
-    const { container, observerLocator } = ctx;
-    registrations = Array.from(new Set([...registrations]));
-    container.register(...registrations);
-    const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
-    const appHost = testHost.appendChild(ctx.createElement('app'));
-    const au = new Aurelia(container);
-    const App = CustomElement.define({ name: 'app', template }, $class);
-    const component = new App();
-
-    au.app({ host: appHost, component });
-    await au.start();
-
-    return {
-      ctx: ctx,
-      au,
-      container,
-      testHost: testHost,
-      appHost,
-      component: component as T,
-      observerLocator,
-      tearDown: async () => {
-        await au.stop();
-        testHost.remove();
-
-        au.dispose();
-      },
-    };
-  }
 
   class Property {
     private _value: string;

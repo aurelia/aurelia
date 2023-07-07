@@ -87,8 +87,6 @@ export function $setup(platform: BrowserPlatform): void {
       try {
         const shouldThrow = this.test?.isFailed();
         if (shouldThrow) {
-          assert.areTaskQueuesEmpty();
-        } else {
           try {
             assert.areTaskQueuesEmpty();
           } catch (ex) {
@@ -96,6 +94,8 @@ export function $setup(platform: BrowserPlatform): void {
             console.log(ex);
             ensureTaskQueuesEmpty();
           }
+        } else {
+          assert.areTaskQueuesEmpty();
         }
       } catch (ex) {
         ensureTaskQueuesEmpty();

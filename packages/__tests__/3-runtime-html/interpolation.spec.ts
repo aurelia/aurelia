@@ -14,6 +14,7 @@ import {
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
   expected: number | string;
@@ -592,7 +593,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
   });
 
   it('[IF/Else] interpolates expression with value converter that returns HTML nodes in <template/>', async function () {
-    const { tearDown, appHost, component, startPromise } = createFixture(
+    const { stop, appHost, component } = createFixture(
       `<template if.bind="show">\${message | $:'if'}</template><template else>\${message | $:'else'}</template>`,
       class App {
         public show = true;
@@ -600,11 +601,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       },
       [
         ValueConverter.define('$', class MoneyValueConverter {
-          public static get inject() {
-            return [IPlatform];
-          }
-
-          public constructor(private readonly p: IPlatform) { }
+          private p = resolve(IPlatform);
 
           public toView(val: string, prefix: string) {
             return this.toNode(`<${prefix}>${prefix} ${val}</${prefix}>`);
@@ -618,7 +615,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         })
       ]
     );
-    await startPromise;
     assert.strictEqual(appHost.textContent, 'if foo');
     assert.html.innerEqual(appHost, '<if>if foo</if>');
 
@@ -627,7 +623,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.strictEqual(appHost.textContent, 'else foo');
     assert.html.innerEqual(appHost, '<else>else foo</else>');
 
-    await tearDown();
+    void stop();
     // when a <template else/> is removed, it doesn't leave any nodes in the appended target
     // so the app host text content is turned back to empty
     assert.strictEqual(appHost.textContent, '');

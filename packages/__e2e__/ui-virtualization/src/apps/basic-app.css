@@ -1,0 +1,10 @@
+
+basic-app > div:nth-of-type(2)
+{
+  background-color: #ddd;
+}
+
+basic-app .even-row
+{
+  background-color: #ccc;
+}

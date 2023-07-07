@@ -2,12 +2,13 @@ import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable, Co
 import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
 import { CustomElement, findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { createError, def, isString, objectAssign, safeString } from '../utilities';
+import { def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { createMutationObserver } from '../utilities-dom';
 
 import type { INode } from '../dom';
+import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialChildrenDefinition = {
   callback?: PropertyKey;
@@ -57,7 +58,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
     }
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw new Error(`Invalid usage. @children can only be used on a field`);
+      throw createMappedError(ErrorNames.children_decorator_invalid_usage);
     }
 
     const target = ($target as object).constructor as Constructable;
@@ -98,41 +99,8 @@ export interface ChildrenBinding extends ISubscriberCollection { }
  * A binding for observing & notifying the children of a custom element.
  */
 export class ChildrenBinding implements IBinding {
-
-  public static create(
-    controller: ICustomElementController,
-    obj: ICustomElementViewModel,
-    key: PropertyKey,
-    cbName: PropertyKey,
-    query = defaultChildQuery,
-    filter = defaultChildFilter,
-    map = defaultChildMap,
-    options = childObserverOptions
-  ) {
-    const observer = new ChildrenBinding(
-      controller,
-      obj,
-      cbName,
-      query,
-      filter,
-      map,
-      options
-    );
-    def(
-      obj,
-      key,
-      {
-        enumerable: true,
-        configurable: true,
-        get: objectAssign((/* ChildrenBinding */) => observer.getValue(), { getObserver: () => observer }),
-        set: (/* ChildrenBinding */) => { return; },
-      }
-    );
-    return observer;
-  }
-
   /** @internal */
-  private readonly _callback: () => void;
+  private readonly _callback: undefined | (() => void);
   /** @internal */
   private _children: unknown[] = (void 0)!;
   /** @internal */
@@ -153,17 +121,18 @@ export class ChildrenBinding implements IBinding {
   public isBound = false;
   public readonly obj: ICustomElementViewModel;
 
-  private constructor(
+  public constructor(
     controller: ICustomElementController,
     obj: ICustomElementViewModel,
-    cbName: PropertyKey,
+    callback: undefined | (() => void),
     query = defaultChildQuery,
     filter = defaultChildFilter,
     map = defaultChildMap,
     options = childObserverOptions,
   ) {
     this._controller = controller;
-    this._callback = (this.obj = obj as IIndexable)[cbName] as typeof ChildrenBinding.prototype._callback;
+    this.obj = obj;
+    this._callback = callback;
     this._query = query;
     this._filter = filter;
     this._map = map;
@@ -206,7 +175,7 @@ export class ChildrenBinding implements IBinding {
   }
 
   public get(): ReturnType<IServiceLocator['get']> {
-    throw notImplemented('get');
+    throw createMappedError(ErrorNames.method_not_implemented, 'get');
   }
 
   /** @internal */
@@ -218,7 +187,6 @@ export class ChildrenBinding implements IBinding {
 }
 
 const childObserverOptions: MutationObserverInit = { childList: true };
-const notImplemented = (name: string) => createError(`Method "${name}": not implemented`);
 
 const defaultChildQuery = (controller: ICustomElementController): ArrayLike<INode> => controller.host.childNodes;
 
@@ -262,25 +230,36 @@ const filterChildren = (
 
 class ChildrenLifecycleHooks {
   public constructor(
-    private readonly def: PartialChildrenDefinition & { name: PropertyKey },
+    private readonly _def: PartialChildrenDefinition & { name: PropertyKey },
   ) {}
 
   public register(c: IContainer) {
     instanceRegistration(ILifecycleHooks, this).register(c);
   }
 
-  public hydrating(vm: object, controller: ICustomElementController) {
-    const def = this.def;
-    controller.addBinding(ChildrenBinding.create(
+  public hydrating(vm: IIndexable, controller: ICustomElementController) {
+    const $def = this._def;
+    const childrenObserver = new ChildrenBinding(
       controller,
-      controller.viewModel,
-      def.name,
-      def.callback ?? `${safeString(def.name)}Changed`,
-      def.query ?? defaultChildQuery,
-      def.filter ?? defaultChildFilter,
-      def.map ?? defaultChildMap,
-      def.options ?? childObserverOptions,
-    ));
+      vm,
+      vm[$def.callback ?? `${safeString($def.name)}Changed`] as () => void,
+      $def.query ?? defaultChildQuery,
+      $def.filter ?? defaultChildFilter,
+      $def.map ?? defaultChildMap,
+      $def.options ?? childObserverOptions,
+    );
+    def(vm, $def.name, {
+      enumerable: true,
+      configurable: true,
+      get: objectAssign((/* ChildrenBinding */) => childrenObserver.getValue(), { getObserver: () => childrenObserver }),
+      set: (/* ChildrenBinding */) => {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(`[DEV:aurelia] property ${safeString($def.name)} decorated with @children is readonly`);
+        }
+      },
+    });
+    controller.addBinding(childrenObserver);
   }
 }
 

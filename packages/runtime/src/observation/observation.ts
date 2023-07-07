@@ -1,42 +1,99 @@
 import { connectable } from '../binding/connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
+import { createInterface } from '../utilities';
 
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
 import type { BindingObserverRecord } from '../binding/connectable';
-import { createError, createInterface } from '../utilities-objects';
+import { ErrorNames, createMappedError } from '../errors';
 
-export interface IObservation extends Observation {}
-export const IObservation = createInterface<IObservation>('IObservation', x => x.singleton(Observation));
+export interface IObservation {
+  /**
+   * Run an effect function an track the dependencies inside it,
+   * to re-run whenever a dependency has changed
+   */
+  run(fn: EffectRunFunc): IEffect;
+  /**
+   * Run a getter based on the given object as its first parameter and track the dependencies via this getter,
+   * to call the callback whenever the value has changed
+   */
+  watch<T, R>(
+    obj: T,
+    getter: (obj: T, watcher: IConnectable) => R,
+    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    options?: IWatchOptions,
+  ): IEffect;
+}
+export const IObservation = /*@__PURE__*/createInterface<IObservation>('IObservation', x => x.singleton(Observation));
+
+export interface IWatchOptions {
+  /**
+   * Indicates whether the callback of a watch should be immediately called on init
+   */
+  immediate?: boolean;
+}
 
 export class Observation implements IObservation {
 
   public static get inject() { return [IObserverLocator]; }
 
+  /** @internal */
+  private readonly _defaultWatchOptions: IWatchOptions = { immediate: true };
+
   public constructor(
     private readonly oL: IObserverLocator,
   ) {}
 
-  /**
-   * Run an effect function an track the dependencies inside it,
-   * to re-run whenever a dependency has changed
-   */
-  public run(fn: EffectFunc): IEffect {
-    const effect = new Effect(this.oL, fn);
+  public run(fn: EffectRunFunc): IEffect {
+    const effect = new RunEffect(this.oL, fn);
     // todo: batch effect run after it's in
     effect.run();
     return effect;
   }
+
+  public watch<T, R>(
+    obj: T,
+    getter: (obj: T, watcher: IConnectable) => R,
+    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    options: IWatchOptions = this._defaultWatchOptions
+  ): IEffect {
+    // eslint-disable-next-line no-undef-init
+    let $oldValue: R | undefined = undefined;
+    let stopped = false;
+    const observer = this.oL.getObserver(obj, getter);
+    const handler = {
+      handleChange: (newValue: R, oldValue: R) => callback(newValue, $oldValue = oldValue),
+    };
+    const run = () => {
+      if (stopped) return;
+      callback(observer.getValue(), $oldValue);
+    };
+    const stop = () => {
+      stopped = true;
+      observer.unsubscribe(handler);
+    };
+    observer.subscribe(handler);
+    if (options.immediate) {
+      run();
+    }
+    return { run, stop };
+  }
 }
 
-export type EffectFunc = (runner: IConnectable) => void;
-export interface IEffect extends IConnectable {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function testObservationWatch(a: IObservation) {
+  a.watch({ b: 5 }, o => o.b + 1, v => v.toFixed());
+  a.watch({ b: { c: '' } }, o => o.b.c === '', v => v);
+}
+
+export type EffectRunFunc = (this: IConnectable, runner: IConnectable) => void;
+export interface IEffect {
   run(): void;
   stop(): void;
 }
 
-interface Effect extends IConnectable {}
-class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
+interface RunEffect extends IConnectable {}
+class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
   public readonly obs!: BindingObserverRecord;
   // to configure this, potentially a 2nd parameter is needed for run
   public maxRunCount: number = 10;
@@ -47,7 +104,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
 
   public constructor(
     public readonly oL: IObserverLocator,
-    public readonly fn: EffectFunc,
+    public readonly fn: EffectRunFunc,
   ) {
   }
 
@@ -63,10 +120,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
 
   public run(): void {
     if (this.stopped) {
-      if (__DEV__)
-        throw createError(`AUR0225: Effect has already been stopped`);
-      else
-        throw createError(`AUR0225`);
+      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
     }
     if (this.running) {
       return;
@@ -90,10 +144,7 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
     if (this.queued) {
       if (this.runCount > this.maxRunCount) {
         this.runCount = 0;
-        if (__DEV__)
-          throw createError(`AUR0226: Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`);
-        else
-          throw createError(`AUR0226`);
+        throw createMappedError(ErrorNames.effect_maximum_recursion_reached);
       }
       this.run();
     } else {
@@ -107,4 +158,4 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
   }
 }
 
-connectable(Effect);
+connectable(RunEffect);

@@ -54,8 +54,8 @@ const $undefined = PrimitiveLiteralExpression.$undefined;
 const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $tpl = TemplateExpression.$empty;
-const $this = AccessThisExpression.$this;
-const $parent = AccessThisExpression.$parent;
+const $this = new AccessThisExpression(0);
+const $parent = new AccessThisExpression(1);
 
 const dummyLocator = { get: () => null } as unknown as IServiceLocator & IAstEvaluator;
 const dummyLocatorThatReturnsNull = {

@@ -16,6 +16,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     const nodeLocator = {
       handles() { return false; }
     };
+    Registration.instance(IDirtyChecker, {}).register(container);
     Registration.instance(IPlatform, {}).register(container);
     Registration.instance(INodeObserverLocator, nodeLocator).register(container);
     const locator = container.get(IObserverLocator);
@@ -138,7 +139,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       }
 
       // TODO: use tracer to deeply verify calls
-      const sut = ComputedObserver.create(instance, 'prop', propDescriptor, locator, true);
+      const sut = new ComputedObserver(instance, propDescriptor.get, propDescriptor.set, locator, true);
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
 
@@ -285,7 +286,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       }
     };
 
-    const sut = ComputedObserver.create(parent, 'getter', pd, locator, true);
+    const sut = new ComputedObserver(parent, pd.get, pd.set, locator, true);
     sut.subscribe(subscriber1);
 
     let verifiedCount = 0;
@@ -349,18 +350,20 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     let getterCallCount = 0;
     const { locator } = createFixture();
     const obj = { prop: 1, prop1: 1 };
-    const observer = ComputedObserver.create(
+    const observer = new ComputedObserver(
       obj,
-      'prop',
-      {
-        get() {
-          getterCallCount++;
-          return this.prop1;
-        }
+      function (obj) {
+        getterCallCount++;
+        return obj.prop1;
       },
+      void 0,
       locator,
       true,
     );
+    Object.defineProperty(obj, 'prop', {
+      get: () => observer.getValue(),
+      set: (v) => {observer.setValue(v);}
+    });
     let _handleChangeCallCount = 0;
     observer.subscribe({
       handleChange() {

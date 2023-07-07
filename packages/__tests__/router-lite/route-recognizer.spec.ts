@@ -1,3 +1,4 @@
+import { Writable } from '@aurelia/kernel';
 import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
@@ -2854,6 +2855,7 @@ describe('router-lite/route-recognizer.spec.ts', function () {
               assert.notEqual(endpoint, null);
               assert.deepStrictEqual(endpoint.params, parameters);
               const residueEndpoint = sut.getEndpoint(`${route}/*${RESIDUE}`);
+              assert.strictEqual(endpoint.residualEndpoint, residueEndpoint);
               if(residueAdded) {
                 assert.notEqual(residueEndpoint, null);
               } else {
@@ -2864,6 +2866,7 @@ describe('router-lite/route-recognizer.spec.ts', function () {
             const params = { ...$params };
             const configurableRoute = new ConfigurableRoute(match, false, null);
             let parameters: Parameter[];
+            let residueEndpoint: Endpoint<any> | null = null;
             if(match.endsWith(`/*${RESIDUE}`)) {
               const $match = match.substring(0, match.length - (RESIDUE.length + 2));
               parameters = [
@@ -2871,9 +2874,17 @@ describe('router-lite/route-recognizer.spec.ts', function () {
                 new Parameter(RESIDUE, true, true),
               ];
             } else {
-              parameters = routes.find(([route]) => route === match)[1];
+              const route = routes.find(([route]) => route === match);
+              parameters = route[1];
+              if (route[2]) {
+                residueEndpoint = new Endpoint(
+                  new ConfigurableRoute(`${route[0]}/*${RESIDUE}`, false, null),
+                  [...parameters, new Parameter(RESIDUE, true, true)]
+                );
+              }
             }
             const endpoint = new Endpoint(configurableRoute, parameters);
+            (endpoint as Writable<Endpoint<any>>).residualEndpoint = residueEndpoint;
             const expected = new RecognizedRoute(endpoint, params);
 
             // Act

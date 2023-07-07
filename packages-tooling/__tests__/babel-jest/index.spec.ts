@@ -4,10 +4,9 @@ const { _createTransformer } = babelJest;
 import { TransformOptions } from '@babel/core';
 import { assert } from '@aurelia/testing';
 import { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
-import * as path from 'path';
 import { makeProjectConfig } from '../jest-test-utils/config';
 
-function makePreprocess(_fileExists: (p: string) => boolean) {
+function makePreprocess(_fileExists: (unit: IFileUnit, p: string) => boolean) {
   return function (unit: IFileUnit, options: IOptionalPreprocessOptions) {
     return preprocess(unit, options, _fileExists);
   };
@@ -74,7 +73,7 @@ export function register(container) {
 `;
     const t = _createTransformer(
       { defaultShadowOptions: { mode: 'open' }, hmr: false },
-      makePreprocess(p => p === path.join('src', 'foo-bar.less')),
+      makePreprocess((u, p) => p === './foo-bar.less'),
       babelProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
@@ -100,7 +99,7 @@ export function register(container) {
 `;
     const t = _createTransformer(
       { useCSSModule: true, hmr: false },
-      makePreprocess(p => p === path.join('src', 'foo-bar.scss')),
+      makePreprocess((u, p) => p === './foo-bar.scss'),
       babelProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
@@ -116,7 +115,7 @@ export class FooBar {}
 `;
     const t = _createTransformer(
       { hmr: false },
-      makePreprocess(p => p === path.join('src', 'foo-bar.html')),
+      makePreprocess((u, p) => p === './foo-bar.html'),
       babelProcess
     );
     const result = t.process(js, 'src/foo-bar.js', options);

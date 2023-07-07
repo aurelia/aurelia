@@ -1,4 +1,3 @@
-import { delegateSyntax } from '@aurelia/compat-v1';
 import { ILogger } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -6,53 +5,36 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
   for (const command of [
     'from-view',
     'two-way',
-    'trigger',
-    'delegate',
     'one-time',
+    'trigger',
     'capture',
-    'attr',
-    'to-view',
   ]) {
-    it(`throws on non .bind/.to-view: "${command}"`, async function () {
-      const { tearDown, start } = createFixture(`<let a.${command}="bc">`, class { }, [delegateSyntax], /* no start */false);
-
-      let ex: Error;
-      try {
-        await start();
-      } catch (e) {
-        ex = e;
-        // assert.includes(e.toString(), `Invalid command ${command} for <let>. Only to-view/bind supported.`);
-        assert.strictEqual(
-          e.toString().includes(`Invalid command ${command} for <let>. Only to-view/bind supported.`)
-          || e.toString().includes(`AUR0704:${command}`),
-          true
-        );
-      }
-      assert.instanceOf(ex, Error);
-      await tearDown();
+    it(`throws on non .bind/.to-view: "${command}"`, function () {
+      assert.throws(() => createFixture(`<let a.${command}="bc">`, class { }), /AUR0704/);
     });
   }
 
   for (const command of ['bind']) {
-    it(`camel-cases the target with binding command [${command}]`, async function () {
-      const { tearDown, appHost, startPromise } = createFixture(`<let my-prop.${command}="1"></let>\${myProp}`);
+    it(`camel-cases the target with binding command [${command}]`, function () {
+      const { assertText } = createFixture(`<let my-prop.${command}="1"></let>\${myProp}`);
 
-      await startPromise;
-      assert.visibleTextEqual(appHost, '1');
-      await tearDown();
+      assertText('1');
     });
   }
 
-  it('camel-cases the target with interpolation', async function () {
-    const { tearDown, appHost, startPromise } = createFixture(`<let my-prop="\${1}"></let>\${myProp}`);
-
-    await startPromise;
-    assert.visibleTextEqual(appHost, '1');
-    await tearDown();
+  it('removes <let> element', function () {
+    createFixture(`<let my-prop="\${1}"></let>\${myProp}`)
+      .assertHtml('1');
   });
 
-  it('works with, and warns when encountering literal', async function () {
-    const { ctx, tearDown, appHost, start } = createFixture(
+  it('camel-cases the target with interpolation', function () {
+    const { assertText } = createFixture(`<let my-prop="\${1}"></let>\${myProp}`);
+
+    assertText('1');
+  });
+
+  it('works with, and warns when encountering literal', function () {
+    const { ctx, assertText, start } = createFixture(
       `<let my-prop="1"></let>\${myProp}`,
       class { myProp = 0; },
       [],
@@ -66,13 +48,12 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
       return fn.apply(logger, args);
     })(logger.warn);
 
-    await start();
-    assert.visibleTextEqual(appHost, '1');
-    await tearDown();
+    void start();
+    assertText('1');
   });
 
   // //<let [to-binding-context] />
-  it('assigns to vm with <let to-binding-context>', async function () {
+  it('assigns to vm with <let to-binding-context>', function () {
     const { component } = createFixture(
       `<let to-binding-context full-name.bind="firstName + \` \` + lastName"></let>
       <div>\${fullName}</div></template>`,

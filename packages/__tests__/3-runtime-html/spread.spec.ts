@@ -125,7 +125,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     template: '<my-input class="abc">',
     component: { message: 'Aurelia', focused: false },
     assertFn: ({ appHost }) => {
-      assert.strictEqual(appHost.querySelector('input').className, 'au abc');
+      assert.strictEqual(appHost.querySelector('input').className, 'abc');
     },
   });
 
@@ -208,7 +208,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         name: 'form-input',
         template: '<input value.bind="value">',
         bindables: {
-          value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+          value: { name: 'value', attribute: 'value', mode: BindingMode.twoWay }
         }
       }),
     ];

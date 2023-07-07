@@ -1,12 +1,14 @@
 import {
   AccessorType,
+  ICoercionConfiguration,
   IObserver,
+  InterceptorFunc,
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from '../binding/connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, createError, def, isFunction, objectAssign } from '../utilities-objects';
+import { areEqual, isFunction } from '../utilities';
 
 import type {
   ISubscriber,
@@ -15,45 +17,26 @@ import type {
   IConnectable,
 } from '../observation';
 import type { IConnectableBinding } from '../binding/connectable';
-import type { IObserverLocator, ObservableGetter } from './observer-locator';
+import type { IObserverLocator } from './observer-locator';
+import { ErrorNames, createMappedError } from '../errors';
 
-export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
 
-export class ComputedObserver implements
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface ComputedObserver<T extends object> extends IConnectableBinding, ISubscriberCollection { }
+
+export class ComputedObserver<T extends object> implements
   IObserver,
   IConnectableBinding,
   ISubscriber,
   ICollectionSubscriber,
   ISubscriberCollection {
 
-  public static create(
-    obj: object,
-    key: PropertyKey,
-    descriptor: PropertyDescriptor,
-    observerLocator: IObserverLocator,
-    useProxy: boolean,
-  ): ComputedObserver {
-    const getter = descriptor.get!;
-    const setter = descriptor.set;
-    const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
-    def(obj, key, {
-      enumerable: descriptor.enumerable,
-      configurable: true,
-      get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
-      set: (/* Computed Observer */v) => {
-        observer.setValue(v);
-      },
-    });
-
-    return observer;
-  }
-
   public type: AccessorType = AccessorType.Observer;
 
   /** @internal */
   private _value: unknown = void 0;
-  /** @internal */
-  private _oldValue: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /** @internal */
@@ -63,20 +46,29 @@ export class ComputedObserver implements
   private _isDirty: boolean = false;
 
   /** @internal */
-  private readonly _obj: object;
+  private readonly _obj: T;
+
+  /** @internal */
+  private readonly _wrapped: T;
+
+  /** @internal */
+  private _callback?: (newValue: unknown, oldValue: unknown) => void = void 0;
+
+  /** @internal */
+  private _coercer?: InterceptorFunc = void 0;
+
+  /** @internal */
+  private _coercionConfig?: ICoercionConfiguration = void 0;
 
   /**
    * The getter this observer is wrapping
    */
-  public readonly $get: (watcher: IConnectable) => unknown;
+  public readonly $get: ComputedGetterFn<T>;
 
   /**
    * The setter this observer is wrapping
    */
   public readonly $set: undefined | ((v: unknown) => void);
-
-  /** @internal */
-  private readonly _useProxy: boolean;
 
   /**
    * A semi-private property used by connectable mixin
@@ -84,22 +76,27 @@ export class ComputedObserver implements
   public readonly oL: IObserverLocator;
 
   public constructor(
-    obj: object,
-    get: (watcher: IConnectable) => unknown,
+    obj: T,
+    get: ComputedGetterFn<T>,
     set: undefined | ((v: unknown) => void),
-    useProxy: boolean,
     observerLocator: IObserverLocator,
+    useProxy: boolean,
   ) {
     this._obj = obj;
+    this._wrapped = useProxy ? wrap(obj) : obj;
     this.$get = get;
     this.$set = set;
-    this._useProxy = useProxy;
     this.oL = observerLocator;
+  }
+
+  public init(value: unknown) {
+    this._value = value;
+    this._isDirty = false;
   }
 
   public getValue() {
     if (this.subs.count === 0) {
-      return this.$get.call(this._obj, this);
+      return this.$get.call(this._obj, this._obj, this);
     }
     if (this._isDirty) {
       this.compute();
@@ -111,7 +108,10 @@ export class ComputedObserver implements
   // deepscan-disable-next-line
   public setValue(v: unknown): void {
     if (isFunction(this.$set)) {
-      if (v !== this._value) {
+      if (this._coercer !== void 0) {
+        v = this._coercer.call(null, v, this._coercionConfig);
+      }
+      if (!areEqual(v, this._value)) {
         // setting running true as a form of batching
         this._isRunning = true;
         this.$set.call(this._obj, v);
@@ -120,11 +120,19 @@ export class ComputedObserver implements
         this.run();
       }
     } else {
-      if (__DEV__)
-        throw createError(`AUR0221: Property is readonly`);
-      else
-        throw createError(`AUR0221`);
+      throw createMappedError(ErrorNames.assign_readonly_readonly_property_from_computed);
     }
+  }
+
+  public useCoercer(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration | undefined): boolean {
+    this._coercer = coercer;
+    this._coercionConfig = coercionConfig;
+    return true;
+  }
+
+  public useCallback(callback: (newValue: unknown, oldValue: unknown) => void) {
+    this._callback = callback;
+    return true;
   }
 
   public handleChange(): void {
@@ -168,10 +176,10 @@ export class ComputedObserver implements
     this._isDirty = false;
 
     if (!areEqual(newValue, oldValue)) {
-      this._oldValue = oldValue;
-      oV = this._oldValue;
-      this._oldValue = this._value;
-      this.subs.notify(this._value, oV);
+      // todo: probably should set is running here too
+      // to prevent depth first notification
+      this._callback?.(newValue, oldValue);
+      this.subs.notify(this._value, oldValue);
     }
   }
 
@@ -180,7 +188,7 @@ export class ComputedObserver implements
     this.obs.version++;
     try {
       enterConnectable(this);
-      return this._value = unwrap(this.$get.call(this._useProxy ? wrap(this._obj) : this._obj, this));
+      return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
     } finally {
       this.obs.clear();
       this._isRunning = false;
@@ -191,7 +199,3 @@ export class ComputedObserver implements
 
 connectable(ComputedObserver);
 subscriberCollection(ComputedObserver);
-
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;

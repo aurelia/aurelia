@@ -554,15 +554,31 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
     });
 
-    it('throws when there is NOT factory registration for an instance', function () {
+    it('instantiates when there is an constructable registration for an interface', function () {
       const container = DI.createContainer();
       const I = DI.createInterface('I');
-      class IImpl {}
-      container.register(Registration.singleton(I, IImpl));
-      assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+      class Impl {}
+      container.register(Registration.singleton(I, Impl));
+      assert.instanceOf(container.get(newInstanceOf(I)), Impl);
     });
 
-    it('does not throw when there is factory registration for an instance', function () {
+    it('jit-registers and instantiates when there is a default impl for an interface', function () {
+      const container = DI.createContainer();
+      class Impl {}
+      const I = DI.createInterface('I', x => x.singleton(Impl));
+      assert.instanceOf(container.get(newInstanceOf(I)), Impl);
+    });
+
+    it('does not register instance when retrieved through interface', function () {
+      const container = DI.createContainer();
+      const I = DI.createInterface('I');
+      class Impl {}
+      container.register(Registration.singleton(I, Impl));
+      assert.notStrictEqual(container.get(newInstanceOf(I)), container.get(I));
+      assert.strictEqual(container.getAll(I).length, 1);
+    });
+
+    it('does not throw when there is factory registration for an interface', function () {
       const container = DI.createContainer();
       const I = DI.createInterface('I');
       let iCallCount = 0;
@@ -647,6 +663,28 @@ describe('1-kernel/di.get.spec.ts', function () {
   });
 
   describe('@newInstanceForScope', function () {
+    it('jit-registers and instantiates when there is a default impl for an interface', function () {
+      const container = DI.createContainer();
+      class Impl {}
+      const I = DI.createInterface('I', x => x.singleton(Impl));
+      assert.instanceOf(container.get(newInstanceForScope(I)), Impl);
+      assert.strictEqual(container.getAll(I).length, 2);
+    });
+
+    it('jit-registers resolver and instance in child', function () {
+      const container = DI.createContainer();
+      const child = container.createChild();
+      class Impl {}
+      const I = DI.createInterface('I', x => x.singleton(Impl));
+      const instance = child.get(newInstanceForScope(I));
+      assert.instanceOf(instance, Impl);
+      assert.strictEqual(child.getAll(I).length, 1);
+      assert.strictEqual(child.getAll(I)[0], instance);
+      // has resolver, no instance
+      // has resolver because createNewInstance/scope auto-registers a resolver
+      // no instance because new instance forScope doesn't register on handler
+      assert.strictEqual(container.has(I, false), true);
+    });
     // the following test tests a more common, expected scenario,
     // where some instance is scoped to a child container,
     // instead of the container registering the interface itself.

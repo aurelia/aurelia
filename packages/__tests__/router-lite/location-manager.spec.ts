@@ -127,7 +127,7 @@ describe('router-lite/location-manager.spec.ts', function () {
           { path: 'gc-2', component: GC2 },
         ]
       })
-      @customElement({ name: 'c-1', template: '<a href="gc-2"></a> c1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'c-1', template: '<a load="gc-2"></a> c1 <au-viewport></au-viewport>' })
       class C1 { }
       @customElement({ name: 'c-2', template: 'c2' })
       class C2 { }
@@ -162,7 +162,8 @@ describe('router-lite/location-manager.spec.ts', function () {
       assert.html.textContent(host, 'c1 gc1', 'nav2');
       assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
-      host.querySelector('a').click();
+      const anchor = host.querySelector('a');
+      anchor.click();
       await queue.yield();
       assert.html.textContent(host, 'c1 gc2', 'nav3');
       assert.deepStrictEqual(eventLog, [], 'nav1 event log');
@@ -172,7 +173,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.back();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc1', 'back');
+      assert.html.textContent(host, 'c1 gc1', 'back1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
@@ -181,7 +182,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.forward();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc2', 'forward');
+      assert.html.textContent(host, 'c1 gc2', 'forward1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
@@ -191,7 +192,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.back();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc1', 'back');
+      assert.html.textContent(host, 'c1 gc1', 'back2');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
@@ -200,7 +201,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.forward();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc2', 'forward');
+      assert.html.textContent(host, 'c1 gc2', 'forward2');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
@@ -210,7 +211,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.back();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc1', 'back');
+      assert.html.textContent(host, 'c1 gc1', 'back3');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
@@ -219,7 +220,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       history.forward();
       await queue.yield();
 
-      assert.html.textContent(host, 'c1 gc2', 'forward');
+      assert.html.textContent(host, 'c1 gc2', 'forward3');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');

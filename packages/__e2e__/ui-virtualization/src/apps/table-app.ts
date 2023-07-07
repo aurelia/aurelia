@@ -1,4 +1,6 @@
-declare const faker: any;
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+let faker: any;
 
 export class TableApp {
 
@@ -10,6 +12,10 @@ export class TableApp {
   selectedMarkup = 'div';
   viewStrategy: any;
   $newArrayLength = 0;
+
+  binding() {
+    return loadFaker();
+  }
 
   setViewStrategy(strategy) {
     this.viewStrategy = strategy;
@@ -28,25 +34,25 @@ export class TableApp {
   }
 
   createItem(index?: number) {
-    let name = faker.name.findName();
+    const name = faker.name.fullName();
     return {
       firstLetter: name.charAt(0),
       name: name,
       color: faker.internet.color(),
-      phone: faker.phone.phoneNumber(),
+      phone: faker.phone.number(),
       country: faker.address.country()
     };
   }
 
-  created() {
+  bound() {
     let name;
     for (let i = 0; i < this.numberOfItems; ++i) {
-      name = faker.name.findName();
+      name = faker.name.fullName();
       this.objectArray.push(this.createItem(i));
     }
 
     for (let i = 0; i < this.numberOfItems; ++i) {
-      name = faker.name.findName();
+      name = faker.name.fullName();
       this.objectArray2.push(this.createItem());
     }
   }
@@ -71,7 +77,7 @@ export class TableApp {
   }
 
   addItem2() {
-    let item = this.createItem();
+    const item = this.createItem();
     this.objectArray.splice(1, 0, item);
   }
 
@@ -102,4 +108,11 @@ export class TableApp {
   newRandomArray(count = 1000) {
     this.objectArray = Array.from({ length: count }, () => this.createItem());
   }
+}
+
+function loadFaker() {
+  const url = 'https://cdn.skypack.dev/@faker-js/faker';
+  return import(/* @vite-ignore */url).then(m => {
+    faker = m.faker;
+  }).catch(e => console.log(e));
 }

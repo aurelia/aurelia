@@ -5,6 +5,7 @@ import {
   INode,
   IRenderLocation,
 } from '@aurelia/runtime-html';
+import { ICompositionController } from '@aurelia/runtime-html/dist/types/resources/custom-elements/au-compose';
 import {
   assert,
   createFixture,
@@ -77,10 +78,11 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('understands non-inherit scope config', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        '<au-compose template.bind="view" scope-behavior="scoped">',
+        '<au-compose template.bind="view" scope-behavior="scoped" composition.bind="composition">',
         class App {
-          public message = 'hello world';
-          public view = `<div>\${message}</div>`;
+          message = 'hello world';
+          view = `<div>\${message}</div>`;
+          composition: ICompositionController;
         }
       );
 
@@ -93,8 +95,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, '');
 
-      const auComponentVm = CustomElement.for(appHost.querySelector('au-compose')).viewModel as AuCompose;
-      auComponentVm.composition.controller.scope.bindingContext['message'] = 'hello';
+      component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
@@ -106,12 +107,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('understands view promise', async function () {
       const { ctx, component, appHost, startPromise, tearDown } = createFixture(
-        '<au-compose template.bind="getView()" scope-behavior="scoped">',
+        '<au-compose template.bind="getView()" scope-behavior="scoped" composition.bind="composition">',
         class App {
-          public message = 'hello world';
-          public view = `<div>\${message}</div>`;
+          message = 'hello world';
+          view = `<div>\${message}</div>`;
+          composition: ICompositionController;
 
-          public getView() {
+          getView() {
             return Promise.resolve(this.view);
           }
         }
@@ -126,8 +128,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, '');
 
-      const auComponentVm = CustomElement.for(appHost.querySelector('au-compose')).viewModel as AuCompose;
-      auComponentVm.composition.controller.scope.bindingContext['message'] = 'hello';
+      component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
@@ -756,14 +757,16 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       const baseTimeout = 75;
       let timeout = baseTimeout;
       const { appHost, component, startPromise, stop } = createFixture(
-        `\${message}<au-compose component.bind="{ activate, value: i }" template.bind="view" view-model.ref="auCompose" containerless>`,
+        `\${message}<au-compose component.bind="{ activate, value: i }" template.bind="view" composing.bind="pendingPromise" containerless>`,
         class App {
-          public i = 0;
-          public message = 'hello world';
-          public view = `<div>\${value}</div>`;
-          public auCompose: AuCompose;
+          i = 0;
+          message = 'hello world';
+          view = `<div>\${value}</div>`;
+          auCompose: AuCompose;
 
-          public activate = () => {
+          pendingPromise: Promise<void>;
+
+          activate = () => {
             if (timeout === baseTimeout) {
               timeout--;
               return;
@@ -784,8 +787,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         timeout--;
         assert.strictEqual(appHost.textContent, 'hello world0');
       }
-      const auCompose = component.auCompose;
-      await auCompose.pending;
+      await component.pendingPromise;
       assert.strictEqual(appHost.textContent, `hello world38`);
       assert.html.innerEqual(appHost, 'hello world<div>38</div>');
 
@@ -830,12 +832,14 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
     });
     const { appHost, component, startPromise, tearDown } = createFixture(
-      `\${message}<au-compose component.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      `\${message}<au-compose component.bind="vm" model.bind="message" composing.bind="pendingPromise" containerless>`,
       class App {
         public i = 0;
         public message = 'hello world';
         public auCompose: AuCompose;
         public vm: any = El1;
+
+        pendingPromise: void | Promise<void>;
       }
     );
 
@@ -851,8 +855,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     // in the interim before a composition is completely disposed, on the fly host created will be in the doc
     assert.html.innerEqual(appHost, 'hello world<el1><div>hello world 1</div></el1><el2></el2>');
 
-    const auCompose = component.auCompose;
-    await auCompose.pending;
+    await component.pendingPromise;
     assert.strictEqual(appHost.textContent, `hello worldhello world 2`);
     assert.html.innerEqual(appHost, 'hello world<el2><p>hello world 2</p></el2>');
 
@@ -918,12 +921,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
     });
     const { appHost, component, startPromise, tearDown } = createFixture(
-      `\${message}<au-compose component.bind="vm" model.bind="message" view-model.ref="auCompose" containerless>`,
+      `\${message}<au-compose component.bind="vm" model.bind="message" composing.bind="pendingPromise" containerless>`,
       class App {
-        public i = 0;
-        public message = 'hello world';
-        public auCompose: AuCompose;
-        public vm: any = El1;
+        i = 0;
+        message = 'hello world';
+        auCompose: AuCompose;
+        vm: any = El1;
+        pendingPromise: Promise<void>;
       }
     );
 
@@ -982,8 +986,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       // 1.3 ends
     ]);
 
-    const auCompose = component.auCompose;
-    await auCompose.pending;
+    await component.pendingPromise;
 
     await tearDown();
     assert.strictEqual(appHost.textContent, '');

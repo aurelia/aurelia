@@ -24,7 +24,8 @@ import {
 } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
-import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding';
+import { InterpolationBinding } from './binding/interpolation-binding';
+import { ContentBinding } from "./binding/content-binding";
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -38,7 +39,7 @@ import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
 import { objectKeys, isString, def } from './utilities';
-import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
+import { aliasRegistration, createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
@@ -1001,12 +1002,20 @@ export class AttributeBindingRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.spreadBinding)
+// @renderer(InstructionType.spreadBinding)
 export class SpreadRenderer implements IRenderer {
+
+  public static register(c: IContainer) {
+    c.register(
+      singletonRegistration(this, this),
+      aliasRegistration(this, IRenderer),
+    );
+  }
+
   /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ private readonly _rendering = resolve(IRendering);
 
-  public target!: InstructionType.spreadBinding;
+  public readonly target = InstructionType.spreadBinding;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1017,6 +1026,25 @@ export class SpreadRenderer implements IRenderer {
     observerLocator: IObserverLocator,
   ): void {
     const container = renderingCtrl.container;
+    // const hydrationContext = container.get(IHydrationContext);
+    const bindings = this.createBindings(
+      container,
+      target,
+      platform,
+      exprParser,
+      observerLocator
+    );
+    bindings.forEach(b => renderingCtrl.addBinding(b));
+  }
+
+  public createBindings(
+    container: IContainer,
+    target: HTMLElement,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+  ): SpreadBinding[] {
+    const bindings: SpreadBinding[] = [];
     const hydrationContext = container.get(IHydrationContext);
     const renderers = this._rendering.renderers;
     const getHydrationContext = (ancestor: number) => {
@@ -1060,13 +1088,14 @@ export class SpreadRenderer implements IRenderer {
             renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
         }
       }
-      renderingCtrl.addBinding(spreadBinding);
+      bindings.push(spreadBinding);
     };
     renderSpreadInstruction(0);
+    return bindings;
   }
 }
 
-class SpreadBinding implements IBinding {
+class SpreadBinding implements IBinding, IHasController {
   public scope?: Scope | undefined;
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
@@ -1205,10 +1234,14 @@ class ViewFactoryProvider implements IResolver {
   }
 }
 
+interface IHasController {
+  $controller: IController;
+}
+
 function invokeAttribute(
   p: IPlatform,
   definition: CustomAttributeDefinition,
-  $renderingCtrl: IController | { $controller: IController },
+  $renderingCtrl: IController | IHasController,
   host: HTMLElement,
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
@@ -1217,7 +1250,7 @@ function invokeAttribute(
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const renderingCtrl = $renderingCtrl instanceof Controller
     ? $renderingCtrl
-    : ($renderingCtrl as { $controller: IController }).$controller;
+    : ($renderingCtrl as IHasController).$controller;
   const ctn = renderingCtrl.container.createChild();
   registerHostNode(ctn, p, host);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));

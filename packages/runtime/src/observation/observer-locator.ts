@@ -20,6 +20,7 @@ import type {
   CollectionObserver,
 } from '../observation';
 import { ErrorNames, createMappedError } from '../errors';
+import { unwrap } from './proxy-observation';
 
 export const propertyAccessor = new PropertyAccessor();
 

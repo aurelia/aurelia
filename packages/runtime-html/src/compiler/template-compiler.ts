@@ -299,6 +299,19 @@ export class TemplateCompiler implements ITemplateCompiler {
     return instructions;
   }
 
+  public compileAttrs(
+    attrs: AttrSyntax[],
+    element: Element,
+    def?: CustomElementDefinition
+  ) {
+
+    // compiled expressions
+    return {
+      bindables: [],
+      attrs: []
+    };
+  }
+
   /** @internal */
   private _compileSurrogate(el: Element, context: CompilationContext): IInstruction[] {
     const instructions: IInstruction[] = [];

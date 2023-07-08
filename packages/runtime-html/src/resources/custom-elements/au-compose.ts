@@ -1,18 +1,19 @@
-import { Constructable, IContainer, InstanceProvider, onResolve, resolve, transient } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
+import { Constructable, IContainer, InstanceProvider, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { HydrateElementInstruction, IInstruction } from '../../renderer';
-import { Controller, IController, ICustomElementController, IHydratedController, ISyntheticView } from '../../templating/controller';
+import { HydrateElementInstruction, IInstruction, ITemplateCompiler, SpreadRenderer } from '../../renderer';
+import { Controller, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
+import { BindingMode } from '../../binding/interfaces-bindings';
 
 /**
- * An optional interface describing the dialog activate convention.
+ * An optional interface describing the dynamic composition activate convention.
  */
 export interface IDynamicComponentActivate<T> {
   /**
@@ -23,7 +24,7 @@ export interface IDynamicComponentActivate<T> {
 }
 
 type MaybePromise<T> = T | Promise<T>;
-type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior'>;
+type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition'>;
 
 // Desired usage:
 // <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
@@ -63,13 +64,19 @@ export class AuCompose {
   public readonly $controller!: ICustomElementController<AuCompose>;
 
   /** @internal */
-  private _pending?: Promise<void> | void;
-  public get pending(): Promise<void> | void {
-    return this._pending;
+  private _composing?: Promise<void> | void;
+  @bindable({
+    mode: BindingMode.fromView
+  })
+  public get composing(): Promise<void> | void {
+    return this._composing;
   }
 
   /** @internal */
   private _composition: ICompositionController | undefined = void 0;
+  @bindable({
+    mode: BindingMode.fromView
+  })
   public get composition(): ICompositionController | undefined {
     return this._composition;
   }
@@ -82,13 +89,17 @@ export class AuCompose {
   /** @internal */ private readonly _rendering = resolve(IRendering);
   /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
   /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
+  // /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
+  // /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
+  // /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
+  // /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    return this._pending = onResolve(
+    return this._composing = onResolve(
       this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
         if (this._contextFactory.isCurrent(context)) {
-          this._pending = void 0;
+          this._composing = void 0;
         }
       }
     );
@@ -96,25 +107,26 @@ export class AuCompose {
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
     const cmpstn = this._composition;
-    const pending = this._pending;
+    const pending = this._composing;
     this._contextFactory.invalidate();
-    this._composition = this._pending = void 0;
+    this._composition = this._composing = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
   }
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
+    if (name === 'composing' || name === 'composition') return;
     if (name === 'model' && this._composition != null) {
       // eslint-disable-next-line
       this._composition.update(this.model);
       return;
     }
-    this._pending = onResolve(this._pending, () =>
+    this._composing = onResolve(this._composing, () =>
       onResolve(
         this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
         (context) => {
           if (this._contextFactory.isCurrent(context)) {
-            this._pending = void 0;
+            this._composing = void 0;
           }
         }
       )
@@ -124,7 +136,7 @@ export class AuCompose {
   /** @internal */
   private queue(change: ChangeInfo, initiator: IHydratedController | undefined): CompositionContext | Promise<CompositionContext> {
     const factory = this._contextFactory;
-    const compositionCtrl = this._composition;
+    const prevCompositionCtrl = this._composition;
     // todo: handle consequitive changes that create multiple queues
     return onResolve(
       factory.create(change),
@@ -143,7 +155,7 @@ export class AuCompose {
                   // after activation, if the composition context is still the most recent one
                   // then the job is done
                   this._composition = result;
-                  return onResolve(compositionCtrl?.deactivate(initiator), () => context);
+                  return onResolve(prevCompositionCtrl?.deactivate(initiator), () => context);
                 } else {
                   // the stale controller should be deactivated
                   return onResolve(
@@ -216,6 +228,15 @@ export class AuCompose {
           { projections: this._instruction.projections },
           vmDef,
         );
+
+        // const bindings = this._container.get(SpreadRenderer).createBindings(
+        //   this.$controller.container,
+        //   compositionHost as HTMLElement,
+        //   this._platform,
+        //   this._exprParser,
+        //   this._observerLocator,
+        // );
+        // bindings.forEach(b => controller.addBinding(b));
 
         return new CompositionController(
           controller,
@@ -308,7 +329,11 @@ export class AuCompose {
   }
 }
 
-customElement('au-compose')(AuCompose);
+customElement({
+  name: 'au-compose',
+  capture: true,
+  // containerless: true,
+})(AuCompose);
 
 class EmptyComponent { }
 

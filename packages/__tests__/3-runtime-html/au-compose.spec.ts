@@ -4,6 +4,7 @@ import {
   AuCompose,
   INode,
   IRenderLocation,
+  bindable,
 } from '@aurelia/runtime-html';
 import { ICompositionController } from '@aurelia/runtime-html/dist/types/resources/custom-elements/au-compose';
 import {
@@ -41,9 +42,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.textContent, 'hello world');
 
       component.message = 'hello';
-      const auComponentVm = CustomElement.for(appHost.querySelector('au-compose')).viewModel as AuCompose;
 
-      assert.strictEqual(auComponentVm.template, '<div>hello</div>');
       assert.strictEqual(appHost.textContent, 'hello');
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
@@ -1076,4 +1075,90 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       await new Promise(r => setTimeout(r, 150));
     });
   }
+
+  // describe.only('containerless custom element', function () {
+  //   it('')
+  // });
+
+  describe('pass through props', function () {
+    it('passes through ref binding', function () {
+      @customElement('el')
+      class El {}
+
+      const { component } = createFixture('<au-compose component.bind="comp" view-model.ref="el">', class {
+        comp = El;
+        el: El;
+      });
+
+      assert.instanceOf(component.el, El);
+    });
+
+    it('passes through attribute as bindable', function () {
+      @customElement({
+        name: 'el',
+        template: '${message}'
+      })
+      class El {
+        @bindable() message: any;
+      }
+
+      const { assertText, assertHtml } = createFixture('<au-compose component.bind="comp" message.bind="msg">', class {
+        comp = El;
+        msg = 'hello world';
+      });
+
+      assertText('hello world');
+      assertHtml('<au-compose><el>hello world</el></au-compose>');
+    });
+
+    it('passes through combination of normal and bindable attrs', function () {
+      @customElement({
+        name: 'el',
+        template: '${message}'
+      })
+      class El {
+        @bindable() message: any;
+      }
+
+      const { assertText, assertHtml } = createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
+        comp = El;
+        msg = 'hello world';
+      });
+
+      assertText('hello world');
+      // .bind on id.bind causes the value to be set during .bind
+      // which is after class attr, which is during rendering (composition)
+      assertHtml('<au-compose><el class="el" id="1">hello world</el></au-compose>');
+    });
+
+    it('switches & cleans up after switching custom element view model', function () {
+      @customElement({
+        name: 'el-1',
+        template: '${message}'
+      })
+      class El1 {
+        @bindable() message: any;
+      }
+
+      @customElement({
+        name: 'el-2',
+        template: '${id} hey there ${message}'
+      })
+      class El2 {
+        @bindable() message: any;
+        @bindable id: any;
+      }
+
+      const { component, assertText, assertHtml } = createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
+        comp = El1;
+        msg = 'hello world';
+      });
+
+      assertText('hello world');
+
+      component.comp = El2;
+      assertText('1 hey there hello world');
+      assertHtml('<au-compose><el-2 class="el">1 hey there hello world</el-2></au-compose>');
+    });
+  });
 });

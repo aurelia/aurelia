@@ -1,9 +1,9 @@
-import { Constructable, IContainer, InstanceProvider, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { HydrateElementInstruction, IInstruction, ITemplateCompiler, SpreadRenderer } from '../../renderer';
+import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';
 import { Controller, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
@@ -11,6 +11,7 @@ import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
 import { BindingMode } from '../../binding/interfaces-bindings';
+import { SpreadBinding } from '../../binding/spread-binding';
 
 /**
  * An optional interface describing the dynamic composition activate convention.
@@ -89,10 +90,10 @@ export class AuCompose {
   /** @internal */ private readonly _rendering = resolve(IRendering);
   /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
   /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
-  // /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
-  // /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
-  // /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
-  // /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
+  /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
+  /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
+  /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
+  /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._composing = onResolve(
@@ -183,7 +184,6 @@ export class AuCompose {
   /** @internal */
   private compose(context: CompositionContext): MaybePromise<ICompositionController> {
     let comp: IDynamicComponentActivate<unknown>;
-    let compositionHost: HTMLElement | IRenderLocation;
     let removeCompositionHost: () => void;
     // todo: when both component and template are empty
     //       should it throw or try it best to proceed?
@@ -192,24 +192,20 @@ export class AuCompose {
     const { _container: container, host, $controller, _location: loc } = this;
     const vmDef = this.getDef(component);
     const childCtn: IContainer = container.createChild();
-    const parentNode = loc == null ? host.parentNode : loc.parentNode;
+    let compositionHost: HTMLElement | IRenderLocation;
 
     if (vmDef !== null) {
       if (vmDef.containerless) {
         throw createMappedError(ErrorNames.au_compose_containerless, vmDef);
       }
+      compositionHost = this._platform.document.createElement(vmDef.name);
+      removeCompositionHost = () => {
+        compositionHost.remove();
+      };
       if (loc == null) {
-        compositionHost = host;
-        removeCompositionHost = () => {
-          // This is a normal composition, the content template is removed by deactivation process
-          // but the host remains
-        };
+        host.appendChild(compositionHost);
       } else {
-        // todo: should the host be appended later, during the activation phase instead?
-        compositionHost = parentNode!.insertBefore(this._platform.document.createElement(vmDef.name), loc);
-        removeCompositionHost = () => {
-          compositionHost.remove();
-        };
+        loc.parentNode!.insertBefore(compositionHost, loc);
       }
       comp = this._getComp(childCtn, component, compositionHost);
     } else {
@@ -229,14 +225,21 @@ export class AuCompose {
           vmDef,
         );
 
-        // const bindings = this._container.get(SpreadRenderer).createBindings(
-        //   this.$controller.container,
-        //   compositionHost as HTMLElement,
-        //   this._platform,
-        //   this._exprParser,
-        //   this._observerLocator,
-        // );
-        // bindings.forEach(b => controller.addBinding(b));
+        const bindings = SpreadBinding.create(
+          this.$controller.container,
+          compositionHost as HTMLElement,
+          vmDef,
+          this._rendering,
+          this._compiler,
+          this._platform,
+          this._exprParser,
+          this._observerLocator,
+        );
+        // Theoretically these bindings aren't bindings of the composed custom element
+        // Though they are meant to be activated (bound)/ deactivated (unbound) together
+        // with the custom element controller, so it's practically ok to let the composed
+        // custom element manage these bindings
+        bindings.forEach(b => controller.addBinding(b));
 
         return new CompositionController(
           controller,
@@ -332,7 +335,6 @@ export class AuCompose {
 customElement({
   name: 'au-compose',
   capture: true,
-  // containerless: true,
 })(AuCompose);
 
 class EmptyComponent { }

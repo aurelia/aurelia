@@ -1,8 +1,6 @@
 import {
   emptyArray,
   InstanceProvider,
-  type Key,
-  type IServiceLocator,
   type IContainer,
   type Class,
   type IRegistry,
@@ -14,8 +12,6 @@ import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
-  type IBinding,
-  Scope,
   type Interpolation,
   type IsBindingBehavior,
   type AnyBindingExpression,
@@ -33,7 +29,7 @@ import { ListenerBinding, ListenerBindingOptions } from './binding/listener-bind
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
-import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
+import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
@@ -45,6 +41,7 @@ import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/cont
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
 import { ErrorNames, createMappedError } from './errors';
+import { SpreadBinding } from './binding/spread-binding';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -342,7 +339,15 @@ export interface ITemplateCompiler {
     requestor: PartialCustomElementDefinition,
     attrSyntaxes: AttrSyntax[],
     container: IContainer,
-    host: Element,
+    target: Element,
+    /**
+     * An associated custom element definition for the target host element
+     * Sometimes spread compilation may occur without the container having all necessary information
+     * about the targeted element that is receiving the spread
+     *
+     * Caller of this method may want to provide this information dynamically instead
+     */
+    targetDef?: CustomElementDefinition,
   ): IInstruction[];
 }
 
@@ -1026,139 +1031,142 @@ export class SpreadRenderer implements IRenderer {
     observerLocator: IObserverLocator,
   ): void {
     const container = renderingCtrl.container;
-    // const hydrationContext = container.get(IHydrationContext);
-    const bindings = this.createBindings(
-      container,
-      target,
-      platform,
-      exprParser,
-      observerLocator
-    );
-    bindings.forEach(b => renderingCtrl.addBinding(b));
-  }
-
-  public createBindings(
-    container: IContainer,
-    target: HTMLElement,
-    platform: IPlatform,
-    exprParser: IExpressionParser,
-    observerLocator: IObserverLocator,
-  ): SpreadBinding[] {
-    const bindings: SpreadBinding[] = [];
-    const hydrationContext = container.get(IHydrationContext);
-    const renderers = this._rendering.renderers;
-    const getHydrationContext = (ancestor: number) => {
-      let currentLevel = ancestor;
-      let currentContext: IHydrationContext | undefined = hydrationContext;
-      while (currentContext != null && currentLevel > 0) {
-        currentContext = currentContext.parent;
-        --currentLevel;
-      }
-      if (currentContext == null) {
-        throw createMappedError(ErrorNames.no_spread_scope_context_found);
-      }
-      return currentContext as IHydrationContext<object>;
-    };
-    const renderSpreadInstruction = (ancestor: number) => {
-      const context = getHydrationContext(ancestor);
-      const spreadBinding = createSurrogateBinding(context);
-      const instructions = this._compiler.compileSpread(
-        context.controller.definition,
-        context.instruction?.captures ?? emptyArray,
-        context.controller.container,
+    SpreadBinding
+      .create(
+        container,
         target,
-      );
-      let inst: IInstruction;
-      for (inst of instructions) {
-        switch (inst.type) {
-          case InstructionType.spreadBinding:
-            renderSpreadInstruction(ancestor + 1);
-            break;
-          case InstructionType.spreadElementProp:
-            renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
-              spreadBinding,
-              findElementControllerFor(target),
-              (inst as SpreadElementPropBindingInstruction).instructions,
-              platform,
-              exprParser,
-              observerLocator,
-            );
-            break;
-          default:
-            renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
-        }
-      }
-      bindings.push(spreadBinding);
-    };
-    renderSpreadInstruction(0);
-    return bindings;
+        void 0,
+        this._rendering,
+        this._compiler,
+        platform,
+        exprParser,
+        observerLocator
+      )
+      .forEach(b => renderingCtrl.addBinding(b));
   }
+
+  // public createBindings(
+  //   container: IContainer,
+  //   target: HTMLElement,
+  //   platform: IPlatform,
+  //   exprParser: IExpressionParser,
+  //   observerLocator: IObserverLocator,
+  // ): SpreadBinding[] {
+  //   const bindings: SpreadBinding[] = [];
+  //   const hydrationContext = container.get(IHydrationContext);
+  //   const renderers = this._rendering.renderers;
+  //   const getHydrationContext = (ancestor: number) => {
+  //     let currentLevel = ancestor;
+  //     let currentContext: IHydrationContext | undefined = hydrationContext;
+  //     while (currentContext != null && currentLevel > 0) {
+  //       currentContext = currentContext.parent;
+  //       --currentLevel;
+  //     }
+  //     if (currentContext == null) {
+  //       throw createMappedError(ErrorNames.no_spread_scope_context_found);
+  //     }
+  //     return currentContext as IHydrationContext<object>;
+  //   };
+  //   const renderSpreadInstruction = (ancestor: number) => {
+  //     const context = getHydrationContext(ancestor);
+  //     const spreadBinding = createSurrogateBinding(context);
+  //     const instructions = this._compiler.compileSpread(
+  //       context.controller.definition,
+  //       context.instruction?.captures ?? emptyArray,
+  //       context.controller.container,
+  //       target,
+  //     );
+  //     let inst: IInstruction;
+  //     for (inst of instructions) {
+  //       switch (inst.type) {
+  //         case InstructionType.spreadBinding:
+  //           renderSpreadInstruction(ancestor + 1);
+  //           break;
+  //         case InstructionType.spreadElementProp:
+  //           renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
+  //             spreadBinding,
+  //             findElementControllerFor(target),
+  //             (inst as SpreadElementPropBindingInstruction).instructions,
+  //             platform,
+  //             exprParser,
+  //             observerLocator,
+  //           );
+  //           break;
+  //         default:
+  //           renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
+  //       }
+  //     }
+  //     bindings.push(spreadBinding);
+  //   };
+  //   renderSpreadInstruction(0);
+  //   return bindings;
+  // }
 }
 
-class SpreadBinding implements IBinding, IHasController {
-  public scope?: Scope | undefined;
-  public isBound: boolean = false;
-  public readonly locator: IServiceLocator;
+// class SpreadBinding implements IBinding, IHasController {
+//   public scope?: Scope | undefined;
+//   public isBound: boolean = false;
+//   public readonly locator: IServiceLocator;
 
-  public readonly $controller: ICustomElementController;
+//   public readonly $controller: ICustomElementController;
 
-  public get container() {
-    return this.locator;
-  }
+//   public get container() {
+//     return this.locator;
+//   }
 
-  public get definition(): CustomElementDefinition | CustomElementDefinition {
-    return this.$controller.definition;
-  }
+//   public get definition(): CustomElementDefinition | CustomElementDefinition {
+//     return this.$controller.definition;
+//   }
 
-  public get isStrictBinding() {
-    return this.$controller.isStrictBinding;
-  }
+//   public get isStrictBinding() {
+//     return this.$controller.isStrictBinding;
+//   }
 
-  public get state() {
-    return this.$controller.state;
-  }
+//   public get state() {
+//     return this.$controller.state;
+//   }
 
-  public constructor(
-    /** @internal */ private readonly _innerBindings: IBinding[],
-    /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
-  ) {
-    this.$controller = _hydrationContext.controller;
-    this.locator = this.$controller.container;
-  }
+//   public constructor(
+//     /** @internal */ private readonly _innerBindings: IBinding[],
+//     /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
+//   ) {
+//     this.$controller = _hydrationContext.controller;
+//     this.locator = this.$controller.container;
+//   }
 
-  public get(key: Key) {
-    return this.locator.get(key);
-  }
+//   public get(key: Key) {
+//     return this.locator.get(key);
+//   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      return;
-    }
-    this.isBound = true;
-    const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
-    if (innerScope == null) {
-      throw createMappedError(ErrorNames.no_spread_scope_context_found);
-    }
+//   public bind(_scope: Scope): void {
+//     if (this.isBound) {
+//       return;
+//     }
+//     this.isBound = true;
+//     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
+//     if (innerScope == null) {
+//       throw createMappedError(ErrorNames.no_spread_scope_context_found);
+//     }
 
-    this._innerBindings.forEach(b => b.bind(innerScope));
-  }
+//     this._innerBindings.forEach(b => b.bind(innerScope));
+//   }
 
-  public unbind(): void {
-    this._innerBindings.forEach(b => b.unbind());
-    this.isBound = false;
-  }
+//   public unbind(): void {
+//     this._innerBindings.forEach(b => b.unbind());
+//     this.isBound = false;
+//   }
 
-  public addBinding(binding: IBinding) {
-    this._innerBindings.push(binding);
-  }
+//   public addBinding(binding: IBinding) {
+//     this._innerBindings.push(binding);
+//   }
 
-  public addChild(controller: IController) {
-    if (controller.vmKind !== ViewModelKind.customAttribute) {
-      throw createMappedError(ErrorNames.no_spread_template_controller);
-    }
-    this.$controller.addChild(controller);
-  }
-}
+//   public addChild(controller: IController) {
+//     if (controller.vmKind !== ViewModelKind.customAttribute) {
+//       throw createMappedError(ErrorNames.no_spread_template_controller);
+//     }
+//     this.$controller.addChild(controller);
+//   }
+// }
 
 // http://jsben.ch/7n5Kt
 function addClasses(classList: DOMTokenList, className: string): void {
@@ -1176,8 +1184,8 @@ function addClasses(classList: DOMTokenList, className: string): void {
   }
 }
 
-const createSurrogateBinding = (context: IHydrationContext<object>) =>
-  new SpreadBinding([], context) as SpreadBinding & IHydratableController;
+// const createSurrogateBinding = (context: IHydrationContext<object>) =>
+//   new SpreadBinding([], context) as SpreadBinding & IHydratableController;
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -1234,7 +1242,8 @@ class ViewFactoryProvider implements IResolver {
   }
 }
 
-interface IHasController {
+/** @internal */
+export interface IHasController {
   $controller: IController;
 }
 

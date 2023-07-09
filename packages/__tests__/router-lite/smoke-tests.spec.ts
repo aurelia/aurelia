@@ -3728,6 +3728,78 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.strictEqual(url.hash, '#/c1/42?foo=bar');
   });
 
+  it('querystring, added to the fragment, can be parsed correctly, when hash-based routing is used - with fragment (nested fragment JFF)', async function () {
+    @customElement({ name: 'c-1', template: `c1 params: \${id} query: \${query} fragment: \${fragment}` })
+    class C1 implements IRouteViewModel {
+
+      private id: string;
+      private query: string;
+      private fragment: string;
+
+      public loading(params: Params, node: RouteNode): void | Promise<void> {
+        this.id = params.id;
+        this.query = node.queryParams.toString();
+        this.fragment = node.fragment;
+      }
+    }
+
+    @route({ routes: [{ id: 'c1', path: 'c1/:id', component: C1 }] })
+    @customElement({ name: 'app', template: '<a href="#/c1/42?foo=bar#for-whatever-reason"></a><au-viewport></au-viewport>' })
+    class App { }
+
+    const { host, container } = await start({ appRoot: App, useHash: true });
+
+    host.querySelector('a').click();
+    await container.get(IPlatform).taskQueue.yield();
+
+    assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment: for-whatever-reason');
+    const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
+    assert.match(path, /#\/c1\/42\?foo=bar#for-whatever-reason$/);
+
+    // assert the different parts of the url
+    const url = new URL(path);
+    assert.match(url.pathname, /\/$/);
+    assert.strictEqual(url.search, '');
+    assert.strictEqual(url.hash, '#/c1/42?foo=bar#for-whatever-reason');
+  });
+
+  it('fragment is added to fragment (nested fragment JFF) when using hash-based routing', async function () {
+    @customElement({ name: 'c-1', template: `c1 params: \${id} query: \${query} fragment: \${fragment}` })
+    class C1 implements IRouteViewModel {
+
+      private id: string;
+      private query: string;
+      private fragment: string;
+
+      public loading(params: Params, node: RouteNode): void | Promise<void> {
+        this.id = params.id;
+        this.query = node.queryParams.toString();
+        this.fragment = node.fragment;
+      }
+    }
+
+    @route({ routes: [{ id: 'c1', path: 'c1/:id', component: C1 }] })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+    class App { }
+
+    const { host, container } = await start({ appRoot: App, useHash: true });
+
+    await container.get(IRouter)
+      .load(
+        { component: 'c1', params: { id: '42' } },
+        { queryParams: { foo: 'bar' }, fragment: 'for-whatever-reason' }
+      );
+    assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment: for-whatever-reason');
+    const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
+    assert.match(path, /#\/c1\/42\?foo=bar#for-whatever-reason$/);
+
+    // assert the different parts of the url
+    const url = new URL(path);
+    assert.match(url.pathname, /\/$/);
+    assert.strictEqual(url.search, '');
+    assert.strictEqual(url.hash, '#/c1/42?foo=bar#for-whatever-reason');
+  });
+
   // TODO(sayan): add more tests for title involving children and sibling routes
 
   it('root/child/grandchild/great-grandchild', async function () {

@@ -3,7 +3,7 @@ import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import type { IRouteContext } from './route-context';
-import { FragmentUrlParser, IUrlParser, PathUrlParser } from './url-parser';
+import { IUrlParser, fragmentUrlParser, pathUrlParser } from './url-parser';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -58,7 +58,7 @@ export class RouterOptions {
      */
     public readonly restorePreviousRouteTreeOnError: boolean,
   ) {
-    this._urlParser = useUrlFragmentHash ? FragmentUrlParser.instance : PathUrlParser.instance;
+    this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
    }
 
   public static create(input: IRouterOptions): RouterOptions {

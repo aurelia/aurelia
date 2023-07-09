@@ -114,6 +114,6 @@ export {
 
 export {
   IUrlParser,
-  PathUrlParser,
-  FragmentUrlParser,
+  pathUrlParser,
+  fragmentUrlParser,
 } from './url-parser';

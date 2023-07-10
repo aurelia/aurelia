@@ -89,11 +89,11 @@ In some scenarios, you may want to access the view model of the component being 
 <au-compose view-model.ref="myCompose"></au-compose>
 ```
 
-This will works as if it was a `view-model.ref` binding on a normal custom element
+This will work as though it were a `view-model.ref` binding on a standard custom element.
 
 ## Passing props through
 
-The `<au-compose>` will pass all the bindings, except the ones that target its bindable properties (`model`/`component`/`template`) declared on it to the composed view model, if it's a custom element.
+The `<au-compose>` will pass all bindings, except those targeting its bindable properties (`model`/`component`/`template`) declared on it, to the composed view model, assuming it is a custom element.
 
 As an example, for the following scenario:
 
@@ -155,9 +155,7 @@ If you still want a view supporting a dynamically loaded module, you can create 
 
 The above value converter will load the URL and return the text response. For view models, something similar can be achieved where an object or class can be returned.
 
-3. In Aurelia 2, all bindings are passed through to the underlying custom element
-composition, so `view-model.ref` no longer means getting a reference to the composer, but the composed view model instead.
-
+3. In Aurelia 2, all bindings are transferred to the underlying custom element composition. Therefore, `view-model.ref` no longer signifies obtaining a reference to the composer, but rather to the composed view model.
 ### Scope breaking changes
 
 By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when it is not a custom element being composed. This means the outer scope will be used when composing only a view or plain object as the view model.

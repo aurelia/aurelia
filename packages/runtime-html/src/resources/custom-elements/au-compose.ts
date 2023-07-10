@@ -245,7 +245,7 @@ export class AuCompose {
             (compositionHost as HTMLElement).remove();
           } else {
             let curr = location.$start!.nextSibling;
-            let next = curr;
+            let next: ChildNode | null = null;
             while (curr !== null && curr !== location) {
               next = curr.nextSibling;
               curr.remove();

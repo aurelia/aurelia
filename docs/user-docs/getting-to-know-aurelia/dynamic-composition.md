@@ -89,30 +89,41 @@ In some scenarios, you may want to access the view model of the component being 
 <au-compose view-model.ref="myCompose"></au-compose>
 ```
 
-This will add a property to the host class called `myCompose`
+This will work as though it were a `view-model.ref` binding on a standard custom element.
 
-```typescript
-export class MyApp {
-    readonly myCompose;
+## Passing props through
+
+The `<au-compose>` will pass all bindings, except those targeting its bindable properties (`model`/`component`/`template`) declared on it, to the composed view model, assuming it is a custom element.
+
+As an example, for the following scenario:
+
+{% code title="app.html"%}
+```html
+<au-compose component.bind="myInput" value.bind="item">
+```
+{% endcode %}
+
+{% code title="my-input.ts" %}
+```ts
+export class MyInput {
+  @bindable() value
 }
 ```
+{% endcode %}
 
-However, one pitfall you will encounter is the view model that gets passed to the `ref` binding is a constructible component and not the instance itself. If you worked with Aurelia 1, you might expect the passed `view-model` instance to be the instance itself, not the class definition.
-
-To access the instance itself, we need to reference the composition controller:
-
-```typescript
-export class MyApp {
-    readonly myCompose;
-    myViewModel;
-    
-    constructor() {
-        this.myViewModel = this.myCompose.composition.controller.viewModel;
-    }
-}
+{% code title="my-input.html" %}
+```html
+<input value.bind="value">
 ```
+{% endcode %}
 
-We can now do calling methods inside our composed view model and other tasks you might need to accomplish for composed components.
+It will work as if you were having the following content in `app.html`:
+
+{% code title="app.html"%}
+```html
+<my-input  value.bind="item">
+```
+{% endcode %}
 
 ## Migrating from Aurelia 1 \<compose>
 
@@ -144,6 +155,7 @@ If you still want a view supporting a dynamically loaded module, you can create 
 
 The above value converter will load the URL and return the text response. For view models, something similar can be achieved where an object or class can be returned.
 
+3. In Aurelia 2, all bindings are transferred to the underlying custom element composition. Therefore, `view-model.ref` no longer signifies obtaining a reference to the composer, but rather to the composed view model.
 ### Scope breaking changes
 
 By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when it is not a custom element being composed. This means the outer scope will be used when composing only a view or plain object as the view model.

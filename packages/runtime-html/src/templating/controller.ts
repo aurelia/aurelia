@@ -247,7 +247,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     registerResolver(ctn, IHydrationContext, new InstanceProvider(
       'IHydrationContext',
       new HydrationContext(
-        controller,
+        controller as ICustomElementController,
         hydrationInst,
         hydrationContext,
       )
@@ -1707,10 +1707,11 @@ export interface IHydrationContext<T extends ICustomElementViewModel = ICustomEl
   readonly parent: IHydrationContext | undefined;
 }
 
-class HydrationContext<T extends ICustomElementViewModel> implements IHydrationContext<T> {
+/** @internal */
+export class HydrationContext<T extends ICustomElementViewModel> implements IHydrationContext<T> {
   public readonly controller: ICustomElementController<T>;
   public constructor(
-    controller: Controller,
+    controller: ICustomElementController,
     public readonly instruction: IControllerElementHydrationInstruction | null,
     public readonly parent: IHydrationContext | undefined,
   ) {

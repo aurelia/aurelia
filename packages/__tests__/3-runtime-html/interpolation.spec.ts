@@ -714,5 +714,16 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       await tearDown();
     });
+
+    it('updates binding when array is part of an interpolation', function () {
+      const { component, assertAttr, flush } = createFixture('<div data-id="${ids}">', class {
+        ids = [1, 2];
+      });
+
+      assertAttr('div', 'data-id', '1,2');
+      component.ids.push(3);
+      flush();
+      assertAttr('div', 'data-id', '1,2,3');
+    });
   });
 });

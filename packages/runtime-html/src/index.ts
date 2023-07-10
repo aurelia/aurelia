@@ -112,8 +112,10 @@ export {
 export {
   InterpolationBinding,
   InterpolationPartBinding,
-  ContentBinding,
 } from './binding/interpolation-binding';
+export {
+  ContentBinding,
+} from './binding/content-binding';
 export {
   LetBinding,
 } from './binding/let-binding';

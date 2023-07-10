@@ -134,7 +134,10 @@ Change it to:
   <au-compose component.bind="...">
   ```
 
-  Read more about dynamic composition in v2 in this [dynamic composition doc](../../getting-to-know-aurelia/dynamic-composition.md) and [dynamic ui composition doc](../../app-basics/dynamic-ui-composition.md).
+- In Aurelia 2, all bindings are passed through to the underlying custom element
+composition, so `view-model.ref` no longer means getting a reference to the composer, but the composed view model instead.
+
+Read more about dynamic composition in v2 in this [dynamic composition doc](../../getting-to-know-aurelia/dynamic-composition.md) and [dynamic ui composition doc](../../app-basics/dynamic-ui-composition.md).
 
 ## General changes
 

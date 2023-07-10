@@ -1,10 +1,10 @@
-import { Constructable, IContainer, InstanceProvider, onResolve, resolve, transient } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';
-import { Controller, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView } from '../../templating/controller';
+import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
@@ -12,6 +12,7 @@ import { CustomElement, customElement, CustomElementDefinition } from '../custom
 import { ErrorNames, createMappedError } from '../../errors';
 import { BindingMode } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
+import { AttrSyntax } from '../attribute-pattern';
 
 /**
  * An optional interface describing the dynamic composition activate convention.
@@ -217,16 +218,35 @@ export class AuCompose {
     const compose: () => ICompositionController = () => {
       // custom element based composition
       if (vmDef !== null) {
+        const composeCapturedAttrs = this._instruction.captures! ?? emptyArray;
+        const capture = vmDef.capture;
+        const [capturedBindingAttrs, transferedToHostBindingAttrs] = composeCapturedAttrs
+          .reduce((attrGroups: [AttrSyntax[], AttrSyntax[]], attr) => {
+            const shouldCapture = !(attr.target in vmDef.bindables)
+              && (capture === true
+                || isFunction(capture) && !!capture(attr.target));
+            attrGroups[shouldCapture ? 0 : 1].push(attr);
+            return attrGroups;
+          }, [[], []]);
+
         const controller = Controller.$el(
           childCtn,
           comp,
           compositionHost as HTMLElement,
-          { projections: this._instruction.projections },
+          {
+            projections: this._instruction.projections,
+            captures: capturedBindingAttrs
+          },
           vmDef,
+        );
+        const transferHydrationContext = new HydrationContext(
+          $controller,
+          { projections: null, captures: transferedToHostBindingAttrs},
+          this._hydrationContext.parent
         );
 
         const bindings = SpreadBinding.create(
-          this.$controller.container,
+          transferHydrationContext,
           compositionHost as HTMLElement,
           vmDef,
           this._rendering,
@@ -255,6 +275,15 @@ export class AuCompose {
           context,
         );
       } else {
+        if (__DEV__) {
+          const captures = this._instruction.captures ?? [];
+          if (captures.length > 0) {
+            // eslint-disable-next-line no-console
+            console.warn(`[au-compose]: Ignored bindings ${captures.map(({ rawName, rawValue }) => `${rawName}="${rawValue}"`).join(", ")}`
+              + ' in composition without a custom element definition as component.'
+            );
+          }
+        }
         const targetDef = CustomElementDefinition.create({
           name: CustomElement.generateName(),
           template: template,

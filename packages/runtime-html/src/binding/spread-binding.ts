@@ -1,4 +1,4 @@
-import { IContainer, IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
+import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
 import { IBinding, IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
@@ -19,7 +19,7 @@ export class SpreadBinding implements IBinding, IHasController {
    * from a container
    */
   public static create(
-    container: IContainer,
+    hydrationContext: IHydrationContext,
     target: HTMLElement,
     /**
      * To be supplied to the compilation of spread' attrs
@@ -34,7 +34,6 @@ export class SpreadBinding implements IBinding, IHasController {
     observerLocator: IObserverLocator,
   ): SpreadBinding[] {
     const bindings: SpreadBinding[] = [];
-    const hydrationContext = container.get(IHydrationContext);
     const renderers = rendering.renderers;
     const getHydrationContext = (ancestor: number) => {
       let currentLevel = ancestor;

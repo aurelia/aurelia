@@ -1076,9 +1076,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
   }
 
-  // describe.only('containerless custom element', function () {
-  //   it('')
-  // });
+  // todo: containerless custom element
 
   describe('pass through props', function () {
     it('passes through ref binding', function () {
@@ -1132,12 +1130,17 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('switches & cleans up after switching custom element view model', function () {
+      let el1MessageCount = 0;
       @customElement({
         name: 'el-1',
         template: '${message}'
       })
       class El1 {
         @bindable() message: any;
+
+        messageChanged() {
+          el1MessageCount++;
+        }
       }
 
       @customElement({
@@ -1150,15 +1153,93 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }
 
       const { component, assertText, assertHtml } = createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
-        comp = El1;
+        comp: any = El1;
         msg = 'hello world';
       });
 
       assertText('hello world');
+      assert.strictEqual(el1MessageCount, 0);
 
       component.comp = El2;
       assertText('1 hey there hello world');
       assertHtml('<au-compose><el-2 class="el">1 hey there hello world</el-2></au-compose>');
+      // all bindings to old vm were unbound
+      assert.strictEqual(el1MessageCount, 0);
+    });
+
+    it('passes attributes into ...$attrs', function () {
+      @customElement({
+        name: 'my-input',
+        capture: true,
+        template: '<input ...$attrs />'
+      })
+      class MyInput {}
+
+      const { assertValue } = createFixture('<au-compose component.bind="comp" value.bind="message" />', class {
+        comp = MyInput;
+        message = 'hello world';
+      }, [MyInput]);
+
+      assertValue('input', 'hello world');
+    });
+
+    it('passes ...$attrs on <au-compose>', function () {
+      @customElement({
+        name: 'my-input',
+        capture: true,
+        template: '<input ...$attrs />'
+      })
+      class MyInput {}
+
+      @customElement({
+        name: 'field',
+        capture: true,
+        template: '<au-compose component.bind="comp" ...$attrs >'
+      })
+      class Field {
+        comp = MyInput;
+      }
+
+      const { assertValue, component, type } = createFixture('<field value.bind="message" />', class {
+        message = 'hello world';
+      }, [Field]);
+
+      assertValue('input', 'hello world');
+      type('input', 'hey');
+      assert.strictEqual(component.message, 'hey');
+    });
+
+    it('transfers through ...$attrs', function () {
+      @customElement({
+        name: 'my-input',
+        capture: true,
+        template: '<input ...$attrs />'
+      })
+      class MyInput {
+      }
+
+      @customElement({
+        name: 'field',
+        capture: true,
+        template: '<my-input ...$attrs />',
+        dependencies: [MyInput]
+      })
+      class Field {}
+
+      const { assertAttr, assertValue, component, type } = createFixture(
+        '<au-compose component.bind="comp" value.bind="message" id="i1" >',
+        class {
+          comp = Field;
+          message = 'hello world';
+        },
+        [Field]
+      );
+
+      assertValue('input', 'hello world');
+      assertAttr('input', 'id', 'i1');
+
+      type('input', 'hey');
+      assert.strictEqual(component.message, 'hey');
     });
   });
 });

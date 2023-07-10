@@ -100,7 +100,7 @@ export class AuCompose {
     return this._composing = onResolve(
       this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
-        if (this._contextFactory.isCurrent(context)) {
+        if (this._contextFactory._isCurrent(context)) {
           this._composing = void 0;
         }
       }
@@ -127,7 +127,7 @@ export class AuCompose {
       onResolve(
         this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
         (context) => {
-          if (this._contextFactory.isCurrent(context)) {
+          if (this._contextFactory._isCurrent(context)) {
             this._composing = void 0;
           }
         }
@@ -145,15 +145,15 @@ export class AuCompose {
       context => {
         // Don't compose [stale] template/component
         // by always ensuring that the composition context is the latest one
-        if (factory.isCurrent(context)) {
+        if (factory._isCurrent(context)) {
           return onResolve(this.compose(context), (result) => {
             // Don't activate [stale] controller
             // by always ensuring that the composition context is the latest one
-            if (factory.isCurrent(context)) {
+            if (factory._isCurrent(context)) {
               return onResolve(result.activate(initiator), () => {
                 // Don't conclude the [stale] composition
                 // by always ensuring that the composition context is the latest one
-                if (factory.isCurrent(context)) {
+                if (factory._isCurrent(context)) {
                   // after activation, if the composition context is still the most recent one
                   // then the job is done
                   this._composition = result;
@@ -395,7 +395,7 @@ export interface ICompositionController {
 class CompositionContextFactory {
   private id = 0;
 
-  public isCurrent(context: CompositionContext): boolean {
+  public _isCurrent(context: CompositionContext): boolean {
     return context.id === this.id;
   }
 

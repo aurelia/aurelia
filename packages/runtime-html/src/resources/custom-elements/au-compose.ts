@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
-import { INode, IRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
+import { INode, IRenderLocation, convertToRenderLocation, isRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';
 import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView } from '../../templating/controller';
@@ -185,7 +185,6 @@ export class AuCompose {
   /** @internal */
   private compose(context: CompositionContext): MaybePromise<ICompositionController> {
     let comp: IDynamicComponentActivate<unknown>;
-    let removeCompositionHost: () => void;
     // todo: when both component and template are empty
     //       should it throw or try it best to proceed?
     //       current: proceed
@@ -196,13 +195,7 @@ export class AuCompose {
     let compositionHost: HTMLElement | IRenderLocation;
 
     if (vmDef !== null) {
-      if (vmDef.containerless) {
-        throw createMappedError(ErrorNames.au_compose_containerless, vmDef);
-      }
       compositionHost = this._platform.document.createElement(vmDef.name);
-      removeCompositionHost = () => {
-        compositionHost.remove();
-      };
       if (loc == null) {
         host.appendChild(compositionHost);
       } else {
@@ -229,6 +222,7 @@ export class AuCompose {
             return attrGroups;
           }, [[], []]);
 
+        const location = vmDef.containerless ? convertToRenderLocation(compositionHost) : null;
         const controller = Controller.$el(
           childCtn,
           comp,
@@ -238,12 +232,29 @@ export class AuCompose {
             captures: capturedBindingAttrs
           },
           vmDef,
+          location
         );
         const transferHydrationContext = new HydrationContext(
           $controller,
           { projections: null, captures: transferedToHostBindingAttrs},
           this._hydrationContext.parent
         );
+
+        const removeCompositionHost = () => {
+          if (location == null) {
+            (compositionHost as HTMLElement).remove();
+          } else {
+            let curr = location.$start!.nextSibling;
+            let next = curr;
+            while (curr !== null && curr !== location) {
+              next = curr.nextSibling;
+              curr.remove();
+              curr = next;
+            }
+            location.$start?.remove();
+            location.remove();
+          }
+        };
 
         const bindings = SpreadBinding.create(
           transferHydrationContext,

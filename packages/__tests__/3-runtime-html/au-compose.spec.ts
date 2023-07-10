@@ -652,36 +652,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       await tearDown();
     });
 
-    it('-> composes containerless custom element', async function () {
-      @customElement({
-        name: 'el',
-        template: '<div>Hello world from El</div>',
-        containerless: true,
-      })
-      class El { }
-
-      const { appHost, start } = createFixture(
-        `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
-        class App {
-          public El = El;
-        },
-        [],
-        false
-      );
-
-      let ex: Error;
-      try {
-        await start();
-      } catch (e) {
-        ex = e;
-      }
-      assert.instanceOf(ex, Error);
-      // assert.includes(String(ex), 'Containerless custom element is not supported by <au-compose/>');
-      assert.includes(String(ex), 'AUR0806');
-
-      appHost.remove();
-    });
-
     it('switches POJO -> custom element -> POJO', async function () {
       @customElement({
         name: 'child',
@@ -1076,7 +1046,41 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
   }
 
-  // todo: containerless custom element
+  describe('containerless', function () {
+    it('composes containerless', function () {
+      const { appHost, component } = createFixture(
+        '<au-compose component.bind="comp">',
+        class {
+          comp: any = CustomElement.define({
+            name: 'my-button',
+            template: '<button>click me',
+            containerless: true,
+          });
+        }
+      );
+      assert.strictEqual(appHost.innerHTML, '<au-compose><!--au-start--><button>click me</button><!--au-end--></au-compose>');
+
+      component.comp = {};
+      assert.strictEqual(appHost.innerHTML, '<au-compose></au-compose>');
+    });
+
+    it('composes containerless inside a containerless <au-compose>', function () {
+      const { appHost, component } = createFixture(
+        '<au-compose component.bind="comp" containerless>',
+        class {
+          comp: any = CustomElement.define({
+            name: 'my-button',
+            template: '<button>click me',
+            containerless: true,
+          });
+        }
+      );
+      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
+
+      component.comp = {};
+      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-end-->');
+    });
+  });
 
   describe('pass through props', function () {
     it('passes through ref binding', function () {

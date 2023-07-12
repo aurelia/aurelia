@@ -65,6 +65,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
   /** @internal */
   public readonly boundFn = false;
 
+  public strict = true;
+
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -73,7 +75,6 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
-    public readonly strict: boolean
   ) {
     this.l = locator;
     this._controller = controller;

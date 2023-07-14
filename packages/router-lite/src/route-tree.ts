@@ -48,6 +48,7 @@ import {
 } from './viewport-agent';
 import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
 import { Events, getMessage } from './events';
+import { pathUrlParser } from './url-parser';
 
 export interface IRouteNode {
   path: string;
@@ -178,7 +179,7 @@ export class RouteNode implements IRouteNode {
           if (i + j < ii
             && (
               (instructionEndpoint?.equalsOrResidual(childEndpoint) ?? false)
-               || (instruction?.contains(instructionChild) ?? false)
+              || (instruction?.contains(instructionChild) ?? false)
             )
           ) {
             if (j + 1 === jj) {
@@ -586,8 +587,8 @@ function createConfiguredNode(
     }
 
     // Migrate parameters to the redirect
-    const origPath = RouteExpression.parse(route.path, false);
-    const redirPath = RouteExpression.parse($handler.redirectTo, false);
+    const origPath = RouteExpression.parse(pathUrlParser.parse(route.path));
+    const redirPath = RouteExpression.parse(pathUrlParser.parse($handler.redirectTo));
     let origCur: ScopedSegmentExpression | SegmentExpression;
     let redirCur: ScopedSegmentExpression | SegmentExpression;
     const newSegs: string[] = [];
@@ -654,7 +655,7 @@ function createConfiguredNode(
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
           newSegs.push(rr.route.params[redirSeg.component.parameterName] as string);
         } else {
-          newSegs.push(redirSeg.raw);
+          newSegs.push(redirSeg.component.name);
         }
       }
     }

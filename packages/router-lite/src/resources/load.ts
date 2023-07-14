@@ -86,7 +86,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     const router = this._router;
-    const useHash = router.options.useUrlFragmentHash;
+    const options = router.options;
     const component = this.route as NavigationInstruction;
     // this allows binding context to null for navigation from root; unbound vs explicit null binding
     let ctx = this.context;
@@ -102,7 +102,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
           ? { component, params }
           : component,
         { context: ctx });
-      this._href = instructions.toUrl(false, useHash);
+      this._href = instructions.toUrl(false, options._urlParser);
     } else {
       this._instructions = null;
       this._href = null;
@@ -115,7 +115,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       if (this._href === null) {
         this._el.removeAttribute(this.attribute);
       } else {
-        const value = useHash ? this._href : this._locationMgr.addBaseHref(this._href);
+        const value = options.useUrlFragmentHash ? this._href : this._locationMgr.addBaseHref(this._href);
         this._el.setAttribute(this.attribute, value);
       }
     }

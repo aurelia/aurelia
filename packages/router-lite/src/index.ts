@@ -111,3 +111,9 @@ export {
 export {
   ViewportAgent,
 } from './viewport-agent';
+
+export {
+  IUrlParser,
+  pathUrlParser,
+  fragmentUrlParser,
+} from './url-parser';

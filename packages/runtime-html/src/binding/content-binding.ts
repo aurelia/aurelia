@@ -95,7 +95,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       value = '';
       this._needsRemoveNode = true;
     }
-    target.textContent = safeString(value);
+    // console.log({ value, type: typeof value });
+    target.textContent = safeString(value ?? '');
   }
 
   public handleChange(): void {

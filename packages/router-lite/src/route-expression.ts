@@ -139,7 +139,7 @@ export class RouteExpression {
     if (path === '') {
       return new RouteExpression(
         false,
-        SegmentExpression.EMPTY,
+        SegmentExpression.Empty,
         value.query,
         value.fragment,
       );
@@ -374,7 +374,7 @@ export class SegmentGroupExpression {
 export class SegmentExpression {
   public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
 
-  public static get EMPTY(): SegmentExpression { return new SegmentExpression(ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
+  public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ActionExpression.Empty, ViewportExpression.Empty, true); }
 
   public constructor(
     public readonly component: ComponentExpression,
@@ -413,7 +413,7 @@ export class SegmentExpression {
 export class ComponentExpression {
   public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
 
-  public static get EMPTY(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.EMPTY); }
+  public static get Empty(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.Empty); }
 
   /**
    * A single segment matching parameter, e.g. `:foo` (will match `a` but not `a/b`)
@@ -489,7 +489,7 @@ export class ComponentExpression {
 export class ActionExpression {
   public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
 
-  public static get EMPTY(): ActionExpression { return new ActionExpression('', ParameterListExpression.EMPTY); }
+  public static get Empty(): ActionExpression { return new ActionExpression('', ParameterListExpression.Empty); }
 
   public constructor(
     public readonly name: string,
@@ -523,7 +523,7 @@ export class ActionExpression {
 export class ViewportExpression {
   public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
 
-  public static get EMPTY(): ViewportExpression { return new ViewportExpression(''); }
+  public static get Empty(): ViewportExpression { return new ViewportExpression(''); }
 
   public constructor(
     public readonly name: string | null,
@@ -554,7 +554,7 @@ export class ViewportExpression {
 export class ParameterListExpression {
   public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
 
-  public static get EMPTY(): ParameterListExpression { return new ParameterListExpression([]); }
+  public static get Empty(): ParameterListExpression { return new ParameterListExpression([]); }
 
   public constructor(
     public readonly expressions: readonly ParameterExpression[],
@@ -591,7 +591,7 @@ export class ParameterListExpression {
 export class ParameterExpression {
   public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
 
-  public static get EMPTY(): ParameterExpression { return new ParameterExpression('', ''); }
+  public static get Empty(): ParameterExpression { return new ParameterExpression('', ''); }
 
   public constructor(
     public readonly key: string,

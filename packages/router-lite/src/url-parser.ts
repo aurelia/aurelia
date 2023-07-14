@@ -4,12 +4,11 @@ export class ParsedUrl {
 
   private readonly id: string;
 
-  public constructor(
+  private constructor(
     public readonly path: string,
     public readonly query: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
   ) {
-    Object.freeze(query);
     this.id = `${path}?${query?.toString() ?? ''}#${fragment ?? ''}`;
   }
 
@@ -32,12 +31,12 @@ export class ParsedUrl {
       value = value.slice(0, fragmentStart);
     }
 
-    let queryParams: URLSearchParams | null = null;
+    let queryParams: Readonly<URLSearchParams> | null = null;
     const queryStart = value.indexOf('?');
     if (queryStart >= 0) {
       const queryString = value.slice(queryStart + 1);
       value = value.slice(0, queryStart);
-      queryParams = new URLSearchParams(queryString);
+      queryParams = Object.freeze(new URLSearchParams(queryString));
     }
     return new ParsedUrl(
       value,

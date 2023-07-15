@@ -60,7 +60,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       factory = rendering.getViewFactory(slotInfo.fallback, contextController.container);
       this._hasProjection = false;
     } else {
-      container = hdrContext.parent!.controller.container.createChild();
+      container = hdrContext.parent!.controller.container.createChild({ inheritParentResources: true });
       registerResolver(
         container,
         contextController.definition.Type,

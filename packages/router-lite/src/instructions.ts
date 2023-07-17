@@ -24,6 +24,7 @@ import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
 import { Events, getMessage } from './events';
 import { State } from './viewport-agent';
+import { IUrlParser } from './url-parser';
 
 export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
@@ -34,7 +35,7 @@ export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustom
  * - `IViewportInstruction`: a viewport instruction object.
  * - `RouteableComponent`: see `RouteableComponent`.
  *
- * NOTE: differs from `Routeable` only in having `IViewportIntruction` instead of `IChildRouteConfig`
+ * NOTE: differs from `Routeable` only in having `IViewportInstruction` instead of `IChildRouteConfig`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
  */
 export type NavigationInstruction = string | IViewportInstruction | RouteableComponent;
@@ -290,7 +291,7 @@ export class ViewportInstructionTree {
     }
 
     if (typeof instructionOrInstructions === 'string') {
-      const expr = RouteExpression.parse(instructionOrInstructions, routerOptions.useUrlFragmentHash);
+      const expr = RouteExpression.parse(routerOptions._urlParser.parse(instructionOrInstructions));
       return expr.toInstructionTree(options as NavigationOptions);
     }
 
@@ -334,9 +335,7 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(isFinalInstruction: boolean, useUrlFragmentHash: boolean): string {
-    let pathname: string;
-    let hash: string;
+  public toUrl(isFinalInstruction: boolean, parser: IUrlParser): string {
     let parentPath = '';
 
     if (!isFinalInstruction) {
@@ -359,19 +358,11 @@ export class ViewportInstructionTree {
     }
 
     const currentPath = this.toPath();
-    if (useUrlFragmentHash) {
-      pathname = '/';
-      hash = parentPath.length > 0 ? `#/${parentPath}/${currentPath}` : `#/${currentPath}`;
-    } else {
-      pathname = parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath;
-      const fragment = this.fragment;
-      hash = fragment !== null && fragment.length > 0 ? `#${fragment}` : '';
-    }
-
-    let search = this.queryParams.toString();
-    search = search === '' ? '' : `?${search}`;
-
-    return `${pathname}${search}${hash}`;
+    return parser.stringify(
+      parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath,
+      this.queryParams,
+      this.fragment
+    );
   }
 
   public toPath(): string {

@@ -8,7 +8,7 @@
 import { Events, getMessage } from './events';
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { type NavigationOptions } from './options';
-import { emptyQuery } from './router';
+import { ParsedUrl } from './url-parser';
 import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
@@ -111,62 +111,37 @@ export const enum ExpressionKind {
   Parameter,
 }
 
-const fragmentRouteExpressionCache = new Map<string, RouteExpression>();
-const routeExpressionCache = new Map<string, RouteExpression>();
+const cache = new Map<string, RouteExpression>();
 
 export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | RouteExpression;
 export class RouteExpression {
   public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
 
   public constructor(
-    public readonly raw: string,
     public readonly isAbsolute: boolean,
     public readonly root: CompositeSegmentExpressionOrHigher,
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-    public readonly fragmentIsRoute: boolean,
   ) {}
 
-  public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    const cache = fragmentIsRoute ? fragmentRouteExpressionCache : routeExpressionCache;
-    let result = cache.get(path);
+  public static parse(value: ParsedUrl): RouteExpression {
+    const key = value.toString();
+    let result = cache.get(key);
     if (result === void 0) {
-      cache.set(path, result = RouteExpression._$parse(path, fragmentIsRoute));
+      cache.set(key, result = RouteExpression._$parse(value));
     }
     return result;
   }
 
   /** @internal */
-  private static _$parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    // First strip off the fragment (and if fragment should be used as route, set it as the path)
-    let fragment: string | null = null;
-    const fragmentStart = path.indexOf('#');
-    if (fragmentStart >= 0) {
-      const rawFragment = path.slice(fragmentStart + 1);
-      fragment = decodeURIComponent(rawFragment);
-      if (fragmentIsRoute) {
-        path = fragment;
-      } else {
-        path = path.slice(0, fragmentStart);
-      }
-    }
-
-    // Strip off and parse the query string using built-in URLSearchParams.
-    let queryParams: URLSearchParams | null = null;
-    const queryStart = path.indexOf('?');
-    if (queryStart >= 0) {
-      const queryString = path.slice(queryStart + 1);
-      path = path.slice(0, queryStart);
-      queryParams = new URLSearchParams(queryString);
-    }
+  private static _$parse(value: ParsedUrl): RouteExpression {
+    const path = value.path;
     if (path === '') {
       return new RouteExpression(
-        '',
         false,
-        SegmentExpression.EMPTY,
-        queryParams != null ? Object.freeze(queryParams) : emptyQuery,
-        fragment,
-        fragmentIsRoute,
+        SegmentExpression.Empty,
+        value.query,
+        value.fragment,
       );
     }
 
@@ -190,8 +165,8 @@ export class RouteExpression {
     const root = CompositeSegmentExpression._parse(state);
     state._ensureDone();
 
-    const raw = state._playback();
-    return new RouteExpression(raw, isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
+    state._discard();
+    return new RouteExpression(isAbsolute, root, value.query, value.fragment);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
@@ -202,10 +177,6 @@ export class RouteExpression {
       mergeURLSearchParams(this.queryParams, options.queryParams, true),
       this.fragment ?? options.fragment,
     );
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 
@@ -236,7 +207,6 @@ export class CompositeSegmentExpression {
   public get kind(): ExpressionKind.CompositeSegment { return ExpressionKind.CompositeSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
   ) {}
 
@@ -257,8 +227,8 @@ export class CompositeSegmentExpression {
       return siblings[0];
     }
 
-    const raw = state._playback();
-    return new CompositeSegmentExpression(raw, siblings);
+    state._discard();
+    return new CompositeSegmentExpression(siblings);
   }
 
   /** @internal */
@@ -283,10 +253,6 @@ export class CompositeSegmentExpression {
         ];
     }
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 export type ScopedSegmentExpressionOrHigher = SegmentGroupExpressionOrHigher | ScopedSegmentExpression;
@@ -308,7 +274,6 @@ export class ScopedSegmentExpression {
   public get kind(): ExpressionKind.ScopedSegment { return ExpressionKind.ScopedSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly left: SegmentGroupExpressionOrHigher,
     public readonly right: ScopedSegmentExpressionOrHigher,
   ) {}
@@ -322,8 +287,8 @@ export class ScopedSegmentExpression {
     if (state._consumeOptional('/')) {
       const right = ScopedSegmentExpression._parse(state);
 
-      const raw = state._playback();
-      return new ScopedSegmentExpression(raw, left, right);
+      state._discard();
+      return new ScopedSegmentExpression(left, right);
     }
 
     state._discard();
@@ -340,10 +305,6 @@ export class ScopedSegmentExpression {
     }
     cur.children.push(...rightInstructions);
     return leftInstructions;
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 
@@ -382,7 +343,6 @@ export class SegmentGroupExpression {
   public get kind(): ExpressionKind.SegmentGroup { return ExpressionKind.SegmentGroup; }
 
   public constructor(
-    public readonly raw: string,
     public readonly expression: CompositeSegmentExpressionOrHigher,
   ) {}
 
@@ -394,8 +354,8 @@ export class SegmentGroupExpression {
       const expression = CompositeSegmentExpression._parse(state);
       state._consume(')');
 
-      const raw = state._playback();
-      return new SegmentGroupExpression(raw, expression);
+      state._discard();
+      return new SegmentGroupExpression(expression);
     }
 
     state._discard();
@@ -406,10 +366,6 @@ export class SegmentGroupExpression {
   public _toInstructions(open: number, close: number): ViewportInstruction[] {
     return this.expression._toInstructions(open + 1, close + 1);
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 /**
@@ -418,10 +374,9 @@ export class SegmentGroupExpression {
 export class SegmentExpression {
   public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
 
-  public static get EMPTY(): SegmentExpression { return new SegmentExpression('', ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
+  public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ActionExpression.Empty, ViewportExpression.Empty, true); }
 
   public constructor(
-    public readonly raw: string,
     public readonly component: ComponentExpression,
     public readonly action: ActionExpression,
     public readonly viewport: ViewportExpression,
@@ -437,8 +392,8 @@ export class SegmentExpression {
     const viewport = ViewportExpression._parse(state);
     const scoped = !state._consumeOptional('!');
 
-    const raw = state._playback();
-    return new SegmentExpression(raw, component, action, viewport, scoped);
+    state._discard();
+    return new SegmentExpression(component, action, viewport, scoped);
   }
 
   /** @internal */
@@ -453,16 +408,12 @@ export class SegmentExpression {
       }),
     ];
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 export class ComponentExpression {
   public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
 
-  public static get EMPTY(): ComponentExpression { return new ComponentExpression('', '', ParameterListExpression.EMPTY); }
+  public static get Empty(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.Empty); }
 
   /**
    * A single segment matching parameter, e.g. `:foo` (will match `a` but not `a/b`)
@@ -482,7 +433,6 @@ export class ComponentExpression {
   public readonly parameterName: string;
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string,
     public readonly parameterList: ParameterListExpression,
   ) {
@@ -531,22 +481,17 @@ export class ComponentExpression {
     }
     const parameterList = ParameterListExpression._parse(state);
 
-    const raw = state._playback();
-    return new ComponentExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ComponentExpression(name, parameterList);
   }
 }
 
 export class ActionExpression {
   public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
 
-  public static get EMPTY(): ActionExpression { return new ActionExpression('', '', ParameterListExpression.EMPTY); }
+  public static get Empty(): ActionExpression { return new ActionExpression('', ParameterListExpression.Empty); }
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string,
     public readonly parameterList: ParameterListExpression,
   ) {}
@@ -570,22 +515,17 @@ export class ActionExpression {
 
     const parameterList = ParameterListExpression._parse(state);
 
-    const raw = state._playback();
-    return new ActionExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ActionExpression(name, parameterList);
   }
 }
 
 export class ViewportExpression {
   public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
 
-  public static get EMPTY(): ViewportExpression { return new ViewportExpression('', ''); }
+  public static get Empty(): ViewportExpression { return new ViewportExpression(''); }
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string | null,
   ) {}
 
@@ -606,22 +546,17 @@ export class ViewportExpression {
       }
     }
 
-    const raw = state._playback();
-    return new ViewportExpression(raw, name);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ViewportExpression(name);
   }
 }
 
 export class ParameterListExpression {
   public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
 
-  public static get EMPTY(): ParameterListExpression { return new ParameterListExpression('', []); }
+  public static get Empty(): ParameterListExpression { return new ParameterListExpression([]); }
 
   public constructor(
-    public readonly raw: string,
     public readonly expressions: readonly ParameterExpression[],
   ) {}
 
@@ -639,8 +574,8 @@ export class ParameterListExpression {
       state._consume(')');
     }
 
-    const raw = state._playback();
-    return new ParameterListExpression(raw, expressions);
+    state._discard();
+    return new ParameterListExpression(expressions);
   }
 
   /** @internal */
@@ -651,19 +586,14 @@ export class ParameterListExpression {
     }
     return params;
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 export class ParameterExpression {
   public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
 
-  public static get EMPTY(): ParameterExpression { return new ParameterExpression('', '', ''); }
+  public static get Empty(): ParameterExpression { return new ParameterExpression('', ''); }
 
   public constructor(
-    public readonly raw: string,
     public readonly key: string,
     public readonly value: string,
   ) {}
@@ -696,12 +626,8 @@ export class ParameterExpression {
       key = index.toString();
     }
 
-    const raw = state._playback();
-    return new ParameterExpression(raw, key, value);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ParameterExpression(key, value);
   }
 }
 

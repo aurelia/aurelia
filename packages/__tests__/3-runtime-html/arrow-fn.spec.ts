@@ -373,7 +373,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
         .component({ items: [1] })
         .html`\${items.find(x => x === 2)}`
         .build();
-      assertText('undefined');
+      assertText('');
 
       component.items.push(2);
       flush();
@@ -381,7 +381,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
 
       component.items.splice(0);
       flush();
-      assertText('undefined');
+      assertText('');
     });
 
     it('observes on .flat()', function () {

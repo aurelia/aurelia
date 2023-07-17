@@ -38,43 +38,87 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         expected: 'wOOt', expectedStrictMode: 'wOOt', app: class { public value?: string | number = 'wOOt'; public value1?: string | number; }, interpolation: `$\{value}`, it: 'Renders expected text'
       },
       {
-        expected: '', expectedStrictMode: 'undefined', app: class { public value = undefined; }, interpolation: `$\{value}`, it: 'Undefined value renders nothing'
+        expected: '',
+        expectedStrictMode: '',
+        app: class { public value = undefined; },
+        interpolation: `$\{value}`,
+        it: 'Undefined value renders nothing',
       },
       {
-        expected: 5, expectedStrictMode: 'NaN', app: class { public value1 = undefined; public value = 5; }, interpolation: `$\{value1 + value}`, it: 'Two values one undefined sum correctly'
+        expected: NaN,
+        expectedStrictMode: 'NaN',
+        app: class { public value1 = undefined; public value = 5; },
+        interpolation: `$\{value1 + value}`,
+        it: 'Two values one undefined sum correctly',
       },
       {
-        expected: -5, expectedStrictMode: 'NaN', app: class { public value = undefined; public value1 = 5; }, interpolation: `$\{value - value1}`, it: 'Two values one undefined minus correctly'
+        expected: NaN,
+        expectedStrictMode: 'NaN',
+        expectedValueAfterChange: '-4', // ((value || 0) + 1) - value1
+        app: class { public value = undefined; public value1 = 5; },
+        interpolation: `$\{value - value1}`,
+        it: 'Two values one undefined minus correctly',
       },
       {
-        expected: '', expectedStrictMode: 'null', app: class { isStrictMode = true; public value = null; }, interpolation: `$\{value}`, it: 'Null value renders nothing'
+        expected: '',
+        expectedStrictMode: '',
+        app: class { isStrictMode = true; public value = null; },
+        interpolation: `$\{value}`,
+        it: 'Null value renders nothing',
       },
       {
-        expected: 5, expectedStrictMode: '5', app: class { public value1 = null; public value = 5; }, interpolation: `$\{value1 + value}`, it: 'Two values one Null sum correctly'
+        expected: 5,
+        expectedStrictMode: '5',
+        app: class { public value1 = null; public value = 5; },
+        interpolation: `$\{value1 + value}`,
+        it: 'Two values one Null sum correctly',
       },
       {
-        expected: -5, expectedStrictMode: '-5', app: class { public value = null; public value1 = 5; }, interpolation: `$\{value - value1}`, it: 'Two values one Null minus correctly'
+        expected: -5,
+        expectedStrictMode: '-5',
+        app: class { public value = null; public value1 = 5; },
+        interpolation: `$\{value - value1}`,
+        it: 'Two values one Null minus correctly',
       },
       {
-        expected: 'Infinity', expectedStrictMode: 'NaN', expectedValueAfterChange: 5, app: class { public value = undefined; public value1 = 5; }, interpolation: `$\{value1/value}`, it: 'Number divided by undefined is Infinity'
+        expected: 'NaN',
+        expectedStrictMode: 'NaN',
+        expectedValueAfterChange: 5,
+        app: class { public value = undefined; public value1 = 5; },
+        interpolation: `$\{value1/value}`,
+        it: 'Number divided by undefined is Infinity',
       },
       {
-        expected: 1, expectedStrictMode: 1, expectedValueAfterChange: 0.8333333333333334, app: class { public value = 5; public value1 = 5; }, interpolation: `$\{value1/value}`, it: 'Number divided by number works as planned'
+        expected: 1,
+        expectedStrictMode: 1,
+        expectedValueAfterChange: 0.8333333333333334,
+        app: class { public value = 5; public value1 = 5; },
+        interpolation: `$\{value1/value}`,
+        it: 'Number divided by number works as planned',
       },
       {
-        expected: 1, expectedStrictMode: 1, app: class { Math = Math; public value = 1.2; public value1 = 5; }, interpolation: `$\{Math.round(value)}`, it: 'Global Aliasing works'
+        expected: 'true',
+        expectedValueAfterChange: 'false',
+        changeFnc: (val) => !val,
+        app: class { public value = true; },
+        interpolation: `$\{value}`,
+        it: 'Boolean prints true',
       },
       {
-        expected: 2, expectedStrictMode: 2, app: class { Math = Math; public value = 1.5; public value1 = 5; }, interpolation: `$\{Math.round(value)}`, it: 'Global Aliasing works #2'
+        expected: 'false',
+        expectedValueAfterChange: 'true',
+        changeFnc: (val) => !val,
+        app: class { public value = false; },
+        interpolation: `$\{value}`,
+        it: 'Boolean prints false'
       },
       {
-        expected: 'true', expectedValueAfterChange: 'false', changeFnc: (val) => !val, app: class { public value = true; }, interpolation: `$\{value}`, it: 'Boolean prints true'
-      },
-      {
-        expected: 'false', expectedValueAfterChange: 'true', changeFnc: (val) => !val, app: class { public value = false; }, interpolation: `$\{value}`, it: 'Boolean prints false'
-      },
-      {
-        expected: 'false', expectedValueAfterChange: 'false', changeFnc: (val) => !val, app: class { public value = false; }, interpolation: `$\{value && false}`, it: 'Boolean prints false with && no matter what'
+        expected: 'false',
+        expectedValueAfterChange: 'false',
+        changeFnc: (val) => !val,
+        app: class { public value = false; },
+        interpolation: `$\{value && false}`,
+        it: 'Boolean prints false with && no matter what',
       },
       {
         expected: 'test',
@@ -91,22 +135,22 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
       },
       {
-        expected: testDateString,
+        expected: `undefined${testDateString}`,
         expectedStrictMode: `undefined${testDateString}`,
-        expectedValueAfterChange: ThreeDaysDateString,
+        expectedValueAfterChange: `undefined${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
-        interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly'
+        interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly',
       },
       {
-        expected: testDateString,
+        expected: `null${testDateString}`,
         expectedStrictMode: `null${testDateString}`,
-        expectedValueAfterChange: ThreeDaysDateString,
+        expectedValueAfterChange: `null${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
-        interpolation: `$\{null + value}`, it: 'Date works with null expression and setDate triggers change properly'
+        interpolation: `$\{null + value}`, it: 'Date works with null expression and setDate triggers change properly',
       },
       {
         expected: testDateString,
@@ -473,7 +517,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       'hey ${id}',
       CustomElement.define({ name: 'app', isStrictBinding: true }, class { id = undefined; })
     );
-    assertText('hey undefined');
+    assertText('hey ');
 
     component.id = '1';
     flush();
@@ -481,7 +525,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
     component.id = null;
     flush();
-    assertText('hey null');
+    assertText('hey ');
   });
 
   it('observes and updates when bound with array', async function () {

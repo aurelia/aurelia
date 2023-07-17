@@ -2610,6 +2610,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               : `<div> <div>'foo-bar' 'modified foo-bar'</div> </div>`,
             [],
             [],
+            // void 0,
+            // true
           );
           yield new TestData<App1>(
             `shows scoped content correctly #2 - ${$resolve ? 'fulfilled' : 'rejected'}`,
@@ -2655,8 +2657,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             },
             null,
             $resolve
-              ? `<div> <div>42 42</div> </div> 42 undefined`
-              : `<div> <div>'foo-bar' 'foo-bar'</div> </div> undefined foo-bar`,
+              ? `<div> <div>42 42</div> </div> 42`
+              : `<div> <div>'foo-bar' 'foo-bar'</div> </div> foo-bar`,
             [],
             [],
             (ctx) => {
@@ -2673,7 +2675,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               }
               assert.strictEqual('data' in oc, false, 'data in oc');
               assert.strictEqual('err' in oc, false, 'err in oc');
-            },
+            }
           );
 
           yield new TestData<App1>(

@@ -105,21 +105,17 @@ validPackages
     console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
   });
 
-const validToolingPackages = fs.readdirSync(path.resolve(__dirname, '../packages-tooling'))
-  .filter(p =>
-    p !== '__tests__'
-    && p !== 'aot'
-    && fs.statSync(path.resolve(__dirname, '../packages-tooling', p)).isDirectory()
-  );
-// const a = [
-//   'plugin-conventions',
-//   'plugin-gulp',
-//   'ts-jest',
-//   'babel-jest',
-//   'parcel-transformer',
-//   'vite-plugin',
-//   'webpack-loader',
-// ];
+const validToolingPackages =  [
+  'plugin-conventions',
+  'plugin-gulp',
+  'ts-jest',
+  'babel-jest',
+  'parcel-transformer',
+  'vite-plugin',
+  'webpack-loader',
+  'http-server',
+  'au',
+];
 
 validToolingPackages
   .filter(pkg => !isFullyBuilt(path.resolve(__dirname, `../packages-tooling/${pkg}`)))
@@ -142,7 +138,6 @@ const validApps = [
   'router-animation',
 ];
 const toolings = args.l;
-console.log({ toolings });
 
 if (apps.length > 0) {
   if (apps.some(a => !validApps.includes(a))) {

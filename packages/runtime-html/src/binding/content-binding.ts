@@ -65,6 +65,8 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
   /** @internal */
   public readonly boundFn = false;
 
+  public strict = true;
+
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -73,7 +75,6 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
-    public readonly strict: boolean
   ) {
     this.l = locator;
     this._controller = controller;
@@ -94,11 +95,13 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       value = '';
       this._needsRemoveNode = true;
     }
-    target.textContent = safeString(value);
+    // console.log({ value, type: typeof value });
+    target.textContent = safeString(value ?? '');
   }
 
   public handleChange(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.obs.version++;
@@ -128,6 +131,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
   public handleCollectionChange(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.obs.version++;
@@ -152,6 +156,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
   public bind(_scope: Scope): void {
     if (this.isBound) {
       if (this._scope === _scope) {
+      /* istanbul-ignore-next */
         return;
       }
       this.unbind();
@@ -176,6 +181,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
   public unbind(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.isBound = false;

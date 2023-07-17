@@ -663,7 +663,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             MyElement,
           ],
           { 'my-element': [
-            `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 undefined</div> <div>Doe</div> <div>John</div> <div>index: 1 undefined</div> <div>Mustermann</div> <div>Max</div>`,
+            `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 </div> <div>Doe</div> <div>John</div> <div>index: 1 </div> <div>Mustermann</div> <div>Max</div>`,
             new AuSlotsInfo(['header', 'content'])
           ]},
         );
@@ -1829,7 +1829,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element><div au-slot>\${$host.value}</div>`,
         [createMyElement('<input value.bind="message"/><au-slot expose.bind="{ value: message }">')],
         {
-          'my-element': ['<input><div>undefined</div>', undefined]
+          'my-element': ['<input><div></div>', undefined]
         },
         function ({ host, platform }) {
           const input = host.querySelector('input');
@@ -1845,7 +1845,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element>`,
         [createMyElement(`<input value.bind="message"/><au-slot expose.bind="{ value: message }">\${message}</au-slot>`)],
         {
-          'my-element': ['<input>undefined', undefined]
+          'my-element': ['<input>', undefined]
         },
         function ({ host, platform }) {
           const input = host.querySelector('input');

@@ -4,7 +4,8 @@
     "pipeline": {
       "build": {
         "inputs": [],
-        "outputs": ["dist/**/*"]
+        "outputs": ["dist/**/*"],
+        "cache": false
       }
     }
 }

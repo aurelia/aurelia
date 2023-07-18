@@ -13,7 +13,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       }
 
       const { component: { el } } = createFixture(
-        '<el view-model.ref=el><div></div>',
+        '<el component.ref=el><div></div>',
         class App {
           el: El;
         },
@@ -165,7 +165,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       }
 
       const { component: { el: { divs, divs2 } } } = createFixture(
-        '<el view-model.ref="el"><div>',
+        '<el component.ref="el"><div>',
         class App { el: El; },
         [El,]
       );

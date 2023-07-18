@@ -147,9 +147,9 @@ describe('3-runtime-html/integration.spec.ts', function () {
         name: 'app',
         isStrictBinding: true,
         template: `
-        <child view-model.ref="c1" id="c1"></child>
-        <child view-model.ref="c2" id="c2"></child>
-        <child view-model.ref="c3" id="c3"></child>`
+        <child component.ref="c1" id="c1"></child>
+        <child component.ref="c2" id="c2"></child>
+        <child component.ref="c3" id="c3"></child>`
       })
       class App {
         public readonly c1: Child = void 0;

@@ -185,7 +185,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       @customElement('el')
       class El extends Base {}
 
-      const { au, component } = createFixture('<el view-model.ref="el">', class App {
+      const { au, component } = createFixture('<el component.ref="el">', class App {
         el: El;
       }, [El]);
 
@@ -196,7 +196,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   describe('getter bindable', function () {
     it('works in basic scenario', function () {
       const { assertText, flush, trigger } = createFixture(
-        `<my-el view-model.ref=el message="hello world">`,
+        `<my-el component.ref=el message="hello world">`,
         class App {},
         [CustomElement.define({
           name: 'my-el',
@@ -222,7 +222,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
     it('works with readonly bindable', function () {
       const { assertText, flush, trigger } = createFixture(
-        `<my-el view-model.ref=el message.from-view="message">`,
+        `<my-el component.ref=el message.from-view="message">`,
         class App {
           message = 'hello-world';
         },
@@ -279,7 +279,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
     it('works with array based computed bindable', function () {
       const { component, assertText, flush, trigger } = createFixture(
-        `<my-el view-model.ref=el message.from-view="message">`,
+        `<my-el component.ref=el message.from-view="message">`,
         class App {
           message = '';
         },

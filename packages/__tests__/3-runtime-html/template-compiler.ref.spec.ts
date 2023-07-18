@@ -80,7 +80,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
     },
     {
       title: 'basic ref usage with a custom element view model [view-model.ref]',
-      template: `<c-e view-model.ref=ce>`,
+      template: `<c-e component.ref=ce>`,
       resources: [
         CustomElement.define({ name: 'c-e' })
       ],
@@ -282,7 +282,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
           },
           {
             title: 'it works with complex expression for view-model.ref',
-            template: `<c-e view-model.ref="${dotNotationExpressions.join('.')}">`,
+            template: `<c-e component.ref="${dotNotationExpressions.join('.')}">`,
             resources: [
               CustomElementTestClass
             ],

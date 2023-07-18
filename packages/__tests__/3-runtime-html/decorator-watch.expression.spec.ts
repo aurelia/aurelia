@@ -130,7 +130,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       }
 
       const { ctx, component, tearDown } = createFixture(
-        '<post view-model.ref="post">',
+        '<post component.ref="post">',
         class App {
           public post: Post;
         },
@@ -162,7 +162,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       }
 
       const { ctx, component, tearDown } = createFixture(
-        '<post view-model.ref="post">',
+        '<post component.ref="post">',
         class App {
           public post: Post;
         },

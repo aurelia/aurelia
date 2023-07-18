@@ -27,7 +27,7 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
       public attaching() {/* empty */ }
     }
     const { au, component, startPromise, tearDown } = createFixture(
-      `<el view-model.ref="el">`,
+      `<el component.ref="el">`,
       class App {
         public el: ICustomElementViewModel;
       },
@@ -55,7 +55,7 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
       public attaching() {/* empty */ }
     }
     const { au, component, startPromise, tearDown } = createFixture(
-      `<el view-model.ref="el">`,
+      `<el component.ref="el">`,
       class App {
         public el: ICustomElementViewModel;
       },
@@ -102,14 +102,14 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
         }
       }
       const { au, component } = await createFixture(
-        `<el view-model.ref="el">`,
+        `<el component.ref="el">`,
         class App {
           public el: ICustomElementViewModel & { elChild: ICustomElementViewModel };
         },
         [
           CustomElement.define({
             name: 'el',
-            template: '<el-child view-model.ref="elChild">',
+            template: '<el-child component.ref="elChild">',
             dependencies: [
               LifecycleHooks.define({}, Hooks),
               LifecycleHooks.define({}, Hooks2),
@@ -168,14 +168,14 @@ describe('3-runtime-html/lifecycle-hooks.resolve.spec.ts', function () {
       }
 
       const { au, component } = await createFixture(
-        `<el view-model.ref="el">`,
+        `<el component.ref="el">`,
         class App {
           public el: ICustomElementViewModel & { elChild: ICustomElementViewModel };
         },
         [
           CustomElement.define({
             name: 'el',
-            template: '<el-child view-model.ref="elChild">',
+            template: '<el-child component.ref="elChild">',
             dependencies: [
               Hooks,
               Hooks2,

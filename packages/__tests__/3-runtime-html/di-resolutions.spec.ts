@@ -21,7 +21,7 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
 
       // act
       const { component, startPromise, tearDown } = createFixture(
-        `<list view-model.ref="list1"></list><list view-model.ref="list2"></list>`,
+        `<list component.ref="list1"></list><list component.ref="list2"></list>`,
         class App {
           public readonly list1: IHydratedCustomElementViewModel & List;
           public readonly list2: IHydratedCustomElementViewModel & List;
@@ -89,7 +89,7 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
 
       // act
       const { component, startPromise, tearDown } = createFixture(
-        `<list-box view-model.ref="listbox">`,
+        `<list-box component.ref="listbox">`,
         class App {
           public readonly listbox: Listbox;
         },

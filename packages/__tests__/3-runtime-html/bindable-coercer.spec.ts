@@ -76,43 +76,43 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
       $it(`number - numeric string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, 42);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num="42"></my-el>`, registrations: [MyEl] });
 
       $it(`number - numeric string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, 42);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="'42'"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="'42'"></my-el>`, registrations: [MyEl] });
 
       $it(`number - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, 42);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="42"></my-el>`, registrations: [MyEl] });
 
       $it(`number - non-numeric string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(Number.isNaN(ctx.app.myEl.num), true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num="forty-two"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num="forty-two"></my-el>`, registrations: [MyEl] });
 
       $it(`number - non-numeric string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(Number.isNaN(ctx.app.myEl.num), true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="'forty-two'"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="'forty-two'"></my-el>`, registrations: [MyEl] });
 
       $it(`number - boolean true - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, 1);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="true"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="true"></my-el>`, registrations: [MyEl] });
 
       $it(`number - boolean false - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, 0);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="false"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="false"></my-el>`, registrations: [MyEl] });
 
       $it(`number - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, undefined);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="undefined"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="undefined"></my-el>`, registrations: [MyEl] });
 
       $it(`number - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, null);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="null"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="null"></my-el>`, registrations: [MyEl] });
 
       $it(`number - object - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(Number.isNaN(ctx.app.myEl.num), true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="{}"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="{}"></my-el>`, registrations: [MyEl] });
 
       $it(`number - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
         const app = ctx.app;
@@ -142,7 +142,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = {};
         assert.strictEqual(Number.isNaN(myEl.num), true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
 
     {
@@ -167,7 +167,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = 0;
         assert.strictEqual(myEl.num, 0);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
   }
 
@@ -184,35 +184,35 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
       $it(`string - string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, '42');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str="42"></my-el>`, registrations: [MyEl] });
 
       $it(`string - string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, '42');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="'42'"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="'42'"></my-el>`, registrations: [MyEl] });
 
       $it(`string - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, '42');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="42"></my-el>`, registrations: [MyEl] });
 
       $it(`string - boolean true - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, 'true');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="true"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="true"></my-el>`, registrations: [MyEl] });
 
       $it(`string - boolean false - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, 'false');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="false"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="false"></my-el>`, registrations: [MyEl] });
 
       $it(`string - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, undefined);
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="undefined"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="undefined"></my-el>`, registrations: [MyEl] });
 
       $it(`string - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, null);
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="null"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="null"></my-el>`, registrations: [MyEl] });
 
       $it(`string - object - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.str, '[object Object]');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="{}"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="{}"></my-el>`, registrations: [MyEl] });
 
       $it(`string - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
         const app = ctx.app;
@@ -242,7 +242,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = {};
         assert.strictEqual(myEl.str, '[object Object]');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
 
     {
@@ -267,7 +267,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = 0;
         assert.strictEqual(myEl.str, '0');
-      }, { app: App, template: `<my-el view-model.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
   }
 
@@ -284,51 +284,51 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
       $it(`string - boolean true string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool="true"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool="true"></my-el>`, registrations: [MyEl] });
 
       $it(`string - boolean false string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool="false"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool="false"></my-el>`, registrations: [MyEl] });
 
       $it(`string - boolean true string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="true"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="true"></my-el>`, registrations: [MyEl] });
 
       $it(`string - boolean false string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, false);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="false"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="false"></my-el>`, registrations: [MyEl] });
 
       $it(`string - number 1 literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="1"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="1"></my-el>`, registrations: [MyEl] });
 
       $it(`string -number 0 literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, false);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="0"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="0"></my-el>`, registrations: [MyEl] });
 
       $it(`string - numeric string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool="42"></my-el>`, registrations: [MyEl] });
 
       $it(`string - string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="'42'"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="'42'"></my-el>`, registrations: [MyEl] });
 
       $it(`string - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="42"></my-el>`, registrations: [MyEl] });
 
       $it(`string - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, undefined);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="undefined"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="undefined"></my-el>`, registrations: [MyEl] });
 
       $it(`string - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, null);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="null"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="null"></my-el>`, registrations: [MyEl] });
 
       $it(`string - object - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="{}"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="{}"></my-el>`, registrations: [MyEl] });
 
       $it(`string - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
         const app = ctx.app;
@@ -370,7 +370,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = {};
         assert.strictEqual(myEl.bool, true);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
 
     {
@@ -395,7 +395,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = 0;
         assert.strictEqual(myEl.bool, false);
-      }, { app: App, template: `<my-el view-model.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
   }
 
@@ -413,31 +413,31 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
       $it(`bigint - numeric string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, BigInt(42));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num="42"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - numeric string literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, BigInt(42));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="'42'"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="'42'"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, BigInt(42));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="42"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="42"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - boolean true - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, BigInt(1));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="true"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="true"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - boolean false - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, BigInt(0));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="false"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="false"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, undefined);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="undefined"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="undefined"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
         assert.strictEqual(ctx.app.myEl.num, null);
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="null"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="null"></my-el>`, registrations: [MyEl] });
 
       $it(`bigint - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
         const app = ctx.app;
@@ -468,7 +468,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.throws(() => {
           app.prop = {};
         });
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
 
     {
@@ -495,7 +495,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         app.prop = 0;
         assert.strictEqual(myEl.num, BigInt(0));
-      }, { app: App, template: `<my-el view-model.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
   }
 
@@ -544,39 +544,39 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         $it(`class with static coercer - string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1('john', null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person="john"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person="john"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1(null!, 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="42"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="42"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - json string - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person='{\"name\":\"john\",\"age\":42}'></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person='{\"name\":\"john\",\"age\":42}'></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - object literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="{name:'john',age:42}"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="{name:'john',age:42}"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - boolean true - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1(null!, null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="true"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="true"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - boolean false - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1(null!, null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="false"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="false"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, undefined);
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="undefined"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="undefined"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, null);
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="null"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="null"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - object - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person1(void 0, void 0));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="{}"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="{}"></my-el>`, registrations: [MyEl] });
 
         $it(`class with static coercer - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
           const app = ctx.app;
@@ -597,7 +597,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
           app.prop = { name: 'john', age: 42 };
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
 
       {
@@ -619,7 +619,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
           app.prop = { name: 'john', age: 42 };
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
     }
   }
@@ -643,39 +643,39 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         $it(`class with coercer decorator - string literal - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2('john', null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person="john"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person="john"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - numeric literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2(null!, 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="42"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="42"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - json string - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person='{\"name\":\"john\",\"age\":42}'></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person='{\"name\":\"john\",\"age\":42}'></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - object literal bind - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="{name:'john',age:42}"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="{name:'john',age:42}"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - boolean true - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2(null!, null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="true"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="true"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - boolean false - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2(null!, null!));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="false"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="false"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - undefined - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, undefined);
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="undefined"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="undefined"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - null - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, null);
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="null"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="null"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - object - ${getTypeSpecification(type)}`, function (ctx: TestExecutionContext<App>) {
           assert.deepStrictEqual(ctx.app.myEl.person, new Person2(void 0, void 0));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="{}"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="{}"></my-el>`, registrations: [MyEl] });
 
         $it(`class with coercer decorator - bound property - ${getTypeSpecification(type)}`, async function (ctx: TestExecutionContext<App>) {
           const app = ctx.app;
@@ -696,7 +696,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
           app.prop = { name: 'john', age: 42 };
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
 
       {
@@ -718,7 +718,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
           app.prop = { name: 'john', age: 42 };
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
-        }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+        }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
     }
 
@@ -748,7 +748,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         person.age = 42;
         assert.strictEqual(myEl.person.age, 42, 'error7');
         assert.strictEqual(Person2.coerced, 1, 'error8');
-      }, { app: App, template: `<my-el view-model.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
     }
 
     {
@@ -769,7 +769,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         const person = myEl.person = new Person2('foo', 42);
         assert.strictEqual(app.prop, person);
-      }, { app: App, template: `<my-el view-model.ref="myEl" person.two-way="prop"></my-el>`, registrations: [MyEl] });
+      }, { app: App, template: `<my-el component.ref="myEl" person.two-way="prop"></my-el>`, registrations: [MyEl] });
     }
   }
   /* eslint-enable no-useless-escape */
@@ -784,7 +784,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
     $it('auto-coercing does not work for type union', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, true);
-    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+    }, { app: App, template: `<my-el component.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
   {
     @customElement({ name: 'my-el', template: 'irrelevant' })
@@ -796,7 +796,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
     $it('auto-coercing can be coerced with explicit type for type union', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, 1);
-    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+    }, { app: App, template: `<my-el component.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
   {
     @customElement({ name: 'my-el', template: 'irrelevant' })
@@ -808,7 +808,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
     $it('auto-coercing can be disabled with explicit Object type', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, true);
-    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+    }, { app: App, template: `<my-el component.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
   {
     @customElement({ name: 'my-el', template: 'irrelevant' })
@@ -820,7 +820,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
     $it('auto-coercing can be disabled with explicit noop set interceptor function', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, true);
-    }, { app: App, template: `<my-el view-model.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
+    }, { app: App, template: `<my-el component.ref="myEl" prop.bind="true"></my-el>`, registrations: [MyEl] });
   }
 
   {
@@ -835,7 +835,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
     $it('auto-coercion can be disabled globally', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, true);
-    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="true"></my-el>', registrations: [MyEl], enableCoercion: false });
+    }, { app: App, template: '<my-el component.ref="myEl" prop.bind="true"></my-el>', registrations: [MyEl], enableCoercion: false });
   }
 
   {
@@ -850,7 +850,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
     $it('auto-coercion of null-like values can be enforced globally', async function (ctx: TestExecutionContext<App>) {
       assert.strictEqual(ctx.app.myEl.prop, 0);
-    }, { app: App, template: '<my-el view-model.ref="myEl" prop.bind="null"></my-el>', registrations: [MyEl], coerceNullish: true });
+    }, { app: App, template: '<my-el component.ref="myEl" prop.bind="null"></my-el>', registrations: [MyEl], coerceNullish: true });
   }
 
   {

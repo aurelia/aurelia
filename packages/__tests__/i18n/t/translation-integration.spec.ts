@@ -815,7 +815,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     }
     {
       @customElement({
-        name: 'app', template: `<custom-message view-model.ref="cm" t="[message]itemWithCount" t-params.bind="{count}">`
+        name: 'app', template: `<custom-message component.ref="cm" t="[message]itemWithCount" t-params.bind="{count}">`
       })
       class App { public count: number = 0; public cm: CustomMessage; }
       $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {

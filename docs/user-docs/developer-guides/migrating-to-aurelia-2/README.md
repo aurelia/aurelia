@@ -59,6 +59,11 @@ interface IAurelia {
 
 Parent container and resources can be specified through this config.
 
+### View model ref binding (view-model.ref="...")
+
+In v2, in order to get a reference to the underlying component view model, use `component.ref` instead of view-model.ref
+This is to make terminologies consistent as we are moving towards component oriented terms.
+
 ### Call binding (some-prop.call="...")
 
 The call binding no longer assigns properties of the first argument pass to the call to the calling override context. This is unreasonably dynamic and could result in hard-to-understand templates.
@@ -135,7 +140,7 @@ Change it to:
   ```
 
 - In Aurelia 2, all bindings are passed through to the underlying custom element
-composition, so `view-model.ref` no longer means getting a reference to the composer, but the composed view model instead.
+composition, so `component.ref` (`view-model.ref` in v1) no longer means getting a reference to the composer, but the composed view model instead.
 
 Read more about dynamic composition in v2 in this [dynamic composition doc](../../getting-to-know-aurelia/dynamic-composition.md) and [dynamic ui composition doc](../../app-basics/dynamic-ui-composition.md).
 

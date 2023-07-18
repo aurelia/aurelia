@@ -221,7 +221,7 @@ export function createFixture<T extends object>(
   };
 
   const stop = (dispose: boolean = false): void | Promise<void> => {
-    let ret: MaybePromise<void>;
+    let ret: MaybePromise<void> = void 0;
     try {
       ret = au.stop(dispose);
     } finally {

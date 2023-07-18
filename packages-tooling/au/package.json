@@ -62,7 +62,7 @@
   "devDependencies": {
     "@types/node": "^14.18.14",
     "tslib": "^2.4.0",
-    "typescript": "5.0.2"
+    "typescript": "5.1.6"
   },
   "engines": {
     "node": ">=14.17.0"

@@ -576,7 +576,16 @@ export class RefAttributePattern {
   }
 
   public 'PART.ref'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
+    let target = parts[0];
+    if (target === 'view-model') {
+      target = 'component';
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
+          + ` This is deprecated and component.ref should be used instead`);
+      }
+    }
+    return new AttrSyntax(rawName, rawValue, target, 'ref');
   }
 }
 

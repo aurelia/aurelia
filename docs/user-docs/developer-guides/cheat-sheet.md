@@ -454,9 +454,9 @@ export class BananaInBox {
 <form submit.trigger="$event.preventDefault()">
 <!-- Set this html element to the 'nameInput' property on the declaring component -->
 <input ref="nameInput">
-<!-- Set the view model of this <my-component> custom element
+<!-- Set the component instance of this <my-component> custom element
      to the 'myComponentViewModel' property on the declaring component -->
-<my-component view-model.ref="myComponentViewModel">
+<my-component component.ref="myComponentViewModel">
 <!-- Automatic two-way binding to an input (convention, equivalent to value.two-way) -->
 <input value.bind="name">
 <!-- Manual two-way binding to an input -->

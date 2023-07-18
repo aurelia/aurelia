@@ -119,7 +119,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
           expectType('Array', path, value);
         }
         for (const route of value) {
-          const childPath = `${path}[${value.indexOf(route)}]`;
+          const childPath = `${path}[${value.indexOf(route as string)}]`;
           validateComponent(route, childPath, 'component');
         }
         break;

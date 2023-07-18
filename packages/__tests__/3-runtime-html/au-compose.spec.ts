@@ -1087,7 +1087,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       @customElement('el')
       class El {}
 
-      const { component } = createFixture('<au-compose component.bind="comp" view-model.ref="el">', class {
+      const { component } = createFixture('<au-compose component.bind="comp" component.ref="el">', class {
         comp = El;
         el: El;
       });

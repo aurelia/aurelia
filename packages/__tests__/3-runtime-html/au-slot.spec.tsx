@@ -1,6 +1,6 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer, inject } from '@aurelia/kernel';
-import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
+import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -2139,5 +2139,41 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
     assert.instanceOf(parent, Parent);
     assert.strictEqual(parent.id, 1);
+  });
+
+  it('provides right resources for slotted view', function () {
+    const { assertText } = createFixture(
+      '<el></el>',
+      {  },
+      [
+        CustomElement.define({
+          name: 'el',
+          template: '<el-with-slot>${"hey" | upper}</el-with-slot>',
+          dependencies: [
+            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
+            ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
+          ]
+        }, class El {}),
+      ]
+    );
+    assertText('HEY');
+  });
+
+  it('provides right resources for passed through <au-slot>', function () {
+    const { assertText } = createFixture(
+      '<el></el>',
+      {  },
+      [
+        CustomElement.define({
+          name: 'el',
+          template: '<el-with-slot><au-slot>${"hey" | upper}</au-slot></el-with-slot>',
+          dependencies: [
+            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
+            ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
+          ]
+        }, class El {}),
+      ]
+    );
+    assertText('HEY');
   });
 });

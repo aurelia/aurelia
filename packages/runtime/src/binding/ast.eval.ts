@@ -290,7 +290,6 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     case ExpressionKind.ValueConverter: {
       const vc = e?.getConverter?.(ast.name);
       if (vc == null) {
-        debugger;
         throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
       }
       if ('toView' in vc) {

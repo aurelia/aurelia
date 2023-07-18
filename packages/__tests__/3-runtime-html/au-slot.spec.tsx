@@ -2150,10 +2150,28 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           name: 'el',
           template: '<el-with-slot>${"hey" | upper}</el-with-slot>',
           dependencies: [
-            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }),
+            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
             ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
           ]
-        }),
+        }, class El {}),
+      ]
+    );
+    assertText('HEY');
+  });
+
+  it('provides right resources for passed through <au-slot>', function () {
+    const { assertText } = createFixture(
+      '<el></el>',
+      {  },
+      [
+        CustomElement.define({
+          name: 'el',
+          template: '<el-with-slot><au-slot>${"hey" | upper}</au-slot></el-with-slot>',
+          dependencies: [
+            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
+            ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
+          ]
+        }, class El {}),
       ]
     );
     assertText('HEY');

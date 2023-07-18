@@ -5,7 +5,7 @@ import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
 import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
-import { createObject, getOwnMetadata, isFunction, isString } from './utilities';
+import { getOwnMetadata, isFunction, isString } from './utilities';
 import {
   IContainer,
   type Key,
@@ -83,21 +83,21 @@ export class Container implements IContainer {
       this._resolvers = new Map();
       this._factories = new Map<Constructable, Factory>();
 
-      this.res = createObject();
+      this.res = {};
     } else {
       this.root = parent.root;
 
       this._resolvers = new Map();
       this._factories = parent._factories;
+      this.res = {};
 
       if (config.inheritParentResources) {
-        this.res = Object.assign(
-          createObject(),
-          parent.res,
-          this.root.res
-        );
-      } else {
-        this.res = createObject();
+        // todo: when the simplify resource system work is commenced
+        //       this resource inheritance can just be a Object.create() call
+        //       with parent resources as the prototype of the child resources
+        for (const key in parent.res) {
+          this.registerResolver(key, parent.res[key]!);
+        }
       }
     }
 
@@ -277,7 +277,7 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this._resolvers.has(key)
+    return this._resolvers.has(key) || isResourceKey(key) && key in this.res
       ? true
       : searchAncestors && this.parent != null
         ? this.parent.has(key, true)

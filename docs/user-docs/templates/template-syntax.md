@@ -298,9 +298,9 @@ export class MyApp {
 
 The `ref` attribute has several qualifiers you can use in conjunction with custom elements and attributes:
 
-* `view-model.ref="expression"`: create a reference to a custom element's view-model
-* `custom-attribute.ref="expression"`: create a reference to a custom attribute's view-model
-* `controller.ref="expression"`: create a reference to a custom element's controller instance
+* `component.ref="expression"`: create a reference to a custom element's component instance(view-model). This is known as `view-model.ref` in v1.
+* `custom-attribute.ref="expression"`: create a reference to a custom attribute's component instance (view-model).
+* `controller.ref="expression"`: create a reference to a custom element's controller instance.
 
 {% hint style="info" %}
 Template references are a great way to reference elements inside view models for use with third-party libraries. They negate the need to query for elements using Javascript APIs.

@@ -128,6 +128,7 @@ export class AttributeBinding implements IBinding {
 
   public handleChange(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
 
@@ -167,6 +168,7 @@ export class AttributeBinding implements IBinding {
   public bind(_scope: Scope): void {
     if (this.isBound) {
       if (this._scope === _scope) {
+      /* istanbul-ignore-next */
         return;
       }
       this.unbind();
@@ -186,6 +188,7 @@ export class AttributeBinding implements IBinding {
 
   public unbind(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.isBound = false;

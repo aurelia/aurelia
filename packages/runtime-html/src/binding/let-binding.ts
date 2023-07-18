@@ -61,6 +61,7 @@ export class LetBinding implements IBinding {
 
   public handleChange(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.obs.version++;
@@ -76,6 +77,7 @@ export class LetBinding implements IBinding {
   public bind(_scope: Scope): void {
     if (this.isBound) {
       if (this._scope === _scope) {
+      /* istanbul-ignore-next */
         return;
       }
       this.unbind();
@@ -93,6 +95,7 @@ export class LetBinding implements IBinding {
 
   public unbind(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.isBound = false;

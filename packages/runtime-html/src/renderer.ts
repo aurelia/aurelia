@@ -834,7 +834,6 @@ export class TextBindingRenderer implements IRenderer {
       platform,
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
       target as Text,
-      instruction.strict,
     ));
   }
 }

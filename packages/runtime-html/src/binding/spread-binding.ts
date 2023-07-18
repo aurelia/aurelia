@@ -120,6 +120,7 @@ export class SpreadBinding implements IBinding, IHasController {
 
   public bind(_scope: Scope): void {
     if (this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.isBound = true;

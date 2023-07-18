@@ -585,7 +585,7 @@ export class RefAttributePattern {
           + ` This is deprecated and component.ref should be used instead`);
       }
     }
-    return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
+    return new AttrSyntax(rawName, rawValue, target, 'ref');
   }
 }
 

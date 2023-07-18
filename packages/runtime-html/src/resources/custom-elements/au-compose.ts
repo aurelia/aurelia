@@ -189,7 +189,7 @@ export class AuCompose {
     //       should it throw or try it best to proceed?
     //       current: proceed
     const { _template: template, _component: component, _model: model } = context.change;
-    const { _container: container, host, $controller, _location: loc } = this;
+    const { _container: container, host, $controller, _location: loc, _instruction } = this;
     const vmDef = this.getDef(component);
     const childCtn: IContainer = container.createChild();
     let compositionHost: HTMLElement | IRenderLocation;
@@ -211,7 +211,7 @@ export class AuCompose {
     const compose: () => ICompositionController = () => {
       // custom element based composition
       if (vmDef !== null) {
-        const composeCapturedAttrs = this._instruction.captures! ?? emptyArray;
+        const composeCapturedAttrs = _instruction.captures! ?? emptyArray;
         const capture = vmDef.capture;
         const [capturedBindingAttrs, transferedToHostBindingAttrs] = composeCapturedAttrs
           .reduce((attrGroups: [AttrSyntax[], AttrSyntax[]], attr) => {
@@ -228,7 +228,7 @@ export class AuCompose {
           comp,
           compositionHost as HTMLElement,
           {
-            projections: this._instruction.projections,
+            projections: _instruction.projections,
             captures: capturedBindingAttrs
           },
           vmDef,

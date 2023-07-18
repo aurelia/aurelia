@@ -59,7 +59,7 @@
     "@aurelia/runtime-html": "2.0.0-beta.7"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.1.6"
   },
   "engines": {
     "node": ">=14.17.0"

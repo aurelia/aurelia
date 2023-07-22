@@ -5027,7 +5027,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ c: '4' })], 'params3');
 
       assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: 'awesome/possum' } }), true);
-      assert.match(location.path, /foo\/1\/awesome\/possum$/);
+      assert.match(location.path, /foo\/1\/awesome%2Fpossum$/);
       BaseRouteViewModel.assertAndClear('foo', [{ id: '1', b: 'awesome/possum' }, new URLSearchParams()], 'params4');
 
       try {

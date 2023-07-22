@@ -475,7 +475,7 @@ export class ComponentExpression {
       }
     }
 
-    const name = decodeURIComponent(state._playback());
+    const name = state._playback();
     if (name.length === 0) {
       state._expect('component name');
     }

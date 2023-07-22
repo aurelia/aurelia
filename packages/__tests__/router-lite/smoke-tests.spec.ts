@@ -6829,4 +6829,35 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  it('handles slash in router parameter name', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne {
+      private id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params['foo%2Fbar'];
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:foo%2Fbar', component: CeOne },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '');
+
+    await router.load('c1(foo%2Fbar=fizzbuzz)');
+    assert.html.textContent(host, 'c1 fizzbuzz');
+
+    await router.load({ component: 'c1', params: { 'foo%2Fbar': 'awesome possum' } });
+    assert.html.textContent(host, 'c1 awesome possum');
+
+    await au.stop(true);
+  });
 });

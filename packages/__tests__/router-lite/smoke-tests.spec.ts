@@ -6795,4 +6795,38 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  it('handles slash in router parameter value', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne {
+      private id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:id', component: CeOne },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+
+    assert.html.textContent(host, '');
+
+    await router.load('c1/abc%2Fdef');
+    assert.html.textContent(host, 'c1 abc/def');
+    assert.match(location.path, /c1\/abc%2Fdef$/);
+
+    await router.load({ component: 'c1', params: { id: '123/456' } });
+    assert.html.textContent(host, 'c1 123/456');
+    assert.match(location.path, /c1\/123%2F456$/);
+
+    await au.stop(true);
+  });
 });

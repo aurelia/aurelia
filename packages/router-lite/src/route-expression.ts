@@ -56,7 +56,7 @@ class ParserState {
     }
   }
 
-  public _expect(msg: string): void {
+  public _expect(msg: string): never {
     throw new Error(getMessage(Events.exprUnexpectedSegment, msg, this._index, this._input, this._rest, this._rest));
   }
 
@@ -507,7 +507,7 @@ export class ActionExpression {
         state._advance();
       }
 
-      name = decodeURIComponent(state._playback());
+      name = state._playback();
       if (name.length === 0) {
         state._expect('method name');
       }
@@ -606,7 +606,7 @@ export class ParameterExpression {
       state._advance();
     }
 
-    let key = decodeURIComponent(state._playback());
+    let key = state._playback();
     if (key.length === 0) {
       state._expect('parameter key');
     }

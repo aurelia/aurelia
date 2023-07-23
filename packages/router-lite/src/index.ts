@@ -60,7 +60,6 @@ export {
   SegmentGroupExpression,
   SegmentExpression,
   ComponentExpression,
-  ActionExpression,
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,

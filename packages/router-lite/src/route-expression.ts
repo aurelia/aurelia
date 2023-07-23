@@ -374,11 +374,10 @@ export class SegmentGroupExpression {
 export class SegmentExpression {
   public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
 
-  public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ActionExpression.Empty, ViewportExpression.Empty, true); }
+  public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ViewportExpression.Empty, true); }
 
   public constructor(
     public readonly component: ComponentExpression,
-    public readonly action: ActionExpression,
     public readonly viewport: ViewportExpression,
     public readonly scoped: boolean,
   ) {}
@@ -388,12 +387,11 @@ export class SegmentExpression {
     state._record();
 
     const component = ComponentExpression._parse(state);
-    const action = ActionExpression._parse(state);
     const viewport = ViewportExpression._parse(state);
     const scoped = !state._consumeOptional('!');
 
     state._discard();
-    return new SegmentExpression(component, action, viewport, scoped);
+    return new SegmentExpression(component, viewport, scoped);
   }
 
   /** @internal */
@@ -483,40 +481,6 @@ export class ComponentExpression {
 
     state._discard();
     return new ComponentExpression(name, parameterList);
-  }
-}
-
-export class ActionExpression {
-  public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
-
-  public static get Empty(): ActionExpression { return new ActionExpression('', ParameterListExpression.Empty); }
-
-  public constructor(
-    public readonly name: string,
-    public readonly parameterList: ParameterListExpression,
-  ) {}
-
-  /** @internal */
-  public static _parse(state: ParserState): ActionExpression {
-    state._record();
-    let name = '';
-
-    if (state._consumeOptional('.')) {
-      state._record();
-      while (!state._done && !state._startsWith(...terminal)) {
-        state._advance();
-      }
-
-      name = state._playback();
-      if (name.length === 0) {
-        state._expect('method name');
-      }
-    }
-
-    const parameterList = ParameterListExpression._parse(state);
-
-    state._discard();
-    return new ActionExpression(name, parameterList);
   }
 }
 
@@ -638,7 +602,6 @@ export const AST = Object.freeze({
   SegmentGroupExpression,
   SegmentExpression,
   ComponentExpression,
-  ActionExpression,
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,

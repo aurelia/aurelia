@@ -5027,7 +5027,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       BaseRouteViewModel.assertAndClear('bar', [{ id: '1' }, new URLSearchParams({ c: '4' })], 'params3');
 
       assert.strictEqual(await router.load({ component: 'foo', params: { id: '1', b: 'awesome/possum' } }), true);
-      assert.match(location.path, /foo\/1\/awesome\/possum$/);
+      assert.match(location.path, /foo\/1\/awesome%2Fpossum$/);
       BaseRouteViewModel.assertAndClear('foo', [{ id: '1', b: 'awesome/possum' }, new URLSearchParams()], 'params4');
 
       try {
@@ -6792,6 +6792,71 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await router.load('p1/p1/p1/c2');
     assert.html.textContent(host, 'p1 p1 p1 c2', 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('handles slash in router parameter value', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne {
+      private id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:id', component: CeOne },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+
+    assert.html.textContent(host, '');
+
+    await router.load('c1/abc%2Fdef');
+    assert.html.textContent(host, 'c1 abc/def');
+    assert.match(location.path, /c1\/abc%2Fdef$/);
+
+    await router.load({ component: 'c1', params: { id: '123/456' } });
+    assert.html.textContent(host, 'c1 123/456');
+    assert.match(location.path, /c1\/123%2F456$/);
+
+    await au.stop(true);
+  });
+
+  it('handles slash in router parameter name', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne {
+      private id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params['foo%2Fbar'];
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:foo%2Fbar', component: CeOne },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '');
+
+    await router.load('c1(foo%2Fbar=fizzbuzz)');
+    assert.html.textContent(host, 'c1 fizzbuzz');
+
+    await router.load({ component: 'c1', params: { 'foo%2Fbar': 'awesome possum' } });
+    assert.html.textContent(host, 'c1 awesome possum');
 
     await au.stop(true);
   });

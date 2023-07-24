@@ -635,7 +635,7 @@ export class RouteContext {
             ? `:${key}?`
             : `:${key}`;
 
-        path = path.replace(pattern, value);
+        path = path.replace(pattern, encodeURIComponent(value));
       }
       const consumedKeys = Object.keys(consumed);
       const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));

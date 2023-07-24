@@ -40,10 +40,18 @@ export class Endpoint<T> {
 }
 
 export class RecognizedRoute<T> {
+  public readonly params: Readonly<Record<string, string | undefined>>;
   public constructor(
     public readonly endpoint: Endpoint<T>,
-    public readonly params: Readonly<Record<string, string | undefined>>,
-  ) {}
+    params: Readonly<Record<string, string | undefined>>,
+  ) {
+    const $params: Record<string, string | undefined> = Object.create(null);
+    for (const key in params) {
+      const value = params[key];
+      $params[key] = value != null ? decodeURIComponent(value) : value;
+    }
+    this.params = Object.freeze($params);
+  }
 }
 
 class Candidate<T> {

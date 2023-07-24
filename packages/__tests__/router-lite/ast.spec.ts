@@ -6,7 +6,6 @@ import {
   SegmentGroupExpression,
   SegmentExpression,
   ComponentExpression,
-  ActionExpression,
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,
@@ -70,77 +69,69 @@ describe('router-lite/ast.spec.ts', function () {
     ...paramSpecs.map(([raw, x]) => [`a${raw}`, new ComponentExpression('a', x)]),
   ] as [string, ComponentExpression][];
 
-  const noAction = ['', new ActionExpression('', noParams[1])] as const;
-  const actionSpecs = [
-    noAction,
-    ...paramSpecs.map(([raw, x]) => [`.x${raw}`, new ActionExpression('x', x)]),
-  ] as [string, ActionExpression][];
-
-  for (const [rawComponent, component] of componentSpecs) {
+   for (const [rawComponent, component] of componentSpecs) {
     for (const [rawViewport, viewport] of viewportSpecs) {
-      for (const [rawAction, action] of actionSpecs) {
-        for (const scoped of [true, false]) {
-          const raw = `${rawComponent}${rawAction}${rawViewport}${scoped ? '' : '!'}`;
-          const url = `${rawComponent}${rawViewport}`;
+      for (const scoped of [true, false]) {
+        const raw = `${rawComponent}${rawViewport}${scoped ? '' : '!'}`;
+        const url = `${rawComponent}${rawViewport}`;
 
-          specs[`/${raw}`] = [new RouteExpression(
-            true,
-            new SegmentExpression(component, action, viewport, scoped),
-            emptyQuerystring,
-            null,
-          ), url];
-          specs[`/(${raw})`] = [new RouteExpression(
-            true,
-            new SegmentGroupExpression(
-              new SegmentExpression(component, action, viewport, scoped),
-            ),
-            emptyQuerystring,
-            null,
-          ), `(${url})`];
+        specs[`/${raw}`] = [new RouteExpression(
+          true,
+          new SegmentExpression(component, viewport, scoped),
+          emptyQuerystring,
+          null,
+        ), url];
+        specs[`/(${raw})`] = [new RouteExpression(
+          true,
+          new SegmentGroupExpression(
+            new SegmentExpression(component, viewport, scoped),
+          ),
+          emptyQuerystring,
+          null,
+        ), `(${url})`];
 
-          specs[`/${raw}/${raw}`] = [new RouteExpression(
-            true,
-            new ScopedSegmentExpression(
-              new SegmentExpression(component, action, viewport, scoped),
-              new SegmentExpression(component, action, viewport, scoped),
-            ),
-            emptyQuerystring,
-            null,
-          ), `${url}/${url}`];
+        specs[`/${raw}/${raw}`] = [new RouteExpression(
+          true,
+          new ScopedSegmentExpression(
+            new SegmentExpression(component, viewport, scoped),
+            new SegmentExpression(component, viewport, scoped),
+          ),
+          emptyQuerystring,
+          null,
+        ), `${url}/${url}`];
 
-          specs[`/${raw}+${raw}`] = [new RouteExpression(
-            true,
-            new CompositeSegmentExpression(
-              [
-                new SegmentExpression(component, action, viewport, scoped),
-                new SegmentExpression(component, action, viewport, scoped),
-              ],
-            ),
-            emptyQuerystring,
-            null,
-          ), `${url}+${url}`];
+        specs[`/${raw}+${raw}`] = [new RouteExpression(
+          true,
+          new CompositeSegmentExpression(
+            [
+              new SegmentExpression(component, viewport, scoped),
+              new SegmentExpression(component, viewport, scoped),
+            ],
+          ),
+          emptyQuerystring,
+          null,
+        ), `${url}+${url}`];
 
-          specs[`/${raw}?foo=bar`] = [new RouteExpression(
-            true,
-            new SegmentExpression(component, action, viewport, scoped),
-            Object.freeze(new URLSearchParams('foo=bar')),
-            null,
-          ), `${url}?foo=bar`];
+        specs[`/${raw}?foo=bar`] = [new RouteExpression(
+          true,
+          new SegmentExpression(component, viewport, scoped),
+          Object.freeze(new URLSearchParams('foo=bar')),
+          null,
+        ), `${url}?foo=bar`];
 
-          specs[`/${raw}?foo=bar&fiz=baz`] = [new RouteExpression(
-            true,
-            new SegmentExpression(component, action, viewport, scoped),
-            Object.freeze(new URLSearchParams('foo=bar&fiz=baz')),
-            null,
-          ), `${url}?foo=bar&fiz=baz`];
+        specs[`/${raw}?foo=bar&fiz=baz`] = [new RouteExpression(
+          true,
+          new SegmentExpression(component, viewport, scoped),
+          Object.freeze(new URLSearchParams('foo=bar&fiz=baz')),
+          null,
+        ), `${url}?foo=bar&fiz=baz`];
 
-          specs[`/${raw}?foo=bar1&fiz=baz&foo=bar2`] = [new RouteExpression(
-            true,
-            new SegmentExpression(component, action, viewport, scoped),
-            Object.freeze(new URLSearchParams('foo=bar1&fiz=baz&foo=bar2')),
-            null,
-          ), `${url}?foo=bar1&fiz=baz&foo=bar2`];
-        }
+        specs[`/${raw}?foo=bar1&fiz=baz&foo=bar2`] = [new RouteExpression(
+          true,
+          new SegmentExpression(component, viewport, scoped),
+          Object.freeze(new URLSearchParams('foo=bar1&fiz=baz&foo=bar2')),
+          null,
+        ), `${url}?foo=bar1&fiz=baz&foo=bar2`];
       }
     }
   }
@@ -155,11 +146,11 @@ describe('router-lite/ast.spec.ts', function () {
 
   const x = {};
 
-  x['-'] = [new SegmentExpression(comp['-'], noAction[1], noViewport[1], true), '-'];
-  x['a'] = [new SegmentExpression(comp['a'], noAction[1], noViewport[1], true), 'a'];
-  x['b'] = [new SegmentExpression(comp['b'], noAction[1], noViewport[1], true), 'b'];
-  x['c'] = [new SegmentExpression(comp['c'], noAction[1], noViewport[1], true), 'c'];
-  x['d'] = [new SegmentExpression(comp['d'], noAction[1], noViewport[1], true), 'd'];
+  x['-'] = [new SegmentExpression(comp['-'], noViewport[1], true), '-'];
+  x['a'] = [new SegmentExpression(comp['a'], noViewport[1], true), 'a'];
+  x['b'] = [new SegmentExpression(comp['b'], noViewport[1], true), 'b'];
+  x['c'] = [new SegmentExpression(comp['c'], noViewport[1], true), 'c'];
+  x['d'] = [new SegmentExpression(comp['d'], noViewport[1], true), 'd'];
 
   x['+a'] = [new CompositeSegmentExpression([x['a'][0]]), 'a'];
   x['+b'] = [new CompositeSegmentExpression([x['b'][0]]), 'b'];
@@ -417,17 +408,6 @@ describe('router-lite/ast.spec.ts', function () {
     });
   }
 
-  for (const path of ['/a.', ...terminal.map(t => `/a.${t}`)]) {
-    it(`throws on empty method name '${path}'`, function () {
-      assert.throws(
-        function () {
-          RouteExpression.parse(pathUrlParser.parse(path));
-        },
-        /AUR3500.+method name/,
-      );
-    });
-  }
-
   for (const path of ['/a@', ...terminal.map(t => `/a@${t}`)]) {
     it(`throws on empty viewport name '${path}'`, function () {
       assert.throws(
@@ -439,7 +419,7 @@ describe('router-lite/ast.spec.ts', function () {
     });
   }
 
-  for (const path of ['/a(', '/a.x(', ...terminal.flatMap(t => [`/a(${t}`, `/a.x(${t}`])]) {
+  for (const path of ['/a(', ...terminal.map(t => `/a(${t}`)]) {
     it(`throws on empty parameter key '${path}'`, function () {
       assert.throws(
         function () {
@@ -450,7 +430,7 @@ describe('router-lite/ast.spec.ts', function () {
     });
   }
 
-  for (const path of ['/a(1=', '/a.x(1=', ...terminal.flatMap(t => [`/a(1=${t}`, `/a.x(1=${t}`])]) {
+  for (const path of ['/a(1=', ...terminal.map(t => `/a(1=${t}`)]) {
     it(`throws on empty parameter value '${path}'`, function () {
       assert.throws(
         function () {
@@ -501,20 +481,11 @@ describe('router-lite/ast.spec.ts', function () {
     '/a(1=1',
     '/a(1,2',
     '/a(1=1,2=2',
-    '/a.x(1',
-    '/a.x(1=1',
-    '/a.x(1,2',
-    '/a.x(1=1,2=2',
 
     '/a(1,',
     '/a(1=1,',
     '/a(1,2,',
     '/a(1=1,2=2,',
-
-    '/a.x(1,',
-    '/a.x(1=1,',
-    '/a.x(1,2,',
-    '/a.x(1=1,2=2,',
   ]) {
     it(`throws on missing closing paren '${path}'`, function () {
       assert.throws(

@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Features:
+
+* **compose:** passthrough bindings + support containerless (#1792) ([e8e39a9](https://github.com/aurelia/aurelia/commit/e8e39a9))
+
+
+### Bug Fixes:
+
+* **au-slot:** correctly prepare resources for slotted view (#1802) ([bf1ca4c](https://github.com/aurelia/aurelia/commit/bf1ca4c))
+
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+* **text-binding:** always evaluate expressions in strict mode (#1801) ([15acfee](https://github.com/aurelia/aurelia/commit/15acfee))
+* ***:** bindable property -> name (#1783) ([ca0eda7](https://github.com/aurelia/aurelia/commit/ca0eda7))
+
 <a name="2.0.0-beta.7"></a>
 # 2.0.0-beta.7 (2023-06-16)
 

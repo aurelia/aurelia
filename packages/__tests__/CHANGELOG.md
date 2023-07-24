@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Features:
+
+* **compose:** passthrough bindings + support containerless (#1792) ([e8e39a9](https://github.com/aurelia/aurelia/commit/e8e39a9))
+* **template:** access global (#1790) ([2486b58](https://github.com/aurelia/aurelia/commit/2486b58))
+
+
+### Bug Fixes:
+
+* **router-lite:** handling slash in parameter value (#1805) ([3fbb698](https://github.com/aurelia/aurelia/commit/3fbb698))
+* **au-slot:** correctly prepare resources for slotted view (#1802) ([bf1ca4c](https://github.com/aurelia/aurelia/commit/bf1ca4c))
+* **router-lite:** e2e build ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+* **text-binding:** always evaluate expressions in strict mode (#1801) ([15acfee](https://github.com/aurelia/aurelia/commit/15acfee))
+* **router-lite:** query in fragment when using useUrlFragmentHash option (#1794) ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url serializer ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url parser ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url parser stringify ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** e2e tests ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** nested fragment ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* ***:** router-lite ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* ***:** bindable property -> name (#1783) ([ca0eda7](https://github.com/aurelia/aurelia/commit/ca0eda7))
+
 <a name="2.0.0-beta.7"></a>
 # 2.0.0-beta.7 (2023-06-16)
 

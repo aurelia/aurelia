@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Features:
+
+* **template:** access global (#1790) ([2486b58](https://github.com/aurelia/aurelia/commit/2486b58))
+
+
+### Bug Fixes:
+
+* **au-slot:** correctly prepare resources for slotted view (#1802) ([bf1ca4c](https://github.com/aurelia/aurelia/commit/bf1ca4c))
+
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+
 <a name="2.0.0-beta.7"></a>
 # 2.0.0-beta.7 (2023-06-16)
 

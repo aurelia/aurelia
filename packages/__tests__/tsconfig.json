@@ -3,8 +3,9 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declarationDir": "dist/types",
-    "outDir": "dist/esm",
+    "outDir": "dist",
     "lib": ["esnext", "dom"],
+    "rootDir": "src",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": false,

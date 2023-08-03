@@ -1,6 +1,6 @@
 module.exports = {
   extends: [
-    '../.eslintrc.cjs'
+    '../../.eslintrc.cjs'
   ],
   rules: {
     'no-template-curly-in-string': 'off',

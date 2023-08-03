@@ -1,6 +1,6 @@
 module.exports = {
   extends: [
-    '../.eslintrc.cjs'
+    '../../.eslintrc.cjs'
   ],
   rules: {
     'jsdoc/check-indentation': 'off'

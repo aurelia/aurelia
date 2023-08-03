@@ -18,6 +18,8 @@ export function $setup(platform: BrowserPlatform): void {
   setPlatform(platform);
   BrowserPlatform.set(globalThis, platform);
 
+  if (typeof window !== 'undefined') window.addEventListener('error', e => console.log(e));
+
   const globalStart = platform.performanceNow();
   let firstTestStart = 0;
 

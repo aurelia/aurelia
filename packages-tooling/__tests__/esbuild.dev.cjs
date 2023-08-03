@@ -37,8 +37,8 @@ function findByExt(startPath, filter, found = []) {
 };
 
 context({
-  entryPoints: findByExt('./', /\.tsx?$/),
-  outdir: resolve(__dirname, 'dist/cjs/__tests__'),
+  entryPoints: findByExt('./src', /\.tsx?$/),
+  outdir: resolve(__dirname, 'dist/cjs'),
   sourcemap: true,
   keepNames: true,
   format: 'cjs',

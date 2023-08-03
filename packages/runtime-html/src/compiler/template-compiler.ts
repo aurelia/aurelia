@@ -1120,7 +1120,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
-            isStrictBinding: context.root.def.isStrictBinding,
           });
         }
         elementInstruction!.projections = projections;
@@ -1156,7 +1155,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
-        isStrictBinding: context.root.def.isStrictBinding,
       });
 
       // 4.1.2.
@@ -1190,7 +1188,6 @@ export class TemplateCompiler implements ITemplateCompiler {
           template,
           needsCompile: false,
           instructions: [[tcInstructions[i + 1]]],
-          isStrictBinding: context.root.def.isStrictBinding,
         });
       }
       // the most outer template controller should be
@@ -1315,7 +1312,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
-            isStrictBinding: context.root.def.isStrictBinding,
           });
         }
         elementInstruction!.projections = projections;
@@ -1375,7 +1371,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           insertBefore(parent, context._text(part), node);
         }
         // and the corresponding instruction
-        context.rows.push([new TextBindingInstruction(expressions[i], context.root.def.isStrictBinding!)]);
+        context.rows.push([new TextBindingInstruction(expressions[i])]);
       }
       parent.removeChild(node);
     }

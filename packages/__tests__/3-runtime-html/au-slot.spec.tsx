@@ -41,7 +41,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         .register(...registrations, delegateSyntax)
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', template }, App)
         })
         .start();
       app = au.root.controller.viewModel as App;
@@ -94,7 +94,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
-      return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, containerless }, MyElement);
+      return CustomElement.define({ name: 'my-element', template, bindables: { people: { mode: BindingMode.default } }, containerless }, MyElement);
     };
 
     // #region simple templating
@@ -209,7 +209,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element> <div au-slot="s2">\${message}</div><div au-slot="s1">\${$host.message}</div> </my-element>`,
         [
           CustomElement.define(
-            { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` },
+            { name: 'my-element', template: `<au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` },
             MyElement
           ),
         ],
@@ -231,7 +231,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element> <div au-slot="s2">\${message}</div> </my-element>`,
         [
           CustomElement.define(
-            { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">\${message}</au-slot> <au-slot name="s2">s2</au-slot>` },
+            { name: 'my-element', template: `<au-slot name="s1">\${message}</au-slot> <au-slot name="s2">s2</au-slot>` },
             MyElement
           ),
         ],
@@ -242,7 +242,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
     // #region template controllers
     {
-      @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
+      @customElement({ name: 'my-element', template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
       class MyElement {
         @bindable public showS1: boolean = true;
         public constructor(
@@ -269,7 +269,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     }
 
     {
-      @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
+      @customElement({ name: 'my-element', template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
       class MyElement {
         @bindable public showS1: boolean = true;
         public constructor(
@@ -303,7 +303,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     }
 
     {
-      @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
+      @customElement({ name: 'my-element', template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
       class MyElement {
         @bindable public someCondition: boolean = true;
         public constructor(
@@ -452,7 +452,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     // #region `repeat.for`
     {
       @customElement({
-        name: 'my-element', isStrictBinding: true, template: `
+        name: 'my-element', template: `
       <au-slot name="grid">
         <au-slot name="header">
           <h4>First Name</h4>
@@ -626,7 +626,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
       {
         @customElement({
-          name: 'my-element', isStrictBinding: true, template: `
+          name: 'my-element', template: `
         <au-slot name="grid">
           <au-slot name="header">
             <h4>First Name</h4>
@@ -1047,12 +1047,12 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
     // #region complex templating
     {
-      @customElement({ name: 'coll-vwr', isStrictBinding: true, template: `<au-slot name="colleslawt"><div repeat.for="item of collection">\${item}</div></au-slot>` })
+      @customElement({ name: 'coll-vwr', template: `<au-slot name="colleslawt"><div repeat.for="item of collection">\${item}</div></au-slot>` })
       class CollVwr {
         @bindable public collection: string[];
       }
       @customElement({
-        name: 'my-element', isStrictBinding: true, template: `
+        name: 'my-element', template: `
       <au-slot name="grid">
         <au-slot name="header">
           <h4>First Name</h4>
@@ -1191,8 +1191,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           </template>
         </my-element-s11>`,
         [
-          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
-          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s11', template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
         ],
         { 'my-element-s11': ['p1 <my-element-s12> p2 </my-element-s12>', null] },
       );
@@ -1201,8 +1201,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'au-slot>CE works - fallback',
         `<my-element></my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
-          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+          CustomElement.define({ name: 'my-element', template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
+          CustomElement.define({ name: 'foo-bar', template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
         ],
         { 'my-element': ['<foo-bar>inner</foo-bar>', null] },
       );
@@ -1214,7 +1214,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         </my-element>`,
         [
           createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
-          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+          CustomElement.define({ name: 'foo-bar', template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
         ],
         { 'my-element': ['<foo-bar>root</foo-bar>', new AuSlotsInfo(['s1'])] },
       );
@@ -1234,10 +1234,10 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         </my-element>`,
           [
             CustomElement.define(
-              { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>` },
+              { name: 'my-element', template: `<au-slot name="s1">s1fb</au-slot>` },
               MyElement
             ),
-            CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+            CustomElement.define({ name: 'foo-bar', template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
           ],
           { 'my-element': ['<foo-bar>inner</foo-bar>', new AuSlotsInfo(['s1'])] },
         );
@@ -1252,8 +1252,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           </template>
         </my-element-s11>`,
         [
-          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
-          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s11', template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
         ],
         { 'my-element-s11': ['s11', null] },
       );
@@ -1349,8 +1349,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE',
         `<lvl-one><div au-slot="s1">p</div></lvl-one>`,
         [
-          CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
-          CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"></au-slot></template></lvl-zero>` }, class LvlOne { }),
+          CustomElement.define({ name: 'lvl-zero', template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
+          CustomElement.define({ name: 'lvl-one', template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"></au-slot></template></lvl-zero>` }, class LvlOne { }),
         ],
         { '': ['<lvl-one><lvl-zero><div>p</div></lvl-zero></lvl-one>', null] },
       );
@@ -1358,8 +1358,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE - with same slot name',
         `<lvl-one><div au-slot="x">p</div></lvl-one>`,
         [
-          CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
-          CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="x"><au-slot name="x"></au-slot></template></lvl-zero>` }, class LvlOne { }),
+          CustomElement.define({ name: 'lvl-zero', template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
+          CustomElement.define({ name: 'lvl-one', template: `<lvl-zero><template au-slot="x"><au-slot name="x"></au-slot></template></lvl-zero>` }, class LvlOne { }),
         ],
         { '': ['<lvl-one><lvl-zero><div>p</div></lvl-zero></lvl-one>', null] },
       );
@@ -1376,9 +1376,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           </au-slot>
         </parent-element>`,
         [
-          CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
+          CustomElement.define({ name: 'child-element', template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
           CustomElement.define({
-            name: 'parent-element', isStrictBinding: true,
+            name: 'parent-element',
             template: `<child-element>
               <div id="3" au-slot="x"><au-slot name="x">p1</au-slot></div>
               <au-slot au-slot="x" name="x"><div id="4" au-slot="x">p2</div></au-slot>
@@ -1447,7 +1447,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             `projection works for deeply nested <au-slot>; nesting level: ${i}`,
             `<my-element><template au-slot="s${i}">p</template></my-element>`,
             [
-              CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, MyElement),
+              CustomElement.define({ name: 'my-element', template: createAuSlot(i) }, MyElement),
             ],
             { 'my-element': [buildExpectedTextContent(i), new AuSlotsInfo([`s${i}`])] },
           );
@@ -1501,7 +1501,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             `projection works for all non-nested <au-slot>; count: ${i}`,
             `<my-element>${buildProjection(i)}</my-element>`,
             [
-              CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, MyElement),
+              CustomElement.define({ name: 'my-element', template: createAuSlot(i) }, MyElement),
             ],
             { 'my-element': buildExpectation(i) },
           );
@@ -1614,7 +1614,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         `<my-element>
         <input au-slot type="text" value.two-way="$host.foo">
       </my-element>`,
-        [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, MyElement)],
+        [CustomElement.define({ name: 'my-element', template: `<au-slot></au-slot>` }, MyElement)],
         { 'my-element': ['<input type="text">', new AuSlotsInfo(['default'])] },
         async function ({ host, platform }) {
           const el = host.querySelector('my-element');
@@ -2034,7 +2034,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
   for (const listener of ['capture', 'trigger', 'delegate']) {
     describe(listener, function () {
-      @customElement({ name: 'my-element', isStrictBinding: true, template: `<au-slot><button click.${listener}="fn()">Click</button></au-slot>` })
+      @customElement({ name: 'my-element', template: `<au-slot><button click.${listener}="fn()">Click</button></au-slot>` })
       class MyElement {
         public callCount: number = 0;
         private fn() { this.callCount++; }

@@ -281,7 +281,6 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
-  strict,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';

@@ -45,7 +45,7 @@ describe("store-v1/integration.spec.ts", function () {
   this.timeout(100);
 
   it("should allow to use the store without any options by using defaults", async function () {
-    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     class App {
       static inject = [Store];
 
@@ -70,14 +70,14 @@ describe("store-v1/integration.spec.ts", function () {
   });
 
   it("should throw if no initial state was provided", function () {
-    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     class App { }
 
     return assert.rejects(() => createFixture({ component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {
-    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     @connectTo()
     class App { }
 
@@ -90,7 +90,7 @@ describe("store-v1/integration.spec.ts", function () {
   });
 
   it("should create a proper default state history if option enabled but simple state given", async function () {
-    @customElement({ name: 'app', template: `<span id="sut">\${state.present.foo}</span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span id="sut">\${state.present.foo}</span>` })
     @connectTo()
     class App { }
 
@@ -112,7 +112,7 @@ describe("store-v1/integration.spec.ts", function () {
       return { ...state, foo: newFoo };
     };
 
-    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     class App {
       static inject = [Store];
 

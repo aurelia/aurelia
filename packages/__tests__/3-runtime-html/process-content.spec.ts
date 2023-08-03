@@ -39,11 +39,11 @@ describe('3-runtime-html/process-content.spec.ts', function () {
       au.register(...registrations);
       if (enhance) {
         host.innerHTML = template;
-        const controller = await au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
+        const controller = await au.enhance({ host, component: CustomElement.define({ name: 'app' }, App) });
         app = controller.viewModel;
         stop = () => controller.deactivate(controller, null);
       } else {
-        await au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) })
+        await au.app({ host, component: CustomElement.define({ name: 'app', template }, App) })
           .start();
         app = au.root.controller.viewModel;
       }
@@ -90,7 +90,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
           CustomElement.define(
             {
               name: 'my-element',
-              isStrictBinding: true,
+
               template: `<div><au-slot></au-slot></div>`,
             },
             MyElement
@@ -116,7 +116,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
           CustomElement.define(
             {
               name: 'my-element',
-              isStrictBinding: true,
               template: `<div><au-slot></au-slot></div>`,
               processContent: MyElement.processContent
             },
@@ -133,7 +132,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
       @processContent(MyElement.processContent)
       @customElement({
         name: 'my-element',
-        isStrictBinding: true,
         template: `<div><au-slot></au-slot></div>`,
       })
       class MyElement {
@@ -155,7 +153,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
     {
       @customElement({
         name: 'my-element',
-        isStrictBinding: true,
         template: `<div><au-slot></au-slot></div>`,
       })
       @processContent(MyElement.processContent)
@@ -183,7 +180,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
       @processContent(processContent1)
       @customElement({
         name: 'my-element',
-        isStrictBinding: true,
         template: `<div><au-slot></au-slot></div>`,
       })
       class MyElement {
@@ -203,7 +199,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
     {
       @customElement({
         name: 'my-element',
-        isStrictBinding: true,
         template: `<div><au-slot></au-slot></div>`,
       })
       class MyElement {
@@ -232,7 +227,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: `<div><au-slot></au-slot></div>`,
             processContent(node: INode, p: IPlatform) {
               const el = (node as Element);
@@ -271,7 +265,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: `<div><au-slot></au-slot><au-slot name="s1"></au-slot></div>`,
             processContent(node: INode, p: IPlatform) {
               const projection = p.document.createElement('template');
@@ -296,7 +289,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
     const SpanCe = CustomElement.define(
       {
         name: 'span-ce',
-        isStrictBinding: true,
         template: '<span>${value}</span>',
         bindables: { value: { mode: BindingMode.default } },
       },
@@ -305,7 +297,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
     const StrongCe = CustomElement.define(
       {
         name: 'strong-ce',
-        isStrictBinding: true,
         template: '<strong>${value}</strong>',
         bindables: { value: { mode: BindingMode.default } },
       },
@@ -346,7 +337,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: `<div><au-slot></au-slot></div>`,
             processContent: processContentWithCe(true),
           },
@@ -375,7 +365,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: '${textLength}',
             bindables: { textLength: { mode: BindingMode.default } },
             processContent: processContentWithNewBinding(true),
@@ -393,7 +382,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: '${textLength}',
             bindables: { textLength: { mode: BindingMode.default } },
             processContent: processContentWithNewBinding(false),
@@ -413,7 +401,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: `<div><au-slot></au-slot></div>`,
             processContent: processContentWithCe(false),
           },
@@ -433,7 +420,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: '${rand}<div><au-slot></au-slot></div>',
             bindables: { rand: { mode: BindingMode.default } },
             processContent(node: INode, p: IPlatform) {
@@ -457,7 +443,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: '<div><au-slot></au-slot></div>',
             processContent: processContentWithCe(true),
           },
@@ -481,7 +466,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         CustomElement.define(
           {
             name: 'my-element',
-            isStrictBinding: true,
             template: `<table><thead><tr><td>UPC_Code</td><td>Product_Name</td></tr></thead><tbody></tbody></table>`,
             bindables: { products: { mode: BindingMode.default } },
             processContent(node: INode, p: IPlatform) {
@@ -555,7 +539,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
   {
     @customElement({
       name: 'tabs',
-      isStrictBinding: true,
       template: '<div class="header"><au-slot name="header"></au-slot></div><div class="content"><au-slot name="content"></au-slot></div>',
       processContent: Tabs.processTabs
     })

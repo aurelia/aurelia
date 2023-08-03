@@ -528,7 +528,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              new TextBindingInstruction(new AccessScopeExpression('item'), false),
+              new TextBindingInstruction(new AccessScopeExpression('item')),
             ],
           ],
           needsCompile: false,

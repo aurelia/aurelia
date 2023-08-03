@@ -95,17 +95,17 @@ describe('3-runtime-html/integration.spec.ts', function () {
 
   function* getTestData() {
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<div ref="container" id="cr">1</div><child ref="child" id="child"></child><div ref="container2" id="cr2">11</div>' })
+      @customElement({ name: 'app', template: '<div ref="container" id="cr">1</div><child ref="child" id="child"></child><div ref="container2" id="cr2">11</div>' })
       class App {
         public readonly container: HTMLElement = void 0;
         public readonly child: HTMLElement;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<div ref="container" id="cc">2</div><grand-child ref="grandChild" id="grandChild"></grand-child><div ref="container2" id="cc2">22</div>' })
+      @customElement({ name: 'child', template: '<div ref="container" id="cc">2</div><grand-child ref="grandChild" id="grandChild"></grand-child><div ref="container2" id="cc2">22</div>' })
       class Child {
         public readonly container: HTMLElement = void 0;
         public readonly grandChild: HTMLElement;
       }
-      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div ref="container" id="cgc">3</div><div ref="container2" id="cgc2">33</div>' })
+      @customElement({ name: 'grand-child', template: '<div ref="container" id="cgc">3</div><div ref="container2" id="cgc2">33</div>' })
       class GrandChild {
         public readonly container: HTMLElement = void 0;
       }
@@ -145,7 +145,6 @@ describe('3-runtime-html/integration.spec.ts', function () {
     {
       @customElement({
         name: 'app',
-        isStrictBinding: true,
         template: `
         <child component.ref="c1" id="c1"></child>
         <child component.ref="c2" id="c2"></child>
@@ -155,7 +154,7 @@ describe('3-runtime-html/integration.spec.ts', function () {
         public readonly c1: Child = void 0;
         public readonly c2: Child;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '' })
+      @customElement({ name: 'child', template: '' })
       class Child {
         private static id = 1;
         public readonly id = Child.id++;
@@ -180,15 +179,15 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number = 1;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.from-view="value"></grand-child><div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<grand-child value.from-view="value"></grand-child><div id="cc">${value}</div>' })
       class Child {
         @bindable public value: number;
       }
-      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      @customElement({ name: 'grand-child', template: '<div id="cgc">${value}</div>' })
       class GrandChild {
         @bindable public value: number = 3;
       }
@@ -224,15 +223,15 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number = 1;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.to-view="value"></grand-child><div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<grand-child value.to-view="value"></grand-child><div id="cc">${value}</div>' })
       class Child {
         @bindable public value: number;
       }
-      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      @customElement({ name: 'grand-child', template: '<div id="cgc">${value}</div>' })
       class GrandChild {
         @bindable public value: number = 3;
       }
@@ -268,15 +267,15 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number = 1;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.two-way="value"></grand-child><div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<grand-child value.two-way="value"></grand-child><div id="cc">${value}</div>' })
       class Child {
         @bindable public value: number;
       }
-      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      @customElement({ name: 'grand-child', template: '<div id="cgc">${value}</div>' })
       class GrandChild {
         @bindable public value: number = 3;
       }
@@ -322,11 +321,11 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number = 1;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<div id="cc">${value}</div>' })
       class Child {
         @bindable({ mode: BindingMode.fromView }) public value: number;
       }
@@ -360,11 +359,11 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<div id="cc">${value}</div>' })
       class Child {
         @bindable({ mode: BindingMode.toView }) public value: number = 2;
       }
@@ -397,16 +396,16 @@ describe('3-runtime-html/integration.spec.ts', function () {
       );
     }
     {
-      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
+      @customElement({ name: 'app', template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
       class App {
         public value: number = 1;
       }
-      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child if.bind="condition" value.two-way="value"></grand-child><div id="cc">${value}</div>' })
+      @customElement({ name: 'child', template: '<grand-child if.bind="condition" value.two-way="value"></grand-child><div id="cc">${value}</div>' })
       class Child {
         @bindable public value: number;
         public condition: boolean = false;
       }
-      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      @customElement({ name: 'grand-child', template: '<div id="cgc">${value}</div>' })
       class GrandChild {
         @bindable public value: number = 3;
       }
@@ -506,7 +505,6 @@ describe('3-runtime-html/integration.spec.ts', function () {
     for (let i = 0, ii = templates.length; i < ii; i++) {
       @customElement({
         name: 'app',
-        isStrictBinding: true,
         template: templates[i]
       })
       class App { }

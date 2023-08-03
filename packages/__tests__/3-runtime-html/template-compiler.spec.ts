@@ -738,7 +738,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     bindables: {},
     containerless: false,
     injectable: null,
-    isStrictBinding: false,
     hasSlots: false,
     shadowOptions: null,
     surrogates: [],

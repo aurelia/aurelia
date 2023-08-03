@@ -52,7 +52,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
   readonly containerless?: boolean;
-  readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
   readonly enhance?: boolean;
@@ -195,24 +194,6 @@ function markContainerless(target: Constructable) {
   (def as Writable<CustomElementDefinition>).containerless = true;
 }
 
-/**
- * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
- */
-export function strict(target: Constructable): void;
-/**
- * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
- */
-export function strict(): (target: Constructable) => void;
-export function strict(target?: Constructable): void | ((target: Constructable) => void) {
-  if (target === void 0) {
-    return function ($target: Constructable) {
-      annotateElementMetadata($target, 'isStrictBinding', true);
-    };
-  }
-
-  annotateElementMetadata(target, 'isStrictBinding', true);
-}
-
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
@@ -232,7 +213,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly containerless: boolean,
-    public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
     /**
      * Indicates whether the custom element has <slot/> in its template
@@ -291,7 +271,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.surrogates),
         Bindable.from(Type, def.bindables),
         fromDefinitionOrDefault('containerless', def, returnFalse),
-        fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
@@ -324,7 +303,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
           Type.bindables,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
-        fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
@@ -360,7 +338,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         nameOrDef.bindables,
       ),
       fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse),
-      fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),

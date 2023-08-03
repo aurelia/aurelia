@@ -1083,6 +1083,27 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   });
 
   describe('pass through props', function () {
+    it('passes plain attributes', function () {
+        @customElement('el')
+        class El {}
+
+        const { assertAttr } = createFixture('<au-compose style="width: 20%" component.bind="comp" component.ref="el">', class {
+          comp = El;
+          el: El;
+        });
+
+        assertAttr('el', 'style', 'width: 20%;');
+    });
+
+    // the following test demonstrates a behavior that is currently not supported
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip('retains attrs when composing non custom element', function () {
+      const { assertAttr } = createFixture('<au-compose style="width: 20%" component.bind="{}">', class {
+      });
+
+      assertAttr('au-compose', 'style', 'width: 20%;');
+    });
+
     it('passes through ref binding', function () {
       @customElement('el')
       class El {}

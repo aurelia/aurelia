@@ -41,7 +41,7 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
   let componentClass: CustomElementType;
   const method = config.method;
   if (method === 'app') {
-    componentClass = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
+    componentClass = CustomElement.define({ name: 'app', template }, App);
   } else if (method === 'enhance') {
     componentClass = CustomElement.define('app', App);
     host.innerHTML = template;

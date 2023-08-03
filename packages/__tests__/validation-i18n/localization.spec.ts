@@ -159,7 +159,7 @@ describe('validation-i18n/localization.spec.ts', function () {
         .app({
           host,
           component: app = (() => {
-            const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
+            const ca = CustomElement.define({ name: 'app', template }, App);
             return new ca(container);
           })()
         })

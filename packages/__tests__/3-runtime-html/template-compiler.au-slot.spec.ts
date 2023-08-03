@@ -22,7 +22,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     return { ctx, container, sut };
   }
   function $createCustomElement(template: string, name: string) {
-    return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+    return CustomElement.define({ name, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
   }
 
   class ExpectedSlotFallbackInfo {
@@ -362,7 +362,6 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       instructions: [],
       surrogates: [],
       shadowOptions: { mode: 'open' },
-      isStrictBinding: true,
     } satisfies PartialCustomElementDefinition;
     const parser = container.get(IExpressionParser);
 
@@ -371,7 +370,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
         new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode),
       createTextInterpolation: ({ from }: { from: string }) =>
-        new TextBindingInstruction(parser.parse(from, ExpressionType.IsProperty), true),
+        new TextBindingInstruction(parser.parse(from, ExpressionType.IsProperty)),
     };
   }
 

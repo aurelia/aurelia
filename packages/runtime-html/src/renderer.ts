@@ -225,13 +225,6 @@ export class TextBindingInstruction {
 
   public constructor(
     public from: string | IsBindingBehavior,
-    /**
-     * Indicates whether the value of the expression "from"
-     * should be evaluated in strict mode.
-     *
-     * In none strict mode, "undefined" and "null" are coerced into empty string
-     */
-    public strict: boolean,
   ) {}
 }
 

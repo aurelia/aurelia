@@ -36,6 +36,7 @@
     "prebuild": "node z-scripts/lint-tests.cjs",
     "test": "npm run test-chrome",
     "build": "tsc --build",
+    "postbuild": "rimraf **/tsconfig.tsbuildinfo",
     "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",
     "rollup": "npm run build",
     "build:packages": "node esbuild.dev.cjs",

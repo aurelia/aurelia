@@ -45,7 +45,6 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
 
     @customElement({
       name: 'view-with-val',
-      isStrictBinding: true,
       template: `<form submit.trigger="submit($event)">
         <div id="container" validation-errors.from-view="errors">
           <input id="name" type="text" value.bind="person.name & validate">
@@ -78,7 +77,6 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
 
     @customElement({
       name: 'redirecting-view',
-      isStrictBinding: true,
       template: `<button id="navigate" click.delegate="navigate()"></button>`
     })
     class RedirectingView {
@@ -93,7 +91,6 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
 
     @customElement({
       name: 'app',
-      isStrictBinding: true,
       template: '<au-viewport></au-viewport>'
     })
     @route({

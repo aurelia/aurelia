@@ -45,7 +45,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
     await au.register(...registrations, BindingBehavior.define('keyed', class NoopKeyedBindingBehavior {}))
       .app({
         host,
-        component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, app ?? class { })
+        component: CustomElement.define({ name: 'app', template }, app ?? class { })
       })
       .start();
     const component = au.root.controller.viewModel as any;

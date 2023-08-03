@@ -210,7 +210,6 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     }
     @customElement({
       name: 'app',
-      isStrictBinding: true,
       template: '<div ref="container" id="container"></div>'
     })
     class App {

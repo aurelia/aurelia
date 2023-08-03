@@ -290,7 +290,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', template }, App)
         })
         .start();
 
@@ -705,7 +705,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             )
             .app({
               host,
-              component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+              component: CustomElement.define({ name: 'app', template }, App)
             })
             .start();
         } catch (e) {
@@ -1368,7 +1368,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             )
             .app({
               host,
-              component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+              component: CustomElement.define({ name: 'app', template }, App)
             })
             .start();
         } catch (e) {

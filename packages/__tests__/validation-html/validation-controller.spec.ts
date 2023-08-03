@@ -22,13 +22,11 @@ describe('validation-html/validation-controller.spec.ts', function () {
   describe('validation-html/validation-controller.spec.ts/validation controller factory', function () {
     @customElement({
       name: 'app',
-      isStrictBinding: true,
       template: `<vc-root></vc-root>`
     })
     class App { }
     @customElement({
       name: 'vc-root',
-      isStrictBinding: true,
       template: `
     <custom-stuff1></custom-stuff1>
     <custom-stuff2></custom-stuff2>
@@ -211,7 +209,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', template }, App)
         })
         .start();
 

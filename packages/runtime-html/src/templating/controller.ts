@@ -77,8 +77,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public hasLockedScope: boolean = false;
 
-  public isStrictBinding: boolean = false;
-
   public scope: Scope | null = null;
   public isBound: boolean = false;
   /** @internal */
@@ -417,10 +415,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const compiledDef = this._compiledDef = this._rendering.compile(this.definition as CustomElementDefinition, this.container, hydrationInst);
-    const { shadowOptions, isStrictBinding, hasSlots, containerless } = compiledDef;
+    const { shadowOptions, hasSlots, containerless } = compiledDef;
     let location: IRenderLocation | null = this.location;
-
-    this.isStrictBinding = isStrictBinding;
 
     if ((this.hostController = findElementControllerFor(this.host!, optionalCeFind) as Controller | null) !== null) {
       this.host = this.container.root.get(IPlatform).document.createElement(this.definition!.name);
@@ -505,7 +501,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _hydrateSynthetic(): void {
     this._compiledDef = this._rendering.compile(this.viewFactory!.def!, this.container, null);
-    this.isStrictBinding = this._compiledDef.isStrictBinding;
     this._rendering.render(
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
@@ -567,10 +562,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           this.scope = scope;
         }
         break;
-    }
-
-    if (this.isStrictBinding) {
-      // todo(bigopon): set bindings to strict based on this
     }
 
     this.$initiator = initiator;
@@ -1525,7 +1516,6 @@ export interface ISyntheticView extends IHydratableController {
   readonly vmKind: ViewModelKind.synthetic;
   readonly definition: null;
   readonly viewModel: null;
-  readonly isStrictBinding: boolean;
   /**
    * The physical DOM nodes that will be appended during the attach operation.
    */
@@ -1662,7 +1652,6 @@ export interface IContextualCustomElementController<C extends IViewModel = IView
  * It has the same properties as `IContextualCustomElementController`, except the context is now compiled (hence 'compiled'), as well as the nodes, and projector.
  */
 export interface ICompiledCustomElementController<C extends IViewModel = IViewModel> extends IContextualCustomElementController<C> {
-  readonly isStrictBinding: boolean;
   /**
    * The ShadowRoot, if this custom element uses ShadowDOM.
    */

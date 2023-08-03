@@ -276,7 +276,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', template }, App)
         })
         .start();
       app = au.root.controller.viewModel as App;

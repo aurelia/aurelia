@@ -97,10 +97,6 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.$controller.definition;
   }
 
-  public get isStrictBinding() {
-    return this.$controller.isStrictBinding;
-  }
-
   public get state() {
     return this.$controller.state;
   }

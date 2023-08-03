@@ -65,7 +65,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
   const configLookup = DI.createInterface<Map<string, Config>>();
   function createComponentType(name: string, template: string = '', bindables: string[] = []) {
-    @customElement({ name, template, bindables, isStrictBinding: true })
+    @customElement({ name, template, bindables })
     class Component {
       private logger: ILogger;
       @bindable
@@ -245,7 +245,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, appType ?? App)
+          component: CustomElement.define({ name: 'app', template }, appType ?? App)
         })
         .start();
       app = au.root.controller.viewModel as TApp;

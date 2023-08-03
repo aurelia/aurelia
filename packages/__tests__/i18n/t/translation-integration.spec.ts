@@ -6,11 +6,11 @@ import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
 describe('i18n/t/translation-integration.spec.ts', function () {
-  @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
+  @customElement({ name: 'custom-message', template: `<div>\${message}</div>` })
   class CustomMessage {
     @bindable public message: string;
   }
-  @customElement({ name: 'foo-bar', template: `<au-slot><span t="status" t-params.bind="{context: status, date: date}"></span></au-slot>`, isStrictBinding: true })
+  @customElement({ name: 'foo-bar', template: `<au-slot><span t="status" t-params.bind="{context: status, date: date}"></span></au-slot>` })
   class FooBar {
     @bindable public status: string;
     @bindable public date: string;
@@ -141,7 +141,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     assert.equal((host as Element).querySelector(selector).textContent, translation, message);
   }
   {
-    @customElement({ name: 'app', template: `<span t='simple.text'></span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
     class App { }
 
     $it('works for simple string literal key', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
@@ -157,7 +157,6 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       <p t.bind="nullul" id="null">
         Null value
       </p>`,
-      isStrictBinding: true
     })
     class App {
       private readonly nullul: null = null;
@@ -179,7 +178,6 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
       Null value
     </p>`,
-      isStrictBinding: true
     })
     class App {
       private readonly nullul: null = null;
@@ -201,7 +199,6 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     <p t.bind="nullul" id="null">
       Null value
     </p>`,
-      isStrictBinding: true
     })
     class App {
       private nullul: string | null = 'simple.text';
@@ -234,7 +231,6 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
         Null value
       </p>`,
-      isStrictBinding: true
     })
     class App {
       private nullul: string | null = 'simple.text';
@@ -256,7 +252,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   }
 
   for (const value of [true, false, 0]) {
-    @customElement({ name: 'app', template: `<p t.bind="key" id="undefined"></p>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<p t.bind="key" id="undefined"></p>` })
     class App { private readonly key: boolean | number = value; }
     $it(`throws error if the key expression is evaluated to ${value}`, function ({ error }: I18nIntegrationTestContext<App>) {
       assert.match(error?.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
@@ -267,7 +263,6 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     @customElement({
       name: 'app',
       template: `<p t.bind="key" id="undefined"></p>`,
-      isStrictBinding: true
     })
     class App {
       private key: any = 'simple.text';
@@ -286,7 +281,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   }
 
   {
-    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>` })
     class App { }
 
     $it('with multiple `t` attribute only the first one is considered', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
@@ -309,7 +304,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     }, { component: App, aliases: ['t', 'i18n'] });
   }
   {
-    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>`, isStrictBinding: true })
+    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>` })
     class App {
       private readonly obj: { key: string } = { key: 'simple.text' };
     }
@@ -955,14 +950,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
-      const baseDef = { name: `app`, template: `<span>\${ dt | df }</span>`, isStrictBinding: true };
+      const baseDef = { name: `app`, template: `<span>\${ dt | df }</span>` };
       @customElement(baseDef)
       class App { private readonly dt: string | number | Date = input; }
       $it(`${name} STRICT`, function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${output ?? ''}`);
       }, { component: App });
 
-      @customElement({ ...baseDef, isStrictBinding: false })
+      @customElement({ ...baseDef })
       class App1 { private readonly dt: string | number | Date = input; }
       $it(name, function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', (output ?? '').toString());
@@ -1006,14 +1001,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
-      const baseDef = { name: 'app', template: `<span>\${ dt & df }</span>`, isStrictBinding: true };
+      const baseDef = { name: 'app', template: `<span>\${ dt & df }</span>` };
       @customElement(baseDef)
       class App { private readonly dt: string | number | Date = input; }
       $it(`${name} STRICT`, function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${output ?? ''}`);
       }, { component: App });
 
-      @customElement({ ...baseDef, isStrictBinding: false })
+      @customElement({ ...baseDef })
       class App1 { private readonly dt: string | number | Date = input; }
       $it(name, function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', (output ?? '').toString());
@@ -1051,7 +1046,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   describe('`nf` value-converter', function () {
 
     const def = { name: 'app', template: `<span>\${ num | nf }</span>` };
-    const strictDef = { ...def, isStrictBinding: true };
+    const strictDef = { ...def };
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
       @customElement(strictDef)
       class App { private readonly num: string | boolean | Date = value; }
@@ -1113,7 +1108,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   describe('`nf` binding-behavior', function () {
 
     const def = { name: 'app', template: `<span>\${ num & nf }</span>` };
-    const strictDef = { ...def, isStrictBinding: true };
+    const strictDef = { ...def };
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
       @customElement(strictDef)
       class App { private readonly num: string | boolean | Date = value; }
@@ -1182,7 +1177,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
       const def = { name: 'app', template: `<span>\${ dt | rt }</span>` };
-      const strictDef = { ...def, isStrictBinding: true };
+      const strictDef = { ...def };
       @customElement(strictDef)
       class App { private readonly dt: string | number | boolean = value; }
       $it(`returns the value itself if the value is not a number STRICT, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App>) {
@@ -1295,7 +1290,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   describe('`rt` binding-behavior', function () {
 
     const def = { name: 'app', template: `<span>\${ dt & rt }</span>` };
-    const strictDef = { ...def, isStrictBinding: true };
+    const strictDef = { ...def };
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
       @customElement(strictDef)
@@ -1427,14 +1422,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
   describe('works with au-slot', function () {
     {
-      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"></foo-bar>`, isStrictBinding: true })
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"></foo-bar>` })
       class App { }
       $it('w/o projection', function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'delivered on 1971-12-25');
       }, { component: App });
     }
     {
-      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: date}"></div></foo-bar>`, isStrictBinding: true })
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: date}"></div></foo-bar>` })
       class App {
         private readonly status: string = 'dispatched';
         private readonly date: string = '1972-12-26';
@@ -1444,7 +1439,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }, { component: App });
     }
     {
-      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: $host.date}"></div></foo-bar>`, isStrictBinding: true })
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: $host.date}"></div></foo-bar>` })
       class App {
         private readonly status: string = 'dispatched';
         private readonly date: string = '1972-12-26';

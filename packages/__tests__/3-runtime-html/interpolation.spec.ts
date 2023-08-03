@@ -317,7 +317,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       });
       if (x.expectedStrictMode) {
         $it(`${x.it} STRICT MODE `, async function () {
-          const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, isStrictBinding: true }, x.app);
+          const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}` }, x.app);
           const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
           assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
           await tearDown();
@@ -515,7 +515,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
   it('works with strict mode', function () {
     const { assertText, component, flush } = createFixture(
       'hey ${id}',
-      CustomElement.define({ name: 'app', isStrictBinding: true }, class { id = undefined; })
+      CustomElement.define({ name: 'app' }, class { id = undefined; })
     );
     assertText('hey ');
 

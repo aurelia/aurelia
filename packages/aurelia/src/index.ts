@@ -470,7 +470,6 @@ export {
   containerless,
   customElement,
   CustomElement,
-  strict,
   capture,
   // CustomElementDecorator,
   // CustomElementKind,

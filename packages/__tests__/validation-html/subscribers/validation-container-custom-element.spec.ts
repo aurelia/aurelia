@@ -78,7 +78,7 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
         )
         .app({
           host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+          component: CustomElement.define({ name: 'app', template }, App)
         })
         .start();
 

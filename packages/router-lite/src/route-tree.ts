@@ -78,6 +78,7 @@ export class RouteNode implements IRouteNode {
   /** @internal */
   private _isInstructionsFinalized: boolean = false;
   public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
+  public readonly children: RouteNode[] = [];
 
   private constructor(
     /**
@@ -119,7 +120,6 @@ export class RouteNode implements IRouteNode {
     public readonly _viewport: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly component: CustomElementDefinition,
-    public readonly children: RouteNode[],
     /**
      * Not-yet-resolved viewport instructions.
      *
@@ -149,7 +149,6 @@ export class RouteNode implements IRouteNode {
       /*    viewport */input._viewport ?? null,
       /*       title */input.title ?? null,
       /*   component */input.component,
-      /*    children */input.children ?? [],
       /*     residue */input.residue ?? [],
     );
   }
@@ -256,9 +255,13 @@ export class RouteNode implements IRouteNode {
       this._viewport,
       this.title,
       this.component,
-      this.children.map(x => x._clone()),
       [...this.residue],
     );
+    const children = this.children;
+    const len = children.length;
+    for (let i = 0; i < len; ++i) {
+      clone.children.push(children[i]._clone());
+    }
     clone._version = this._version + 1;
     if (clone.context.node === this) {
       clone.context.node = clone;

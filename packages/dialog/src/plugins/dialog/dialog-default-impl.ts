@@ -2,7 +2,7 @@ import { IPlatform } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogGlobalSettings,
+  IDialogGlobalSettings, IDialogLoadedSettings,
 } from './dialog-interfaces';
 
 import { IContainer, resolve } from '@aurelia/kernel';
@@ -32,14 +32,16 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position:relative;margin:auto;';
 
-  public render(dialogHost: HTMLElement): IDialogDom {
+  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
       el.style.cssText = css;
       return el;
     };
-    const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
+    const startingZIndex = {settings};
+    const wrapperCss = `${startingZIndex};z-index:${startingZIndex}`;
+    const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));
     return new DefaultDialogDom(wrapper, overlay, host);

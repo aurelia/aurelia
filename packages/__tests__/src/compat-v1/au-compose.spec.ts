@@ -77,7 +77,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
         assertText('');
       });
 
-      it.only('works with custom element', async function () {
+      it('works with custom element', async function () {
         let activateCallCount = 0;
         const { queryBy, assertText, assertValue, tearDown } = createFixture(
           '<au-compose view-model.bind="fieldVm">',

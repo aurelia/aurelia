@@ -843,6 +843,29 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: 'sets correct zindex from global settings',
+        afterStarted: async (appCreationResult, dialogService) => {
+          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
+          await dialogService.open({
+            template: 'hello',
+            host: appCreationResult.appHost
+          });
+          appCreationResult.assertStyles('au-dialog-container', { zIndex: '1' });
+        },
+      },
+      {
+        title: 'lets zindex from open override global settings',
+        afterStarted: async (appCreationResult, dialogService) => {
+          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
+          await dialogService.open({
+            template: 'hello',
+            host: appCreationResult.appHost,
+            startingZIndex: 2
+          });
+          appCreationResult.assertStyles('au-dialog-container', { zIndex: '2' });
+        },
+      },
+      {
         title: 'animates correctly',
         afterStarted: async (_, dialogService) => {
           const { dialog } = await dialogService.open({

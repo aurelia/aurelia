@@ -112,12 +112,15 @@ export function createFixture<T extends object>(
   function getAllBy(selector: string) {
     return Array.from(host.querySelectorAll<HTMLElement>(selector));
   }
-  function queryBy(selector: string): HTMLElement | null {
+  function queryBy(selector: string, queryErrorSuffixMessage: string = ''): HTMLElement {
     const elements = host.querySelectorAll<HTMLElement>(selector);
     if (elements.length > 1) {
-      throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found`);
+      throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found${queryErrorSuffixMessage ? ` ${queryErrorSuffixMessage}` : ''}`);
     }
-    return elements.length === 0 ? null : elements[0];
+    if (elements.length === 0) {
+      throw new Error(`There is no element with selector "${selector}" found${queryErrorSuffixMessage ? ` ${queryErrorSuffixMessage}` : ''}`);
+    }
+    return elements[0];
   }
   function assertText(selector: string, text?: string) {
     if (arguments.length === 2) {
@@ -143,63 +146,50 @@ export function createFixture<T extends object>(
   }
   function assertHtml(selectorOrHtml: string, html: string = selectorOrHtml, { compact }: { compact?: boolean } = { compact: false }) {
     if (arguments.length > 1) {
-      const el = queryBy(selectorOrHtml);
-      if (el === null) {
-        throw new Error(`No element found for selector "${selectorOrHtml}" to compare innerHTML against "${html}"`);
-      }
+      const el = queryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
       assert.strictEqual(getInnerHtml(el, compact), html);
     } else {
       assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
     }
   }
   function assertClass(selector: string, ...classes: string[]) {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to assert className contains "${classes}"`);
-    }
+    const el = queryBy(selector, `to assert className contains "${classes}"`);
     classes.forEach(c => assert.contains(el.classList, c));
   }
   function assertAttr(selector: string, name: string, value: string | null) {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
-    }
+    const el = queryBy(selector, `to compare attribute "${name}" against "${value}"`);
     assert.strictEqual(el.getAttribute(name), value);
   }
   function assertAttrNS(selector: string, namespace: string, name: string, value: string | null) {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
-    }
+    const el = queryBy(selector, `to compare attribute "${name}" against "${value}"`);
     assert.strictEqual(el.getAttributeNS(namespace, name), value);
   }
-  function assertValue(selector: string, value: string | null) {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to compare value against "${value}"`);
+  function assertStyles(selector: string, styles: CSSStyleDeclaration) {
+    const el = queryBy(selector, `to compare style attribute against ${JSON.stringify(styles ?? {})}`);
+    const elStyles: Partial<CSSStyleDeclaration> = {};
+    for (const rule in styles) {
+      elStyles[rule] = el.style[rule];
     }
+    assert.deepStrictEqual(elStyles, styles);
+  }
+  function assertValue(selector: string, value: string | null) {
+    const el = queryBy(selector, `to compare value against "${value}"`);
     assert.strictEqual((el as any).value, value);
   }
   function trigger(selector: string, event: string, init?: CustomEventInit): void {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
-    }
+    const el = queryBy(selector, `to fire event "${event}"`);
     el.dispatchEvent(new ctx.CustomEvent(event, init));
   }
   ['click', 'change', 'input', 'scroll'].forEach(event => {
     Object.defineProperty(trigger, event, {
       configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-        const el = queryBy(selector);
-        if (el === null) {
-          throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
-        }
+        const el = queryBy(selector, `to fire event "${event}"`);
         el.dispatchEvent(new ctx.CustomEvent(event, init));
       }
     });
   });
   function type(selector: string | Element, value: string): void {
-    const el = typeof selector === 'string' ? queryBy(selector) : selector;
+    const el = typeof selector === 'string' ? queryBy(selector, `to emulate input for "${value}"`) : selector;
     if (el === null || !/input|textarea/i.test(el.nodeName)) {
       throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
     }
@@ -208,10 +198,7 @@ export function createFixture<T extends object>(
   }
 
   const scrollBy = (selector: string, init: number | ScrollToOptions) => {
-    const el = queryBy(selector);
-    if (el === null) {
-      throw new Error(`No element found for selector "${selector}" to scroll by "${JSON.stringify(init)}"`);
-    }
+    const el = queryBy(selector, `to scroll by "${JSON.stringify(init)}"`);
     el.scrollBy(typeof init === 'number' ? { top: init } : init);
     el.dispatchEvent(new platform.window.Event('scroll'));
   };
@@ -291,6 +278,7 @@ export function createFixture<T extends object>(
     public assertClass = assertClass;
     public assertAttr = assertAttr;
     public assertAttrNS = assertAttrNS;
+    public assertStyles = assertStyles;
     public assertValue = assertValue;
     public createEvent = (name: string, init?: CustomEventInit) => new platform.CustomEvent(name, init);
     public trigger = trigger as ITrigger;
@@ -380,6 +368,11 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertAttrNS(selector: string, namespace: string, name: string, value: string): void;
+  /**
+   * Assert the style values of an element matching the given record (kebab-case properties as in the style attributes),
+   * rather than the camelCase as in the property of `element.style`
+   */
+  assertStyles(selector: string, styles: Partial<CSSStyleDeclaration>): void;
   /**
    * Assert the value of an element matching the given selector inside the application host equals to a given value.
    *

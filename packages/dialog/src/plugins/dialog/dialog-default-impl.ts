@@ -39,8 +39,8 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
       el.style.cssText = css;
       return el;
     };
-    const startingZIndex = {settings};
-    const wrapperCss = `${startingZIndex};z-index:${startingZIndex}`;
+    const { startingZIndex } = settings;
+    const wrapperCss = `${this.wrapperCss};${startingZIndex == null ? '' : `z-index:${startingZIndex}`}`;
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));

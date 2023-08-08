@@ -25,6 +25,7 @@ import {
   assert,
   createSpy,
 } from '@aurelia/testing';
+import { isNode } from '../../util.js';
 
 describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
   describe('configuration', function () {
@@ -852,6 +853,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           });
           appCreationResult.assertStyles('au-dialog-container', { zIndex: '1' });
         },
+        browserOnly: true,
       },
       {
         title: 'lets zindex from open override global settings',
@@ -864,6 +866,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           });
           appCreationResult.assertStyles('au-dialog-container', { zIndex: '2' });
         },
+        browserOnly: true,
       },
       {
         title: 'animates correctly',
@@ -896,7 +899,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       }
     ];
 
-    for (const { title, only, afterStarted, afterTornDown } of testCases) {
+    for (const { title, only, afterStarted, afterTornDown, browserOnly } of testCases) {
+      if (browserOnly && isNode()) continue;
       const $it = only ? it.only : it;
       $it(title, async function () {
         const creationResult = createFixture('', class App { }, [delegateSyntax, DialogDefaultConfiguration]);
@@ -932,5 +936,6 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
     afterStarted: (appCreationResult: ReturnType<typeof createFixture>, dialogService: IDialogService) => void | Promise<void>;
     afterTornDown?: (appCreationResult: ReturnType<typeof createFixture>, dialogService: IDialogService) => void | Promise<void>;
     only?: boolean;
+    browserOnly?: boolean;
   }
 });

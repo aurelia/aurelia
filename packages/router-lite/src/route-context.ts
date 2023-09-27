@@ -712,7 +712,7 @@ class NavigationModel implements INavigationModel {
   public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
-      if (route.nav ?? false) {
+      if ((route.nav ?? false) && route.redirectTo === null) {
         routes.push(NavigationRoute._create(route));
       }
       return;
@@ -722,7 +722,7 @@ class NavigationModel implements INavigationModel {
     let promise: void | Promise<void> = void 0;
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
-        if (rdConfig.nav) {
+        if (rdConfig.nav && rdConfig.redirectTo === null) {
           routes[index] = NavigationRoute._create(rdConfig);
         } else {
           routes.splice(index, 1);
@@ -749,7 +749,6 @@ class NavigationRoute implements INavigationRoute {
   private constructor(
     public readonly id: string | null,
     public readonly path: string[],
-    public readonly redirectTo: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Record<string, unknown>,
   ) { }
@@ -759,7 +758,6 @@ class NavigationRoute implements INavigationRoute {
     return new NavigationRoute(
       rdConfig.id,
       ensureArrayOfStrings(rdConfig.path ?? emptyArray),
-      rdConfig.redirectTo,
       rdConfig.title,
       rdConfig.data,
     );
@@ -791,6 +789,6 @@ class NavigationRoute implements INavigationRoute {
         );
       });
     }
-    this._isActive = trees.some(vit => router.routeTree.contains(vit, { matchEndpoint: true, matchOriginalInstruction: this.redirectTo !== null }));
+    this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
   }
 }

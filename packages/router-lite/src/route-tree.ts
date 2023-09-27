@@ -67,13 +67,6 @@ export interface IRouteNode {
   residue?: ViewportInstruction[];
 }
 
-export interface RouteNodeMatchOptions {
-  /** Endpoints will be matched instead of instruction */
-  matchEndpoint: boolean;
-  /** Original instruction will be matched */
-  matchOriginalInstruction: boolean;
-}
-
 export class RouteNode implements IRouteNode {
   /** @internal */ public _tree!: RouteTree;
   /** @internal */ public _version: number = 1;
@@ -161,10 +154,8 @@ export class RouteNode implements IRouteNode {
     );
   }
 
-  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
+  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
     if (this.context === instructions.options.context) {
-      const matchEndpoint = options.matchEndpoint ?? false;
-      const matchOriginalInstruction = options.matchOriginalInstruction ?? false;
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
@@ -173,7 +164,7 @@ export class RouteNode implements IRouteNode {
           const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
           const nodeChild = nodeChildren[i + j] ?? null;
           const instruction = nodeChild !== null
-            ? !matchOriginalInstruction && nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
+            ? nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
             : null;
           const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
           if (i + j < ii
@@ -193,7 +184,7 @@ export class RouteNode implements IRouteNode {
     }
 
     return this.children.some(function (x) {
-      return x.contains(instructions, options);
+      return x.contains(instructions, matchEndpoint);
     });
   }
 
@@ -314,8 +305,8 @@ export class RouteTree {
     public root: RouteNode,
   ) { }
 
-  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
-    return this.root.contains(instructions, options);
+  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
+    return this.root.contains(instructions, matchEndpoint);
   }
 
   /** @internal */

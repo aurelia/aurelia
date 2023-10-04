@@ -3847,7 +3847,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     function getNavBarCe(
       hasAsyncRouteConfig: boolean = false,
-      includeRedirection: boolean = false,
     ) {
       @valueConverter('firstNonEmpty')
       class FirstNonEmpty {
@@ -3862,7 +3861,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         name: 'nav-bar',
         template: `<nav if.bind="navModel">
         <ul>
-          <li repeat.for="route of navModel.routes${includeRedirection ? '' : '.filter(r => !r.redirectTo)'}"><a href.bind="route.path | firstNonEmpty" active.class="route.isActive">\${route.title}</a></li>
+          <li repeat.for="route of navModel.routes"><a href.bind="route.path | firstNonEmpty" active.class="route.isActive">\${route.title}</a></li>
         </ul>
       </nav><template else>no nav model</template>`,
         dependencies: [FirstNonEmpty]
@@ -4476,7 +4475,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const ctx = TestContext.create();
       const { container } = ctx;
 
-      const navBarCe = getNavBarCe(false, true);
+      const navBarCe = getNavBarCe(false);
       container.register(
         StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),

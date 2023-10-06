@@ -334,7 +334,7 @@ export class Router {
 
     if (__DEV__) trace(this._logger, Events.rtrIsActive, instructions, ctx);
 
-    return this.routeTree.contains(instructions, { matchEndpoint: false });
+    return this.routeTree.contains(instructions, false);
   }
 
   private readonly _vpaLookup: ViewportAgentLookup = new Map();

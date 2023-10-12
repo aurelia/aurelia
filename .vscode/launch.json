@@ -169,8 +169,8 @@
         "5000",
         "--watch-extensions",
         "js",
-        "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
-        "${workspaceRoot}/packages/__tests__/dist/router-lite/**/*.spec.js"
+        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/router-lite/**/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
@@ -284,9 +284,9 @@
        "--watch-extensions",
        "js",
        "--bail",
-       "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
-       "${workspaceRoot}/packages/__tests__/dist/2-runtime/*.spec.js",
-       "${workspaceRoot}/packages/__tests__/dist/3-runtime-html/*.spec.js"
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/setup-node.js",
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/2-runtime/*.spec.js",
+       "${workspaceRoot}/packages/__tests__/dist/esm/__tests__/3-runtime-html/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"

@@ -533,13 +533,12 @@ export class MyApp {
 | one-time  | **✓**         |             |
 | bind      | **✓**         |             |
 
-### References
+### Referencing DOM Elements
 
-| Name | Aurelia 1 | Aurelia 2 | Description |
-| ---- | - | - |
-| ref  | **✓** | **✓** | |
-| view-model.ref  | **✓** | **✓** | deprecated in v2 |
-| component.ref | **✗** | **✓** | Not in v1 |
+| Name | Aurelia 1 & 2 | Description |
+| ---- | ------------- | ----------- |
+| ref  | **✓**         |             |
+| view-model.ref  | **✓**         |             |
 
 ### Passing Function References
 

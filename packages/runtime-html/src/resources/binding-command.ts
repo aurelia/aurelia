@@ -129,7 +129,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const cmdBaseName = /*@__PURE__*/getResourceKeyFor('binding-command');
+const cmdBaseName = getResourceKeyFor('binding-command');
 const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
 const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
@@ -173,7 +173,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
-      target = info.bindable.name;
+      target = info.bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.oneTime);
   }
@@ -198,7 +198,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
-      target = info.bindable.name;
+      target = info.bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.toView);
   }
@@ -223,7 +223,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
-      target = info.bindable.name;
+      target = info.bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.fromView);
   }
@@ -248,7 +248,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === DefinitionType.Element) {
         value = camelCase(target);
       }
-      target = info.bindable.name;
+      target = info.bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.twoWay);
   }
@@ -284,7 +284,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
           ? BindingMode.toView
           : defaultMode
         : bindable.mode;
-      target = bindable.name;
+      target = bindable.property;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, mode);
   }
@@ -306,7 +306,7 @@ export class ForBindingCommand implements BindingCommandInstance {
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
-      : info.bindable.name;
+      : info.bindable.property;
     const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
     let props: MultiAttrInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {

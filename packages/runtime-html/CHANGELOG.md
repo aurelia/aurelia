@@ -3,60 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-<a name="2.0.0-beta.8"></a>
-# 2.0.0-beta.8 (2023-07-24)
-
-### Features:
-
-* **compose:** passthrough bindings + support containerless (#1792) ([e8e39a9](https://github.com/aurelia/aurelia/commit/e8e39a9))
-
-
-### Bug Fixes:
-
-* **au-slot:** correctly prepare resources for slotted view (#1802) ([bf1ca4c](https://github.com/aurelia/aurelia/commit/bf1ca4c))
-
-
-### Refactorings:
-
-* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
-* **text-binding:** always evaluate expressions in strict mode (#1801) ([15acfee](https://github.com/aurelia/aurelia/commit/15acfee))
-* ***:** bindable property -> name (#1783) ([ca0eda7](https://github.com/aurelia/aurelia/commit/ca0eda7))
-
-<a name="2.0.0-beta.7"></a>
-# 2.0.0-beta.7 (2023-06-16)
-
-### Features:
-
-* **build:** add a development entry point (#1770) ([69ff445](https://github.com/aurelia/aurelia/commit/69ff445))
-
-
-### Bug Fixes:
-
-* **resolver:** mark private as internal ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
-
-
-### Refactorings:
-
-* **runtime:** cleanup, extract error to const enums (#1775) ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
-* **compiler:** use comment to mark target (#1774) ([e37802c](https://github.com/aurelia/aurelia/commit/e37802c))
-* **runtime-html:** cleanup errors, remove unused code. (#1771) ([750210d](https://github.com/aurelia/aurelia/commit/750210d))
-
-<a name="2.0.0-beta.6"></a>
-# 2.0.0-beta.6 (2023-05-21)
-
-### Features:
-
-* **all:** allow injection of implementation (#1766) ([a60db13](https://github.com/aurelia/aurelia/commit/a60db13))
-* **templating:** allow deactivate when activating (#1729) ([1c9c97c](https://github.com/aurelia/aurelia/commit/1c9c97c))
-* **bindable:** support getter/setter (#1753) ([4279851](https://github.com/aurelia/aurelia/commit/4279851))
-
-
-### Refactorings:
-
-* **compiler:** avoid using au class to find targets (#1768) ([0d30998](https://github.com/aurelia/aurelia/commit/0d30998))
-* ***:** rename resolveAll -> onResolveAll (#1764) ([fdf0747](https://github.com/aurelia/aurelia/commit/fdf0747))
-* ***:** cleanup up unused code & decouple interface from default impl (#1761) ([7a71d43](https://github.com/aurelia/aurelia/commit/7a71d43))
-
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

@@ -38,7 +38,7 @@ export class CallBindingCommand implements BindingCommandInstance {
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
-      : info.bindable.name;
+      : info.bindable.property;
     return new CallBindingInstruction(
       exprParser.parse(info.attr.rawValue, (ExpressionType.IsProperty | ExpressionType.IsFunction) as ExpressionType) as IsBindingBehavior,
       target

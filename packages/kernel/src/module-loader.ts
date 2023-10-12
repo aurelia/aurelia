@@ -1,12 +1,11 @@
 import { createInterface } from './di';
 import { emptyArray } from './platform';
 import { getAllResources } from './resource';
-import { isFunction } from './utilities';
+import { createError, isFunction } from './utilities';
 
 import type { IRegistry } from './di';
 import type { Constructable, IDisposable, IIndexable } from './interfaces';
 import type { ResourceDefinition } from './resource';
-import { ErrorNames, createMappedError } from './errors';
 
 export interface IModule {
   [key: string]: unknown;
@@ -37,7 +36,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     } else if (typeof objOrPromise === 'object' && objOrPromise !== null) {
       return this._transformObject(objOrPromise);
     } else {
-      throw createMappedError(ErrorNames.invalid_module_transform_input, objOrPromise);
+      throw createError(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
     }
   }
 
@@ -77,7 +76,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
 
   /** @internal */
   private _analyze(m: TMod): AnalyzedModule<TMod> {
-    if (m == null) throw createMappedError(ErrorNames.invalid_module_transform_input, m);
+    if (m == null) throw new Error(`Invalid input: ${String(m)}. Expected Object.`);
     if (typeof m !== 'object') return new AnalyzedModule(m, []);
     let value: unknown;
     let isRegistry: boolean;

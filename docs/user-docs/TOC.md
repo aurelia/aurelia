@@ -16,7 +16,6 @@
 ## Templates
 
 * [Template syntax & features](templates/template-syntax.md)
-* [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)
 * [Binding behaviors](templates/binding-behaviors.md)
@@ -26,7 +25,7 @@
 * [List Rendering](templates/repeats-and-list-rendering.md)
 * [Lambda Expressions](templates/lambda-expressions.md)
 * [Local templates (inline templates)](templates/local-templates.md)
-* [Attribute Binding](templates/advanced-attribute-binding.md)
+* [Advanced Attribute Binding)](templates/advanced-attribute-binding.md)
 * [SVG](templates/svg.md)
 
 ## Components
@@ -89,7 +88,6 @@
 * [Logging](getting-to-know-aurelia/logging.md)
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)
-* [UI virtualization](developer-guides/ui-virtualization.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [0001 to 0015](developer-guides/error-messages/0001-to-0015/README.md)
     * [AUR0001](developer-guides/error-messages/0001-to-0015/aur0001.md)

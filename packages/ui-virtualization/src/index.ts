@@ -12,7 +12,7 @@ export {
 } from './interfaces';
 
 export {
-  DefaultVirtualizationConfiguration,
+  DefaultVirtualRepeatConfiguration,
 } from './configuration';
 
 export { VirtualRepeat } from './virtual-repeat';

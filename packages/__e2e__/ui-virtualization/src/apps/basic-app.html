@@ -1,24 +1,3 @@
-<div>
-  <button click.trigger="newItems()">new</button>
-  <button click.trigger="clearItems()">clear</button>
-  Start:
-  <button click.trigger="addItemsAtStart(1)">+1</button>
-  <button click.trigger="addItemsAtStart(-1)">-1</button>
-  <button click.trigger="addItemsAtStart(10)">+10</button>
-  <button click.trigger="addItemsAtStart(-10)">-10</button>
-  <button click.trigger="addItemsAtStart(100)">+100</button>
-  <button click.trigger="addItemsAtStart(-100)">-100</button>
-  End:
-  <button click.trigger="addItemsAtEnd(1)" data-testid="add-1">+1</button>
-  <button click.trigger="addItemsAtEnd(-1)" data-testid="remove-1">-1</button>
-  <button click.trigger="addItemsAtEnd(10)" data-testid="add-10">+10</button>
-  <button click.trigger="addItemsAtEnd(-10)" data-testid="remove-10">-10</button>
-  <button click.trigger="addItemsAtEnd(100)" data-testid="add-100">+100</button>
-  <button click.trigger="addItemsAtEnd(-100)" data-testid="remove-100">-100</button>
-  <button click.trigger="addItemsAtEnd(-475)" data-testid="remove-475">-475</button>
-  Count:
-  <span data-testid="items-count">${items.length}</span>
-</div>
-<div id="repeat-container" style="overflow: auto; height: 500px">
-  <div virtual-repeat.for="item of items" even-row.class="$even" style="height: 50px;">${item.name} @ index ${$index}</div>
+<div style="overflow: auto; height: 500px">
+  <div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>
 </div>

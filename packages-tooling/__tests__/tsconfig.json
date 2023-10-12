@@ -4,7 +4,6 @@
     "allowSyntheticDefaultImports": true,
     "declarationDir": "dist/types",
     "outDir": "dist/cjs",
-    "rootDir": "src",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,

@@ -15,7 +15,7 @@ In many instances, when working with templated views in Aurelia, you will be app
 {% tab title="my-app.html" %}
 ```markup
 <template as-custom-element="person-info">
-  <bindable name="person"></bindable>
+  <bindable property="person"></bindable>
   <div>
     <label>Name:</label>
     <span>${person.name}</span>
@@ -64,7 +64,7 @@ In this case, it is named as `person-info`. A custom element defined that way ca
 Local templates can also optionally specify bindable properties using the `<bindable>` tag as shown above. Apart from `property`, other allowed attributes that can be used in this tag are `attribute`, and `mode`. In that respect, the following two declarations are synonymous.
 
 ```markup
-<bindable name="foo" mode="twoWay" attribute="fiz-baz"></bindable>
+<bindable property="foo" mode="twoWay" attribute="fiz-baz"></bindable>
 ```
 
 ```typescript
@@ -87,7 +87,7 @@ This means that the following is a perfectly valid example. Note that the local 
 {% tab title="level-one.html" %}
 ```markup
 <template as-custom-element="foo-bar">
-  <bindable name='prop'></bindable>
+  <bindable property='prop'></bindable>
 
   Level One ${prop}
 </template>
@@ -106,7 +106,7 @@ class LevelOne {
 {% tab title="level-two.html" %}
 ```markup
 <template as-custom-element="foo-bar">
-  <bindable name='prop'></bindable>
+  <bindable property='prop'></bindable>
   Level Two ${prop}
   <level-one prop="fiz baz"></level-one>
 </template>
@@ -141,7 +141,7 @@ Like anything, there is always an upside and downside: local templates are no di
 <foo-bar foo.bind="'John'"></foo-bar>
 
 <template as-custom-element="foo-bar">
-  <bindable name="foo"></bindable>
+  <bindable property="foo"></bindable>
   <div> ${foo} </div>
 </template>
 ```
@@ -225,7 +225,7 @@ The following example will cause a (jit) compilation error.
 ```markup
 <template as-custom-element="foo-bar">
   <div>
-    <bindable name="prop"></bindable>
+    <bindable property="prop"></bindable>
   </div>
 </template>
 <div></div>

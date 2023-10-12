@@ -9,22 +9,20 @@ import type { ITask } from '@aurelia/platform';
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import type { HydrateAttributeInstruction } from '../../renderer';
 import { alias } from '../../utilities-di';
-import { resolve } from '@aurelia/kernel';
 
 export class Show implements ICustomAttributeViewModel {
   @bindable public value: unknown;
 
-  private readonly el = resolve(INode) as INode<HTMLElement>;
-  private readonly p = resolve(IPlatform);
-
+  /** @internal */ private _isToggled: boolean;
   /** @internal */ private _isActive: boolean = false;
   /** @internal */ private _task: ITask | null = null;
-
-  /** @internal */ private _isToggled: boolean;
   /** @internal */ private readonly _base: boolean;
 
-  public constructor() {
-    const instr = resolve(IInstruction) as HydrateAttributeInstruction;
+  public constructor(
+    @INode private readonly el: INode<HTMLElement>,
+    @IPlatform private readonly p: IPlatform,
+    @IInstruction instr: HydrateAttributeInstruction,
+  ) {
     // if this is declared as a 'hide' attribute, then this.base will be false, inverting everything.
     this._isToggled = this._base = instr.alias !== 'hide';
   }

@@ -1,4 +1,3 @@
-import { resolve } from '@aurelia/kernel';
 import { IPlatform } from '../platform';
 import { isString } from '../utilities';
 import { createInterface } from '../utilities-di';
@@ -16,12 +15,16 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
   /** @internal */
-  private readonly p = resolve(IPlatform);
-  /** @internal */
-  private _template = this.t();
+  public static inject = [IPlatform];
 
-  private t() {
-    return this.p.document.createElement('template');
+  /** @internal */
+  private _template: HTMLTemplateElement;
+  /** @internal */
+  private readonly p: IPlatform;
+
+  public constructor(p: IPlatform) {
+    this.p = p;
+    this._template = createTemplate(this.p);
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;
@@ -37,7 +40,7 @@ export class TemplateElementFactory {
         // if the input is either not wrapped in a template or there is more than one node,
         // return the whole template that wraps it/them (and create a new one for the next input)
         if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
-          this._template = this.t();
+          this._template = createTemplate(this.p);
           result = template;
         } else {
           // the node to return is both a template and the only node, so return just the node
@@ -53,7 +56,7 @@ export class TemplateElementFactory {
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
-      const template = this.t();
+      const template = createTemplate(this.p);
       template.content.appendChild(input);
       return template;
     }
@@ -63,3 +66,5 @@ export class TemplateElementFactory {
     return input.cloneNode(true) as HTMLTemplateElement;
   }
 }
+
+const createTemplate = (p: IPlatform) => p.document.createElement('template');

@@ -118,7 +118,7 @@ export {
   getPrototypeChain,
   isNativeFunction,
   onResolve,
-  onResolveAll,
+  resolveAll,
 } from './functions';
 
 export {

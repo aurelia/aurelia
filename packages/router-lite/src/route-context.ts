@@ -30,7 +30,6 @@ import {
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
 import {
-  IExtendedViewportInstruction,
   ITypedNavigationInstruction_Component,
   ITypedNavigationInstruction_string,
   IViewportInstruction,
@@ -56,20 +55,19 @@ import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
-import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 
-type EagerInstruction = {
+export type EagerInstruction = {
   component: string | RouteConfig | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
   params: Params;
 };
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
-function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
+export function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
   // don't try to resolve an instruction with children eagerly, as the children are essentially resolved lazily, for now.
   if (val == null) return false;
   const params = (val as EagerInstruction).params;
@@ -92,7 +90,7 @@ function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val 
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
 export class RouteContext {
-  /** @internal */ private readonly _childViewportAgents: ViewportAgent[] = [];
+  private readonly childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
   public get isRoot(): boolean {
     return this.parent === null;
@@ -109,10 +107,8 @@ export class RouteContext {
    * The stringified path from the root RouteContext up to this one, consisting of the component names they're associated with, separated by slashes.
    *
    * Mainly for debugging/introspection purposes.
-   *
-   * @internal
    */
-  public readonly _friendlyPath: string;
+  public readonly friendlyPath: string;
 
   /**
    * The (fully resolved) configured child routes of this context's `RouteConfig`
@@ -120,24 +116,32 @@ export class RouteContext {
   public readonly childRoutes: (RouteConfig | Promise<RouteConfig>)[] = [];
 
   /** @internal */
+  private _resolved: Promise<void> | null = null;
+  public get resolved(): Promise<void> | null {
+    return this._resolved;
+  }
+
+  /** @internal */
   private _allResolved: Promise<void> | null = null;
   public get allResolved(): Promise<void> | null {
     return this._allResolved;
   }
 
-  /** @internal */ private _prevNode: RouteNode | null = null;
-  /** @internal */ private _node: RouteNode | null = null;
+  private prevNode: RouteNode | null = null;
+  /** @internal */
+  private _node: RouteNode | null = null;
   public get node(): RouteNode {
     const node = this._node;
-    if (node === null) throw new Error(getMessage(Events.rcNoNode, this));
+    if (node === null) {
+      throw new Error(`Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: ${this}`);
+    }
     return node;
   }
-  /** @internal */
   public set node(value: RouteNode) {
-    const prev = this._prevNode = this._node;
+    const prev = this.prevNode = this._node;
     if (prev !== value) {
       this._node = value;
-      if (__DEV__) trace(this._logger, Events.rcNodeChanged, this._prevNode, value);
+      this.logger.trace(`Node changed from %s to %s`, this.prevNode, value);
     }
   }
 
@@ -149,16 +153,19 @@ export class RouteContext {
    */
   public get vpa(): ViewportAgent {
     const vpa = this._vpa;
-    if (vpa === null) throw new Error(getMessage(Events.rcNoVpa, this));
+    if (vpa === null) {
+      throw new Error(`RouteContext has no ViewportAgent: ${this}`);
+    }
     return vpa;
   }
   public readonly container: IContainer;
 
-  /** @internal */ private readonly _moduleLoader: IModuleLoader;
-  /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
-  /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
-  /** @internal */ private _childRoutesConfigured: boolean = false;
+  private readonly moduleLoader: IModuleLoader;
+  private readonly logger: ILogger;
+  private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
+  /** @internal */
+  public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
+  private _childRoutesConfigured: boolean = false;
 
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
@@ -177,22 +184,22 @@ export class RouteContext {
     if (parent === null) {
       this.root = this;
       this.path = [this];
-      this._friendlyPath = component.name;
+      this.friendlyPath = component.name;
     } else {
       this.root = parent.root;
       this.path = [...parent.path, this];
-      this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
+      this.friendlyPath = `${parent.friendlyPath}/${component.name}`;
     }
-    this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
-    if (__DEV__) trace(this._logger, Events.rcCreated);
+    this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
+    this.logger.trace('constructor()');
 
-    this._moduleLoader = parentContainer.get(IModuleLoader);
+    this.moduleLoader = parentContainer.get(IModuleLoader);
 
     const container = this.container = parentContainer.createChild();
 
     container.registerResolver(
       IController,
-      this._hostControllerProvider = new InstanceProvider(),
+      this.hostControllerProvider = new InstanceProvider(),
       true,
     );
 
@@ -211,15 +218,15 @@ export class RouteContext {
       // If need be we can optimize it later.
       container
         .get(IRouterEvents)
-        .subscribe('au:router:navigation-end', () => navModel._setIsActive(_router, this));
+        .subscribe('au:router:navigation-end', () => navModel.setIsActive(_router, this));
     } else {
       this._navigationModel = null;
     }
     this._processConfig(config);
   }
 
-  /** @internal */
   private _processConfig(config: RouteConfig): void {
+    const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
     const childrenRoutes = config.routes ?? noRoutes;
     const len = childrenRoutes.length;
@@ -234,36 +241,43 @@ export class RouteContext {
     for (; i < len; i++) {
       const childRoute = childrenRoutes[i];
       if (childRoute instanceof Promise) {
-        allPromises.push(this._addRoute(childRoute));
-        continue;
-      }
-      const rdResolution = resolveRouteConfiguration(childRoute, true, config, null, this);
-      if (rdResolution instanceof Promise) {
-        if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(getMessage(Events.rcNoPathLazyImport));
-        for (const path of ensureArrayOfStrings(childRoute.path)) {
-          this._$addRoute(path, childRoute.caseSensitive ?? false, rdResolution);
+        const p = this.addRoute(childRoute);
+        promises.push(p);
+        allPromises.push(p);
+      } else {
+        const rdResolution = resolveRouteConfiguration(childRoute, true, config, null, this);
+        if (rdResolution instanceof Promise) {
+          if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null) throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified.`);
+          for (const path of ensureArrayOfStrings(childRoute.path)) {
+            this.$addRoute(path, childRoute.caseSensitive ?? false, rdResolution);
+          }
+          const idx = this.childRoutes.length;
+          const p = rdResolution.then((rdConfig) => {
+            return this.childRoutes[idx] = rdConfig;
+          });
+          this.childRoutes.push(p);
+          if (hasNavModel) {
+            navModel.addRoute(p);
+          }
+          allPromises.push(p.then(noop));
+        } else {
+          for (const path of rdResolution.path ?? emptyArray) {
+            this.$addRoute(path, rdResolution.caseSensitive, rdResolution);
+          }
+          this.childRoutes.push(rdResolution);
+          if (hasNavModel) {
+            navModel.addRoute(rdResolution);
+          }
         }
-        const idx = this.childRoutes.length;
-        const p = rdResolution.then((rdConfig) => {
-          return this.childRoutes[idx] = rdConfig;
-        });
-        this.childRoutes.push(p);
-        if (hasNavModel) {
-          navModel._addRoute(p);
-        }
-        allPromises.push(p.then(noop));
-        continue;
-      }
-      for (const path of rdResolution.path ?? emptyArray) {
-        this._$addRoute(path, rdResolution.caseSensitive, rdResolution);
-      }
-      this.childRoutes.push(rdResolution);
-      if (hasNavModel) {
-        navModel._addRoute(rdResolution);
       }
     }
     this._childRoutesConfigured = true;
 
+    if (promises.length > 0) {
+      this._resolved = Promise.all(promises).then(() => {
+        this._resolved = null;
+      });
+    }
     if (allPromises.length > 0) {
       this._allResolved = Promise.all(allPromises).then(() => {
         this._allResolved = null;
@@ -282,16 +296,16 @@ export class RouteContext {
     const logger = container.get(ILogger).scopeTo('RouteContext');
 
     if (!container.has(IAppRoot, true)) {
-      logAndThrow(new Error(getMessage(Events.rcNoAppRoot)), logger);
+      logAndThrow(new Error(`The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app's component tree.`), logger);
     }
 
     if (container.has(IRouteContext, true)) {
-      logAndThrow(new Error(getMessage(Events.rcHasRootContext)), logger);
+      logAndThrow(new Error(`A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.`), logger);
     }
 
     const { controller } = container.get(IAppRoot);
     if (controller === void 0) {
-      logAndThrow(new Error(getMessage(Events.rcNoRootCtrl)), logger);
+      logAndThrow(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), logger);
     }
 
     const router = container.get(IRouter);
@@ -316,18 +330,17 @@ export class RouteContext {
     const rootContainer = root.container;
     const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
 
-    if (context == null) {
-      if (__DEV__) trace(logger, Events.rcResolveNullishContext, context);
+    if (context === null || context === void 0) {
+      logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
       return root;
     }
 
-    if (context instanceof RouteContext) {
-      if (__DEV__) trace(logger, Events.rcResolveInstance, context);
+    if (isRouteContext(context)) {
+      logger.trace(`resolve(context:%s) - returning provided RouteContext`, context);
       return context;
     }
 
     if (context instanceof rootContainer.get(IPlatform).Node) {
-      if (__DEV__) trace(logger, Events.rcResolveNode, context.nodeName);
       try {
         // CustomElement.for can theoretically throw in (as of yet) unknown situations.
         // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
@@ -335,49 +348,51 @@ export class RouteContext {
         // That's why we catch, log and re-throw instead of just letting the error bubble up.
         // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
         const controller = CustomElement.for(context, { searchParents: true });
+        logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.definition.name}') - resolving RouteContext from controller's RenderContext`);
         return controller.container.get(IRouteContext);
       } catch (err) {
-        error(logger, Events.rcResolveNodeFailed, context.nodeName, err);
+        logger.error(`Failed to resolve RouteContext from Node(nodeName:'${context.nodeName}')`, err);
         throw err;
       }
     }
 
     if (isCustomElementViewModel(context)) {
       const controller = context.$controller!;
-      if (__DEV__) trace(logger, Events.rcResolveCe, controller.definition.name);
+      logger.trace(`resolve(context:CustomElementViewModel(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
       return controller.container.get(IRouteContext);
     }
 
     if (isCustomElementController(context)) {
       const controller = context;
-      if (__DEV__) trace(logger, Events.rcResolveCtrl, controller.definition.name);
+      logger.trace(`resolve(context:CustomElementController(name:'${controller.definition.name}')) - resolving RouteContext from controller's RenderContext`);
       return controller.container.get(IRouteContext);
     }
 
-    logAndThrow(new Error(getMessage(Events.rcResolveInvalidCtxType, Object.prototype.toString.call(context))), logger);
+    logAndThrow(new Error(`Invalid context type: ${Object.prototype.toString.call(context)}`), logger);
   }
 
   public dispose(): void {
     this.container.dispose();
   }
 
-  /** @internal */
-  public _resolveViewportAgent(req: ViewportRequest): ViewportAgent {
-    if (__DEV__) trace(this._logger, Events.rcResolveVpa, req);
+  public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
+    this.logger.trace(`resolveViewportAgent(req:%s)`, req);
 
-    const agent = this._childViewportAgents.find(x => { return x._handles(req); });
+    const agent = this.childViewportAgents.find(x => { return x._handles(req); });
 
-    if (agent === void 0) throw new Error(getMessage(Events.rcNoAvailableVpa, req, this._printTree()));
+    if (agent === void 0) {
+      throw new Error(`Failed to resolve ${req} at:\n${this.printTree()}`);
+    }
 
     return agent;
   }
 
   public getAvailableViewportAgents(): readonly ViewportAgent[] {
-    return this._childViewportAgents.filter(x => x._isAvailable());
+    return this.childViewportAgents.filter(x => x._isAvailable());
   }
 
   public getFallbackViewportAgent(name: string): ViewportAgent | null {
-    return this._childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback !== '') ?? null;
+    return this.childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback !== '') ?? null;
   }
 
   /**
@@ -385,13 +400,11 @@ export class RouteContext {
    *
    * @param hostController - The `ICustomElementController` whose component (typically `au-viewport`) will host this component.
    * @param routeNode - The routeNode that describes the component + state.
-   *
-   * @internal
    */
-  public _createComponentAgent(hostController: ICustomElementController, routeNode: RouteNode): ComponentAgent | Promise<ComponentAgent> {
-    if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
+  public createComponentAgent(hostController: ICustomElementController, routeNode: RouteNode): ComponentAgent | Promise<ComponentAgent> {
+    this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
-    this._hostControllerProvider.prepare(hostController);
+    this.hostControllerProvider.prepare(hostController);
     const container = this.container;
     const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
@@ -405,38 +418,36 @@ export class RouteContext {
       const controller = Controller.$el(container, componentInstance, hostController.host, null);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
-      this._hostControllerProvider.dispose();
+      this.hostControllerProvider.dispose();
 
       return componentAgent;
     });
   }
 
-  /** @internal */
-  public _registerViewport(viewport: IViewport): ViewportAgent {
+  public registerViewport(viewport: IViewport): ViewportAgent {
     const agent = ViewportAgent.for(viewport, this);
-    if (this._childViewportAgents.includes(agent)) {
-      if (__DEV__) trace(this._logger, Events.rcRegisterVpSkip, agent);
-      return agent;
+    if (this.childViewportAgents.includes(agent)) {
+      this.logger.trace(`registerViewport(agent:%s) -> already registered, so skipping`, agent);
+    } else {
+      this.logger.trace(`registerViewport(agent:%s) -> adding`, agent);
+      this.childViewportAgents.push(agent);
     }
 
-    if (__DEV__) trace(this._logger, Events.rcRegisterVp, agent);
-    this._childViewportAgents.push(agent);
     return agent;
   }
 
-  /** @internal */
-  public _unregisterViewport(viewport: IViewport): void {
+  public unregisterViewport(viewport: IViewport): void {
     const agent = ViewportAgent.for(viewport, this);
-    if (!this._childViewportAgents.includes(agent)) {
-      if (__DEV__) trace(this._logger, Events.rcUnregisterVpSkip, agent);
-      return;
+    if (this.childViewportAgents.includes(agent)) {
+      this.logger.trace(`unregisterViewport(agent:%s) -> unregistering`, agent);
+      this.childViewportAgents.splice(this.childViewportAgents.indexOf(agent), 1);
+    } else {
+      this.logger.trace(`unregisterViewport(agent:%s) -> not registered, so skipping`, agent);
     }
-    if (__DEV__) trace(this._logger, Events.rcUnregisterVp, agent);
-    this._childViewportAgents.splice(this._childViewportAgents.indexOf(agent), 1);
   }
 
   public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
-    if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
+    this.logger.trace(`recognize(path:'${path}')`);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteContext = this;
     let _continue = true;
@@ -459,24 +470,22 @@ export class RouteContext {
     );
   }
 
-  /** @internal */
-  private _addRoute(routeable: Promise<IModule>): Promise<void>;
-  private _addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
-  private _addRoute(routeable: Routeable): void | Promise<void> {
-    if(__DEV__) trace(this._logger, Events.rcAddRoute, routeable);
+  private addRoute(routeable: Promise<IModule>): Promise<void>;
+  private addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
+  private addRoute(routeable: Routeable): void | Promise<void> {
+    this.logger.trace(`addRoute(routeable:'${routeable}')`);
     return onResolve(
       resolveRouteConfiguration(routeable, true, this.config, null, this),
       rdConfig => {
         for (const path of rdConfig.path ?? emptyArray) {
-          this._$addRoute(path, rdConfig.caseSensitive, rdConfig);
+          this.$addRoute(path, rdConfig.caseSensitive, rdConfig);
         }
-        this._navigationModel?._addRoute(rdConfig);
+        this._navigationModel?.addRoute(rdConfig);
         this.childRoutes.push(rdConfig);
       });
   }
 
-  /** @internal */
-  private _$addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
+  private $addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
     this._recognizer.add({
       path,
       caseSensitive,
@@ -484,9 +493,8 @@ export class RouteContext {
     }, true);
   }
 
-  /** @internal */
-  public _resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
-    return this._moduleLoader.load(promise, m => {
+  public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
+    return this.moduleLoader.load(promise, m => {
       // when we have import('./some-path').then(x => x.somethingSpecific)
       const raw = m.raw;
       if (typeof raw === 'function') {
@@ -509,17 +517,22 @@ export class RouteContext {
         }
       }
 
-      if (defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(getMessage(Events.rcInvalidLazyImport, promise));
-
-      return firstNonDefaultExport ?? defaultExport!;
+      if (defaultExport === void 0) {
+        if (firstNonDefaultExport === void 0) {
+          // TODO: make error more accurate and add potential causes/solutions
+          throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia`);
+        }
+        return firstNonDefaultExport;
+      }
+      return defaultExport;
     });
   }
 
   /** @internal */
-  public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
-  public _generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null {
+  public generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
+  public generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null;
+  public generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction): PathGenerationResult | null {
     if (!isEagerInstruction(instruction)) return null;
     const component = instruction.component;
     let paths: string[] | undefined;
@@ -556,8 +569,9 @@ export class RouteContext {
     if (numPaths === 1) {
       const result = core(paths[0]);
       if (result === null) {
-        if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
-        if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
+        const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+        if (throwError) throw new Error(message);
+        this.logger.debug(message);
         return null;
       }
       return {
@@ -566,8 +580,8 @@ export class RouteContext {
           component: result.path,
           children: (instruction as IViewportInstruction).children,
           viewport: (instruction as IViewportInstruction).viewport,
-          open: (instruction as IExtendedViewportInstruction).open,
-          close: (instruction as IExtendedViewportInstruction).close,
+          open: (instruction as IViewportInstruction).open,
+          close: (instruction as IViewportInstruction).close,
         }),
         query: result.query,
       };
@@ -586,8 +600,9 @@ export class RouteContext {
     }
 
     if (result === null) {
-      if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
-      if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
+      const message = `Unable to eagerly generate path for ${instruction}. Reasons: ${errors}.`;
+      if (throwError) throw new Error(message);
+      this.logger.debug(message);
       return null;
     }
     return {
@@ -596,8 +611,8 @@ export class RouteContext {
         component: result.path,
         children: (instruction as IViewportInstruction).children,
         viewport: (instruction as IViewportInstruction).viewport,
-        open: (instruction as IExtendedViewportInstruction).open,
-        close: (instruction as IExtendedViewportInstruction).close,
+        open: (instruction as IViewportInstruction).open,
+        close: (instruction as IViewportInstruction).close,
       }),
       query: result.query,
     };
@@ -635,7 +650,7 @@ export class RouteContext {
             ? `:${key}?`
             : `:${key}`;
 
-        path = path.replace(pattern, encodeURIComponent(value));
+        path = path.replace(pattern, value);
       }
       const consumedKeys = Object.keys(consumed);
       const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
@@ -643,21 +658,28 @@ export class RouteContext {
     }
   }
 
-  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
-    const vpAgents = this._childViewportAgents;
+    const vpAgents = this.childViewportAgents;
     const viewports = vpAgents.map(String).join(',');
-    return `RC(path:'${this._friendlyPath}',viewports:[${viewports}])`;
+    return `RC(path:'${this.friendlyPath}',viewports:[${viewports}])`;
   }
 
-  /** @internal */
-  private _printTree(): string {
+  private printTree(): string {
     const tree: string[] = [];
     for (let i = 0; i < this.path.length; ++i) {
       tree.push(`${' '.repeat(i)}${this.path[i]}`);
     }
     return tree.join('\n');
   }
+}
+
+function isRouteContext(value: unknown): value is IRouteContext {
+  return value instanceof RouteContext;
+}
+
+function logAndThrow(err: Error, logger: ILogger): never {
+  logger.error(err);
+  throw err;
 }
 
 function isCustomElementDefinition(value: ResourceDefinition): value is CustomElementDefinition {
@@ -671,7 +693,6 @@ export class $RecognizedRoute {
   ) { }
 
   public toString(): string {
-    if(!__DEV__) return 'RR';
     const route = this.route;
     const cr = route.endpoint.route;
     return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;
@@ -700,20 +721,20 @@ class NavigationModel implements INavigationModel {
   }
 
   /** @internal */
-  public _setIsActive(router: IRouter, context: IRouteContext): void {
+  public setIsActive(router: IRouter, context: IRouteContext): void {
     void onResolve(this._promise, () => {
       for (const route of this.routes) {
-        route._setIsActive(router, context);
+        route.setIsActive(router, context);
       }
     });
   }
 
   /** @internal */
-  public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
+  public addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
-      if ((route.nav ?? false) && route.redirectTo === null) {
-        routes.push(NavigationRoute._create(route));
+      if (route.nav ?? false) {
+        routes.push(NavigationRoute.create(route));
       }
       return;
     }
@@ -722,8 +743,8 @@ class NavigationModel implements INavigationModel {
     let promise: void | Promise<void> = void 0;
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
-        if (rdConfig.nav && rdConfig.redirectTo === null) {
-          routes[index] = NavigationRoute._create(rdConfig);
+        if (rdConfig.nav) {
+          routes[index] = NavigationRoute.create(rdConfig);
         } else {
           routes.splice(index, 1);
         }
@@ -749,15 +770,17 @@ class NavigationRoute implements INavigationRoute {
   private constructor(
     public readonly id: string | null,
     public readonly path: string[],
+    public readonly redirectTo: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Record<string, unknown>,
   ) { }
 
   /** @internal */
-  public static _create(rdConfig: RouteConfig) {
+  public static create(rdConfig: RouteConfig) {
     return new NavigationRoute(
       rdConfig.id,
       ensureArrayOfStrings(rdConfig.path ?? emptyArray),
+      rdConfig.redirectTo,
       rdConfig.title,
       rdConfig.data,
     );
@@ -768,13 +791,13 @@ class NavigationRoute implements INavigationRoute {
   }
 
   /** @internal */
-  public _setIsActive(router: IRouter, context: IRouteContext): void {
+  public setIsActive(router: IRouter, context: IRouteContext): void {
     let trees = this._trees;
     if (trees === null) {
       const routerOptions = router.options;
       trees = this._trees = this.path.map(p => {
         const ep = context._recognizer.getEndpoint(p);
-        if (ep === null) throw new Error(getMessage(Events.nmNoEndpoint, p));
+        if (ep === null) throw new Error(`No endpoint found for path '${p}'`);
         return new ViewportInstructionTree(
           NavigationOptions.create(routerOptions, { context }),
           false,

@@ -12,7 +12,6 @@ import {
 import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
 import { IRouteContext } from '../route-context';
-import { resolve } from '@aurelia/kernel';
 
 /*
  * Note: Intentionally, there is no bindable `context` here.
@@ -29,72 +28,70 @@ import { resolve } from '@aurelia/kernel';
 
 @customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
-
-  /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
-  /** @internal */private readonly _router: IRouter = resolve(IRouter);
-  /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
-
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  /** @internal */private _isInitialized: boolean = false;
-  /** @internal */private _isEnabled: boolean;
+  private isInitialized: boolean = false;
+  private isEnabled: boolean;
 
-  /** @internal */
-  private get _isExternal(): boolean {
-    return this._el.hasAttribute('external') || this._el.hasAttribute('data-external');
+  private get isExternal(): boolean {
+    return this.el.hasAttribute('external') || this.el.hasAttribute('data-external');
   }
 
   public readonly $controller!: ICustomAttributeController<this>;
 
-  public constructor() {
+  public constructor(
+    @INode private readonly el: INode<HTMLElement>,
+    @IRouter private readonly router: IRouter,
+    @IRouteContext private readonly ctx: IRouteContext,
+    @IWindow w: IWindow,
+  ) {
     if (
-      this._router.options.useHref &&
+      router.options.useHref &&
       // Ensure the element is an anchor
-      this._el.nodeName === 'A'
+      el.nodeName === 'A'
     ) {
-      const windowName = resolve(IWindow).name;
       // Ensure the anchor targets the current window.
-      switch (this._el.getAttribute('target')) {
+      switch (el.getAttribute('target')) {
         case null:
-        case windowName:
+        case w.name:
         case '_self':
-          this._isEnabled = true;
+          this.isEnabled = true;
           break;
         default:
-          this._isEnabled = false;
+          this.isEnabled = false;
           break;
       }
     } else {
-      this._isEnabled = false;
+      this.isEnabled = false;
     }
   }
 
   public binding(): void {
-    if (!this._isInitialized) {
-      this._isInitialized = true;
-      this._isEnabled = this._isEnabled && getRef(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
+    if (!this.isInitialized) {
+      this.isInitialized = true;
+      this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
     this.valueChanged(this.value);
-    this._el.addEventListener('click', this);
+    this.el.addEventListener('click', this);
     // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
     // this.eventListener.dispose();
-    this._el.removeEventListener('click', this);
+    this.el.removeEventListener('click', this);
   }
 
   public valueChanged(newValue: unknown): void {
     if (newValue == null) {
-      this._el.removeAttribute('href');
+      this.el.removeAttribute('href');
     } else {
-      if (this._router.options.useUrlFragmentHash
-        && this._ctx.isRoot
+      if (this.router.options.useUrlFragmentHash
+        && this.ctx.isRoot
         && !/^[.#]/.test(newValue as string)
       ) {
         newValue = `#${newValue}`;
       }
-      this._el.setAttribute('href', newValue as string);
+      this.el.setAttribute('href', newValue as string);
     }
   }
 
@@ -107,18 +104,18 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     // Ensure this is an ordinary left-button click
     if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
       // on an internally managed link
-      || this._isExternal
-      || !this._isEnabled
+      || this.isExternal
+      || !this.isEnabled
     ) {
       return;
     }
 
     // Use the normalized attribute instead of this.value to ensure consistency.
-    const href = this._el.getAttribute('href');
+    const href = this.el.getAttribute('href');
     if (href !== null) {
       e.preventDefault();
       // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-      void this._router.load(href, { context: this._ctx });
+      void this.router.load(href, { context: this.ctx });
     }
   }
 }

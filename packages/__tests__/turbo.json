@@ -3,9 +3,7 @@
     "extends": ["//"],
     "pipeline": {
       "build": {
-        "inputs": [
-          "src/**/*.ts"
-        ],
+        "inputs": ["*/**/*.ts", "*/**/*.tsx", "**/*.ts", "**/*.tsx", "esbuild.dev.cjs", "!z-scripts"],
         "outputs": ["dist/**/*"]
       }
     }

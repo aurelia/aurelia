@@ -1,4 +1,4 @@
-import { IRouterEvents, pathUrlParser } from '@aurelia/router-lite';
+import { IRouterEvents } from '@aurelia/router-lite';
 import { DI, IDisposable } from 'aurelia';
 
 export const IRouterEventLoggerService = /*@__PURE__*/DI.createInterface<IRouterEventLoggerService>('ISomeService', x => x.singleton(RouterEventLoggerService));
@@ -12,16 +12,16 @@ export class RouterEventLoggerService implements IDisposable {
         this.log.push(`${event.name} - '${event.url}'`);
       }),
       events.subscribe('au:router:navigation-start', (event) => {
-        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}'`);
+        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}'`);
       }),
       events.subscribe('au:router:navigation-end', (event) => {
-        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}'`);
+        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}'`);
       }),
       events.subscribe('au:router:navigation-cancel', (event) => {
-        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}' - ${String(event.reason)}`);
+        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}' - ${String(event.reason)}`);
       }),
       events.subscribe('au:router:navigation-error', (event) => {
-        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}' - ${String(event.error)}`);
+        this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl()}' - ${String(event.error)}`);
       }),
     ];
   }

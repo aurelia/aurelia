@@ -1,12 +1,11 @@
 import { Metadata } from '@aurelia/metadata';
-import { all, createInterface, IContainer, IRegistry, optional } from './di';
+import { all, createInterface, IContainer, ignore, IRegistry, optional } from './di';
 import { instanceRegistration, singletonRegistration } from './di.registration';
 import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
 import { IPlatform } from './platform';
 import { getAnnotationKeyFor } from './resource';
 import { createObject, defineMetadata, isFunction } from './utilities';
-import { resolve } from './di.container';
 
 export const enum LogLevel {
   /**
@@ -315,7 +314,9 @@ export class DefaultLogEvent implements ILogEvent {
 }
 
 export class DefaultLogEventFactory implements ILogEventFactory {
-  public readonly config = resolve(ILogConfig);
+  public constructor(
+    @ILogConfig public readonly config: ILogConfig,
+  ) {}
 
   public createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent {
     return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
@@ -330,7 +331,7 @@ export class ConsoleSink implements ISink {
   public readonly handleEvent: (event: ILogEvent) => void;
 
   public constructor(
-    p = resolve(IPlatform),
+    @IPlatform p: IPlatform,
   ) {
     const $console = p.console as {
       debug(...args: unknown[]): void;
@@ -414,21 +415,19 @@ export class DefaultLogger {
   /** @internal */
   private readonly _factory: ILogEventFactory;
 
-  /* eslint-disable default-param-last */
   public constructor(
     /**
      * The global logger configuration.
      */
-    config = resolve(ILogConfig),
-    factory = resolve(ILogEventFactory),
-    sinks = resolve(all(ISink)),
+    @ILogConfig config: ILogConfig,
+    @ILogEventFactory factory: ILogEventFactory,
+    @all(ISink) sinks: ISink[],
     /**
      * The scopes that this logger was created for, if any.
      */
-    public readonly scope: string[] = resolve(optional(ILogScopes)) ?? [],
-    parent: DefaultLogger | null = null,
+    @optional(ILogScopes) public readonly scope: string[] = [],
+    @ignore parent: DefaultLogger | null = null,
   ) {
-  /* eslint-enable default-param-last */
     let traceSinks: ISink[];
     let debugSinks: ISink[];
     let infoSinks: ISink[];
@@ -674,7 +673,7 @@ export class DefaultLogger {
     const scopedLoggers = this._scopedLoggers;
     let scopedLogger = scopedLoggers[name];
     if (scopedLogger === void 0) {
-      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this._factory, null!, this.scope.concat(name), this);
+      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this._factory, (void 0)!, this.scope.concat(name), this);
     }
     return scopedLogger;
   }

@@ -1,20 +1,19 @@
-import { Constructable, ILogger, resolve } from '@aurelia/kernel';
+import { Constructable, ILogger } from '@aurelia/kernel';
 import {
   bindable,
   customElement,
-  CustomElement,
-  ICompiledCustomElementController,
-  ICustomElementController,
   ICustomElementViewModel,
-  IHydratedController
+  IHydratedController,
+  ICustomElementController,
+  ICompiledCustomElementController,
+  CustomElement
 } from '@aurelia/runtime-html';
 
-import { trace, Events } from '../events';
-import { defaultViewportName, IViewportInstruction } from '../instructions';
-import { FallbackFunction, Routeable } from '../options';
-import { IRouteContext } from '../route-context';
-import { type RouteNode } from '../route-tree';
 import type { ViewportAgent } from '../viewport-agent';
+import { IRouteContext } from '../route-context';
+import { defaultViewportName, type ViewportInstruction } from '../instructions';
+import { type RouteNode } from '../route-tree';
+import { FallbackFunction, Routeable } from '../options';
 
 export interface IViewport {
   readonly name: string;
@@ -22,7 +21,7 @@ export interface IViewport {
   readonly default: string;
   readonly fallback: Routeable | FallbackFunction;
   /** @internal */
-  _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
+  _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
 }
 
 @customElement({ name: 'au-viewport' })
@@ -32,16 +31,20 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   @bindable public default: string = '';
   @bindable public fallback: Routeable | FallbackFunction = '';
 
-  /** @internal */ private _agent: ViewportAgent = (void 0)!;
-  /** @internal */ private _controller: ICustomElementController = (void 0)!;
+  private agent: ViewportAgent = (void 0)!;
+  private controller: ICustomElementController = (void 0)!;
+
+  public constructor(
+    @ILogger private readonly logger: ILogger,
+    @IRouteContext private readonly ctx: IRouteContext,
+  ) {
+    this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
+
+    this.logger.trace('constructor()');
+  }
 
   /** @internal */
-  private readonly _ctx: IRouteContext = resolve(IRouteContext);
-  /** @internal */
-  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx._friendlyPath}>`));
-
-  /** @internal */
-  public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
+  public _getFallback(viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
     const fallback = this.fallback;
     return typeof fallback === 'function'
       && !CustomElement.isType(fallback as Constructable)
@@ -50,33 +53,32 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   public hydrated(controller: ICompiledCustomElementController): void {
-    if (__DEV__) trace(this._logger, Events.vpHydrated);
+    this.logger.trace('hydrated()');
 
-    this._controller = controller as ICustomElementController;
-    this._agent = this._ctx._registerViewport(this);
+    this.controller = controller as ICustomElementController;
+    this.agent = this.ctx.registerViewport(this);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    if (__DEV__) trace(this._logger, Events.vpAttaching);
+    this.logger.trace('attaching()');
 
-    return this._agent._activateFromViewport(initiator, this._controller);
+    return this.agent._activateFromViewport(initiator, this.controller);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    if (__DEV__) trace(this._logger, Events.vpDetaching);
+    this.logger.trace('detaching()');
 
-    return this._agent._deactivateFromViewport(initiator, this._controller);
+    return this.agent._deactivateFromViewport(initiator, this.controller);
   }
 
   public dispose(): void {
-    if (__DEV__) trace(this._logger, Events.vpDispose);
+    this.logger.trace('dispose()');
 
-    this._ctx._unregisterViewport(this);
-    this._agent._dispose();
-    this._agent = (void 0)!;
+    this.ctx.unregisterViewport(this);
+    this.agent._dispose();
+    this.agent = (void 0)!;
   }
 
-  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const propStrings: string[] = [];
     for (const prop of props) {
@@ -89,12 +91,17 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
             propStrings.push(`${prop}:'${value}'`);
           }
           break;
+        case 'boolean':
+          if (value) {
+            propStrings.push(`${prop}:${value}`);
+          }
+          break;
         default: {
           propStrings.push(`${prop}:${String(value)}`);
         }
       }
     }
-    return `VP(ctx:'${this._ctx._friendlyPath}',${propStrings.join(',')})`;
+    return `VP(ctx:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
   }
 }
 

@@ -4,7 +4,7 @@ import { Watch } from '../watch';
 import { getRef } from '../dom';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { isFunction, isString, objectFreeze } from '../utilities';
+import { createError, isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -19,7 +19,6 @@ import type {
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
-import { ErrorNames, createMappedError } from '../errors';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -147,10 +146,6 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     aliasRegistration(key, Type).register(container);
     registerAliases(aliases, CustomAttribute, key, container);
   }
-
-  public toString() {
-    return `au:ca:${this.name}`;
-  }
 }
 
 /** @internal */
@@ -189,7 +184,11 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
 export const getAttributeDefinition = <T extends Constructable>(Type: T | Function): CustomAttributeDefinition<T> => {
   const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
   if (def === void 0) {
-    throw createMappedError(ErrorNames.attribute_def_not_found, Type);
+    if (__DEV__)
+      /* istanbul ignore next */
+      throw createError(`No definition found for type ${Type.name}`);
+    else
+      throw createError(`AUR0759:${Type.name}`);
   }
 
   return def;

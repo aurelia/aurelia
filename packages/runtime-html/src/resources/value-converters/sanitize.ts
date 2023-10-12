@@ -1,7 +1,6 @@
-import { resolve } from '@aurelia/kernel';
+import { createError } from '../../utilities';
 import { createInterface } from '../../utilities-di';
 import { valueConverter } from '../value-converter';
-import { ErrorNames, createMappedError } from '../../errors';
 
 export interface ISanitizer {
   /**
@@ -14,7 +13,7 @@ export interface ISanitizer {
 
 export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(): string {
-    throw createMappedError(ErrorNames.method_not_implemented, 'sanitize');
+    throw createError('"sanitize" method not implemented');
   }
 }));
 
@@ -22,7 +21,9 @@ export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer',
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export class SanitizeValueConverter {
-  /** @internal */ private readonly _sanitizer = resolve(ISanitizer);
+  public constructor(
+    /** @internal */ @ISanitizer private readonly _sanitizer: ISanitizer,
+  ) {}
 
   /**
    * Process the provided markup that flows to the view.

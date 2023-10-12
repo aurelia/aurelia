@@ -1,7 +1,6 @@
-import { DI, IEventAggregator, IDisposable, ILogger, resolve } from '@aurelia/kernel';
+import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
 import type { ViewportInstructionTree } from './instructions';
-import { Events, trace } from './events';
 
 export type RoutingTrigger = 'popstate' | 'hashchange' | 'api';
 
@@ -13,56 +12,60 @@ export type ManagedState = {
 };
 
 class Subscription implements IDisposable {
-  /** @internal */ private _disposed: boolean = false;
+  private disposed: boolean = false;
 
   public constructor(
-    /** @internal */ private readonly _events: IRouterEvents,
+    private readonly events: IRouterEvents,
     /**
      * A unique serial number that makes individual subscribers more easily distinguishable in chronological order.
      *
      * Mainly for debugging purposes.
      */
-    /** @internal */ public readonly _serial: number,
-    /** @internal */ private readonly _inner: IDisposable,
+    public readonly serial: number,
+    private readonly inner: IDisposable,
   ) {}
 
   public dispose(): void {
-    if (!this._disposed) {
-      this._disposed = true;
+    if (!this.disposed) {
+      this.disposed = true;
 
-      this._inner.dispose();
-      const subscriptions = this._events['_subscriptions'];
+      this.inner.dispose();
+      const subscriptions = this.events['subscriptions'];
       subscriptions.splice(subscriptions.indexOf(this), 1);
     }
   }
 }
 
 export const IRouterEvents = /*@__PURE__*/DI.createInterface<IRouterEvents>('IRouterEvents', x => x.singleton(RouterEvents));
-export interface IRouterEvents extends RouterEvents { }
+export interface IRouterEvents extends RouterEvents {}
 export class RouterEvents implements IRouterEvents {
-  /** @internal */ private _subscriptionSerial: number = 0;
-  /** @internal */ private readonly _subscriptions: Subscription[] = [];
+  private subscriptionSerial: number = 0;
+  private readonly subscriptions: Subscription[] = [];
 
-  /** @internal */ private readonly _ea: IEventAggregator = resolve(IEventAggregator);
-  /** @internal */ private readonly _logger: ILogger = resolve(ILogger).scopeTo('RouterEvents');
+  public constructor(
+    @IEventAggregator private readonly ea: IEventAggregator,
+    @ILogger private readonly logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo('RouterEvents');
+  }
 
   public publish(event: RouterEvent): void {
-    if(__DEV__) trace(this._logger, Events.rePublishingEvent, event);
+    this.logger.trace(`publishing %s`, event);
 
-    this._ea.publish(event.name, event);
+    this.ea.publish(event.name, event);
   }
 
   public subscribe<T extends RouterEvent['name']>(event: T, callback: (message: NameToEvent[T]) => void): IDisposable {
     const subscription = new Subscription(
       this,
-      ++this._subscriptionSerial,
-      this._ea.subscribe(event, (message: NameToEvent[T]) => {
-        if(__DEV__) trace(this._logger, Events.reInvokingSubscriber, subscription._serial, event);
+      ++this.subscriptionSerial,
+      this.ea.subscribe(event, (message: NameToEvent[T]) => {
+        this.logger.trace(`handling %s for subscription #${subscription.serial}`, event);
         callback(message);
       })
     );
 
-    this._subscriptions.push(subscription);
+    this.subscriptions.push(subscription);
     return subscription;
   }
 }
@@ -78,9 +81,7 @@ export class LocationChangeEvent {
   ) {}
 
   public toString(): string {
-    return __DEV__
-      ? `LocationChangeEvent(id:${this.id},url:'${this.url}',trigger:'${this.trigger}')`
-      : `LocationChangeEvent`;
+    return `LocationChangeEvent(id:${this.id},url:'${this.url}',trigger:'${this.trigger}')`;
   }
 }
 
@@ -95,9 +96,7 @@ export class NavigationStartEvent {
   ) {}
 
   public toString(): string {
-    return __DEV__
-      ? `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`
-      : `NavigationStartEvent`;
+    return `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`;
   }
 }
 
@@ -111,9 +110,7 @@ export class NavigationEndEvent {
   ) {}
 
   public toString(): string {
-    return __DEV__
-      ? `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`
-      : `NavigationEndEvent`;
+    return `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`;
   }
 }
 
@@ -127,9 +124,7 @@ export class NavigationCancelEvent {
   ) {}
 
   public toString(): string {
-    return __DEV__
-      ? `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`
-      : `NavigationCancelEvent`;
+    return `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`;
   }
 }
 
@@ -143,9 +138,7 @@ export class NavigationErrorEvent {
   ) {}
 
   public toString(): string {
-    return __DEV__
-      ? `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`
-      : `NavigationErrorEvent`;
+    return `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`;
   }
 }
 

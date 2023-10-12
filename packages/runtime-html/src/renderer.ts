@@ -1,17 +1,20 @@
 import {
   emptyArray,
   InstanceProvider,
+  type Key,
+  type IServiceLocator,
   type IContainer,
   type Class,
   type IRegistry,
   type Constructable,
   type IResolver,
-  resolve,
 } from '@aurelia/kernel';
 import {
   ExpressionType,
   IExpressionParser,
   IObserverLocator,
+  type IBinding,
+  Scope,
   type Interpolation,
   type IsBindingBehavior,
   type AnyBindingExpression,
@@ -20,8 +23,7 @@ import {
 } from '@aurelia/runtime';
 import { BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
-import { InterpolationBinding } from './binding/interpolation-binding';
-import { ContentBinding } from "./binding/content-binding";
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -29,19 +31,18 @@ import { ListenerBinding, ListenerBindingOptions } from './binding/listener-bind
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
-import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
+import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext, ViewModelKind } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { objectKeys, isString, def } from './utilities';
+import { createError, defineProp, objectKeys, isString } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import type { PartialCustomElementDefinition } from './resources/custom-element';
-import { ErrorNames, createMappedError } from './errors';
-import { SpreadBinding } from './binding/spread-binding';
+import { createText, insertBefore } from './utilities-dom';
 
 export const enum InstructionType {
   hydrateElement = 'ra',
@@ -225,6 +226,13 @@ export class TextBindingInstruction {
 
   public constructor(
     public from: string | IsBindingBehavior,
+    /**
+     * Indicates whether the value of the expression "from"
+     * should be evaluated in strict mode.
+     *
+     * In none strict mode, "undefined" and "null" are coerced into empty string
+     */
+    public strict: boolean,
   ) {}
 }
 
@@ -332,15 +340,7 @@ export interface ITemplateCompiler {
     requestor: PartialCustomElementDefinition,
     attrSyntaxes: AttrSyntax[],
     container: IContainer,
-    target: Element,
-    /**
-     * An associated custom element definition for the target host element
-     * Sometimes spread compilation may occur without the container having all necessary information
-     * about the targeted element that is receiving the spread
-     *
-     * Caller of this method may want to provide this information dynamically instead
-     */
-    targetDef?: CustomElementDefinition,
+    host: Element,
   ): IInstruction[];
 }
 
@@ -384,7 +384,7 @@ export function renderer<TType extends string>(targetType: TType): InstructionRe
     target.register = function (container: IContainer): void {
       singletonRegistration(IRenderer, this).register(container);
     };
-    def(target.prototype, 'target', {
+    defineProp(target.prototype, 'target', {
       configurable: true,
       get: function () { return targetType; }
     });
@@ -415,8 +415,13 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!;
     case 'view':
-      throw createMappedError(ErrorNames.not_supported_view_ref_api);
-    case 'component':
+      // todo: returns node sequences for fun?
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR0750: Not supported API`);
+      else
+        throw createError(`AUR0750`);
+    case 'view-model':
       // this means it supports returning undefined
       return findElementControllerFor(refHost)!.viewModel;
     default: {
@@ -426,7 +431,11 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
       }
       const ceController = findElementControllerFor(refHost, { name: refTargetName });
       if (ceController === void 0) {
-        throw createMappedError(ErrorNames.ref_not_found, refTargetName);
+        if (__DEV__)
+          /* istanbul ignore next */
+          throw createError(`AUR0751: Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+        else
+          throw createError(`AUR0751:${refTargetName}`);
       }
       return ceController.viewModel;
     }
@@ -455,9 +464,14 @@ export class SetPropertyRenderer implements IRenderer {
 @renderer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
-  /** @internal */ private readonly _rendering = resolve(IRendering);
+  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
+  /** @internal */ private readonly _rendering: IRendering;
 
   public target!: InstructionType.hydrateElement;
+
+  public constructor(rendering: IRendering) {
+    this._rendering = rendering;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -479,7 +493,10 @@ export class CustomElementRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomElement, res);
         if (def == null) {
-          throw createMappedError(ErrorNames.element_res_not_found, instruction, renderingCtrl);
+          if (__DEV__)
+            throw createError(`AUR0752: Element ${res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw createError(`AUR0752:${res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -535,9 +552,14 @@ export class CustomElementRenderer implements IRenderer {
 @renderer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
-  /** @internal */ private readonly _rendering = resolve(IRendering);
+  /** @internal */ protected static get inject(): unknown[] { return [IRendering]; }
+  /** @internal */ private readonly _rendering: IRendering;
 
   public target!: InstructionType.hydrateAttribute;
+
+  public constructor(rendering: IRendering) {
+    this._rendering = rendering;
+  }
 
   public render(
     /**
@@ -557,7 +579,11 @@ export class CustomAttributeRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw createMappedError(ErrorNames.attribute_res_not_found, instruction, renderingCtrl);
+          if (__DEV__)
+            /* istanbul ignore next */
+            throw createError(`AUR0753: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw createError(`AUR0753:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -607,9 +633,15 @@ export class CustomAttributeRenderer implements IRenderer {
 @renderer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
-  /** @internal */ private readonly _rendering = resolve(IRendering);
+  /** @internal */ protected static get inject(): unknown[] { return [IRendering, IPlatform]; }
+  /** @internal */ private readonly _rendering: IRendering;
+  /** @internal */ private readonly _platform: IPlatform;
 
   public target!: InstructionType.hydrateTemplateController;
+  public constructor(rendering: IRendering, platform: IPlatform) {
+    this._rendering = rendering;
+    this._platform = platform;
+  }
 
   public render(
     renderingCtrl: IHydratableController,
@@ -626,7 +658,11 @@ export class TemplateControllerRenderer implements IRenderer {
       case 'string':
         def = ctxContainer.find(CustomAttribute, instruction.res);
         if (def == null) {
-          throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction, renderingCtrl);
+          if (__DEV__)
+            /* istanbul ignore next */
+            throw createError(`AUR0754: Attribute ${instruction.res} is not registered in ${(renderingCtrl as Controller)['name']}.`);
+          else
+            throw createError(`AUR0754:${instruction.res}@${(renderingCtrl as Controller)['name']}`);
         }
         break;
       // constructor based instruction
@@ -642,7 +678,7 @@ export class TemplateControllerRenderer implements IRenderer {
     const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
     const renderLocation = convertToRenderLocation(target);
     const results = invokeAttribute(
-      /* platform         */platform,
+      /* platform         */this._platform,
       /* attr definition  */def,
       /* parentController */renderingCtrl,
       /* host             */target,
@@ -826,7 +862,8 @@ export class TextBindingRenderer implements IRenderer {
       platform.domWriteQueue,
       platform,
       ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
-      target as Text,
+      insertBefore(target.parentNode!, createText(platform, ''), target),
+      instruction.strict,
     ));
   }
 }
@@ -1001,11 +1038,13 @@ export class AttributeBindingRenderer implements IRenderer {
 
 @renderer(InstructionType.spreadBinding)
 export class SpreadRenderer implements IRenderer {
+  /** @internal */ protected static get inject() { return [ITemplateCompiler, IRendering]; }
 
-  /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
-  /** @internal */ private readonly _rendering = resolve(IRendering);
-
-  public readonly target!: InstructionType.spreadBinding;
+  public target!: InstructionType.spreadBinding;
+  public constructor(
+    /** @internal */ private readonly _compiler: ITemplateCompiler,
+    /** @internal */ private readonly _rendering: IRendering,
+  ) {}
 
   public render(
     renderingCtrl: IHydratableController,
@@ -1015,18 +1054,118 @@ export class SpreadRenderer implements IRenderer {
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    SpreadBinding
-      .create(
-        renderingCtrl.container.get(IHydrationContext),
+    const container = renderingCtrl.container;
+    const hydrationContext = container.get(IHydrationContext);
+    const renderers = this._rendering.renderers;
+    const getHydrationContext = (ancestor: number) => {
+      let currentLevel = ancestor;
+      let currentContext: IHydrationContext | undefined = hydrationContext;
+      while (currentContext != null && currentLevel > 0) {
+        currentContext = currentContext.parent;
+        --currentLevel;
+      }
+      if (currentContext == null) {
+        throw createError('No scope context for spread binding.');
+      }
+      return currentContext as IHydrationContext<object>;
+    };
+    const renderSpreadInstruction = (ancestor: number) => {
+      const context = getHydrationContext(ancestor);
+      const spreadBinding = createSurrogateBinding(context);
+      const instructions = this._compiler.compileSpread(
+        context.controller.definition,
+        context.instruction?.captures ?? emptyArray,
+        context.controller.container,
         target,
-        void 0,
-        this._rendering,
-        this._compiler,
-        platform,
-        exprParser,
-        observerLocator
-      )
-      .forEach(b => renderingCtrl.addBinding(b));
+      );
+      let inst: IInstruction;
+      for (inst of instructions) {
+        switch (inst.type) {
+          case InstructionType.spreadBinding:
+            renderSpreadInstruction(ancestor + 1);
+            break;
+          case InstructionType.spreadElementProp:
+            renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
+              spreadBinding,
+              findElementControllerFor(target),
+              (inst as SpreadElementPropBindingInstruction).instructions,
+              platform,
+              exprParser,
+              observerLocator,
+            );
+            break;
+          default:
+            renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
+        }
+      }
+      renderingCtrl.addBinding(spreadBinding);
+    };
+    renderSpreadInstruction(0);
+  }
+}
+
+class SpreadBinding implements IBinding {
+  public scope?: Scope | undefined;
+  public isBound: boolean = false;
+  public readonly locator: IServiceLocator;
+
+  public readonly ctrl: ICustomElementController;
+
+  public get container() {
+    return this.locator;
+  }
+
+  public get definition(): CustomElementDefinition | CustomElementDefinition {
+    return this.ctrl.definition;
+  }
+
+  public get isStrictBinding() {
+    return this.ctrl.isStrictBinding;
+  }
+
+  public get state() {
+    return this.ctrl.state;
+  }
+
+  public constructor(
+    /** @internal */ private readonly _innerBindings: IBinding[],
+    /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
+  ) {
+    this.ctrl = _hydrationContext.controller;
+    this.locator = this.ctrl.container;
+  }
+
+  public get(key: Key) {
+    return this.locator.get(key);
+  }
+
+  public bind(_scope: Scope): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
+    if (innerScope == null) {
+      throw createError('Invalid spreading. Context scope is null/undefined');
+    }
+
+    this._innerBindings.forEach(b => b.bind(innerScope));
+  }
+
+  public unbind(): void {
+    this._innerBindings.forEach(b => b.unbind());
+    this.isBound = false;
+  }
+
+  public addBinding(binding: IBinding) {
+    this._innerBindings.push(binding);
+  }
+
+  public addChild(controller: IController) {
+    if (controller.vmKind !== ViewModelKind.customAttribute) {
+      throw createError('Spread binding does not support spreading custom attributes/template controllers');
+    }
+    this.ctrl.addChild(controller);
   }
 }
 
@@ -1046,8 +1185,8 @@ function addClasses(classList: DOMTokenList, className: string): void {
   }
 }
 
-// const createSurrogateBinding = (context: IHydrationContext<object>) =>
-//   new SpreadBinding([], context) as SpreadBinding & IHydratableController;
+const createSurrogateBinding = (context: IHydrationContext<object>) =>
+  new SpreadBinding([], context) as SpreadBinding & IHydratableController;
 const controllerProviderName = 'IController';
 const instructionProviderName = 'IInstruction';
 const locationProviderName = 'IRenderLocation';
@@ -1095,35 +1234,38 @@ class ViewFactoryProvider implements IResolver {
   public resolve(): IViewFactory {
     const f = this.f;
     if (f === null) {
-      throw createMappedError(ErrorNames.view_factory_provider_not_ready);
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR7055: Cannot resolve ViewFactory before the provider was prepared.`);
+      else
+        throw createError(`AUR7055`);
     }
     if (!isString(f.name) || f.name.length === 0) {
-      throw createMappedError(ErrorNames.view_factory_invalid_name);
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR0756: Cannot resolve ViewFactory without a (valid) name.`);
+      else
+        throw createError(`AUR0756`);
     }
     return f;
   }
 }
 
-/** @internal */
-export interface IHasController {
-  $controller: IController;
-}
-
 function invokeAttribute(
   p: IPlatform,
   definition: CustomAttributeDefinition,
-  $renderingCtrl: IController | IHasController,
+  renderingCtrl: IController,
   host: HTMLElement,
   instruction: HydrateAttributeInstruction | HydrateTemplateController,
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
-  const renderingCtrl = $renderingCtrl instanceof Controller
-    ? $renderingCtrl
-    : ($renderingCtrl as IHasController).$controller;
   const ctn = renderingCtrl.container.createChild();
   registerHostNode(ctn, p, host);
+  renderingCtrl = renderingCtrl instanceof Controller
+    ? renderingCtrl
+    : (renderingCtrl as unknown as SpreadBinding).ctrl;
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null

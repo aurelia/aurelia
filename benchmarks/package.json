@@ -7,9 +7,7 @@
     "build:runtime": "cd ../packages/runtime && npm run build",
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",
     "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
-    "bench": "npm run bench rerender1k && npm run bench:startup1k && npm run bench:update1k && npm run bench:rerender1k-big && npm run bench:startup1k-big",
-    "bench:rerender1k-big": "tach --config rerender-1k-big-template.json --json-file results/rerender-1k-big-template.json",
-    "bench:startup1k-big": "tach --config startup-1k-big-template.json --json-file results/startup-1k-big-template.json",
+    "bench": "npm run bench rerender1k && npm run bench:startup1k && npm run bench:update1k",
     "bench:rerender10k": "tach --config rerender-10k.json --json-file results/rerender-10k.json",
     "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",
     "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json"
@@ -17,5 +15,5 @@
   "dependencies": {
     "tachometer": "0.7.0"
   },
-  "version": "2.0.0-beta.8"
+  "version": "2.0.0-beta.5"
 }

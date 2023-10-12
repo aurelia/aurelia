@@ -9,22 +9,22 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia": "2.0.0-beta.8",
+    "aurelia": "2.0.0-beta.5",
     "marked": "^4.0.14"
   },
   "type": "module",
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-beta.8",
+    "@aurelia/testing": "2.0.0-beta.5",
     "@types/mocha": "10.0.0",
     "@types/node": "^14.18.14",
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
     "mocha": "10.0.0",
-    "playwright": "^1.33.0",
+    "playwright": "^1.21.1",
     "rimraf": "^3.0.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.3.0",
-    "typescript": "5.1.6",
+    "typescript": "5.0.2",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.8.1"

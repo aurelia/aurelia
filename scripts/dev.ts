@@ -13,11 +13,6 @@ const args = yargs
     describe: 'add extra packages to development',
     array: true,
   })
-  .option('l', {
-    alias: 'tooling',
-    describe: 'add extra packages to development',
-    array: true,
-  })
   .option('t', {
     alias: 'test',
     describe: 'add extra test folders to development',
@@ -46,10 +41,8 @@ const validE2e = [
   'router-lite',
   'hmr-vite',
   'hmr-webpack',
-  'hmr-parcel',
   'select-safari16',
   'i18n',
-  'ui-virtualization',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 
@@ -105,44 +98,40 @@ validPackages
     console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
   });
 
-const validToolingPackages =  [
+const toolingPackages = [
   'plugin-conventions',
   'plugin-gulp',
   'ts-jest',
   'babel-jest',
   'parcel-transformer',
-  'vite-plugin',
   'webpack-loader',
-  'http-server',
-  'au',
 ];
-
-validToolingPackages
-  .filter(pkg => !isFullyBuilt(path.resolve(__dirname, `../packages-tooling/${pkg}`)))
-  .forEach(pkgName => {
-    const start = Date.now();
-    const pkgDisplay = c.green(pkgName);
-    console.log(`${pkgDisplay} has not been built before, building...`);
-    try {
-      execSync(buildCmd, { cwd: `packages-tooling/${pkgName}` });
-    } catch (ex) {
-      process.stdout.write(ex.stdout);
-      process.exit(1);
-    }
-    console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
-  });
 
 const apps = (args.a ?? []) as string[];
 const validApps = [
   'ui-virtualization',
   'router-animation',
 ];
-const toolings = args.l;
 
 if (apps.length > 0) {
   if (apps.some(a => !validApps.includes(a))) {
     throw new Error(`Invalid apps, valid options are: ${validApps}`);
   }
+
+  toolingPackages
+    .filter(pkg => !isCjsBuilt(path.resolve(__dirname, `../packages-tooling/${pkg}`)))
+    .forEach(pkgName => {
+      const start = Date.now();
+      const pkgDisplay = c.green(pkgName);
+      console.log(`${pkgDisplay} has not been built before, building...`);
+      try {
+        execSync(buildCmd, { cwd: `packages-tooling/${pkgName}` });
+      } catch (ex) {
+        process.stdout.write(ex.stdout);
+        process.exit(1);
+      }
+      console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
+    });
 }
 
 const baseAppPort = 9000;
@@ -166,12 +155,6 @@ concurrently([
     name: `${appFolder} (app)`,
     env: { ...envVars, WEBPACK_PORT: baseAppPort + i },
   })),
-  ...(toolings ?? []).map(tl => ({
-    command: 'npm run dev',
-    cwd: `packages-tooling/${tl}`,
-    env: envVars,
-    name: `${tl}`
-  }))
 ].filter(Boolean), {
   prefix: '[{name}]',
   killOthers: 'failure',
@@ -193,10 +176,6 @@ function isEsmBuilt(pkgPath: string): boolean {
 
 function isCjsBuilt(pkgPath: string): boolean {
   return fs.existsSync(`${pkgPath}/dist/cjs/index.cjs`);
-}
-
-function isFullyBuilt(pkgPath: string): boolean {
-  return isEsmBuilt(pkgPath) && isCjsBuilt(pkgPath);
 }
 
 function getElapsed(now: number, then: number) {

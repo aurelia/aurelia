@@ -1,9 +1,9 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';
-import { fileExists } from './file-exists';
 
 export function preprocess(
   unit: IFileUnit,
@@ -13,50 +13,51 @@ export function preprocess(
   const ext = path.extname(unit.path);
   const basename = path.basename(unit.path, ext);
   const allOptions = preprocessOptions(options);
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  const base = unit.base || '';
 
   if (allOptions.enableConventions && allOptions.templateExtensions.includes(ext)) {
     const possibleFilePair = allOptions.cssExtensions.map(e =>
-      `${basename}${e}`
+      path.join(base, unit.path.slice(0, - ext.length) + e)
     );
-
-    const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
+    const filePair = possibleFilePair.find(_fileExists);
     if (filePair) {
       if (allOptions.useProcessedFilePairFilename) {
         unit.filePair = `${basename}.css`;
       } else {
-        unit.filePair = filePair;
+        unit.filePair = path.basename(filePair);
       }
     }
 
     const hasViewModel = Boolean(allOptions.jsExtensions.map(e =>
-      `${basename}${e}`
-    ).find(p => _fileExists(unit, `./${p}`)));
+      path.join(base, unit.path.slice(0, - ext.length) + e)
+    ).find(_fileExists));
 
-    return preprocessHtmlTemplate(unit, allOptions, hasViewModel, _fileExists);
+    return preprocessHtmlTemplate(unit, allOptions, hasViewModel);
   } else if (allOptions.jsExtensions.includes(ext)) {
     const possibleFilePair = allOptions.templateExtensions.map(e =>
-      `${basename}${e}`
+      path.join(base, unit.path.slice(0, - ext.length) + e)
     );
-    const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
+    const filePair = possibleFilePair.find(_fileExists);
     if (filePair) {
       if (allOptions.useProcessedFilePairFilename) {
         unit.filePair = `${basename}.html`;
       } else {
-        unit.filePair = filePair;
+        unit.filePair = path.basename(filePair);
       }
     } else {
       // Try foo.js and foo-view.html convention.
       // This convention is handled by @view(), not @customElement().
       const possibleViewPair = allOptions.templateExtensions.map(e =>
-        `${basename}-view${e}`
+        path.join(base, `${unit.path.slice(0, - ext.length)}-view${e}`)
       );
-      const viewPair = possibleViewPair.find(p => _fileExists(unit, `./${p}`));
+      const viewPair = possibleViewPair.find(_fileExists);
       if (viewPair) {
         unit.isViewPair = true;
         if (allOptions.useProcessedFilePairFilename) {
           unit.filePair = `${basename}-view.html`;
         } else {
-          unit.filePair = viewPair;
+          unit.filePair = path.basename(viewPair);
         }
       }
     }
@@ -64,3 +65,11 @@ export function preprocess(
   }
 }
 
+function fileExists(p: string): boolean {
+  try {
+    const stats = fs.statSync(p);
+    return stats.isFile();
+  } catch (e) {
+    return false;
+  }
+}

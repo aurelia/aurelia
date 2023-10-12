@@ -59,7 +59,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      target = info.bindable.name;
+      target = info.bindable.property;
     }
     return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, ExpressionType.IsProperty), target);
   }

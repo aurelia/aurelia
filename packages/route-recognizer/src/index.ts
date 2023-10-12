@@ -21,37 +21,17 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
 }
 
 export class Endpoint<T> {
-  private _residualEndpoint: Endpoint<T> | null = null;
-  public get residualEndpoint(): Endpoint<T> | null { return this._residualEndpoint; }
-  /** @internal */
-  public set residualEndpoint(endpoint: Endpoint<T> | null) {
-    if (this._residualEndpoint !== null) throw new Error('Residual endpoint is already set');
-    this._residualEndpoint = endpoint;
-  }
-
   public constructor(
     public readonly route: ConfigurableRoute<T>,
     public readonly params: readonly Parameter[],
   ) {}
-
-  public equalsOrResidual(other: Endpoint<T> | null | undefined): boolean {
-    return other != null && this === other || this._residualEndpoint === other;
-  }
 }
 
 export class RecognizedRoute<T> {
-  public readonly params: Readonly<Record<string, string | undefined>>;
   public constructor(
     public readonly endpoint: Endpoint<T>,
-    params: Readonly<Record<string, string | undefined>>,
-  ) {
-    const $params: Record<string, string | undefined> = Object.create(null);
-    for (const key in params) {
-      const value = params[key];
-      $params[key] = value != null ? decodeURIComponent(value) : value;
-    }
-    this.params = Object.freeze($params);
-  }
+    public readonly params: Readonly<Record<string, string | undefined>>,
+  ) {}
 }
 
 class Candidate<T> {
@@ -356,21 +336,18 @@ export class RouteRecognizer<T> {
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
     let params: readonly Parameter[];
-    let endpoint: Endpoint<T>;
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
-        endpoint = this.$add(route, false);
-        params = endpoint.params;
+        params = this.$add(route, false).params;
         // add residue iff the last parameter is not a star segment.
         if (!addResidue || (params[params.length - 1]?.isStar ?? false)) continue;
-        endpoint.residualEndpoint = this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
+        this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
       }
     } else {
-      endpoint = this.$add(routeOrRoutes, false);
-      params = endpoint.params;
+      params = this.$add(routeOrRoutes, false).params;
         // add residue iff the last parameter is not a star segment.
       if (addResidue && !(params[params.length - 1]?.isStar ?? false)) {
-        endpoint.residualEndpoint = this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
+        this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
       }
     }
 

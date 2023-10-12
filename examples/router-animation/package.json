@@ -13,20 +13,20 @@
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0-beta.8",
-    "@aurelia/kernel": "2.0.0-beta.8",
-    "@aurelia/metadata": "2.0.0-beta.8",
-    "@aurelia/platform": "2.0.0-beta.8",
-    "@aurelia/platform-browser": "2.0.0-beta.8",
-    "@aurelia/route-recognizer": "2.0.0-beta.8",
-    "@aurelia/router": "2.0.0-beta.8",
-    "@aurelia/runtime": "2.0.0-beta.8",
-    "@aurelia/runtime-html": "2.0.0-beta.8"
+    "@aurelia/fetch-client": "2.0.0-beta.5",
+    "@aurelia/kernel": "2.0.0-beta.5",
+    "@aurelia/metadata": "2.0.0-beta.5",
+    "@aurelia/platform": "2.0.0-beta.5",
+    "@aurelia/platform-browser": "2.0.0-beta.5",
+    "@aurelia/route-recognizer": "2.0.0-beta.5",
+    "@aurelia/router": "2.0.0-beta.5",
+    "@aurelia/runtime": "2.0.0-beta.5",
+    "@aurelia/runtime-html": "2.0.0-beta.5"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.8",
-    "@aurelia/ts-jest": "2.0.0-beta.8",
-    "@aurelia/webpack-loader": "2.0.0-beta.8",
+    "@aurelia/http-server": "2.0.0-beta.5",
+    "@aurelia/ts-jest": "2.0.0-beta.5",
+    "@aurelia/webpack-loader": "2.0.0-beta.5",
     "@types/node": "^14.18.14",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",
@@ -41,6 +41,6 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^9.3.0",
-    "typescript": "5.1.6"
+    "typescript": "5.0.2"
   }
 }

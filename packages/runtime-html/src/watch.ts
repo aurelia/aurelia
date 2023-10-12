@@ -3,11 +3,10 @@ import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { isFunction, objectFreeze, safeString } from './utilities';
+import { createError, isFunction, objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';
-import { ErrorNames, createMappedError } from './errors';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IConnectable) => TReturn;
 export type IWatcherCallback<TType extends object, TValue = unknown>
@@ -61,7 +60,10 @@ export function watch<T extends object = object>(
   changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
   if (expressionOrPropertyAccessFn == null) {
-    throw createMappedError(ErrorNames.watch_null_config);
+    if (__DEV__)
+      throw createError(`AUR0772: Invalid watch config. Expected an expression or a fn`);
+    else
+      throw createError(`AUR0772`);
   }
 
   return function decorator(
@@ -81,10 +83,18 @@ export function watch<T extends object = object>(
       if (!isFunction(changeHandlerOrCallback)
         && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
       ) {
-        throw createMappedError(ErrorNames.watch_invalid_change_handler, `${safeString(changeHandlerOrCallback)}@${Type.name}}`);
+        if (__DEV__)
+          /* istanbul ignore next */
+          throw createError(`AUR0773: Invalid change handler config. Method "${safeString(changeHandlerOrCallback)}" not found in class ${Type.name}`);
+        else
+          throw createError(`AUR0773:${safeString(changeHandlerOrCallback)}@${Type.name}}`);
       }
     } else if (!isFunction(descriptor?.value)) {
-      throw createMappedError(ErrorNames.watch_non_method_decorator_usage, key);
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR0774: decorated target ${safeString(key)} is not a class method.`);
+      else
+        throw createError(`AUR0774:${safeString(key)}`);
     }
 
     Watch.add(Type, watchDef as IWatchDefinition);

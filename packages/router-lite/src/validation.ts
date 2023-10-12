@@ -2,9 +2,8 @@ import type { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
-import type { IExtendedViewportInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
+import type { IViewportInstruction, Params, RouteableComponent } from './instructions';
 import { tryStringify } from './util';
-import { Events, getMessage } from './events';
 
 /**
  * @returns `true` if the given `value` is an non-null, non-undefined, and non-CustomElement object.
@@ -46,7 +45,7 @@ export function isPartialRedirectRouteConfig(value: RouteableComponent | IChildR
 
 // Yes, `isPartialChildRouteConfig` and `isPartialViewportInstruction` have identical logic but since that is coincidental,
 // and the two are intended to be used in specific contexts, we keep these as two separate functions for now.
-export function isPartialViewportInstruction(value: RouteableComponent | IViewportInstruction | null | undefined): value is IExtendedViewportInstruction {
+export function isPartialViewportInstruction(value: RouteableComponent | IViewportInstruction | null | undefined): value is IViewportInstruction {
   // 'component' is the only mandatory property of a INavigationInstruction
   // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
   return (
@@ -56,7 +55,7 @@ export function isPartialViewportInstruction(value: RouteableComponent | IViewpo
 }
 
 export function expectType(expected: string, prop: string, value: unknown): never {
-  throw new Error(getMessage(Events.rtInvalidConfigProperty, prop, expected, tryStringify(value)));
+  throw new Error(`Invalid route config property: "${prop}". Expected ${expected}, but got ${tryStringify(value)}.`);
 }
 
 /**
@@ -66,7 +65,9 @@ export function expectType(expected: string, prop: string, value: unknown): neve
  * This property is checked for in `validateComponent`.
  */
 export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | undefined, parentPath: string): void {
-  if (config == null) throw new Error(getMessage(Events.rtInvalidConfig, config));
+  if (config === null || config === void 0) {
+    throw new Error(`Invalid route config: expected an object or string, but got: ${String(config)}.`);
+  }
 
   const keys = Object.keys(config) as (keyof IChildRouteConfig)[];
   for (const key of keys) {
@@ -119,7 +120,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
           expectType('Array', path, value);
         }
         for (const route of value) {
-          const childPath = `${path}[${value.indexOf(route as string)}]`;
+          const childPath = `${path}[${value.indexOf(route)}]`;
           validateComponent(route, childPath, 'component');
         }
         break;
@@ -147,13 +148,15 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         break;
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
-        throw new Error(getMessage(Events.rtUnknownConfigProperty, parentPath, key));
+        throw new Error(`Unknown route config property: "${parentPath}.${key as string}". Please specify known properties only.`);
     }
   }
 }
 
 function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig> | null | undefined, parentPath: string): void {
-  if (config == null) throw new Error(getMessage(Events.rtInvalidConfig, config));
+  if (config === null || config === void 0) {
+    throw new Error(`Invalid route config: expected an object or string, but got: ${String(config)}.`);
+  }
 
   const keys = Object.keys(config) as (keyof IRedirectRouteConfig)[];
   for (const key of keys) {
@@ -178,7 +181,7 @@ function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig> | nul
         break;
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
-        throw new Error(getMessage(Events.rtUnknownRedirectConfigProperty, parentPath, key));
+        throw new Error(`Unknown redirect config property: "${parentPath}.${key as string}". Only 'path' and 'redirectTo' should be specified for redirects.`);
     }
   }
 }

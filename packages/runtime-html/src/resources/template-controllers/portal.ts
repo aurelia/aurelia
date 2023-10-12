@@ -1,13 +1,12 @@
-import { onResolve, resolve } from '@aurelia/kernel';
+import { onResolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
-import { isPromise, isString, rethrow } from '../../utilities';
+import { createError, isPromise, isString, rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
-import { ErrorNames, createMappedError } from '../../errors';
 
 export type PortalTarget = string | Element | null | undefined;
 type ResolvedTarget = Element;
@@ -15,6 +14,7 @@ type ResolvedTarget = Element;
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
 export class Portal implements ICustomAttributeViewModel {
+  public static inject = [IViewFactory, IRenderLocation, IPlatform];
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -51,10 +51,11 @@ export class Portal implements ICustomAttributeViewModel {
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _targetLocation: IRenderLocation;
 
-  public constructor() {
-    const factory = resolve(IViewFactory);
-    const originalLoc = resolve(IRenderLocation);
-    const p = resolve(IPlatform);
+  public constructor(
+    factory: IViewFactory,
+    originalLoc: IRenderLocation,
+    p: IPlatform,
+  ) {
     this._platform = p;
     // to make the shape of this object consistent.
     // todo: is this necessary
@@ -227,7 +228,10 @@ export class Portal implements ICustomAttributeViewModel {
 
     if (target === '') {
       if (this.strict) {
-        throw createMappedError(ErrorNames.portal_query_empty);
+        if (__DEV__)
+          throw createError(`AUR0811: Empty querySelector`);
+        else
+          throw createError(`AUR0811`);
       }
       return $document.body;
     }
@@ -249,7 +253,11 @@ export class Portal implements ICustomAttributeViewModel {
 
     if (target == null) {
       if (this.strict) {
-        throw createMappedError(ErrorNames.portal_no_target);
+        if (__DEV__)
+          /* istanbul ignore next */
+          throw createError(`AUR0812: Portal target not found`);
+        else
+          throw createError(`AUR0812`);
       }
       return $document.body;
     }

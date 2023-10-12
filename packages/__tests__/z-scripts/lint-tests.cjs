@@ -1,6 +1,8 @@
 /* eslint-disable */
 const fs = require('fs');
 const { resolve, join } = require('path');
+const { build } = require('esbuild');
+const { exec, execSync } = require('child_process');
 
 /**
  * @param {string} startPath
@@ -34,10 +36,9 @@ function findByExt(startPath, filter, found = []) {
   return found;
 };
 
-const invalidFiles = findByExt('./src', /\.spec\.tsx?$/).filter(testFile => {
+const invalidFiles = findByExt('./', /\.spec\.tsx?$/).filter(testFile => {
   const content = fs.readFileSync(testFile, { encoding: 'utf-8' });
-  const normalisedTestFilename = testFile.replace(/^src[\/\\]*/, '').replace(/\\\\?/g, '\\/').replace(/\./g, '\\.');
-  const regex = new RegExp(`describe(\\.skip)?\\(['"\`]${normalisedTestFilename}['"\`]`);
+  const regex = new RegExp(`describe(\\.skip)?\\(['"\`]${testFile.replace(/\\\\?/g, '\\/').replace(/\./g, '\\.')}['"\`]`);
   const { index } = regex.exec(content) ?? { index: -1 };
   return index === -1;
 });

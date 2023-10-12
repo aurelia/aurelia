@@ -1,4 +1,4 @@
-import { IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { IContainer, onResolve, resolveAll } from '@aurelia/kernel';
 import { AppTask, IPlatform } from '@aurelia/runtime-html';
 
 import {
@@ -13,7 +13,7 @@ import {
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
 import { createError, isFunction, isPromise } from '../../utilities';
-import { instanceRegistration, singletonRegistration } from '../../utilities-di';
+import { callbackRegistration, instanceRegistration, singletonRegistration } from '../../utilities-di';
 
 import type {
   DialogOpenPromise,
@@ -24,25 +24,6 @@ import type {
  * A default implementation for the dialog service allowing for the creation of dialogs.
  */
 export class DialogService implements IDialogService {
-  public static register(container: IContainer) {
-    container.register(
-      singletonRegistration(this, this),
-      Registration.aliasTo(this, IDialogService),
-      AppTask.deactivating(IDialogService, dialogService => onResolve(
-        dialogService.closeAll(),
-        (openDialogController) => {
-          if (openDialogController.length > 0) {
-            // todo: what to do?
-            if (__DEV__)
-              throw createError(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
-            else
-              throw createError(`AUR0901:${openDialogController.length}`);
-          }
-        }
-      ))
-    );
-  }
-
   public get controllers() {
     return this.dlgs.slice(0);
   }
@@ -58,9 +39,32 @@ export class DialogService implements IDialogService {
     return dlgs.length > 0 ? dlgs[dlgs.length - 1] : null;
   }
 
-  /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly p = resolve(IPlatform);
-  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
+  // tslint:disable-next-line:member-ordering
+  protected static get inject() { return [IContainer, IPlatform, IDialogGlobalSettings]; }
+
+  public constructor(
+    private readonly _ctn: IContainer,
+    private readonly p: IPlatform,
+    private readonly _defaultSettings: IDialogGlobalSettings,
+  ) {}
+
+  public static register(container: IContainer) {
+    container.register(
+      singletonRegistration(IDialogService, this),
+      AppTask.deactivating(IDialogService, dialogService => onResolve(
+        dialogService.closeAll(),
+        (openDialogController) => {
+          if (openDialogController.length > 0) {
+            // todo: what to do?
+            if (__DEV__)
+              throw createError(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
+            else
+              throw createError(`AUR0901:${openDialogController.length}`);
+          }
+        }
+      ))
+    );
+  }
 
   /**
    * Opens a new dialog.
@@ -88,10 +92,13 @@ export class DialogService implements IDialogService {
         $settings.load(),
         loadedSettings => {
           const dialogController = container.invoke(DialogController);
-          container.register(
-            instanceRegistration(IDialogController, dialogController),
-            instanceRegistration(DialogController, dialogController)
-          );
+          container.register(instanceRegistration(IDialogController, dialogController));
+          container.register(callbackRegistration(DialogController, () => {
+            if (__DEV__)
+              throw createError(`AUR0902: Invalid injection of DialogController. Use IDialogController instead.`);
+            else
+              throw createError(`AUR0902`);
+          }));
 
           return onResolve(
             dialogController.activate(loadedSettings),
@@ -183,7 +190,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
     const loaded = this as IDialogLoadedSettings;
     const cmp = this.component;
     const template = this.template;
-    const maybePromise = onResolveAll(...[
+    const maybePromise = resolveAll(...[
       cmp == null
         ? void 0
         : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),

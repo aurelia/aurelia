@@ -2,21 +2,20 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect, false, false);
 
 import { isArrayIndex } from './functions';
-import { Container } from './di.container';
-import { Constructable, IDisposable } from './interfaces';
+import { Container, resolve } from './di.container';
+import { Constructable, IDisposable, Writable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
-import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
+import { createError, defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
-import { ErrorNames, createMappedError } from './errors';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type InterfaceSymbol<K = any> = (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index?: number) => void;
 
 // This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
@@ -75,8 +74,6 @@ export interface IContainer extends IServiceLocator, IDisposable {
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
   invoke<T extends {}, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasFactory<T extends Constructable>(key: any): boolean;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
@@ -172,11 +169,16 @@ export interface IContainerConfiguration {
 
 export const DefaultResolver = {
   none(key: Key): IResolver {
-    throw createMappedError(ErrorNames.none_resolver_found, key);
+    throw noResolverForKeyError(key);
   },
   singleton: (key: Key): IResolver => new Resolver(key, ResolverStrategy.singleton, key),
   transient: (key: Key): IResolver => new Resolver(key, ResolverStrategy.transient, key),
 };
+
+const noResolverForKeyError = (key: Key) =>
+  __DEV__
+    ? createError(`AUR0002: ${safeString(key)} not registered, did you forget to add @singleton()?`)
+    : createError(`AUR0002:${safeString(key)}`);
 
 export class ContainerConfiguration implements IContainerConfiguration {
   public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
@@ -306,7 +308,7 @@ export const createInterface = <K extends Key>(configureOrName?: string | ((buil
 
  const Interface = function (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index: number | undefined): void {
    if (target == null || new.target !== undefined) {
-    throw createMappedError(ErrorNames.no_registration_for_interface, friendlyName);
+    throw createNoRegistrationError(friendlyName);
    }
    const annotationParamtypes = getOrCreateAnnotationParamTypes(target as Injectable);
    annotationParamtypes[index!] = Interface;
@@ -323,6 +325,10 @@ export const createInterface = <K extends Key>(configureOrName?: string | ((buil
 
  return Interface;
 };
+const createNoRegistrationError = (name: string) =>
+  __DEV__
+    ? createError(`AUR0001: No registration for interface: '${name}'`)
+    : createError(`AUR0001:${name}`);
 
 export const DI = {
   createContainer,
@@ -497,7 +503,6 @@ function transientDecorator<T extends Constructable>(target: T & Partial<Registe
  * class Foo { }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function transient<T extends Constructable>(): typeof transientDecorator;
 /**
  * Registers the `target` class as a transient dependency; each time the dependency is resolved
@@ -531,9 +536,7 @@ const singletonDecorator = <T extends Constructable>(target: T & Partial<Registe
  * class Foo { }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function singleton<T extends Constructable>(): typeof singletonDecorator;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function singleton<T extends Constructable>(options?: SingletonOptions): typeof singletonDecorator;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
@@ -576,6 +579,26 @@ export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
   (...args: unknown[]): any;
 };
 
+function testAll() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instances = d.get(all(class Abc { public b: number = 5; }));
+  instances.forEach(i => i.b);
+
+  const ii = d.get(all(I));
+  ii.forEach(i => i.c);
+
+  class Def {
+    public constructor(@all(I) private readonly i: I) {}
+  }
+
+  @inject(all(I))
+  class G {}
+}
+
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
  *
@@ -613,6 +636,28 @@ export type ILazyResolver<K extends Key = Key> = IResolver<() => K>
   & ((...args: unknown[]) => any);
 export type IResolvedLazy<K> = () => Resolved<K>;
 
+function testLazy() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(lazy(class Abc { public b: number = 5; }));
+  if (instance().b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(@lazy(I) private readonly i: I) {}
+  }
+
+  @inject(lazy(I))
+  class G {
+    public i = resolve(lazy(I));
+    public b: I = this.i();
+  }
+}
+
 /**
  * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
  * ```ts
@@ -648,6 +693,32 @@ export type IOptionalResolver<K extends Key = Key> = IResolver<K | undefined> & 
   // any is needed for decorator usages
   (...args: unknown[]): any;
 };
+
+function testOptional() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(optional(class Abc { public b: number = 5; }));
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  if (instance.b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(@optional(I) private readonly i: I) {}
+  }
+
+  @inject(optional(I))
+  class G {
+    public i = resolve(optional(I));
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    public b: I = this.i;
+  }
+}
 
 /**
  * ignore tells the container not to try to inject a dependency
@@ -728,25 +799,39 @@ export type INewInstanceResolver<T> = IResolver<T> & {
 };
 
 const createNewInstance = (key: any, handler: IContainer, requestor: IContainer) => {
-  // 1. if there's a factory registration for the key
-  if (handler.hasFactory(key)) {
-    return handler.getFactory(key).construct(requestor);
-  }
-  // 2. if key is an interface
-  if (isInterface(key)) {
-    const hasDefault = isFunction((key as unknown as IRegistry).register);
-    const resolver = handler.getResolver(key, hasDefault) as IResolver<Constructable<typeof key>>;
-    const factory = resolver?.getFactory?.(handler);
-    // 2.1 and has factory
-    if (factory != null) {
-      return factory.construct(requestor);
-    }
-    // 2.2 cannot instantiate a dummy interface
-    throw createMappedError(ErrorNames.invalid_new_instance_on_interface, key);
-  }
-  // 3. jit factory, in case of newInstanceOf(SomeClass)
   return handler.getFactory(key).construct(requestor);
 };
+
+function testNewInstance() {
+  const d = DI.createContainer();
+  const I = DI.createInterface<I>();
+  interface I {
+    c: number;
+  }
+  const instance = d.get(newInstanceOf(class Abc { public b: number = 5; }));
+  if (instance.b === 5) {
+    // good
+  }
+  const instance2 = d.get(newInstanceForScope(class Abc { public b: number = 5; }));
+  if (instance2.b === 5) {
+    // good
+  }
+
+  class Def {
+    public constructor(
+      @newInstanceOf(I) private readonly i: I,
+      @newInstanceForScope(I) private readonly j: I,
+    ) {}
+  }
+
+  @inject(newInstanceOf(I))
+  class G {
+    public i = resolve(newInstanceOf(I));
+    public ii: I = this.i;
+    public j = resolve(newInstanceForScope(I));
+    public jj: I = this.j;
+  }
+}
 
 _START_CONST_ENUM();
 /** @internal */
@@ -760,24 +845,12 @@ export const enum ResolverStrategy {
 }
 _END_CONST_ENUM();
 
-/** @internal */
 export class Resolver implements IResolver, IRegistration {
-  /** @internal */
-  public _key: Key;
-  /** @internal */
-  public _strategy: ResolverStrategy;
-  /** @internal */
-  public _state: any;
-
   public constructor(
-    key: Key,
-    strategy: ResolverStrategy,
-    state: any,
-  ) {
-    this._key = key;
-    this._strategy = strategy;
-    this._state = state;
-  }
+    public _key: Key,
+    public _strategy: ResolverStrategy,
+    public _state: any,
+  ) {}
 
   public get $isResolver(): true { return true; }
 
@@ -793,7 +866,7 @@ export class Resolver implements IResolver, IRegistration {
         return this._state;
       case ResolverStrategy.singleton: {
         if (this.resolving) {
-          throw createMappedError(ErrorNames.cyclic_dependency, this._state.name);
+          throw cyclicDependencyError(this._state.name);
         }
         this.resolving = true;
         this._state = handler.getFactory(this._state as Constructable).construct(requestor);
@@ -805,7 +878,7 @@ export class Resolver implements IResolver, IRegistration {
         // Always create transients from the requesting container
         const factory = handler.getFactory(this._state as Constructable);
         if (factory === null) {
-          throw createMappedError(ErrorNames.no_factory, this._key);
+          throw nullFactoryError(this._key);
         }
         return factory.construct(requestor);
       }
@@ -816,7 +889,7 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.alias:
         return requestor.get(this._state);
       default:
-        throw createMappedError(ErrorNames.invalid_resolver_strategy, this._strategy);
+        throw invalidResolverStrategyError(this._strategy);
     }
   }
 
@@ -832,6 +905,18 @@ export class Resolver implements IResolver, IRegistration {
     }
   }
 }
+const cyclicDependencyError = (name: string) =>
+  __DEV__
+    ? createError(`AUR0003: Cyclic dependency found: ${name}`)
+    : createError(`AUR0003:${name}`);
+const nullFactoryError = (key: Key) =>
+  __DEV__
+    ? createError(`AUR0004: Resolver for ${safeString(key)} returned a null factory`)
+    : createError(`AUR0004:${safeString(key)}`);
+const invalidResolverStrategyError = (strategy: ResolverStrategy) =>
+  __DEV__
+    ? createError(`AUR0005: Invalid resolver strategy specified: ${strategy}.`)
+    : createError(`AUR0005:${strategy}`);
 
 /** @internal */
 export interface IInvoker<T extends Constructable = any> {
@@ -988,7 +1073,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public resolve(): Resolved<K> | null {
     if (this._instance == null) {
-      throw createMappedError(ErrorNames.no_instance_provided, this._name);
+      throw noInstanceError(this._name);
     }
     return this._instance;
   }
@@ -998,4 +1083,10 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
   }
 }
 
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;
+const noInstanceError = (name?: string) => {
+  if (__DEV__) {
+    return createError(`AUR0013: Cannot call resolve ${name} before calling prepare or after calling dispose.`);
+  } else {
+    return createError(`AUR0013:${name}`);
+  }
+};

@@ -5,9 +5,9 @@ description: >-
   libraries.
 ---
 
-## Bindable properties
+# Bindable properties
 
-When creating components, sometimes you will want the ability for data to be passed into them instead of their host elements. The `@bindable` decorator allows you to specify one or more bindable properties for a component.
+When creating components, sometimes you will want the ability for data to be passed into them. The `@bindable` decorator allows you to specify one or more bindable properties for a component.
 
 The `@bindable` attribute also can be used with custom attributes as well as custom elements. The decorator denotes bindable properties on components on the view model of a component.
 
@@ -72,7 +72,7 @@ export class NameComponent {
 
 You can then use the component in this way,\``<name-component first-name="John" last-name="Smith"></name-component>`
 
-## Calling a change function when bindable is modified
+### Calling a change function when bindable is modified
 
 By default, Aurelia will call a change callback (if it exists) which takes the bindable property name followed by `Changed` added to the end. For example, `firstNameChanged(newVal, previousVal)` would fire every time the `firstName` bindable property is changed.
 
@@ -182,7 +182,7 @@ In some cases, you want to make an impact on the value that is binding. For such
 
 ```typescript
 @bindable({ 
-    set: value => someFunction(value),  /* HERE */
+    set: value => function(value),  /* HERE */
     // Or set: value => value,
     mode: /* ... */ 
 })
@@ -206,10 +206,16 @@ Suppose you have a `carousel` component in which you want to enable `navigator` 
 
 In version two, you can easily implement such a capability with the `set` feature.
 
+To make things easier, first design a new type that accepts `true` and `false` as a string and a boolean.
+
+```typescript
+export type BooleanString = "true" | "false" | true | false /* boolean */;
+```
+
 Define your property like this:
 
 ```typescript
-@bindable({ set: /* ? */, mode: BindingMode.toView }) public navigator: boolean = false;
+@bindable({ set: /* ? */, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 For `set` part, we need functionality to check the input. If the value is one of the following, we want to return `true`, otherwise, we return the `false` value.
@@ -229,64 +235,16 @@ export function truthyDetector(value: unknown) {
 Now, we should set `truthyDetector` function as follows:
 
 ```typescript
-@bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: boolean = false;
+@bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 Although, there is another way to write the functionality too:
 
 ```typescript
-@bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: boolean = false;
+@bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
 ```
 
 You can simply use any of the above four methods to enable/disable your feature. As you can see, `set` can be used to transform the values being bound into your bindable property and offer more predictable results when dealing with primitives like booleans and numbers.
-
-## Bindable & getter/setter
-
-By default, you'll find yourself work with binable and field most of the time, like the examples given above. But there' cases where
-it makes sense to have bindable as a getter, or a pair of getter/setter to do more logic when get/set.
-
-For example, a component card nav that allow parent component to query its active status.
-With bindable on field, it would be written like this:
-
-```ts
-@customElement({ name: 'card-nav', template })
-export class CardNav implements ICustomElementViewModel {
-  @bindable routes: RouteLink[] = [];
-
-  @bindable({ mode: BindingMode.fromView }) active?: string;
-
-  bound() {
-    this.setActive();
-  }
-
-  setActive() {
-    this.active = this.routes.find((y) => y.isActive)?.path;
-  }
-
-  handleClick(route: RouteLink) {
-    this.routes.forEach((x) => (x.isActive = x === route));
-    this.setActive();
-  }
-}
-```
-Note that because `active` value needs to computed from other variables, we have to "actively" call `setActive`. It's not a big deal, but sometimes not desirable.
-
-For cases like this, we can turn `active` into a getter, and decorate it with bindable, like the following:
-```ts
-@customElement({ name: 'card-nav', template })
-export class CardNav implements ICustomElementViewModel {
-  @bindable routes: RouteLink[] = [];
-
-  @bindable({ mode: BindingMode.fromView }) get active() {
-    return this.routes.find((y) => y.isActive)?.path;
-  }
-
-  handleClick(route: RouteLink) {
-    this.routes.forEach((x) => (x.isActive = x === route));
-  }
-}
-```
-Simpler, since the value of `active` is computed, and observed based on the properties/values accessed inside the getter.
 
 ## Bindable coercion
 

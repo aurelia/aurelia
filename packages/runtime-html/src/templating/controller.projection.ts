@@ -5,7 +5,6 @@ import { type ISubscribable, type ISubscriberCollection, subscriberCollection } 
 import { type Constructable, emptyArray, type Key, type IContainer, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
-import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialSlottedDefinition = {
   callback?: PropertyKey;
@@ -75,6 +74,26 @@ export const IAuSlotWatcher = /*@__PURE__*/createInterface<IAuSlotWatcher>('IAuS
 
 interface AuSlotWatcherBinding extends ISubscriberCollection {}
 class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscriberCollection {
+
+  public static create(
+    controller: ICustomElementController,
+    name: PropertyKey,
+    callbackName: PropertyKey,
+    slotName: string,
+    query: string,
+  ) {
+    const obj = controller.viewModel;
+    const slotWatcher = new AuSlotWatcherBinding(obj, callbackName, slotName, query);
+    def(obj, name, {
+      enumerable: true,
+      configurable: true,
+      get: objectAssign((/* SlotWatcherBinding */) => slotWatcher.getValue(), { getObserver: () => slotWatcher }),
+      set: (/* SlotWatcherBinding */) => {/* nothing */}
+    });
+
+    return slotWatcher;
+  }
+
   /** @internal */
   private readonly _obj: ICustomElementViewModel;
   /** @internal */
@@ -91,7 +110,7 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
 
   public isBound: boolean = false;
 
-  public constructor(
+  private constructor(
     obj: ICustomElementViewModel,
     callback: PropertyKey,
     slotName: string,
@@ -151,14 +170,14 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
 
   /* istanbul ignore next */
   public get(): ReturnType<IServiceLocator['get']> {
-    throw createMappedError(ErrorNames.method_not_implemented, 'get');
+    throw new Error('not implemented');
   }
 }
 
 type SlottedPropDefinition = PartialSlottedDefinition & { name: PropertyKey };
 class SlottedLifecycleHooks {
   public constructor(
-    private readonly _def: SlottedPropDefinition,
+    private readonly def: SlottedPropDefinition,
   ) {}
 
   public register(c: IContainer) {
@@ -166,20 +185,14 @@ class SlottedLifecycleHooks {
   }
 
   public hydrating(vm: object, controller: ICustomElementController) {
-    const $def = this._def;
-    const watcher = new AuSlotWatcherBinding(
-      vm,
-      $def.callback ?? `${safeString($def.name)}Changed`,
-      $def.slotName ?? 'default',
-      $def.query ?? '*'
+    const def = this.def;
+    const watcher = AuSlotWatcherBinding.create(
+      controller,
+      def.name,
+      def.callback ?? `${safeString(def.name)}Changed`,
+      def.slotName ?? 'default',
+      def.query ?? '*'
     );
-    def(vm, $def.name, {
-      enumerable: true,
-      configurable: true,
-      get: objectAssign((/* SlotWatcherBinding */) => watcher.getValue(), { getObserver: () => watcher }),
-      set: (/* SlotWatcherBinding */) => {/* nothing */}
-    });
-
     instanceRegistration(IAuSlotWatcher, watcher).register(controller.container);
     controller.addBinding(watcher);
   }
@@ -232,7 +245,7 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
     config.name = $prop;
 
     if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw createMappedError(ErrorNames.slotted_decorator_invalid_usage);
+      throw new Error(`Invalid usage. @slotted can only be used on a field`);
     }
 
     const target = ($target as object).constructor as Constructable;

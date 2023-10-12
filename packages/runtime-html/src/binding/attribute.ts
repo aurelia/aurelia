@@ -1,9 +1,11 @@
 import {
+  AccessorType,
   astBind,
   astEvaluate,
   astUnbind,
   connectable,
   type IBinding,
+  IObserver,
   IAstEvaluator,
   IConnectableBinding,
   type ForOfStatement,
@@ -12,6 +14,7 @@ import {
   type Scope
 } from '@aurelia/runtime';
 
+import { AttributeObserver } from '../observation/element-attribute-observer';
 import { State } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { BindingMode } from './interfaces-bindings';
@@ -24,7 +27,6 @@ import type {
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { INode } from '../dom';
 import type { IBindingController } from './interfaces-bindings';
-import { isString, safeString } from '../utilities';
 
 const taskOptions: QueueTaskOptions = {
   reusable: false,
@@ -45,7 +47,14 @@ export class AttributeBinding implements IBinding {
   /** @internal */
   private _task: ITask | null = null;
 
-  public target: HTMLElement;
+  /**
+   * In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
+   *
+   * @internal
+   */
+  private _targetObserver!: IObserver;
+
+  public target: Element;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -91,44 +100,17 @@ export class AttributeBinding implements IBinding {
     this.l = locator;
     this.ast = ast;
     this._controller = controller;
-    this.target = target as HTMLElement;
+    this.target = target as Element;
     this.oL = observerLocator;
     this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
-    const target = this.target;
-    const targetAttribute = this.targetAttribute;
-    const targetProperty = this.targetProperty;
-
-    switch (targetAttribute) {
-      case 'class':
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        target.classList.toggle(targetProperty, !!value);
-        break;
-      case 'style': {
-        let priority = '';
-        let newValue = safeString(value);
-        if (isString(newValue) && newValue.includes('!important')) {
-          priority = 'important';
-          newValue = newValue.replace('!important', '');
-        }
-        target.style.setProperty(targetProperty, newValue, priority);
-        break;
-      }
-      default: {
-        if (value == null) {
-          target.removeAttribute(targetAttribute);
-        } else {
-          target.setAttribute(targetAttribute, safeString(value));
-        }
-      }
-    }
+    this._targetObserver.setValue(value, this.target, this.targetProperty);
   }
 
   public handleChange(): void {
     if (!this.isBound) {
-      /* istanbul-ignore-next */
       return;
     }
 
@@ -145,7 +127,7 @@ export class AttributeBinding implements IBinding {
 
     if (newValue !== this._value) {
       this._value = newValue;
-      const shouldQueueFlush = this._controller.state !== State.activating;
+      const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
         task = this._task;
@@ -168,7 +150,6 @@ export class AttributeBinding implements IBinding {
   public bind(_scope: Scope): void {
     if (this.isBound) {
       if (this._scope === _scope) {
-      /* istanbul-ignore-next */
         return;
       }
       this.unbind();
@@ -176,6 +157,12 @@ export class AttributeBinding implements IBinding {
     this._scope = _scope;
 
     astBind(this.ast, _scope, this);
+
+    this._targetObserver ??= new AttributeObserver(
+      this.target as HTMLElement,
+      this.targetProperty,
+      this.targetAttribute,
+    );
 
     if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {
       this.updateTarget(
@@ -188,7 +175,6 @@ export class AttributeBinding implements IBinding {
 
   public unbind(): void {
     if (!this.isBound) {
-      /* istanbul-ignore-next */
       return;
     }
     this.isBound = false;

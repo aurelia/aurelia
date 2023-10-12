@@ -1,4 +1,4 @@
-import { emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
+import { emptyObject, IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorType,
   getObserverLookup,
@@ -17,13 +17,12 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
+import { createError, createLookup, isDataAttribute, isString, objectAssign, safeString } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom';
-import { createMappedError, ErrorNames } from '../errors';
 
 // https://infra.spec.whatwg.org/#namespaces
 // const htmlNS = 'http://www.w3.org/1999/xhtml';
@@ -124,16 +123,12 @@ export class NodeObserverLocator implements INodeObserverLocator {
   /** @internal */
   private readonly _globalOverrides: Record<string, true> = createLookup();
 
-  /** @internal */
-  private readonly _locator = resolve(IServiceLocator);
-  /** @internal */
-  private readonly _platform = resolve(IPlatform);
-  /** @internal */
-  private readonly _dirtyChecker = resolve(IDirtyChecker);
-  /** @internal */
-  private readonly svg = resolve(ISVGAnalyzer);
-
-  public constructor() {
+  public constructor(
+    private readonly locator: IServiceLocator,
+    private readonly platform: IPlatform,
+    private readonly dirtyChecker: IDirtyChecker,
+    private readonly svgAnalyzer: ISVGAnalyzer,
+  ) {
     // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
     // also a lot of tests assume default availability of observation
     // those 2 assumptions make it not the right time to extract the following line into a
@@ -181,7 +176,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
   // deepscan-disable-next-line
   public handles(obj: unknown, _key: PropertyKey): boolean {
-    return obj instanceof this._platform.Node;
+    return obj instanceof this.platform.Node;
   }
 
   public useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
@@ -260,7 +255,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
         if (nsProps !== undefined) {
           return AttributeNSAccessor.forNs(nsProps[1]);
         }
-        if (isDataAttribute(obj, key, this.svg)) {
+        if (isDataAttribute(obj, key, this.svgAnalyzer)) {
           return attrAccessor;
         }
         return elementPropertyAccessor;
@@ -309,7 +304,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
     const eventsConfig = this._events[el.tagName]?.[key as string] ?? this._globalEvents[key as string];
     let observer: INodeObserver;
     if (eventsConfig != null) {
-      observer = new (eventsConfig.type ?? ValueAttributeObserver)(el, key, eventsConfig, requestor, this._locator);
+      observer = new (eventsConfig.type ?? ValueAttributeObserver)(el, key, eventsConfig, requestor, this.locator);
       if (!observer.doNotCache) {
         getObserverLookup(el)[key] = observer;
       }
@@ -341,18 +336,22 @@ export class NodeObserverLocator implements INodeObserverLocator {
       //       for now it's a noop observer
       return AttributeNSAccessor.forNs(nsProps[1]);
     }
-    if (isDataAttribute(el, key, this.svg)) {
+    if (isDataAttribute(el, key, this.svgAnalyzer)) {
       // todo: invalid accessor returned for a get observer call
       //       for now it's a noop observer
       return attrAccessor;
     }
     if (key in el.constructor.prototype) {
       if (this.allowDirtyCheck) {
-        return this._dirtyChecker.createProperty(el, key as string);
+        return this.dirtyChecker.createProperty(el, key as string);
       }
       // consider:
       // - maybe add a adapter API to handle unknown obj/key combo
-      throw createMappedError(ErrorNames.node_observer_strategy_not_found, key);
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR0652: Unable to observe property ${safeString(key)}. Register observation mapping with .useConfig().`);
+      else
+        throw createError(`AUR0652:${safeString(key)}`);
     } else {
       // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
       // but let's start with simplest scenario
@@ -374,5 +373,9 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 }
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
-  throw createMappedError(ErrorNames.node_observer_mapping_existed, nodeName, key);
+  if (__DEV__)
+    /* istanbul ignore next */
+    throw createError(`AUR0653: Mapping for property ${safeString(key)} of <${nodeName} /> already exists`);
+  else
+    throw createError(`AUR0653:${safeString(key)}@${nodeName}`);
 }

@@ -1,4 +1,4 @@
-import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
@@ -12,7 +12,7 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);
-    } catch (ex) {
+    } catch(ex) {
       console.log('(!) Error in fixture:created callback');
       console.log(ex);
     }
@@ -43,13 +43,13 @@ export function createFixture<T extends object>(
   const $$class: Constructable<K> = typeof $class === 'function'
     ? $class as unknown as Constructable<K>
     : $class == null
-      ? class { } as Constructable<K>
+      ? class {} as Constructable<K>
       : function $Ctor() {
         Object.setPrototypeOf($class, $Ctor.prototype);
         return $class;
       } as unknown as Constructable<K>;
 
-  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register' | 'toString'>)[] =
+  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register'>)[] =
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
@@ -112,26 +112,16 @@ export function createFixture<T extends object>(
   function getAllBy(selector: string) {
     return Array.from(host.querySelectorAll<HTMLElement>(selector));
   }
-  function queryBy(selector: string) {
+  function queryBy(selector: string): HTMLElement | null {
     const elements = host.querySelectorAll<HTMLElement>(selector);
     if (elements.length > 1) {
       throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found`);
     }
     return elements.length === 0 ? null : elements[0];
   }
-  function strictQueryBy(selector: string, queryErrorSuffixMessage: string = ''): HTMLElement {
-    const elements = host.querySelectorAll<HTMLElement>(selector);
-    if (elements.length > 1) {
-      throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found${queryErrorSuffixMessage ? ` ${queryErrorSuffixMessage}` : ''}`);
-    }
-    if (elements.length === 0) {
-      throw new Error(`There is no element with selector "${selector}" found${queryErrorSuffixMessage ? ` ${queryErrorSuffixMessage}` : ''}`);
-    }
-    return elements[0];
-  }
   function assertText(selector: string, text?: string) {
     if (arguments.length === 2) {
-      const el = strictQueryBy(selector);
+      const el = queryBy(selector);
       if (el === null) {
         throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
       }
@@ -153,50 +143,61 @@ export function createFixture<T extends object>(
   }
   function assertHtml(selectorOrHtml: string, html: string = selectorOrHtml, { compact }: { compact?: boolean } = { compact: false }) {
     if (arguments.length > 1) {
-      const el = strictQueryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
-      assert.strictEqual(getInnerHtml(el, compact), html);
+      const el = queryBy(selectorOrHtml);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selectorOrHtml}" to compare innerHTML against "${html}"`);
+      }
+      assert.strictEqual(getInnerHtml(el, compact) , html);
     } else {
       assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
     }
   }
   function assertClass(selector: string, ...classes: string[]) {
-    const el = strictQueryBy(selector, `to assert className contains "${classes}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to assert className contains "${classes}"`);
+    }
     classes.forEach(c => assert.contains(el.classList, c));
   }
   function assertAttr(selector: string, name: string, value: string | null) {
-    const el = strictQueryBy(selector, `to compare attribute "${name}" against "${value}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
+    }
     assert.strictEqual(el.getAttribute(name), value);
   }
   function assertAttrNS(selector: string, namespace: string, name: string, value: string | null) {
-    const el = strictQueryBy(selector, `to compare attribute "${name}" against "${value}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare attribute "${name}" against "${value}"`);
+    }
     assert.strictEqual(el.getAttributeNS(namespace, name), value);
   }
-  function assertStyles(selector: string, styles: CSSStyleDeclaration) {
-    const el = strictQueryBy(selector, `to compare style attribute against ${JSON.stringify(styles ?? {})}`);
-    const elStyles: Partial<CSSStyleDeclaration> = {};
-    for (const rule in styles) {
-      elStyles[rule] = el.style[rule];
-    }
-    assert.deepStrictEqual(elStyles, styles);
-  }
   function assertValue(selector: string, value: string | null) {
-    const el = strictQueryBy(selector, `to compare value against "${value}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to compare value against "${value}"`);
+    }
     assert.strictEqual((el as any).value, value);
   }
   function trigger(selector: string, event: string, init?: CustomEventInit): void {
-    const el = strictQueryBy(selector, `to fire event "${event}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
+    }
     el.dispatchEvent(new ctx.CustomEvent(event, init));
   }
   ['click', 'change', 'input', 'scroll'].forEach(event => {
-    Object.defineProperty(trigger, event, {
-      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-        const el = strictQueryBy(selector, `to fire event "${event}"`);
-        el.dispatchEvent(new ctx.CustomEvent(event, init));
+    Object.defineProperty(trigger, event, { configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
+      const el = queryBy(selector);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selector}" to fire event "${event}"`);
       }
-    });
+      el.dispatchEvent(new ctx.CustomEvent(event, init));
+    } });
   });
   function type(selector: string | Element, value: string): void {
-    const el = typeof selector === 'string' ? strictQueryBy(selector, `to emulate input for "${value}"`) : selector;
+    const el = typeof selector === 'string' ? queryBy(selector) : selector;
     if (el === null || !/input|textarea/i.test(el.nodeName)) {
       throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
     }
@@ -205,7 +206,10 @@ export function createFixture<T extends object>(
   }
 
   const scrollBy = (selector: string, init: number | ScrollToOptions) => {
-    const el = strictQueryBy(selector, `to scroll by "${JSON.stringify(init)}"`);
+    const el = queryBy(selector);
+    if (el === null) {
+      throw new Error(`No element found for selector "${selector}" to scroll by "${JSON.stringify(init)}"`);
+    }
     el.scrollBy(typeof init === 'number' ? { top: init } : init);
     el.dispatchEvent(new platform.window.Event('scroll'));
   };
@@ -213,32 +217,6 @@ export function createFixture<T extends object>(
   const flush = (time?: number) => {
     ctx.platform.domWriteQueue.flush(time);
   };
-
-  const stop = (dispose: boolean = false): void | Promise<void> => {
-    let ret: MaybePromise<void> = void 0;
-    try {
-      ret = au.stop(dispose);
-    } finally {
-      if (dispose) {
-        if (++tornCount > 1) {
-          console.log('(!) Fixture has already been torn down');
-        } else {
-          const $dispose = () => {
-            root.remove();
-            au.dispose();
-          };
-          if (ret instanceof Promise) {
-            ret = ret.then($dispose);
-          } else {
-            $dispose();
-          }
-        }
-      }
-    }
-    return ret;
-  };
-
-  let app: ReturnType<Aurelia['app']>;
 
   const fixture = new class Results implements IFixture<K> {
     public startPromise = startPromise;
@@ -254,14 +232,24 @@ export function createFixture<T extends object>(
     public hJsx = hJsx.bind(ctx.doc);
 
     public start() {
-      return (app ??= au.app({ host: host, component })).start();
+      return au.app({ host: host, component }).start();
     }
 
     public tearDown() {
-      return stop(true);
+      if (++tornCount === 2) {
+        console.log('(!) Fixture has already been torn down');
+        return;
+      }
+      const dispose = () => {
+        root.remove();
+        au.dispose();
+      };
+      const ret = au.stop();
+      if (ret instanceof Promise)
+        return ret.then(dispose);
+      else
+        return dispose();
     }
-
-    public stop = stop;
 
     public get torn() {
       return tornCount > 0;
@@ -285,7 +273,6 @@ export function createFixture<T extends object>(
     public assertClass = assertClass;
     public assertAttr = assertAttr;
     public assertAttrNS = assertAttrNS;
-    public assertStyles = assertStyles;
     public assertValue = assertValue;
     public createEvent = (name: string, init?: CustomEventInit) => new platform.CustomEvent(name, init);
     public trigger = trigger as ITrigger;
@@ -312,11 +299,7 @@ export interface IFixture<T> {
   readonly logger: ILogger;
   readonly torn: boolean;
   start(): void | Promise<void>;
-  /**
-   * @deprecated use `stop(true)` instead
-   */
   tearDown(): void | Promise<void>;
-  stop(dispose?: boolean): void | Promise<void>;
   readonly started: Promise<IFixture<T>>;
 
   /**
@@ -375,11 +358,6 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertAttrNS(selector: string, namespace: string, name: string, value: string): void;
-  /**
-   * Assert the style values of an element matching the given record (kebab-case properties as in the style attributes),
-   * rather than the camelCase as in the property of `element.style`
-   */
-  assertStyles(selector: string, styles: Partial<CSSStyleDeclaration>): void;
   /**
    * Assert the value of an element matching the given selector inside the application host equals to a given value.
    *
@@ -478,7 +456,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
   return result;
 }
 
-createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values);
+createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values) ;
 createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
 

@@ -3,7 +3,7 @@
   show.bind="minimizedMonitor"
   click.trigger="minimizedMonitor = false"
   style="position: fixed; bottom: 20px; right: 20px;">
-  Maximize monitor (${window.virtualRepeat?.collectionStrategy.count ?? '0'})</button>
+  Maximize monitor ${window.virtualRepeat ? `(${window.virtualRepeat.items.length})` : ''}</button>
 <div
   if.bind="window.virtualRepeat && !minimizedMonitor"
   class="bg-white border shadow-lg d-flex flex-column"
@@ -21,15 +21,15 @@
         <th>--- Value ---</th>
       </tr>
       <tr>
-        <td>Size</td><td>${virtualRepeat.collectionStrategy.count}</td>
+        <td>Size</td><td>${virtualRepeat.collectionStrategy.count()}</td>
       </tr>
       <tr>
         <td>Item height</td>
         <td>${virtualRepeat.itemHeight}</td>
       </tr>
       <tr>
-        <td>Total rendered height (px)</td>
-        <td>${virtualRepeat.collectionStrategy.count * virtualRepeat.itemHeight}</td>
+        <td>Total size</td>
+        <td>${virtualRepeat.collectionStrategy.count() * virtualRepeat.itemHeight}</td>
       </tr>
       <tr>
         <td>Active views count</td>

@@ -1,4 +1,4 @@
-import { IPlatform, type IDisposable, emptyArray, resolve } from '@aurelia/kernel';
+import { IPlatform, type IDisposable, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
 import { BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
 import { bindingBehavior } from '../binding-behavior';
@@ -9,12 +9,15 @@ const defaultDelay = 200;
 
 export class ThrottleBindingBehavior implements BindingBehaviorInstance {
   /** @internal */
+  protected static inject = [IPlatform];
+  /** @internal */
   private readonly _now: () => number;
   /** @internal */
   private readonly _taskQueue: TaskQueue;
 
-  public constructor() {
-    ({ performanceNow: this._now, taskQueue: this._taskQueue } = resolve(IPlatform));
+  public constructor(platform: IPlatform) {
+    this._now = platform.performanceNow;
+    this._taskQueue = platform.taskQueue;
   }
 
   public bind(scope: Scope, binding: IBinding, delay?: number, signals?: string | string[]) {

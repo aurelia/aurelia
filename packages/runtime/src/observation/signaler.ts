@@ -1,4 +1,4 @@
-import { createInterface, createLookup } from '../utilities';
+import { createInterface, createLookup } from '../utilities-objects';
 import type { ISubscriber } from '../observation';
 
 export interface ISignaler extends Signaler {}

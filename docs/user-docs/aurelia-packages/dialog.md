@@ -526,6 +526,8 @@ Each dialog instance goes through the full lifecycle once.
 
 ## V1 Dialog Migration
 
+* `DialogService` is no longer injectable. Inject `IDialogService` instead.
+* `DialogController` is no longer injectable. Inject `IDialogController` instead.
 * `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
 * `view` setting in `DialogService.prototype.open` is changed to `template`.
 * `keyboard` setting in `DialogService.prototype.open` is changed to accept an array of `Enter`/`Escape` only. Boolean variants are no longer valid. In the future, the API may become less strict.

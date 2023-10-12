@@ -1,6 +1,6 @@
 import { type IRenderLocation } from './dom';
-import { ErrorNames, createMappedError } from './errors';
 import { type IPlatform } from './platform';
+import { createError } from './utilities';
 
 /** @internal */
 export const auLocationStart = 'au-start';
@@ -68,32 +68,26 @@ export const appendManyToTemplate = (parent: HTMLTemplateElement, children: Arra
 };
 
 /** @internal */
-export const markerToTarget = (el: Element) => {
-  const nextSibling = el.nextSibling;
-  let locationStart: Comment;
+export const markerToLocation = (el: Element) => {
+  const previousSibling = el.previousSibling;
   let locationEnd: IRenderLocation;
 
-  if (nextSibling == null) {
-    throw createMappedError(ErrorNames.marker_malformed);
-  }
-
-  if (nextSibling.nodeType === /* Comment */8) {
-    if (nextSibling.textContent === 'au-start') {
-      locationStart = nextSibling as Comment;
-      if ((locationEnd = locationStart.nextSibling! as IRenderLocation) == null) {
-        throw createMappedError(ErrorNames.marker_malformed);
-      }
-      el.remove();
-      locationEnd.$start = locationStart;
-      return locationEnd;
-    } else {
-      throw createMappedError(ErrorNames.marker_malformed);
+  if (previousSibling?.nodeType === /* Comment */8 && previousSibling.textContent === 'au-end') {
+    locationEnd = previousSibling as IRenderLocation;
+    if ((locationEnd.$start = locationEnd.previousSibling! as IRenderLocation) == null) {
+      throw markerMalformedError();
     }
+    el.parentNode?.removeChild(el);
+    return locationEnd;
+  } else {
+    throw markerMalformedError();
   }
-
-  el.remove();
-  return nextSibling;
 };
 
 /** @internal */
 export const createMutationObserver = (node: Node, callback: MutationCallback) => new node.ownerDocument!.defaultView!.MutationObserver(callback);
+
+const markerMalformedError = () =>
+  __DEV__
+    ? createError(`AURxxxx: marker is malformed.`)
+    : createError(`AURxxxx`);

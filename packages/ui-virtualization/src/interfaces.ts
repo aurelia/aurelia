@@ -72,7 +72,7 @@ export interface ICollectionStrategy<T extends Collection = Collection> {
   /**
    * Count the number of the items in the repeatable value `items`
    */
-  readonly count: number;
+  count(): number;
 
   first(): unknown;
 

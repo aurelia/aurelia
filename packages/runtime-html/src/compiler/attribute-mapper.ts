@@ -1,8 +1,6 @@
-import { createLookup, isDataAttribute } from '../utilities';
+import { createError, createLookup, isDataAttribute } from '../utilities';
 import { ISVGAnalyzer } from '../observation/svg-analyzer';
 import { createInterface } from '../utilities-di';
-import { resolve } from '@aurelia/kernel';
-import { ErrorNames, createMappedError } from '../errors';
 
 export interface IAttrMapper extends AttrMapper {}
 export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
@@ -10,12 +8,14 @@ export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMappe
 export type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrMapper {
+  /** @internal */ public static get inject(): unknown[] { return [ISVGAnalyzer]; }
   /** @internal */ private readonly fns: IsTwoWayPredicate[] = [];
   /** @internal */ private readonly _tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
   /** @internal */ private readonly _globalAttrMap: Record<string, PropertyKey> = createLookup();
-  private readonly svg = resolve(ISVGAnalyzer);
 
-  public constructor() {
+  public constructor(
+    private readonly svg: ISVGAnalyzer,
+  ) {
     this.useMapping({
       LABEL: { for: 'htmlFor' },
       IMG: { usemap: 'useMap' },
@@ -59,7 +59,7 @@ export class AttrMapper {
       targetAttrMapping = this._tagAttrMap[tagName] ??= createLookup();
       for (attr in newAttrMapping) {
         if (targetAttrMapping[attr] !== void 0) {
-          throw createError(attr, tagName);
+          throw createMappedError(attr, tagName);
         }
         targetAttrMapping[attr] = newAttrMapping[attr];
       }
@@ -74,7 +74,7 @@ export class AttrMapper {
     const mapper = this._globalAttrMap;
     for (const attr in config) {
       if (mapper[attr] !== void 0) {
-        throw createError(attr, '*');
+        throw createMappedError(attr, '*');
       }
       mapper[attr] = config[attr];
     }
@@ -141,6 +141,6 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   }
 }
 
-function createError(attr: string, tagName: string) {
-  return createMappedError(ErrorNames.compiler_attr_mapper_duplicate_mapping, attr, tagName);
+function createMappedError(attr: string, tagName: string) {
+  return createError(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
 }

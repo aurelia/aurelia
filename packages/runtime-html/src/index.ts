@@ -7,6 +7,10 @@ export {
 } from './bindable';
 
 export {
+  BindableObserver,
+} from './observation/bindable-observer';
+
+export {
   bindingBehavior,
   BindingBehavior,
   BindingBehaviorDefinition,
@@ -112,10 +116,8 @@ export {
 export {
   InterpolationBinding,
   InterpolationPartBinding,
-} from './binding/interpolation-binding';
-export {
   ContentBinding,
-} from './binding/content-binding';
+} from './binding/interpolation-binding';
 export {
   LetBinding,
 } from './binding/let-binding';
@@ -281,6 +283,7 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
+  strict,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';
@@ -347,6 +350,7 @@ export {
   isCustomElementController,
   isCustomElementViewModel,
   ViewModelKind,
+  HooksDefinition,
   State,
   type ControllerVisitor,
   type IViewModel,

@@ -2,7 +2,7 @@ import {
   emptyObject,
   type ILogger,
   onResolve,
-  onResolveAll,
+  resolveAll,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -47,8 +47,6 @@ import {
   ViewportRequest,
 } from './viewport-agent';
 import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
-import { Events, getMessage } from './events';
-import { pathUrlParser } from './url-parser';
 
 export interface IRouteNode {
   path: string;
@@ -60,35 +58,36 @@ export interface IRouteNode {
   queryParams?: Readonly<URLSearchParams>;
   fragment?: string | null;
   data?: Record<string, unknown>;
-  _viewport?: string | null;
+  viewport?: string | null;
   title?: string | ((node: RouteNode) => string | null) | null;
   component: CustomElementDefinition;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
 }
 
+let nodeId: number = 0;
+
 export class RouteNode implements IRouteNode {
-  /** @internal */ public _tree!: RouteTree;
-  /** @internal */ public _version: number = 1;
+  /** @internal */
+  public tree!: RouteTree;
+  /** @internal */
+  public version: number = 1;
 
   public get root(): RouteNode {
-    return this._tree.root;
+    return this.tree.root;
   }
 
-  /** @internal */
-  private _isInstructionsFinalized: boolean = false;
-  public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
-  public readonly children: RouteNode[] = [];
-
   private constructor(
+    /** @internal */
+    public id: number,
     /**
      * The original configured path pattern that was matched.
      */
-    public readonly path: string,
+    public path: string,
     /**
      * If one or more redirects have occurred, then this is the final path match, in all other cases this is identical to `path`
      */
-    public readonly finalPath: string,
+    public finalPath: string,
     /**
      * The `RouteContext` associated with this route.
      *
@@ -98,28 +97,24 @@ export class RouteNode implements IRouteNode {
      */
     public readonly context: IRouteContext,
     /** @internal */
-    public readonly _originalInstruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
+    public readonly originalInstruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     /** Can only be `null` for the composition root */
     public readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
-    public readonly params: Readonly<Params>,
-    public readonly queryParams: Readonly<URLSearchParams>,
-    public readonly fragment: string | null,
-    public readonly data: Readonly<Record<string, unknown>>,
+    public params: Params,
+    public queryParams: Readonly<URLSearchParams>,
+    public fragment: string | null,
+    public data: Record<string, unknown>,
     /**
      * The viewport is always `null` for the root `RouteNode`.
      *
      * NOTE: It might make sense to have a `null` viewport mean other things as well (such as, don't load this component)
      * but that is currently not a deliberately implemented feature and we might want to explicitly validate against it
      * if we decide not to implement that.
-     *
-     * This is used simply on metadata level. Hence hiding it from the public API.
-     * If need be, we can expose it later.
-     *
-     * @internal
      */
-    public readonly _viewport: string | null,
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
-    public readonly component: CustomElementDefinition,
+    public viewport: string | null,
+    public title: string | ((node: RouteNode) => string | null) | null,
+    public component: CustomElementDefinition,
+    public readonly children: RouteNode[],
     /**
      * Not-yet-resolved viewport instructions.
      *
@@ -130,46 +125,44 @@ export class RouteNode implements IRouteNode {
      */
     public readonly residue: ViewportInstruction[],
   ) {
-    this._originalInstruction ??= instruction;
+    this.originalInstruction ??= instruction;
   }
 
   public static create(input: IRouteNode & { originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null }): RouteNode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(
+      /*          id */++nodeId,
       /*        path */input.path,
       /*   finalPath */input.finalPath,
       /*     context */input.context,
       /* originalIns */input.originalInstruction ?? input.instruction,
       /* instruction */input.instruction,
-      /*      params */Object.freeze(params),
+      /*      params */params,
       /* queryParams */input.queryParams ?? emptyQuery,
       /*    fragment */input.fragment ?? null,
-      /*        data */Object.freeze(input.data ?? emptyObject),
-      /*    viewport */input._viewport ?? null,
+      /*        data */input.data ?? {},
+      /*    viewport */input.viewport ?? null,
       /*       title */input.title ?? null,
       /*   component */input.component,
+      /*    children */input.children ?? [],
       /*     residue */input.residue ?? [],
     );
   }
 
-  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
+  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
     if (this.context === instructions.options.context) {
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
         for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
           const instructionChild = instructionChildren[j];
-          const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
-          const nodeChild = nodeChildren[i + j] ?? null;
-          const instruction = nodeChild !== null
-            ? nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
-            : null;
-          const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
+          const instructionEndpoint = preferEndpointMatch ? instructionChild.recognizedRoute?.route.endpoint : null;
+          const nodeChild = nodeChildren[i + j];
           if (i + j < ii
             && (
-              (instructionEndpoint?.equalsOrResidual(childEndpoint) ?? false)
-              || (instruction?.contains(instructionChild) ?? false)
+              (instructionEndpoint != null && nodeChild.instruction?.recognizedRoute?.route.endpoint === instructionEndpoint)
+              || (nodeChild.originalInstruction?.contains(instructionChild) ?? false)
             )
           ) {
             if (j + 1 === jj) {
@@ -183,20 +176,18 @@ export class RouteNode implements IRouteNode {
     }
 
     return this.children.some(function (x) {
-      return x.contains(instructions, matchEndpoint);
+      return x.contains(instructions, preferEndpointMatch);
     });
   }
 
-  /** @internal */
-  public _appendChild(child: RouteNode): void {
+  public appendChild(child: RouteNode): void {
     this.children.push(child);
-    child._setTree(this._tree);
+    child.setTree(this.tree);
   }
 
-  /** @internal */
-  public _clearChildren(): void {
+  public clearChildren(): void {
     for (const c of this.children) {
-      c._clearChildren();
+      c.clearChildren();
       c.context.vpa._cancelUpdate();
     }
     this.children.length = 0;
@@ -205,9 +196,19 @@ export class RouteNode implements IRouteNode {
   public getTitle(separator: string): string | null {
     const titleParts = [
       ...this.children.map(x => x.getTitle(separator)),
-      typeof this.title === 'function' ? this.title.call(void 0, this) : this.title,
+      this.getTitlePart(),
     ].filter(x => x !== null);
-    return titleParts.length === 0 ? null : titleParts.join(separator);
+    if (titleParts.length === 0) {
+      return null;
+    }
+    return titleParts.join(separator);
+  }
+
+  public getTitlePart(): string | null {
+    if (typeof this.title === 'function') {
+      return this.title.call(void 0, this);
+    }
+    return this.title;
   }
 
   public computeAbsolutePath(): string {
@@ -216,60 +217,57 @@ export class RouteNode implements IRouteNode {
     }
     const parentPath = this.context.parent!.node.computeAbsolutePath();
     const thisPath = this.instruction!.toUrlComponent(false);
-    return parentPath.length > 0
-      ? thisPath.length > 0
-        ? `${parentPath}/${thisPath}`
-        : parentPath
-      : thisPath;
+    if (parentPath.length > 0) {
+      if (thisPath.length > 0) {
+        return [parentPath, thisPath].join('/');
+      }
+      return parentPath;
+    }
+    return thisPath;
   }
 
   /** @internal */
-  public _setTree(tree: RouteTree): void {
-    this._tree = tree;
+  public setTree(tree: RouteTree): void {
+    this.tree = tree;
     for (const child of this.children) {
-      child._setTree(tree);
+      child.setTree(tree);
     }
   }
 
   /** @internal */
-  public _finalizeInstruction(): ViewportInstruction {
-    this._isInstructionsFinalized = true;
-    const children = this.children.map(x => x._finalizeInstruction());
-    const instruction = this.instruction!._clone();
+  public finalizeInstruction(): ViewportInstruction {
+    const children = this.children.map(x => x.finalizeInstruction());
+    const instruction = this.instruction!.clone();
     instruction.children.splice(0, instruction.children.length, ...children);
     return (this as Writable<this>).instruction = instruction;
   }
 
   /** @internal */
-  public _clone(): RouteNode {
+  public clone(): RouteNode {
     const clone = new RouteNode(
+      this.id,
       this.path,
       this.finalPath,
       this.context,
-      this._originalInstruction,
+      this.originalInstruction,
       this.instruction,
-      this.params,      // as this is frozen, it's safe to share
-      this.queryParams, // as this is frozen, it's safe to share
+      { ...this.params },
+      new URLSearchParams(this.queryParams),
       this.fragment,
-      this.data,        // as this is frozen, it's safe to share
-      this._viewport,
+      { ...this.data },
+      this.viewport,
       this.title,
       this.component,
+      this.children.map(x => x.clone()),
       [...this.residue],
     );
-    const children = this.children;
-    const len = children.length;
-    for (let i = 0; i < len; ++i) {
-      clone.children.push(children[i]._clone());
-    }
-    clone._version = this._version + 1;
+    clone.version = this.version + 1;
     if (clone.context.node === this) {
       clone.context.node = clone;
     }
     return clone;
   }
 
-  // Should not be adjust for DEV as it is also used of logging in production build.
   public toString(): string {
     const props: string[] = [];
 
@@ -296,7 +294,7 @@ export class RouteNode implements IRouteNode {
       }).join(',')}`);
     }
 
-    return `RN(ctx:'${this.context?._friendlyPath}',${props.join(',')})`;
+    return `RN(ctx:'${this.context?.friendlyPath}',${props.join(',')})`;
   }
 }
 
@@ -308,36 +306,29 @@ export class RouteTree {
     public root: RouteNode,
   ) { }
 
-  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
-    return this.root.contains(instructions, matchEndpoint);
+  public contains(instructions: ViewportInstructionTree, preferEndpointMatch: boolean): boolean {
+    return this.root.contains(instructions, preferEndpointMatch);
   }
 
-  /** @internal */
-  public _clone(): RouteTree {
+  public clone(): RouteTree {
     const clone = new RouteTree(
-      this.options._clone(),
-      this.queryParams, // as this is frozen, it's safe to share
+      this.options.clone(),
+      new URLSearchParams(this.queryParams),
       this.fragment,
-      this.root._clone(),
+      this.root.clone(),
     );
-    clone.root._setTree(this);
+    clone.root.setTree(this);
     return clone;
   }
 
-  /** @internal */
-  public _finalizeInstructions(): ViewportInstructionTree {
+  public finalizeInstructions(): ViewportInstructionTree {
     return new ViewportInstructionTree(
       this.options,
       true,
-      this.root.children.map(x => x._finalizeInstruction()),
+      this.root.children.map(x => x.finalizeInstruction()),
       this.queryParams,
       this.fragment,
     );
-  }
-
-  /** @internal */
-  public _mergeQuery(other: Params): void {
-    (this as Writable<RouteTree>).queryParams = Object.freeze(mergeURLSearchParams(this.queryParams, other, true));
   }
 
   public toString(): string {
@@ -358,16 +349,16 @@ export function createAndAppendNodes(
         case '..':
           // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
           node = node.context.parent?.node ?? node;
-          node._clearChildren();
+          node.clearChildren();
         // falls through
         case '.':
-          return onResolveAll(...vi.children.map(childVI => {
+          return resolveAll(...vi.children.map(childVI => {
             return createAndAppendNodes(log, node, childVI);
           }));
         default: {
           log.trace(`createAndAppendNodes invoking createNode`);
           const ctx = node.context;
-          const originalInstruction = (vi as ViewportInstruction<ITypedNavigationInstruction_string>)._clone();
+          const originalInstruction = (vi as ViewportInstruction<ITypedNavigationInstruction_string>).clone();
           let rr = vi.recognizedRoute;
           // early return; we already have a recognized route, don't bother with the rest.
           if (rr !== null) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>, rr, originalInstruction));
@@ -376,9 +367,9 @@ export function createAndAppendNodes(
           // However, when that's not the case, then we perhaps try to lookup the route-id.
           // This is another early termination.
           if (vi.children.length === 0) {
-            const result = ctx._generateViewportInstruction(vi);
+            const result = ctx.generateViewportInstruction(vi);
             if (result !== null) {
-              node._tree._mergeQuery(result.query);
+              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, result.query, true);
               const newVi = result.vi;
               (newVi.children as NavigationInstruction[]).push(...vi.children);
               return appendNode(
@@ -417,16 +408,16 @@ export function createAndAppendNodes(
           // Therefore the path matches the configured empty route and puts the whole path into residue.
           if (rr === null || residue === path) {
             // check if a route-id is used
-            const eagerResult = ctx._generateViewportInstruction({
+            const eagerResult = ctx.generateViewportInstruction({
               component: vi.component.value,
               params: vi.params ?? emptyObject,
               open: vi.open,
               close: vi.close,
               viewport: vi.viewport,
-              children: vi.children,
+              children: vi.children.slice(),
             });
             if (eagerResult !== null) {
-              node._tree._mergeQuery(eagerResult.query);
+              (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, eagerResult.query, true);
               return appendNode(log, node, createConfiguredNode(
                 log,
                 node,
@@ -444,7 +435,7 @@ export function createAndAppendNodes(
             const fallback = vpa !== null
               ? vpa.viewport._getFallback(vi, node, ctx)
               : ctx.config._getFallback(vi, node, ctx);
-            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx._friendlyPath, vp, name, ctx.component.name));
+            if (fallback === null) throw new UnknownRouteError(`Neither the route '${name}' matched any configured route at '${ctx.friendlyPath}' nor a fallback is configured for the viewport '${vp}' - did you forget to add '${name}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
             if (typeof fallback === 'string') {
               // fallback: id -> route -> CEDefn (Route configuration)
@@ -472,18 +463,11 @@ export function createAndAppendNodes(
             ? path
             : path.slice(0, -(residue.length + 1));
 
-          let addResidue = !noResidue;
           for (let i = 0; i < collapse; ++i) {
             const child = vi.children[0];
-            if (residue?.startsWith(child.component.value as string) ?? false) {
-              addResidue = false;
-              break;
-            }
+            if (residue?.startsWith(child.component.value as string) ?? false) break;
             (vi as Writable<ViewportInstruction>).viewport = child.viewport;
             (vi as Writable<ViewportInstruction>).children = child.children;
-          }
-          if (addResidue) {
-            vi.children.unshift(ViewportInstruction.create(residue!));
           }
           (vi as Writable<ViewportInstruction>).recognizedRoute = rr;
           log.trace('createNode after adjustment vi:%s', vi);
@@ -497,15 +481,15 @@ export function createAndAppendNodes(
       return onResolve(
         resolveCustomElementDefinition(vi.component.value, rc)[1],
         ced => {
-          const { vi: newVi, query } = rc._generateViewportInstruction({
+          const { vi: newVi, query } = rc.generateViewportInstruction({
             component: ced,
             params: vi.params ?? emptyObject,
             open: vi.open,
             close: vi.close,
             viewport: vi.viewport,
-            children: vi.children,
+            children: vi.children.slice(),
           })!;
-          node._tree._mergeQuery(query);
+          (node.tree as Writable<RouteTree>).queryParams = mergeURLSearchParams(node.tree.queryParams, query, true);
           return appendNode(log, node, createConfiguredNode(
             log,
             node,
@@ -526,27 +510,23 @@ function createConfiguredNode(
   route: ConfigurableRoute<RouteConfig | Promise<RouteConfig>> = rr.route.endpoint.route,
 ): RouteNode | Promise<RouteNode> {
   const ctx = node.context;
-  const rt = node._tree;
+  const rt = node.tree;
   return onResolve(route.handler, $handler => {
     route.handler = $handler;
 
     log.trace(`creatingConfiguredNode(rdc:%s, vi:%s)`, $handler, vi);
 
     if ($handler.redirectTo === null) {
-      const viWithVp = (vi.viewport?.length ?? 0) > 0;
-      const vpName: string = (viWithVp ? vi.viewport : $handler.viewport)!;
+      const vpName: string = ((vi.viewport?.length ?? 0) > 0 ? vi.viewport : $handler.viewport)!;
       return onResolve(
         resolveCustomElementDefinition($handler.component, ctx)[1],
         ced => {
 
-          const vpa = ctx._resolveViewportAgent(new ViewportRequest(
+          const vpa = ctx.resolveViewportAgent(new ViewportRequest(
             vpName,
             ced.name,
           ));
 
-          if(!viWithVp) {
-            (vi as Writable<ViewportInstruction>).viewport = vpa.viewport.name;
-          }
           const router = ctx.container.get(IRouter);
           return onResolve(
             router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.config, ctx, $handler),
@@ -559,17 +539,22 @@ function createConfiguredNode(
                 context: childCtx,
                 instruction: vi,
                 originalInstruction: originalVi,
-                params: rr.route.params,
+                params: {
+                  ...rr.route.params,
+                },
                 queryParams: rt.queryParams,
                 fragment: rt.fragment,
                 data: $handler.data,
-                _viewport: vpName,
+                viewport: vpName,
                 component: ced,
                 title: $handler.title,
-                // Note: at this point, the residue from the recognized route should be converted to VI children. Hence the residues are not added back to the RouteNode.
-                residue: vi.children.slice(),
+                residue: [
+                  // TODO(sayan): this can be removed; need to inspect more.
+                  ...(rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)]),
+                  ...vi.children,
+                ],
               });
-              $node._setTree(node._tree);
+              $node.setTree(node.tree);
 
               log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
 
@@ -581,8 +566,8 @@ function createConfiguredNode(
     }
 
     // Migrate parameters to the redirect
-    const origPath = RouteExpression.parse(pathUrlParser.parse(route.path));
-    const redirPath = RouteExpression.parse(pathUrlParser.parse($handler.redirectTo));
+    const origPath = RouteExpression.parse(route.path, false);
+    const redirPath = RouteExpression.parse($handler.redirectTo, false);
     let origCur: ScopedSegmentExpression | SegmentExpression;
     let redirCur: ScopedSegmentExpression | SegmentExpression;
     const newSegs: string[] = [];
@@ -592,7 +577,7 @@ function createConfiguredNode(
         origCur = origPath.root;
         break;
       default:
-        throw new Error(getMessage(Events.exprUnexpectedKind, origPath.root.kind));
+        throw new Error(`Unexpected expression kind ${origPath.root.kind}`);
     }
     switch (redirPath.root.kind) {
       case ExpressionKind.ScopedSegment:
@@ -600,7 +585,7 @@ function createConfiguredNode(
         redirCur = redirPath.root;
         break;
       default:
-        throw new Error(getMessage(Events.exprUnexpectedKind, redirPath.root.kind));
+        throw new Error(`Unexpected expression kind ${redirPath.root.kind}`);
     }
 
     let origSeg: SegmentExpression | null;
@@ -621,10 +606,10 @@ function createConfiguredNode(
             origCur = origCur.right;
             break;
           default:
-            throw new Error(getMessage(Events.exprUnexpectedKind, origCur.right.kind));
+            throw new Error(`Unexpected expression kind ${origCur.right.kind}`);
         }
       } else {
-        throw new Error(getMessage(Events.exprUnexpectedKind, origCur.left.kind));
+        throw new Error(`Unexpected expression kind ${origCur.left.kind}`);
       }
       if (redirDone) {
         redirSeg = null;
@@ -639,17 +624,17 @@ function createConfiguredNode(
             redirCur = redirCur.right;
             break;
           default:
-            throw new Error(getMessage(Events.exprUnexpectedKind, redirCur.right.kind));
+            throw new Error(`Unexpected expression kind ${redirCur.right.kind}`);
         }
       } else {
-        throw new Error(getMessage(Events.exprUnexpectedKind, redirCur.left.kind));
+        throw new Error(`Unexpected expression kind ${redirCur.left.kind}`);
       }
 
       if (redirSeg !== null) {
         if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
           newSegs.push(rr.route.params[redirSeg.component.parameterName] as string);
         } else {
-          newSegs.push(redirSeg.component.name);
+          newSegs.push(redirSeg.raw);
         }
       }
     }
@@ -657,7 +642,7 @@ function createConfiguredNode(
     const newPath = newSegs.filter(Boolean).join('/');
 
     const redirRR = ctx.recognize(newPath);
-    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx._friendlyPath, newPath, ctx.component.name));
+    if (redirRR === null) throw new UnknownRouteError(`'${newPath}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${newPath}' to the routes list of the route decorator of '${ctx.component.name}'?`);
 
     return createConfiguredNode(
       log,
@@ -683,8 +668,8 @@ function appendNode(
 ): void | Promise<void> {
   return onResolve(childNode, $childNode => {
     log.trace(`appendNode($childNode:%s)`, $childNode);
-    node._appendChild($childNode);
-    return $childNode.context.vpa._scheduleUpdate(node._tree.options, $childNode);
+    node.appendChild($childNode);
+    return $childNode.context.vpa._scheduleUpdate(node.tree.options, $childNode);
   });
 }
 

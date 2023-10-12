@@ -1,6 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { AccessorType } from '@aurelia/runtime';
-import { isString } from '../utilities';
+import { hasOwnProperty, isString } from '../utilities';
 
 import type { IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
@@ -9,13 +9,17 @@ export class ClassAttributeAccessor implements IAccessor {
   public get doNotCache(): true { return true; }
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
+  public value: unknown = '';
   /** @internal */
-  private _value: unknown = '';
+  private _oldValue: unknown = '';
 
   /** @internal */
-  private readonly _nameIndex: Record<string, number> = {};
+  private _nameIndex: Record<string, number> = {};
   /** @internal */
   private _version: number = 0;
+
+  /** @internal */
+  private _hasChanges: boolean = false;
 
   public constructor(
     public readonly obj: HTMLElement,
@@ -23,57 +27,73 @@ export class ClassAttributeAccessor implements IAccessor {
   }
 
   public getValue(): unknown {
-    return this._value;
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
+    return this.value;
   }
 
   public setValue(newValue: unknown): void {
-    if (newValue !== this._value) {
-      this._value = newValue;
-      this._flushChanges();
-    }
+    this.value = newValue;
+    this._hasChanges = newValue !== this._oldValue;
+    this._flushChanges();
   }
 
   /** @internal */
   private _flushChanges(): void {
-    const nameIndex = this._nameIndex;
-    const version = ++this._version;
-    const classList = this.obj.classList;
-    const classesToAdd = getClassesToAdd(this._value as string | Record<string, unknown> | []);
-    const ii = classesToAdd.length;
-    let i = 0;
-    let name: string;
+    if (this._hasChanges) {
+      this._hasChanges = false;
+      const currentValue = this.value;
+      const nameIndex = this._nameIndex;
+      const classesToAdd = getClassesToAdd(currentValue as string | Record<string, unknown> | []);
+      let version = this._version;
+      this._oldValue = currentValue;
 
-    // Get strings split on a space not including empties
-    if (ii > 0) {
-      for (; i < ii; i++) {
-        name = classesToAdd[i];
-        if (name.length === 0) {
+      // Get strings split on a space not including empties
+      if (classesToAdd.length > 0) {
+        this._addClassesAndUpdateIndex(classesToAdd);
+      }
+
+      this._version += 1;
+
+      // First call to setValue?  We're done.
+      if (version === 0) {
+        return;
+      }
+
+      // Remove classes from previous version.
+      version -= 1;
+      for (const name in nameIndex) {
+        if (!hasOwnProperty.call(nameIndex, name) || nameIndex[name] !== version) {
           continue;
         }
-        nameIndex[name] = this._version;
-        classList.add(name);
+
+        // TODO: this has the side-effect that classes already present which are added again,
+        // will be removed if they're not present in the next update.
+        // Better would be do have some configurability for this behavior, allowing the user to
+        // decide whether initial classes always need to be kept, always removed, or something in between
+        this.obj.classList.remove(name);
       }
     }
+  }
 
-    // First call to setValue?  We're done.
-    if (version === 1) {
-      return;
-    }
-
-    for (name in nameIndex) {
-      if (nameIndex[name] === version) {
+  /** @internal */
+  private _addClassesAndUpdateIndex(classes: string[]) {
+    const node = this.obj;
+    const ii = classes.length;
+    let i = 0;
+    let className: string;
+    for (; i < ii; i++) {
+      className = classes[i];
+      if (className.length === 0) {
         continue;
       }
-      // TODO: this has the side-effect that classes already present which are added again,
-      // will be removed if they're not present in the next update.
-      // Better would be do have some configurability for this behavior, allowing the user to
-      // decide whether initial classes always need to be kept, always removed, or something in between
-      classList.remove(name);
+      this._nameIndex[className] = this._version;
+      node.classList.add(className);
     }
   }
 }
 
-function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
+export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
   if (isString(object)) {
     return splitClassString(object);
   }

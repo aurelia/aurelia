@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { Collection, IConnectable } from '../observation';
-import { isArray, isMap, isSet, safeString } from '../utilities';
+import { isArray, isMap, isSet, safeString } from '../utilities-objects';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
@@ -31,18 +31,22 @@ function canWrap(obj: unknown): obj is object {
 
 export const rawKey = '__raw__';
 
+/** @internal */
 export function wrap<T>(v: T): T {
   return canWrap(v) ? getProxy(v) : v;
 }
+/** @internal */
 export function getProxy<T extends object>(obj: T): T {
   // deepscan-disable-next-line
   return proxyMap.get(obj) as T ?? createProxy(obj);
 }
 
+/** @internal */
 export function getRaw<T extends object>(obj: T): T {
   // todo: get in a weakmap if null/undef
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
+/** @internal */
 export function unwrap<T>(v: T): T {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;

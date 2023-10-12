@@ -1,13 +1,12 @@
 {
   "name": "@aurelia/router",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.5",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs",
-    "development": "./dist/esm/index.dev.mjs"
+    "import": "./dist/esm/index.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",
@@ -50,16 +49,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.8",
-    "@aurelia/metadata": "2.0.0-beta.8",
-    "@aurelia/platform": "2.0.0-beta.8",
-    "@aurelia/platform-browser": "2.0.0-beta.8",
-    "@aurelia/route-recognizer": "2.0.0-beta.8",
-    "@aurelia/runtime": "2.0.0-beta.8",
-    "@aurelia/runtime-html": "2.0.0-beta.8"
+    "@aurelia/kernel": "2.0.0-beta.5",
+    "@aurelia/metadata": "2.0.0-beta.5",
+    "@aurelia/platform": "2.0.0-beta.5",
+    "@aurelia/platform-browser": "2.0.0-beta.5",
+    "@aurelia/route-recognizer": "2.0.0-beta.5",
+    "@aurelia/runtime": "2.0.0-beta.5",
+    "@aurelia/runtime-html": "2.0.0-beta.5"
   },
   "devDependencies": {
-    "typescript": "5.1.6"
+    "typescript": "5.0.2"
   },
   "engines": {
     "node": ">=14.17.0"

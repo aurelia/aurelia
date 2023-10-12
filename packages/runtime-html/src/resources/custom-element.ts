@@ -12,7 +12,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
-import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
+import { createError, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
 
 import type {
@@ -33,7 +33,6 @@ import type { Controller, ICustomElementViewModel, ICustomElementController } fr
 import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
-import { ErrorNames, createMappedError } from '../errors';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -52,6 +51,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
   readonly containerless?: boolean;
+  readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
   readonly enhance?: boolean;
@@ -194,6 +194,24 @@ function markContainerless(target: Constructable) {
   (def as Writable<CustomElementDefinition>).containerless = true;
 }
 
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict(target: Constructable): void;
+/**
+ * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
+ */
+export function strict(): (target: Constructable) => void;
+export function strict(target?: Constructable): void | ((target: Constructable) => void) {
+  if (target === void 0) {
+    return function ($target: Constructable) {
+      annotateElementMetadata($target, 'isStrictBinding', true);
+    };
+  }
+
+  annotateElementMetadata(target, 'isStrictBinding', true);
+}
+
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
@@ -213,6 +231,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly containerless: boolean,
+    public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
     /**
      * Indicates whether the custom element has <slot/> in its template
@@ -242,7 +261,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     if (Type === null) {
       const def = nameOrDef;
       if (isString(def)) {
-        throw createMappedError(ErrorNames.element_only_name, nameOrDef);
+        if (__DEV__)
+          /* istanbul ignore next */
+          throw createError(`AUR0761: Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
+        else
+          throw createError(`AUR0761:${nameOrDef}`);
       }
 
       const name = fromDefinitionOrDefault('name', def, generateElementName);
@@ -271,6 +294,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.surrogates),
         Bindable.from(Type, def.bindables),
         fromDefinitionOrDefault('containerless', def, returnFalse),
+        fromDefinitionOrDefault('isStrictBinding', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
@@ -303,6 +327,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
           Type.bindables,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
+        fromAnnotationOrTypeOrDefault('isStrictBinding', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
@@ -338,6 +363,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         nameOrDef.bindables,
       ),
       fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse),
+      fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
@@ -369,10 +395,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       aliasRegistration(key, Type).register(container);
       registerAliases(aliases, CustomElement, key, container);
     }
-  }
-
-  public toString() {
-    return `au:ce:${this.name}`;
   }
 }
 
@@ -439,7 +461,11 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       if (opts.optional === true) {
         return null!;
       }
-      throw createMappedError(ErrorNames.node_is_not_a_host, node);
+      if (__DEV__)
+        /* istanbul ignore next */
+        throw createError(`AUR0762: The provided node is not a custom element or containerless host.`);
+      else
+        throw createError(`AUR0762`);
     }
     return controller as unknown as ICustomElementController<C>;
   }
@@ -447,7 +473,11 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     if (opts.searchParents !== true) {
       const controller = getRef(node, elementBaseName) as Controller<C> | null;
       if (controller === null) {
-        throw createMappedError(ErrorNames.node_is_not_a_host2, node);
+        if (__DEV__)
+          /* istanbul ignore next */
+          throw createError(`AUR0763: The provided node is not a custom element or containerless host.`);
+        else
+          throw createError(`AUR0763`);
       }
 
       if (controller.is(opts.name)) {
@@ -475,7 +505,11 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
       return (void 0)!;
     }
 
-    throw createMappedError(ErrorNames.node_is_not_part_of_aurelia_app, node);
+    if (__DEV__)
+      /* istanbul ignore next */
+      throw createError(`AUR0764: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+    else
+      throw createError(`AUR0764`);
   }
 
   let cur = node as INode | null;
@@ -488,7 +522,11 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     cur = getEffectiveParentNode(cur);
   }
 
-  throw createMappedError(ErrorNames.node_is_not_part_of_aurelia_app2, node);
+  if (__DEV__)
+    /* istanbul ignore next */
+    throw createError(`AUR0765: The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+  else
+    throw createError(`AUR0765`);
 };
 
 const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
@@ -501,7 +539,10 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
   const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
   if (def === void 0) {
-    throw createMappedError(ErrorNames.element_def_not_found, Type);
+    if (__DEV__)
+      throw createError(`AUR0760: No definition found for type ${Type.name}`);
+    else
+      throw createError(`AUR0760:${Type.name}`);
   }
 
   return def;
@@ -541,11 +582,12 @@ export const generateElementType = /*@__PURE__*/(function () {
     configurable: true,
   };
 
-  const defaultProto = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultProto = {} as any;
 
   return function <P extends {} = {}>(
     name: string,
-    proto: P = defaultProto as P,
+    proto: P = defaultProto,
   ): CustomElementType<Constructable<P>> {
     // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
     // looking similarly from the outside (when inspected via debugger, etc).
@@ -554,7 +596,7 @@ export const generateElementType = /*@__PURE__*/(function () {
     // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
     // even when minified.
     nameDescriptor.value = name;
-    def(Type, 'name', nameDescriptor);
+    Reflect.defineProperty(Type, 'name', nameDescriptor);
 
     // Assign anything from the prototype that was passed in
     if (proto !== defaultProto) {
@@ -609,7 +651,11 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
   }
 
   if (!isFunction(hook)) {
-    throw createMappedError(ErrorNames.invalid_process_content_hook, hook);
+    if (__DEV__)
+      /* istanbul ignore next */
+      throw createError(`AUR0766: Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${typeof hook}.`);
+    else
+      throw createError(`AUR0766:${typeof hook}`);
   }
   return hook;
 }

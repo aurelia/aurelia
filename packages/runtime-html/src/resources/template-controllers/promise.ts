@@ -1,5 +1,5 @@
 import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
-import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { ILogger, onResolve, resolveAll } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
@@ -18,8 +18,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
 import { templateController } from '../custom-attribute';
-import { isPromise, safeString } from '../../utilities';
-import { ErrorNames, createMappedError } from '../../errors';
+import { createError, isPromise, safeString } from '../../utilities';
 
 @templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
@@ -37,10 +36,16 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private postSettledTask: Task<void | Promise<void>> | null = null;
   private postSettlePromise!: Promise<void>;
 
-  /** @internal */ private readonly _factory = resolve(IViewFactory);
-  /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
-  /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
+  /** @internal */ private readonly logger: ILogger;
+
+  public constructor(
+  /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+  /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
+  /** @internal */ @IPlatform private readonly _platform: IPlatform,
+    @ILogger logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo('promise.resolve');
+  }
 
   public link(
     _controller: IHydratableController,
@@ -69,10 +74,8 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private swap(initiator: IHydratedController | null): void {
     const value = this.value;
     if (!isPromise(value)) {
-      if (__DEV__) {
-        /* istanbul ignore next */
-        this.logger.warn(`The value '${safeString(value)}' is not a promise. No change will be done.`);
-      }
+      /* istanbul ignore next */
+      this.logger.warn(`The value '${safeString(value)}' is not a promise. No change will be done.`);
       return;
     }
     const q = this._platform.domWriteQueue;
@@ -86,11 +89,11 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const $swap = () => {
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
-      void onResolveAll(
+      void resolveAll(
         // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
         // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
         preSettlePromise = (this.preSettledTask = q.queueTask(() => {
-          return onResolveAll(
+          return resolveAll(
             fulfilled?.deactivate(initiator),
             rejected?.deactivate(initiator),
             pending?.activate(initiator, s)
@@ -104,7 +107,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               }
               const fulfill = () => {
                 // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
-                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
+                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
                   pending?.deactivate(initiator),
                   rejected?.deactivate(initiator),
                   fulfilled?.activate(initiator, s, data),
@@ -123,7 +126,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               }
               const reject = () => {
                 // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
+                this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
                   pending?.deactivate(initiator),
                   fulfilled?.deactivate(initiator),
                   rejected?.activate(initiator, s, err),
@@ -168,8 +171,10 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   public view: ISyntheticView | undefined = void 0;
 
-  /** @internal */ private readonly _factory = resolve(IViewFactory);
-  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  public constructor(
+    /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+    /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -213,8 +218,10 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   public view: ISyntheticView | undefined = void 0;
 
-  /** @internal */ private readonly _factory = resolve(IViewFactory);
-  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  public constructor(
+    /** @internal */ @IViewFactory private readonly _factory: IViewFactory,
+    /** @internal */ @IRenderLocation private readonly _location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -259,8 +266,10 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   public view: ISyntheticView | undefined = void 0;
 
-  /** @internal */ private readonly _factory = resolve(IViewFactory);
-  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  public constructor(
+    @IViewFactory private readonly _factory: IViewFactory,
+    @IRenderLocation private readonly _location: IRenderLocation,
+  ) { }
 
   public link(
     controller: IHydratableController,
@@ -303,7 +312,10 @@ function getPromiseController(controller: IHydratableController) {
   if ($promise instanceof PromiseTemplateController) {
     return $promise;
   }
-  throw createMappedError(ErrorNames.promise_invalid_usage);
+  if (__DEV__)
+    throw createError(`AUR0813: The parent promise.resolve not found; only "*[promise.resolve] > *[pending|then|catch]" relation is supported.`);
+  else
+    throw createError(`AUR0813`);
 }
 
 @attributePattern({ pattern: 'promise.resolve', symbols: '' })

@@ -59,7 +59,7 @@ if (devPackages.some(d => !validToolingPackages.includes(d))) {
 }
 
 // const baseUrl = '.';
-const baseUrl = './dist/cjs';
+const baseUrl = './dist/cjs/__tests__/';
 const testFilePatterns = testPatterns === '*'
   ? [`${baseUrl}/**/*.spec.js`]
   : testPatterns.split(' ').flatMap(pattern => [

@@ -341,6 +341,8 @@ export {
 
   // PropertyAccessor,
 
+  // BindableObserver,
+
   // SetterObserver,
 
   ISignaler,
@@ -470,6 +472,7 @@ export {
   containerless,
   customElement,
   CustomElement,
+  strict,
   capture,
   // CustomElementDecorator,
   // CustomElementKind,

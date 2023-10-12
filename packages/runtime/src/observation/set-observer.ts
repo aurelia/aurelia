@@ -1,7 +1,7 @@
 import { createIndexMap, AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, type CollectionKind } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities-objects';
 import { batching, addCollectionBatch } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
@@ -133,7 +133,7 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<CollectionKind.set>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = AccessorType.Set;
   private lenObs?: CollectionSizeObserver;
 
   public constructor(observedSet: Set<unknown>) {

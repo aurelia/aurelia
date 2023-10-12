@@ -1,6 +1,6 @@
 import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { ensureProto } from '../utilities';
+import { createError, ensureProto, isMap } from '../utilities-objects';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -10,12 +10,11 @@ import type {
   ISubscriberCollection,
   ICollectionSubscriber,
 } from '../observation';
-import { ErrorNames, createMappedError } from '../errors';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IObserver, ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = AccessorType.Array;
 
   /** @internal */
   private _value: number;
@@ -63,7 +62,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType;
 
   /** @internal */
   private _value: number;
@@ -75,6 +74,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
   ) {
     this._value = (this._obj = owner.collection).size;
+    this.type = isMap(this._obj) ? AccessorType.Map : AccessorType.Set;
   }
 
   public getValue(): number {
@@ -82,7 +82,10 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
   }
 
   public setValue(): void {
-    throw createMappedError(ErrorNames.assign_readonly_size);
+    if (__DEV__)
+      throw createError(`AUR02: Map/Set "size" is a readonly property`);
+    else
+      throw createError(`AUR02`);
   }
 
   public handleCollectionChange(_collection: Collection,  _: IndexMap): void {

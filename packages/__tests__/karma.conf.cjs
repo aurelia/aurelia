@@ -31,7 +31,7 @@ module.exports =
   }
   const isFirefox = /firefox/i.test(browsers.toString());
 
-  const baseUrl = 'packages/__tests__/dist';
+  const baseUrl = 'packages/__tests__/dist/esm/__tests__';
 
   const testFilePatterns = cliArgs.length > 0
     ? cliArgs.flatMap(arg => [
@@ -90,13 +90,12 @@ module.exports =
           ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
         )
     ), // 2.1 (new)
-    // ...testDirs.flatMap(name => [
-    //   // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
-    //   { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
-    //   { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
-    // ]),
-    { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/**/*.js` }, // 2.3
-    { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/src/**/*.ts` }, // 2.4
+    ...testDirs.flatMap(name => [
+      // // { type: 'module', watched: false, included: false, nocache: true,  pattern: `${baseUrl}/${name}/**/*.spec.js` }, // 2.1 (old)
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/!(*.$au)*.js` }, // 2.3
+      { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+    ]),
     ...packageNames.flatMap(name => [
       { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
       { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
@@ -247,7 +246,7 @@ module.exports =
                   return;
                 }
 
-                const htmlFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/', '/src/'));
+                const htmlFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
                 if (fs.existsSync(htmlFilePath)) {
                   const jsCode = htmlCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(htmlFilePath, { encoding: 'utf-8' }))}`;
                   response.setHeader('Content-Type', mimetypes.js);
@@ -264,7 +263,7 @@ module.exports =
                   return;
                 }
 
-                const cssFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/', '/src/'));
+                const cssFilePath = path.resolve(basePath, requestUrl.replace('/base/', '').replace('/dist/esm/__tests__/', '/'));
                 if (fs.existsSync(cssFilePath)) {
                   const jsCode = cssCache[requestUrl] = `export default ${JSON.stringify(fs.readFileSync(cssFilePath, { encoding: 'utf-8' }))}`;
                   response.setHeader('Content-Type', mimetypes.js);
@@ -343,7 +342,7 @@ module.exports =
 };
 
 function prepareIndexMap() {
-  const babelRuntimeHelpers = fs.readdirSync(path.resolve(__dirname, '../../node_modules/@babel/runtime/helpers/esm'));
+  const babelRuntimeHelpers = fs.readdirSync(path.resolve('../../node_modules/@babel/runtime/helpers/esm'));
 
   return {
     ...packageNames.reduce((map, pkg) => {

@@ -45,15 +45,11 @@ export class ContainerAnimationTransition {
     this.ctBorder = borderSeed > 0.1 ? Math.round(Math.random() * 50) : 0;
 
     const collectionSeed = Math.random();
-    if (collectionSeed > 0.8) {
-      this.people = collectionSeed > 0.9 ? undefined : collectionSeed > 0.85 ? null : [];
+    if (collectionSeed > 0.1) {
+      this.people.splice(0, Math.floor(Math.random() * this.people.length));
+      this.push(Math.round(Math.random() * 50));
     } else {
-      if (this.people == null) {
-        this.people = [];
-      } else {
-        this.people.splice(0, Math.floor(Math.random() * this.people.length));
-        this.push(Math.round(Math.random() * 50));
-      }
+      this.people = collectionSeed > 0.8 ? undefined : collectionSeed > 0.7 ? null : [];
     }
   }
 }

@@ -16,7 +16,7 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
 import { addCollectionBatch, batching } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
@@ -381,7 +381,7 @@ export function disableArrayObservation(): void {
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = AccessorType.Array;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
   private lenObs?: CollectionLengthObserver;

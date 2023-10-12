@@ -119,7 +119,7 @@ Below is a list of available options, along with explanations:
     ```
 
     Provide a function with the above signature, and the container will invoke you each time it needs to resolve an instance. Note that the `resolver` that is provided as the third parameter is the resolver associated with your factory. As such, should your resolver need to store the state used across requests, it can store that state on the resolver instance itself.
-* `Registration.aliasTo(originalKey: any, aliasKey: any): IRegistration` - Creates a registration that allows access to a previous registration via an additional name. The `originalKey` is the key used in the original registration. The `aliasKey` is the 2nd (or 3rd, 4th, etc.) key that you also want to be able to resolve the same behavior.
+* `Registration.alias(originalKey: any, aliasKey: any): IRegistration` - Creates a registration that allows access to a previous registration via an additional name. The `originalKey` is the key used in the original registration. The `aliasKey` is the 2nd (or 3rd, 4th, etc.) key that you also want to be able to resolve the same behavior.
 
 You will notice that each of these helper methods returns an `IRegistration` implementation. The `register` method of the container can handle anything that implements this interface, so you can create your own registration implementations. Here's what that interface looks like:
 

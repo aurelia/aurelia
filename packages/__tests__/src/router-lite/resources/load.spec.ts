@@ -98,24 +98,24 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     a2.active = true;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#2');
-    assert.html.textContent(host, '1 2');
+    assert.html.textContent(host, '1 2', 'round#2 - text');
 
     anchors[1].click();
     await queue.yield();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
-    assert.html.textContent(host, '2 2');
+    assert.html.textContent(host, '1 2', 'round#3 - text');
 
     anchors[0].click();
     await queue.yield();
     a1.active = true;
     a2.active = false;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#4');
-    assert.html.textContent(host, '3 1');
+    assert.html.textContent(host, '2 1', 'round#4 - text');
 
     anchors[0].click();
     await queue.yield();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#5');
-    assert.html.textContent(host, '4 1');
+    assert.html.textContent(host, '2 1', 'round#5 - text');
 
     await au.stop(true);
 
@@ -1133,7 +1133,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     await au.stop(true);
   });
 
-  it.skip('allow navigating to route defined in parent context using ../ prefix with replace transitionPlan and child viewport', async function () {
+  it('allow navigating to route defined in parent context using ../ prefix with replace transitionPlan and child viewport', async function () {
     @customElement({ name: 'product-details', template: `product \${id} <a load="../../products"></a>` })
     class Product {
       id: unknown;
@@ -1173,25 +1173,24 @@ describe('router-lite/resources/load.spec.ts', function () {
     assert.match(hrefs[0], /product\/1$/);
     assert.match(hrefs[1], /product\/2$/);
 
-    console.log('---------------- clicking anchor#1 ----------------'.toUpperCase());
     anchors[0].click();
     await queue.yield();
-    assert.html.textContent(host, 'product 1');
+    assert.html.textContent(host, 'product 1', 'round#1');
     // go back
     const back = host.querySelector<HTMLAnchorElement>('a');
-    assert.match(back.href, /products$/);
+    assert.match(back.href, /products$/, 'round#1 - back - href');
     back.click();
     await queue.yield();
-    assert.html.textContent(host, 'product init');
+    assert.html.textContent(host, 'product init', 'round#1 - back - text');
 
     // 2nd round
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
     await queue.yield();
-    assert.html.textContent(host, 'product 2');
+    assert.html.textContent(host, 'product 2', 'round#2');
     // go back
     host.querySelector<HTMLAnchorElement>('a').click();
     await queue.yield();
-    assert.html.textContent(host, 'products');
+    assert.html.textContent(host, 'product init', 'round#2 - back - text');
 
     await au.stop(true);
   });

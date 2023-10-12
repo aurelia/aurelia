@@ -13,14 +13,6 @@ import { Events, getMessage } from './events';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
 
-function defaultReentryBehavior(current: RouteNode, next: RouteNode): TransitionPlan {
-  if (!shallowEquals(current.params, next.params)) {
-    return 'replace';
-  }
-
-  return 'none';
-}
-
 // Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   /** @internal */
@@ -143,8 +135,13 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   /** @internal */
-  public _getTransitionPlan(cur: RouteNode, next: RouteNode) {
-    const plan = this.transitionPlan ?? defaultReentryBehavior;
+  public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
+    const hasSameParameters = shallowEquals(cur.params, next.params);
+    if (hasSameParameters) return 'none';
+
+    if (overridingTransitionPlan != null) return overridingTransitionPlan;
+
+    const plan = this.transitionPlan ?? 'replace';
     return typeof plan === 'function' ? plan(cur, next) : plan;
   }
 

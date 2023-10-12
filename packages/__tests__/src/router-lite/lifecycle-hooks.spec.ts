@@ -6164,7 +6164,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     });
   }
 
-  it.only('multi-level hierarchical configuration -> navigation to sibling route from child -> parent is not replaced (transitionPlan: replace)', async function () {
+  it('multi-level hierarchical configuration -> navigation to sibling route from child -> parent is not replaced (transitionPlan: replace)', async function () {
     const ticks = 0;
     @customElement({ name: 'l-121', template: `l-121 <a load="../l122/1"></a><a load="../l122/2"></a>` })
     class L121 extends AsyncBaseViewModelWithAllHooks {

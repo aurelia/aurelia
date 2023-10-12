@@ -1,6 +1,6 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-import { ILogger, onResolve, onResolveAll } from '@aurelia/kernel';
+import { ILogger, Writable, onResolve, onResolveAll } from '@aurelia/kernel';
 import { type IHydratedController, type ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import type { IViewport } from './resources/viewport';
@@ -807,9 +807,13 @@ export class ViewportAgent {
             case State.currDeactivate:
               switch (this._$plan) {
                 case 'none':
+                  if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrLifecycle, this);
+                  this._currState = State.currIsActive;
+                  break;
                 case 'invoke-lifecycles':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrLifecycle, this);
                   this._currState = State.currIsActive;
+                  (this._curCA! as Writable<ComponentAgent>)._routeNode = this._nextNode!;
                   break;
                 case 'replace':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrReplace, this);

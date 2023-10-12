@@ -1,4 +1,5 @@
 import { IContainer, noop } from '@aurelia/kernel';
+import { DirtyChecker, ICoercionConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -74,7 +75,6 @@ import { AuCompose } from './resources/custom-elements/au-compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
-import { ICoercionConfiguration } from '@aurelia/runtime';
 import { instanceRegistration } from './utilities-di';
 
 /**
@@ -85,6 +85,7 @@ import { instanceRegistration } from './utilities-di';
  */
 export const DefaultComponents = [
   TemplateCompiler,
+  DirtyChecker,
   NodeObserverLocator,
 ];
 
@@ -111,10 +112,9 @@ export const ShortHandBindingSyntax = [
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
- * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
- * - Function call: `.call`
+ * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way
  * - Collection observation: `.for`
- * - Event listeners: `.trigger`, `.delegate`, `.capture`
+ * - Event listeners: `.trigger`, `.capture`
  */
 export const DefaultBindingLanguage = [
   DefaultBindingCommand,

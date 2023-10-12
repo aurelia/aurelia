@@ -5,7 +5,7 @@ import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
 import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
-import { createError, createObject, getOwnMetadata, isFunction, isString, safeString } from './utilities';
+import { getOwnMetadata, isFunction, isString } from './utilities';
 import {
   IContainer,
   type Key,
@@ -29,13 +29,8 @@ import {
   type IResolvedLazy,
   type IAllResolver,
   type IOptionalResolver,
-  all,
-  lazy,
-  factory,
-  optional,
-  newInstanceForScope,
-  newInstanceOf
 } from './di';
+import { ErrorNames, createMappedError } from './errors';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
@@ -88,21 +83,21 @@ export class Container implements IContainer {
       this._resolvers = new Map();
       this._factories = new Map<Constructable, Factory>();
 
-      this.res = createObject();
+      this.res = {};
     } else {
       this.root = parent.root;
 
       this._resolvers = new Map();
       this._factories = parent._factories;
+      this.res = {};
 
       if (config.inheritParentResources) {
-        this.res = Object.assign(
-          createObject(),
-          parent.res,
-          this.root.res
-        );
-      } else {
-        this.res = createObject();
+        // todo: when the simplify resource system work is commenced
+        //       this resource inheritance can just be a Object.create() call
+        //       with parent resources as the prototype of the child resources
+        for (const key in parent.res) {
+          this.registerResolver(key, parent.res[key]!);
+        }
       }
     }
 
@@ -111,7 +106,7 @@ export class Container implements IContainer {
 
   public register(...params: any[]): IContainer {
     if (++this._registerDepth === 100) {
-      throw registrationError(params);
+      throw createMappedError(ErrorNames.unable_auto_register, ...params);
     }
     let current: IRegistry | Record<string, IRegistry>;
     let keys: string[];
@@ -176,7 +171,7 @@ export class Container implements IContainer {
       resolvers.set(key, resolver);
       if (isResourceKey(key)) {
         if (this.res[key] !== void 0) {
-          throw resourceExistError(key);
+          throw createMappedError(ErrorNames.resource_already_exists, key);
         }
         this.res[key] = resolver;
       }
@@ -282,7 +277,7 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this._resolvers.has(key)
+    return this._resolvers.has(key) || isResourceKey(key) && key in this.res
       ? true
       : searchAncestors && this.parent != null
         ? this.parent.has(key, true)
@@ -319,7 +314,7 @@ export class Container implements IContainer {
       currentContainer = previousContainer;
     }
 
-    throw cantResolveKeyError(key);
+    throw createMappedError(ErrorNames.unable_resolve_key, key);
   }
 
   public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
@@ -350,7 +345,6 @@ export class Container implements IContainer {
           current = current.parent;
 
           if (current == null) {
-            currentContainer = previousContainer;
             return emptyArray;
           }
         } else {
@@ -369,7 +363,7 @@ export class Container implements IContainer {
     currentContainer = this;
     try {
       if (isNativeFunction(Type)) {
-        throw createNativeInvocationError(Type);
+        throw createMappedError(ErrorNames.no_construct_native_fn, Type);
       }
       return dynamicDependencies === void 0
         ? new Type(...getDependencies(Type).map(containerGetKey, this))
@@ -379,11 +373,15 @@ export class Container implements IContainer {
     }
   }
 
+  public hasFactory<T extends Constructable>(key: T): boolean {
+    return this._factories.has(key);
+  }
+
   public getFactory<K extends Constructable>(Type: K): IFactory<K> {
     let factory = this._factories.get(Type);
     if (factory === void 0) {
       if (isNativeFunction(Type)) {
-        throw createNativeInvocationError(Type);
+        throw createMappedError(ErrorNames.no_construct_native_fn, Type);
       }
       this._factories.set(Type, factory = new Factory<K>(Type, getDependencies(Type)));
     }
@@ -480,11 +478,11 @@ export class Container implements IContainer {
   /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (!isFunction(keyAsValue)) {
-      throw jitRegisterNonFunctionError(keyAsValue);
+      throw createMappedError(ErrorNames.unable_jit_non_constructor, keyAsValue);
     }
 
     if (InstrinsicTypeNames.has(keyAsValue.name)) {
-      throw jitInstrinsicTypeError(keyAsValue);
+      throw createMappedError(ErrorNames.no_jit_intrinsic_type, keyAsValue);
     }
 
     if (isRegistry(keyAsValue)) {
@@ -494,7 +492,7 @@ export class Container implements IContainer {
         if (newResolver != null) {
           return newResolver;
         }
-        throw invalidResolverFromRegisterError();
+        throw createMappedError(ErrorNames.null_resolver_from_register, keyAsValue);
       }
       return registrationResolver as IResolver;
     }
@@ -514,11 +512,11 @@ export class Container implements IContainer {
       if (newResolver != null) {
         return newResolver;
       }
-      throw invalidResolverFromRegisterError();
+      throw createMappedError(ErrorNames.null_resolver_from_register, keyAsValue);
     }
 
     if (keyAsValue.$isInterface) {
-      throw jitInterfaceError(keyAsValue.friendlyName);
+      throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }
 
     const resolver = this.config.defaultResolver(keyAsValue, handler);
@@ -567,11 +565,7 @@ function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => a
 
 function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    if (__DEV__) {
-      throw createError(`AUR0014: key/value cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
-    } else {
-      throw createError(`AUR0014`);
-    }
+    throw createMappedError(ErrorNames.null_undefined_key);
   }
 }
 
@@ -605,30 +599,12 @@ export function resolve<K extends Key>(key: K): IResolvedInjection<K>;
 export function resolve<K extends Key[]>(...keys: K): IResolvedInjection<K>;
 export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
   if (currentContainer == null) {
-    throw createInvalidResolveCallError();
+    throw createMappedError(ErrorNames.no_active_container_for_resolve, ...keys);
   }
   return keys.length === 1
     ? currentContainer.get(keys[0])
     : keys.map(containerGetKey, currentContainer);
 }
-
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
-function testResolve() {
-  class Abc { public a = 1; }
-  class Def { public b = 2; }
-  class Abc2 { public c = '3'; }
-  const [{ a: _ }] = resolve(all(Abc));
-  const [ [{ a: a_ }], [{ b: b_ }], [{ c: c_ }]] = resolve(all(Abc), all(Def), all(Abc2));
-  let [{ a }, { b }, { c }, lazyDef, factoryAbc2, optionalAbc, newDef, newAbc] = resolve(Abc, Def, Abc2, lazy(Def), factory(Abc2), optional(Abc), newInstanceForScope(Def), newInstanceOf(Abc));
-  a = 3; b = 4; c = '1';
-  lazyDef().b = 5;
-  factoryAbc2(1, 2, 3).c = '2';
-  // @ts-expect-error
-  if (optionalAbc.a) {/*  */}
-  newDef.b = 4;
-  newAbc.a = 2;
-}
-/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment, prefer-const */
 
 const buildAllResponse = (resolver: IResolver, handler: IContainer, requestor: IContainer): any[] => {
   if (resolver instanceof Resolver && resolver._strategy === ResolverStrategy.array) {
@@ -668,43 +644,3 @@ const isClass = <T extends { prototype?: any }>(obj: T): obj is Class<any, T> =>
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;
-
-const registrationError = (deps: Key[]) =>
-  // TODO: change to reporter.error and add various possible causes in description.
-  // Most likely cause is trying to register a plain object that does not have a
-  // register method and is not a class constructor
-  __DEV__
-    ? createError(`AUR0006: Unable to autoregister dependency: [${deps.map(safeString)}]`)
-    : createError(`AUR0006:${deps.map(safeString)}`);
-const resourceExistError = (key: Key) =>
-  __DEV__
-    ? createError(`AUR0007: Resource key "${safeString(key)}" already registered`)
-    : createError(`AUR0007:${safeString(key)}`);
-const cantResolveKeyError = (key: Key) =>
-  __DEV__
-    ? createError(`AUR0008: Unable to resolve key: ${safeString(key)}`)
-    : createError(`AUR0008:${safeString(key)}`);
-const jitRegisterNonFunctionError = (keyAsValue: Key) =>
-  __DEV__
-    ? createError(`AUR0009: Attempted to jitRegister something that is not a constructor: '${safeString(keyAsValue)}'. Did you forget to register this resource?`)
-    : createError(`AUR0009:${safeString(keyAsValue)}`);
-const jitInstrinsicTypeError = (keyAsValue: any) =>
-  __DEV__
-    ? createError(`AUR0010: Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`)
-    : createError(`AUR0010:${keyAsValue.name}`);
-const invalidResolverFromRegisterError = () =>
-  __DEV__
-    ? createError(`AUR0011: Invalid resolver returned from the static register method`)
-    : createError(`AUR0011`);
-const jitInterfaceError = (name: string) =>
-  __DEV__
-    ? createError(`AUR0012: Attempted to jitRegister an interface: ${name}`)
-    : createError(`AUR0012:${name}`);
-const createNativeInvocationError = (Type: Constructable): Error =>
-  __DEV__
-    ? createError(`AUR0015: ${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`)
-    : createError(`AUR0015:${Type.name}`);
-const createInvalidResolveCallError = () =>
-  __DEV__
-    ? createError(`AUR0016: There is not a currently active container. Are you trying to "new Class(...)" that has a resolve(...) call?`)
-    : createError(`AUR0016`);

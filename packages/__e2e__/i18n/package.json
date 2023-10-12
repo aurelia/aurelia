@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.8",
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
@@ -16,24 +16,24 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.0-beta.5",
-    "@aurelia/kernel": "2.0.0-beta.5",
-    "@aurelia/metadata": "2.0.0-beta.5",
-    "@aurelia/platform": "2.0.0-beta.5",
-    "@aurelia/platform-browser": "2.0.0-beta.5",
-    "@aurelia/runtime": "2.0.0-beta.5",
-    "@aurelia/runtime-html": "2.0.0-beta.5",
-    "@aurelia/validation": "2.0.0-beta.5",
+    "@aurelia/i18n": "2.0.0-beta.8",
+    "@aurelia/kernel": "2.0.0-beta.8",
+    "@aurelia/metadata": "2.0.0-beta.8",
+    "@aurelia/platform": "2.0.0-beta.8",
+    "@aurelia/platform-browser": "2.0.0-beta.8",
+    "@aurelia/runtime": "2.0.0-beta.8",
+    "@aurelia/runtime-html": "2.0.0-beta.8",
+    "@aurelia/validation": "2.0.0-beta.8",
     "i18next": "^17.0.0",
     "i18next-fetch-backend": "^2.2.0",
     "i18next-intervalplural-postprocessor": "^1.0.0"
   },
   "devDependencies": {
-    "@aurelia/vite-plugin": "2.0.0-beta.5",
-    "@playwright/test": "1.27.1",
+    "@aurelia/vite-plugin": "2.0.0-beta.8",
+    "@playwright/test": "1.33.0",
     "@types/mocha": "10.0.0",
     "@types/node": "^14.18.14",
-    "playwright": "^1.21.1",
-    "typescript": "5.0.2"
+    "playwright": "^1.33.0",
+    "typescript": "5.1.6"
   }
 }

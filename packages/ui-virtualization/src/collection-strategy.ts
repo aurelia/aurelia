@@ -18,21 +18,21 @@ export class CollectionStrategyLocator implements ICollectionStrategyLocator {
 }
 
 class ArrayCollectionStrategy implements ICollectionStrategy<unknown[]> {
-
   public constructor(
     public readonly val: unknown[],
-  ) { }
+  ) {
+  }
 
-  public count(): number {
+  public get count() {
     return this.val.length;
   }
 
   public first(): unknown {
-    return this.val.length > 0 ? this.val[0] : null;
+    return this.count > 0 ? this.val[0] : null;
   }
 
   public last(): unknown {
-    return this.val.length > 0 ? this.val[this.val.length - 1] : null;
+    return this.count > 0 ? this.val[this.count - 1] : null;
   }
 
   public item(index: number): unknown {
@@ -41,7 +41,7 @@ class ArrayCollectionStrategy implements ICollectionStrategy<unknown[]> {
 
   public range(start: number, end: number): unknown[] {
     const val = this.val;
-    const len = val.length;
+    const len = this.count;
     if (len > start && end > start) {
       return val.slice(start, end);
     }
@@ -61,13 +61,8 @@ class ArrayCollectionStrategy implements ICollectionStrategy<unknown[]> {
 
 class NullCollectionStrategy implements ICollectionStrategy {
 
-  public get val(): null {
-    return null;
-  }
-
-  public count(): number {
-    return 0;
-  }
+  public val = null;
+  public count = 0;
 
   public isNearTop(): boolean {
     return false;

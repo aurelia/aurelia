@@ -1,7 +1,7 @@
 import { createIndexMap, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities-objects';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
 
 import type {
   CollectionKind,
@@ -153,7 +153,7 @@ export function disableMapObservation(): void {
 export interface MapObserver extends ICollectionObserver<CollectionKind.map>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
-  public type: AccessorType = AccessorType.Map;
+  public type: AccessorType = AccessorType.Observer;
   private lenObs?: CollectionSizeObserver;
 
   public constructor(map: Map<unknown, unknown>) {

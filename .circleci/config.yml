@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   common: aurelia/common@volatile
-  browser-tools: circleci/browser-tools@1.1.0
+  browser-tools: circleci/browser-tools@1.4.3
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -69,8 +69,6 @@ executors:
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
-  
-
   docker_release:
     working_directory: *working_dir
     resource_class: large
@@ -82,6 +80,16 @@ executors:
     resource_class: large
     docker:
       - image: "cimg/node:16.14.2-browsers"
+
+  docker_playwright_jammy:
+    docker:
+      - image: mcr.microsoft.com/playwright:v1.34.3-jammy
+
+  docker_verdaccio:
+    working_directory: *working_dir
+    resource_class: large
+    docker:
+      - image: "oven/bun"
 
 # # # # # # # # # # # # # # # #
 # - Commands -
@@ -595,7 +603,7 @@ jobs:
           no_output_timeout: "1m"
 
   # Standalone playwright test jobs
-  e2e_playwright:
+  e2e_verdaccio:
     executor: docker_circleci
     parameters:
       path:
@@ -615,11 +623,6 @@ jobs:
           to: develop
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
-      - run:
-          name: "Install playwright"
-          command: |
-            cd test/playwright
-            npm ci
       - when:
           condition: << parameters.use_verdaccio >>
           steps:
@@ -639,21 +642,10 @@ jobs:
       - run:
           name: "Build test app"
           command: |
+            npx rimraf node_modules
             cd << parameters.path >>
-            npm run build
-      - run:
-          name: "Serve playwright test app"
-          background: true
-          command: |
-            cd << parameters.path >>
-            npm run serve
-      - run:
-          name: "Run playwright test"
-          command: |
-            cd test/playwright
-            npm run build
-            npm run e2e:<< parameters.suite >>
-          no_output_timeout: "1m"
+            npm run test
+          no_output_timeout: "30s"
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
@@ -678,7 +670,9 @@ jobs:
           key: cache-{{ .Revision }}-benchmark-app
           paths:
             - benchmarks/latest/dist/app.latest.js
+            - benchmarks/latest/dist/app-big-template.latest.js
             - benchmarks/local/dist/app.local.js
+            - benchmarks/local/dist/app-big-template.local.js
 
   tacho_benchmark:
     executor: docker_circleci_bench
@@ -800,10 +794,10 @@ workflows:
           requires:
             - checkout_install
 
-      - e2e_playwright:
+      - e2e_verdaccio:
           <<: *filter_ignore_develop_release
-          name: webpack_conventions_ts
-          path: "examples/jit-webpack-conventions-ts"
+          name: e2e_verdaccio_parcel_ts
+          path: "test/verdaccio-apps/parcel-conventions"
           requires:
             - build_release
 
@@ -845,6 +839,12 @@ workflows:
           path: "packages/__e2e__/i18n"
           requires:
             - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_virtual_repeat
+          path: "packages/__e2e__/ui-virtualization"
+          requires:
+            - build_release
       - tacho_benchmark_prep:
           <<: *filter_ignore_develop_release
           requires:
@@ -863,12 +863,24 @@ workflows:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
+          name: benchmark_rerender1k-big-template
+          command: npm run bench:rerender1k-big
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_startup1k-big-template
+          command: npm run bench:startup1k-big
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
           name: benchmark_update
           command: npm run bench:update1k
           requires:
             - tacho_benchmark_prep
 
-      # - e2e_playwright:
+      # - e2e_verdaccio:
       #     <<: *filter_ignore_develop_release
       #     name: webpack_vanilla_ts
       #     path: "examples/jit-webpack-vanilla-ts"
@@ -884,7 +896,7 @@ workflows:
             - test_node
             - test_toolings
             # - lint_packages
-            - webpack_conventions_ts
+            - e2e_verdaccio_parcel_ts
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
@@ -904,7 +916,7 @@ workflows:
           dist_file_name: merge_and_dist_topic
           requires:
             - build_release
-            
+
       - request_publish_dev:
           <<: *filter_only_master
           type: approval
@@ -918,7 +930,7 @@ workflows:
           requires:
             - request_publish_dev
             - merge_and_dist_master
-          
+
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -994,6 +1006,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
           path: "packages/__e2e__/i18n"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_virtual_repeat
+          path: "packages/__e2e__/ui-virtualization"
           requires:
             - build_release
 

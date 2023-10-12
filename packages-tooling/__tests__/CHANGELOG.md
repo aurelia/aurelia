@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Bug Fixes:
+
+* **plugin-conventions:** fill up explicit .js/.ts dep filename in html module (#1752) ([17af0c8](https://github.com/aurelia/aurelia/commit/17af0c8))
+
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+**Note:** Version bump only for package @aurelia/__tests__
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

@@ -8,7 +8,7 @@ import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { createMutationObserver } from '../../utilities-dom';
 
-import { IContainer, InstanceProvider, Writable, emptyArray, onResolve } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
@@ -20,8 +20,6 @@ import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher } from '../../temp
   containerless: true
 })
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
-  /** @internal */ public static get inject() { return [IRenderLocation, IInstruction, IHydrationContext, IRendering]; }
-
   public readonly view: ISyntheticView;
   /** @internal */
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
@@ -47,23 +45,22 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   @bindable
   public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
-  public constructor(
-    location: IRenderLocation,
-    instruction: HydrateElementInstruction,
-    hdrContext: IHydrationContext,
-    rendering: IRendering,
-  ) {
-    let factory: IViewFactory;
-    let container: IContainer;
+  public constructor() {
+    const location = resolve(IRenderLocation);
+    const instruction = resolve(IInstruction) as HydrateElementInstruction;
+    const hdrContext = resolve(IHydrationContext);
+    const rendering = resolve(IRendering);
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     const contextController = hdrContext.controller;
+    let factory: IViewFactory;
+    let container: IContainer;
     this.name = slotInfo.name;
     if (projection == null) {
       factory = rendering.getViewFactory(slotInfo.fallback, contextController.container);
       this._hasProjection = false;
     } else {
-      container = hdrContext.parent!.controller.container.createChild();
+      container = hdrContext.parent!.controller.container.createChild({ inheritParentResources: true });
       registerResolver(
         container,
         contextController.definition.Type,
@@ -129,13 +126,13 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       initiator,
       this.$controller,
       this._hasProjection ? this._outerScope! : this._parentScope!,
-      ), () => {
-        if (this._hasSlotWatcher) {
-          this._slotwatchers.forEach(w => w.watch(this));
-          this._observe();
-          this._notifySlotChange();
-          this._attached = true;
-        }
+    ), () => {
+      if (this._hasSlotWatcher) {
+        this._slotwatchers.forEach(w => w.watch(this));
+        this._observe();
+        this._notifySlotChange();
+        this._attached = true;
+      }
     });
   }
 

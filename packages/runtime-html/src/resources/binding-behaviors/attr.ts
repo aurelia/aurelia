@@ -4,16 +4,12 @@ import { bindingBehavior } from '../binding-behavior';
 
 import type { Scope } from '@aurelia/runtime';
 import { PropertyBinding } from '../../binding/property-binding';
-import { createError } from '../../utilities';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class AttrBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: IBinding): void {
     if (!(binding instanceof PropertyBinding)) {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AURxxxx: & attr can be only used on property binding. It's used on ${binding.constructor.name}`);
-      else
-        throw createError(`AURxxxx`);
+      throw createMappedError(ErrorNames.attr_behavior_invalid_binding, binding);
     }
     binding.useTargetObserver(attrAccessor);
   }

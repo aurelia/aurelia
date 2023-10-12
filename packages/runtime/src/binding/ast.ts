@@ -14,6 +14,7 @@ export {
 
 export const enum ExpressionKind {
   AccessThis,
+  AccessGlobal,
   AccessScope,
   ArrayLiteral,
   ObjectLiteral,
@@ -23,6 +24,7 @@ export const enum ExpressionKind {
   CallScope,
   CallMember,
   CallFunction,
+  CallGlobal,
   AccessMember,
   AccessKeyed,
   TaggedTemplate,
@@ -48,9 +50,9 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 
-export type IsPrimary = AccessThisExpression | AccessScopeExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
+export type IsPrimary = AccessThisExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
-export type IsLeftHandSide = IsPrimary | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
+export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
 export type IsBinary = IsUnary | BinaryExpression;
 export type IsConditional = IsBinary | ConditionalExpression;
@@ -148,9 +150,15 @@ export class ConditionalExpression {
   ) {}
 }
 
+export class AccessGlobalExpression {
+  public readonly $kind: ExpressionKind.AccessGlobal = ExpressionKind.AccessGlobal;
+
+  public constructor(
+    public readonly name: string,
+  ) {}
+}
+
 export class AccessThisExpression {
-  public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
-  public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
   public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
 
   public constructor(
@@ -166,22 +174,36 @@ export class AccessScopeExpression {
   ) {}
 }
 
+const isAccessGlobal = (ast: IsLeftHandSide) => (
+  ast.$kind === ExpressionKind.AccessGlobal ||
+  (
+    ast.$kind === ExpressionKind.AccessMember ||
+    ast.$kind === ExpressionKind.AccessKeyed
+  ) && ast.accessGlobal
+);
+
 export class AccessMemberExpression {
   public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
+  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly optional: boolean = false,
-  ) {}
+  ) {
+    this.accessGlobal = isAccessGlobal(object);
+  }
 }
 
 export class AccessKeyedExpression {
   public readonly $kind = ExpressionKind.AccessKeyed;
+  public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly key: IsAssign,
     public readonly optional: boolean = false,
-  ) {}
+  ) {
+    this.accessGlobal = isAccessGlobal(object);
+  }
 }
 
 export class CallScopeExpression {
@@ -211,6 +233,14 @@ export class CallFunctionExpression {
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
     public readonly optional: boolean = false,
+  ) {}
+}
+
+export class CallGlobalExpression {
+  public readonly $kind = ExpressionKind.CallGlobal;
+  public constructor(
+    public readonly name: string,
+    public readonly args: readonly IsAssign[]
   ) {}
 }
 

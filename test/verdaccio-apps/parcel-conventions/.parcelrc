@@ -1,0 +1,7 @@
+{
+  "extends": "@parcel/config-default",
+  "transformers": {
+    "*.ts": ["@aurelia/parcel-transformer", "@parcel/transformer-typescript-tsc"],
+    "*.html": ["@aurelia/parcel-transformer", "..."]
+  }
+}

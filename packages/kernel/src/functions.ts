@@ -1,5 +1,6 @@
+import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createError, createObject } from './utilities';
+import { createObject } from './utilities';
 
 const isNumericLookup: Record<string, boolean> = {};
 
@@ -282,9 +283,22 @@ export const firstDefined = <T>(...values: readonly (T | undefined)[]): T => {
       return value;
     }
   }
-  throw createError(`No default value found`);
+  throw createMappedError(ErrorNames.first_defined_no_value);
 };
 
+/**
+ * Get the prototypes of a class hierarchy. Es6 classes have their parent class as prototype
+ * so this will return a list of constructors
+ *
+ * @example
+ * ```ts
+ * class A {}
+ * class B extends A {}
+ *
+ * assert.deepStrictEqual(getPrototypeChain(A), [A])
+ * assert.deepStrictEqual(getPrototypeChain(B), [B, A])
+ * ```
+ */
 export const getPrototypeChain = /*@__PURE__*/(function () {
   const functionPrototype = Function.prototype;
   const getPrototypeOf = Object.getPrototypeOf;
@@ -434,7 +448,7 @@ export const onResolve = <TValue, TRet>(
  *
  * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
  */
-export const resolveAll = (
+export const onResolveAll = (
   ...maybePromises: (void | Promise<void>)[]
 ): void | Promise<void> => {
   let maybePromise: Promise<void> | void = void 0;

@@ -13,26 +13,25 @@ export {
   LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
-  IRouterConfigurationOptions,
+  type IRouterConfigurationOptions,
 } from './configuration';
 
 export {
   type IRouteViewModel,
-  ComponentAgent,
 } from './component-agent';
 
 export {
   type RouteableComponent,
   type NavigationInstruction,
-  IViewportInstruction,
+  type IViewportInstruction,
   type Params,
   type ViewportInstruction,
-  ITypedNavigationInstruction,
-  ITypedNavigationInstruction_string,
-  ITypedNavigationInstruction_ViewportInstruction,
-  ITypedNavigationInstruction_CustomElementDefinition,
-  ITypedNavigationInstruction_Promise,
-  ITypedNavigationInstruction_IRouteViewModel,
+  type ITypedNavigationInstruction,
+  type ITypedNavigationInstruction_string,
+  type ITypedNavigationInstruction_ViewportInstruction,
+  type ITypedNavigationInstruction_CustomElementDefinition,
+  type ITypedNavigationInstruction_Promise,
+  type ITypedNavigationInstruction_IRouteViewModel,
 } from './instructions';
 
 export {
@@ -61,7 +60,6 @@ export {
   SegmentGroupExpression,
   SegmentExpression,
   ComponentExpression,
-  ActionExpression,
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,
@@ -87,7 +85,7 @@ export {
   RouterOptions,
   NavigationOptions,
   type HistoryStrategy,
-  FallbackFunction,
+  type FallbackFunction,
   type Routeable,
   type IRouteConfig,
   type IChildRouteConfig,
@@ -112,3 +110,9 @@ export {
 export {
   ViewportAgent,
 } from './viewport-agent';
+
+export {
+  IUrlParser,
+  pathUrlParser,
+  fragmentUrlParser,
+} from './url-parser';

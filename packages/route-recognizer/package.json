@@ -1,12 +1,13 @@
 {
   "name": "@aurelia/route-recognizer",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.8",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "development": "./dist/esm/index.dev.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",
@@ -49,7 +50,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.1.6"
   },
   "engines": {
     "node": ">=14.17.0"

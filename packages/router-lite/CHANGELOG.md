@@ -3,6 +3,76 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Bug Fixes:
+
+* **router-lite:** handling slash in parameter value (#1805) ([3fbb698](https://github.com/aurelia/aurelia/commit/3fbb698))
+* **router-lite:** e2e build ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+* **router-lite:** query in fragment when using useUrlFragmentHash option (#1794) ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url serializer ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url parser ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** url parser stringify ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** e2e tests ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** nested fragment ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* ***:** router-lite ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* **router-lite:** optimize object creation (#1782) ([c1ef0a3](https://github.com/aurelia/aurelia/commit/c1ef0a3))
+
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Features:
+
+* **router-lite:** error recovery ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **build:** add a development entry point (#1770) ([69ff445](https://github.com/aurelia/aurelia/commit/69ff445))
+
+
+### Bug Fixes:
+
+* **router-lite:** hash compatibility with v1 (#1779) ([9302db5](https://github.com/aurelia/aurelia/commit/9302db5))
+* **router-lite:** URL generation in child component (#1778) ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **router-lite:** broken tests ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **router-lite:** viewport name match for contains check in RouteNode ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error recovery from child's hook ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** tests ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** deepscan issue ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **plugin-conventions:** fill up explicit .js/.ts dep filename in html module (#1752) ([17af0c8](https://github.com/aurelia/aurelia/commit/17af0c8))
+
+
+### Refactorings:
+
+* **router-lite:** miscellaneous changes (#1773) ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** residue handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** component-agent event trc ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** loc-mngr event log ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** router event log ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** logging ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite/vi:** removed obtrusive props from public API ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+### Refactorings:
+
+* ***:** rename resolveAll -> onResolveAll (#1764) ([fdf0747](https://github.com/aurelia/aurelia/commit/fdf0747))
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

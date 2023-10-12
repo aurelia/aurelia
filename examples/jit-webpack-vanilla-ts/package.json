@@ -29,7 +29,7 @@
     "html-webpack-plugin": "^5.5.0",
     "rimraf": "^3.0.0",
     "ts-loader": "^9.3.0",
-    "typescript": "5.0.2",
+    "typescript": "5.1.6",
     "webpack-cli": "^4.9.2",
     "webpack": "^5.72.0"
   }

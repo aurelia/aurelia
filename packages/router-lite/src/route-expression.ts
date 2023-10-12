@@ -5,9 +5,10 @@
 // const componentTerminal = [...actionTerminal, '.'];
 // const paramTerminal = ['=', ',', ')'];
 
+import { Events, getMessage } from './events';
 import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
 import { type NavigationOptions } from './options';
-import { emptyQuery } from './router';
+import { ParsedUrl } from './url-parser';
 import { mergeURLSearchParams } from './util';
 
 // These are the currently used terminal symbols.
@@ -15,81 +16,82 @@ import { mergeURLSearchParams } from './util';
 // so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
 const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'] as const;
 
+/** @internal */
 class ParserState {
-  public get done() {
-    return this.rest.length === 0;
+  public get _done() {
+    return this._rest.length === 0;
   }
 
-  private rest: string;
-  private readonly buffers: string[] = [];
-  private bufferIndex: number = 0;
-  private index: number = 0;
+  private _rest: string;
+  private readonly _buffers: string[] = [];
+  private _bufferIndex: number = 0;
+  private _index: number = 0;
 
   public constructor(
-    private readonly input: string,
+    private readonly _input: string,
   ) {
-    this.rest = input;
+    this._rest = _input;
   }
 
-  public startsWith(...values: readonly string[]): boolean {
-    const rest = this.rest;
+  public _startsWith(...values: readonly string[]): boolean {
+    const rest = this._rest;
     return values.some(function (value) {
       return rest.startsWith(value);
     });
   }
 
-  public consumeOptional(str: string): boolean {
-    if (this.startsWith(str)) {
-      this.rest = this.rest.slice(str.length);
-      this.index += str.length;
-      this.append(str);
+  public _consumeOptional(str: string): boolean {
+    if (this._startsWith(str)) {
+      this._rest = this._rest.slice(str.length);
+      this._index += str.length;
+      this._append(str);
       return true;
     }
     return false;
   }
 
-  public consume(str: string): void {
-    if (!this.consumeOptional(str)) {
-      this.expect(`'${str}'`);
+  public _consume(str: string): void {
+    if (!this._consumeOptional(str)) {
+      this._expect(`'${str}'`);
     }
   }
 
-  public expect(msg: string): void {
-    throw new Error(`Expected ${msg} at index ${this.index} of '${this.input}', but got: '${this.rest}' (rest='${this.rest}')`);
+  public _expect(msg: string): never {
+    throw new Error(getMessage(Events.exprUnexpectedSegment, msg, this._index, this._input, this._rest, this._rest));
   }
 
-  public ensureDone(): void {
-    if (!this.done) {
-      throw new Error(`Unexpected '${this.rest}' at index ${this.index} of '${this.input}'`);
+  public _ensureDone(): void {
+    if (!this._done) {
+      throw new Error(getMessage(Events.exprNotDone, this._rest, this._index, this._input));
     }
   }
 
-  public advance(): void {
-    const char = this.rest[0];
-    this.rest = this.rest.slice(1);
-    ++this.index;
-    this.append(char);
+  public _advance(): void {
+    const char = this._rest[0];
+    this._rest = this._rest.slice(1);
+    ++this._index;
+    this._append(char);
   }
 
-  public record(): void {
-    this.buffers[this.bufferIndex++] = '';
+  public _record(): void {
+    this._buffers[this._bufferIndex++] = '';
   }
 
-  public playback(): string {
-    const bufferIndex = --this.bufferIndex;
-    const buffers = this.buffers;
+  public _playback(): string {
+    const bufferIndex = --this._bufferIndex;
+    const buffers = this._buffers;
     const buffer = buffers[bufferIndex];
     buffers[bufferIndex] = '';
     return buffer;
   }
 
-  public discard(): void {
-    this.buffers[--this.bufferIndex] = '';
+  public _discard(): void {
+    this._buffers[--this._bufferIndex] = '';
   }
 
-  private append(str: string): void {
-    const bufferIndex = this.bufferIndex;
-    const buffers = this.buffers;
+  private _append(str: string): void {
+    const bufferIndex = this._bufferIndex;
+    const buffers = this._buffers;
     for (let i = 0; i < bufferIndex; ++i) {
       buffers[i] += str;
     }
@@ -109,61 +111,37 @@ export const enum ExpressionKind {
   Parameter,
 }
 
-const fragmentRouteExpressionCache = new Map<string, RouteExpression>();
-const routeExpressionCache = new Map<string, RouteExpression>();
+const cache = new Map<string, RouteExpression>();
 
 export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | RouteExpression;
 export class RouteExpression {
   public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
 
   public constructor(
-    public readonly raw: string,
     public readonly isAbsolute: boolean,
     public readonly root: CompositeSegmentExpressionOrHigher,
     public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
-    public readonly fragmentIsRoute: boolean,
   ) {}
 
-  public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    const cache = fragmentIsRoute ? fragmentRouteExpressionCache : routeExpressionCache;
-    let result = cache.get(path);
+  public static parse(value: ParsedUrl): RouteExpression {
+    const key = value.toString();
+    let result = cache.get(key);
     if (result === void 0) {
-      cache.set(path, result = RouteExpression.$parse(path, fragmentIsRoute));
+      cache.set(key, result = RouteExpression._$parse(value));
     }
     return result;
   }
 
-  private static $parse(path: string, fragmentIsRoute: boolean): RouteExpression {
-    // First strip off the fragment (and if fragment should be used as route, set it as the path)
-    let fragment: string | null = null;
-    const fragmentStart = path.indexOf('#');
-    if (fragmentStart >= 0) {
-      const rawFragment = path.slice(fragmentStart + 1);
-      fragment = decodeURIComponent(rawFragment);
-      if (fragmentIsRoute) {
-        path = fragment;
-      } else {
-        path = path.slice(0, fragmentStart);
-      }
-    }
-
-    // Strip off and parse the query string using built-in URLSearchParams.
-    let queryParams: URLSearchParams | null = null;
-    const queryStart = path.indexOf('?');
-    if (queryStart >= 0) {
-      const queryString = path.slice(queryStart + 1);
-      path = path.slice(0, queryStart);
-      queryParams = new URLSearchParams(queryString);
-    }
+  /** @internal */
+  private static _$parse(value: ParsedUrl): RouteExpression {
+    const path = value.path;
     if (path === '') {
       return new RouteExpression(
-        '',
         false,
-        SegmentExpression.EMPTY,
-        queryParams != null ? Object.freeze(queryParams) : emptyQuery,
-        fragment,
-        fragmentIsRoute,
+        SegmentExpression.Empty,
+        value.query,
+        value.fragment,
       );
     }
 
@@ -181,28 +159,24 @@ export class RouteExpression {
      * Anything else is invalid.
      */
     const state = new ParserState(path);
-    state.record();
-    const isAbsolute = state.consumeOptional('/');
+    state._record();
+    const isAbsolute = state._consumeOptional('/');
 
-    const root = CompositeSegmentExpression.parse(state);
-    state.ensureDone();
+    const root = CompositeSegmentExpression._parse(state);
+    state._ensureDone();
 
-    const raw = state.playback();
-    return new RouteExpression(raw, isAbsolute, root, queryParams !=null ? Object.freeze(queryParams) : emptyQuery, fragment, fragmentIsRoute);
+    state._discard();
+    return new RouteExpression(isAbsolute, root, value.query, value.fragment);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
     return new ViewportInstructionTree(
       options,
       this.isAbsolute,
-      this.root.toInstructions(0, 0),
+      this.root._toInstructions(0, 0),
       mergeURLSearchParams(this.queryParams, options.queryParams, true),
       this.fragment ?? options.fragment,
     );
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 
@@ -233,54 +207,51 @@ export class CompositeSegmentExpression {
   public get kind(): ExpressionKind.CompositeSegment { return ExpressionKind.CompositeSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
   ) {}
 
-  public static parse(state: ParserState): CompositeSegmentExpressionOrHigher {
-    state.record();
+  /** @internal */
+  public static _parse(state: ParserState): CompositeSegmentExpressionOrHigher {
+    state._record();
 
     // If a segment starts with '+', e.g. '/+a' / '/+a@vp' / '/a/+b' / '/+a+b' etc, then its siblings
     // are considered to be "append"
-    const append = state.consumeOptional('+');
+    const append = state._consumeOptional('+');
     const siblings = [];
     do {
-      siblings.push(ScopedSegmentExpression.parse(state));
-    } while (state.consumeOptional('+'));
+      siblings.push(ScopedSegmentExpression._parse(state));
+    } while (state._consumeOptional('+'));
 
     if (!append && siblings.length === 1) {
-      state.discard();
+      state._discard();
       return siblings[0];
     }
 
-    const raw = state.playback();
-    return new CompositeSegmentExpression(raw, siblings);
+    state._discard();
+    return new CompositeSegmentExpression(siblings);
   }
 
-  public toInstructions(open: number, close: number): ViewportInstruction[] {
+  /** @internal */
+  public _toInstructions(open: number, close: number): ViewportInstruction[] {
     switch (this.siblings.length) {
       case 0:
         return [];
       case 1:
-        return this.siblings[0].toInstructions(open, close);
+        return this.siblings[0]._toInstructions(open, close);
       case 2:
         return [
-          ...this.siblings[0].toInstructions(open, 0),
-          ...this.siblings[1].toInstructions(0, close),
+          ...this.siblings[0]._toInstructions(open, 0),
+          ...this.siblings[1]._toInstructions(0, close),
         ];
       default:
         return [
-          ...this.siblings[0].toInstructions(open, 0),
+          ...this.siblings[0]._toInstructions(open, 0),
           ...this.siblings.slice(1, -1).flatMap(function (x) {
-            return x.toInstructions(0, 0);
+            return x._toInstructions(0, 0);
           }),
-          ...this.siblings[this.siblings.length - 1].toInstructions(0, close),
+          ...this.siblings[this.siblings.length - 1]._toInstructions(0, close),
         ];
     }
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 
@@ -303,40 +274,37 @@ export class ScopedSegmentExpression {
   public get kind(): ExpressionKind.ScopedSegment { return ExpressionKind.ScopedSegment; }
 
   public constructor(
-    public readonly raw: string,
     public readonly left: SegmentGroupExpressionOrHigher,
     public readonly right: ScopedSegmentExpressionOrHigher,
   ) {}
 
-  public static parse(state: ParserState): ScopedSegmentExpressionOrHigher {
-    state.record();
+  /** @internal */
+  public static _parse(state: ParserState): ScopedSegmentExpressionOrHigher {
+    state._record();
 
-    const left = SegmentGroupExpression.parse(state);
+    const left = SegmentGroupExpression._parse(state);
 
-    if (state.consumeOptional('/')) {
-      const right = ScopedSegmentExpression.parse(state);
+    if (state._consumeOptional('/')) {
+      const right = ScopedSegmentExpression._parse(state);
 
-      const raw = state.playback();
-      return new ScopedSegmentExpression(raw, left, right);
+      state._discard();
+      return new ScopedSegmentExpression(left, right);
     }
 
-    state.discard();
+    state._discard();
     return left;
   }
 
-  public toInstructions(open: number, close: number): ViewportInstruction[] {
-    const leftInstructions = this.left.toInstructions(open, 0);
-    const rightInstructions = this.right.toInstructions(0, close);
+  /** @internal */
+  public _toInstructions(open: number, close: number): ViewportInstruction[] {
+    const leftInstructions = this.left._toInstructions(open, 0);
+    const rightInstructions = this.right._toInstructions(0, close);
     let cur = leftInstructions[leftInstructions.length - 1];
     while (cur.children.length > 0) {
       cur = cur.children[cur.children.length - 1];
     }
     cur.children.push(...rightInstructions);
     return leftInstructions;
-  }
-
-  public toString(): string {
-    return this.raw;
   }
 }
 
@@ -375,31 +343,28 @@ export class SegmentGroupExpression {
   public get kind(): ExpressionKind.SegmentGroup { return ExpressionKind.SegmentGroup; }
 
   public constructor(
-    public readonly raw: string,
     public readonly expression: CompositeSegmentExpressionOrHigher,
   ) {}
 
-  public static parse(state: ParserState): SegmentGroupExpressionOrHigher {
-    state.record();
+  /** @internal */
+  public static _parse(state: ParserState): SegmentGroupExpressionOrHigher {
+    state._record();
 
-    if (state.consumeOptional('(')) {
-      const expression = CompositeSegmentExpression.parse(state);
-      state.consume(')');
+    if (state._consumeOptional('(')) {
+      const expression = CompositeSegmentExpression._parse(state);
+      state._consume(')');
 
-      const raw = state.playback();
-      return new SegmentGroupExpression(raw, expression);
+      state._discard();
+      return new SegmentGroupExpression(expression);
     }
 
-    state.discard();
-    return SegmentExpression.parse(state);
+    state._discard();
+    return SegmentExpression._parse(state);
   }
 
-  public toInstructions(open: number, close: number): ViewportInstruction[] {
-    return this.expression.toInstructions(open + 1, close + 1);
-  }
-
-  public toString(): string {
-    return this.raw;
+  /** @internal */
+  public _toInstructions(open: number, close: number): ViewportInstruction[] {
+    return this.expression._toInstructions(open + 1, close + 1);
   }
 }
 
@@ -409,49 +374,44 @@ export class SegmentGroupExpression {
 export class SegmentExpression {
   public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
 
-  public static get EMPTY(): SegmentExpression { return new SegmentExpression('', ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
+  public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ViewportExpression.Empty, true); }
 
   public constructor(
-    public readonly raw: string,
     public readonly component: ComponentExpression,
-    public readonly action: ActionExpression,
     public readonly viewport: ViewportExpression,
     public readonly scoped: boolean,
   ) {}
 
-  public static parse(state: ParserState): SegmentExpression {
-    state.record();
+  /** @internal */
+  public static _parse(state: ParserState): SegmentExpression {
+    state._record();
 
-    const component = ComponentExpression.parse(state);
-    const action = ActionExpression.parse(state);
-    const viewport = ViewportExpression.parse(state);
-    const scoped = !state.consumeOptional('!');
+    const component = ComponentExpression._parse(state);
+    const viewport = ViewportExpression._parse(state);
+    const scoped = !state._consumeOptional('!');
 
-    const raw = state.playback();
-    return new SegmentExpression(raw, component, action, viewport, scoped);
+    state._discard();
+    return new SegmentExpression(component, viewport, scoped);
   }
 
-  public toInstructions(open: number, close: number): ViewportInstruction[] {
+  /** @internal */
+  public _toInstructions(open: number, close: number): ViewportInstruction[] {
     return [
       ViewportInstruction.create({
         component: this.component.name,
-        params: this.component.parameterList.toObject(),
+        params: this.component.parameterList._toObject(),
         viewport: this.viewport.name,
         open,
         close,
       }),
     ];
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 export class ComponentExpression {
   public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
 
-  public static get EMPTY(): ComponentExpression { return new ComponentExpression('', '', ParameterListExpression.EMPTY); }
+  public static get Empty(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.Empty); }
 
   /**
    * A single segment matching parameter, e.g. `:foo` (will match `a` but not `a/b`)
@@ -471,7 +431,6 @@ export class ComponentExpression {
   public readonly parameterName: string;
 
   public constructor(
-    public readonly raw: string,
     public readonly name: string,
     public readonly parameterList: ParameterListExpression,
   ) {
@@ -497,194 +456,142 @@ export class ComponentExpression {
     }
   }
 
-  public static parse(state: ParserState): ComponentExpression {
-    state.record();
-    state.record();
-    if (!state.done) {
-      if (state.startsWith('./')) {
-        state.advance();
-      } else if (state.startsWith('../')) {
-        state.advance();
-        state.advance();
+  /** @internal */
+  public static _parse(state: ParserState): ComponentExpression {
+    state._record();
+    state._record();
+    if (!state._done) {
+      if (state._startsWith('./')) {
+        state._advance();
+      } else if (state._startsWith('../')) {
+        state._advance();
+        state._advance();
       } else {
-        while (!state.done && !state.startsWith(...terminal)) {
-          state.advance();
+        while (!state._done && !state._startsWith(...terminal)) {
+          state._advance();
         }
       }
     }
 
-    const name = decodeURIComponent(state.playback());
+    const name = state._playback();
     if (name.length === 0) {
-      state.expect('component name');
+      state._expect('component name');
     }
-    const parameterList = ParameterListExpression.parse(state);
+    const parameterList = ParameterListExpression._parse(state);
 
-    const raw = state.playback();
-    return new ComponentExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
-  }
-}
-
-export class ActionExpression {
-  public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
-
-  public static get EMPTY(): ActionExpression { return new ActionExpression('', '', ParameterListExpression.EMPTY); }
-
-  public constructor(
-    public readonly raw: string,
-    public readonly name: string,
-    public readonly parameterList: ParameterListExpression,
-  ) {}
-
-  public static parse(state: ParserState): ActionExpression {
-    state.record();
-    let name = '';
-
-    if (state.consumeOptional('.')) {
-      state.record();
-      while (!state.done && !state.startsWith(...terminal)) {
-        state.advance();
-      }
-
-      name = decodeURIComponent(state.playback());
-      if (name.length === 0) {
-        state.expect('method name');
-      }
-    }
-
-    const parameterList = ParameterListExpression.parse(state);
-
-    const raw = state.playback();
-    return new ActionExpression(raw, name, parameterList);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ComponentExpression(name, parameterList);
   }
 }
 
 export class ViewportExpression {
   public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
 
-  public static get EMPTY(): ViewportExpression { return new ViewportExpression('', ''); }
+  public static get Empty(): ViewportExpression { return new ViewportExpression(''); }
 
   public constructor(
-    public readonly raw: string,
-    public readonly name: string,
+    public readonly name: string | null,
   ) {}
 
-  public static parse(state: ParserState): ViewportExpression {
-    state.record();
-    let name = '';
+  /** @internal */
+  public static _parse(state: ParserState): ViewportExpression {
+    state._record();
+    let name: string | null = null;
 
-    if (state.consumeOptional('@')) {
-      state.record();
-      while (!state.done && !state.startsWith(...terminal)) {
-        state.advance();
+    if (state._consumeOptional('@')) {
+      state._record();
+      while (!state._done && !state._startsWith(...terminal)) {
+        state._advance();
       }
 
-      name = decodeURIComponent(state.playback());
+      name = decodeURIComponent(state._playback());
       if (name.length === 0) {
-        state.expect('viewport name');
+        state._expect('viewport name');
       }
     }
 
-    const raw = state.playback();
-    return new ViewportExpression(raw, name);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ViewportExpression(name);
   }
 }
 
 export class ParameterListExpression {
   public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
 
-  public static get EMPTY(): ParameterListExpression { return new ParameterListExpression('', []); }
+  public static get Empty(): ParameterListExpression { return new ParameterListExpression([]); }
 
   public constructor(
-    public readonly raw: string,
     public readonly expressions: readonly ParameterExpression[],
   ) {}
 
-  public static parse(state: ParserState): ParameterListExpression {
-    state.record();
+  /** @internal */
+  public static _parse(state: ParserState): ParameterListExpression {
+    state._record();
     const expressions = [];
-    if (state.consumeOptional('(')) {
+    if (state._consumeOptional('(')) {
       do {
-        expressions.push(ParameterExpression.parse(state, expressions.length));
-        if (!state.consumeOptional(',')) {
+        expressions.push(ParameterExpression._parse(state, expressions.length));
+        if (!state._consumeOptional(',')) {
           break;
         }
-      } while (!state.done && !state.startsWith(')'));
-      state.consume(')');
+      } while (!state._done && !state._startsWith(')'));
+      state._consume(')');
     }
 
-    const raw = state.playback();
-    return new ParameterListExpression(raw, expressions);
+    state._discard();
+    return new ParameterListExpression(expressions);
   }
 
-  public toObject(): Params {
+  /** @internal */
+  public _toObject(): Params {
     const params: Params = {};
     for (const expr of this.expressions) {
       params[expr.key] = expr.value;
     }
     return params;
   }
-
-  public toString(): string {
-    return this.raw;
-  }
 }
 
 export class ParameterExpression {
   public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
 
-  public static get EMPTY(): ParameterExpression { return new ParameterExpression('', '', ''); }
+  public static get Empty(): ParameterExpression { return new ParameterExpression('', ''); }
 
   public constructor(
-    public readonly raw: string,
     public readonly key: string,
     public readonly value: string,
   ) {}
 
-  public static parse(state: ParserState, index: number): ParameterExpression {
-    state.record();
-    state.record();
-    while (!state.done && !state.startsWith(...terminal)) {
-      state.advance();
+  /** @internal */
+  public static _parse(state: ParserState, index: number): ParameterExpression {
+    state._record();
+    state._record();
+    while (!state._done && !state._startsWith(...terminal)) {
+      state._advance();
     }
 
-    let key = decodeURIComponent(state.playback());
+    let key = state._playback();
     if (key.length === 0) {
-      state.expect('parameter key');
+      state._expect('parameter key');
     }
     let value;
-    if (state.consumeOptional('=')) {
-      state.record();
-      while (!state.done && !state.startsWith(...terminal)) {
-        state.advance();
+    if (state._consumeOptional('=')) {
+      state._record();
+      while (!state._done && !state._startsWith(...terminal)) {
+        state._advance();
       }
 
-      value = decodeURIComponent(state.playback());
+      value = decodeURIComponent(state._playback());
       if (value.length === 0) {
-        state.expect('parameter value');
+        state._expect('parameter value');
       }
     } else {
       value = key;
       key = index.toString();
     }
 
-    const raw = state.playback();
-    return new ParameterExpression(raw, key, value);
-  }
-
-  public toString(): string {
-    return this.raw;
+    state._discard();
+    return new ParameterExpression(key, value);
   }
 }
 
@@ -695,7 +602,6 @@ export const AST = Object.freeze({
   SegmentGroupExpression,
   SegmentExpression,
   ComponentExpression,
-  ActionExpression,
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,

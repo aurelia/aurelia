@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "../../",
+  
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
+      },
+      "measurement": [
+        { "name": "perf", "mode": "performance", "entryName": "startup-1k-big-template" }
+      ],
+      "expand": [
+        {
+          "name": "startup 1k latest (big template)",
+          "url": "startup1k-latest-big-template.html"
+        },
+        {
+          "name": "startup 1k local (big template)",
+          "url": "startup1k-local-big-template.html"
+        }
+      ]
+    }
+  ],
+  "timeout": 0.5
+}

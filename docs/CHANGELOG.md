@@ -3,6 +3,85 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.8"></a>
+# 2.0.0-beta.8 (2023-07-24)
+
+### Features:
+
+* **compose:** passthrough bindings + support containerless (#1792) ([e8e39a9](https://github.com/aurelia/aurelia/commit/e8e39a9))
+* **template:** access global (#1790) ([2486b58](https://github.com/aurelia/aurelia/commit/2486b58))
+
+
+### Bug Fixes:
+
+* **router-lite:** handling slash in parameter value (#1805) ([3fbb698](https://github.com/aurelia/aurelia/commit/3fbb698))
+* **au-slot:** correctly prepare resources for slotted view (#1802) ([bf1ca4c](https://github.com/aurelia/aurelia/commit/bf1ca4c))
+* **router-lite:** e2e build ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+
+
+### Refactorings:
+
+* **ref:** deprecate view-model.ref and introduce component.ref (#1803) ([97e8dad](https://github.com/aurelia/aurelia/commit/97e8dad))
+* **text-binding:** always evaluate expressions in strict mode (#1801) ([15acfee](https://github.com/aurelia/aurelia/commit/15acfee))
+* **router-lite:** query in fragment when using useUrlFragmentHash option (#1794) ([a1ca36d](https://github.com/aurelia/aurelia/commit/a1ca36d))
+* ***:** bindable property -> name (#1783) ([ca0eda7](https://github.com/aurelia/aurelia/commit/ca0eda7))
+* **router-lite:** optimize object creation (#1782) ([c1ef0a3](https://github.com/aurelia/aurelia/commit/c1ef0a3))
+
+<a name="2.0.0-beta.7"></a>
+# 2.0.0-beta.7 (2023-06-16)
+
+### Features:
+
+* **router-lite:** error recovery ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **build:** add a development entry point (#1770) ([69ff445](https://github.com/aurelia/aurelia/commit/69ff445))
+
+
+### Bug Fixes:
+
+* **router-lite:** hash compatibility with v1 (#1779) ([9302db5](https://github.com/aurelia/aurelia/commit/9302db5))
+* **router-lite:** URL generation in child component (#1778) ([fd4de06](https://github.com/aurelia/aurelia/commit/fd4de06))
+* **resolver:** mark private as internal ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
+* **router-lite:** viewport name match for contains check in RouteNode ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error recovery from child's hook ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **plugin-conventions:** fill up explicit .js/.ts dep filename in html module (#1752) ([17af0c8](https://github.com/aurelia/aurelia/commit/17af0c8))
+
+
+### Refactorings:
+
+* **runtime:** cleanup, extract error to const enums (#1775) ([07689bf](https://github.com/aurelia/aurelia/commit/07689bf))
+* **router-lite:** residue handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** error handling ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **router-lite:** optimize for bundle size ([99a6191](https://github.com/aurelia/aurelia/commit/99a6191))
+* **compiler:** use comment to mark target (#1774) ([e37802c](https://github.com/aurelia/aurelia/commit/e37802c))
+* **runtime-html:** cleanup errors, remove unused code. (#1771) ([750210d](https://github.com/aurelia/aurelia/commit/750210d))
+
+<a name="2.0.0-beta.6"></a>
+# 2.0.0-beta.6 (2023-05-21)
+
+### BREAKING CHANGE:
+
+* **compiler:** avoid using au class to find targets (#1768) ([0d30998](https://github.com/aurelia/aurelia/commit/0d30998)).
+* ***:** rename resolveAll -> onResolveAll (#1764) ([fdf0747](https://github.com/aurelia/aurelia/commit/fdf0747))
+
+### Features:
+
+* **di:** ability to use newInstance()/forScope() with interface (#1767) ([a0d39e9](https://github.com/aurelia/aurelia/commit/a0d39e9))
+* **all:** allow injection of implementation (#1766) ([a60db13](https://github.com/aurelia/aurelia/commit/a60db13))
+* **templating:** allow deactivate when activating (#1729) ([1c9c97c](https://github.com/aurelia/aurelia/commit/1c9c97c))
+* **bindable:** support getter/setter (#1753) ([4279851](https://github.com/aurelia/aurelia/commit/4279851))
+* **ui-virtualization:** enhance implementation & publish package (#1759) ([7a2f17f](https://github.com/aurelia/aurelia/commit/7a2f17f)). Thanks [@Lakerfield](https://github.com/Lakerfield)
+
+
+### Refactorings:
+
+* ***:** cleanup up unused code & decouple interface from default impl (#1761) ([7a71d43](https://github.com/aurelia/aurelia/commit/7a71d43))
+* **router:** add warning for unsupported behavior (#1757) ([ce87339](https://github.com/aurelia/aurelia/commit/ce87339)). The router used to allow container traversal to
+find resources when a string is used as a route to find the corresponding component.
+Going forward this will be invalid and resources must be registered either locally
+or globally to be routable. A warning is added first so app that accidentally used
+this behavior can detect the invalid usages and fix accordingly first. This behavior will be removed in a near future release.
+
+
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 

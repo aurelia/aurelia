@@ -1,16 +1,17 @@
 import { ILogger } from '@aurelia/kernel';
-import type { ICustomElementController, IHydratedController, ICustomElementViewModel, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import type { ICustomElementController, ICustomElementViewModel, IHydratedController, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
-import type { RouteNode } from './route-tree';
-import { IRouteContext } from './route-context';
+import { Events, trace } from './events';
 import {
-  Params,
   NavigationInstruction,
+  Params,
   ViewportInstructionTree
 } from './instructions';
+import type { IRouteConfig, RouterOptions } from './options';
+import { IRouteContext } from './route-context';
+import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import { Batch } from './util';
-import type { RouterOptions, IRouteConfig } from './options';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
@@ -20,12 +21,12 @@ export interface IRouteViewModel extends ICustomElementViewModel {
   unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
 }
 
-// type IHooksFn<T, Fn extends (...args: any[]) => unknown> = (vm: T, ...args: Parameters<Fn>) => ReturnType<Fn>;
-
 /**
  * A component agent handles an instance of a routed view-model (a component).
  * It deals with invoking the hooks (`canLoad`, `loading`, `canUnload`, `unloading`),
  * and activating, deactivating, and disposing the component (via the associated controller).
+ *
+ * @internal
  */
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _logger: ILogger;
@@ -40,192 +41,192 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unloading'>[];
 
   public constructor(
-    public readonly instance: T,
-    public readonly controller: ICustomElementController<T>,
-    public readonly routeNode: RouteNode,
-    public readonly ctx: IRouteContext,
-    private readonly routerOptions: RouterOptions,
+    /** @internal */ private readonly _instance: T,
+    /** @internal */ private readonly _controller: ICustomElementController<T>,
+    /** @internal */ public readonly _routeNode: RouteNode,
+    /** @internal */ private readonly _ctx: IRouteContext,
+    /** @internal */ private readonly _routerOptions: RouterOptions,
   ) {
-    this._logger = ctx.container.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
+    this._logger = _ctx.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
 
-    this._logger.trace(`constructor()`);
+    if (__DEV__) trace(this._logger, Events.caCreated);
 
-    const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
+    const lifecycleHooks = _controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
     this._canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
     this._loadHooks = (lifecycleHooks.loading ?? []).map(x => x.instance);
     this._canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
     this._unloadHooks = (lifecycleHooks.unloading ?? []).map(x => x.instance);
-    this._hasCanLoad = 'canLoad' in instance;
-    this._hasLoad = 'loading' in instance;
-    this._hasCanUnload = 'canUnload' in instance;
-    this._hasUnload = 'unloading' in instance;
+    this._hasCanLoad = 'canLoad' in _instance;
+    this._hasLoad = 'loading' in _instance;
+    this._hasCanUnload = 'canUnload' in _instance;
+    this._hasUnload = 'unloading' in _instance;
   }
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      this._logger.trace(`activate() - initial`);
-      return this.controller.activate(this.controller, parent);
+      if (__DEV__) trace(this._logger, Events.caActivateSelf);
+      return this._controller.activate(this._controller, parent);
     }
 
-    this._logger.trace(`activate()`);
+    if (__DEV__) trace(this._logger, Events.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.activate(initiator, parent);
+    void this._controller.activate(initiator, parent);
   }
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
-      this._logger.trace(`deactivate() - initial`);
-      return this.controller.deactivate(this.controller, parent);
+      if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
+      return this._controller.deactivate(this._controller, parent);
     }
 
-    this._logger.trace(`deactivate()`);
+    if (__DEV__) trace(this._logger, Events.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this.controller.deactivate(initiator, parent);
+    void this._controller.deactivate(initiator, parent);
   }
 
   /** @internal */
   public _dispose(): void {
-    this._logger.trace(`dispose()`);
+    if (__DEV__) trace(this._logger, Events.caDispose);
 
-    this.controller.dispose();
+    this._controller.dispose();
   }
 
   /** @internal */
   public _canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
-    this._logger.trace(`canUnload(next:%s) - invoking ${this._canUnloadHooks.length} hooks`, next);
-    b.push();
+    if (__DEV__) trace(this._logger, Events.caCanUnload, next, this._canUnloadHooks.length);
+    b._push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canUnloadHooks) {
-      b.push();
+      b._push();
       promise = promise.then(() => new Promise((res) => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           res();
           return;
         }
-        tr.run(() => {
-          return hook.canUnload(this.instance, next, this.routeNode);
+        tr._run(() => {
+          return hook.canUnload(this._instance, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
           }
-          b.pop();
+          b._pop();
           res();
         });
       }));
     }
     if (this._hasCanUnload) {
-      b.push();
+      b._push();
       // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           return;
         }
-        tr.run(() => {
-          return this.instance.canUnload!(next, this.routeNode);
+        tr._run(() => {
+          return this._instance.canUnload!(next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
             tr.guardsResult = false;
           }
-          b.pop();
+          b._pop();
         });
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _canLoad(tr: Transition, next: RouteNode, b: Batch): void {
-    this._logger.trace(`canLoad(next:%s) - invoking ${this._canLoadHooks.length} hooks`, next);
-    const rootCtx = this.ctx.root;
-    b.push();
+    if (__DEV__) trace(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
+    const rootCtx = this._ctx.root;
+    b._push();
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canLoadHooks) {
-      b.push();
+      b._push();
       promise = promise.then(() => new Promise((res) => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           res();
           return;
         }
-        tr.run(() => {
-          return hook.canLoad(this.instance, next.params, next, this.routeNode);
+        tr._run(() => {
+          return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
-          b.pop();
+          b._pop();
           res();
         });
       }));
     }
     if (this._hasCanLoad) {
-      b.push();
+      b._push();
       // deepscan-disable-next-line UNUSED_VAR_ASSIGN
       promise = promise.then(() => {
         if (tr.guardsResult !== true) {
-          b.pop();
+          b._pop();
           return;
         }
-        tr.run(() => {
-          return this.instance.canLoad!(next.params, next, this.routeNode);
+        tr._run(() => {
+          return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this.routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
-          b.pop();
+          b._pop();
         });
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _unloading(tr: Transition, next: RouteNode | null, b: Batch): void {
-    this._logger.trace(`unloading(next:%s) - invoking ${this._unloadHooks.length} hooks`, next);
-    b.push();
+    if (__DEV__) trace(this._logger, Events.caUnloading, next, this._unloadHooks.length);
+    b._push();
     for (const hook of this._unloadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.unloading(this.instance, next, this.routeNode);
+      tr._run(() => {
+        b._push();
+        return hook.unloading(this._instance, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
     if (this._hasUnload) {
-      tr.run(() => {
-        b.push();
-        return this.instance.unloading!(next, this.routeNode);
+      tr._run(() => {
+        b._push();
+        return this._instance.unloading!(next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
-    b.pop();
+    b._pop();
   }
 
   /** @internal */
   public _loading(tr: Transition, next: RouteNode, b: Batch): void {
-    this._logger.trace(`loading(next:%s) - invoking ${this._loadHooks.length} hooks`, next);
-    b.push();
+    if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
+    b._push();
     for (const hook of this._loadHooks) {
-      tr.run(() => {
-        b.push();
-        return hook.loading(this.instance, next.params, next, this.routeNode);
+      tr._run(() => {
+        b._push();
+        return hook.loading(this._instance, next.params, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
     if (this._hasLoad) {
-      tr.run(() => {
-        b.push();
-        return this.instance.loading!(next.params, next, this.routeNode);
+      tr._run(() => {
+        b._push();
+        return this._instance.loading!(next.params, next, this._routeNode);
       }, () => {
-        b.pop();
+        b._pop();
       });
     }
-    b.pop();
+    b._pop();
   }
 }

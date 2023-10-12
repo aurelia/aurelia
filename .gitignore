@@ -21,6 +21,7 @@ packages/**/*.txt
 # to make it easy for application, probably add this
 # so in the future, when we move to a higher level of npm, it won't break
 package-lock.json
+tsconfig.tsbuildinfo
 
 screenshots
 

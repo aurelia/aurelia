@@ -189,6 +189,56 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     return { canLoad: 1, loading: 1, canUnload: 1, unloading: 1, ...option };
   }
 
+  abstract class AsyncBaseViewModelWithAllHooks implements IRouteViewModel {
+    private _ceName: string | null = null;
+    private get ceName(): string {
+      return this._ceName ??= CustomElement.getDefinition(this.constructor).name;
+    }
+    public constructor(
+      @ILogger protected readonly logger: ILogger,
+      private readonly ticks: number,
+    ) {
+      this.logger = logger.scopeTo(this.constructor.name);
+    }
+
+    public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+      return log('binding', this.ceName, this.ticks, this.logger);
+    }
+    public bound(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+      return log('bound', this.ceName, this.ticks, this.logger);
+    }
+    public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+      return log('attaching', this.ceName, this.ticks, this.logger);
+    }
+    public attached(_initiator: IHydratedController): void | Promise<void> {
+      return log('attached', this.ceName, this.ticks, this.logger);
+    }
+    public detaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+      return log('detaching', this.ceName, this.ticks, this.logger);
+    }
+    public unbinding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+      return log('unbinding', this.ceName, this.ticks, this.logger);
+    }
+    public dispose(): void {
+      this.logger.trace(`dispose - ${this.ceName}`);
+    }
+
+    public async canLoad(_params: Params, _next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
+      await log('canLoad', this.ceName, this.ticks, this.logger);
+      return true;
+    }
+    public async loading(_params: Params, _next: RouteNode, _current: RouteNode): Promise<void> {
+      await log('loading', this.ceName, this.ticks, this.logger);
+    }
+    public async canUnload(_rn: RouteNode, _current?: RouteNode): Promise<boolean> {
+      await log('canUnload', this.ceName, this.ticks, this.logger);
+      return true;
+    }
+    public async unloading(_rn: RouteNode, _current?: RouteNode): Promise<void> {
+      await log('unloading', this.ceName, this.ticks, this.logger);
+    }
+  }
+
   // the simplified textbook example of authorization hook
   it('single global (auth) hook', async function () {
 
@@ -1614,58 +1664,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
   }
 
   function* getSiblingHookTestData(): Generator<SiblingHookTestData> {
-    abstract class AsyncBaseViewModel implements IRouteViewModel {
-      private _ceName: string | null = null;
-      private get ceName(): string {
-        return this._ceName ??= CustomElement.getDefinition(this.constructor).name;
-      }
-      public constructor(
-        @ILogger protected readonly logger: ILogger,
-        private readonly ticks: number,
-      ) {
-        this.logger = logger.scopeTo(this.constructor.name);
-      }
-
-      public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        return log('binding', this.ceName, this.ticks, this.logger);
-      }
-      public bound(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        return log('bound', this.ceName, this.ticks, this.logger);
-      }
-      public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        return log('attaching', this.ceName, this.ticks, this.logger);
-      }
-      public attached(_initiator: IHydratedController): void | Promise<void> {
-        return log('attached', this.ceName, this.ticks, this.logger);
-      }
-      public detaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        return log('detaching', this.ceName, this.ticks, this.logger);
-      }
-      public unbinding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-        return log('unbinding', this.ceName, this.ticks, this.logger);
-      }
-      public dispose(): void {
-        this.logger.trace(`dispose - ${this.ceName}`);
-      }
-
-      public async canLoad(_params: Params, _next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
-        await log('canLoad', this.ceName, this.ticks, this.logger);
-        return true;
-      }
-      public async loading(_params: Params, _next: RouteNode, _current: RouteNode): Promise<void> {
-        await log('loading', this.ceName, this.ticks, this.logger);
-      }
-      public async canUnload(_rn: RouteNode, _current?: RouteNode): Promise<boolean> {
-        await log('canUnload', this.ceName, this.ticks, this.logger);
-        return true;
-      }
-      public async unloading(_rn: RouteNode, _current?: RouteNode): Promise<void> {
-        await log('unloading', this.ceName, this.ticks, this.logger);
-      }
-    }
-
     function createRoot(ticks: number): [root: Class<unknown>, scopes: string[]] {
-      abstract class Base extends AsyncBaseViewModel {
+      abstract class Base extends AsyncBaseViewModelWithAllHooks {
         public constructor(@ILogger logger: ILogger) {
           super(logger, ticks);
         }
@@ -6163,6 +6163,162 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       data.assertStopLog(eventLog);
     });
   }
+
+  it('multi-level hierarchical configuration -> navigation to sibling route from child -> parent is not replaced (transitionPlan: replace)', async function () {
+    const ticks = 0;
+    @customElement({ name: 'l-121', template: `l-121 <a load="../l122/1"></a><a load="../l122/2"></a>` })
+    class L121 extends AsyncBaseViewModelWithAllHooks {
+      public constructor(@ILogger logger: ILogger) {
+        super(logger, ticks);
+      }
+    }
+
+    @customElement({ name: 'l-122', template: `l-122 \${id} <a load="../../l1"></a>` })
+    class L122 extends AsyncBaseViewModelWithAllHooks {
+      id: unknown;
+      public constructor(@ILogger logger: ILogger) {
+        super(logger, ticks);
+      }
+      public async canLoad(params: Params, _next: RouteNode, _current: RouteNode): Promise<boolean> {
+        await super.canLoad(params, _next, _current);
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @route({
+      routes: [
+        { path: '', component: L121 },
+        { path: 'l122/:id', component: L122 },
+      ]
+    })
+    @customElement({ name: 'l-1', template: `<au-viewport></au-viewport>` })
+    class L1 extends AsyncBaseViewModelWithAllHooks {
+      public constructor(@ILogger logger: ILogger) {
+        super(logger, ticks);
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'l1', path: ['', 'l1'], component: L1 },
+      ],
+      transitionPlan: 'replace',
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="root"></au-viewport>' })
+    class Root extends AsyncBaseViewModelWithAllHooks {
+      public constructor(@ILogger logger: ILogger) {
+        super(logger, ticks);
+      }
+    }
+
+    const { au, host, container } = await createFixture(Root,
+      Registration.instance(IKnownScopes, [Root.name, L1.name, L121.name, L122.name])
+    );
+    const router = container.get(IRouter);
+    const eventLog = EventLog.getInstance(container);
+
+    assert.html.textContent(host, 'l-121');
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /l122\/1$/);
+    assert.match(hrefs[1], /l122\/2$/);
+
+    // phase1
+    eventLog.clear();
+    anchors[0].click();
+    await router.currentTr.promise;
+    eventLog.assertLog([
+      /L121\] canUnload - start l-121/,
+      /L121\] canUnload - end l-121/,
+      /L122\] canLoad - start l-122/,
+      /L122\] canLoad - end l-122/,
+
+      /L121\] unloading - start l-121/,
+      /L121\] unloading - end l-121/,
+      /L122\] loading - start l-122/,
+      /L122\] loading - end l-122/,
+
+      /L121\] detaching - start l-121/,
+      /L121\] detaching - end l-121/,
+      /L121\] unbinding - start l-121/,
+      /L121\] unbinding - end l-121/,
+      /L121\] dispose - l-121/,
+
+      /L122\] binding - start l-122/,
+      /L122\] binding - end l-122/,
+      /L122\] bound - start l-122/,
+      /L122\] bound - end l-122/,
+      /L122\] attaching - start l-122/,
+      /L122\] attaching - end l-122/,
+      /L122\] attached - start l-122/,
+      /L122\] attached - end l-122/,
+    ], 'phase1');
+
+    // phase2 - go-back
+    eventLog.clear();
+    host.querySelector('a').click();
+    await router.currentTr.promise;
+    eventLog.assertLog([
+      /L122\] canUnload - start l-122/,
+      /L122\] canUnload - end l-122/,
+      /L121\] canLoad - start l-121/,
+      /L121\] canLoad - end l-121/,
+
+      /L122\] unloading - start l-122/,
+      /L122\] unloading - end l-122/,
+      /L121\] loading - start l-121/,
+      /L121\] loading - end l-121/,
+
+      /L122\] detaching - start l-122/,
+      /L122\] detaching - end l-122/,
+      /L122\] unbinding - start l-122/,
+      /L122\] unbinding - end l-122/,
+      /L122\] dispose - l-122/,
+
+      /L121\] binding - start l-121/,
+      /L121\] binding - end l-121/,
+      /L121\] bound - start l-121/,
+      /L121\] bound - end l-121/,
+      /L121\] attaching - start l-121/,
+      /L121\] attaching - end l-121/,
+      /L121\] attached - start l-121/,
+      /L121\] attached - end l-121/,
+    ], 'phase2');
+
+    // phase3
+    eventLog.clear();
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await router.currentTr.promise;
+    eventLog.assertLog([
+      /L121\] canUnload - start l-121/,
+      /L121\] canUnload - end l-121/,
+      /L122\] canLoad - start l-122/,
+      /L122\] canLoad - end l-122/,
+
+      /L121\] unloading - start l-121/,
+      /L121\] unloading - end l-121/,
+      /L122\] loading - start l-122/,
+      /L122\] loading - end l-122/,
+
+      /L121\] detaching - start l-121/,
+      /L121\] detaching - end l-121/,
+      /L121\] unbinding - start l-121/,
+      /L121\] unbinding - end l-121/,
+      /L121\] dispose - l-121/,
+
+      /L122\] binding - start l-122/,
+      /L122\] binding - end l-122/,
+      /L122\] bound - start l-122/,
+      /L122\] bound - end l-122/,
+      /L122\] attaching - start l-122/,
+      /L122\] attaching - end l-122/,
+      /L122\] attached - start l-122/,
+      /L122\] attached - end l-122/,
+    ], 'phase3');
+
+    await au.stop(true);
+  });
   // #endregion
 
   it('navigate away -> false from canUnload -> navigate away with same path', async function () {

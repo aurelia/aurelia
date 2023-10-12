@@ -89,11 +89,6 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
             propStrings.push(`${prop}:'${value}'`);
           }
           break;
-        case 'boolean':
-          if (value) {
-            propStrings.push(`${prop}:${value}`);
-          }
-          break;
         default: {
           propStrings.push(`${prop}:${String(value)}`);
         }

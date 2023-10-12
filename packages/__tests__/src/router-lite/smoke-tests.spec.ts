@@ -5331,12 +5331,12 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: 'ce1',
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           },
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5346,7 +5346,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
@@ -5383,17 +5383,17 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: ['ce1'],
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           },
           {
             id: 'ce2',
-            path: ['ce2'],
+            path: ['ce2', 'ce2/:id'],
             component: CeTwo,
           },
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><a load="ce1/2@$1+ce2/1@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5403,7 +5403,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2');
 
@@ -5430,12 +5430,12 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: ['ce1'],
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           },
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5447,7 +5447,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 2', 'round#2');
@@ -5488,17 +5488,17 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: ['ce1'],
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           },
           {
             id: 'ce2',
-            path: ['ce2'],
+            path: ['ce2', 'ce2/:id'],
             component: CeTwo,
           },
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><a load="ce1/2@$1+ce2/1@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5510,7 +5510,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 1 2', 'round#2');
@@ -5560,12 +5560,12 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: ['ce1'],
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           }
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5577,7 +5577,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2'); // this happens as the ce-one (parent) is replaced causing replacement of child
@@ -5627,12 +5627,12 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         routes: [
           {
             id: 'ce1',
-            path: ['ce1'],
+            path: ['ce1', 'ce1/:id'],
             component: CeOne,
           }
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><au-viewport></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
@@ -5644,10 +5644,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
-      host.querySelector('a').click();
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
       await queue.yield();
-      assert.html.textContent(host, 'ce1 1 2 ce2 2 2', 'round#2');
+      assert.html.textContent(host, 'ce1 1 2 ce2 1 1', 'round#2'); // note that as the parent is not replaced, the child is retained.
 
       await au.stop(true);
     });
@@ -6163,7 +6163,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       @route({
         routes: [
           { path: '', component: C1, title: 't1', data: { foo: 'bar' } },
-          { path: 'c1', component: C1, title: 't2', data: { awesome: 'possum' } },
+          { path: 'c1/:id', component: C1, title: 't2', data: { awesome: 'possum' } },
         ],
         transitionPlan: 'replace'
       })
@@ -6180,7 +6180,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       let ce = CustomElement.for<C1>(host.querySelector('c-1')).viewModel;
       assert.deepStrictEqual(ce.data, { foo: 'bar' });
 
-      await router.load('c1');
+      await router.load('c1/1');
 
       assert.html.textContent(host, 'c1 2');
       assert.strictEqual(doc.title, 't2');

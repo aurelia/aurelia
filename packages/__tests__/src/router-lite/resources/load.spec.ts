@@ -98,24 +98,24 @@ describe('router-lite/resources/load.spec.ts', function () {
     await queue.yield();
     a2.active = true;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#2');
-    assert.html.textContent(host, '1 2');
+    assert.html.textContent(host, '1 2', 'round#2 - text');
 
     anchors[1].click();
     await queue.yield();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
-    assert.html.textContent(host, '2 2');
+    assert.html.textContent(host, '1 2', 'round#3 - text');
 
     anchors[0].click();
     await queue.yield();
     a1.active = true;
     a2.active = false;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#4');
-    assert.html.textContent(host, '3 1');
+    assert.html.textContent(host, '2 1', 'round#4 - text');
 
     anchors[0].click();
     await queue.yield();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#5');
-    assert.html.textContent(host, '4 1');
+    assert.html.textContent(host, '2 1', 'round#5 - text');
 
     await au.stop(true);
 
@@ -1129,6 +1129,68 @@ describe('router-lite/resources/load.spec.ts', function () {
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
     await queue.yield();
     assert.html.textContent(host, 'c1 2 3', 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('allow navigating to route defined in parent context using ../ prefix with replace transitionPlan and child viewport', async function () {
+    @customElement({ name: 'product-details', template: `product \${id} <a load="../../products"></a>` })
+    class Product {
+      id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+    @customElement({ name: 'product-init', template: `product init <a load="../product/1"></a><a load="../product/2"></a>` })
+    class ProductInit { }
+
+    @route({
+      routes: [
+        { path: '', component: ProductInit },
+        { path: 'product/:id', component: Product },
+      ]
+    })
+    @customElement({ name: 'pro-ducts', template: `<au-viewport name="products"></au-viewport>` })
+    class Products { }
+
+    @route({
+      routes: [
+        { id: 'products', path: ['', 'products'], component: Products },
+      ],
+      transitionPlan: 'replace',
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="root"></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    assert.html.textContent(host, 'product init');
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /product\/1$/);
+    assert.match(hrefs[1], /product\/2$/);
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 1', 'round#1');
+    // go back
+    const back = host.querySelector<HTMLAnchorElement>('a');
+    assert.match(back.href, /products$/, 'round#1 - back - href');
+    back.click();
+    await queue.yield();
+    assert.html.textContent(host, 'product init', 'round#1 - back - text');
+
+    // 2nd round
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 2', 'round#2');
+    // go back
+    host.querySelector<HTMLAnchorElement>('a').click();
+    await queue.yield();
+    assert.html.textContent(host, 'product init', 'round#2 - back - text');
 
     await au.stop(true);
   });

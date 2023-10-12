@@ -1,7 +1,8 @@
 import { DI } from '@aurelia/kernel';
-import { CacheItem, IStorage } from './cach-service';
+import { IStorage } from './storage';
+import { CacheItem } from './cach-service';
 
-export const IMemoryStorage = DI.createInterface<MemoryStorage>();
+export const IMemoryStorage = /*@__PURE__*/DI.createInterface<MemoryStorage>();
 export class MemoryStorage implements IStorage{
     cache = new Map<string, unknown>();
     delete = (key: string) => this.cache.delete(key);

@@ -1,7 +1,6 @@
 import { BrowserLocalStorage } from './browser-local-storage';
-import { HttpClient } from './http-client';
-import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
 import { DI, IContainer, IDisposable, IEventAggregator, Registration, resolve } from '@aurelia/kernel';
+import { IStorage } from './storage';
 
 export type CacheItem<T = unknown> = {
     staleTime?: number;
@@ -10,16 +9,8 @@ export type CacheItem<T = unknown> = {
     data?: T
 }
 
-export type IStorage = {
-    delete: (key: string) => void;
-    set: <T = unknown>(key: string, value: CacheItem<T>) => void;
-    get: <T = unknown>(key: string) => CacheItem<T>;
-    clear: () => void;
-}
 
-export const IStorage = DI.createInterface<IStorage>();
-export const ICacheService = DI.createInterface<CacheService>();
-
+export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>();
 
 export const CacheEvents = {
     Set: 'au:cache:set',

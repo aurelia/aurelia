@@ -1,6 +1,5 @@
+import { CacheConfiguration, Interceptor } from '../../interfaces';
 import { CacheService, ICacheService } from './cach-service';
-import { HttpClient } from './http-client';
-import { CacheConfiguration, Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
 import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 
 /** Default configuration which gets spread with overrides */

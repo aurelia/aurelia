@@ -1,6 +1,5 @@
-import { CacheInterceptor } from './cache-interceptor';
+import { CacheInterceptor, RetryInterceptor } from './interceptors';
 import { CacheConfiguration, Interceptor, RetryConfiguration } from './interfaces';
-import { RetryInterceptor } from './retry-interceptor';
 
 /**
  * A class for configuring HttpClients.

@@ -1,9 +1,10 @@
 import { DI, IPlatform, resolve } from '@aurelia/kernel';
-import { CacheItem, IStorage } from './cach-service';
+import { CacheItem } from './cach-service';
+import { IStorage } from './storage';
 
-export const IBrowserLocalStorage = DI.createInterface<BrowserLocalStorage>();
-export class BrowserLocalStorage implements IStorage{
-    cache = resolve(IPlatform).globalThis.localStorage;
+export const IBrowserSessionStorage = /*@__PURE__*/DI.createInterface<BrowserSessionStorage>();
+export class BrowserSessionStorage implements IStorage {
+    cache = resolve(IPlatform).globalThis.sessionStorage;
     delete = (key: string) => this.cache.removeItem(key);
     set = <T = unknown>(key: string, value: CacheItem<T>) => this.cache.set(key, value);
     get = <T = unknown>(key: string) => this.cache.get(key) as T;

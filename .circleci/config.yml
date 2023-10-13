@@ -65,19 +65,19 @@ executors:
         type: string
         default: "16.14.2"
     working_directory: *working_dir
-    resource_class: large
+    resource_class: arm.large
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
 
   docker_release:
     working_directory: *working_dir
-    resource_class: large
+    resource_class: arm.large
     docker:
       - image: "cimg/node:16.14.2"
 
   docker_circleci_bench:
     working_directory: *working_dir
-    resource_class: large
+    resource_class: arm.large
     docker:
       - image: "cimg/node:16.14.2-browsers"
 
@@ -87,7 +87,7 @@ executors:
 
   docker_verdaccio:
     working_directory: *working_dir
-    resource_class: large
+    resource_class: arm.large
     docker:
       - image: "oven/bun"
 

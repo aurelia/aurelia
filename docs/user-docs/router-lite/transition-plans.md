@@ -4,7 +4,7 @@ description: Learn how Router-Lite handles the re-entrance of the same component
 
 # Transition plan
 
-The transition plan in router-lite is meant for deciding how to process a navigation instruction that intends to load the same component that is currently loaded/active.
+The transition plan in router-lite is meant for deciding how to process a navigation instruction that intends to load the same component that is currently loaded/active, but with different parameters.
 As the router-lite uses a sensible default based on the user-voice, probably you never need to touch this area.
 However, it is still good to know how to change those defaults, whenever you are in need to do that (and we all know that such needs will arise from time to time).
 
@@ -19,8 +19,7 @@ The allowed values are `replace`, `invoke-lifecycles`, `none` or a function that
 
 The child routes inherits the `transitionPlan` from the parent.
 
-When the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options) is not configured, router-lite uses a function as the sensible default to select the transition plan when the current component is attempted to be loaded again.
-The default behavior selects `replace` when the parameter changes and `none` otherwise.
+When the `transitionPlan` property in the [routing configuration](./configuring-routes.md#advanced-route-configuration-options) is not configured, router-lite uses `replace` when the parameters are changed and `none` otherwise.
 
 {% hint style="info" %}
 It might be normal to think that the default selection of the `replace` transition plan when the parameter changes, to be an overkill and the default selection should have been `invoke-lifecycles` instead.
@@ -58,14 +57,14 @@ class CeOne implements IRouteViewModel {
   routes: [
     {
       id: 'ce1',
-      path: ['', 'ce1'],
+      path: ['', 'ce1', 'ce1/:id'],
       component: CeOne,
     },
   ],
 })
 @customElement({
   name: 'my-app',
-  template: `<a load="ce1">ce-one</a><br><au-viewport></au-viewport>`,
+  template: `<a load="ce1">ce-one</a> <a load="ce1/1">ce-one/1</a><br><au-viewport></au-viewport>`,
 })
 export class MyApp {}
 ```
@@ -104,19 +103,19 @@ class CeOne implements IRouteViewModel {
   routes: [
     {
       id: 'ce1',
-      path: ['', 'ce1'],
+      path: ['', 'ce1', 'ce1/:id'],
       component: CeOne,
     },
   ],
 })
 @customElement({
   name: 'my-app',
-  template: `<a load="ce1">ce-one</a><br><au-viewport></au-viewport>`,
+  template: `<a load="ce1">ce-one</a> <a load="ce1/1">ce-one/1</a><br><au-viewport></au-viewport>`,
 })
 export class MyApp {}
 ```
 
-The behavior can be validated by clicking the link multiple times and observing that the `CeOne#id2` increases, whereas `CeOne#id1` remains constant.
+The behavior can be validated by alternatively clicking the links multiple times and observing that the `CeOne#id2` increases, whereas `CeOne#id1` remains constant.
 This shows that every attempt to load the `CeOne` only invokes the lifecycle hooks without re-instantiating the component every time.
 You can try out this example below.
 
@@ -159,12 +158,12 @@ class CeOne implements IRouteViewModel {
   routes: [
     {
       id: 'ce1',
-      path: ['ce1'],
+      path: ['ce1', 'ce1/:id'],
       component: CeOne,
     },
     {
       id: 'ce2',
-      path: ['ce2'],
+      path: ['ce2', 'ce2/:id'],
       component: CeTwo,
     },
   ],
@@ -172,7 +171,8 @@ class CeOne implements IRouteViewModel {
 @customElement({
   name: 'ro-ot',
   template: `
-<a load="ce1@$1+ce2@$2">ce1@$1+ce2@$2</a>
+<a load="ce1/1@$1+ce2/1@$2">ce1/1@$1+ce2/1@$2</a>
+<a load="ce1/2@$1+ce2/2@$2">ce1/2@$1+ce2/2@$2</a>
 <div id="content">
   <au-viewport name="$1"></au-viewport>
   <au-viewport name="$2"></au-viewport>
@@ -183,7 +183,7 @@ export class MyApp {}
 ```
 
 The example above selects `invoke-lifecycles` for the `CeTwo` and `replace` for everything else.
-When you click the link multiple times, you can see that `CeOne` is re-instantiated every time whereas for `CeTwo` only the lifecycles hooks are invoked and the instance is reused.
+When you alternatively click the links multiple times, you can see that `CeOne` is re-instantiated every time whereas for `CeTwo` only the lifecycles hooks are invoked and the instance is reused.
 You can see the example in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-tr-plan-function-sibling?ctl=1&embed=1&file=src/my-app.ts" %}

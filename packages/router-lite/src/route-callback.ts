@@ -11,16 +11,17 @@ export type IRoute<TParams = Record<string, string | undefined>, TQueryParams = 
     url: string;
     params: TParams;
     queryParams: TQueryParams;
-    event: Partial<NavigationEndEvent>
+    event: Partial<NavigationEndEvent>;
   };
   export const IRoute = DI.createInterface<IRoute>();
-  
-const flattenParams = (arr:ViewportInstructionTree['children']):Readonly<Params> => {
-  return arr.reduce(function(done,curr){
+
+const flattenParams = (arr: ViewportInstructionTree['children']): Readonly<Params> => {
+  const returnVal: Readonly<Params>= {} ;
+  return arr.reduce(function (done,curr){
     return  {...done, ...curr.recognizedRoute?.route.params, ...flattenParams(curr.children)};
-    }, {} as Readonly<Params>) ;
-}
-  
+    }, returnVal) ;
+};
+
 export const RouteCallback =  Registration.cachedCallback(IRoute, (container) => {
     const route: IRoute = {
       path: '',
@@ -53,4 +54,4 @@ export const RouteCallback =  Registration.cachedCallback(IRoute, (container) =>
     container.register(AppTask.deactivated(() => navEndSubscription.dispose()));
 
     return route;
-  })
+  });

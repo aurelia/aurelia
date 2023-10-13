@@ -5350,6 +5350,11 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
+      // no change
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2', 'round#3');
+
       await au.stop(true);
     });
 
@@ -5407,6 +5412,11 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       await queue.yield();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2');
 
+      // no change
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#3');
+
       await au.stop(true);
     });
 
@@ -5453,6 +5463,177 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await queue.yield();
       assert.html.textContent(host, 'ce1 1 4', 'round#4');
+
+      await au.stop(true);
+    });
+
+    it('invoke-lifecycles - inherited - sibling', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++CeOne.id2;
+        }
+      }
+
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++CeTwo.id2;
+        }
+      }
+
+      @route({
+        transitionPlan: 'invoke-lifecycles',
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1', 'ce1/:id'],
+            component: CeOne,
+          },
+          {
+            id: 'ce2',
+            path: ['ce2', 'ce2/:id'],
+            component: CeTwo,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><a load="ce1/2@$1+ce2/1@$2"></a><a load="ce1/2@$2+ce2/1@$1"></a><a load="ce1/3@$2+ce2/1@$1"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
+
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 2 ce2 1 2', 'round#2');
+
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 2 3 ce1 2 3', 'round#3');
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 3 4 ce2 3 4', 'round#4');
+
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 3 5 ce2 3 5', 'round#5');
+
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 4 6 ce1 4 6', 'round#6');
+
+      // no change
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 4 6 ce1 4 6', 'round#7');
+
+      // change only one vp
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(4)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce2 4 6 ce1 4 7', 'round#8');
+
+      await au.stop(true);
+    });
+
+    it('children can override the transitionPlan configured for parent', async function () {
+      @route({ path: 'c1/:id', transitionPlan: 'replace' })
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++CeOne.id2;
+        }
+      }
+
+      @route({ path: 'c2/:id', transitionPlan: 'invoke-lifecycles' })
+      @customElement({ name: 'ce-two', template: 'ce2 ${id1} ${id2}' })
+      class CeTwo implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeTwo.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++CeTwo.id2;
+        }
+      }
+
+      @route({ path: 'p1/:id', routes: [CeTwo], transitionPlan: 'replace' })
+      @customElement({ name: 'p-one', template: 'p1 ${id1} ${id2} <au-viewport></au-viewport>' })
+      class ParentOne {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++ParentOne.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++ParentOne.id2;
+        }
+      }
+
+      @route({ path: 'p2/:id', routes: [CeOne], transitionPlan: 'invoke-lifecycles' })
+      @customElement({ name: 'p-two', template: 'p2 ${id1} ${id2} <au-viewport></au-viewport>' })
+      class ParentTwo {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++ParentTwo.id1;
+        private id2: number;
+        public loading() {
+          this.id2 = ++ParentTwo.id2;
+        }
+      }
+
+      @route({
+        routes: [ParentOne, ParentTwo]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root });
+      const router = container.get(IRouter);
+      const queue = container.get(IPlatform).domWriteQueue;
+
+      await router.load('p1/1/c2/1');
+      await queue.yield();
+      assert.html.textContent(host, 'p1 1 1 ce2 1 1', 'round#1');
+
+      await router.load('p1/1/c2/2');
+      await queue.yield();
+      assert.html.textContent(host, 'p1 1 1 ce2 1 2', 'round#2');
+
+      await router.load('p1/2/c2/2');
+      await queue.yield();
+      assert.html.textContent(host, 'p1 2 2 ce2 2 3', 'round#3'); // as the parent is replaced, so is the child
+
+      await router.load('p2/1/c1/1');
+      await queue.yield();
+      assert.html.textContent(host, 'p2 1 1 ce1 1 1', 'round#4');
+
+      await router.load('p2/1/c1/2');
+      await queue.yield();
+      assert.html.textContent(host, 'p2 1 1 ce1 2 2', 'round#5');
+
+      await router.load('p2/2/c1/2');
+      await queue.yield();
+      assert.html.textContent(host, 'p2 1 2 ce1 2 2', 'round#6'); // as the parent is not replaced, the child is also not replaced, as there is no change in the parameters
+
+      await router.load('p2/3/c1/3');
+      await queue.yield();
+      assert.html.textContent(host, 'p2 1 3 ce1 3 3', 'round#7');
 
       await au.stop(true);
     });

@@ -11,9 +11,9 @@ export type IRoute<TParams = Record<string, string | undefined>, TQueryParams = 
     queryParams: TQueryParams;
     event: Partial<RouterNavigationEndEvent>;
   };
-  
+
 export const IRoute = DI.createInterface<IRoute>();
-  
+
 export const RouteCallback =  Registration.cachedCallback(IRoute, (container) => {
     const route: IRoute = {
       path: '',
@@ -27,7 +27,7 @@ export const RouteCallback =  Registration.cachedCallback(IRoute, (container) =>
     const localWindow = container.get(IWindow);
     const eventAggregator = container.get(IEventAggregator);
 
-    const navEndSubscription = eventAggregator.subscribe('au:router:navigation-end', (event:RouterNavigationEndEvent) => {
+    const navEndSubscription = eventAggregator.subscribe('au:router:navigation-end', (event: RouterNavigationEndEvent) => {
 
       const {navigation} = event;
 

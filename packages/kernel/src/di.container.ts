@@ -46,7 +46,7 @@ export class Container implements IContainer {
   private _registerDepth: number = 0;
 
   public get depth(): number {
-    return this.parent === null ? 0 : this.parent.depth + 1;
+    return this._parent === null ? 0 : this._parent.depth + 1;
   }
   public readonly root: Container;
 
@@ -73,11 +73,15 @@ export class Container implements IContainer {
   /** @internal */
   private readonly _disposableResolvers: Map<Key, IDisposableResolver> = new Map<Key, IDisposableResolver>();
 
+  public get parent(): IContainer | null {
+    return this._parent as (IContainer | null);
+  }
+
   public constructor(
-    private readonly parent: Container | null,
+    private readonly _parent: Container | null,
     private readonly config: ContainerConfiguration
   ) {
-    if (parent === null) {
+    if (_parent === null) {
       this.root = this;
 
       this._resolvers = new Map();
@@ -85,18 +89,18 @@ export class Container implements IContainer {
 
       this.res = {};
     } else {
-      this.root = parent.root;
+      this.root = _parent.root;
 
       this._resolvers = new Map();
-      this._factories = parent._factories;
+      this._factories = _parent._factories;
       this.res = {};
 
       if (config.inheritParentResources) {
         // todo: when the simplify resource system work is commenced
         //       this resource inheritance can just be a Object.create() call
         //       with parent resources as the prototype of the child resources
-        for (const key in parent.res) {
-          this.registerResolver(key, parent.res[key]!);
+        for (const key in _parent.res) {
+          this.registerResolver(key, _parent.res[key]!);
         }
       }
     }
@@ -256,7 +260,7 @@ export class Container implements IContainer {
         resolver = current._resolvers.get(key);
 
         if (resolver == null) {
-          if (current.parent == null) {
+          if (current._parent == null) {
             handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
             if (autoRegister) {
               return this._jitRegister(key, handler);
@@ -264,7 +268,7 @@ export class Container implements IContainer {
             return null;
           }
 
-          current = current.parent;
+          current = current._parent;
         } else {
           return resolver;
         }
@@ -279,8 +283,8 @@ export class Container implements IContainer {
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
     return this._resolvers.has(key) || isResourceKey(key) && key in this.res
       ? true
-      : searchAncestors && this.parent != null
-        ? this.parent.has(key, true)
+      : searchAncestors && this._parent != null
+        ? this._parent.has(key, true)
         : false;
   }
 
@@ -300,12 +304,12 @@ export class Container implements IContainer {
         resolver = current._resolvers.get(key);
 
         if (resolver == null) {
-          if (current.parent == null) {
+          if (current._parent == null) {
             handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
             resolver = this._jitRegister(key, handler);
             return resolver.resolve(current, this);
           }
-          current = current.parent;
+          current = current._parent;
         } else {
           return resolver.resolve(current, this);
         }
@@ -333,7 +337,7 @@ export class Container implements IContainer {
           if (resolver != null) {
             resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
           }
-          current = current.parent;
+          current = current._parent;
         }
         return resolutions;
       }
@@ -342,7 +346,7 @@ export class Container implements IContainer {
         resolver = current._resolvers.get(key);
 
         if (resolver == null) {
-          current = current.parent;
+          current = current._parent;
 
           if (current == null) {
             return emptyArray;

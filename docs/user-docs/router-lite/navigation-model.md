@@ -45,6 +45,10 @@ export class NavBar {
   public constructor(@IRouteContext routeCtx: IRouteContext) {
     this.navModel = routeCtx.navigationModel;
   }
+
+  public async binding() {
+    await this.navModel.resolve()
+  }
 }
 ```
 

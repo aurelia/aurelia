@@ -83,14 +83,14 @@ import { IHttpClient } from '@aurelia/fetch-client';
 export class ApiServiceervice {
     http = resolve(newInstanceOf(IHttpClient));
   
-    getProducts() {
+    async getProducts() {
         const request = await this.http.fetch(`/products`);
         const response = await request.json();
         
         return response;
       }
     
-    getProduct(id) {
+    async getProduct(id) {
         const request = await this.http.fetch(`/products/${id}`);
         const response = await request.json();
         

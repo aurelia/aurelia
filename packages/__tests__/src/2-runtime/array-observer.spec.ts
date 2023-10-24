@@ -5,8 +5,6 @@ import {
   enableArrayObservation,
   ICollectionSubscriber,
   IndexMap,
-  applyMutationsToIndices,
-  synchronizeIndices,
   batch,
   Collection,
 } from '@aurelia/runtime';
@@ -17,6 +15,7 @@ import {
   SpySubscriber,
 } from '@aurelia/testing';
 
+const compareNumber = (a: number, b: number): number => a - b;
 export class SynchronizingCollectionSubscriber implements ICollectionSubscriber {
   public readonly oldArr: unknown[];
   public readonly newArr: unknown[];
@@ -30,28 +29,120 @@ public constructor(
   }
 
   public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
-    indexMap = applyMutationsToIndices(indexMap);
-
     const newArr = this.newArr;
     const oldArr = this.oldArr;
+    const oldArrCopy = oldArr.slice();
 
-    const deleted = indexMap.deletedIndices;
-    const deletedLen = deleted.length;
-    let j = 0;
-    for (let i = 0; i < deletedLen; ++i) {
-      j = deleted[i] - i;
-      oldArr.splice(j, 1);
+    const deleted = indexMap.deletedIndices.sort(compareNumber);
+    for (let i = 0; i < deleted.length; ++i) {
+      oldArr.splice(deleted[i] - i, 1);
     }
 
-    const mapLen = indexMap.length;
-    for (let i = 0; i < mapLen; ++i) {
+    for (let i = 0; i < indexMap.length; ++i) {
       if (indexMap[i] === -2) {
         oldArr.splice(i, 0, newArr[i]);
       }
     }
 
-    synchronizeIndices(oldArr, indexMap);
+    for (let i = 0; i < indexMap.length; ++i) {
+      const source = indexMap[i];
+      if (source !== -2) {
+        oldArr[i] = oldArrCopy[source];
+      }
+    }
   }
+
+  // 17 tests fail (combined splice+sort)
+  // public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+  //   const newArr = this.newArr;
+  //   const oldArr = this.oldArr;
+  //   const deleted = indexMap.deletedIndices.sort(compareNumber);
+  //   let cursor = 0;
+  //   let dCurr = deleted[cursor] ?? -1;
+  //   let deletes = 0;
+  //   const deleteOffsetMap = Array(indexMap.length + deleted.length).fill(0);
+  //   for (let i = 0; i < deleteOffsetMap.length; ++i) {
+  //     while (i === dCurr) {
+  //       oldArr.splice(dCurr, 1);
+  //       ++deletes;
+  //       if (deleted.length > ++cursor) {
+  //         dCurr = deleted[cursor] - deletes;
+  //       } else {
+  //         dCurr = -1;
+  //       }
+  //     }
+  //     deleteOffsetMap[i] = deletes;
+  //   }
+
+  //   let adds = 0;
+  //   const addsOffsetMap = Array(indexMap.length + deleted.length).fill(0);
+  //   for (let i = 0; i < addsOffsetMap.length; ++i) {
+  //     if (indexMap[i] === -2 && indexMap[i - 1] !== -2) {
+  //       let j = i;
+  //       while (indexMap[j] === -2) {
+  //         oldArr.splice(j, 0, newArr[j]);
+  //         ++adds;
+  //         ++j;
+  //       }
+  //     }
+  //     addsOffsetMap[i] = adds;
+  //   }
+
+  //   const oldArrCopy = oldArr.slice();
+  //   for (let i = 0; i < indexMap.length; ++i) {
+  //     const source = indexMap[i];
+  //     const offset = addsOffsetMap[i] - deleteOffsetMap[i];
+  //     if (source !== -2 && source + offset !== i) {
+  //       oldArr[i] = oldArrCopy[source + offset];
+  //     }
+  //   }
+  // }
+
+  // 16 different tests fail (push + shift / multi splice combi's)
+  // public handleCollectionChange(collection: Collection, indexMap: IndexMap): void {
+  //   const newArr = this.newArr;
+  //   const oldArr = this.oldArr;
+  //   const deleted = indexMap.deletedIndices.sort(compareNumber);
+  //   let cursor = 0;
+  //   let dCurr = deleted[cursor] ?? -1;
+  //   let deletes = 0;
+  //   const deleteOffsetMap = Array(indexMap.length + deleted.length).fill(0);
+  //   for (let i = 0; i < deleteOffsetMap.length; ++i) {
+  //     while (i === dCurr) {
+  //       oldArr.splice(dCurr, 1);
+  //       ++deletes;
+  //       if (deleted.length > ++cursor) {
+  //         dCurr = deleted[cursor] - deletes;
+  //       } else {
+  //         dCurr = -1;
+  //       }
+  //     }
+  //     deleteOffsetMap[i] = deletes;
+  //   }
+
+  //   let adds = 0;
+  //   const addsOffsetMap = Array(indexMap.length + deleted.length).fill(0);
+  //   for (let i = 0; i < addsOffsetMap.length; ++i) {
+  //     if (indexMap[i] === -2 && indexMap[i - 1] !== -2) {
+  //       let j = i;
+  //       while (indexMap[j] === -2) {
+  //         oldArr.splice(j, 0, newArr[j]);
+  //         ++adds;
+  //         ++j;
+  //       }
+  //     }
+  //     addsOffsetMap[i] = adds;
+  //   }
+
+  //   const oldArrCopy = oldArr.slice();
+  //   for (let i = 0; i < indexMap.length; ++i) {
+  //     const source = indexMap[i];
+  //     const offset = addsOffsetMap[source] - deleteOffsetMap[source];
+  //     if (source !== -2 && source + offset !== i) {
+  //       oldArr[i] = oldArrCopy[source + offset];
+  //     }
+  //   }
+  // }
 }
 
 describe(`2-runtime/array-observer.spec.ts`, function () {
@@ -934,6 +1025,50 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           arr.sort(desc);
         });
       });
+
+      describe('combined splice+sort operations', function () {
+        it('swap outer items + delete inner item', function () {
+          verifyChanges([S(1), S(2), S(3)], arr => {
+            arr.reverse();
+            arr.splice(1, 1);
+          });
+        });
+
+        it('delete inner item + swap outer items', function () {
+          verifyChanges([S(1), S(2), S(3)], arr => {
+            arr.splice(1, 1);
+            arr.reverse();
+          });
+        });
+
+        it('swap outer items + replace inner item', function () {
+          verifyChanges([S(1), S(3), S(4)], arr => {
+            arr.reverse();
+            arr.splice(1, 1, S(2));
+          });
+        });
+
+        it('replace inner item + swap outer items', function () {
+          verifyChanges([S(1), S(3), S(4)], arr => {
+            arr.splice(1, 1, S(2));
+            arr.reverse();
+          });
+        });
+
+        it('swap outer items + add inner item', function () {
+          verifyChanges([S(1), S(3), S(4)], arr => {
+            arr.reverse();
+            arr.splice(1, 0, S(2));
+          });
+        });
+
+        it('add inner item + swap outer items', function () {
+          verifyChanges([S(1), S(3), S(4)], arr => {
+            arr.splice(1, 0, S(2));
+            arr.reverse();
+          });
+        });
+      });
     });
 
     describe('array w/ 4 item', function () {
@@ -1181,6 +1316,13 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         });
       });
 
+      it('splice the middle item with three new items and sort desc ---', function () {
+        verifyChanges([S(1), S(2)], arr => {
+          arr.splice(1, 1, S(3), S(4));
+          arr.reverse();
+        });
+      });
+
       it('push + reverse', function () {
         verifyChanges([S(1), S(2), S(3), S(4)], arr => {
           arr.push(S(5));
@@ -1229,6 +1371,36 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           arr.sort(desc);
           arr.sort(asc);
           arr.sort(desc);
+        });
+      });
+
+      describe('combined splice+sort operations', function () {
+        it('swap outer items + delete inner items', function () {
+          verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+            arr.reverse();
+            arr.splice(1, 2);
+          });
+        });
+
+        it('delete inner items + swap outer items', function () {
+          verifyChanges([S(1), S(2), S(3), S(4)], arr => {
+            arr.splice(1, 2);
+            arr.reverse();
+          });
+        });
+
+        it('swap outer items + replace inner items', function () {
+          verifyChanges([S(1), S(4), S(5), S(6)], arr => {
+            arr.reverse();
+            arr.splice(1, 2, S(2), S(3));
+          });
+        });
+
+        it('replace inner items + swap outer items', function () {
+          verifyChanges([S(1), S(4), S(5), S(6)], arr => {
+            arr.splice(1, 2, S(2), S(3));
+            arr.reverse();
+          });
         });
       });
     });

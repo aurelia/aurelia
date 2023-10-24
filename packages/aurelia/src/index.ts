@@ -306,8 +306,6 @@ export {
   // ArrayObserver,
   // enableArrayObservation,
   // disableArrayObservation,
-  // applyMutationsToIndices,
-  // synchronizeIndices,
 
   // MapObserver,
   // enableMapObservation,

@@ -33,52 +33,53 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    let view: ISyntheticView | undefined;
-    const ctrl = this.$controller;
-    const swapId = this._swapId++;
-    /**
-     * returns true when
-     * 1. entering deactivation of the [if] itself
-     * 2. new swap has started since this change
-     */
-    const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
-    return onResolve(this.pending, () => {
-      if (!isCurrent()) {
-        return;
-      }
-      this.pending = void 0;
-      if (this.value) {
-        view = (this.view = this.ifView = this.cache && this.ifView != null
-          ? this.ifView
-          : this._ifFactory.create()
-        );
-      } else {
-        // truthy -> falsy
-        view = (this.view = this.elseView = this.cache && this.elseView != null
-          ? this.elseView
-          : this.elseFactory?.create()
-        );
-      }
-      // if the value is falsy
-      // and there's no [else], `view` will be null
-      if (view == null) {
-        return;
-      }
-      // todo: location should be based on either the [if]/[else] attribute
-      //       instead of always of the [if]
-      view.setLocation(this._location);
+    // let view: ISyntheticView | undefined;
+    // const ctrl = this.$controller;
+    // const swapId = this._swapId++;
+    // /**
+    //  * returns true when
+    //  * 1. entering deactivation of the [if] itself
+    //  * 2. new swap has started since this change
+    //  */
+    // const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
+    // return onResolve(this.pending, () => {
+    //   if (!isCurrent()) {
+    //     return;
+    //   }
+    //   this.pending = void 0;
+    //   if (this.value) {
+    //     view = (this.view = this.ifView = this.cache && this.ifView != null
+    //       ? this.ifView
+    //       : this._ifFactory.create()
+    //     );
+    //   } else {
+    //     // truthy -> falsy
+    //     view = (this.view = this.elseView = this.cache && this.elseView != null
+    //       ? this.elseView
+    //       : this.elseFactory?.create()
+    //     );
+    //   }
+    //   // if the value is falsy
+    //   // and there's no [else], `view` will be null
+    //   if (view == null) {
+    //     return;
+    //   }
+    //   // todo: location should be based on either the [if]/[else] attribute
+    //   //       instead of always of the [if]
+    //   view.setLocation(this._location);
 
-      // Promise return values from user VM hooks are awaited by the initiator
-      this.pending = onResolve(
-        view.activate(initiator, ctrl, ctrl.scope),
-        () => {
-          if (isCurrent()) {
-            this.pending = void 0;
-          }
-        });
-      // old
-      // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope);
-    });
+    //   // Promise return values from user VM hooks are awaited by the initiator
+    //   this.pending = onResolve(
+    //     view.activate(initiator, ctrl, ctrl.scope),
+    //     () => {
+    //       if (isCurrent()) {
+    //         this.pending = void 0;
+    //       }
+    //     });
+    //   // old
+    //   // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope);
+    // });
+    return this.valueChanged(this.value, void 0);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {

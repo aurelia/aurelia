@@ -22,12 +22,8 @@
     "aurelia",
     "plugin-conventions"
   ],
-  "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.dev.cjs.map",
-    "dist/**/*.mjs",
-    "dist/**/*.dev.mjs.map",
-    "dist/**/*.d.ts",
+    "files": [
+    "dist",
     "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",

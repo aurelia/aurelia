@@ -47,6 +47,8 @@ Where possible, you should avoid creating new instances of the Fetch client. Ins
 
 Taking a service-based approach to encapsulating your HTTP calls, you might create something like this:
 
+{% tabs %}
+{% tab title="Typescript" %}
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
@@ -71,6 +73,33 @@ export class ApiService {
     }
  }   
 ```
+{% endtab %}
+
+{% tab title="Vanilla JS" %}
+```javascript
+import { resolve, newInstanceOf } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
+
+export class ApiServiceervice {
+    http = resolve(newInstanceOf(IHttpClient));
+  
+    async getProducts() {
+        const request = await this.http.fetch(`/products`);
+        const response = await request.json();
+        
+        return response;
+      }
+    
+    async getProduct(id) {
+        const request = await this.http.fetch(`/products/${id}`);
+        const response = await request.json();
+        
+        return response;
+    }
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ## Configuring the fetch client
 

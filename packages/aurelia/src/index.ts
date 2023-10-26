@@ -23,7 +23,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageApp | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 

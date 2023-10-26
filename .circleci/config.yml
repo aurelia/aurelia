@@ -419,7 +419,7 @@ jobs:
         default: false
     executor: docker_circleci
     steps:
-      - checkout_install
+      - checkout_install:
           install_chrome: false
           install_firefox: false
       - restore_cache:

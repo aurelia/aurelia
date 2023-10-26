@@ -420,6 +420,8 @@ jobs:
     executor: docker_circleci
     steps:
       - checkout_install
+          install_chrome: false
+          install_firefox: false
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

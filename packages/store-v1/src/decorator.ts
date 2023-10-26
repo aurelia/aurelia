@@ -27,7 +27,7 @@ export interface MultipleSelector<T, R = T> {
 const defaultSelector = <T>(store: Store<T>) => store.state;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function connectTo<T, R = T>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
+export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   const _settings = {
     selector: (typeof settings === 'function' ? settings : defaultSelector),
     ...settings

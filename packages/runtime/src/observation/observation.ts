@@ -20,7 +20,7 @@ export interface IObservation {
   watch<T, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
   ): IEffect;
 }
@@ -54,7 +54,7 @@ export class Observation implements IObservation {
   public watch<T, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    callback: (value: R, oldValue: R | undefined) => unknown,
     options: IWatchOptions = this._defaultWatchOptions
   ): IEffect {
     // eslint-disable-next-line no-undef-init

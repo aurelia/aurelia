@@ -22,7 +22,7 @@ export interface IDynamicComponentActivate<T> {
    * Implement this hook if you want to perform custom logic just before the component is is composed.
    * The returned value is not used.
    */
-  activate?(model?: T): unknown | Promise<unknown>;
+  activate?(model?: T): unknown;
 }
 
 type MaybePromise<T> = T | Promise<T>;
@@ -203,9 +203,7 @@ export class AuCompose {
       }
       comp = this._getComp(childCtn, component, compositionHost);
     } else {
-      compositionHost = loc == null
-        ? host
-        : loc;
+      compositionHost = loc ?? host;
       comp = this._getComp(childCtn, component, compositionHost);
     }
     const compose: () => ICompositionController = () => {
@@ -413,7 +411,7 @@ class ChangeInfo {
   public constructor(
     public readonly _template: MaybePromise<string> | undefined,
     public readonly _component: MaybePromise<Constructable | object> | undefined,
-    public readonly _model: unknown | undefined,
+    public readonly _model: unknown,
     public readonly _src: ChangeSource | undefined,
   ) { }
 
@@ -434,7 +432,7 @@ class LoadedChangeInfo {
   public constructor(
     public readonly _template: string | undefined,
     public readonly _component: Constructable | object | undefined,
-    public readonly _model: unknown | undefined,
+    public readonly _model: unknown,
     public readonly _src: ChangeSource | undefined,
   ) { }
 }

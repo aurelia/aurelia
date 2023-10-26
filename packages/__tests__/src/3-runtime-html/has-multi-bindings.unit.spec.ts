@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import { Char } from '../util.js';
 import { assert } from '@aurelia/testing';
 

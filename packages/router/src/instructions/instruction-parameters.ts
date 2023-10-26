@@ -10,7 +10,9 @@ import { Separators } from '../router-options';
 import { IContainer } from '@aurelia/kernel';
 
 /**
- * @internal - Shouldn't be used directly
+ * Shouldn't be used directly
+ *
+ * @internal
  */
 export const enum ParametersType {
   none = 'none',
@@ -150,7 +152,7 @@ export class InstructionParameters {
     }
   }
 
-  public get(context: IRouterConfiguration | IRouter | IContainer, name?: string): IComponentParameter[] | unknown | unknown[] {
+  public get(context: IRouterConfiguration | IRouter | IContainer, name?: string): unknown {
     if (name === void 0) {
       // TODO: Turn this into a parameters object instead
       return this.parameters(context);

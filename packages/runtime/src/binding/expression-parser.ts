@@ -270,7 +270,7 @@ const enum Token {
   NumericLiteral          = 0b0000000100000_0000_000000,
   StringLiteral           = 0b0000000010000_0000_000000,
   IdentifierName          = 0b0000000001100_0000_000000,
-  Keyword                 = 0b0000000001000_0000_000000,
+  // Keyword                 = 0b0000000001000_0000_000000,
   Identifier              = 0b0000000000100_0000_000000,
   Contextual              = 0b0000000000010_0000_000000,
   OptionalSuffix          = 0b0000000001101_0000_000000,
@@ -344,7 +344,6 @@ export const enum ExpressionType {
     IsProperty = 0b0_010000,
     IsCustom   = 0b0_100000,
 }
-/* eslint-enable @typescript-eslint/indent */
 
 let $input: string = '';
 let $index: number = 0;
@@ -1136,8 +1135,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
         break;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    switch ($currentToken as Token) {
+    switch ($currentToken) {
       case Token.Comma:
         nextToken();
         isParamList = true;
@@ -1489,6 +1487,7 @@ function scanIdentifier(): Token {
   while (IdParts[nextChar()]);
 
   const token: Token|undefined = KeywordLookup[$tokenValue = $tokenRaw()];
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   return token === undefined ? Token.Identifier : token;
 }
 

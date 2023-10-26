@@ -137,7 +137,6 @@ module.exports = {
       ]
     }],
     'jsdoc/check-syntax': 'error',
-    'jsdoc/newline-after-description': 'error',
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
     'jsdoc/tag-lines': 'off',
     'array-callback-return': 'error',
@@ -199,11 +198,14 @@ module.exports = {
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
+    '@typescript-eslint/no-base-to-string': 'off',
     '@typescript-eslint/no-unsafe-argument': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'warn',
     '@typescript-eslint/no-unsafe-call': 'warn',
     '@typescript-eslint/no-unsafe-return': 'off',
+    '@typescript-eslint/no-unsafe-declaration-merging': 'off',
+    '@typescript-eslint/no-unsafe-enum-comparison': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
@@ -216,7 +218,7 @@ module.exports = {
     '@typescript-eslint/require-await': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
-    '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
+    '@typescript-eslint/restrict-plus-operands': ['warn'],
     '@typescript-eslint/restrict-template-expressions': ['off', { 'allowNumber': true, 'allowBoolean': true, 'allowNullish': true, 'allowAny': true }],
     '@typescript-eslint/strict-boolean-expressions': ['warn', { 'allowNullableBoolean': true }],
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],

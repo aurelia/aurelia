@@ -92,8 +92,8 @@ export const AppTask = objectFreeze({
 // unknown as the return of an app task will be ignored
 // only cares whether it's a promise or not
 // the benefit of unknown is that application can avoid having to write () => { doThingsThatDoesNotReturnVoid() }
-export type AppTaskCallbackNoArg = () => unknown | Promise<unknown>;
-export type AppTaskCallback<T> = (arg: Resolved<T>) => unknown | Promise<unknown>;
+export type AppTaskCallbackNoArg = () => unknown;
+export type AppTaskCallback<T> = (arg: Resolved<T>) => unknown;
 
 function createAppTaskSlotHook(slotName: TaskSlot) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

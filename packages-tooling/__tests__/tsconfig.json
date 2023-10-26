@@ -11,6 +11,7 @@
     "emitDecoratorMetadata": true,
     "strict": false,
     "alwaysStrict": true,
+    "strictNullChecks": true,
 
     "jsx": "react",
     "jsxFactory": "hJsx",

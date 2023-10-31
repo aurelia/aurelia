@@ -39,6 +39,8 @@ Aurelia
 
 To use the validation plugin, all you have to do is inject the validation controller as well as the validation rules object to register validation rules.
 
+{% tabs %}
+{% tab title="Typescript" %}
 ```typescript
 import { newInstanceForScope } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
@@ -69,6 +71,41 @@ export class AwesomeComponent {
   }
 }
 ```
+{% endtab %}
+
+{% tab title="Javascript" %}
+```javascript
+import { resolve, newInstanceForScope } from '@aurelia/kernel'
+import { IValidationRules } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
+
+export class AwesomeComponent {  
+  validationController = resolve(newInstanceForScope(IValidationController));
+  validationRules = IValidationRules;
+
+ constructor() {
+    this.person = new Person();
+
+    validationRules
+      .on(this.person)
+      .ensure('name')
+        .required()
+      .ensure('age')
+        .required()
+        .min(42);
+  }
+
+ async submit() {
+    const result = await this.validationController.validate();
+
+    if(result.valid) {
+      // Yay!! make that fetch now
+    }
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
 
 Inside our HTML, we use the `validate` binding behavior to signal to Aurelia that we want to validate these bindings. You might notice that both `name` and `age` appear in our view model above where we set some rules up.
 
@@ -79,7 +116,7 @@ Inside our HTML, we use the `validate` binding behavior to signal to Aurelia tha
 </form>
 ```
 
-> `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](broken-reference).
+> `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](broken-reference/).
 
 ### Demo
 

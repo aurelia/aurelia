@@ -75,15 +75,16 @@ export class AwesomeComponent {
 
 {% tab title="Javascript" %}
 ```javascript
-import { resolve, newInstanceForScope } from '@aurelia/kernel'
+import { inject, resolve, newInstanceForScope } from '@aurelia/kernel'
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 
+@inject(IValidationRules)
+
 export class AwesomeComponent {  
   validationController = resolve(newInstanceForScope(IValidationController));
-  validationRules = IValidationRules;
 
- constructor() {
+  constructor(validationRules) {
     this.person = new Person();
 
     validationRules

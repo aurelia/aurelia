@@ -11,7 +11,7 @@ export type IRoute<TParams = Record<string, string | undefined>, TQueryParams = 
     url: string;
     params: TParams;
     queryParams: TQueryParams;
-    event: Partial<NavigationEndEvent>;
+    snapshot: Partial<NavigationEndEvent>;
   };
   export const IRoute = DI.createInterface<IRoute>();
 
@@ -29,7 +29,7 @@ export const RouteCallback =  Registration.cachedCallback(IRoute, (container) =>
       queryParams: {},
       params: {},
       title: '',
-      event: {}
+      snapshot: {}
     };
 
     const localWindow = container.get(IWindow);
@@ -48,7 +48,7 @@ export const RouteCallback =  Registration.cachedCallback(IRoute, (container) =>
           return acc;
         }, {});
         route.params = flattenParams(children);
-        route.event = event;
+        route.snapshot = event;
       });
     });
     container.register(AppTask.deactivated(() => navEndSubscription.dispose()));

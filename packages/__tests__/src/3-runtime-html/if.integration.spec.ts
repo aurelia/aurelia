@@ -1,5 +1,9 @@
 import {
-  CustomAttribute, ICustomElementViewModel, IHydratedController, IPlatform, customElement
+  CustomAttribute,
+  ICustomElementViewModel,
+  IHydratedController,
+  IPlatform,
+  customElement,
 } from '@aurelia/runtime-html';
 import {
   assert, createFixture

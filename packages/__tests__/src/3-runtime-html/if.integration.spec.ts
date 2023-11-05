@@ -1,5 +1,5 @@
 import {
-  CustomAttribute, ICustomElementViewModel, IHydratedController, IPlatform, bindable, customElement
+  CustomAttribute, ICustomElementViewModel, IHydratedController, IPlatform, customElement
 } from '@aurelia/runtime-html';
 import {
   assert, createFixture
@@ -323,70 +323,35 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         }
       });
     }
-
     {
       @customElement({ name: 'c-1', template: 'c-1' })
       class CeOne implements ICustomElementViewModel {
 
+        private static id: number = 0;
         public static inject = [EventLog];
         public constructor(private readonly log: EventLog) { }
 
         binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-          this.log.log('c-1 binding');
+          this.log.log('c-1 binding enter');
+          const id = CeOne.id;
+          CeOne.id++;
+          if (id % 2 === 0) throw new Error('Synthetic test error');
+          this.log.log('c-1 binding leave');
         }
       }
 
       @customElement({ name: 'c-2', template: 'c-2' })
-      class CeTwo implements ICustomElementViewModel {
-        public static inject = [EventLog];
-        public constructor(private readonly log: EventLog) { }
-
-        @bindable activationHandle: PromiseHandle;
-
-        public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-          console.log('[test] c-2 binding enter');
-          this.log.log('c-2 binding enter');
-          let resolve: (value?: unknown) => void;
-          let reject: (reason?: unknown) => void;
-          const promise = new Promise<void>((res, rej) => {
-            resolve = res;
-            reject = rej;
-          });
-          this.activationHandle = { resolve, reject };
-          return promise.finally(() => {
-            console.log('[test] c-2 binding leave');
-            this.log.log('c-2 binding leave');
-            this.activationHandle = null;
-          });
-        }
-
-        bound(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
-          console.log('[test] c-2 bound');
-        }
-        attaching(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {
-          console.log('[test] c-2 attaching');
-        }
-        attached(initiator: IHydratedController): void | Promise<void> {
-          console.log('[test] c-2 attached');
-        }
-      }
-
-      interface PromiseHandle {
-        resolve(value?: unknown): void;
-        reject(reason?: unknown): void;
-      }
+      class CeTwo implements ICustomElementViewModel { }
 
       class Root {
-        public showC2: boolean = false;
-        public c2ActivationHandle: PromiseHandle;
+        public showC1: boolean = false;
       }
 
-      it.skip('Once an activation promise is rejected, further swapping of elements is still possible', async function () {
+      it('Once an activation errs, further successful activation of the same elements is still possible - with else', async function () {
         const { component, appHost, container, stop } = createFixture(
-          `<c-2 if.bind="showC2" activation-handle.from-view="c2ActivationHandle"></c-2><c-1 else></c-1>`,
+          `<c-1 if.bind="showC1"></c-1><c-2 else></c-2>`,
           Root,
           [EventLog, CeOne, CeTwo],
-          true
         );
 
         const eventLog = container.get(EventLog);
@@ -394,57 +359,52 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         const queue = platform.domWriteQueue;
         queue.flush();
 
-        assert.html.textContent(appHost, 'c-1', 'init');
-        assert.deepStrictEqual(eventLog.events, ['c-1 binding'], 'init log');
+        assert.html.textContent(appHost, 'c-2', 'init');
+        assert.deepStrictEqual(eventLog.events, [], 'init log');
 
-        // trigger component activation
-        eventLog.events.length = 0;
-        let resolve: (value?: unknown) => void;
-        let promise = new Promise<void>(res => resolve = res);
-        component.showC2 = true;
-        queue.queueTask(() => setTimeout(resolve, 1));
-        await promise;
-        assert.strictEqual(!!component.c2ActivationHandle, true, 'activation handle should not be null');
-        assert.html.textContent(appHost, '', 'c-2 activation triggered - DOM');
-        assert.deepStrictEqual(eventLog.events, ['c-2 binding enter'], 'c-2 activation triggered - log');
+        // trigger component activation - expect error
+        await activateC1(false, 1);
 
-        // reject activation
-        eventLog.events.length = 0;
-        component.c2ActivationHandle.reject(new Error('Synthetic test error'));
-        await queue.yield();
-        assert.deepStrictEqual(eventLog.events, ['c-2 binding leave'], 'c-2 activation settled - log');
+        // deactivate c-1
+        await deactivateC1(2);
 
-        // swap back to c-1
-        eventLog.events.length = 0;
-        component.showC2 = false;
-        promise = new Promise<void>(res => resolve = res);
-        queue.queueTask(() => setTimeout(resolve, 1));
-        await promise;
-        await queue.yield();
-        assert.html.textContent(appHost, 'c-1', 'c-1 reactivation - DOM');
-        assert.deepStrictEqual(eventLog.events, ['c-1 binding'], 'c-1 reactivation - log');
+        // activate c-1 again - expect success
+        await activateC1(true, 3);
 
-        // activate c-2 again
-        assert.strictEqual(!!component.c2ActivationHandle, false, 'activation handle should not be null - 2');
-        eventLog.events.length = 0;
-        promise = new Promise<void>(res => resolve = res);
-        component.showC2 = true;
-        queue.queueTask(() => setTimeout(resolve, 1));
-        await promise;
-        assert.html.textContent(appHost, '', 'c-2 activation triggered - DOM');
-        assert.deepStrictEqual(eventLog.events, ['c-2 binding enter'], 'c-2 activation triggered - log');
-        component.c2ActivationHandle.resolve();
-        console.log('[test] activation resolved');
+        // deactivate c-1
+        await deactivateC1(4);
 
-        promise = new Promise<void>(res => resolve = res);
-        queue.queueTask(() => setTimeout(resolve, 10));
-        await promise;
+        // activate c-1 again - expect error
+        await activateC1(false, 5);
 
-        console.log('[test] asserting');
-        assert.deepStrictEqual(eventLog.events, ['c-2 binding enter', 'c-2 binding leave'], 'c-2 activation settled - log');
-        assert.html.textContent(appHost, 'c-2', 'c-2 activated - DOM');
+        // deactivate c-1
+        await deactivateC1(6);
+
+        // activate c-1 again - expect success
+        await activateC1(true, 7);
 
         await stop();
+
+        async function deactivateC1(round: number) {
+          eventLog.events.length = 0;
+          component.showC1 = false;
+          await queue.yield();
+          assert.html.textContent(appHost, 'c-2', `round#${round} - c-1 deactivation - DOM`);
+          assert.deepStrictEqual(eventLog.events, [], `round#${round} - c-1 deactivation - log`);
+        }
+
+        async function activateC1(success: boolean, round: number) {
+          try {
+            eventLog.events.length = 0;
+            component.showC1 = true;
+            await queue.yield();
+            if (!success) assert.fail(`round#${round} - c-1 activation should have failed`);
+          } catch (e) {
+            if (success) throw e;
+          }
+          assert.html.textContent(appHost, success ? 'c-1' : '', `round#${round} - c-1 activation triggered - DOM`);
+          assert.deepStrictEqual(eventLog.events, ['c-1 binding enter', ...(success ? ['c-1 binding leave'] : [])], `round#${round} - c-1 activation triggered - log`);
+        }
       });
     }
   });

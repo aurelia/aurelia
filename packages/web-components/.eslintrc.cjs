@@ -8,8 +8,5 @@ module.exports = {
   parserOptions: {
     project: path.join(thisDir, 'tsconfig.json'),
     tsconfigRootDir: thisDir,
-  },
-  rules: {
-    '@typescript-eslint/no-redundant-type-constituents': 'off'
   }
 };

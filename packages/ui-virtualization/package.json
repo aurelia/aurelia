@@ -23,7 +23,7 @@
     "aurelia",
     "ui-virtualization"
   ],
-    "files": [
+  "files": [
     "dist",
     "src/**/*.ts",
     "README.md",

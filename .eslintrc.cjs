@@ -9,7 +9,7 @@ module.exports = {
     'plugin:jsdoc/recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:@typescript-eslint/recommended-type-checked',
     'plugin:import/typescript'
   ],
   parserOptions: {

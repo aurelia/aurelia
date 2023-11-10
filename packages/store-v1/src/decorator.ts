@@ -4,7 +4,6 @@ import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ConnectToSettings<T, R = T> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
@@ -19,7 +18,6 @@ export interface ConnectToSettings<T, R = T> {
   teardown?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface MultipleSelector<T, R = T> {
   [key: string]: ((store: Store<T>) => Observable<R>);
 }

@@ -88,6 +88,7 @@ module.exports = {
     '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-require-imports': 'error',
     '@typescript-eslint/no-redundant-type-constituents': 'warn',
+    '@typescript-eslint/no-duplicate-type-constituents': 'warn',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unused-expressions': 'error',

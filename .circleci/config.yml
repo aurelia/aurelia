@@ -457,7 +457,7 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npx turbo lint:ci --filter=@aurelia/*
+      - run: npm run lint:ci
       - run: npm run lint:other:ci
 
   merge_and_dist:

@@ -1,7 +1,6 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer, inject } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 

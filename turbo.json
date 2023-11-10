@@ -4,15 +4,15 @@
     "lint": {
       "inputs": [
         "src/**/*.ts",
-        "./eslintrc.cjs",
-        "../../eslintrc.cjs"
+        ".eslintrc.cjs",
+        "../../.eslintrc.cjs"
       ]
     },
     "lint:ci": {
       "inputs": [
         "src/**/*.ts",
-        "./eslintrc.cjs",
-        "../../eslintrc.cjs"
+        ".eslintrc.cjs",
+        "../../.eslintrc.cjs"
       ]
     },
     "build": {

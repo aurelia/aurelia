@@ -24,11 +24,7 @@
     "ui-virtualization"
   ],
   "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.dev.cjs.map",
-    "dist/**/*.mjs",
-    "dist/**/*.dev.mjs.map",
-    "dist/**/*.d.ts",
+    "dist",
     "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
@@ -36,7 +32,7 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
@@ -57,7 +53,7 @@
     "@aurelia/runtime-html": "2.0.0-beta.8"
   },
   "devDependencies": {
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   },
   "engines": {
     "node": ">=14.17.0"

@@ -31,7 +31,8 @@ export interface IWcElementRegistry {
   define(name: string, def: Omit<PartialCustomElementDefinition, 'name'>, options?: ElementDefinitionOptions): Constructable<HTMLElement>;
 }
 
-export type WebComponentViewModelClass = Constructable
+export type WebComponentViewModelClass =
+  | Constructable
   | {
     bindables?: PartialCustomElementDefinition['bindables'];
     watches?: PartialCustomElementDefinition['watches'];

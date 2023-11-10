@@ -21,7 +21,7 @@ export function nowrap(target: object, key: PropertyKey, descriptor?: PropertyDe
 // or
 //    class { @nowrap() prop }
 // returning any just for TS, as it is unable to selectively choose whether it's a class decorator or prop decorator
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-redundant-type-constituents
 export function nowrap(): ClassDecorator | PropertyDecorator | any; // (target: Constructable | object, key: PropertyKey, descriptor?: PropertyDescriptor) => void;
 
 // base signature

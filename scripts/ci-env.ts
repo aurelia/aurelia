@@ -274,7 +274,6 @@ export class CIEnv {
         let data = '';
 
         res.on('data', chunk => {
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           data += chunk;
         });
 
@@ -302,7 +301,6 @@ export class CIEnv {
         let data = '';
 
         res.on('data', chunk => {
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           data += chunk;
         });
 

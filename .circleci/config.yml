@@ -63,7 +63,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "16.14.2"
+        default: "18.18.1"
     working_directory: *working_dir
     resource_class: large
     docker:
@@ -73,17 +73,17 @@ executors:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "cimg/node:16.14.2"
+      - image: "cimg/node:18.18.1"
 
   docker_circleci_bench:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "cimg/node:16.14.2-browsers"
+      - image: "cimg/node:18.18.1-browsers"
 
   docker_playwright_jammy:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.34.3-jammy
+      - image: mcr.microsoft.com/playwright:v1.39.0-jammy
 
   docker_verdaccio:
     working_directory: *working_dir
@@ -419,7 +419,9 @@ jobs:
         default: false
     executor: docker_circleci
     steps:
-      - checkout_install
+      - checkout_install:
+          install_chrome: false
+          install_firefox: false
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
@@ -455,7 +457,7 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npx turbo lint:ci --filter=@aurelia/*
+      - run: npm run lint:ci
       - run: npm run lint:other:ci
 
   merge_and_dist:

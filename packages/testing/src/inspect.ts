@@ -1299,7 +1299,6 @@ export function formatSetIterInner(
   }
   ctx.indentationLvl -= 2;
   if (state === kWeak) {
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     output.sort();
   }
   const remaining = entries.length - maxLength;
@@ -1337,7 +1336,6 @@ export function formatMapIterInner(
   }
   ctx.indentationLvl -= 2;
   if (state === kWeak) {
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     output.sort();
   }
   if (remaining > 0) {

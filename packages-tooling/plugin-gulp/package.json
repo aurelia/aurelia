@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",

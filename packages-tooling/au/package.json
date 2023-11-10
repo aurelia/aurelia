@@ -36,7 +36,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "rollup -c -w",

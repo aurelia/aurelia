@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
     "test-node": "npm run ::mocha -- dist/cjs/**/*.spec.js",
     "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/plugin-conventions/**/*.spec.js",

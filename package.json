@@ -77,7 +77,7 @@
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo packages-tooling/*/dist/tsconfig.tsbuildinfo",
     "clean:lint": "rimraf .eslintcache packages/*/.eslintcache packages-tooling/*/.eslintcache",
     "lint": "turbo lint && npm run lint:other",
-    "lint:ci": "turbo lint:ci && npm run lint:other:ci",
+    "lint:ci": "npm run lint:ci -ws --if-present",
     "lint:other": "eslint --cache --ext .js,.ts scripts",
     "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives scripts",
     "change-tsconfigs:esm": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts esm",

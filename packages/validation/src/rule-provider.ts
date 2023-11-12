@@ -80,7 +80,8 @@ export const validationRulesRegistrar = Object.freeze({
     return Metadata.get(key, target) ?? Metadata.getOwn(key, target.constructor);
   },
   unset(target: IValidateable, tag?: string): void {
-    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    const keys = Metadata.getOwn(Protocol.annotation.name, target);
+    if (!Array.isArray(keys)) return;
     for (const key of keys.slice(0)) {
       if (key.startsWith(validationRulesRegistrar.name) && (tag === void 0 || key.endsWith(tag))) {
         Metadata.delete(Protocol.annotation.keyFor(key), target);
@@ -111,7 +112,7 @@ class ValidationMessageEvaluationContext {
   }
 }
 
-export interface PropertyRule extends IAstEvaluator {}
+export interface PropertyRule extends IAstEvaluator { }
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;

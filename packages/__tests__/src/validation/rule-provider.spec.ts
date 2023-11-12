@@ -445,6 +445,14 @@ describe('validation/rule-provider.spec.ts', function () {
       sut.off();
     });
 
+    it('calling .off on an object without rules does not cause error', function () {
+      const { sut } = setup();
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      assert.equal(validationRulesRegistrar.get(obj), void 0);
+      sut.off(obj);
+      assert.equal(validationRulesRegistrar.get(obj), void 0);
+    });
+
     it('can define multiple ruleset for the same object using tagging', function () {
       const { sut } = setup();
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);

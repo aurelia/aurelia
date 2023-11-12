@@ -947,6 +947,16 @@ describe('validation/rule-provider.spec.ts', function () {
       { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
       { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
       { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
+
+      // for the instrumenter: @jsdevtools/coverage-istanbul-loader
+      { property: function (o: any) { cov_1wjh4ld5ut().s[50]++; return o.prop; },                                      expected: 'prop' },
+      { property: function (o: any) { cov_1wjh4ld5ut().f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
+      { property: function (o: any) { "use strict"; cov_1wjh4ld5ut().s[50]++; return o.prop; },                        expected: 'prop' },
+      { property: function (o: any) { "use strict"; cov_1wjh4ld5ut().f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
+      { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut().s[50]++; return o.prop; },                                      expected: 'prop' },
+      { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut().f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
+      { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut().s[50]++; return o.prop; },                        expected: 'prop' },
+      { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut().f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
     ];
     for(const { property, expected } of positiveDataRows) {
       it(`parses ${property.toString()} to ${expected}`, function () {

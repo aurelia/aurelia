@@ -257,7 +257,6 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
           }
         }
       }
-      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       cooked = cooked.slice(0, matches.index) + value + cooked.slice(regex.lastIndex);
       matches = regex.exec(cooked);
     }

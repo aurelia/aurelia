@@ -18,7 +18,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, () => false);
+    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, () => false)!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -50,7 +50,7 @@ export function register(container) {
         enableConventions: true
       },
       (unit: IFileUnit, filePath: string) => filePath === './foo-bar.less'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -84,7 +84,7 @@ export function register(container) {
         enableConventions: true
       },
       () => false
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -118,7 +118,7 @@ export function register(container) {
         enableConventions: true
       },
       (unit: IFileUnit, filePath: string) => filePath === './foo.ts'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -129,7 +129,7 @@ export function register(container) {
       { path: path.join('src', 'foo.js'), contents: js },
       { hmr: false },
       () => false
-    );
+    )!;
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
@@ -140,7 +140,7 @@ export function register(container) {
       { path: path.join('src', 'bar.js'), contents: js },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './bar.html'
-    );
+    )!;
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
@@ -160,7 +160,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -180,7 +180,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './index.html'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -200,7 +200,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './foo-bar-view.html'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -220,7 +220,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './index-view.html'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -305,7 +305,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -390,7 +390,7 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './foo-bar.haml'
-    );
+    )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });

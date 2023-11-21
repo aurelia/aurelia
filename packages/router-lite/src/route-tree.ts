@@ -67,13 +67,6 @@ export interface IRouteNode {
   residue?: ViewportInstruction[];
 }
 
-export interface RouteNodeMatchOptions {
-  /** Endpoints will be matched instead of instruction */
-  matchEndpoint: boolean;
-  /** Original instruction will be matched */
-  matchOriginalInstruction: boolean;
-}
-
 export class RouteNode implements IRouteNode {
   /** @internal */ public _tree!: RouteTree;
   /** @internal */ public _version: number = 1;
@@ -85,6 +78,7 @@ export class RouteNode implements IRouteNode {
   /** @internal */
   private _isInstructionsFinalized: boolean = false;
   public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
+  public readonly children: RouteNode[] = [];
 
   private constructor(
     /**
@@ -126,7 +120,6 @@ export class RouteNode implements IRouteNode {
     public readonly _viewport: string | null,
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly component: CustomElementDefinition,
-    public readonly children: RouteNode[],
     /**
      * Not-yet-resolved viewport instructions.
      *
@@ -156,15 +149,12 @@ export class RouteNode implements IRouteNode {
       /*    viewport */input._viewport ?? null,
       /*       title */input.title ?? null,
       /*   component */input.component,
-      /*    children */input.children ?? [],
       /*     residue */input.residue ?? [],
     );
   }
 
-  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
+  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
     if (this.context === instructions.options.context) {
-      const matchEndpoint = options.matchEndpoint ?? false;
-      const matchOriginalInstruction = options.matchOriginalInstruction ?? false;
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
@@ -173,7 +163,7 @@ export class RouteNode implements IRouteNode {
           const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
           const nodeChild = nodeChildren[i + j] ?? null;
           const instruction = nodeChild !== null
-            ? !matchOriginalInstruction && nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
+            ? nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
             : null;
           const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
           if (i + j < ii
@@ -193,7 +183,7 @@ export class RouteNode implements IRouteNode {
     }
 
     return this.children.some(function (x) {
-      return x.contains(instructions, options);
+      return x.contains(instructions, matchEndpoint);
     });
   }
 
@@ -265,9 +255,13 @@ export class RouteNode implements IRouteNode {
       this._viewport,
       this.title,
       this.component,
-      this.children.map(x => x._clone()),
       [...this.residue],
     );
+    const children = this.children;
+    const len = children.length;
+    for (let i = 0; i < len; ++i) {
+      clone.children.push(children[i]._clone());
+    }
     clone._version = this._version + 1;
     if (clone.context.node === this) {
       clone.context.node = clone;
@@ -314,8 +308,8 @@ export class RouteTree {
     public root: RouteNode,
   ) { }
 
-  public contains(instructions: ViewportInstructionTree, options: Partial<RouteNodeMatchOptions>): boolean {
-    return this.root.contains(instructions, options);
+  public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
+    return this.root.contains(instructions, matchEndpoint);
   }
 
   /** @internal */

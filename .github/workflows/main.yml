@@ -13,9 +13,6 @@ on:
       - 'packages/runtime/**'
       - 'packages/runtime-html/**'
 
-env:
-  PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
-
 jobs:
   # If you'd like a message to appear in existing results comment that the
   # benchmarks are current running and the shown results are out of date, run a

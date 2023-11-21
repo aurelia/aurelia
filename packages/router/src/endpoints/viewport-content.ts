@@ -506,7 +506,7 @@ export class ViewportContent extends EndpointContent {
    * @param attachPromise - A promise that th content's component controller will await before attaching
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public activateComponent(step: Step<void>, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
+  public activateComponent(step: Step<void>, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, boundCallback: any, attachPromise: void | Promise<void> | undefined): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent), // TODO: It might be possible to refactor this away

@@ -540,7 +540,7 @@ export class Task<T = any> implements ITask {
       _reject: reject,
       createdTime,
     } = this;
-    let ret: unknown | Promise<unknown>;
+    let ret: unknown;
 
     this._status = TaskStatus.running;
 

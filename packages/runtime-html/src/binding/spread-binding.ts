@@ -93,7 +93,7 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.locator;
   }
 
-  public get definition(): CustomElementDefinition | CustomElementDefinition {
+  public get definition(): CustomElementDefinition {
     return this.$controller.definition;
   }
 

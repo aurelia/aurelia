@@ -8,5 +8,5 @@ module.exports = {
   parserOptions: {
     project: path.join(thisDir, 'tsconfig.json'),
     tsconfigRootDir: thisDir,
-  },
+  }
 };

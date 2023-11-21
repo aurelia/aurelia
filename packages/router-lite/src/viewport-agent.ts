@@ -1,6 +1,6 @@
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
-import { ILogger, onResolve, onResolveAll } from '@aurelia/kernel';
+import { ILogger, Writable, onResolve, onResolveAll } from '@aurelia/kernel';
 import { type IHydratedController, type ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import type { IViewport } from './resources/viewport';
@@ -698,7 +698,7 @@ export class ViewportAgent {
       this._$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      this._$plan = options.transitionPlan ?? next.context.config._getTransitionPlan(cur, next);
+      this._$plan = next.context.config._getTransitionPlan(cur, next, options.transitionPlan);
     }
 
     if (__DEV__) trace(this._logger, Events.vpaScheduleUpdate, this);
@@ -807,9 +807,13 @@ export class ViewportAgent {
             case State.currDeactivate:
               switch (this._$plan) {
                 case 'none':
+                  if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrLifecycle, this);
+                  this._currState = State.currIsActive;
+                  break;
                 case 'invoke-lifecycles':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrLifecycle, this);
                   this._currState = State.currIsActive;
+                  (this._curCA! as Writable<ComponentAgent>)._routeNode = this._nextNode!;
                   break;
                 case 'replace':
                   if (__DEV__) trace(logger, Events.vpaEndTransitionActiveCurrReplace, this);
@@ -915,7 +919,6 @@ function $state(state: State): string {
 }
 function stringifyState(state: State): string {
   const flags: string[] = [];
-
   if ((state & State.currIsEmpty) === State.currIsEmpty) {
     flags.push('currIsEmpty');
   }
@@ -958,6 +961,5 @@ function stringifyState(state: State): string {
   if ((state & State.nextActivate) === State.nextActivate) {
     flags.push('nextActivate');
   }
-
   return flags.join('|');
 }

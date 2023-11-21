@@ -9,7 +9,8 @@ export type ResourceType<
   TResType extends {} = {},
   TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
 > = (
-  new (...args: unknown[]) => TResInstance & TUserInstance
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]) => TResInstance & TUserInstance
 ) & {
   readonly aliases?: readonly string[];
 } & TResType & TUserType;

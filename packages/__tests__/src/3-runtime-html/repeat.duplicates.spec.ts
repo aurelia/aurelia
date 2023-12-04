@@ -1,6 +1,6 @@
 import { createFixture } from "@aurelia/testing";
 
-describe("3-runtime-html/repeat.batched.spec.ts", function () {
+describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
   describe('yield correct $index', function () {
     it('duplicate primitive string', function () {
       const { assertText, component } = createFixture(

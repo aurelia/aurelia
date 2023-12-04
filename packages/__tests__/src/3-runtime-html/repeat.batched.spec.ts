@@ -41,7 +41,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('345');
       component.items = [1, 5, 3, 2];
-      assertText('1352');
+      assertText('1532');
     });
 
     it('remove duplicates [3] and sort remaining', function () {

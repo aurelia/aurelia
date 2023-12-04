@@ -4,7 +4,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
   describe('yield correct $index', function () {
     it('duplicate primitive string', function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['a', 'b', 'a']; }
       );
       assertText('0-a 1-b 2-a ');
@@ -16,7 +16,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
 
     it.skip('duplicate primitive string + push + sort', function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['a', 'b', 'a']; }
       );
       assertText('0-a 1-b 2-a ');
@@ -27,7 +27,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
 
     it('duplicate primitive number', function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [0, 1, 0]; }
       );
       assertText('0-0 1-1 2-0 ');
@@ -39,7 +39,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
 
     it.skip('duplicate primitive number + sort', function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [0, 1, 0]; }
       );
       assertText('0-0 1-1 2-0 ');
@@ -54,7 +54,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       const obj1 = { toString() { return '1'; } };
 
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [obj0, obj1, obj0]; }
       );
       assertText('0-0 1-1 2-0 ');
@@ -69,7 +69,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       const obj1 = { toString() { return '1'; } };
 
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [obj0, obj1, obj0]; }
       );
       assertText('0-0 1-1 2-0 ');
@@ -82,7 +82,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
     // TODO: fix contextual props $index when sorting
     it.skip('primitive string + sort (move to contextual props tests)', function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="i of items">\${\$index}-\${i} </div>`,
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['c', 'b', 'a']; }
       );
       assertText('0-c 1-b 2-a ');

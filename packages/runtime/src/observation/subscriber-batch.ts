@@ -81,6 +81,8 @@ export function addCollectionBatch(
 ) {
   if (!currBatch!.has(subs)) {
     currBatch!.set(subs, [2, collection, indexMap]);
+  } else {
+    currBatch!.get(subs)![2] = indexMap;
   }
 }
 

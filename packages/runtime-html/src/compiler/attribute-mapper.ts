@@ -16,6 +16,10 @@ export class AttrMapper {
   private readonly svg = resolve(ISVGAnalyzer);
 
   public constructor() {
+    const popoverApiMapping = {
+      popovertarget: 'popoverTargetElement',
+      popovertargetaction: 'popoverTargetAction'
+    };
     this.useMapping({
       LABEL: { for: 'htmlFor' },
       IMG: { usemap: 'useMap' },
@@ -28,8 +32,10 @@ export class AttrMapper {
         formnovalidate: 'formNoValidate',
         formtarget: 'formTarget',
         inputmode: 'inputMode',
+        ...popoverApiMapping
       },
       TEXTAREA: { maxlength: 'maxLength' },
+      BUTTON: { ...popoverApiMapping },
       TD: { rowspan: 'rowSpan', colspan: 'colSpan' },
       TH: { rowspan: 'rowSpan', colspan: 'colSpan' },
     });
@@ -100,6 +106,13 @@ export class AttrMapper {
    * Retrieves the mapping information this mapper have for an attribute on an element
    */
   public map(node: Element, attr: string): string | null {
+    /* istanbul-ignore-next */
+    if (__DEV__) {
+      if ((attr === 'popovertarget' || attr === 'popovertargetaction') && node.nodeName !== 'INPUT' && node.nodeName !== 'BUTTON') {
+        // eslint-disable-next-line no-console
+        console.warn(`[aurelia] Popover API are only valid on <input> or <button>. Detected ${attr} on <${node.nodeName.toLowerCase()}>`);
+      }
+    }
     return this._tagAttrMap[node.nodeName]?.[attr] as string
       ?? this._globalAttrMap[attr]
       ?? (isDataAttribute(node, attr, this.svg)

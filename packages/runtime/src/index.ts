@@ -78,8 +78,6 @@ export {
   ArrayIndexObserver,
   enableArrayObservation,
   disableArrayObservation,
-  applyMutationsToIndices,
-  synchronizeIndices,
   type IArrayIndexObserver,
 } from './observation/array-observer';
 export {

@@ -66,7 +66,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
       });
   }
 
-  public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): PrimitiveLiteralExpression | Interpolation {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 

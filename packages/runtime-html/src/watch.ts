@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
@@ -65,12 +64,12 @@ export function watch<T extends object = object>(
   }
 
   return function decorator(
-    target: Constructable<T> | Constructable<T>['prototype'],
+    target: Constructable<T>,
     key?: PropertyKey,
     descriptor?: PropertyDescriptor,
   ): void {
     const isClassDecorator = key == null;
-    const Type = isClassDecorator ? target : target.constructor;
+    const Type = isClassDecorator ? target : target.constructor as Constructable;
     const watchDef = new WatchDefinition<T>(
       expressionOrPropertyAccessFn,
       isClassDecorator ? changeHandlerOrCallback : descriptor!.value

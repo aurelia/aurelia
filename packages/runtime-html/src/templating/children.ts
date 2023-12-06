@@ -5,7 +5,7 @@ import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
-import { createMutationObserver } from '../utilities-dom';
+import { createMutationObserver, isElement } from '../utilities-dom';
 
 import type { INode } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
@@ -80,7 +80,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
     // Direct call:
     // - @children('div')(Foo)
     config = {
-      filter: (node: Node) => node.nodeType === 1 && (node as Element).matches(configOrTarget),
+      filter: (node: Node) => isElement(node) && node.matches(configOrTarget),
       map: el => el
     };
     return decorator;

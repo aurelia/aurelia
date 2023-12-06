@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives .",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
     "test-node": "npm run ::mocha -- dist/cjs/**/*.spec.js",
     "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/plugin-conventions/**/*.spec.js",
@@ -43,7 +43,7 @@
     "@jest/types": "^28.1.0",
     "i18next": "^17.0.0",
     "jsdom": "22.1.0",
-    "typescript": "5.1.6",
+    "typescript": "5.2.2",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {

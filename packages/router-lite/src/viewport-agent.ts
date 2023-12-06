@@ -919,7 +919,6 @@ function $state(state: State): string {
 }
 function stringifyState(state: State): string {
   const flags: string[] = [];
-
   if ((state & State.currIsEmpty) === State.currIsEmpty) {
     flags.push('currIsEmpty');
   }
@@ -962,6 +961,5 @@ function stringifyState(state: State): string {
   if ((state & State.nextActivate) === State.nextActivate) {
     flags.push('nextActivate');
   }
-
   return flags.join('|');
 }

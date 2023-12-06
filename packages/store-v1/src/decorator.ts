@@ -4,8 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ConnectToSettings<T, R = T | any> {
+export interface ConnectToSettings<T, R = T> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
   /**
@@ -19,8 +18,7 @@ export interface ConnectToSettings<T, R = T | any> {
   teardown?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MultipleSelector<T, R = T | any> {
+export interface MultipleSelector<T, R = T> {
   [key: string]: ((store: Store<T>) => Observable<R>);
 }
 
@@ -28,10 +26,10 @@ const defaultSelector = <T>(store: Store<T>) => store.state;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
-  const _settings: ConnectToSettings<T> = {
-    selector: typeof settings === 'function' ? settings : defaultSelector,
+  const _settings = {
+    selector: (typeof settings === 'function' ? settings : defaultSelector),
     ...settings
-  };
+  } as unknown as ConnectToSettings<T>;
 
   function getSource(store: Store<T>, selector: (((store: Store<T>) => Observable<R>))): Observable<unknown> {
     const source = selector(store);
@@ -85,7 +83,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         ? Controller.getCached(this)!.container.get<Store<T>>(Store)
         : STORE.container.get<Store<T>>(Store); // TODO: need to get rid of this helper for classic unit tests
 
-      this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state: unknown) => {
+      this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector as any).subscribe((state: unknown) => {
         const lastTargetIdx = s.targets.length - 1;
         // eslint-disable-next-line default-param-last
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);

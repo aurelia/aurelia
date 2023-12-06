@@ -10,6 +10,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   class CustomMessage {
     @bindable public message: string;
   }
+  @customElement({ name: 'camel-ce', template: `<div>\${someMessage}</div>` })
+  class CeWithCamelCaseBindable {
+    @bindable public someMessage: string;
+  }
   @customElement({ name: 'foo-bar', template: `<au-slot><span t="status" t-params.bind="{context: status, date: date}"></span></au-slot>` })
   class FooBar {
     @bindable public status: string;
@@ -120,7 +124,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     let error: Error | null = null;
     try {
       await au
-        .register(CustomMessage, FooBar)
+        .register(CustomMessage, CeWithCamelCaseBindable, FooBar)
         .app({ host, component })
         .start();
 
@@ -836,6 +840,47 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         platform.domWriteQueue.flush();
 
         assertTextContent(host, 'custom-message div', de.simple.text);
+      }, { component: App });
+    }
+
+    {
+      @customElement({
+        name: 'app', template: `<camel-ce some-message="ignored" t="[some-message]simple.text"></camel-ce>`
+      })
+      class App { }
+
+      $it('can bind to custom elements attributes with camelCased bindable', function ({ host, en }: I18nIntegrationTestContext<App>) {
+        assertTextContent(host, 'camel-ce div', en.simple.text);
+      }, { component: App });
+    }
+    {
+      @customElement({
+        name: 'app', template: `<camel-ce component.ref="cm" t="[some-message]itemWithCount" t-params.bind="{count}">`
+      })
+      class App { public count: number = 0; public cm: CeWithCamelCaseBindable; }
+      $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        app.count = 10;
+        assert.strictEqual(
+          app.cm.someMessage,
+          en.itemWithCount_plural.replace('{{count}}', '10'),
+          '<camel-ce/> message prop should have been updated immediately'
+        );
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '10'));
+      }, { component: App });
+    }
+    {
+      @customElement({
+        name: 'app', template: `<camel-ce some-message="ignored" t="[some-message]simple.text"></camel-ce>`
+      })
+      class App { }
+      $it('should support locale changes with camelCased bindable', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
+        await i18n.setLocale('de');
+        platform.domWriteQueue.flush();
+
+        assertTextContent(host, 'camel-ce div', de.simple.text);
       }, { component: App });
     }
   });

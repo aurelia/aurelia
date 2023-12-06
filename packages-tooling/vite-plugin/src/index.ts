@@ -1,4 +1,4 @@
-import { preprocess } from '@aurelia/plugin-conventions';
+import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
@@ -11,12 +11,13 @@ export default function au(options: {
    * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
    */
   useDev?: boolean;
-} = {}) {
+} & IOptionalPreprocessOptions = {}) {
   const {
     include = 'src/**/*.{ts,js,html}',
     exclude,
     pre = true,
     useDev,
+    ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
@@ -77,7 +78,8 @@ export default function au(options: {
           return this.meta.watchMode
             ? s
             : s.replace(/\.html$/, '.$au.ts');
-        }
+        },
+        ...additionalOptions
       });
       return result;
     },

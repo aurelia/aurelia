@@ -1,4 +1,4 @@
-import { toArray } from '@aurelia/kernel';
+import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   CustomExpression,
@@ -238,7 +238,7 @@ export class TranslationBinding implements IConnectableBinding {
         } else {
           const controller = CustomElement.for(this.target, forOpts);
           const accessor = controller?.viewModel
-            ? this.oL.getAccessor(controller.viewModel, attribute)
+            ? this.oL.getAccessor(controller.viewModel, camelCase(attribute))
             : this.oL.getAccessor(this.target, attribute);
           const shouldQueueUpdate = this._controller.state !== State.activating && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-array-sort-compare */
 export type ResourceType = 'view' | 'customElement' | 'customAttribute' | 'valueConverter' | 'bindingBehavior' | 'bindingCommand' | 'templateController';
 
 export interface INameConvention {

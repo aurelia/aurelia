@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "@aurelia/vite-plugin": "2.0.0-beta.8",
-    "@playwright/test": "1.33.0",
+    "@playwright/test": "1.39.0",
     "@types/mocha": "10.0.0",
     "@types/node": "^14.18.14",
-    "playwright": "^1.33.0",
-    "typescript": "5.1.6"
+    "playwright": "1.39.0",
+    "typescript": "5.2.2"
   }
 }

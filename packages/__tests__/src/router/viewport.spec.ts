@@ -31,7 +31,7 @@ describe('router/viewport.spec.ts', function () {
     const One = CustomElement.define({ name: 'one', template: '!one!' });
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="one"></au-viewport>', dependencies: [One] });
 
-    const { router, host, tearDown } = await createFixture(App);
+    const { host, tearDown } = await createFixture(App);
 
     assert.strictEqual(host.textContent, '!one!', `default="one" loaded`);
 

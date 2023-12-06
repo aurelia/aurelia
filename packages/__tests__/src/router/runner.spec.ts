@@ -194,7 +194,7 @@ describe('router/runner.spec.ts', function () {
         public boundTiming = 1,
       ) { }
 
-      public activate(caller: any | null = null, state: string | null = null): void | Step<void> | Promise<void> {
+      public activate(caller: any = null, state: string | null = null): void | Step<void> | Promise<void> {
         this.log(`activate.enter [${caller?.id}] [${state}]`);
         return Runner.run<void>(this.connected ? caller : null,
           () => `${state}:${this.name}.activate`,

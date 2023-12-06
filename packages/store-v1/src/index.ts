@@ -28,7 +28,7 @@ export const StoreConfiguration: IConfigure = {
     // TODO: get rid of this workaround for unit tests
     STORE.container = container;
 
-    const state = Reflect.get(this, 'state') as unknown & Partial<StateHistory<unknown>>;
+    const state = Reflect.get(this, 'state') as Partial<StateHistory<unknown>>;
     const options = Reflect.get(this, 'options') as Partial<StorePluginOptions<unknown>>;
     const logger = container.get(ILogger);
     const window = container.get(IWindow);

@@ -445,6 +445,14 @@ describe('validation/rule-provider.spec.ts', function () {
       sut.off();
     });
 
+    it('calling .off on an object without rules does not cause error', function () {
+      const { sut } = setup();
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      assert.equal(validationRulesRegistrar.get(obj), void 0);
+      sut.off(obj);
+      assert.equal(validationRulesRegistrar.get(obj), void 0);
+    });
+
     it('can define multiple ruleset for the same object using tagging', function () {
       const { sut } = setup();
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
@@ -843,6 +851,7 @@ describe('validation/rule-provider.spec.ts', function () {
     }
 
     const cov_1wjh4ld5ut: any = {};
+    const cov_1wjh4ld5ut1: () => any = () => ({});
     const a: string = 'foo';
     const positiveDataRows = [
       { property: 'prop',                   expected: 'prop' },
@@ -947,6 +956,16 @@ describe('validation/rule-provider.spec.ts', function () {
       { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
       { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
       { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
+
+      // for the instrumenter: @jsdevtools/coverage-istanbul-loader
+      { property: function (o: any) { cov_1wjh4ld5ut1().s[50]++; return o.prop; },                                      expected: 'prop' },
+      { property: function (o: any) { cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },                expected: 'prop' },
+      { property: function (o: any) { "use strict"; cov_1wjh4ld5ut1().s[50]++; return o.prop; },                        expected: 'prop' },
+      { property: function (o: any) { "use strict"; cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },  expected: 'prop' },
+      { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut1().s[50]++; return o.prop; },                                      expected: 'prop' },
+      { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },                expected: 'prop' },
+      { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut1().s[50]++; return o.prop; },                        expected: 'prop' },
+      { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },  expected: 'prop' },
     ];
     for(const { property, expected } of positiveDataRows) {
       it(`parses ${property.toString()} to ${expected}`, function () {

@@ -2156,7 +2156,6 @@ describe('2-runtime/ast.spec.ts', function () {
       });
     });
   });
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
   describe('arrow function unparsing', function () {
     it('unparses arrow fn', function () {

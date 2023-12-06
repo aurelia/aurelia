@@ -65,7 +65,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         const mutations: MutationRecord[] = [];
         const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
 
-        const component = new App();
+        const component = new App([]);
         au.app({ host, component });
 
         async function mutate(cb: () => void) {
@@ -187,7 +187,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         const mutations: MutationRecord[] = [];
         const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
 
-        const component = new App();
+        const component = new App([]);
         au.app({ host, component });
 
         async function mutate(cb: () => void) {
@@ -376,7 +376,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
           const mutations: MutationRecord[] = [];
           const obs = new ctx.wnd.MutationObserver(_mutations => mutations.splice(0, mutations.length, ..._mutations));
 
-          const component = new App();
+          const component = new App([]);
           au.app({ host, component });
 
           async function mutate(cb: () => void) {

@@ -42,7 +42,7 @@ export class ViewportScope extends Endpoint {
   public instruction: RoutingInstruction | null = null;
 
   public available: boolean = true;
-  public sourceItem: unknown | null = null;
+  public sourceItem: unknown = null;
   public sourceItemIndex: number = -1;
 
   private remove: boolean = false;
@@ -220,7 +220,7 @@ export class ViewportScope extends Endpoint {
     this.sourceItem = null;
   }
 
-  public getAvailableSourceItem(): unknown | null {
+  public getAvailableSourceItem(): unknown {
     if (this.source === null) {
       return null;
     }

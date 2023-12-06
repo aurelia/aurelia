@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-/* eslint-disable @typescript-eslint/prefer-optional-chain */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
 import { ExpressionType, IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
@@ -30,7 +29,7 @@ import { CustomElement, CustomElementDefinition, CustomElementType, defineElemen
 import { BindingCommand, CommandType } from '../resources/binding-command';
 import { createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
-import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore } from '../utilities-dom';
+import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { BindingMode } from '../binding/interfaces-bindings';
 
@@ -931,7 +930,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           // so anything attempting to project into it is discarded
           // doing so during compilation via removing the node,
           // instead of considering it as part of the fallback view
-          if (node.nodeType === 1 && (node as Element).hasAttribute(AU_SLOT)) {
+          if (isElement(node) && node.hasAttribute(AU_SLOT)) {
             if (__DEV__) {
               // eslint-disable-next-line no-console
               console.warn(
@@ -1018,6 +1017,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let childEl: Element;
       let targetSlot: string | null;
+      let hasAuSlot = false;
       let projections: IAuSlotProjections | undefined;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
@@ -1049,28 +1049,22 @@ export class TemplateCompiler implements ITemplateCompiler {
       let isEmptyTextNode = false;
       if (processContentResult !== false) {
         while (child !== null) {
-          targetSlot = child.nodeType === 1 ? (child as Element).getAttribute(AU_SLOT) : null;
-          if (targetSlot !== null) {
-            (child as Element).removeAttribute(AU_SLOT);
-          }
-          if (isCustomElement) {
-            childEl = child.nextSibling as Element;
-            if (!isShadowDom) {
-              // ignore all whitespace
-              isEmptyTextNode = child.nodeType === 3 && (child as Text).textContent!.trim() === '';
-              if (!isEmptyTextNode) {
-                ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
-              }
-              el.removeChild(child);
-            }
-            child = childEl;
-          } else {
-            if (targetSlot !== null) {
-              targetSlot = targetSlot || DEFAULT_SLOT_NAME;
+          targetSlot = isElement(child) ? child.getAttribute(AU_SLOT) : null;
+          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
+          childEl = child.nextSibling as Element;
+          if (hasAuSlot) {
+            if (!isCustomElement) {
               throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
-            child = child.nextSibling;
+            (child as Element).removeAttribute?.(AU_SLOT);
+            // ignore all whitespace
+            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
+            if (!isEmptyTextNode) {
+              ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
+            }
+            el.removeChild(child);
           }
+          child = childEl;
         }
       }
 
@@ -1215,6 +1209,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       let child = el.firstChild as Node | null;
       let childEl: Element;
       let targetSlot: string | null;
+      let hasAuSlot: boolean = false;
       let projections: IAuSlotProjections | null = null;
       let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
       let slotTemplates: (Node | Element | DocumentFragment)[];
@@ -1244,28 +1239,22 @@ export class TemplateCompiler implements ITemplateCompiler {
       //  </my-el>
       if (processContentResult !== false) {
         while (child !== null) {
-          targetSlot = child.nodeType === 1 ? (child as Element).getAttribute(AU_SLOT) : null;
-          if (targetSlot !== null) {
-            (child as Element).removeAttribute(AU_SLOT);
-          }
-          if (isCustomElement) {
-            childEl = child.nextSibling as Element;
-            if (!isShadowDom) {
-              // ignore all whitespace
-              isEmptyTextNode = child.nodeType === 3 && (child as Text).textContent!.trim() === '';
-              if (!isEmptyTextNode) {
-                ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
-              }
-              el.removeChild(child);
-            }
-            child = childEl;
-          } else {
-            if (targetSlot !== null) {
-              targetSlot = targetSlot || DEFAULT_SLOT_NAME;
+          targetSlot = isElement(child) ? child.getAttribute(AU_SLOT) : null;
+          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
+          childEl = child.nextSibling as Element;
+          if (hasAuSlot) {
+            if (!isCustomElement) {
               throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
-            child = child.nextSibling;
+            (child as Element).removeAttribute?.(AU_SLOT);
+            // ignore all whitespace
+            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
+            if (!isEmptyTextNode) {
+              ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
+            }
+            el.removeChild(child);
           }
+          child = childEl;
         }
       }
 

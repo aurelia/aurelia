@@ -4,36 +4,23 @@ import { NodeObserverLocator } from '../../observation/observer-locator';
 import { bindingBehavior } from '../binding-behavior';
 
 import { PropertyBinding } from '../../binding/property-binding';
-import { createError } from '../../utilities';
+import { resolve } from '@aurelia/kernel';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
-  /** @internal */ protected static inject = [IObserverLocator, INodeObserverLocator];
-  /** @internal */ private readonly _observerLocator: IObserverLocator;
-  /** @internal */ private readonly _nodeObserverLocator: NodeObserverLocator;
-  public constructor(
-    observerLocator: IObserverLocator,
-    nodeObserverLocator: INodeObserverLocator,
-  ) {
-    if (!(nodeObserverLocator instanceof NodeObserverLocator)) {
-      throw createError('AURxxxx: updateTrigger binding behavior only works with the default implementation of Aurelia HTML observation. Implement your own node observation + updateTrigger');
-    }
-    this._observerLocator = observerLocator;
-    this._nodeObserverLocator = nodeObserverLocator;
-  }
+  /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
+  /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator) as NodeObserverLocator;
 
   public bind(_scope: Scope, binding: IBinding, ...events: string[]): void {
+    if (!(this._nodeObserverLocator instanceof NodeObserverLocator)) {
+      throw createMappedError(ErrorNames.update_trigger_behavior_not_supported);
+    }
     if (events.length === 0) {
-      if (__DEV__)
-        throw createError(`AUR0802: The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`);
-      else
-        throw createError(`AUR0802`);
+      throw createMappedError(ErrorNames.update_trigger_behavior_no_triggers);
     }
 
     if (!(binding instanceof PropertyBinding) || !(binding.mode & BindingMode.fromView)) {
-      if (__DEV__)
-        throw createError(`AUR0803: The updateTrigger binding behavior can only be applied to two-way/ from-view bindings.`);
-      else
-        throw createError(`AUR0803`);
+      throw createMappedError(ErrorNames.update_trigger_invalid_usage);
     }
 
     // ensure the binding's target observer has been set.
@@ -44,11 +31,7 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
     // todo(bigopon): potentially updateTrigger can be used to teach Aurelia adhoc listening capability
     //                since event names are the only thing needed
     if (targetConfig == null) {
-      if (__DEV__) {
-        throw createError(`AURxxxx: node observer does not know how to use events to observe ${binding.target}@${binding.targetProperty}`);
-      } else {
-        throw createError(`AURxxxx`);
-      }
+      throw createMappedError(ErrorNames.update_trigger_behavior_node_property_not_observable, binding);
     }
     const targetObserver = this._nodeObserverLocator.getNodeObserver(
       binding.target as HTMLElement,

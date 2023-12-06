@@ -26,7 +26,7 @@ export class QueueTask<T> {
   private readonly promise: Promise<boolean | void>;
 
   public resolve!: ((value?: boolean | PromiseLike<boolean>) => void);
-  public reject!: ((value?: unknown | PromiseLike<unknown>) => void);
+  public reject!: ((value?: unknown) => void);
 
   public constructor(
     private readonly taskQueue: TaskQueue<T>,
@@ -171,7 +171,7 @@ export class TaskQueue<T> {
   /**
    * @internal
    */
-  public reject(_task: QueueTask<T>, reject: ((value: unknown | PromiseLike<unknown>) => void), reason: unknown): void {
+  public reject(_task: QueueTask<T>, reject: ((value: unknown) => void), reason: unknown): void {
     reject(reason);
     this.processing = null;
     this.dequeue();

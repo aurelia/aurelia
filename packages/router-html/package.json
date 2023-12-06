@@ -7,7 +7,8 @@
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "development": "./dist/esm/index.dev.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",
@@ -23,12 +24,8 @@
     "aurelia",
     "router"
   ],
-  "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.dev.cjs.map",
-    "dist/**/*.mjs",
-    "dist/**/*.dev.mjs.map",
-    "dist/**/*.d.ts",
+    "files": [
+    "dist",
     "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
@@ -37,7 +34,7 @@
   "sideEffects": false,
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
@@ -59,7 +56,7 @@
     "@aurelia/runtime-html": "2.0.0-alpha.28"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.2.2"
   },
   "engines": {
     "node": ">=14.17.0"

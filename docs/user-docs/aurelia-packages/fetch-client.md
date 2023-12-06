@@ -30,7 +30,7 @@ const http = new HttpClient();
 You can also inject a new instance into your component or service class using the following approach: injecting the Fetch client with the `newInstanceOf` decorator. This will ensure our component gets a new instance of the Fetch client.
 
 ```typescript
-import { HttpClient } from '@aurelia/fetch-client';
+import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
@@ -47,8 +47,10 @@ Where possible, you should avoid creating new instances of the Fetch client. Ins
 
 Taking a service-based approach to encapsulating your HTTP calls, you might create something like this:
 
+{% tabs %}
+{% tab title="Typescript" %}
 ```typescript
-import { HttpClient } from '@aurelia/fetch-client';
+import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 
 export class ApiService {    
@@ -71,13 +73,40 @@ export class ApiService {
     }
  }   
 ```
+{% endtab %}
+
+{% tab title="Vanilla JS" %}
+```javascript
+import { resolve, newInstanceOf } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
+
+export class ApiServiceervice {
+    http = resolve(newInstanceOf(IHttpClient));
+  
+    async getProducts() {
+        const request = await this.http.fetch(`/products`);
+        const response = await request.json();
+        
+        return response;
+      }
+    
+    async getProduct(id) {
+        const request = await this.http.fetch(`/products/${id}`);
+        const response = await request.json();
+        
+        return response;
+    }
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ## Configuring the fetch client
 
 Many of the configuration options available to the native Fetch API are also available in the Aurelia Fetch Client. You can set default headers, create interceptors (more on that further down) and more.
 
 ```typescript
-import { HttpClient } from '@aurelia/fetch-client';
+import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
@@ -129,7 +158,7 @@ There are some caveats with the default Fetch implementation around error handli
 #### Posting JSON
 
 ```typescript
-import { HttpClient, json } from '@aurelia/fetch-client';
+import { IHttpClient, json } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
@@ -159,7 +188,7 @@ A common scenario in applications using authentication is to use bearer tokens s
 To achieve this, we can use a request interceptor to add the token to the headers of each request. The following example assumes you are getting the bearer token from somewhere (session or local storage, etc.).
 
 ```typescript
-import { HttpClient } from '@aurelia/fetch-client';
+import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 

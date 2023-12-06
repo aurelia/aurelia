@@ -4,6 +4,7 @@ import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
 import { bindable } from '../../bindable';
 import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
+import { resolve } from '@aurelia/kernel';
 
 /**
  * Focus attribute for element focus binding
@@ -22,16 +23,12 @@ export class Focus implements ICustomAttributeViewModel {
    * @internal
    */
   private _needsApply: boolean = false;
-  /** @internal */ private readonly _element: INode<HTMLElement>;
-  /** @internal */ private readonly _platform: IPlatform;
 
-  public constructor(
-    element: INode<HTMLElement>,
-    platform: IPlatform,
-  ) {
-    this._element = element;
-    this._platform = platform;
-  }
+  /** @internal */
+  private readonly _element = resolve(INode) as INode<HTMLElement>;
+
+  /** @internal */
+  private readonly _platform = resolve(IPlatform);
 
   public binding(): void {
     this.valueChanged();
@@ -112,7 +109,7 @@ export class Focus implements ICustomAttributeViewModel {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (shouldFocus && !isFocused) {
       el.focus();
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     } else if (!shouldFocus && isFocused) {
       el.blur();
     }

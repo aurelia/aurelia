@@ -8,6 +8,7 @@ export {
   AssignExpression,
   ConditionalExpression,
   AccessThisExpression,
+  AccessGlobalExpression,
   AccessScopeExpression,
   AccessMemberExpression,
   AccessKeyedExpression,
@@ -77,8 +78,6 @@ export {
   ArrayIndexObserver,
   enableArrayObservation,
   disableArrayObservation,
-  applyMutationsToIndices,
-  synchronizeIndices,
   type IArrayIndexObserver,
 } from './observation/array-observer';
 export {
@@ -101,9 +100,11 @@ export {
 } from './observation/collection-length-observer';
 export {
   ComputedObserver,
+  type ComputedGetterFn,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,
+  DirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
 } from './observation/dirty-checker';

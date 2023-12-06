@@ -499,8 +499,8 @@ export function createSpy<
 export function createSpy(): ISpy<VoidFunction>;
 export function createSpy<
   T extends {} | AnyFunction = VoidFunction,
-  K extends keyof T | never = never,
-  F extends AnyFunction | never = never,
+  K extends keyof T = never,
+  F extends AnyFunction = never,
 >(instanceOrInnerFn?: T, key?: K, callThroughOrInnerFn?: true | F) {
   const calls: (readonly unknown[])[] = [];
 

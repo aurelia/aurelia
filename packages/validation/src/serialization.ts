@@ -29,6 +29,7 @@ export type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty 
 export class ValidationSerializer implements IValidationVisitor {
   public static serialize<T extends IValidationRule>(object: Visitable<T>): string {
     if (object == null || typeof object.accept !== 'function') {
+      // todo(Sayan): if it's an object here, it'll be turned into [object Object]
       return `${object}`;
     }
     const visitor = new ValidationSerializer();

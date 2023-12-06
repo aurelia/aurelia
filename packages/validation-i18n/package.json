@@ -1,12 +1,13 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.8",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "development": "./dist/esm/index.dev.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",
@@ -23,12 +24,8 @@
     "validation",
     "i18n"
   ],
-  "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.dev.cjs.map",
-    "dist/**/*.mjs",
-    "dist/**/*.dev.mjs.map",
-    "dist/**/*.d.ts",
+    "files": [
+    "dist",
     "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
@@ -50,19 +47,19 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.0-beta.5",
-    "@aurelia/kernel": "2.0.0-beta.5",
-    "@aurelia/metadata": "2.0.0-beta.5",
-    "@aurelia/platform": "2.0.0-beta.5",
-    "@aurelia/platform-browser": "2.0.0-beta.5",
-    "@aurelia/runtime": "2.0.0-beta.5",
-    "@aurelia/runtime-html": "2.0.0-beta.5",
-    "@aurelia/validation": "2.0.0-beta.5",
-    "@aurelia/validation-html": "2.0.0-beta.5",
+    "@aurelia/i18n": "2.0.0-beta.8",
+    "@aurelia/kernel": "2.0.0-beta.8",
+    "@aurelia/metadata": "2.0.0-beta.8",
+    "@aurelia/platform": "2.0.0-beta.8",
+    "@aurelia/platform-browser": "2.0.0-beta.8",
+    "@aurelia/runtime": "2.0.0-beta.8",
+    "@aurelia/runtime-html": "2.0.0-beta.8",
+    "@aurelia/validation": "2.0.0-beta.8",
+    "@aurelia/validation-html": "2.0.0-beta.8",
     "i18next": "^17.0.0"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.2.2"
   },
   "engines": {
     "node": ">=14.17.0"

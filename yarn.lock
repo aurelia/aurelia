@@ -1,3 +1,0 @@
-# DO NOT USE YARN TO INSTALL THIS PROJECT - WE DON'T USE YARN, IT WON'T WORK.
-# This is a marker file, added by hand in order to "trick" lage into treating this repo as a yarn workspace (which happens to use the same conventions as npm 7),
-# which is a temporary workaround until lage properly interoperates with npm 7. Once lage is updated, this lockfile will be removed.

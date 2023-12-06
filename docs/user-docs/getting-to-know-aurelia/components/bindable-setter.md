@@ -4,7 +4,7 @@ In some cases, you want to make an impact on the value that is binding. For such
 
 ```typescript
 @bindable({ 
-    set: value => function(value),  /* HERE */
+    set: value => someFunction(value),  /* HERE */
     // Or set: value => value,
     mode: /* ... */ 
 })
@@ -57,14 +57,13 @@ export function truthyDetector(value: unknown) {
 Now, we should set `truthyDetector` function as following:
 
 ```typescript
-@bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: BooleanString = false;
+@bindable({ set: truthyDetector, mode: BindingMode.toView }) public navigator: boolean = false;
 ```
 
 Although, there is another way to write the functionality too
 
 ```typescript
-@bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: BooleanString = false;
+@bindable({ set: v => v === '' || v === true || v === "true", mode: BindingMode.toView }) public navigator: boolean = false;
 ```
 
 You can simply use any of the above four methods to enable/disable your feature.
-

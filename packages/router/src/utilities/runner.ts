@@ -144,7 +144,7 @@ export class Runner {
    * the run as well as cancel it
    *
    */
-  public static step(value: unknown | Promise<unknown>): Step | undefined {
+  public static step(value: unknown): Step | undefined {
     if (value instanceof Promise) {
       return Runner.runners.get(value);
     }
@@ -157,7 +157,7 @@ export class Runner {
    * to retrieve it from the promise
    *
    */
-  public static cancel(value: unknown | Promise<unknown>): void {
+  public static cancel(value: unknown): void {
     const step = Runner.step(value);
     if (step !== void 0) {
       step.cancel();

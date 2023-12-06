@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve } from '@aurelia/kernel';
+import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
@@ -8,11 +8,9 @@ import { bindable } from '../../bindable';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
-import { createError } from '../../utilities';
+import { ErrorNames, createMappedError } from '../../errors';
 
 export class If implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IViewFactory, IRenderLocation];
-
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
   public ifView?: ISyntheticView = void 0;
@@ -31,61 +29,11 @@ export class If implements ICustomAttributeViewModel {
   private pending: void | Promise<void> = void 0;
   /** @internal */ private _wantsDeactivate: boolean = false;
   /** @internal */ private _swapId: number = 0;
-  /** @internal */ private readonly _ifFactory: IViewFactory;
-  /** @internal */ private readonly _location: IRenderLocation;
+  /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
 
-  public constructor(
-    ifFactory: IViewFactory,
-    location: IRenderLocation,
-  ) {
-    this._ifFactory = ifFactory;
-    this._location = location;
-  }
-
-  public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    let view: ISyntheticView | undefined;
-    const ctrl = this.$controller;
-    const swapId = this._swapId++;
-    /**
-     * returns true when
-     * 1. entering deactivation of the [if] itself
-     * 2. new swap has started since this change
-     */
-    const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
-    return onResolve(this.pending, () => {
-      if (!isCurrent()) {
-        return;
-      }
-      this.pending = void 0;
-      if (this.value) {
-        view = (this.view = this.ifView = this.cache && this.ifView != null
-          ? this.ifView
-          : this._ifFactory.create()
-        );
-      } else {
-        // truthy -> falsy
-        view = (this.view = this.elseView = this.cache && this.elseView != null
-          ? this.elseView
-          : this.elseFactory?.create()
-        );
-      }
-      if (view == null) {
-        return;
-      }
-      // todo: else view should set else location
-      view.setLocation(this._location);
-
-      // Promise return values from user VM hooks are awaited by the initiator
-      this.pending = onResolve(
-        view.activate(initiator, ctrl, ctrl.scope),
-        () => {
-          if (isCurrent()) {
-            this.pending = void 0;
-          }
-        });
-      // old
-      // void (this.view = this.updateView(this.value, f))?.activate(initiator, this.ctrl, f, this.ctrl.scope);
-    });
+  public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+    return this._swap(this.value);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -99,19 +47,14 @@ export class If implements ICustomAttributeViewModel {
   }
 
   public valueChanged(newValue: unknown, oldValue: unknown): void | Promise<void> {
-    if (!this.$controller.isActive) {
-      return;
-    }
-    // change scenarios:
-    // truthy -> truthy (do nothing)
-    // falsy -> falsy (do nothing)
-    // truthy -> falsy (no cache = destroy)
-    // falsy -> truthy (no view = create)
+    if (!this.$controller.isActive) return;
+
     newValue = !!newValue;
     oldValue = !!oldValue;
-    if (newValue === oldValue) {
-      return;
-    }
+    if (newValue !== oldValue) return this._swap(newValue);
+  }
+
+  private _swap(value: unknown): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -130,7 +73,7 @@ export class If implements ICustomAttributeViewModel {
             return;
           }
           // falsy -> truthy
-          if (newValue) {
+          if (value) {
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
               : this._ifFactory.create()
@@ -142,11 +85,13 @@ export class If implements ICustomAttributeViewModel {
               : this.elseFactory?.create()
             );
           }
+          // if the value is falsy
+          // and there's no [else], `view` will be null
           if (view == null) {
             return;
           }
           // todo: location should be based on either the [if]/[else] attribute
-          //       instead of always the if
+          //       instead of always of the [if]
           view.setLocation(this._location);
           return onResolve(
             view.activate(view, ctrl, ctrl.scope),
@@ -179,13 +124,7 @@ export class If implements ICustomAttributeViewModel {
 templateController('if')(If);
 
 export class Else implements ICustomAttributeViewModel {
-  /** @internal */ public static inject = [IViewFactory];
-
-  /** @internal */ private readonly _factory: IViewFactory;
-
-  public constructor(factory: IViewFactory) {
-    this._factory = factory;
-  }
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
 
   public link(
     controller: IHydratableController,
@@ -200,11 +139,7 @@ export class Else implements ICustomAttributeViewModel {
     } else if (ifBehavior.viewModel instanceof If) {
       ifBehavior.viewModel.elseFactory = this._factory;
     } else {
-      if (__DEV__)
-        /* istanbul ignore next */
-        throw createError(`AUR0810: Unsupported If behavior`);
-      else
-        throw createError(`AUR0810`);
+      throw createMappedError(ErrorNames.else_without_if);
     }
   }
 }

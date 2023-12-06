@@ -1,12 +1,13 @@
 {
   "name": "@aurelia/testing",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.8",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
     "types": "./dist/types/index.d.ts",
     "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    "import": "./dist/esm/index.mjs",
+    "development": "./dist/esm/index.dev.mjs"
   },
   "types": "dist/types/index.d.ts",
   "license": "MIT",
@@ -22,12 +23,8 @@
     "aurelia",
     "testing"
   ],
-  "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.dev.cjs.map",
-    "dist/**/*.mjs",
-    "dist/**/*.dev.mjs.map",
-    "dist/**/*.d.ts",
+    "files": [
+    "dist",
     "src/**/*.ts",
     "README.md",
     "CHANGELOG.md",
@@ -35,7 +32,7 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "publish:dev": "npm publish --tag dev",
@@ -48,18 +45,18 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.5",
-    "@aurelia/metadata": "2.0.0-beta.5",
-    "@aurelia/platform": "2.0.0-beta.5",
-    "@aurelia/platform-browser": "2.0.0-beta.5",
-    "@aurelia/runtime": "2.0.0-beta.5",
-    "@aurelia/runtime-html": "2.0.0-beta.5"
+    "@aurelia/kernel": "2.0.0-beta.8",
+    "@aurelia/metadata": "2.0.0-beta.8",
+    "@aurelia/platform": "2.0.0-beta.8",
+    "@aurelia/platform-browser": "2.0.0-beta.8",
+    "@aurelia/runtime": "2.0.0-beta.8",
+    "@aurelia/runtime-html": "2.0.0-beta.8"
   },
   "devDependencies": {
     "@types/mocha": "10.0.0",
-    "jsdom": "^19.0.0",
+    "jsdom": "22.1.0",
     "mocha": "10.0.0",
-    "typescript": "5.0.2"
+    "typescript": "5.2.2"
   },
   "engines": {
     "node": ">=14.17.0"

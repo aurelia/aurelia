@@ -1,4 +1,4 @@
-import { InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
+import { InstanceProvider, onResolve, onResolveAll } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
@@ -86,7 +86,7 @@ export class AppRoot implements IDisposable {
 
   /** @internal */
   private _runAppTasks(slot: TaskSlot): void | Promise<void> {
-    return resolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
+    return onResolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
       if (task.slot === slot) {
         results.push(task.run());
       }

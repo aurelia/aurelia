@@ -23,7 +23,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp | unknown): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageApp | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
@@ -35,10 +35,10 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp | unknown): Omit<this, 'register' | 'app' | 'enhance'> {
-    if (CustomElement.isType(config as CustomElementType)) {
+  public app(config: ISinglePageApp | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
+    if (CustomElement.isType(config)) {
       // Default to custom element element name
-      const definition = CustomElement.getDefinition(config as CustomElementType);
+      const definition = CustomElement.getDefinition(config);
       let host = document.querySelector(definition.name);
       if (host === null) {
         // When no target is found, default to body.
@@ -47,11 +47,11 @@ export class Aurelia extends $Aurelia {
       }
       return super.app({
         host: host as HTMLElement,
-        component: config as CustomElementType
+        component: config
       });
     }
 
-    return super.app(config as ISinglePageApp);
+    return super.app(config);
   }
 }
 
@@ -306,8 +306,6 @@ export {
   // ArrayObserver,
   // enableArrayObservation,
   // disableArrayObservation,
-  // applyMutationsToIndices,
-  // synchronizeIndices,
 
   // MapObserver,
   // enableMapObservation,
@@ -340,8 +338,6 @@ export {
   // PrimitiveObserver,
 
   // PropertyAccessor,
-
-  // BindableObserver,
 
   // SetterObserver,
 
@@ -472,7 +468,6 @@ export {
   containerless,
   customElement,
   CustomElement,
-  strict,
   capture,
   // CustomElementDecorator,
   // CustomElementKind,

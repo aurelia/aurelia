@@ -1,13 +1,18 @@
-import { IPlatform } from '@aurelia/kernel';
+import { IContainer, IPlatform, Registration } from '@aurelia/kernel';
 import { AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { createError, createInterface, safeString } from '../utilities-objects';
+import { createError, createInterface, safeString } from '../utilities';
 
-import type { ITask, QueueTaskOptions } from '@aurelia/platform';
+import type { ITask } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';
 
 export interface IDirtyChecker extends DirtyChecker {}
-export const IDirtyChecker = createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));
+export const IDirtyChecker = /*@__PURE__*/ createInterface<IDirtyChecker>('IDirtyChecker', __DEV__
+  ? x => x.callback(() => {
+    throw createError('AURxxxx: There is no registration for IDirtyChecker interface. If you want to use your own dirty checker, make sure you register it.');
+  })
+  : void 0
+);
 
 export const DirtyCheckSettings = {
   /**
@@ -42,23 +47,29 @@ export const DirtyCheckSettings = {
   }
 };
 
-const queueTaskOpts: QueueTaskOptions = {
-  persistent: true,
-};
-
 export class DirtyChecker {
   /**
    * @internal
    */
   public static inject = [IPlatform];
+  public static register(c: IContainer) {
+    c.register(
+      Registration.singleton(this, this),
+      Registration.aliasTo(this, IDirtyChecker),
+    );
+  }
   private readonly tracked: DirtyCheckProperty[] = [];
 
+  /** @internal */
   private _task: ITask | null = null;
+  /** @internal */
   private _elapsedFrames: number = 0;
 
   public constructor(
     private readonly p: IPlatform,
-  ) {}
+  ) {
+    subscriberCollection(DirtyCheckProperty);
+  }
 
   public createProperty(obj: object, key: PropertyKey): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
@@ -74,7 +85,7 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this._task = this.p.taskQueue.queueTask(this.check, queueTaskOpts);
+      this._task = this.p.taskQueue.queueTask(this.check, { persistent: true });
     }
   }
 
@@ -160,5 +171,3 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     }
   }
 }
-
-subscriberCollection(DirtyCheckProperty);

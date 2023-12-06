@@ -1,10 +1,11 @@
 import { connectable } from '../binding/connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
-import { createError, createInterface } from '../utilities-objects';
+import { createInterface } from '../utilities';
 
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
 import type { BindingObserverRecord } from '../binding/connectable';
+import { ErrorNames, createMappedError } from '../errors';
 
 export interface IObservation {
   /**
@@ -19,7 +20,7 @@ export interface IObservation {
   watch<T, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
   ): IEffect;
 }
@@ -53,7 +54,7 @@ export class Observation implements IObservation {
   public watch<T, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown | void,
+    callback: (value: R, oldValue: R | undefined) => unknown,
     options: IWatchOptions = this._defaultWatchOptions
   ): IEffect {
     // eslint-disable-next-line no-undef-init
@@ -119,10 +120,7 @@ class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
 
   public run(): void {
     if (this.stopped) {
-      if (__DEV__)
-        throw createError(`AUR0225: Effect has already been stopped`);
-      else
-        throw createError(`AUR0225`);
+      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
     }
     if (this.running) {
       return;
@@ -146,10 +144,7 @@ class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
     if (this.queued) {
       if (this.runCount > this.maxRunCount) {
         this.runCount = 0;
-        if (__DEV__)
-          throw createError(`AUR0226: Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`);
-        else
-          throw createError(`AUR0226`);
+        throw createMappedError(ErrorNames.effect_maximum_recursion_reached);
       }
       this.run();
     } else {

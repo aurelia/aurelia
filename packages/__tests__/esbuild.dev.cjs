@@ -37,8 +37,8 @@ function findByExt(startPath, filter, found = []) {
 };
 
 esbuild.context({
-  entryPoints: findByExt('./', /\.tsx?$/),
-  outdir: resolve(__dirname, 'dist/esm/__tests__'),
+  entryPoints: findByExt('./src', /\.tsx?$/),
+  outdir: resolve(__dirname, 'dist/'),
   sourcemap: true,
   keepNames: true,
   plugins: [

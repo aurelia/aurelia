@@ -5,7 +5,6 @@ import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import type { IHydratedController } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
-import { markerToLocation } from './utilities-dom';
 
 export class Refs {
   [key: string]: IHydratedController | undefined;
@@ -246,28 +245,23 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
   ) {
-    this.f = fragment;
-    const targetNodeList = fragment.querySelectorAll('.au');
+    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
     let i = 0;
     let ii = targetNodeList.length;
-    let target: Element;
     // eslint-disable-next-line
     let targets = this.t = Array(ii);
+    let target: Node | IRenderLocation;
+    let marker: Element;
 
     while (ii > i) {
-      // eagerly convert all markers to RenderLocations (otherwise the renderer
-      // will do it anyway) and store them in the target list (since the comments
-      // can't be queried)
-      target = targetNodeList[i];
-
-      if (target.nodeName === 'AU-M') {
-        // note the renderer will still call this method, but it will just return the
-        // location if it sees it's already a location
-        targets[i] = markerToLocation(target);
-      } else {
-        // also store non-markers for consistent ordering
-        targets[i] = target;
+      marker = targetNodeList[i];
+      target = marker.nextSibling!;
+      marker.remove();
+      if (target.nodeType === 8) {
+        marker = target as Element;
+        (target = target.nextSibling as IRenderLocation).$start = marker as unknown as Comment;
       }
+      targets[i] = target;
       ++i;
     }
 

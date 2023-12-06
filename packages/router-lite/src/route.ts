@@ -9,16 +9,9 @@ import { CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
+import { Events, getMessage } from './events';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
-
-function defaultReentryBehavior(current: RouteNode, next: RouteNode): TransitionPlan {
-  if (!shallowEquals(current.params, next.params)) {
-    return 'replace';
-  }
-
-  return 'none';
-}
 
 // Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
@@ -122,7 +115,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
    *
    * @internal
    */
-  public applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
+  public _applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
     validateRouteConfig(config, this.path[0] ?? '');
     const path = ensureArrayOfStrings(config.path ?? this.path);
     return new RouteConfig(
@@ -141,15 +134,21 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     );
   }
 
-  public getTransitionPlan(cur: RouteNode, next: RouteNode) {
-    const plan = this.transitionPlan ?? defaultReentryBehavior;
+  /** @internal */
+  public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
+    const hasSameParameters = shallowEquals(cur.params, next.params);
+    if (hasSameParameters) return 'none';
+
+    if (overridingTransitionPlan != null) return overridingTransitionPlan;
+
+    const plan = this.transitionPlan ?? 'replace';
     return typeof plan === 'function' ? plan(cur, next) : plan;
   }
 
   /** @internal */
   public _applyFromConfigurationHook(instance: IRouteViewModel, parent: IRouteConfig | null, routeNode: RouteNode | null): void | Promise<void> {
     // start strict
-    if (this._configurationFromHookApplied) throw new Error('Invalid operation, the configuration from the get hook is already applied.');
+    if (this._configurationFromHookApplied) throw new Error(getMessage(Events.rtConfigFromHookApplied));
     if (typeof instance.getRouteConfig !== 'function') return;
     return onResolve(
       instance.getRouteConfig(parent, routeNode),
@@ -243,7 +242,7 @@ export const Route = {
     if (!Route.isConfigured(Type)) {
       // This means there was no @route decorator on the class.
       // However there might still be static properties, and this API provides a unified way of accessing those.
-      Route.configure({}, Type/* , false */);
+      Route.configure({}, Type);
     }
 
     return Metadata.getOwn(Route.name, Type) as RouteConfig;
@@ -264,8 +263,6 @@ export function route(config: IRouteConfig): RouteDecorator;
  *
  * @param path - The path to match against.
  *
- * (TODO: improve the formatting, better examples, etc)
- *
  * ```
  * &#64;route('home')
  * export class Home {}
@@ -279,7 +276,7 @@ export function route(config: IRouteConfig): RouteDecorator;
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
   return function (target) {
-    return Route.configure(configOrPath, target/* , true */);
+    return Route.configure(configOrPath, target);
   };
 }
 
@@ -294,7 +291,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
     const routeConfig = Route.getConfig(type);
 
     // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
-    if (isPartialChildRouteConfig(routeable)) return routeConfig.applyChildRouteConfig(routeable, parent);
+    if (isPartialChildRouteConfig(routeable)) return routeConfig._applyChildRouteConfig(routeable, parent);
 
     // If the component is used as a child, then return a clone.
     // Rationale: as this component can be used multiple times as child (either under same parent or different parents), we don't want to mutate the original route config for the type.
@@ -317,10 +314,10 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
   let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
   switch (instruction.type) {
     case NavigationInstructionType.string: {
-      if (context == null) throw new Error(`When retrieving the RouteConfig for a component name, a RouteContext (that can resolve it) must be provided`);
+      if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
       const component = context.container.find(CustomElement, instruction.value);
-      if (component === null) throw new Error(`Could not find a CustomElement named '${instruction.value}' in the current container scope of ${context}. This means the component is neither registered at Aurelia startup nor via the 'dependencies' decorator or static property.`);
+      if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
       ceDef = component;
       break;
@@ -333,9 +330,8 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
       ceDef = CustomElement.getDefinition(instruction.value.constructor as RouteType);
       break;
     case NavigationInstructionType.Promise:
-      if (context == null)
-        throw new Error(`RouteContext must be provided when resolving an imported module`);
-      ceDef = context.resolveLazy(instruction.value);
+      if (context == null) throw new Error(getMessage(Events.rtNoCtxLazyImport));
+      ceDef = context._resolveLazy(instruction.value);
       break;
   }
   return [instruction, ceDef];

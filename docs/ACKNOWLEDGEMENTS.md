@@ -6,6 +6,7 @@ There are many great services and open source projects that have enabled us to b
 
 * Circle CI - For providing an amazing CI/CD service which has made a world of difference in how we ship quality software end-to-end.
 * Lage - For enabling us to modularize our platform while still maintaining a simple build, test and deploy workflow.
+* Turbo - For enabling us to modularize our platform while still maintaining a simple build, test and deploy workflow.
 * TypeScript - For enabling JavaScript to scale to large codebases and global teams.
 
 ## Inspiration

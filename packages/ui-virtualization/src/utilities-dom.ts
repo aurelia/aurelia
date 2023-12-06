@@ -56,9 +56,9 @@ export const calcOuterHeight = (element: Element): number => {
   return height;
 };
 
-export const calcScrollHeight = (element: Element): number => {
+export const calcScrollerViewportHeight = (element: Element): number => {
   let height = element.getBoundingClientRect().height;
-  height -= getStyleValues(element, 'borderTopWidth', 'borderBottomWidth');
+  height -= getStyleValues(element, 'borderTopWidth', 'borderBottomWidth', 'paddingTop', 'paddingBottom');
   return height;
 };
 

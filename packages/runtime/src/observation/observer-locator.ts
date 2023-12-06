@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { safeString, createLookup, def, hasOwnProp, isArray, createInterface, createError, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities-objects';
+import { createLookup, def, hasOwnProp, isArray, createInterface, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities';
 
 import type {
   Collection,
@@ -19,6 +19,7 @@ import type {
   CollectionKind,
   CollectionObserver,
 } from '../observation';
+import { ErrorNames, createMappedError } from '../errors';
 
 export const propertyAccessor = new PropertyAccessor();
 
@@ -88,7 +89,7 @@ export class ObserverLocator {
   public getObserver<T, R>(obj: T, key: ComputedGetterFn<T, R>): IObserver<R>;
   public getObserver(obj: unknown, key: PropertyKey | ComputedGetterFn): IObserver {
     if (obj == null) {
-      throw nullObjectError(safeString(key));
+      throw createMappedError(ErrorNames.observing_null_undefined, key);
     }
     if (!isObject(obj)) {
       return new PrimitiveObserver(obj as Primitive, isFunction(key) ? '' : key);
@@ -245,8 +246,3 @@ export const getObserverLookup = <T extends IObserver>(instance: object): Record
   }
   return lookup;
 };
-
-const nullObjectError = (key: PropertyKey) =>
-  __DEV__
-    ? createError(`AUR0199: trying to observe property ${safeString(key)} on null/undefined`)
-    : createError(`AUR0199:${safeString(key)}`);

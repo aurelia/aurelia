@@ -2,10 +2,10 @@ import { IPlatform } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogGlobalSettings,
+  IDialogGlobalSettings, IDialogLoadedSettings,
 } from './dialog-interfaces';
 
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from '../../utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
@@ -22,28 +22,26 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
 
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
-
-  /** @internal */
-  protected static inject = [IPlatform];
-
-  public constructor(private readonly p: IPlatform) {}
+  private readonly p = resolve(IPlatform);
 
   public static register(container: IContainer) {
-    singletonRegistration(IDialogDomRenderer, this).register(container);
+    container.register(singletonRegistration(IDialogDomRenderer, this));
   }
 
   private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;
   private readonly overlayCss: string = baseWrapperCss;
   private readonly hostCss: string = 'position:relative;margin:auto;';
 
-  public render(dialogHost: HTMLElement): IDialogDom {
+  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
       el.style.cssText = css;
       return el;
     };
-    const wrapper = dialogHost.appendChild(h('au-dialog-container', this.wrapperCss));
+    const { startingZIndex } = settings;
+    const wrapperCss = `${this.wrapperCss};${startingZIndex == null ? '' : `z-index:${startingZIndex}`}`;
+    const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));
     return new DefaultDialogDom(wrapper, overlay, host);

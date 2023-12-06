@@ -70,7 +70,7 @@ If you don't want to use conventions, a `@customElement` decorator allows you to
 {% code title="app-loader.ts" %}
 ```typescript
 import { customElement } from 'aurelia';
-import template from './app-loader.html'; 
+import template from './app-loader.html';
 
 @customElement({
     name: 'app-loader',
@@ -145,7 +145,7 @@ Components can have explicit dependencies declared from within the `customElemen
 
 ```typescript
 import { customElement } from 'aurelia';
-import { NumberInput } from './number-input'; 
+import { NumberInput } from './number-input';
 
 @customElement({
   name: 'app-loader',
@@ -214,7 +214,7 @@ Sometimes you want a custom element with bindable properties. Aurelia allows you
 
 {% code title="app-loader.html" %}
 ```html
-<bindable property="loading"></bindable>
+<bindable name="loading"></bindable>
 
 <p>${loading ? 'Loading...' : ''}</p>
 ```
@@ -312,11 +312,11 @@ import { customElement, ICustomElementViewModel } from 'aurelia';
     name: 'my-component',
     containerless: true
 })
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent implements ICustomElementViewModel {
     constructor() {
 
     }
- }   
+ }
 ```
 
 ### The containerless decorator
@@ -328,11 +328,11 @@ import { ICustomElementViewModel } from 'aurelia';
 import { containerless } from '@aurelia/runtime-html';
 
 @containerless
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent implements ICustomElementViewModel {
     constructor() {
 
     }
- }   
+ }
 ```
 
 When referencing our component using `<my-component></my-component>` Aurelia will strip out the tags and leave the inner part.

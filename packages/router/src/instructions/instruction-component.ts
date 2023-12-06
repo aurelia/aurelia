@@ -1,4 +1,4 @@
-import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, IResolver, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
@@ -216,7 +216,7 @@ export class InstructionComponent {
     const container = parentContainer.createChild();
     const instance = this.isType()
       ? container.get<IRouteableComponent>(this.type!)
-      : container.get<IRouteableComponent>(CustomElement.keyFrom(this.name!));
+      : container.get<IRouteableComponent>(routerComponentResolver(this.name!));
     // TODO: Implement non-traversing lookup (below) based on router configuration
     // let instance;
     // if (this.isType()) {
@@ -228,7 +228,10 @@ export class InstructionComponent {
     //   }
     // }
     if (instance == null) {
-      console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
+      }
       throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
     }
     const controller = Controller.$el(
@@ -253,4 +256,23 @@ export class InstructionComponent {
     }
     return this.name;
   }
+}
+
+function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
+  const key = CustomElement.keyFrom(name);
+  return {
+    $isResolver: true,
+    resolve(_, requestor) {
+      if (requestor.has(key, false)) {
+        return requestor.get(key);
+      }
+      if (requestor.root.has(key, false)) {
+        return requestor.root.get(key);
+      }
+      // eslint-disable-next-line no-console
+      console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
+        + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
+      return requestor.get(key);
+    }
+  };
 }

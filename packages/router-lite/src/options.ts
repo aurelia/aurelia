@@ -1,8 +1,9 @@
 import { DI } from '@aurelia/kernel';
-import type { Params, RouteContextLike, RouteableComponent, ViewportInstruction, ViewportInstructionTree } from './instructions';
+import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent, ViewportInstructionTree } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import type { IRouteContext } from './route-context';
+import { IUrlParser, fragmentUrlParser, pathUrlParser } from './url-parser';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
@@ -16,6 +17,9 @@ function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionT
 export const IRouterOptions = /*@__PURE__*/DI.createInterface<Readonly<RouterOptions>>('RouterOptions');
 export interface IRouterOptions extends Partial<RouterOptions> {}
 export class RouterOptions {
+  /** @internal */
+  public readonly _urlParser: IUrlParser;
+
   protected constructor(
     public readonly useUrlFragmentHash: boolean,
     public readonly useHref: boolean,
@@ -47,7 +51,15 @@ export class RouterOptions {
      * The default value is `null`.
      */
     public readonly activeClass: string | null,
-  ) { }
+    /**
+     * When set to `true`, the router will try to restore previous route tree, when a routing instruction errs.
+     * Set this to `false`, if a stricter behavior is desired. However, in that case, you need to ensure the avoidance of errors.
+     * The default value is `true`.
+     */
+    public readonly restorePreviousRouteTreeOnError: boolean,
+  ) {
+    this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
+   }
 
   public static create(input: IRouterOptions): RouterOptions {
     return new RouterOptions(
@@ -57,21 +69,18 @@ export class RouterOptions {
       input.buildTitle ?? null,
       input.useNavigationModel ?? true,
       input.activeClass ?? null,
+      input.restorePreviousRouteTreeOnError ?? true,
     );
   }
 
-  /** @internal */
-  public _stringifyProperties(): string {
-    return ([
+  public toString(): string {
+    if(!__DEV__) return 'RO';
+    return `RO(${([
       ['historyStrategy', 'history'],
     ] as const).map(([key, name]) => {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
-    }).join(',');
-  }
-
-  public toString(): string {
-    return `RO(${this._stringifyProperties()})`;
+    }).join(',')})`;
   }
 }
 
@@ -122,7 +131,8 @@ export class NavigationOptions implements INavigationOptions {
     );
   }
 
-  public clone(): NavigationOptions {
+  /** @internal */
+  public _clone(): NavigationOptions {
     return new NavigationOptions(
       this.historyStrategy,
       this.title,
@@ -141,7 +151,7 @@ export class NavigationOptions implements INavigationOptions {
   }
 }
 
-export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeNode: RouteNode, context: IRouteContext) => Routeable | null;
+export type FallbackFunction = (viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext) => Routeable | null;
 
 /**
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
@@ -149,7 +159,7 @@ export type FallbackFunction = (viewportInstruction: ViewportInstruction, routeN
  * - `IChildRouteConfig`: a standalone child route config object.
  * - `RouteableComponent`: see `RouteableComponent`.
  *
- * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
+ * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportInstruction`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
  * as well as `IRedirectRouteConfig`
  */

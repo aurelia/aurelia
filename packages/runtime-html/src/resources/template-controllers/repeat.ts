@@ -1,6 +1,5 @@
 import { type IDisposable, onResolve, IIndexable } from '@aurelia/kernel';
 import {
-  applyMutationsToIndices,
   BindingBehaviorExpression,
   BindingContext,
   type Collection,
@@ -13,7 +12,6 @@ import {
   type IOverrideContext,
   type IsBindingBehavior,
   Scope,
-  synchronizeIndices,
   ValueConverterExpression,
   astEvaluate,
   astAssign,
@@ -26,11 +24,12 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { areEqual, createError, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
+import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { ErrorNames, createMappedError } from '../../errors';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -47,6 +46,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ protected static inject = [IInstruction, IExpressionParser, IRenderLocation, IController, IViewFactory];
 
   public views: ISyntheticView[] = [];
+  private _oldViews: ISyntheticView[] = [];
 
   public forOf!: ForOfStatement;
   public local!: string;
@@ -87,20 +87,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         } else if (command === 'bind') {
           this.key = parser.parse(value, ExpressionType.IsProperty);
         } else {
-          if (__DEV__) {
-            /* istanbul ignore next */
-            throw createError(`AUR775:invalid command ${command}`);
-          } else {
-            throw createError(`AUR775:${command}`);
-          }
+          throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }
       } else {
-        if (__DEV__) {
-          /* istanbul ignore next */
-          throw createError(`AUR776:invalid target ${to}`);
-        } else {
-          throw createError(`AUR776:${to}`);
-        }
+        throw createMappedError(ErrorNames.repeat_extraneous_binding, to);
       }
     }
     this._location = location;
@@ -199,6 +189,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _applyIndexMap(collection: Collection, indexMap: IndexMap | undefined): void {
     const oldViews = this.views;
+    this._oldViews = oldViews.slice();
     const oldLen = oldViews.length;
     const key = this.key;
     const hasKey = key !== null;
@@ -373,21 +364,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
-      const $indexMap = applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
-      if ($indexMap.deletedIndices.length > 0) {
+      if (indexMap.deletedIndices.length > 0) {
         const ret = onResolve(
-          this._deactivateAndRemoveViewsByKey($indexMap),
+          this._deactivateAndRemoveViewsByKey(indexMap),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+            return this._createAndActivateAndSortViewsByKey(oldLen, indexMap!);
           },
         );
         if (isPromise(ret)) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLen, $indexMap);
+        this._createAndActivateAndSortViewsByKey(oldLen, indexMap);
       }
     }
   }
@@ -505,7 +495,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, views } = this;
 
-    const deleted = indexMap.deletedIndices;
+    const deleted = indexMap.deletedIndices.slice().sort(compareNumber);
     const deletedLen = deleted.length;
     let i = 0;
     for (; deletedLen > i; ++i) {
@@ -518,10 +508,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     i = 0;
-    let j = 0;
     for (; deletedLen > i; ++i) {
-      j = deleted[i] - i;
-      views.splice(j, 1);
+      views.splice(deleted[i] - i, 1);
     }
 
     if (promises !== void 0) {
@@ -542,7 +530,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let viewScope: Scope;
     let i = 0;
 
-    const { $controller, _factory, local, _normalizedItems, _location, views, _hasDestructuredLocal, _forOfBinding, _scopeMap, forOf } = this;
+    const { $controller, _factory, local, _normalizedItems, _location, views, _hasDestructuredLocal, _forOfBinding, _scopeMap, _oldViews, forOf } = this;
     const mapLen = indexMap.length;
 
     for (; mapLen > i; ++i) {
@@ -553,12 +541,18 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     if (views.length !== mapLen) {
-      throw mismatchedLengthError(views.length, mapLen);
+      throw createMappedError(ErrorNames.repeat_mismatch_length, [views.length, mapLen]);
     }
 
     const parentScope = $controller.scope;
     const newLen = indexMap.length;
-    synchronizeIndices(views, indexMap);
+    let source = 0;
+    i = 0;
+    for (; i < indexMap.length; ++i) {
+      if ((source = indexMap[i]) !== -2) {
+        views[i] = _oldViews[source];
+      }
+    }
 
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
@@ -712,10 +706,6 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
-const mismatchedLengthError = (viewCount: number, itemCount: number) =>
-  __DEV__
-    ? createError(`AUR0814: viewsLen=${viewCount}, mapLen=${itemCount}`)
-    : createError(`AUR0814:${viewCount}!=${itemCount}`);
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
   const isFirst = index === 0;
   const isLast = index === length - 1;
@@ -741,8 +731,7 @@ const getCount = (result: AcceptableCollection): number => {
     case '[object Number]': return result as number;
     case '[object Null]': return 0;
     case '[object Undefined]': return 0;
-    // todo: remove this count method
-    default: throw createError(`Cannot count ${toStringTag.call(result) as string}`);
+    default: throw createMappedError(ErrorNames.repeat_non_countable, result);
   }
 };
 
@@ -755,7 +744,7 @@ const iterate = (result: AcceptableCollection, func: (item: unknown, index: numb
     case '[object Null]': return;
     case '[object Undefined]': return;
     // todo: remove this count method
-    default: throw createError(`Cannot iterate over ${toStringTag.call(result) as string}`);
+    default: createMappedError(ErrorNames.repeat_non_iterable, result);
   }
 };
 
@@ -847,3 +836,5 @@ const ensureUnique = <T>(item: T, index: number): T | string => {
       return item;
   }
 };
+
+const compareNumber = (a: number, b: number): number => a - b;

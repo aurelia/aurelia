@@ -3,7 +3,6 @@ import {
   AccessorType,
   type ISubscriberCollection,
   type ICollectionSubscriberCollection,
-  cloneIndexMap,
   type IObserver,
   type CollectionKind,
   type ICollectionObserver,
@@ -16,7 +15,7 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities-objects';
+import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
@@ -344,7 +343,7 @@ const observe = {
         break;
       }
     }
-    if (shouldNotify) {
+    if (shouldNotify || batching) {
       o.notify();
     }
     return this;
@@ -381,7 +380,7 @@ export function disableArrayObservation(): void {
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
-  public type: AccessorType = AccessorType.Array;
+  public type: AccessorType = AccessorType.Observer;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
   private lenObs?: CollectionLengthObserver;
@@ -507,63 +506,4 @@ export function getArrayObserver(array: unknown[]): ArrayObserver {
     observer = new ArrayObserver(array);
   }
   return observer;
-}
-
-/**
- * A compare function to pass to `Array.prototype.sort` for sorting numbers.
- * This is needed for numeric sort, since the default sorts them as strings.
- */
-const compareNumber = (a: number, b: number): number => a - b;
-
-/**
- * Applies offsets to the non-negative indices in the IndexMap
- * based on added and deleted items relative to those indices.
- *
- * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
- * used for sorting/reordering items if needed
- */
-export function applyMutationsToIndices(indexMap: IndexMap): IndexMap {
-  let offset = 0;
-  let j = 0;
-  let i = 0;
-  const $indexMap = cloneIndexMap(indexMap);
-
-  // during a batch, items could be deleted in a non-linear order with multiple splices
-  if ($indexMap.deletedIndices.length > 1) {
-    // TODO: also synchronize deletedItems when we need them
-    $indexMap.deletedIndices.sort(compareNumber);
-  }
-
-  const len = $indexMap.length;
-  for (; i < len; ++i) {
-    while ($indexMap.deletedIndices[j] <= i - offset) {
-      ++j;
-      --offset;
-    }
-    if ($indexMap[i] === -2) {
-      ++offset;
-    } else {
-      $indexMap[i] += offset;
-    }
-  }
-  return $indexMap;
-}
-
-/**
- * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
- * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
- */
-export function synchronizeIndices<T>(items: T[], indexMap: IndexMap): void {
-  const copy = items.slice();
-
-  const len = indexMap.length;
-  let to = 0;
-  let from = 0;
-  while (to < len) {
-    from = indexMap[to];
-    if (from !== -2) {
-      items[to] = copy[from];
-    }
-    ++to;
-  }
 }

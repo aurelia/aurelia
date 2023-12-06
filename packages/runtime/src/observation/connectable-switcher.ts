@@ -1,5 +1,5 @@
+import { ErrorNames, createMappedError } from '../errors';
 import type { IConnectable } from '../observation';
-import { createError } from '../utilities-objects';
 
 /**
  * Current subscription collector
@@ -25,10 +25,7 @@ export function currentConnectable(): IConnectable | null {
 
 export function enterConnectable(connectable: IConnectable): void {
   if (connectable == null) {
-    if (__DEV__)
-      throw createError(`AUR0206: Connectable cannot be null/undefined`);
-    else
-      throw createError(`AUR0206`);
+    throw createMappedError(ErrorNames.switch_on_null_connectable);
   }
   if (_connectable == null) {
     _connectable = connectable;
@@ -37,10 +34,7 @@ export function enterConnectable(connectable: IConnectable): void {
     return;
   }
   if (_connectable === connectable) {
-    if (__DEV__)
-      throw createError(`AUR0207: Trying to enter an active connectable`);
-    else
-      throw createError(`AUR0207`);
+    throw createMappedError(ErrorNames.switch_active_connectable);
   }
   connectables.push(connectable);
   _connectable = connectable;
@@ -49,16 +43,10 @@ export function enterConnectable(connectable: IConnectable): void {
 
 export function exitConnectable(connectable: IConnectable): void {
   if (connectable == null) {
-    if (__DEV__)
-      throw createError(`AUR0208: Connectable cannot be null/undefined`);
-    else
-      throw createError(`AUR0208`);
+    throw createMappedError(ErrorNames.switch_off_null_connectable);
   }
   if (_connectable !== connectable) {
-    if (__DEV__)
-      throw createError(`AUR0209: Trying to exit an unactive connectable`);
-    else
-      throw createError(`AUR0209`);
+    throw createMappedError(ErrorNames.switch_off_inactive_connectable);
   }
 
   connectables.pop();

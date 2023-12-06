@@ -73,6 +73,7 @@ export class ListenerBinding implements IBinding {
   public handleEvent(event: Event): void {
     if (this.self) {
       if (this.target !== event.composedPath()[0]) {
+      /* istanbul-ignore-next */
         return;
       }
     }
@@ -82,6 +83,7 @@ export class ListenerBinding implements IBinding {
   public bind(scope: Scope): void {
     if (this.isBound) {
       if (this._scope === scope) {
+      /* istanbul-ignore-next */
         return;
       }
       this.unbind();
@@ -97,6 +99,7 @@ export class ListenerBinding implements IBinding {
 
   public unbind(): void {
     if (!this.isBound) {
+      /* istanbul-ignore-next */
       return;
     }
     this.isBound = false;

@@ -97,3 +97,9 @@ export const markerToTarget = (el: Element) => {
 
 /** @internal */
 export const createMutationObserver = (node: Node, callback: MutationCallback) => new node.ownerDocument!.defaultView!.MutationObserver(callback);
+
+/** @internal */
+export const isElement = (node: Node): node is Element => node.nodeType === 1;
+
+/** @internal */
+export const isTextNode = (node: Node): node is Text => node.nodeType === 3;

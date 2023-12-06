@@ -6,6 +6,7 @@ import { type Constructable, emptyArray, type Key, type IContainer, type IIndexa
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
+import { isElement } from '../utilities-dom';
 
 export type PartialSlottedDefinition = {
   callback?: PropertyKey;
@@ -137,7 +138,7 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
     let node: Node;
     for ($slot of this._slots) {
       for (node of $slot === slot ? nodes : $slot.nodes) {
-        if (this._query === '*' || (node.nodeType === 1 && (node as Element).matches(this._query))) {
+        if (this._query === '*' || (isElement(node) && node.matches(this._query))) {
           $nodes[$nodes.length] = node;
         }
       }

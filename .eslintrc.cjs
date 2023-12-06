@@ -220,7 +220,7 @@ module.exports = {
     '@typescript-eslint/require-await': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
-    '@typescript-eslint/restrict-plus-operands': ['warn'],
+    '@typescript-eslint/restrict-plus-operands': 'warn',
     '@typescript-eslint/restrict-template-expressions': ['off', { 'allowNumber': true, 'allowBoolean': true, 'allowNullish': true, 'allowAny': true }],
     '@typescript-eslint/strict-boolean-expressions': ['warn', { 'allowNullableBoolean': true }],
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],

@@ -140,6 +140,17 @@ export function createFixture<T extends object>(
       assert.strictEqual(getVisibleText(host), selector);
     }
   }
+  function assertTextContain(selector: string, text?: string) {
+    if (arguments.length === 2) {
+      const el = strictQueryBy(selector);
+      if (el === null) {
+        throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
+      }
+      assert.includes(getVisibleText(el)!, text!);
+    } else {
+      assert.includes(getVisibleText(host)!, selector);
+    }
+  }
   function getInnerHtml(el: Element, compact?: boolean) {
     let actual = el.innerHTML;
     if (compact) {
@@ -281,6 +292,7 @@ export function createFixture<T extends object>(
     public getAllBy = getAllBy;
     public queryBy = queryBy;
     public assertText = assertText;
+    public assertTextContain = assertTextContain;
     public assertHtml = assertHtml;
     public assertClass = assertClass;
     public assertAttr = assertAttr;
@@ -348,6 +360,17 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertText(selector: string, text: string): void;
+
+  /**
+   * Assert the text content of the current application host equals to a given string
+   */
+  assertTextContain(text: string): void;
+  /**
+   * Assert the text content of an element matching the given selector inside the application host equals to a given string.
+   *
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertTextContain(selector: string, text: string): void;
 
   /**
    * Assert the inner html of the current application host equals to the given html string

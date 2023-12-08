@@ -46,6 +46,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@aurelia/platform": "2.0.0-beta.8",
     "@aurelia/kernel": "2.0.0-beta.8",
     "@aurelia/metadata": "2.0.0-beta.8"
   },

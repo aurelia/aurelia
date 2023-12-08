@@ -1,52 +1,59 @@
-import { BrowserLocalStorage } from './browser-local-storage';
-import { DI, IContainer, IDisposable, IEventAggregator, Registration, resolve } from '@aurelia/kernel';
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+import type { ITask } from '@aurelia/platform';
+import { DI, IDisposable, IEventAggregator, IPlatform, resolve } from '@aurelia/kernel';
 import { IStorage } from './storage';
 
 export type CacheItem<T = unknown> = {
     staleTime?: number;
     cacheTime?: number;
     lastCached?: number;
-    data?: T
-}
+    data?: T;
+    task?: ITask;
+};
 
+export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>(x => x.singleton(CacheService));
 
-export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>();
-
+/**
+ * Events that are published by the CacheService
+ */
 export const CacheEvents = {
-    Set: 'au:cache:set',
-    Get: 'au:cache:get',
-    Clear: 'au:cache:clear',
-    Reset: 'au:cache:reset',
-    CacheHit: 'au:cache:hit',
-    CacheMiss: 'au:cache:miss',
-    CacheStale: 'au:cache:stale',
-    CacheExpired: 'au:cache:expired',
-} as const
+    Set: 'au:fetch:cache:set',
+    Get: 'au:fetch:cache:get',
+    Clear: 'au:fetch:cache:clear',
+    Reset: 'au:fetch:cache:reset',
+    Dispose: 'au:fetch:cache:dispose',
+    CacheHit: 'au:fetch:cache:hit',
+    CacheMiss: 'au:fetch:cache:miss',
+    CacheStale: 'au:fetch:cache:stale',
+    CacheExpired: 'au:fetch:cache:expired',
+} as const;
 
 type CacheChannels = typeof CacheEvents[keyof typeof CacheEvents];
 
 export type CacheEvent<T> = {
-    key: string,
-    value: CacheItem<T>,
-}
+    key: string;
+    value: CacheItem<T>;
+};
 
 /**
- * Interceptor that caches requests on success.
+ * A service that can be used to cache data
  */
 export class CacheService implements IDisposable {
     private readonly storage = resolve(IStorage);
-    private readonly events = resolve(IEventAggregator);
-    private subscribedEvents: IDisposable[] = [];
+    private readonly ea = resolve(IEventAggregator);
+    private readonly p = resolve(IPlatform).taskQueue;
+    /** @internal */
+    private readonly _subscribedEvents: IDisposable[] = [];
 
     public subscribe<T>(channel: CacheChannels, callback: (value: CacheEvent<T>) => void) {
-        const event = this.events.subscribe(channel, callback);
-        this.subscribedEvents.push(event);
+        const event = this.ea.subscribe(channel, callback);
+        this._subscribedEvents.push(event);
         return event;
     }
 
     public subscribeOnce<T>(channel: CacheChannels, callback: (value: CacheEvent<T>) => void) {
-        const event = this.events.subscribeOnce(channel, callback);
-        this.subscribedEvents.push(event);
+        const event = this.ea.subscribeOnce(channel, callback);
+        this._subscribedEvents.push(event);
         return event;
     }
 
@@ -56,67 +63,68 @@ export class CacheService implements IDisposable {
             ...options
         };
         this.setItem(key, cacheItem);
-        this.events.publish('')
-    }
-
-    public setItem<T>(key: string, value: CacheItem<T>) {
-        value.lastCached = Date.now();
-        this.storage.set(key, value);
-
-        if (value.cacheTime) {
-            setTimeout(() => {
-                this.events.publish(CacheEvents.CacheExpired, { key, value });
-                this.delete(key);
-
-            }, value.cacheTime);
-        }
-        this.events.publish(CacheEvents.Set, { key, value })
     }
 
     public get<T>(key: string): T | undefined {
         return this.getItem<T>(key)?.data;
     }
 
+    public setItem<T>(key: string, value: CacheItem<T>) {
+        value.lastCached = Date.now();
+        const existingTask = this.storage.get(key)?.task;
+        this.storage.set(key, value);
+
+        if (value.cacheTime) {
+            value.task = this.p.queueTask(() => {
+                // if storage is cleared, this will happen
+                // task will still run but storage is already stopped
+                // this following condition will not happen when item is overriden
+                // as existing task will be overriden
+                if (this.storage.get(key) !== value) {
+                    return;
+                }
+                this.delete(key);
+                this.ea.publish(CacheEvents.CacheExpired, { key, value });
+            }, { delay: value.cacheTime, reusable: false });
+        }
+        existingTask?.cancel();
+        this.ea.publish(CacheEvents.Set, { key, value });
+    }
+
     /**
-     * Tries to retrieve the item from the 
-     * @param key 
-     * @returns 
+     * Tries to retrieve the item from the storage
      */
     public getItem<T>(key: string): CacheItem<T> | undefined {
-        const value = this.storage.get<T>(key);
-        if (!value) {
-            this.events.publish(CacheEvents.CacheMiss, { key })
+        if (!this.storage.has(key)) {
+            this.ea.publish(CacheEvents.CacheMiss, { key });
             return;
         }
+        const value = this.storage.get<T>(key);
         if (!value.staleTime || !value.lastCached) {
-            this.events.publish(CacheEvents.CacheHit, { key, value })
+            this.ea.publish(CacheEvents.CacheHit, { key, value });
             return value;
         }
         if (Date.now() > value.lastCached + value.staleTime) {
-            this.events.publish(CacheEvents.CacheStale, { key, value })
-        };
+            this.ea.publish(CacheEvents.CacheStale, { key, value });
+        }
 
-        this.events.publish(CacheEvents.CacheHit, { key, value })
+        this.ea.publish(CacheEvents.CacheHit, { key, value });
         return value;
     }
 
     public delete(key: string) {
         this.storage.delete(key);
-        this.events.publish(CacheEvents.Clear, { key });
+        this.ea.publish(CacheEvents.Clear, { key });
     }
 
     public clear() {
         this.storage.clear();
-        this.events.publish(CacheEvents.Reset);
+        this.ea.publish(CacheEvents.Reset);
     }
 
     public dispose(): void {
-        this.subscribedEvents.forEach(x => {
-            try { x.dispose() } catch { }
-        });
-    }
-
-    public static register(container: IContainer) {
-        Registration.singleton(IStorage, BrowserLocalStorage).register(container);
+        this.clear();
+        this._subscribedEvents.forEach(x => x.dispose());
+        this.ea.publish(CacheEvents.Dispose);
     }
 }

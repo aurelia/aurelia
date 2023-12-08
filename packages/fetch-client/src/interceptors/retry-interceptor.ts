@@ -1,6 +1,9 @@
-import { HttpClient } from './http-client';
+import { HttpClient } from '../http-client';
 import { Interceptor, RetryableRequest, RetryConfiguration } from '../interfaces';
 
+/**
+ * The strategy to use when retrying requests.
+ */
 export const retryStrategy: {
   fixed: 0;
   incremental: 1;
@@ -29,10 +32,10 @@ export class RetryInterceptor implements Interceptor {
    * Creates an instance of RetryInterceptor.
    */
   public constructor(retryConfig?: RetryConfiguration) {
-    this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
+    this.retryConfig = {...defaultRetryConfig, ...(retryConfig ?? {})};
 
-    if (this.retryConfig.strategy === retryStrategy.exponential &&
-      (this.retryConfig.interval as number) <= 1000) {
+    if (this.retryConfig.strategy === retryStrategy.exponential
+      && (this.retryConfig.interval as number) <= 1000) {
       throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
     }
   }
@@ -76,7 +79,6 @@ export class RetryInterceptor implements Interceptor {
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
-
   public responseError(error: Response, request: RetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
     const { retryConfig } = request as { retryConfig: Required<RetryConfiguration> };
     const { requestClone } = retryConfig;

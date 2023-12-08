@@ -1,3 +1,4 @@
+import { IContainer, resolve } from '@aurelia/kernel';
 import { CacheInterceptor, RetryInterceptor } from './interceptors';
 import { CacheConfiguration, Interceptor, RetryConfiguration } from './interfaces';
 
@@ -24,6 +25,9 @@ export class HttpClientConfiguration {
   public interceptors: Interceptor[] = [];
 
   public dispatcher: Node | null = null;
+
+  /** @internal */
+  private readonly _container = resolve(IContainer);
 
   /**
    * Sets the baseUrl.
@@ -94,13 +98,13 @@ export class HttpClientConfiguration {
   }
 
   public withRetry(config?: RetryConfiguration): HttpClientConfiguration {
-    const interceptor: Interceptor = new RetryInterceptor(config);
+    const interceptor = this._container.invoke(RetryInterceptor, [config]);
 
     return this.withInterceptor(interceptor);
   }
 
   public withCache(config?: CacheConfiguration): HttpClientConfiguration {
-    const interceptor: Interceptor = new CacheInterceptor(config);
+    const interceptor = this._container.invoke(CacheInterceptor, [config]);
 
     return this.withInterceptor(interceptor);
   }

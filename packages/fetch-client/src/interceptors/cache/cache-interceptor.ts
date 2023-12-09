@@ -27,7 +27,7 @@ export class CacheInterceptor implements Interceptor {
 
     public request(request: Request): Request | Response | Promise<Request | Response> {
         if (request.method !== 'GET') return request;
-        const cacheItem = this._cacheService.get<Response>(`${CacheInterceptor.prefix}${request.url}`);
+        const cacheItem = this._cacheService.get<Response>(this.key(request));
         return cacheItem ?? request;
     }
 
@@ -35,10 +35,14 @@ export class CacheInterceptor implements Interceptor {
         if (!request) {
             return response;
         }
-        this._cacheService.setItem(request.url, {
+        this._cacheService.setItem(this.key(request), {
             data: response,
             ...this._config
         });
         return response;
+    }
+
+    private key(request: Request): string {
+        return `${CacheInterceptor.prefix}${request.url}`;
     }
 }

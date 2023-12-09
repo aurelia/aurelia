@@ -76,7 +76,7 @@ export class HttpClient {
    * @returns The chainable instance of this HttpClient.
    * @chainable
    */
-  public configure(config: RequestInit | ((config: HttpClientConfiguration) => HttpClientConfiguration) | HttpClientConfiguration): HttpClient {
+  public configure(config: RequestInit | ((config: HttpClientConfiguration) => HttpClientConfiguration | void) | HttpClientConfiguration): HttpClient {
 
     let normalizedConfig: HttpClientConfiguration;
 
@@ -91,10 +91,12 @@ export class HttpClient {
       normalizedConfig.dispatcher = this._dispatcher;
 
       const c = config(normalizedConfig);
-      if (typeof c === 'object' && c != null) {
-        normalizedConfig = c;
-      } else {
-        throw new Error(`The config callback did not return a valid HttpClientConfiguration like instance. Received ${typeof c}`);
+      if (c != null) {
+        if (typeof c === 'object') {
+          normalizedConfig = c;
+        } else {
+          throw new Error(`The config callback did not return a valid HttpClientConfiguration like instance. Received ${typeof c}`);
+        }
       }
     } else {
       throw new Error(`invalid config, expecting a function or an object, received ${typeof config}`);
@@ -115,7 +117,7 @@ export class HttpClient {
         throw new Error('Only one RetryInterceptor is allowed.');
       }
 
-      const retryInterceptorIndex = interceptors.findIndex(x => isPrototypeOf(RetryInterceptor.prototype, x));
+      const retryInterceptorIndex = interceptors.findIndex(x => x instanceof RetryInterceptor);
 
       if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
         throw new Error('The retry interceptor must be the last interceptor defined.');
@@ -221,10 +223,10 @@ export class HttpClient {
       }
     }
     setDefaultHeaders(request.headers, parsedDefaultHeaders);
-    if (body !== undefined && isPrototypeOf(Blob.prototype, body as Blob) && (body as Blob).type) {
+    if (body instanceof Blob && body.type) {
       // work around bug in IE & Edge where the Blob type is ignored in the request
       // https://connect.microsoft.com/IE/feedback/details/2136163
-      request.headers.set('Content-Type', (body as Blob).type);
+      request.headers.set('Content-Type', body.type);
     }
     return request;
   }
@@ -406,7 +408,6 @@ function dispatch(node: Node, name: string): void {
 }
 
 const hasOwnProperty = (obj: object, v: PropertyKey) => Object.prototype.hasOwnProperty.call(obj, v) as boolean;
-const isPrototypeOf = (proto: object, v: unknown) => Object.prototype.isPrototypeOf.call(proto, v) as boolean;
 
 /**
  * A lookup containing events used by HttpClient.

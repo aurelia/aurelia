@@ -161,7 +161,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       assert.deepStrictEqual(callCount, 1);
     });
 
-    it('makes request and aborts with an AbortController signal', function () {
+    it('makes request and aborts with an AbortController signal', async function () {
       window.fetch = originalFetchFn;
       ({ component: { http: client } } = createFixture('${message}', class App {
         http = resolve(IHttpClient);
@@ -179,7 +179,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
         );
 
       controller.abort();
-      return promise;
+      await promise;
     });
 
     describe('shortcut methods', function () {

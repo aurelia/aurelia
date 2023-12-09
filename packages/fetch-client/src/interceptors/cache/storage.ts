@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { CacheItem } from './cach-service';
+import { MemoryStorage } from './storage-memory';
 
 export type IStorage = {
     delete: (key: string) => void;
@@ -10,4 +11,4 @@ export type IStorage = {
     clear: () => void;
 };
 
-export const IStorage = /*@__PURE__*/DI.createInterface<IStorage>();
+export const IStorage = /*@__PURE__*/DI.createInterface<IStorage>(x => x.singleton(MemoryStorage));

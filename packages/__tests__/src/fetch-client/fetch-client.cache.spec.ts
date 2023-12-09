@@ -1,9 +1,9 @@
-import { IHttpClient } from '@aurelia/fetch-client';
-import { resolve } from '@aurelia/kernel';
+import { CacheEvents, IHttpClient } from '@aurelia/fetch-client';
+import { IEventAggregator, Writable, resolve } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 
-describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
+describe('fetch-client/fetch-client.cache.spec.ts', function () {
   if (isNode()) {
     return;
   }
@@ -12,10 +12,13 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
   let mockResponse: Response | Promise<Response>;
   let client: IHttpClient;
   let callCount: number;
+  let ea: IEventAggregator;
+  let eventCount: Writable<typeof CacheEvents>;
 
   beforeEach(function () {
     callCount = 0;
     mockResponse = new Response(null, { status: 200 });
+    eventCount = Object.keys(CacheEvents).reduce((acc, key) => { acc[key] = 0; return acc; }, {}) as typeof eventCount;
     window.fetch = function (...args: any[]) {
       callCount++;
       if (mockResponse instanceof Promise) {
@@ -29,9 +32,15 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
 
     // createing client in an app to make it more like a real app
     // though it should work just fine without an app
-    ({ component: { http: client } } = createFixture('${message}', class App {
+    ({ component: { http: client, ea } } = createFixture('${message}', class App {
       http = resolve(IHttpClient);
+      ea = resolve(IEventAggregator);
     }));
+
+    for (const key of Object.keys(CacheEvents)) {
+      ea.subscribe(CacheEvents[key], () => eventCount[key]++);
+    }
+
   });
 
   afterEach(function () {
@@ -46,6 +55,8 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
     assert.strictEqual(callCount, 1);
     await client.fetch('/a');
     assert.strictEqual(callCount, 1);
+    assert.strictEqual(eventCount.Set, 1, `eventCount.Set`);
+    assert.strictEqual(eventCount.CacheHit, 1, `eventCount.CacheHit`);
   });
 
   it('does not cache non-get requests', async function () {

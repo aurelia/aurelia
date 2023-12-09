@@ -9,7 +9,12 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An interface to resolve what fetch function will be used for the http client
  * Default to the global fetch function via global `fetch` variable.
  */
-export const IFetchFn = /*@__PURE__*/DI.createInterface<typeof fetch>('fetch', x => x.instance(fetch));
+export const IFetchFn = /*@__PURE__*/DI.createInterface<typeof fetch>('fetch', x => {
+  if (typeof fetch !== 'function') {
+    throw new Error('Could not resolve fetch function. Please provide a fetch function implementation or a polyfill for the global fetch function.');
+  }
+  return x.instance(fetch);
+});
 
 export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.singleton(HttpClient));
 export interface IHttpClient extends HttpClient {}
@@ -44,10 +49,16 @@ export class HttpClient {
   public defaults: RequestInit | null = null;
 
   /**
-   * The interceptors to be run during requests.
    * @internal
    */
   private _interceptors: Interceptor[] = [];
+
+  /**
+   * The interceptors to be run during requests.
+   */
+  public get interceptors(): Interceptor[] {
+    return this._interceptors.slice(0);
+  }
 
   /** @internal */
   private _dispatcher: Node | null = null;
@@ -80,7 +91,7 @@ export class HttpClient {
       normalizedConfig.dispatcher = this._dispatcher;
 
       const c = config(normalizedConfig);
-      if (typeof config === 'object' && c != null) {
+      if (typeof c === 'object' && c != null) {
         normalizedConfig = c;
       } else {
         throw new Error(`The config callback did not return a valid HttpClientConfiguration like instance. Received ${typeof c}`);
@@ -145,8 +156,11 @@ export class HttpClient {
         if (result instanceof Response) {
           response = Promise.resolve(result);
         } else if (result instanceof Request) {
+          // if called directly, context of the fetch fn will be this HttpClient instance
+          // which will throw illegal invokcation
+          const fetchFn = this._fetchFn;
           request = result;
-          response = this._fetchFn(request);
+          response = fetchFn(request);
         } else {
           throw new Error(`An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [${result}]`);
         }
@@ -181,8 +195,8 @@ export class HttpClient {
     let requestContentType: string | null;
 
     const parsedDefaultHeaders = parseHeaderValues(defaults.headers as IIndexable);
-    if (isPrototypeOf(Request.prototype, input)) {
-      request = input as Request;
+    if (input instanceof Request) {
+      request = input;
       requestContentType = new Headers(request.headers).get('Content-Type');
     } else {
       if (!init) {
@@ -192,11 +206,15 @@ export class HttpClient {
       const bodyObj = body !== undefined ? { body: body as BodyInit } : null;
       const requestInit: RequestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
       requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
-      request = new Request(getRequestUrl(this.baseUrl, input as string), requestInit);
+      request = new Request(getRequestUrl(this.baseUrl, input), requestInit);
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!requestContentType) {
       if (new Headers(parsedDefaultHeaders).has('content-type')) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn('Request was created with header "content-type", converted to "Content-Type" instead.');
+        }
         request.headers.set('Content-Type', new Headers(parsedDefaultHeaders).get('content-type') as string);
       } else if (body !== undefined && isJSON(body)) {
         request.headers.set('Content-Type', 'application/json');

@@ -8,31 +8,6 @@ description: >-
 
 Aurelia's HTML-based templating syntax offers an intuitive way to build applications. All templates are valid, spec-compliant HTML, ensuring compatibility across browsers and HTML parsers.
 
-## Binding values to custom elements
-
-When working with custom elements in Aurelia, if you leverage bindables to have custom bindable properties allowing values to be bound, you will use `.bind` extensively.
-
-Say you had a custom element that accepted an email value. You might call it `email` inside your component definition.
-
-{% code title="my-custom-element.ts" %}
-```typescript
-import { bindable, customElement } from 'aurelia';
-
-@customElement('my-custom-element')
-export class MyCustomElement {
-  @bindable email = '';
-}
-```
-{% endcode %}
-
-Referencing our custom element, if we wanted to bind a value to our `email` property, we would do this:
-
-```markup
-<my-custom-element email.bind="myEmail"></my-custom-element>
-```
-
-This allows us to pass in data to custom elements cleanly and familiarly.
-
 ## Events
 
 Using Aurelia's intuitive event binding syntax, you can listen to mouse clicks, keyboard events, mouse movements, touches and other native browser events that are accessible via Javascript.

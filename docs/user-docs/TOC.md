@@ -21,6 +21,7 @@
   * [Event binding](templates/template-syntax/event-binding.md)
   * [Text interpolation](templates/template-syntax/text-interpolation.md)
   * [Template references](templates/template-syntax/template-references.md)
+  * [Template variables](templates/template-syntax/template-variables.md)
 * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)

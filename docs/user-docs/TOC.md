@@ -20,6 +20,7 @@
   * [Attribute binding](templates/template-syntax/attribute-binding.md)
   * [Event binding](templates/template-syntax/event-binding.md)
   * [Text interpolation](templates/template-syntax/text-interpolation.md)
+  * [Template promises](templates/template-syntax/template-promises.md)
   * [Template references](templates/template-syntax/template-references.md)
   * [Template variables](templates/template-syntax/template-variables.md)
 * [Globals](templates/globals.md)

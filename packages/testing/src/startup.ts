@@ -288,6 +288,12 @@ export function createFixture<T extends object>(
       return Promise.resolve(this);
     }
 
+    public printHtml(): string {
+      const html = host.innerHTML;
+      console.log(html);
+      return html;
+    }
+
     public getBy = getBy;
     public getAllBy = getAllBy;
     public queryBy = queryBy;
@@ -330,6 +336,11 @@ export interface IFixture<T> {
   tearDown(): void | Promise<void>;
   stop(dispose?: boolean): void | Promise<void>;
   readonly started: Promise<IFixture<T>>;
+
+  /**
+   * Print to console and return the innerHTML of the current application
+   */
+  printHtml(): string;
 
   /**
    * Returns the first element that is a descendant of node that matches selectors, and throw if there is more than one, or none found

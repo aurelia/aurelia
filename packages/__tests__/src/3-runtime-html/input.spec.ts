@@ -125,4 +125,15 @@ describe('3-runtime-html/input.spec.ts', function () {
 
     assertAttr('input', 'title', null);
   });
+
+  it('sets popover API attrs', function () {
+    const { assertAttr } = createFixture
+      .component({ target: 'a', toggle: 'auto' })
+      // both button and input will be the same so it's fine
+      .html`<input popover="null" popovertarget='\${target}' popovertargetaction=\${toggle}>`
+      .build();
+
+    assertAttr('input', 'popovertarget', 'a');
+    assertAttr('input', 'popovertargetaction', 'auto');
+  });
 });

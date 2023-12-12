@@ -250,6 +250,15 @@ export class NodeObserverLocator implements INodeObserverLocator {
       case 'size':
       case 'pattern':
       case 'title':
+      case 'popovertarget':
+      case 'popovertargetaction':
+        /* istanbul-ignore-next */
+        if (__DEV__) {
+          if ((key === 'popovertarget' || key === 'popovertargetaction') && obj.nodeName !== 'INPUT' && obj.nodeName !== 'BUTTON') {
+            // eslint-disable-next-line no-console
+            console.warn(`[aurelia] Popover API are only valid on <input> or <button>. Detected ${key} on <${obj.nodeName.toLowerCase()}>`);
+          }
+        }
         // assigning null/undefined to size on input is an error
         // though it may be fine on other elements.
         // todo: make an effort to distinguish properties based on element name

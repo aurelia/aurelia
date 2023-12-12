@@ -165,6 +165,7 @@
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
 * [Synthetic view](tutorials/synthetic-view.md)
+* [React inside Aurelia](tutorials/using-react-inside-aurelia.md)
 
 ## Community Contribution
 

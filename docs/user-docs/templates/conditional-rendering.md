@@ -1,356 +1,132 @@
 ---
 description: >-
-  There are two ways to show and hide content in Aurelia. Conditional rendering
-  allows you to use boolean logic to show and hide things inside Aurelia
-  applications.
+  Learn about the various methods for conditionally rendering content in Aurelia 2, with detailed explanations and examples.
 ---
 
-# Conditional Rendering
+# Conditional Rendering in Aurelia 2
 
-Aurelia supports two different ways of conditionally showing and hiding content.
+Conditional rendering in Aurelia 2 is a powerful feature that lets you create dynamic interfaces that respond to your application's state. By using boolean expressions, you can conditionally include or exclude parts of your view. This guide will walk you through the different techniques provided by Aurelia to manage conditional content.
 
-## if.bind
+## Using `if.bind`
 
-You can add or remove an element by specifying an `if.bind` on an element and passing in a true or false value.
+The `if.bind` directive allows you to conditionally add or remove elements from the DOM based on the truthiness of the bound expression.
 
-When `if.bind` is passed `false` Aurelia will remove the element and all of its children from view. When an element is removed, if it is a custom element or has any associated events, it will be cleaned up, thus freeing up memory and other resources they were using.
+When the bound value evaluates to `false`, Aurelia removes the element and its descendants from the DOM. This process includes the destruction of custom elements, detaching of events, and cleanup of any associated resources, which is beneficial for performance and memory management.
 
-In the following example, we pass a value called `isLoading` , which is populated whenever something is loading from the server. We will use it to show a loading message in our view.
+Consider an application where you want to display a loading message while data is being fetched:
 
-```markup
+```HTML
 <div if.bind="isLoading">Loading...</div>
 ```
 
-When `isLoading` is a truthy value, the element will be displayed and added to the DOM. When `isLoading` is falsy, the element will be removed from the DOM, disposing of any events or child components.
+The `isLoading` variable controls the presence of the div in the DOM. When it's `true`, the loading message appears; when `false`, the message is removed.
 
-### else
+### Complementing `if.bind` with `else`
 
-There is also a `else` binding that allows you to create `if/else` statements too. The `if/else` functionality works how you might expect. Like Javascript, it allows you to say, "If this, otherwise that."
+Aurelia enables `if/else` structures in the view, similar to conditional statements in JavaScript. The `else` binding must immediately follow an element with `if.bind`:
 
-```html
-<div if.bind="showThis">Hello, there.</div>
-<div else>Or else.</div>
+```HTML
+<div if.bind="user.isAuthenticated">Welcome back, ${user.name}!</div>
+<div else>Please log in.</div>
 ```
 
-The `else` value must be used on an element directly proceeding  `if.bind` , or it will not work.
+This snippet displays a welcome message for authenticated users and a login prompt for others.
 
-{% hint style="warning" %}
-**A note on caching behavior:** By default, the `if.bind` feature will cache the view model/view of the element you are using `if.bind` . Not being aware of this default behavior can lead to confusing situations where the previous state is retained, especially on custom elements.
-{% endhint %}
-
-Using verbose syntax, you can opt out of caching if this becomes a problem.
+{% hint style="important" %}
+**Caching Behavior:** By default, `if.bind` caches the view and view model of the element it's applied to. While caching can improve performance by reusing elements rather than recreating them, it may lead to unexpected behavior if you're not anticipating this. If state management becomes an issue, you may disable caching with the verbose syntax:
 
 ```html
-<some-element if="value.bind: showThis; cache: false"></some-element>
+<custom-element if="value.bind: canShowElement; cache: false"></custom-element>
 ```
 
-When using the verbose syntax, `value.bind` is the boolean condition that triggers your `if.bind` condition and `cache: false` is what disables the cache. Only disable the cache if it becomes a problem.
-
-{% hint style="warning" %}
-Be careful. Using `if.bind` takes your markup out of the flow of the page. This causes both reflow and repaint events in the browser, which can be intensive for large applications with a lot of HTML markup.
+In this code, `value.bind` is the condition, and `cache: false` disables caching. Use this feature judiciously, as excessive use can impact performance.
 {% endhint %}
 
-## show.bind
+### Performance Considerations
 
-You can conditionally show or hide an element by specifying a `show.bind` and passing in a true or false value.
+Be mindful that `if.bind` modifies the DOM structure, which can trigger reflow and repaint processes in the browser. For applications with extensive DOM manipulation, this may become a performance bottleneck. Optimize your usage of `if.bind` by minimizing the frequency and complexity of conditional rendering operations.
 
-When `show.bind` is passed `false` , the element will be hidden, but unlike `if.bind` it will not be removed from the DOM. Any resources, events or bindings will remain. It's the equivalent of `display: none;` CSS, the element is hidden but not removed.
+## Employing `show.bind`
 
-In the following example, we are passing a value called `isLoading` , which is populated whenever something is loading from the server. We will use it to show a loading message in our view.
+The `show.bind` directive offers an alternative approach to conditional rendering. Instead of adding or removing elements from the DOM, it toggles their visibility. This is akin to applying `display: none;` in CSS—the element remains in the DOM but is not visible to the user.
 
 ```markup
-<div show.bind="isLoading">Loading...</div>
+<div show.bind="isDataLoaded">Data loaded successfully!</div>
 ```
 
-When `isLoading` is a truthy value, the element will be visible. When `isLoading` is falsy, the element will be hidden but remain in view.
+Here, `isDataLoaded` dictates the visibility of the message. When `false`, the message is hidden; when `true`, it is shown. Since the element is not removed from the DOM, all bindings and events remain intact.
 
-## switch.bind
+## Leveraging `switch.bind`
 
-To deal with conditional rendering Aurelia also provides the `switch` template controller. It behaves like `if/else` in terms of that it does detach the elements from DOM, when the condition does not satisfy. The difference being is that it brings the intrinsic flexibility and semantics of using a `switch` statement with it.
+For more complex conditional rendering cases, such as when dealing with enumerated values, `switch.bind` is the ideal choice. It offers a clean, semantic way to handle multiple conditions by mimicking the `switch` statement in JavaScript.
 
-A typical use-case of `switch` involves dealing with enums. For example, let's consider the following `Status` enum.
+For instance, given an enumeration of order statuses:
 
 {% code title="Status.ts" %}
 ```typescript
-const enum Status {
-  received   = 'received',
-  processing = 'processing',
-  dispatched = 'dispatched',
-  delivered  = 'delivered',
-  unknown    = 'unknown',
+enum Status {
+  Received   = 'received',
+  Processing = 'processing',
+  Dispatched = 'dispatched',
+  Delivered  = 'delivered',
+  Unknown    = 'unknown',
 }
 ```
 {% endcode %}
 
-When tasked with displaying a specific text for a specific member \(status\) of the `Status` enum, with only `if` bind at our disposal, we may end up with the following markup.
+Displaying a message based on the order status with `if.bind` can become unwieldy. Instead, `switch.bind` offers a concise and clear approach:
 
-{% code title="my-app.html" %}
+{% code title="order-status.html" %}
 ```html
-<span if.bind="status === 'received'">Order received.</span>
-<span if.bind="status === 'processing'">Processing your order.</span>
-<span if.bind="status === 'dispatched'">On the way.</span>
-<span if.bind="status === 'delivered'">Delivered.</span>
-```
-{% endcode %}
-
-Also if there are new statuses added to the `Status` enum in future, this markup will end up more verbose, and possibly difficult to understand. Moreover, the semantics of the code might as well be somewhat lost. With the usage of the `switch/case` template controller, the above markup can be written as following.
-
-{% code title="my-app.html" %}
-```html
-<template switch.bind="status">
+<template switch.bind="orderStatus">
   <span case="received">Order received.</span>
   <span case="processing">Processing your order.</span>
   <span case="dispatched">On the way.</span>
   <span case="delivered">Delivered.</span>
+  <span default-case>Status unknown.</span>
 </template>
 ```
 {% endcode %}
 
-This behaves in similar fashion a `switch` in JavaScript behaves. That is it renders the first match, and ignores the rest. For example if the `status` has a value `Status.processing`, it will render `<span>Processing your order.</span>`. Note that it intrinsically avoids matching the following `case`s after the first match and consequently binding and rendering those elements. That is the basic and typical use-case of the `switch/case` template controllers. Now let's see some other features of this as well.
+This structure allows for a straightforward mapping between the status and the corresponding message. The `default-case` acts as a catch-all for any status not explicitly handled.
 
-### default-case
+### Grouping Cases
 
-The `switch` also supports `default-case`; i.e. this "case" will be matched, if nothing else is matched.
+You can bind an array of values to a `case`, thus grouping multiple conditions:
 
-{% code title="my-app.html" %}
 ```html
-<template switch.bind="status">
-  <span case="received">Order received.</span>
-  <span case="processing">Processing your order.</span>
-  <span case="dispatched">On the way.</span>
-  <span default-case>Unknown.</span>
-</template>
-```
-{% endcode %}
-
-With this markup, if the `status` is set to `Status.unknown` or `Status.delivered`, `<span>Unknown.</span>` will be rendered.
-
-### multi-case
-
-It is possible to map a single element to multiple cases, by binding an array to the `case`.
-
-{% code title="my-app.html" %}
-```html
-<template switch.bind="status">
-  <span case.bind="['received', 'processing']">Order received.</span>
+<template switch.bind="orderStatus">
+  <span case.bind="['received', 'processing']">Order is being processed.</span>
   <span case="dispatched">On the way.</span>
   <span case="delivered">Delivered.</span>
 </template>
 ```
-{% endcode %}
 
-For either of `Status.received` or `Status.processing`, it will render `<span>Order received.</span>`. A JavaScript equivalent of this would be the following.
+This will display "Order is being processed." for both `Received` and `Processing` statuses.
 
-{% code title="my-app.ts" %}
-```typescript
-switch(status) {
-  case Status.received:
-  case Status.processing:
-    return 'Order received.';
-  case Status.dispatched:
-    return 'On the way.';
-  case Status.delivered:
-    return 'Delivered.';
-}
-```
-{% endcode %}
+### Fall-Through Behavior
 
-{% hint style="info" %}
-When an array is bound to the `case`, the value of the `switch` is matched against the items in the array and not with the array reference.
-{% endhint %}
+The `switch` construct in Aurelia supports fall-through logic similar to JavaScript's `switch`:
 
-### fall-through
-
-It is also possible to have the switch-case fallthrough in the markup, where you don't want to break after a case has been executed. This means something like this.
-
-{% code title="my-app.ts" %}
-```typescript
-let ret: string = "";
-switch(status) {
-  case Status.received:
-    ret = 'Order received.';
-  case Status.processing:
-    ret =`${ret}, Order received.`;
-    break;
-  case Status.dispatched:
-    ret = 'On the way.';
-    break;
-  case Status.delivered:
-    ret = 'Delivered.';
-    break;
-}
-return ret;
-```
-{% endcode %}
-
-Aurelia equivalent of this will be the following.
-
-{% code title="my-app.html" %}
 ```html
-<template switch.bind="status">
-  <span case="value.bind:'received'; fall-through.bind: true">Order received.</span>
-  <span case="processing">Processing your order.</span>
-  <span case="dispatched">On the way.</span>
-  <span case="delivered">Delivered.</span>
+<template switch.bind="orderStatus">
+  <span case="received" fall-through.bind="true">Order received.</span>
+  <span case="processing">Order is being processed.</span>
+  <!-- Other cases -->
 </template>
 ```
-{% endcode %}
 
-Assuming that `status` is set to `Status.received`, it will end up the rendering the first two `<span>`s.
+When `orderStatus` is `Received`, both the "Order received." and "Order is being processed." messages will be displayed because of the `fall-through` attribute.
 
 {% hint style="info" %}
-* By default for every `case` `fallThrough` is set to `false`. If needed, you need to set it to `true` explicitly. This the reason why we don't need to write the following: `<span case="value.bind:'processing'; fall-through.bind: false">Processing your order.</span>`.
-* `fall-through: true` is a less verbose syntax for binding the value of `fallThrough`. In this case, the string `'true'` and `'false'` are converted to boolean `true`, and `false` respectively.
+* By default, `fallThrough` is `false`. If you want a case to fall through, you must explicitly set `fall-through.bind="true"`.
+* You can use the shorthand `fall-through="true"` instead of binding, which will be interpreted as boolean values.
 {% endhint %}
 
-### Miscellaneous examples
+### Advanced Scenarios
 
-This section includes few more interesting examples that you might encounter in real life, and the statutory warnings.
+Aurelia's `switch` mechanism is versatile and can be used in various scenarios, such as within custom elements, with `au-slot`, and even nested within other `switch` statements. It's important to note, however, that `case` must be a direct child of `switch`, and unexpected behavior may occur if this rule is not followed.
 
-* Another usage of switch that we often see in the wild, is to use a static expression for `switch` and more dynamic expression for `case`. Therefore, the following is a valid usage of `switch`.
+When using `switch`, you should avoid combining it with other template controllers like `if` or `repeat.for`, as this can lead to errors or unsupported usage patterns. If you encounter a use case that isn't covered by the current implementation, consider reaching out to the Aurelia team for guidance or feature requests.
 
-  {% code title="my-app.html" %}
-  ```html
-  <template>
-    <template repeat.for="num of 100">
-      <template switch.bind="true">
-        <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
-        <span case.bind="num % 3 === 0">Fizz</span>
-        <span case.bind="num % 5 === 0">Buzz</span>
-      </template>
-    </template>
-  </template>
-  ```
-  {% endcode %}
-
-* The `switch` can be used to provide conditional projection to `au-slot`. The following markup is rendered as `'<foo-bar> <span>Order received.</span> </foo-bar>'` with `status` set to `Status.received`.
-
-  {% code title="my-app.html" %}
-  ```html
-  <template as-custom-element="foo-bar">
-    <au-slot name="s1"></au-slot>
-  </template>
-
-  <foo-bar>
-    <template au-slot="s1">
-      <template switch.bind="status">
-        <span case="received">Order received.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="processing">Processing your order.</span>
-        <span case="delivered">Delivered.</span>
-      </template>
-    </template>
-  </foo-bar>
-  ```
-  {% endcode %}
-
-* The `case` can be used with `<au-slot>` element as well. The following markup is rendered as `'<foo-bar> <div> <span>Projection</span> </div> </foo-bar>'` with `status` set to `Status.received`.
-
-  {% code title="my-app.html" %}
-  ```html
-  <template as-custom-element="foo-bar">
-    <bindable name="status"></bindable>
-    <div switch.bind="status">
-      <au-slot name="s1" case="received">Order received.</au-slot>
-      <au-slot name="s2" case="dispatched">On the way.</au-slot>
-      <au-slot name="s3" case="processing">Processing your order.</au-slot>
-      <au-slot name="s4" case="delivered">Delivered.</au-slot>
-    </div>
-  </template>
-
-  <foo-bar status.bind="status">
-    <span au-slot="s1">Projection</span>
-  </foo-bar>
-  ```
-  {% endcode %}
-
-* `switch`s can be nested. For example, the following markup is rendered as `<span> Expected to be delivered in 2 days. </span>` with `status` set to `Status.delivered`.
-
-  {% code title="my-app.html" %}
-  ```html
-  <template>
-    <let day.bind="2"></let>
-    <template switch.bind="status">
-      <span case="received">Order received.</span>
-      <span case="dispatched">On the way.</span>
-      <span case="processing">Processing your order.</span>
-      <span case="delivered" switch.bind="day">
-        Expected to be delivered
-        <template case.bind="1">tomorrow.</template>
-        <template case.bind="2">in 2 days.</template>
-        <template default-case>in few days.</template>
-      </span>
-    </template>
-  </template>
-  ```
-  {% endcode %}
-
-* `switch` can work without any `case` attribute in it. However, the `case` cannot be used with the `switch` applied to its parent. This applies to the `default-case` as well.
-
-  {% code title="my-app.html" %}
-  ```html
-  <!-- this works! -->
-  <div switch.bind="status">
-    the curious case of \${status}
-  </div>
-
-  <!-- this throws error! -->
-  <span case="foo"></span>
-  ```
-  {% endcode %}
-
-* In fact, it is worth noting that `case` should be the direct child of `switch`. For most of the cases Aurelia will throw error otherwise; for other cases, it might lead to unexpected results. If you think, any of the following should be supported, then let us know your use-case.
-
-  {% code title="my-app.html" %}
-  ```html
-  <!-- These do NOT work! -->
-  <!-- #1: usage with `if` -->
-  <template>
-    <template switch.bind="status">
-      <template if.bind="true">
-        <span case="delivered">delivered</span>
-      </template>
-    </template>
-  </template>
-
-  <!-- #2: usage with `repeat.for` -->
-  <template>
-    <template switch.bind="status">
-      <template repeat.for="s of ['received','dispatched','processing','delivered',]">
-        <span case.bind="s">\${s}</span>
-      </template>
-    </template>
-  </template>
-
-  <!-- #3: usage with `au-slot` -->
-  <template as-custom-element="foo-bar">
-    <au-slot name="s1"></au-slot>
-  </template>
-
-  <foo-bar switch.bind="status">
-    <template au-slot="s1">
-      <span case="dispatched">On the way.</span>
-      <span case="delivered">Delivered.</span>
-    </template>
-  </foo-bar>
-
-  <!--
-    The following example does produce some sort of output;
-    but such usage is not supported.
-  -->
-  <template as-custom-element="foo-bar">
-    foo bar
-  </template>
-
-  <template switch.bind="status">
-    <foo-bar>
-      <span case="dispatched">On the way.</span>
-      <span case="delivered">Delivered.</span>
-    </foo-bar>
-  </template>
-  <!--
-    With `status` set to 'dispatched' it produces this output:
-    `<foo-bar> <span>On the way.</span> foo bar </foo-bar>`
-  -->
-  ```
-  {% endcode %}
+By understanding and properly utilizing `if.bind`, `show.bind`, and `switch.bind`, you can create efficient, dynamic, and maintainable views in your Aurelia applications. Remember to consider performance implications and use these tools judiciously to ensure a smooth user experience.

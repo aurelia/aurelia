@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+### Features:
+
+* **vite:** allow all the options to be passed for the plugin (#1830) ([3d87341](https://github.com/aurelia/aurelia/commit/3d87341))
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

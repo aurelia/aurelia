@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+### Bug Fixes:
+
+* **i18n:** translating camelCased bindables (#1838) ([ff761fb](https://github.com/aurelia/aurelia/commit/ff761fb))
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

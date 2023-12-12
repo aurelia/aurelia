@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+**Note:** Version bump only for package @aurelia/babel-jest
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

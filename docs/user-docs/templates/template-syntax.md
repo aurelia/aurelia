@@ -6,11 +6,11 @@ description: >-
 
 # Template syntax & features
 
-Aurelia uses an HTML-based syntax for templating, allowing you to build applications in an intuitive way. All Aurelia templates are valid spec-compliant HTML that works in all browsers and HTML parsers.
+Aurelia's HTML-based templating syntax offers an intuitive way to build applications. All templates are valid, spec-compliant HTML, ensuring compatibility across browsers and HTML parsers.
 
 ## Text Interpolation
 
-String interpolation allows you to display values within your template views. By leveraging `${}` which is a dollar sign followed by opening and closing curly braces, you can display values inside of your views. The syntax will be familiar to you if you are familiar with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template\_literals).
+String interpolation allows you to display values within your template views. By leveraging `${}`, a dollar sign followed by opening and closing curly braces, you can display values inside your views. The syntax will be familiar to you if you are familiar with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template\_literals).
 
 ### Displaying values with interpolation
 
@@ -111,7 +111,7 @@ You can bind almost every attribute from this list [here](https://developer.mozi
 
 ### Binding syntax
 
-In Aurelia, you can bind attributes in more than one way, and it is important to understand the difference in syntax. To illustrate our point, we are going to be using the native `id` attribute for our example.
+In Aurelia, you can bind attributes in multiple ways, and it is important to understand the difference in syntax. To illustrate our point, we will use the native `id` attribute for our example.
 
 #### Binding with interpolation
 
@@ -127,7 +127,7 @@ We specify the `id` attribute and then use string interpolation to get the `head
 
 #### Binding with keywords
 
-For a full list of binding keywords, please see below. However, we are now going to bind the `id` attribute using the `.bind` keyword.  If the value being bound is `null` or `undefined` the attribute will not be displayed.
+For a full list of binding keywords, please take a look below. However, we will now bind the `id` attribute using the `.bind` keyword.  If the bound value is `null` or `undefined`, the attribute will not be displayed.
 
 ```html
 <div>
@@ -159,13 +159,13 @@ A note on binding. Both approaches detailed above from an implementation perspec
   <a class="external-link" href.one-time="profile.linkedInUrl">LinkedIn</a>
 ```
 
-The first input uses the `bind` command to create `two-way` bindings for input value attribute bindings automatically. The second and third input uses the `two-way` / `from-view` commands which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and those properties will also be updated whenever the inputs change.&#x20;
+The first input uses the `bind` command to create `two-way` bindings for input value attribute bindings automatically. The second and third inputs use the `two-way` / `from-view` commands, which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and those properties will also be updated whenever the inputs change.&#x20;
 
 For the third input, changes in the bound view-model `middleName` property will not update the input value. However, changes in the input will update the view model. The first anchor element uses the `bind` command that automatically creates a `to-view` binding for anchor HREF attributes. The other two anchor elements use the `to-view` and `one-time` commands to explicitly set the binding's mode.
 
 ### Binding to images
 
-You can bind to numerous image properties, but the most common is the `src` attribute that allows you to bind the image source. The value in the below example is `imageSrc` which is a property inside of the view model.
+You can bind to numerous image properties, but the most common is the `src` attribute, which allows you to bind the image source. The value in the example below is `image`, a property inside the view model.
 
 ```html
 <img src.bind="imageSrc">
@@ -215,7 +215,7 @@ The native `innerhtml` and `textcontent` properties allow you to set the values 
 
 ## Binding values to custom elements
 
-When working with custom elements in Aurelia, if you leverage bindables to have custom bindable properties allowing values to be bound, you will use `.bind` extensively.&#x20;
+When working with custom elements in Aurelia, if you leverage bindables to have custom bindable properties allowing values to be bound, you will use `.bind` extensively.
 
 Say you had a custom element that accepted an email value. You might call it `email` inside your component definition.
 
@@ -244,7 +244,7 @@ Using Aurelia's intuitive event binding syntax, you can listen to mouse clicks, 
 
 If you have familiarized yourself with other aspects of Aurelia's template binding, a lot of this will look similar to you. Due to differences in how certain events function (bubbling vs non-bubbling), there are some nuances to be aware of when working with them.
 
-You can listen to events using two different types of event bindings; `trigger` and `capture`. The syntax for event binding is the event name you want to target, followed by one of the above event bindings.
+You can listen to events using two types of event bindings; `trigger` and `capture`. The syntax for event binding is the event name you want to target, followed by one of the above event bindings.
 
 To listen to an `click` event on a button, for example, you would do something like this:
 
@@ -268,49 +268,86 @@ The native `keypress` event using `keypress.trigger` will allow you to listen to
 
 ### **Capturing event binding**
 
-The `capture` event binding command should only be used as a last resort. Primarily in situations where an event is fired too early before Aurelia can capture it (third-party plugins, for example) or an event is being stopped using `event.preventDefault` capture can guarantee the event is captured (hence the name).
+The `capture` event binding command should only be used as a last resort. Primarily, when an event is fired too early before Aurelia can capture it (third-party plugins, for example) or an event is being stopped using `event.preventDefault`, capture can guarantee the event is captured (hence the name).
 
 In most situations, `trigger` will be more than sufficient.
 
 ## Template References
 
-Template references and variables allow you to identify and specify parts of your templates that are accessible both inside of the view itself as well as the view model.
+Template references in Aurelia 2 provide a powerful and flexible way to connect your HTML templates with your JavaScript or TypeScript view models. Using the ref attribute, you can easily identify and interact with specific parts of your template, making it more efficient to manipulate the DOM or access template data.
 
-Using the `ref` attribute, you can denote elements as variables.
+### Declaring Template References
 
-```markup
+#### Basic Usage
+Add the ref attribute to an HTML element within your template to create a template reference. This marks the element as a reference, allowing you to access it directly in your view model.
+
+```HTML
 <input type="text" ref="myInput" placeholder="First name">
 ```
 
-We can then reference our input by the identifying value we provided to the `ref` attribute. For inputs, this is convenient because we can access the value property of the input itself.
+In this example, `myInput` references the input element, which can be used both in the template and the corresponding view model.
 
-```markup
+#### Accessing Reference in Template
+
+Template references are immediately available within the template. For instance, you can display the value of the input field as follows:
+
+```html
 <p>${myInput.value}</p>
 ```
 
-You can also access this referenced element inside of your view model as well. Just make sure if you're using TypeScript to specify this property before attempting to reference it inside of your code.
+This binding displays the current value of the input field dynamically.
+
+#### Accessing Reference in View Model
+
+To access the referenced element in the view model, declare a property with the same name as the reference. For TypeScript users, it's important to define the type of this property for type safety.
 
 ```typescript
 export class MyApp {
   private myInput: HTMLInputElement;
+
+  // Additional view model logic here
 }
 ```
 
-The `ref` attribute has several qualifiers you can use in conjunction with custom elements and attributes:
+### Advanced Usage
 
-* `component.ref="expression"`: create a reference to a custom element's component instance(view-model). This is known as `view-model.ref` in v1.
-* `custom-attribute.ref="expression"`: create a reference to a custom attribute's component instance (view-model).
-* `controller.ref="expression"`: create a reference to a custom element's controller instance.
+#### Working with Custom Elements and Attributes
+
+Aurelia's `ref` attribute is not limited to standard HTML elements. It can also be used with custom elements and attributes to reference their component instances (view-models) or controllers.
+
+**Custom Element Instance** 
+Use `component.ref="expression"` to create a reference to a custom element's component instance (view-model). This was known as `view-model.ref` in Aurelia v1.
+
+```html
+<my-custom-element component.ref="customElementVm"></my-custom-element>
+```
+
+**Custom Attribute Instance**
+Similarly, `custom-attribute.ref="expression"` can reference a custom attribute's component instance (view-model).
+
+```html
+<div my-custom-attribute custom-attribute.ref="customAttrVm"></div>
+```
+
+**Controller Instance**
+For more advanced scenarios, `controller.ref="expression"` creates a reference to a custom element's controller instance.
+
+```html
+<my-custom-element controller.ref="customElementController"></my-custom-element>
+```
+
+### Practical Applications
+Template references are incredibly useful for integrating with third-party libraries or when direct DOM manipulation is necessary. Instead of using traditional JavaScript queries to find elements, template references provide a more straightforward, framework-integrated approach.
 
 {% hint style="info" %}
-Template references are a great way to reference elements inside view models for use with third-party libraries. They negate the need to query for elements using Javascript APIs.
+Leveraging template references can greatly simplify interactions with elements, particularly when integrating with libraries that require direct DOM element references. This approach promotes cleaner and more maintainable code by reducing reliance on direct DOM queries.
 {% endhint %}
 
 ## Template Variables
 
 In your view templates, you can specify inline variables using the `<let>` custom element.
 
-The `<let>` element supports working with interpolation strings, plain strings, referencing view model variables and other let bindings within your templates.
+The `<let>` element supports working with interpolation strings, plain strings, referencing view model variables, and other let bindings within your templates.
 
 ```markup
 <let some-var="This is a string value"></let>
@@ -333,33 +370,31 @@ You can bind to variable values in a `<let>` too:
 
 ## Template Promises
 
-When working with promises in Aurelia, previously in version 1, you had to resolve them in your view model and then pass the values to your view templates. It worked, but you had to write code to handle those promise requests. In Aurelia 2, we can work with promises directly inside of our templates.
+Aurelia 2 enhances the handling of promises within templates. Unlike Aurelia 1, where promises had to be resolved in the view model before passing their values to templates, Aurelia 2 allows direct interaction with promises in templates. This is achieved through the `promise.bind` template controller, which supports `then`, `pending`, and `catch` states, reducing the need for boilerplate code.
 
-The `promise.bind` template controller allows you to use `then`, `pending` and `catch` in your view removing unnecessary boilerplate.
+The `promise.bind` template controller allows you to use `then`, `pending` and `catch` in your view, removing unnecessary boilerplate.
 
-### A basic example
+### Basic Example
 
-The promise binding is intuitive, allowing you to use attributes to bind to steps of the promise resolution process from initialization (pending to resolution and errors).
+The promise binding simplifies working with asynchronous data. It allows attributes to bind to various states of a promise: pending, resolved, and rejected.
 
 ```html
 <div promise.bind="promise1">
  <template pending>The promise is not yet settled.</template>
- <template then.from-view="data">The promise is resolved with ${data}.</template>         <!-- grab the resolved value -->
- <template catch.from-view="err">This promise is rejected with ${err.message}.</template> <!-- grab the rejection reason -->
+ <template then.from-view="data">The promise is resolved with ${data}.</template>
+ <template catch.from-view="err">This promise is rejected with ${err.message}.</template>
 </div>
 
 <div promise.bind="promise2">
  <template pending>The promise is not yet settled.</template>
  <template then>The promise is resolved.</template>
  <template catch>This promise is rejected.</template>
-</div
+</div>
 ```
 
-### Promise binding using functions
+### Promise Binding Using Functions
 
-In the following example, notice how we have a parent `div` with the `promise.bind` binding and then a method called `fetchAdvice`? Followed by other attributes inside `then.from-view` and `catch.from-view` which handles both the resolved value as well as any errors.
-
-Ignore the `i` variable being incremented, this is only there to make Aurelia fire off a call to our `fetchAdvice` method as it sees the parameter value has changed.
+The following example demonstrates a method fetchAdvice bound to the `promise.bind` attribute. It uses `then.from-view` and `catch.from-view` to handle resolved data and errors.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -374,7 +409,7 @@ Ignore the `i` variable being incremented, this is only there to make Aurelia fi
     <button click.trigger="i = i+1">try again</button>
   </span>
   <span catch.from-view="err">
-    Cannot get an advice, error: ${err}
+    Cannot get advice, error: ${err}
     <button click.trigger="i = i+1">try again</button>
   </span>
 </div>
@@ -405,16 +440,16 @@ export class MyApp {
 {% endtabs %}
 
 {% hint style="info" %}
-The parameter `i` passed to the method `fetchAdvice()` call in the template is for refreshing binding purposes. It is not used in the method itself. This is because method calls in Aurelia are considered pure, and will only be called again if any of its parameters have changed.
+The `i` variable triggers a method call in the template, as Aurelia considers method calls pure and re-invokes them only if their parameters change.
 {% endhint %}
 
 This example can also be seen in action below.
 
 {% embed url="https://stackblitz.com/edit/au2-promise-binding-using-functions?ctl=1&embed=1&file=src/my-app.ts" %}
 
-### Promise bind scope
+### Promise Bind Scope
 
-The `promise` template controller creates its own scope. This prevents accidentally polluting the parent scope or the view model where this template controller is used. Let's see an example to understand what it means.
+The `promise` template controller operates within its own scope, preventing accidental pollution of the parent scope or view model.
 
 ```html
 <div promise.bind="promise">
@@ -423,13 +458,11 @@ The `promise` template controller creates its own scope. This prevents accidenta
 </div>
 ```
 
-In the example above, we are storing the resolved value from the promise in the `data` property, and then passing the value to the `foo-bar` custom element by binding the `foo-data` property.
+In this example, `data` and `err` are scoped within the promise controller. To access these values in the view model, use `$parent.data` or `$parent.err`.
 
-This is useful when we need the data only in view for passing from one component to another custom element, as it does not pollute the underlying view model. Note that this does not make any difference regarding data binding or change observation. However, when we do need to access the settled data inside the view model, we can use the `$parent.data` or `$parent.err` as shown in the example below.
+### Nested Promise Bindings
 
-### Nested promise bindings
-
-If you have a promise inside of a promise (promise-ception), you can nest promise controllers in your markup.
+Aurelia 2 supports nested promise bindings, allowing you to handle promises returned by other promises.
 
 ```html
 <template promise.bind="fetchPromise">
@@ -442,9 +475,9 @@ If you have a promise inside of a promise (promise-ception), you can nest promis
 </template>
 ```
 
-### Using promise bindings inside of a [repeat.for](repeats-and-list-rendering.md)
+### Promise Bindings with [repeat.for](repeats-and-list-rendering.md)
 
-Due to the way the scoping and binding context resolution works, you might want to use a `let` binding when using the `promise` inside `repeat.for`.
+When using `promise.bind` within a `repeat.for`, it's recommended to use a `let` binding to create a scoped context.
 
 ```html
 <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
@@ -463,9 +496,7 @@ import { valueConverter } from '@aurelia/runtime-html';
 @valueConverter('promisify')
 class Promisify {
   public toView(value: unknown, resolve: boolean = true): Promise<unknown> {
-    return resolve
-      ? Promise.resolve(value)
-      : Promise.reject(new Error(String(value)));
+    return resolve ? Promise.resolve(value) : Promise.reject(new Error(String(value)));
   }
 }
 ```

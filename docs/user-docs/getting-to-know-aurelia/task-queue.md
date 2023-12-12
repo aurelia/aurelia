@@ -1,30 +1,37 @@
 # Task Queue
 
-Not to be confused with task queue in Aurelia 1, the TaskQueue is a sophisticated scheduler designed to prevent a variety of timing issues, memory leaks, race conditions and more bad things that tend to result from `setTimeout`, `setInterval`, floating promises, etc.
+Not to be confused with the task queue in Aurelia 1, the TaskQueue in Aurelia is an advanced scheduler designed to handle synchronous and asynchronous tasks efficiently. It provides a robust solution to common issues like timing problems, memory leaks, and race conditions often arising from traditional JavaScript timing functions like `setTimeout`, `setInterval`, and unmanaged promises.
 
-The benefit of using the task queue is both synchronous and asynchronous tasks are supported.
+## Benefits of Using the Task Queue
+
+- **Improved Performance:** By managing tasks more efficiently, the TaskQueue enhances the performance of applications.
+- **Synchronous and Asynchronous Support:** It supports both synchronous and asynchronous tasks, providing greater flexibility in handling tasks.
+- **Deterministic Task Execution:** Facilitates testing by providing deterministic ways to wait for task completion, reducing test flakiness.
+- **Avoids Common Pitfalls:** Helps avoid common issues associated with `setTimeout` and `setInterval`, such as memory leaks and race conditions.
 
 {% hint style="info" %}
 We highly recommend using the task queue to replace existing uses of `setTimeout` and `setInterval` for better-performing applications.
 {% endhint %}
 
-## setTimeout (synchronous)
+## Examples and Use Cases
 
-In the following example, we use the `delay` configuration property to configure a task with a timeout of 100 milliseconds. This would replace using `setTimeout` in your applications.
+### Replacing `setTimeout` (Synchronous)
+
+Instead of `setTimeout, ' the TaskQueue offers a more reliable way to queue tasks without delay.
 
 ```typescript
 import { PLATFORM } from 'aurelia';
 
-// Queue
 const task = PLATFORM.taskQueue.queueTask(() => {
+  // Task to be executed after the delay
   doStuff();
 }, { delay: 100 });
 
-// Cancel
+// Cancel the task if needed
 task.cancel();
 ```
 
-If you were to use a native `setTimout` it would look like this:
+If you were to use a native `setTimout`, it would look like this:
 
 ```typescript
 // Queue
@@ -36,66 +43,70 @@ const handle = setTimeout(() => {
 clearTimeout(handle);
 ```
 
-Now, in your unit/integration/e2e tests or other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done (and not a millisecond longer than needed) or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks.&#x20;
+#### Advantages Over `setTimeout`
 
-Result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
+- **Testability:* You can await `PLATFORM.taskQueue.yield()` or use `PLATFORM.taskQueue.flush()` in tests for predictable task execution.
+- **Improved Reliability:** Reduces the chances of intermittent and hard-to-debug failures.
 
-## setTimeout (asynchronous)
+### setTimeout (asynchronous)
 
-We performed a synchronous equivalent of a setTimeout. Now we can go one step further and do an asynchronous setTimeout, minus the floating promises and memory leaks.
+For asynchronous operations, the TaskQueue can handle tasks without the issues of floating promises.
 
 ```typescript
 import { PLATFORM } from 'aurelia';
 
-// Queue
 const task = PLATFORM.taskQueue.queueTask(async () => {
   await doAsyncStuff();
 }, { delay: 100 });
 
-// Await
+// Await the result of the task
 await task.result;
 
-// Cancel
+// Cancel if necessary
 task.cancel();
 ```
 
-## setInterval
+### Implementing setInterval
 
-By supply the `persistent` configuration value, we can specify a task will remain and not be cleared by the task queue. This gives us `setInterval` functionality.
+The TaskQueue can mimic `setInterval` functionality, offering more control and reliability.
 
 ```typescript
 import { PLATFORM } from 'aurelia';
 
-// Queue
 const task = PLATFORM.taskQueue.queueTask(() => {
+  // Repeated task
   poll();
-}, { delay: 100, persistent: true /* runs until canceled */ });
+}, { delay: 100, persistent: true });
 
-// Stop
+// Cancel the repeating task
 task.cancel();
 ```
 
-## requestAnimationFrame
+### Replacing requestAnimationFrame
 
-By leveraging the `domWriteQueue` we can also replace `requestAnimationFrame` with a safer alternative.
+For tasks that need to synchronize with the browser's repaint, `domWriteQueue` is a safer alternative to `requestAnimationFrame`.
 
 ```typescript
 import { PLATFORM } from 'aurelia';
 
 PLATFORM.domWriteQueue.queueTask(() => {
+  // Update styles or DOM
   applyStyles();
 });
 ```
 
-## requestAnimationFrame (loop)
+### Animation Loop with requestAnimationFrame
 
-In situations where `requestAnimationFrame` is being used in a loop capacity (such as high frame rate animations), we can loop. The queue greatly simplifies this again with the `persistent` configuration option we saw above.
+For continuous animations, the TaskQueue can be used to create a loop, similar to `requestAnimationFrame`.
 
 ```typescript
-// Start
+import { PLATFORM } from 'aurelia';
+
 const task = PLATFORM.domWriteQueue.queueTask(() => {
+  // Update animation properties in each frame
   updateAnimationProps();
 }, { persistent: true });
-// Stop
+
+// Stop the animation
 task.cancel();
 ```

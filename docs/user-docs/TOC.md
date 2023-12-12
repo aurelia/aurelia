@@ -17,7 +17,8 @@
 
 * [Template syntax & features](templates/template-syntax.md)
 * [Template Syntax](templates/template-syntax/overview.md)
-  * [Attribute binding](templates/template-syntax/attribute-binding.md) 
+  * [Attribute binding](templates/template-syntax/attribute-binding.md)
+  * [Event binding](templates/template-syntax/event-binding.md)
   * [Text interpolation](templates/template-syntax/text-interpolation.md)
 * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)

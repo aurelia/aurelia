@@ -48,7 +48,7 @@ Sometimes, it's desirable to forcefully run the throttled update so that the app
 The `throttle` binding behavior supports this scenario via signal. These signals can be added via the 2nd parameter, like the following example:
 
 {% code title="my-app.html" lineNumbers="true" overflow="wrap" %}
-```HTML
+```html
 <input value.bind="value & throttle :200 :`finishTyping`" blur.trigger="signaler.dispatchSignal('finishTyping')">
 <!-- or it can be a list of signals -->
 <input value.bind="value & throttle :200 :[`finishTyping`, `newUpdate`]">
@@ -173,7 +173,7 @@ There are also binding behaviors for `toView` and `twoWay` which you could use l
 ```
 
 {% hint style="warning" %}
-The casing for binding modes is different depending on whether they appear as a **binding command** or as a **binding behavior**. Because HTML is case-insensitive, binding commands cannot use capitals. Thus, when specified in this place, the binding modes use lowercase, dashed names. However, when used within a binding expression as a binding behavior, they must not use a dash because that is not a valid symbol for variable names in JavaScript. So, in this case, camel casing is used.
+The casing for binding modes differs depending on whether they appear as a **binding command** or as a **binding behavior**. Because HTML is case-insensitive, binding commands cannot use capitals. Thus, when specified in this place, the binding modes use lowercase, dashed names. However, when used within a binding expression as a binding behavior, they must not use a dash because that is not a valid symbol for variable names in JavaScript. So, in this case, camel casing is used.
 {% endhint %}
 
 ## Self
@@ -184,7 +184,7 @@ For example, in the following markup
 
 **Self-binding behavior**
 
-```HTML
+```html
 <panel>
   <header mousedown.delegate='onMouseDown($event)' ref='header'>
     <button>Settings</button>
@@ -193,7 +193,7 @@ For example, in the following markup
 </panel>
 ```
 
-`onMouseDown` is your event handler, and it will be called not only when user `mousedown` on header element, but also all elements inside it, which in this case are the buttons `settings` and `close`. However, this is not always desired behavior. Sometimes you want the component only to react when user clicks on the header itself, not the buttons. To achieve this, `onMouseDown` method needs some modification:
+`onMouseDown` is your event handler, and it will be called not only when user `mousedown` on header element, but also all elements inside it, which in this case are the buttons `settings` and `close`. However, this is not always the desired behaviour. Sometimes, you want the component only to react when the user clicks on the header itself, not the buttons. To achieve this, `onMouseDown` method needs some modification:
 
 **Handler without self-binding behavior**
 
@@ -207,7 +207,7 @@ onMouseDown(event) {
 }
 ```
 
-This works, but now business/ component logic is mixed up with DOM event handling, which is unnecessary. Using `self` binding behaviour can help you achieve the same goal without filling up your methods with unnecessary code:
+This works, but business/ component logic is now mixed up with DOM event handling, which is unnecessary. Using `self` binding behaviour can help you achieve the same goal without filling up your methods with unnecessary code:
 
 **Using self-binding behavior**
 

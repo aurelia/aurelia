@@ -275,11 +275,11 @@ jobs:
             equal: [false, << parameters.release >>]
           steps:
             - run: npm run build
-      # - run: << parameters.command >>
-      # - when:
-      #     condition: << parameters.generate_native_modules >>
-      #     steps:
-      #       - run: npm run generate-native-modules
+      - run: << parameters.command >>
+      - when:
+          condition: << parameters.generate_native_modules >>
+          steps:
+            - run: npm run generate-native-modules
       - save_cache:
           key: cache-{{ .Revision }}-build-<< parameters.release >>
           paths:
@@ -497,7 +497,7 @@ jobs:
       # - run: set -o pipefail && npm run change-tsconfigs:invert
       # - run: set -o pipefail && npm run build:release
       # - run: set -o pipefail && npm run change-tsconfigs:restore
-      # - run: set -o pipefail && npm run generate-native-modules
+      - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>

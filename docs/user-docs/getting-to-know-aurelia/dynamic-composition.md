@@ -1,14 +1,16 @@
 # Dynamic composition
 
-In this section, we will learn how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality.&#x20;
+In this section, we will learn how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality.
 
-When using Aurelia's `<au-compose>` element, inside of the view model being used, you have access to all of Aurelia's standard view lifecycle events, as well as an extra `activate`.
+When using Aurelia's `<au-compose>` element, inside of the view model being used, you have access to all of Aurelia's standard view lifecycle events and an extra `activate`.
 
 The `<au-compose>` element allows us to compose view/view model pairs and just views, like a custom element, without specifying a tag name.
 
 ## Basic Composition
 
-The `au-compose` element can be used to render any custom element given to its `component` property. A basic example is:
+The `au-compose` element can render any custom element given to its `component` property. 
+
+A basic example is:
 
 {% code title="my-app.html" %}
 ```markup
@@ -30,7 +32,7 @@ export class App {
 {% endcode %}
 
 {% hint style="info" %}
-With a custom element as a view model, all standard lifecycles, and `activate` will be called during the composition.
+With a custom element as a view model, all standard lifecycles and `activate` will be called during the composition.
 {% endhint %}
 
 ## Composing Without a Custom Element
@@ -43,7 +45,7 @@ An example of template-only composition:
 <au-compose template="<p>Hello world</p>"></au-compose>
 ```
 
-Inside our template, we use the `<au-compose>` element and pass through a view to be rendered. The view is just a plain HTML string.
+We use the `<au-compose>` element inside our template and pass through a view to be rendered. The view is just a plain HTML string.
 
 During a composition, this HTML string is processed by the Aurelia template compiler to produce necessary parts for UI composition and renders it inside the `<au-compose>` element.
 
@@ -54,20 +56,20 @@ Combining simple view and literal object as view model, we can also have powerfu
 ```
 
 {% hint style="info" %}
-When composing without a custom element as view model, the result component will use the parent scope as its scope unless `scope-behavior` is set to `scoped`
+When composing without a custom element as a view model, the result component will use the parent scope as its scope unless `scope-behavior` is set to `scoped`
 {% endhint %}
 
-## Passing through data
+## Passing Data Through `model.bind`
 
 `activate` method on the view model, regardless of whether a custom element or a plain object is provided, will be called during the first composition and subsequent changes of the `model` property on the `<au-compose>` element.
 
-```html
+```HTML
 <au-compose model.bind="myObject"></au-compose>
 ```
 
-You can also pass an object inline from the template too:
+You can also pass an object inline from the template:
 
-```html
+```HTML
 <au-compose model.bind="{myProp: 'value', test: 'something'}"></au-compose>
 ```
 
@@ -76,14 +78,38 @@ Inside the component view model being composed, the `activate` method will recei
 ```typescript
 export class MyComponent {
     activate(model) {
-        // Model contains the passed in model object
+        // Model contains the passed-in model object
     }
 }
 ```
+## When to Use Dynamic Composition Over Components
+
+Dynamic composition in Aurelia is a powerful feature allowing greater flexibility in rendering components or views dynamically based on runtime conditions. However, it's important to understand when using dynamic composition (<au-compose>) over standard components is more appropriate. Here are some scenarios where dynamic composition can be particularly advantageous:
+
+### Dynamic Content Based on User Input or State
+When the content of your application needs to change dynamically based on user interactions or application state, dynamic composition is a great fit. For example, in a dashboard application where different widgets must be displayed based on user preferences, `<au-compose>` can dynamically load these widgets.
+
+### Rendering Unknown Components at Runtime
+Suppose your application needs to render components unknown at compile time, such as in a plugin-based architecture where plugins are loaded dynamically. In that case, dynamic composition is the way to go. It allows you to render these components without hardcoding them into your application.
+
+### Conditional Rendering of Multiple Views
+In cases where you need to render one of many possible views or components based on certain conditions, dynamic composition can be more efficient. Instead of using multiple `if.bind` statements or switch cases in your templates, you can use `<au-compose>` to select and render the appropriate view or component.
+
+### Complex Reusable Layouts
+When creating complex layouts that are reused across different parts of your application with different content, dynamic composition can be used to inject the specific content into these layouts. This approach promotes reusability and keeps your code DRY.
+
+### Simplify Component Interfaces
+In scenarios where passing numerous parameters to a component could make its interface overly complex, dynamic composition allows for encapsulating these parameters within a model object. This can simplify the interface and make the component easier to use.
+
+### Decoupling of Component Logic
+Dynamic composition can help decouple the logic of which component to display from the display logic itself. This separation of concerns can make your codebase more maintainable and easier to test.
 
 ## Accessing the view model
+In some scenarios, you may want to access the view model of the rendered component using `<au-compose>`. We can achieve this by adding the `component.ref`(known as `view-model.ref` in v1) binding to our compose element.
 
-In some scenarios, you may want to access the view model of the component being rendered using `<au-compose>` we can achieve this by adding the `component.ref`(known as `view-model.ref` in v1) binding to our compose element.
+### Reduce Initial Load Time
+If your application is large and you want to reduce the initial load time, dynamic composition can be used to load components on demand. This lazy loading of components can significantly improve performance, especially for single-page applications with many features.
+
 
 ```html
 <au-compose component.ref="myCompose"></au-compose>
@@ -98,7 +124,7 @@ The `<au-compose>` will pass all bindings, except those targeting its bindable p
 As an example, for the following scenario:
 
 {% code title="app.html"%}
-```html
+```HTML
 <au-compose component.bind="myInput" value.bind="item">
 ```
 {% endcode %}
@@ -117,7 +143,7 @@ export class MyInput {
 ```
 {% endcode %}
 
-It will work as if you were having the following content in `app.html`:
+It will work as if you have the following content in `app.html`:
 
 {% code title="app.html"%}
 ```html
@@ -127,11 +153,11 @@ It will work as if you were having the following content in `app.html`:
 
 ## Migrating from Aurelia 1 \<compose>
 
-The composition in Aurelia 2 is fundamentally different than Aurelia 1. The same ease of use is still there, but the way in which some things worked in v1 does not work the same in v2.
+The composition in Aurelia 2 is fundamentally different from Aurelia 1. The same ease of use is still there, but how some things worked in v1 does not work the same in v2.
 
 ### Template and component-breaking changes
 
-1. In aurelia 2, `view` and `view-model` properties have been renamed to `template` and `component` respectively.
+1. In Aurelia 2, the `view` and `view-model` properties have been renamed `template` and `component` respectively.
 
     If you were having `view.bind` or `view-model.bind`, change them to `template.bind` or `component.bind` respectively.
 
@@ -155,12 +181,13 @@ If you still want a view supporting a dynamically loaded module, you can create 
 
 The above value converter will load the URL and return the text response. For view models, something similar can be achieved where an object or class can be returned.
 
-3. In Aurelia 2, all bindings are transferred to the underlying custom element composition. Therefore, `component.ref` no longer signifies obtaining a reference to the composer, but rather to the composed view model.
-### Scope breaking changes
+3. In Aurelia 2, all bindings are transferred to the underlying custom element composition. Therefore, `component.ref` no longer signifies obtaining a reference to the composer but rather to the composed view model.
+4. 
+### Scope-breaking changes
 
-By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when it is not a custom element being composed. This means the outer scope will be used when composing only a view or plain object as the view model.
+By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when no custom element is composed. This means the outer scope will be used when composing only a view or plain object as the view model.
 
-You can disable this behavior using the `scope-behavior` attribute.
+You can disable this behaviour using the `scope-behavior` attribute.
 
 ```markup
   <au-compose scope-behavior="scoped">

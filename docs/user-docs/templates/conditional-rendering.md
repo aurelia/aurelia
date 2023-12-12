@@ -5,7 +5,7 @@ description: >-
 
 # Conditional Rendering in Aurelia 2
 
-Conditional rendering in Aurelia 2 is a powerful feature that lets you create dynamic interfaces that respond to your application's state. By using boolean expressions, you can conditionally include or exclude parts of your view. This guide will walk you through the different techniques provided by Aurelia to manage conditional content.
+Conditional rendering in Aurelia 2 is a powerful feature that lets you create dynamic interfaces that respond to your application's state. You can conditionally include or exclude parts of your view using boolean expressions. This guide will walk you through the different techniques provided by Aurelia to manage conditional content.
 
 ## Using `if.bind`
 
@@ -54,7 +54,7 @@ The `show.bind` directive offers an alternative approach to conditional renderin
 <div show.bind="isDataLoaded">Data loaded successfully!</div>
 ```
 
-Here, `isDataLoaded` dictates the visibility of the message. When `false`, the message is hidden; when `true`, it is shown. Since the element is not removed from the DOM, all bindings and events remain intact.
+Here, `isDataLoaded` dictates the visibility of the message. When `false`, the message is hidden; when `true`, it is shown. All bindings and events remain intact since the element is not removed from the DOM.
 
 ## Leveraging `switch.bind`
 
@@ -123,10 +123,86 @@ When `orderStatus` is `Received`, both the "Order received." and "Order is being
 * You can use the shorthand `fall-through="true"` instead of binding, which will be interpreted as boolean values.
 {% endhint %}
 
-### Advanced Scenarios
+## Advanced Scenarios with `switch.bind`
 
-Aurelia's `switch` mechanism is versatile and can be used in various scenarios, such as within custom elements, with `au-slot`, and even nested within other `switch` statements. It's important to note, however, that `case` must be a direct child of `switch`, and unexpected behavior may occur if this rule is not followed.
+Aurelia's `switch.bind` can accommodate various advanced use cases, making it a versatile tool for conditional rendering. Below are examples of such scenarios:
 
-When using `switch`, you should avoid combining it with other template controllers like `if` or `repeat.for`, as this can lead to errors or unsupported usage patterns. If you encounter a use case that isn't covered by the current implementation, consider reaching out to the Aurelia team for guidance or feature requests.
+### Using `switch.bind` with Static Expressions
 
-By understanding and properly utilizing `if.bind`, `show.bind`, and `switch.bind`, you can create efficient, dynamic, and maintainable views in your Aurelia applications. Remember to consider performance implications and use these tools judiciously to ensure a smooth user experience.
+You can use `switch.bind` with a static expression, while the `case.bind` attributes feature more dynamic conditions:
+
+```HTML
+<template repeat.for="num of 100">
+  <template switch.bind="true">
+    <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
+    <span case.bind="num % 3 === 0">Fizz</span>
+    <span case.bind="num % 5 === 0">Buzz</span>
+  </template>
+</template>
+```
+
+This example iterates over numbers 0 to 99 and applies the FizzBuzz logic, displaying "Fizz", "Buzz", or "FizzBuzz" depending on whether the number is divisible by 3, 5, or both.
+
+### Conditional Slot Projection with `switch.bind`
+
+`switch.bind` can be combined with `au-slot` to project content into custom elements conditionally:
+
+```html
+<template as-custom-element="foo-bar">
+  <au-slot name="s1"></au-slot>
+</template>
+
+<foo-bar>
+  <template au-slot="s1" switch.bind="status">
+    <span case="received">Order received.</span>
+    <span case="dispatched">On the way.</span>
+    <span case="processing">Processing your order.</span>
+    <span case="delivered">Delivered.</span>
+  </template>
+</foo-bar>
+```
+
+In this case, the custom element `foo-bar` will project different messages based on the `status` value.
+
+### Nesting `switch.bind`
+
+`switch.bind` can be nested within itself for complex conditional logic:
+
+```html
+<template>
+  <let day.bind="2"></let>
+  <template switch.bind="status">
+    <span case="received">Order received.</span>
+    <span case="dispatched">On the way.</span>
+    <span case="processing">Processing your order.</span>
+    <span case="delivered" switch.bind="day">
+      Expected to be delivered
+      <template case.bind="1">tomorrow.</template>
+      <template case.bind="2">in 2 days.</template>
+      <template default-case>in a few days.</template>
+    </span>
+  </template>
+</template>
+```
+
+This example demonstrates how you can use nested `switch.bind` statements to handle multiple levels of conditional rendering.
+
+### Restrictions on `case` Usage
+
+The `case` attribute must be used within the context of a `switch` and should be its direct child. The following are examples of incorrect and unsupported usages:
+
+```html
+<!-- Incorrect: `case` outside of `switch` context -->
+<span case="foo"></span>
+
+<!-- Incorrect: `case` not a direct child of `switch` -->
+<template switch.bind="status">
+  <template if.bind="someCondition">
+    <span case="delivered">Delivered</span>
+  </template>
+</template>
+```
+
+These examples will either throw an error or result in unexpected behavior. If you need to support a use case like this, consider reaching out to the Aurelia team.
+
+By exploring these advanced scenarios, you can harness the full potential of `switch.bind` to address complex conditional rendering needs in your Aurelia applications. Remember to adhere to the guidelines and limitations to ensure proper functionality and maintainability.

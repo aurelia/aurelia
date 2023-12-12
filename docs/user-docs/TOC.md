@@ -16,6 +16,8 @@
 ## Templates
 
 * [Template syntax & features](templates/template-syntax.md)
+* [Template Syntax](templates/template-syntax/overview.md)
+  * [Text interpolation](templates/template-syntax/text-interpolation.md)
 * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)

@@ -6,7 +6,7 @@ If you have worked with other libraries and frameworks, you might know value con
 
 ## Understanding value converter data flow
 
-Most commonly, you'll be creating value converters that translate model data to a format suitable for the view; however, there are situations where you'll need to convert data from the view to a format expected by the view model, typically when using two-way binding with input elements.
+Most commonly, you'll create value converters that translate model data to a format suitable for the view; however, there are situations where you'll need to convert data from the view to a format expected by the view model, typically when using two-way binding with input elements.
 
 ### toView
 
@@ -48,9 +48,9 @@ Value converters can be chained, meaning you can transform a value and then tran
 
 ### Parameter based value converters
 
-You can also create value converters that accept one or more parameters. For value converters that format data, you might want to allow the developer to specify what that format is for say a currency or date formatting value converter.
+You can also create value converters that accept one or more parameters. For value converters that format data, you might want to allow the developer to specify what that format is for, say, a currency or date formatting value converter.
 
-Parameters are supplied using the colon `:` character, and like the pipe, for multiple parameters, you can chain them. Parameters can be supplied as one or more strings (passed through to the value converter method as one or more arguments) or a singular object.
+Parameters are supplied using the colon `:` character, and like the pipe, for multiple parameters, you can chain them. Parameters can be supplied as one or more strings (passed to the value converter method as one or more arguments) or a singular object.
 
 #### Static parameters
 
@@ -88,7 +88,7 @@ On our `fromView` and `toView` methods, the second argument will be the supplied
 
 Create custom value converters that allow you to format how your data is displayed and retrieved in your views.
 
-Like everything else in Aurelia, a value converter is a class. A value converter that doesn't actually do anything might look like this. Nothing about this example is Aurelia-specific and is valid in Javascript.
+Like everything else in Aurelia, a value converter is a class. A value converter that doesn't do anything might look like this. Nothing about this example is Aurelia-specific and is valid in Javascript.
 
 ```typescript
 export class ThingValueConverter {
@@ -145,7 +145,7 @@ This example value below will display `June 22, 2021` in your view. Because our 
 <p>${'2021-06-22T09:21:26.699Z' | date}</p>
 ```
 
-The locale parameter that we specified in our value converter supports a locale parameter, which allows us to change how our dates are displayed. Say you're in the UK or Australia. The default format is then date-month-year.
+The locale parameter we specified in our value converter supports a locale parameter, allowing us to change how our dates are displayed. Say you're in the UK or Australia. The default format is date-month-year.
 
 ```html
 <p>${'2021-06-22T09:21:26.699Z' | date:'en-GB'}</p>
@@ -154,3 +154,172 @@ The locale parameter that we specified in our value converter supports a locale 
 To see our value converter in action, here is what it looks like:
 
 {% embed url="https://stackblitz.com/edit/aurelia-date-value-converter?embed=1&file=my-app.html&hideExplorer=1&view=preview" %}
+
+## Additional Value Converter Examples
+
+To further highlight how useful value converters are, we will provide examples of different value converters you can use in your Aurelia applications.
+
+### Currency Formatting Converter
+
+Formats a number as a currency string.
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('currencyFormat')
+export class CurrencyFormatValueConverter {
+  toView(value, locale = 'en-US', currency = 'USD') {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currency
+    }).format(value);
+  }
+}
+```
+
+```html
+<p>Total: ${amount | currencyFormat:'en-US':'USD'}</p>
+```
+
+### Emoji Converter
+
+Converts specific keywords or phrases to emojis.
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('emoji')
+export class EmojiConverter {
+  private emojiMap = {
+    "love": "❤️", "happy": "😊", "sad": "😢", 
+    "angry": "😠", "coffee": "☕", "star": "⭐", 
+    "cat": "🐱", "dog": "🐶", "pizza": "🍕"
+  };
+
+  toView(value: string) {
+    return value.split(/\s+/).map(word => 
+      this.emojiMap[word.toLowerCase()] || word
+    ).join(' ');
+  }
+}
+```
+
+```html
+<p>${'I love coffee and pizza' | emoji}</p>
+```
+
+### Leet Speak Converter
+
+Converts regular text into 'leet' or '1337' speak, a form of internet slang.
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('leetSpeak')
+export class LeetSpeakConverter {
+  toView(value: string) {
+    return value.replace(/a/gi, '4').replace(/e/gi, '3').replace(/l/gi, '1').replace(/t/gi, '7');
+  }
+}
+```
+
+```html
+<p>${'Aurelia is elite!' | leetSpeak}</p>
+```
+
+### Upside Down Text Converter
+
+Flips the text upside down.
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('upsideDown')
+export class UpsideDownConverter {
+  private flipMap = {
+    'a': 'ɐ', 'b': 'q', 'c': 'ɔ', 'd': 'p', 'e': 'ǝ', 
+    'f': 'ɟ', 'g': 'ƃ', 'h': 'ɥ', 'i': 'ᴉ', 'j': 'ɾ', 
+    'k': 'ʞ', 'l': 'l', 'm': 'ɯ', 'n': 'u', 'o': 'o', 
+    'p': 'd', 'q': 'b', 'r': 'ɹ', 's': 's', 't': 'ʇ', 
+    'u': 'n', 'v': 'ʌ', 'w': 'ʍ', 'x': 'x', 'y': 'ʎ', 
+    'z': 'z', 'A': '∀', 'B': '𐐒', 'C': 'Ɔ', 'D': 'ᗡ', 
+    'E': 'Ǝ', 'F': 'Ⅎ', 'G': '⅁', 'H': 'H', 'I': 'I', 
+    'J': 'ſ', 'K': 'Ʞ', 'L': '˥', 'M': 'W', 'N': 'N', 
+    'O': 'O', 'P': 'Ԁ', 'Q': 'Q', 'R': 'ᴚ', 'S': 'S', 
+    'T': '⊥', 'U': '∩', 'V': 'Λ', 'W': 'M', 'X': 'X', 
+    'Y': '⅄', 'Z': 'Z', '1': 'Ɩ', '2': 'ᄅ', '3': 'Ɛ', 
+    '4': 'ㄣ', '5': 'ϛ', '6': '9', '7': 'ㄥ', '8': '8', 
+    '9': '6', '0': '0', '.': '˙', ',': "'", '?': '¿', 
+    '!': '¡', '"': '„', "'": ',', '`': ',', '(': ')', 
+    ')': '(', '[': ']', ']': '[', '{': '}', '}': '{', 
+    '<': '>', '>': '<', '&': '⅋', '_': '‾'
+  };
+
+  toView(value: string) {
+    return value.split('').map(char => 
+      this.flipMap[char] || char
+    ).reverse().join('');
+  }
+}
+```
+
+```html
+<p>${'Hello Aurelia!' | upsideDown}</p>
+```
+
+### Ordinal Suffix Value Converter
+
+Appends an ordinal suffix to a number (e.g., 1st, 2nd, 3rd, etc.).
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('ordinal')
+export class OrdinalValueConverter {
+  toView(value: number) {
+    const suffixes = ["th", "st", "nd", "rd"];
+    const v = value % 100;
+    return value + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+  }
+}
+```
+
+```html
+<p>${position | ordinal}</p>
+```
+
+### Morse Code Converter
+
+Converts text to Morse code.
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('morse')
+export class MorseCodeValueConverter {
+  private morseAlphabet = {
+    "A": ".-",    "B": "-...",  "C": "-.-.",  "D": "-..",
+    "E": ".",     "F": "..-.",  "G": "--.",   "H": "....",
+    "I": "..",    "J": ".---",  "K": "-.-",   "L": ".-..",
+    "M": "--",    "N": "-.",    "O": "---",   "P": ".--.",
+    "Q": "--.-",  "R": ".-.",   "S": "...",   "T": "-",
+    "U": "..-",   "V": "...-",  "W": ".--",   "X": "-..-",
+    "Y": "-.--",  "Z": "--..",
+    "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+    "5": ".....", "6": "-....", "7": "--...", "8": "---..",
+    "9": "----.", "0": "-----",
+  };
+
+  toView(value: string) {
+    return value.toUpperCase().split('').map(char => 
+      this.morseAlphabet[char] || char
+    ).join(' ');
+  }
+}
+```
+
+```html
+<p>${message | morse}</p>
+```
+
+These fun and unique value converters showcase the versatility of Aurelia's templating engine and provide an enjoyable and engaging way for developers to learn about custom value converters.

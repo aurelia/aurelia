@@ -12,34 +12,9 @@ The Aurelia Fetch Client comes with a host of features that make it a powerful t
 - **Configurable**: Easy to configure with sensible defaults that can be overridden as needed for different request scenarios.
 - **Promise-based Workflow**: Built around Promises, it provides a streamlined way to handle asynchronous HTTP operations.
 
-## Installation
+## Aurelia Fetch Client vs Native Fetch
 
-To start using the Aurelia Fetch Client in your Aurelia 2 project, you need to install the package:
-
-```bash
-npm install @aurelia/fetch-client
-```
-
-## Basic Usage
-
-Here's a quick example of how to set up and make a GET request with the Aurelia Fetch Client in an Aurelia 2 application:
-
-```javascript
-import { HttpClient } from '@aurelia/fetch-client';
-
-const httpClient = new HttpClient();
-
-httpClient.configure(config => {
-  config
-    .withDefaults({ mode: 'cors' })
-    .withBaseUrl('https://api.example.com/');
-});
-
-httpClient.get('users')
-  .then(response => response.json())
-  .then(users => console.log(users))
-  .catch(error => console.error(error));
-```
+Compared to the native Fetch API, Aurelia's Fetch Client offers several advantages. It provides a more straightforward configuration process, better default settings for common scenarios, and helper methods that simplify common tasks. For instance, setting default headers or handling JSON data becomes more intuitive with Aurelia's approach.
 
 ## Configuration Options
 

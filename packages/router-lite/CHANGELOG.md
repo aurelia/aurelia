@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+### Bug Fixes:
+
+* **router-lite:** invoke-lifecycles transition plan (#1821) ([8e961af](https://github.com/aurelia/aurelia/commit/8e961af))
+* **router-lite:** transition plan selection (#1817) ([d214fdc](https://github.com/aurelia/aurelia/commit/d214fdc))
+* **router-lite:** excluded redirectTo from nav-model (#1816) ([085a491](https://github.com/aurelia/aurelia/commit/085a491))
+* **router-lite:** excluded redirectTo from nav-model ([085a491](https://github.com/aurelia/aurelia/commit/085a491))
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

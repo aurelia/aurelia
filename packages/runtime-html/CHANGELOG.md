@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+### Features:
+
+* **mapping:** add mapping for popover apis (#1842) ([6deadf4](https://github.com/aurelia/aurelia/commit/6deadf4))
+
+
+### Bug Fixes:
+
+* **popover:** properly set attrs and add tests (#1851) ([f4b552b](https://github.com/aurelia/aurelia/commit/f4b552b))
+* **au-slot:** ensure work with shadow dom (#1841) ([c750d4f](https://github.com/aurelia/aurelia/commit/c750d4f))
+* **repeater:** duplicate primitive handling, batched mutation fix (#1840) ([703d275](https://github.com/aurelia/aurelia/commit/703d275))
+* **repeat:** fix sort+splice batched operation bug ([703d275](https://github.com/aurelia/aurelia/commit/703d275))
+
+
+### Refactorings:
+
+* **runtime-html:** if TC (#1833) ([7192e74](https://github.com/aurelia/aurelia/commit/7192e74))
+* **runtime-html:** if ([7192e74](https://github.com/aurelia/aurelia/commit/7192e74))
+* **templating:** remove strict binding option from CE (#1807) ([7b4455f](https://github.com/aurelia/aurelia/commit/7b4455f))
+* **tests:** move all under src folder ([7b4455f](https://github.com/aurelia/aurelia/commit/7b4455f))
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

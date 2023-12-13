@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.9"></a>
+# 2.0.0-beta.9 (2023-12-12)
+
+### Bug Fixes:
+
+* **validation:** property accessor ignore instrumenter (#1839) ([342847f](https://github.com/aurelia/aurelia/commit/342847f))
+* **validation:** property accessor ignore instrumenter ([342847f](https://github.com/aurelia/aurelia/commit/342847f))
+* **validation:** allowed rules.off on object w/o rules ([342847f](https://github.com/aurelia/aurelia/commit/342847f))
+
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 

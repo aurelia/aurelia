@@ -15,7 +15,13 @@
 
 ## Templates
 
-* [Template syntax & features](templates/template-syntax.md)
+* [Template Syntax](templates/template-syntax/overview.md)
+  * [Attribute binding](templates/template-syntax/attribute-binding.md)
+  * [Event binding](templates/template-syntax/event-binding.md)
+  * [Text interpolation](templates/template-syntax/text-interpolation.md)
+  * [Template promises](templates/template-syntax/template-promises.md)
+  * [Template references](templates/template-syntax/template-references.md)
+  * [Template variables](templates/template-syntax/template-variables.md)
 * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)
@@ -159,6 +165,7 @@
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
 * [Building a todo application](tutorials/building-a-todo-application.md)
 * [Synthetic view](tutorials/synthetic-view.md)
+* [React inside Aurelia](tutorials/using-react-inside-aurelia.md)
 
 ## Community Contribution
 

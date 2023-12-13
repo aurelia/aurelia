@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/__tests__cjs",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.9",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -25,19 +25,19 @@
     "verify": "tsc --noEmit"
   },
   "dependencies": {
-    "@aurelia/babel-jest": "2.0.0-beta.8",
-    "@aurelia/kernel": "2.0.0-beta.8",
-    "@aurelia/metadata": "2.0.0-beta.8",
-    "@aurelia/platform": "2.0.0-beta.8",
-    "@aurelia/platform-browser": "2.0.0-beta.8",
-    "@aurelia/plugin-conventions": "2.0.0-beta.8",
-    "@aurelia/plugin-gulp": "2.0.0-beta.8",
-    "@aurelia/runtime": "2.0.0-beta.8",
-    "@aurelia/runtime-html": "2.0.0-beta.8",
-    "@aurelia/testing": "2.0.0-beta.8",
-    "@aurelia/ts-jest": "2.0.0-beta.8",
-    "@aurelia/webpack-loader": "2.0.0-beta.8",
-    "@aurelia/parcel-transformer": "2.0.0-beta.8",
+    "@aurelia/babel-jest": "2.0.0-beta.9",
+    "@aurelia/kernel": "2.0.0-beta.9",
+    "@aurelia/metadata": "2.0.0-beta.9",
+    "@aurelia/platform": "2.0.0-beta.9",
+    "@aurelia/platform-browser": "2.0.0-beta.9",
+    "@aurelia/plugin-conventions": "2.0.0-beta.9",
+    "@aurelia/plugin-gulp": "2.0.0-beta.9",
+    "@aurelia/runtime": "2.0.0-beta.9",
+    "@aurelia/runtime-html": "2.0.0-beta.9",
+    "@aurelia/testing": "2.0.0-beta.9",
+    "@aurelia/ts-jest": "2.0.0-beta.9",
+    "@aurelia/webpack-loader": "2.0.0-beta.9",
+    "@aurelia/parcel-transformer": "2.0.0-beta.9",
     "@babel/core": "^7.18.2",
     "@jest/transform": "^28.1.0",
     "@jest/types": "^28.1.0",
@@ -58,7 +58,7 @@
     "vinyl": "^2.2.0"
   },
   "volta": {
-    "node": "16.14.2",
+    "node": "18.19.0",
     "npm": "8.12.1"
   }
 }

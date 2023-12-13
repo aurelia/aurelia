@@ -79,11 +79,70 @@ describe('My basic test', function() {
 
 The `createFixture` method is being used here (specifying HTML to render), but it can do much more. You can pass in your view model as the second argument (a class with properties), and for the third argument, pass in resource dependencies such as components, value converters, etc.
 
+## Fluent API for `createFixture`
+
+Aurelia's testing library provides a fluent API for creating test fixtures, allowing a more readable and flexible setup of component tests. This API enables you to combine configuration methods and build the fixture step-by-step.
+
+### Previous Approach
+
+Before the introduction of the fluent API, setting up a test fixture involved passing all configuration parameters to the `createFixture` function in a single call:
+
+```typescript
+const { appHost, startPromise, tearDown } = await createFixture('<div>', class AppRoot {}, [someConfig1, someConfig2]).promise;
+```
+
+This method requires you to specify the HTML template, the root component class, and any dependencies simultaneously.
+
+### Using the Fluent API
+
+With the fluent API, you can construct the fixture by chaining methods that set individual parts of the configuration. This approach can improve readability and make it easier to customize the setup for different scenarios:
+
+```typescript
+const { appHost, startPromise } = await createFixture
+  .component(MyApp)
+  .deps(someConfig1, someConfig2)
+  .html('<div>')
+  .build();
+```
+
+Here is a breakdown of the methods available in the fluent API:
+
+- `.component(component: any)`: Defines the root component for the test fixture.
+- `.deps(...dependencies: any[])`: Specifies additional dependencies required by the component or the test.
+- `.html(template: string)`: Sets the HTML template for the test. This can be a string literal or a tagged template literal.
+- `.build()`: Constructs the test fixture based on the provided configuration.
+
+### Example: Testing a Custom Element
+
+Suppose you have a custom element `MyCustomElement` with `Dependency1` and `Dependency2`. Here's how you would set up a test for this element using the fluent API:
+
+```typescript
+import { MyCustomElement } from './my-custom-element';
+import { Dependency1, Dependency2 } from './dependencies';
+import { createFixture } from '@aurelia/testing';
+
+describe('MyCustomElement', () => {
+  it('renders correctly', async () => {
+    const { appHost, startPromise } = await createFixture
+      .component(MyCustomElement)
+      .deps(Dependency1, Dependency2)
+      .html('<my-custom-element></my-custom-element>')
+      .build();
+
+    await startPromise;
+    // Perform assertions on appHost to verify rendering
+    // ...
+  });
+});
+```
+
+This fluent API makes it clear what each part of the fixture setup is doing and allows for modifications to the setup without altering a long list of parameters.
+
 ## Testing components
 
-You already saw how to test a component in the basic setup section. In our example, we tested the `au-compose` element, but in most instances, you will be testing your components to ensure they render properly and handle data.
+You already saw how to test a component in the basic setup section. In our example, we tested the `au-compose` element, but in most instances, you will test your components to ensure they render properly and handle data.
 
-To showcase how we can test components and components with bindable properties, we will create a fictitious example.
+We will create a fictitious example to showcase how we can test components and components with bindable properties.
 
 {% code title="person-detail.ts" %}
 ```typescript

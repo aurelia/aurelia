@@ -1,6 +1,6 @@
 # Testing Custom Attributes
 
-Testing custom attributes in Aurelia 2 is analogous to testing components, with the primary difference being that custom attributes do not have a view template. They are, however, responsible for modifying the behavior or appearance of existing DOM elements. By leveraging the same testing techniques used for components, we can effectively validate the functionality of our custom attributes.
+Testing custom attributes in Aurelia is analogous to testing components, with the primary difference being that custom attributes do not have a view template. They are, however, responsible for modifying the behavior or appearance of existing DOM elements. By leveraging the same testing techniques used for components, we can effectively validate the functionality of our custom attributes.
 
 ## Example Custom Attribute
 
@@ -45,7 +45,7 @@ We will now write tests to ensure that the `ColorSquareCustomAttribute` behaves 
 
 ### Test Setup
 
-Before writing tests, ensure that your test environment is properly configured. The setup for testing custom attributes is the same as for components, so you can refer to the previous [Configuring the Test Environment](#configuring-the-test-environment) section.
+Before writing tests, ensure that your test environment is properly configured. The setup for testing custom attributes is the same as for components, so refer to the [Overview](developer-guides/testing/overview.md) section.
 
 ### Writing Tests
 

@@ -91,7 +91,13 @@
 ## Developer Guides
 
 * [Animation](developer-guides/animation.md)
-* [Testing](developer-guides/testing.md)
+* [Testing](developer-guides/testing/overview.md)
+  * [Overview](developer-guides/testing/overview.md)
+  * [Testing attributes](developer-guides/testing/testing-attributes.md)
+  * [Testing components](developer-guides/testing/testing-components.md)
+  * [Testing value converters](developer-guides/testing/testing-value-converters.md)
+  * [Working with the fluent API](developer-guides/testing/fluent-api.md)
+  * [Stubs, mocks & spies](developer-guides/testing/mocks-spies.md)
 * [Logging](getting-to-know-aurelia/logging.md)
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)

@@ -63,34 +63,32 @@
 * [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
 
-## Routing
-
-* @aurelia/router
-  * [Getting Started](routing/getting-started.md)
-  * [Creating Routes](routing/creating-routes.md)
-  * [Routing Lifecycle](routing/routing-lifecycle.md)
-  * [Viewports](routing/viewports.md)
-  * [Navigating](routing/navigating.md)
-  * [Route hooks](routing/router-hooks.md)
-  * [Router animation](routing/router-animation.md)
-  * [Route Events](routing/route-events.md)
-  * [Router Tutorial](routing/router-tutorial.md)
-  * [Router Recipes](routing/router-recipes.md)
-* @aurelia/router-lite
-  * [Getting started](router-lite/getting-started.md)
-  * [Router configuration](router-lite/router-configuration.md)
-  * [Configuring routes](router-lite/configuring-routes.md)
-  * [Viewports](router-lite/viewports.md)
-  * [Navigating](router-lite/navigating.md)
-  * [Lifecycle hooks](router-lite/routing-lifecycle.md)
-  * [Router hooks](router-lite/router-hooks.md)
-  * [Router events](router-lite/router-events.md)
-  * [Navigation model](router-lite/navigation-model.md)
-  * [Transition plan](router-lite/transition-plans.md)
-
 ## Developer Guides
 
 * [Animation](developer-guides/animation.md)
+* Routing
+  * @aurelia/router
+    * [Getting Started](routing/getting-started.md)
+    * [Creating Routes](routing/creating-routes.md)
+    * [Routing Lifecycle](routing/routing-lifecycle.md)
+    * [Viewports](routing/viewports.md)
+    * [Navigating](routing/navigating.md)
+    * [Route hooks](routing/router-hooks.md)
+    * [Router animation](routing/router-animation.md)
+    * [Route Events](routing/route-events.md)
+    * [Router Tutorial](routing/router-tutorial.md)
+    * [Router Recipes](routing/router-recipes.md)
+  * @aurelia/router-lite
+    * [Getting started](router-lite/getting-started.md)
+    * [Router configuration](router-lite/router-configuration.md)
+    * [Configuring routes](router-lite/configuring-routes.md)
+    * [Viewports](router-lite/viewports.md)
+    * [Navigating](router-lite/navigating.md)
+    * [Lifecycle hooks](router-lite/routing-lifecycle.md)
+    * [Router hooks](router-lite/router-hooks.md)
+    * [Router events](router-lite/router-events.md)
+    * [Navigation model](router-lite/navigation-model.md)
+    * [Transition plan](router-lite/transition-plans.md)
 * [Testing](developer-guides/testing/overview.md)
   * [Overview](developer-guides/testing/overview.md)
   * [Testing attributes](developer-guides/testing/testing-attributes.md)

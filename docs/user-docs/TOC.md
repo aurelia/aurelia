@@ -46,26 +46,6 @@
 
 ## Getting to know Aurelia
 
-* [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
-* [Enhance](getting-to-know-aurelia/enhance.md)
-* [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
-* [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
-* [Observation](getting-to-know-aurelia/observation/README.md)
-  * [Observing property changes with @observable](getting-to-know-aurelia/observation/observing-property-changes-with-observable.md)
-  * [Effect observation](getting-to-know-aurelia/observation/effect-observation.md)
-  * [HTML observation](getting-to-know-aurelia/observation/html-observation.md)
-  * [Using observerLocator](getting-to-know-aurelia/observation/using-observerlocator.md)
-* [Watching data](getting-to-know-aurelia/watching-data.md)
-* [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di/README.md)
-  * [What is Dependency Injection?](getting-to-know-aurelia/dependency-injection-di/what-is-dependency-injection.md)
-  * [Resolvers](getting-to-know-aurelia/dependency-injection-di/resolvers.md)
-* [App Tasks](getting-to-know-aurelia/app-tasks.md)
-* [Task Queue](getting-to-know-aurelia/task-queue.md)
-* [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
-
-## Developer Guides
-
-* [Animation](developer-guides/animation.md)
 * Routing
   * @aurelia/router
     * [Getting Started](routing/getting-started.md)
@@ -89,6 +69,26 @@
     * [Router events](router-lite/router-events.md)
     * [Navigation model](router-lite/navigation-model.md)
     * [Transition plan](router-lite/transition-plans.md)
+* [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
+* [Enhance](getting-to-know-aurelia/enhance.md)
+* [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
+* [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
+* [Observation](getting-to-know-aurelia/observation/README.md)
+  * [Observing property changes with @observable](getting-to-know-aurelia/observation/observing-property-changes-with-observable.md)
+  * [Effect observation](getting-to-know-aurelia/observation/effect-observation.md)
+  * [HTML observation](getting-to-know-aurelia/observation/html-observation.md)
+  * [Using observerLocator](getting-to-know-aurelia/observation/using-observerlocator.md)
+* [Watching data](getting-to-know-aurelia/watching-data.md)
+* [Dependency injection (DI)](getting-to-know-aurelia/dependency-injection-di/README.md)
+  * [What is Dependency Injection?](getting-to-know-aurelia/dependency-injection-di/what-is-dependency-injection.md)
+  * [Resolvers](getting-to-know-aurelia/dependency-injection-di/resolvers.md)
+* [App Tasks](getting-to-know-aurelia/app-tasks.md)
+* [Task Queue](getting-to-know-aurelia/task-queue.md)
+* [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
+
+## Developer Guides
+
+* [Animation](developer-guides/animation.md)
 * [Testing](developer-guides/testing/overview.md)
   * [Overview](developer-guides/testing/overview.md)
   * [Testing attributes](developer-guides/testing/testing-attributes.md)

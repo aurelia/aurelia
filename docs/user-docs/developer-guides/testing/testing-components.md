@@ -2,7 +2,7 @@
 
 Testing components in Aurelia 2 is a straightforward process thanks to the framework's design and the utilities provided by the `@aurelia/testing` package. This guide will walk you through the steps to test your components effectively, ensuring they work as expected within the context of a view.
 
-In Aurelia 2, a component typically consists of a view (HTML) and a view model (JavaScript or TypeScript). To ensure the quality and correctness of your components, you should write tests that cover both aspects. Testing components involves checking that the view renders correctly with given data and that the view model behaves as intended when interacting with the view.
+In Aurelia, a component typically consists of a view (HTML) and a view model (JavaScript or TypeScript). To ensure the quality and correctness of your components, you should write tests that cover both aspects. Testing components involves checking that the view renders correctly with given data and that the view model behaves as intended when interacting with the view.
 
 ## Testing Strategy
 
@@ -33,15 +33,15 @@ export class PersonDetail {
 
 ### Writing the Test
 
-Our goal is to test that the `PersonDetail` component renders the expected text when provided with `name` and `age` properties.
+We aim to test that the `PersonDetail` component renders the expected text when provided with `name` and `age` properties.
 
 #### Test Setup
 
-Before writing the actual test, make sure that your environment is correctly set up for testing. Refer to the [Configuring the Test Environment](#configuring-the-test-environment) section for details on how to initialize the Aurelia testing platform.
+Before writing the test, ensure your environment is correctly set up for testing. Refer to the [Overview](developer-guides/testing/overview.md) section for details on how to initialize the Aurelia testing platform.
 
 #### Test Implementation
 
-Create a test file for your component, such as `person-detail.spec.ts`, and implement your tests using your chosen test runner's syntax. The following example uses Jest:
+Create a test file for your component, such as `person-detail.spec.ts`, and implement your tests using the syntax of your chosen test runner. The following example uses Jest:
 
 ```typescript
 import { createFixture } from '@aurelia/testing';
@@ -139,4 +139,4 @@ In the test above, we use Jest's `jest.fn()` to create a mock implementation of 
 
 ## Conclusion
 
-Testing Aurelia 2 components involves setting up a test environment, creating fixtures, and writing assertions based on your expectations. By following these steps and best practices, you can ensure that your components are reliable and maintainable. Remember to clean up after your tests to maintain a clean test environment and to avoid any side effects between tests.
+Testing Aurelia components involves setting up a test environment, creating fixtures, and writing assertions based on your expectations. By following these steps and best practices, you can ensure that your components are reliable and maintainable. Remember to clean up after your tests to maintain a clean test environment and to avoid any side effects between tests.

@@ -92,7 +92,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       callCount = 0;
       window.fetch = function (...args: any[]) {
         callCount++;
-        return mockFetchFn?.(...args as Parameters<typeof fetch>);
+        return mockFetchFn(...args as Parameters<typeof fetch>);
       };
       mockFetchFn = function (request: Request) {
         return {

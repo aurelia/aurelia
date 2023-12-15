@@ -42,6 +42,7 @@
 * [Styling components](components/class-and-style-binding.md)
 * [Slotted content](components/shadow-dom-and-slots.md)
 * [Scope and context](components/scope-and-binding-context.md)
+* [CustomElement API](components/customelement-api.md)
 
 ## Getting to know Aurelia
 

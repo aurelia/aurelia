@@ -12,7 +12,7 @@ export {
   IStorage,
   MemoryStorage,
   RetryInterceptor,
-  retryStrategy,
+  RetryStrategy as retryStrategy,
 } from './interceptors';
 export { HttpClientConfiguration } from './http-client-configuration';
 export { IFetchFn, HttpClient, IHttpClient, HttpClientEvent } from './http-client';

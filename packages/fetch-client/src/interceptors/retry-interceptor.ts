@@ -4,22 +4,17 @@ import { Interceptor, RetryableRequest, RetryConfiguration } from '../interfaces
 /**
  * The strategy to use when retrying requests.
  */
-export const retryStrategy: {
-  fixed: 0;
-  incremental: 1;
-  exponential: 2;
-  random: 3;
-} = {
+export const RetryStrategy = {
   fixed: 0,
   incremental: 1,
   exponential: 2,
   random: 3
-};
+} as const;
 
 const defaultRetryConfig: RetryConfiguration = {
   maxRetries: 3,
   interval: 1000,
-  strategy: retryStrategy.fixed
+  strategy: RetryStrategy.fixed
 };
 
 /**
@@ -34,7 +29,7 @@ export class RetryInterceptor implements Interceptor {
   public constructor(retryConfig?: RetryConfiguration) {
     this.retryConfig = {...defaultRetryConfig, ...(retryConfig ?? {})};
 
-    if (this.retryConfig.strategy === retryStrategy.exponential
+    if (this.retryConfig.strategy === RetryStrategy.exponential
       && (this.retryConfig.interval as number) <= 1000) {
       throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
     }
@@ -124,14 +119,14 @@ function calculateDelay(retryConfig: RetryConfiguration): number {
   }
 
   switch (strategy) {
-    case (retryStrategy.fixed):
-      return retryStrategies[retryStrategy.fixed](interval);
-    case (retryStrategy.incremental):
-      return retryStrategies[retryStrategy.incremental](counter, interval);
-    case (retryStrategy.exponential):
-      return retryStrategies[retryStrategy.exponential](counter, interval);
-    case (retryStrategy.random):
-      return retryStrategies[retryStrategy.random](counter, interval, minRandomInterval, maxRandomInterval);
+    case (RetryStrategy.fixed):
+      return retryStrategies[RetryStrategy.fixed](interval);
+    case (RetryStrategy.incremental):
+      return retryStrategies[RetryStrategy.incremental](counter, interval);
+    case (RetryStrategy.exponential):
+      return retryStrategies[RetryStrategy.exponential](counter, interval);
+    case (RetryStrategy.random):
+      return retryStrategies[RetryStrategy.random](counter, interval, minRandomInterval, maxRandomInterval);
     default:
       throw new Error('Unrecognized retry strategy');
   }

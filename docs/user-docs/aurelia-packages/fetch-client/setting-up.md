@@ -114,12 +114,20 @@ export class MyComponent implements ICustomElementViewModel {
         };
   
         this.http.fetch('comments', {
-            method: 'post',
-            body: JSON(comment)
-         });
+          method: 'post',
+          body: JSON(comment)
+        });
     }
  }   
 ```
+
+For the example above, if you prefer `.get`/`.post`/etc.. style, you can also use corresponding method on the Fetch client
+
+```typescript
+  ...
+  this.http.post('comments', { body: JSON(comment) })
+```
+
 ## Error Handling and Recovery
 
 Robust error handling is crucial for any application making HTTP requests. It involves not only catching and responding to errors but also implementing strategies for error recovery and user notification.
@@ -144,5 +152,59 @@ function handleError(error) {
     // Centralized error handling logic
     console.error('Fetch Error:', error);
     // Additional logic like logging, user notification, etc.
+}
+```
+
+## Retrying failed requests
+
+The Fetch client comes with a retry implementation that can be configured like the following example
+
+```typescript
+http.configure(config => config.withRetry(retryOptions))
+```
+
+There are several options can be specified, per the following type:
+```typescript
+export interface RetryConfiguration {
+  maxRetries: number;
+  interval?: number;
+  strategy?: number | ((retryCount: number) => number);
+  minRandomInterval?: number;
+  maxRandomInterval?: number;
+  counter?: number;
+  requestClone?: Request;
+  doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
+  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
+}
+```
+
+Note that for option `strategy`, there are 4 default strategies provided via the export `RetryStrategy` from the `@aurelia/fetch-client` package:
+
+```typescript
+export const RetryStrategy: {
+  fixed: 0;
+  incremental: 1;
+  exponential: 2;
+  random: 3;
+}
+```
+
+Per the names suggest, the interval which a request will be attempted again will be calcuated accordingly for each strategy.
+If you want to supply your own strategy, the `strategy` option can take a callback to be invoked with the number of the retry and the return value is treated as the time to wait until the next fetch attempt.
+
+## Caching responses
+
+The Fetch client also comes with a cache implementation that helps applications short circuit repetitive GET requests for boosting their performance. Caching for the Fetch client can be configured like the following example:
+
+```typescript
+http.configure(config => config.withCache(cacheOptions));
+```
+
+There are two options that can be supplied to change caching behavior, per the following type:
+
+```typescript
+export interface CacheConfiguration {
+  cacheTime?: number;
+  staleTime?: number;
 }
 ```

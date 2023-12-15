@@ -1,6 +1,6 @@
 # Fetch Client
 
-The `@aurelia/fetch-client` is a modern HTTP client for making network requests, designed to integrate seamlessly with Aurelia 2 applications. It is built on top of the Fetch API, providing an easy-to-use and promise-based interface to communicate with RESTful APIs.
+The `@aurelia/fetch-client` is a HTTP client for making network requests, designed to integrate seamlessly with Aurelia 2 applications. It is built on top of the Fetch API, providing an easy-to-use and promise-based interface to communicate with RESTful APIs.
 
 ## Features
 

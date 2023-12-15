@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import type { ITask } from '@aurelia/platform';
-import { DI, IDisposable, IEventAggregator, IPlatform, resolve } from '@aurelia/kernel';
+import { DI, IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IStorage } from './storage';
 
 export type CacheItem<T = unknown> = {
@@ -8,7 +7,6 @@ export type CacheItem<T = unknown> = {
     cacheTime?: number;
     lastCached?: number;
     data?: T;
-    task?: ITask;
 };
 
 export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>(x => x.singleton(CacheService));
@@ -41,7 +39,6 @@ export type CacheEvent<T> = {
 export class CacheService implements IDisposable {
     private readonly storage = resolve(IStorage);
     private readonly ea = resolve(IEventAggregator);
-    private readonly p = resolve(IPlatform).taskQueue;
     /** @internal */
     private readonly _subscribedEvents: IDisposable[] = [];
 
@@ -71,23 +68,7 @@ export class CacheService implements IDisposable {
 
     public setItem<T>(key: string, value: CacheItem<T>) {
         value.lastCached = Date.now();
-        const existingTask = this.storage.get(key)?.task;
         this.storage.set(key, value);
-
-        if (value.cacheTime) {
-            value.task = this.p.queueTask(() => {
-                // if storage is cleared, this will happen
-                // task will still run but storage is already stopped
-                // this following condition will not happen when item is overriden
-                // as existing task will be overriden
-                if (this.storage.get(key) !== value) {
-                    return;
-                }
-                this.delete(key);
-                this.ea.publish(CacheEvents.CacheExpired, { key, value });
-            }, { delay: value.cacheTime, reusable: false });
-        }
-        existingTask?.cancel();
         this.ea.publish(CacheEvents.Set, { key, value });
     }
 

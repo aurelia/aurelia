@@ -1,8 +1,8 @@
 export { type Interceptor, type RetryConfiguration, type RetryableRequest, type ValidInterceptorMethodName } from './interfaces';
 export { json } from './util';
 export {
-  BrowserLocalStorage,
-  BrowserSessionStorage,
+  // BrowserLocalStorage,
+  // BrowserSessionStorage,
   type CacheEvent,
   CacheEvents,
   CacheInterceptor,

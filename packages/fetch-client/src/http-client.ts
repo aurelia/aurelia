@@ -325,15 +325,23 @@ export class HttpClient {
   }
 
   /** @internal */
-  private _applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[] | undefined, successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: unknown[]): Promise<Request | Response> {
+  private _applyInterceptors(
+    input: Request | Promise<Response | Request>,
+    interceptors: Interceptor[] | undefined,
+    successName: ValidInterceptorMethodName,
+    errorName: ValidInterceptorMethodName,
+    ...interceptorArgs: unknown[]
+  ): Promise<Request | Response> {
     return (interceptors ?? [])
       .reduce(
         (chain, interceptor) => {
           const successHandler = interceptor[successName];
           const errorHandler = interceptor[errorName];
 
-          // TODO: Fix this, as it violates `strictBindCallApply`.
           return chain.then(
+            // todo: should the success handlers be short circuited if the type of value is not as expected?
+            //       example: request handler receiving a response instance or vice versa
+            //       at the moment, the interceptor is always called, even if the type of the value is not as expected
             successHandler ? (value => successHandler.call(interceptor, value, ...interceptorArgs)) : identity,
             errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower);
         },

@@ -55,8 +55,8 @@ describe('fetch-client/fetch-client.cache.spec.ts', function () {
     assert.strictEqual(callCount, 1);
     await client.fetch('/a');
     assert.strictEqual(callCount, 1);
-    // todo: should this be 1? if data was retrieved from cache, it shouldn't update the cache
-    assert.strictEqual(eventCount.Set, 2, `eventCount.Set`);
+    assert.strictEqual(eventCount.CacheMiss, 1, `eventCount.Set`);
+    assert.strictEqual(eventCount.Set, 1, `eventCount.Set`);
     assert.strictEqual(eventCount.CacheHit, 1, `eventCount.CacheHit`);
   });
 
@@ -71,5 +71,4 @@ describe('fetch-client/fetch-client.cache.spec.ts', function () {
   });
 
   // todo: events cache hit, miss, stale, expired
-  // todo: ability to change storage. Browser local storage, session storage
 });

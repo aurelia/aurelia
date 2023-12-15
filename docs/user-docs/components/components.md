@@ -1,41 +1,39 @@
 ---
 description: >-
-  Components underpin most of what you do in Aurelia. Learn all there is to know
-  about authoring components, working with dependencies and more.
+  Components are the building blocks of Aurelia applications. This guide covers the essentials of creating, configuring, and using components, complete with practical code examples.
 ---
 
-# Component basics
+# Component Basics
 
-Custom elements underpin Aurelia applications. They are what you will be spending most of your time creating and can be consisted of the following:
+Custom elements are the foundation of Aurelia applications. As a developer, you'll often create custom elements that consist of:
 
 * An HTML template (view)
-* A class that constitutes the view model
+* A class acting as the view model
 * An optional CSS stylesheet
 
 {% hint style="warning" %}
 **Naming Components**
 
-The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM (see [Styling Components](class-and-style-binding.md)). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements.&#x20;
+The component name, derived from the file name, **must** include a hyphen to comply with the Shadow DOM specifications (see [Styling Components](class-and-style-binding.md)). This requirement is part of the W3C Web Components standard to ensure proper namespacing for custom HTML elements.
 
-
-
-A typical best practice is to choose a two to three-character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+A common best practice is to use a consistent two or three-character prefix for your components. For instance, all Aurelia-provided components start with the prefix `au-`.
 {% endhint %}
 
-There are numerous ways in which you can create custom components. By leveraging conventions, you can create simple components with minimal code to more verbose components that offer greater control over how they work.
+There are various ways to create custom components in Aurelia, from simple convention-based components to more explicit and configurable ones.
 
-There is no right or wrong way to create a component. As you will soon see, you can choose whatever works for your needs.
+The creation process is flexible, allowing you to adopt the approach that best fits your project's needs.
 
-## Creating components
+## Creating Components
 
-In Aurelia, you can export a plain Javascript class, and it will assume that it is a component as a default convention-based setting. Components, by default, are no different to vanilla Javascript classes.
+Aurelia treats any exported JavaScript class as a component by default. As such, there's no difference between an Aurelia component and a vanilla JavaScript class at their core.
 
-This is what a basic component in Aurelia can look like. You would add logic and bindable properties (maybe), but a barebones component is just a class.
+Here's an example of a basic Aurelia component. You might add logic and bindable properties as needed, but at its simplest, a component is just a class.
 
 {% tabs %}
 {% tab title="app-loader.ts" %}
 ```typescript
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 {% endtab %}
@@ -47,25 +45,23 @@ export class AppLoader {
 {% endtab %}
 {% endtabs %}
 
-So far, we haven't written any Aurelia-specific code.
-
-Conventions mean Aurelia will automatically associate our component view model (`app-loader.ts`) with a file of the same name but with `.html` on the end, so `app-loader.html`.
+By convention, Aurelia pairs the `app-loader.ts` view model with a corresponding `app-loader.html` file.
 
 {% hint style="warning" %}
-**Don't Skip the Conventions**
+**Embrace Conventions**
 
-We highly recommend that you leverage conventions where possible. A few benefits include the following:
+Using Aurelia's conventions offers several benefits:
 
-* Reduction of boilerplate.
-* Cleaner, more portable code.
-* Improved readability and learnability of code.
-* Less setup work and maintenance over time.
-* Ease of migration to future versions and platforms.
+* Reduced boilerplate code.
+* Cleaner and more portable codebases.
+* Enhanced code readability and learnability.
+* Less setup and ongoing maintenance.
+* Smoother upgrades to new versions and different platforms.
 {% endhint %}
 
-## Explicit component creation using @customElement
+## Explicit Component Creation with @customElement
 
-If you don't want to use conventions, a `@customElement` decorator allows you to create custom elements verbosely. There are benefits to explicit component creation using the `@customElement` decorator, as conventions are bypassed.
+The `@customElement` decorator provides a way to define components, bypassing conventions explicitly.
 
 {% code title="app-loader.ts" %}
 ```typescript
@@ -77,6 +73,7 @@ import template from './app-loader.html';
     template
 })
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 {% endcode %}
@@ -85,9 +82,9 @@ export class AppLoader {
 <p>Loading...</p>
 ```
 
-There are many reasons you might want to use the `customElement` decorator. It allows you to specify a different HTML template (or inline template string). You can define the name of the HTML tag used to reference the element, the stylings and other aspects of components that Aurelia would handle for you.
+The `@customElement` decorator allows for a variety of customizations, such as defining a different HTML template or inline template string, specifying the element's tag name, and configuring other component properties that would otherwise be managed by Aurelia.
 
-Here is how you can avoid a separate HTML view file entirely and define the template inline:
+Here's an example of defining the template inline:
 
 {% code title="app-loader.ts" %}
 ```typescript
@@ -98,33 +95,35 @@ import { customElement } from 'aurelia';
     template: '<p>Loading...</p>'
 })
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 {% endcode %}
 
-As you can see, we only have a view model now and specify the view template inline. For simple components that require a view model, it's a nice in-between way of creating components without cluttering your application with additional files.
+This approach is useful for simple components that don't require a separate view file.
 
-### Configuring the customElement decorator
+### Configuring the @customElement Decorator
 
-We've seen that the `customElement` decorator allows us to be explicit on our components. Here are some of the valid configuration options for this decorator.
+The `@customElement` decorator allows for several configuration options:
 
 #### name
 
-Allows you to configure what the HTML representation of the component will be. In the above example, specifying "app-loader" as the name of the component means we reference it in our views using `<app-loader></app-loader>`
+This option sets the HTML tag name for the component. For instance, specifying "app-loader" means the component can be used in views as `<app-loader></app-loader>`.
 
-**It makes no sense when you only want to configure the name to use the object notation. You can do this:**
+If you only need to set the name, you can use a simpler syntax:
 
 ```typescript
 import { customElement } from 'aurelia';
 
 @customElement('app-loader')
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 
 #### template
 
-Referencing the app-loader example again allows you to specify your template contents. You can also use the template configuration property to specify no template by providing null as a value:
+The `template` option allows you to define the content of your component's template. You can specify an external template file, an inline template string, or even set it to `null` for components that don't require a view:
 
 ```typescript
 import { customElement } from 'aurelia';
@@ -134,14 +133,15 @@ import { customElement } from 'aurelia';
   template: null
 })
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 
-If you don't specify a `template` property, Aurelia won't use conventions to find the template either.
+Omitting the `template` property means Aurelia won't use conventions to locate the template.
 
 #### dependencies
 
-Components can have explicit dependencies declared from within the `customElement` decorator too. This means you do not have to import them from within your template using `<import>` , which can be a nice explicit way to handle dependencies.
+You can declare explicit dependencies within the `@customElement` decorator, which can be an explicit way to manage dependencies without using the `<import>` tag in your templates:
 
 ```typescript
 import { customElement } from 'aurelia';
@@ -149,19 +149,20 @@ import { NumberInput } from './number-input';
 
 @customElement({
   name: 'app-loader',
-  dependencies: [ NumberInput ]
+  dependencies: [NumberInput]
 })
 export class AppLoader {
+  // Component logic goes here
 }
 ```
 
 {% hint style="info" %}
-It is worth noting that dependencies can also be specified from within the template using the `import` tag, or they can be globally registered through [Aurelia's Dependency Injection layer](../getting-to-know-aurelia/dependency-injection-di/).
+Dependencies can also be declared within the template using the `<import>` tag or globally registered through [Aurelia's Dependency Injection layer](../getting-to-know-aurelia/dependency-injection-di/).
 {% endhint %}
 
-## Programmatic component creation
+## Programmatic Component Creation
 
-Aurelia also has a more verbose API for creating components in your applications. You can use this approach to create components inline without needing separate files. This approach also works nicely for testing.
+Aurelia provides an API for creating components programmatically, which is especially useful for testing.
 
 ```typescript
 import { CustomElement } from '@aurelia/runtime-html';
@@ -170,25 +171,27 @@ export class App {
   MyField = CustomElement.define({
     name: 'my-input',
     template: '<input value.bind="value">'
-  })
+  });
+
+  // Application logic goes here
 }
 ```
 
-By calling `CustomElement.define` we can create a component using familiar syntax to the verbose decorator approach above, including dependencies and more.
+The `CustomElement.define` method allows for a syntax similar to the `@customElement` decorator, including dependencies and other configurations.
 
 {% hint style="warning" %}
-While it is good to know what APIs Aurelia provides, in most instances, you won't need to define custom elements inside your Aurelia applications using the `define` functionality. This is helpful when writing tests, which you can learn about [here](../developer-guides/testing.md).
+While it's useful to know about this API, it's typically unnecessary to define custom elements within Aurelia applications. This method is more relevant for writing tests, which you can learn about [here](../developer-guides/testing.md).
 {% endhint %}
 
-## HTML only components
+## HTML-Only Components
 
-More often than not, when you create a component in Aurelia, you want to create a view and view model-based component. However, Aurelia uniquely allows you to create components using just HTML.
+It's possible to create components in Aurelia using only HTML without a corresponding view model.
 
 {% hint style="info" %}
-When working with HTML-only components, the file name becomes the HTML tag. Say you had a component called `app-loader.html` you would reference it using `<app-loader></app-loader>`
+The file name determines the component's tag name. For example, a file named `app-loader.html` would be used as `<app-loader></app-loader>`.
 {% endhint %}
 
-Say you wanted to create a loader component that didn't require any logic and displayed a CSS loader. It might look something like this. We will call this `app-loader.html`
+For instance, an HTML-only loader component might look like this:
 
 {% code title="app-loader.html" %}
 ```html
@@ -204,13 +207,9 @@ To use this component, import and reference it:
 <app-loader></app-loader>
 ```
 
-{% hint style="info" %}
-Aurelia infers the component's name from the file name (it strips off the .html file extension).
-{% endhint %}
+### HTML Components with Bindable Properties
 
-### HTML components with bindable properties
-
-Sometimes you want a custom element with bindable properties. Aurelia allows you to do this without needing a view model using the `<bindable>` custom element. The following is what you would have used the `@bindable` decorator for inside your view model if you had one.
+You can create HTML components with bindable properties using the `<bindable>` custom element, which serves a similar purpose to the `@bindable` decorator in a view model:
 
 {% code title="app-loader.html" %}
 ```html
@@ -220,21 +219,19 @@ Sometimes you want a custom element with bindable properties. Aurelia allows you
 ```
 {% endcode %}
 
-Using it in your application would look like this:
+Here's how you would use it:
 
 ```html
 <import from="./app-loader.html"></import>
 
-<app-loader loading.bind="mybool"></app-loader>
+<app-loader loading.bind="isLoading"></app-loader>
 ```
 
-This replaces the equivalent of a view model-based component, which would use the `bindable` decorator.
+## Components Without Views
 
-## Components without views
+Though less common, there are times when you might need a component with a view model but no view. Aurelia allows for this with the `@customElement` decorator by omitting the `template` property.
 
-If you worked with Aurelia 1, you might have been familiar with a feature  `@noView` that allowed you to mark your components as viewless (they had a view model but no accompanying view). You probably think, "This sounds a lot like a custom attribute", but not quite. However, there are situations where a custom element without a view is needed.
-
-One prime example of a viewless component is a loading indicator using the nprogress library.
+For example, a loading indicator using the nprogress library might be implemented as follows:
 
 ```typescript
 import nprogress from 'nprogress';
@@ -243,7 +240,8 @@ import { bindable, customElement } from 'aurelia';
 import 'nprogress/nprogress.css';
 
 @customElement({
-    name: 'loading-indicator'
+    name: 'loading-indicator',
+    template: null // No view template
 })
 export class LoadingIndicator {
   @bindable loading = false;
@@ -258,17 +256,15 @@ export class LoadingIndicator {
 }
 ```
 
-In this example, the nprogress library handles adding and removing styles/elements from the DOM, so we omit the template. By choosing not to specify a template, this component will not have an accompanying view.
+In this example, nprogress manages the DOM manipulation, so a template isn't necessary.
 
-While a viewless component is a very specific need, and in many cases, a custom attribute is a better option, omitting the `template` property of `customElement` you can achieve the same thing.
+## Registering Your Components
 
-## Registering your components
+To use your custom components, you must register them either globally or within the scope of their intended use.
 
-To enable the custom markup to be available within your template or globally, you must register your element. To use a component, you must register it globally or within the component, you would like to use it within.
+### Globally Registering a Component
 
-### Globally registering an element
-
-To register your component to be used globally within your application, you will use `.register` in `main.ts`
+Register a component globally in `main.ts` using the `.register` method:
 
 ```javascript
 import Aurelia from 'aurelia';
@@ -282,28 +278,28 @@ Aurelia
 ```
 
 {% hint style="info" %}
-To learn more about working with Aurelia's Dependency Injection and registering dependencies, consult the [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/) documentation to learn more.
+For more on working with Aurelia's Dependency Injection and registering dependencies, see the [Dependency Injection documentation](../getting-to-know-aurelia/dependency-injection-di/).
 {% endhint %}
 
-### Importing the element within the template
+### Importing a Component Within a Template
 
-Adding your element to be used within the template is as easy as adding the following line in your `.html` file. Paths for the `import` element are relative, so ensure that your import paths are correct if you encounter any issues.
+To use a component within a specific template, import it using the `<import>` tag:
 
 ```html
 <import from="./path-to/some-element"></import>
 ```
 
-## Containerless components
+## Containerless Components
 
-In some scenarios, you want the ability to use a component but remove the tags from your markup leaving behind the inner part and removing the outer custom element tags. You can achieve this using containerless functionality.
+Sometimes you may want to render a component without its enclosing tags, effectively making it "containerless."
 
 {% hint style="warning" %}
-When using containerless functionality, because the tags are removed from the DOM, you will lose the ability to reference the element container tags. This can make tasks such as using third-party libraries or writing tests more difficult as you lose the reference. We recommend avoiding the use of containerless where possible.
+Be cautious when using containerless components, as you lose the ability to reference the element's container tags, which can complicate interactions with third-party libraries or testing. Use containerless only when necessary.
 {% endhint %}
 
-### Configuring the customElement
+### Using the @customElement Decorator
 
-If you are creating components using the `customElement` decorator, you can denote components are containerless using the `containerless` boolean configuration property.
+Mark a component as containerless with the `containerless` property:
 
 ```typescript
 import { customElement, ICustomElementViewModel } from 'aurelia';
@@ -313,15 +309,13 @@ import { customElement, ICustomElementViewModel } from 'aurelia';
     containerless: true
 })
 export class MyComponent implements ICustomElementViewModel {
-    constructor() {
-
-    }
- }
+  // Component logic goes here
+}
 ```
 
-### The containerless decorator
+### The @containerless Decorator
 
-Aurelia provides a convenient decorator to mark your components as containerless.
+The `@containerless` decorator is an alternative way to indicate a containerless component:
 
 ```typescript
 import { ICustomElementViewModel } from 'aurelia';
@@ -329,20 +323,18 @@ import { containerless } from '@aurelia/runtime-html';
 
 @containerless
 export class MyComponent implements ICustomElementViewModel {
-    constructor() {
-
-    }
- }
+  // Component logic goes here
+}
 ```
 
-When referencing our component using `<my-component></my-component>` Aurelia will strip out the tags and leave the inner part.
+When using `<my-component></my-component>`, Aurelia will remove the surrounding tags, leaving only the inner content.
 
-### Containerless element in views
+### Containerless Elements in Views
 
-Inside of your views, you can denote a containerless component by using the `<containerless>` element. Unlike the other approaches, you specify this element inside your HTML views.
+Declare a containerless component inside a view using the `<containerless>` tag:
 
 ```html
 <containerless>
-
-<p>My custom element markup</p>
+  <!-- Custom element markup goes here -->
+</containerless>
 ```

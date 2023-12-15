@@ -2,7 +2,7 @@
 
 * [Introduction](README.md)
 
-## Getting Started
+## Introduction
 
 * [Quick start](getting-started/quick-install-guide.md)
 * [Aurelia for new developers](getting-started/aurelia-for-new-developers.md)
@@ -22,7 +22,7 @@
   * [Template promises](templates/template-syntax/template-promises.md)
   * [Template references](templates/template-syntax/template-references.md)
   * [Template variables](templates/template-syntax/template-variables.md)
-* [Globals](templates/globals.md)
+  * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)
 * [Binding behaviors](templates/binding-behaviors.md)
@@ -32,7 +32,6 @@
 * [List Rendering](templates/repeats-and-list-rendering.md)
 * [Lambda Expressions](templates/lambda-expressions.md)
 * [Local templates (inline templates)](templates/local-templates.md)
-* [Attribute Binding](templates/advanced-attribute-binding.md)
 * [SVG](templates/svg.md)
 
 ## Components
@@ -46,6 +45,29 @@
 
 ## Getting to know Aurelia
 
+* Routing
+  * @aurelia/router
+    * [Getting Started](routing/getting-started.md)
+    * [Creating Routes](routing/creating-routes.md)
+    * [Routing Lifecycle](routing/routing-lifecycle.md)
+    * [Viewports](routing/viewports.md)
+    * [Navigating](routing/navigating.md)
+    * [Route hooks](routing/router-hooks.md)
+    * [Router animation](routing/router-animation.md)
+    * [Route Events](routing/route-events.md)
+    * [Router Tutorial](routing/router-tutorial.md)
+    * [Router Recipes](routing/router-recipes.md)
+  * @aurelia/router-lite
+    * [Getting started](router-lite/getting-started.md)
+    * [Router configuration](router-lite/router-configuration.md)
+    * [Configuring routes](router-lite/configuring-routes.md)
+    * [Viewports](router-lite/viewports.md)
+    * [Navigating](router-lite/navigating.md)
+    * [Lifecycle hooks](router-lite/routing-lifecycle.md)
+    * [Router hooks](router-lite/router-hooks.md)
+    * [Router events](router-lite/router-events.md)
+    * [Navigation model](router-lite/navigation-model.md)
+    * [Transition plan](router-lite/transition-plans.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
@@ -63,35 +85,16 @@
 * [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
 
-## Routing
-
-* [Getting Started](routing/getting-started.md)
-* [Creating Routes](routing/creating-routes.md)
-* [Routing Lifecycle](routing/routing-lifecycle.md)
-* [Viewports](routing/viewports.md)
-* [Navigating](routing/navigating.md)
-* [Route hooks](routing/router-hooks.md)
-* [Router animation](routing/router-animation.md)
-* [Route Events](routing/route-events.md)
-* [Router Tutorial](routing/router-tutorial.md)
-* [Router Recipes](routing/router-recipes.md)
-
-## Router-lite
-* [Getting started](router-lite/getting-started.md)
-* [Router configuration](router-lite/router-configuration.md)
-* [Configuring routes](router-lite/configuring-routes.md)
-* [Viewports](router-lite/viewports.md)
-* [Navigating](router-lite/navigating.md)
-* [Lifecycle hooks](router-lite/routing-lifecycle.md)
-* [Router hooks](router-lite/router-hooks.md)
-* [Router events](router-lite/router-events.md)
-* [Navigation model](router-lite/navigation-model.md)
-* [Transition plan](router-lite/transition-plans.md)
-
 ## Developer Guides
 
 * [Animation](developer-guides/animation.md)
-* [Testing](developer-guides/testing.md)
+* [Testing](developer-guides/testing/overview.md)
+  * [Overview](developer-guides/testing/overview.md)
+  * [Testing attributes](developer-guides/testing/testing-attributes.md)
+  * [Testing components](developer-guides/testing/testing-components.md)
+  * [Testing value converters](developer-guides/testing/testing-value-converters.md)
+  * [Working with the fluent API](developer-guides/testing/fluent-api.md)
+  * [Stubs, mocks & spies](developer-guides/testing/mocks-spies.md)
 * [Logging](getting-to-know-aurelia/logging.md)
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)
@@ -115,7 +118,13 @@
     * [AUR0015](developer-guides/error-messages/0001-to-0015/aur0015.md)
 * [Bundlers](developer-guides/bundlers/README.md)
 * [Recipes](developer-guides/scenarios/README.md)
+  * [Auth0 integration](developer-guides/scenarios/auth0.md) 
+  * [Cordova/Phonegap integration](developer-guides/scenarios/cordova.md)
+  * [Containerizing Aurelia apps with Docker](developer-guides/scenarios/docker.md) 
   * [CSS-in-JS with Emotion](developer-guides/scenarios/css-in-js-with-emotion.md)
+  * [Apollo GraphQL integration](developer-guides/scenarios/graphql.md)
+  * [Progress Web Apps (PWA's)](developer-guides/scenarios/pwa.md)
+  * [SignalR integration](developer-guides/scenarios/signalr-integration.md) 
   * [TailwindCSS integration](developer-guides/scenarios/tailwindcss-integration.md)
   * [Strongly-typed templates](developer-guides/scenarios/strongly-typed-template.md)
   * [DOM style injection](developer-guides/scenarios/dom-style-injection.md)
@@ -151,7 +160,13 @@
   * [I18n Internationalization](aurelia-packages/validation/i18n-internationalization.md)
   * [Migration Guide & Breaking Changes](aurelia-packages/validation/migration-guide.md)
 * [i18n Internationalization](aurelia-packages/internationalization.md)
-* [Fetch Client](aurelia-packages/fetch-client.md)
+* [Fetch Client](aurelia-packages/fetch-client/overview.md)
+  * [Overview](aurelia-packages/fetch-client/overview.md)
+  * [Setup and Configuration](aurelia-packages/fetch-client/setting-up.md)
+  * [Response types](aurelia-packages/fetch-client/response-types.md)
+  * [Working with forms](aurelia-packages/fetch-client/forms.md)
+  * [Intercepting responses & requests](aurelia-packages/fetch-client/interceptors.md)
+  * [Advanced](aurelia-packages/fetch-client/advanced.md)
 * [Event Aggregator](aurelia-packages/event-aggregator.md)
 * [State](aurelia-packages/state.md)
 * [Store](aurelia-packages/store/README.md)

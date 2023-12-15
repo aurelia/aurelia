@@ -118,6 +118,7 @@
     * [AUR0015](developer-guides/error-messages/0001-to-0015/aur0015.md)
 * [Bundlers](developer-guides/bundlers/README.md)
 * [Recipes](developer-guides/scenarios/README.md)
+  * [Multi root](developer-guides/scenarios/multi-root.md) 
   * [Auth0 integration](developer-guides/scenarios/auth0.md) 
   * [Cordova/Phonegap integration](developer-guides/scenarios/cordova.md)
   * [Containerizing Aurelia apps with Docker](developer-guides/scenarios/docker.md) 

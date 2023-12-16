@@ -47,13 +47,10 @@ async function createFixture<T extends Constructable>(
   container.register(RouterConfiguration);
   container.register(...deps);
 
-  const component = container.get(Component);
-  const router = container.get(IRouter);
-
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
 
-  au.app({ component, host });
+  au.app({ component: Component, host });
 
   await au.start();
 
@@ -65,10 +62,10 @@ async function createFixture<T extends Constructable>(
     ctx,
     au,
     host,
-    component,
+    component: au.root.controller.viewModel as InstanceType<T>,
     platform,
     container,
-    router,
+    router: container.get(IRouter),
     startTracing() {
       logConfig.level = LogLevel.trace;
     },
@@ -205,6 +202,22 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   })
   @customElement({ name: 'root2', template: `root2${vp(2)}` })
   class Root2 { }
+
+  it('injecting Router and IRouter should yield the same instance', async function () {
+    @customElement({ name: 'app', template: 'app' })
+    class App {
+      public constructor(
+        @inject(Router) public readonly router1: Router,
+        @IRouter public readonly router2: IRouter,
+      ) {}
+    }
+
+    const  { component, tearDown } = await createFixture(App, []);
+
+    assert.strictEqual(component.router1, component.router2, 'router mismatch');
+
+    await tearDown();
+  });
 
   // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
   it(`root1 can load a01 as a string and can determine if it's active`, async function () {

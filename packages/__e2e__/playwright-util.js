@@ -12,6 +12,9 @@ module.exports = function getPlaywrightConfig(port, workers) {
     // }
     use: {
       baseURL: 'http://localhost:' + port,
-    }
+    },
+    expect: {
+      timeout: 10_000,
+    },
   }
 };

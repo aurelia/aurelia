@@ -81,7 +81,7 @@ export class CacheService implements IDisposable {
             return;
         }
         const value = this.storage.get<T>(key);
-        if (!value.staleTime || !value.lastCached) {
+        if (!value?.staleTime || !value?.lastCached) {
             this.ea.publish(CacheEvents.CacheHit, { key, value });
             return value;
         }

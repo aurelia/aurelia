@@ -7,7 +7,7 @@ export type IStorage = {
     /** Returns true if there's a value associated with the given key */
     has: (key: string) => boolean;
     set: <T = unknown>(key: string, value: CacheItem<T>) => void;
-    get: <T = unknown>(key: string) => CacheItem<T>;
+    get: <T = unknown>(key: string) => CacheItem<T> | undefined;
     clear: () => void;
 };
 

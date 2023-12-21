@@ -1,13 +1,15 @@
 import { resolve } from '@aurelia/kernel';
 import { CacheConfiguration, Interceptor } from '../../interfaces';
-import { ICacheService } from './cach-service';
+import { CacheEvents, ICacheService } from './cach-service';
 
 /** Default configuration which gets spread with overrides */
 const defaultCacheConfig: CacheConfiguration = {
   /** 5 minutes */
   cacheTime: 300_000,
   /** Always stale */
-  staleTime: 0
+  staleTime: 0,
+  refreshStaleImmediate : false,
+  refreshInterval: 0
 };
 
 /**
@@ -24,6 +26,7 @@ export class CacheInterceptor implements Interceptor {
 
   public constructor(config?: CacheConfiguration) {
     this._config = { ...defaultCacheConfig, ...(config ?? {}) };
+    this._cacheService.startBackgroundRefresh(this._config.refreshInterval);
   }
 
   public request(request: Request): Request | Response | Promise<Request | Response> {
@@ -39,10 +42,16 @@ export class CacheInterceptor implements Interceptor {
     if (response.headers.has(CacheInterceptor.cacheHeader)) {
       return response;
     }
-    this._cacheService.setItem(this.key(request), {
+    const key = this.key(request);
+    this._cacheService.setItem(key, {
       data: response,
       ...this._config
     });
+
+    if(this._config?.refreshStaleImmediate && this._config.staleTime !== undefined && this._config.staleTime > 0) {
+      this._cacheService.setStaleTimer(key, this._config.staleTime, request);
+    }
+
     return response;
   }
 

@@ -69,4 +69,6 @@ export interface RetryConfiguration {
 export interface CacheConfiguration {
   cacheTime?: number;
   staleTime?: number;
+  refreshStaleImmediate?: boolean;
+  refreshInterval?: number;
 }

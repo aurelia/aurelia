@@ -5,7 +5,7 @@ import { BrowserStorage } from './storage-browser';
  * A simple browser session storage based storage implementation for cache interceptor
  */
 export class BrowserSessionStorage extends BrowserStorage {
-  constructor(){
+  public constructor(){
     super(resolve(IPlatform).globalThis.sessionStorage);
   }
 }

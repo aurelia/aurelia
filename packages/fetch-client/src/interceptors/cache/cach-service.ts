@@ -12,10 +12,6 @@ export type CacheItem<T = unknown> = {
     data?: T;
 };
 
-
-
-
-
 export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>(x => x.singleton(CacheService));
 
 /**

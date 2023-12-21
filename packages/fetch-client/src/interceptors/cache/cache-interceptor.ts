@@ -46,7 +46,7 @@ export class CacheInterceptor implements Interceptor {
     this._cacheService.setItem(key, {
       data: response,
       ...this._config
-    });
+    }, request);
 
     if(this._config?.refreshStaleImmediate && this._config.staleTime !== undefined && this._config.staleTime > 0) {
       this._cacheService.setStaleTimer(key, this._config.staleTime, request);

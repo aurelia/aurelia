@@ -6,7 +6,7 @@ import { BrowserStorage } from './storage-browser';
  * A simple browser local storage based storage implementation for cache interceptor
  */
 export class BrowserLocalStorage extends BrowserStorage {
-    constructor(){
+    public constructor(){
       super(resolve(IPlatform).globalThis.localStorage);
     }
 }

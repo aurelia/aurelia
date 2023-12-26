@@ -11,6 +11,12 @@ export class Parameter {
     public readonly isStar: boolean,
     public readonly pattern: RegExp | null,
   ){}
+
+  public satisfiesPattern(value: string): boolean {
+    if (this.pattern === null) return true;
+    this.pattern.lastIndex = 0;
+    return this.pattern.test(value);
+  }
 }
 
 export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
@@ -196,14 +202,12 @@ class Candidate<T> {
         // check for constraint if this state's segment is constrained
         // and the state is the last dynamic state in a series of dynamic states.
         // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
-        const pattern = (segment as DynamicSegment<T>).pattern ?? null;
-        const checkConstraint = pattern !== null
+        const checkConstraint = state.isConstrained
           && !Object.is(states[i + 1]?.segment, segment);
 
         if (!checkConstraint) continue;
 
-        pattern.lastIndex = 0;
-        this.satisfiesConstraints = this.satisfiesConstraints && pattern.test(params[name]!);
+        this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(params[name]!);
         // TODO: log error if constraint is not satisfied and break early
       }
     }
@@ -571,6 +575,7 @@ class State<T> {
 
   public endpoint: Endpoint<T> | null = null;
   public readonly length: number;
+  public readonly isConstrained: boolean = false;
 
   public constructor(
     public readonly prevState: AnyState<T> | null,
@@ -583,6 +588,7 @@ class State<T> {
         this.isSeparator = false;
         this.isDynamic = true;
         this.isOptional = segment.optional;
+        this.isConstrained = segment.isConstrained;
         break;
       case SegmentKind.star:
       case SegmentKind.residue:
@@ -651,6 +657,12 @@ class State<T> {
         // segment separators (slashes) are non-segments. We could say return ch === '/' as well, technically.
         return this.value.includes(ch);
     }
+  }
+
+  public satisfiesConstraint(value: string): boolean {
+    return this.isConstrained
+      ? (this.segment as DynamicSegment<T>).satisfiesPattern(value)
+      : true;
   }
 }
 
@@ -741,6 +753,12 @@ class DynamicSegment<T> {
       b.optional === this.optional &&
       b.name === this.name
     );
+  }
+
+  public satisfiesPattern(value: string): boolean {
+    if (this.pattern === null) return true;
+    this.pattern.lastIndex = 0;
+    return this.pattern.test(value);
   }
 }
 

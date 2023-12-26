@@ -626,6 +626,10 @@ export class RouteContext {
           }
           value = '';
         } else {
+          if (!param.satisfiesPattern(value)) {
+            errors.push(`The value '${value}' for the parameter '${key}' does not satisfy the pattern '${param.pattern}'.`);
+            return null;
+          }
           consumed[key] = value;
         }
 

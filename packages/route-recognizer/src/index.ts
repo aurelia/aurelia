@@ -146,7 +146,8 @@ class Candidate<T> {
     }
   }
 
-  public finalize(): boolean {
+  /** @internal */
+  public _finalize(): boolean {
     function collectSkippedStates(
       skippedStates: DynamicState<T>[],
       state: AnyState<T>,
@@ -172,11 +173,12 @@ class Candidate<T> {
     }
     collectSkippedStates(this.skippedStates, this.head);
     if (!this.isConstrained) return true;
-    this.getParams();
+    this._getParams();
     return this.satisfiesConstraints!;
   }
 
-  public getParams(): Record<string, string | undefined> {
+  /** @internal */
+  public _getParams(): Record<string, string | undefined> {
     let params = this.params;
     if (params != null) return params;
     const { states, chars, endpoint } = this;
@@ -208,7 +210,6 @@ class Candidate<T> {
         if (!checkConstraint) continue;
 
         this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(params[name]!);
-        // TODO: log error if constraint is not satisfied and break early
       }
     }
 
@@ -346,7 +347,7 @@ class RecognizeResult<T> {
   }
 
   public getSolution(): Candidate<T> | null {
-    const candidates = this.candidates.filter(x => hasEndpoint(x) && x.finalize());
+    const candidates = this.candidates.filter(x => hasEndpoint(x) && x._finalize());
     if (candidates.length === 0) {
       return null;
     }
@@ -506,7 +507,7 @@ export class RouteRecognizer<T> {
     }
 
     const { endpoint } = candidate;
-    const params = candidate.getParams();
+    const params = candidate._getParams();
 
     return new RecognizedRoute<T>(endpoint, params);
   }

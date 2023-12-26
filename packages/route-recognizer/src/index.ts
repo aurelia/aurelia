@@ -195,7 +195,8 @@ class Candidate<T> {
 
         // check for constraint if this state's segment is constrained
         // and the state is the last dynamic state in a series of dynamic states.
-        const pattern = (segment as DynamicSegment<T>).pattern;
+        // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
+        const pattern = (segment as DynamicSegment<T>).pattern ?? null;
         const checkConstraint = pattern !== null
           && !Object.is(states[i + 1]?.segment, segment);
 
@@ -718,6 +719,7 @@ class DynamicSegment<T> {
     public readonly optional: boolean,
     public readonly pattern: RegExp | null,
   ) {
+    if (pattern === void 0) throw new Error(`Pattern is undefined`);
     this.isConstrained = pattern !== null;
   }
 

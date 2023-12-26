@@ -175,7 +175,7 @@ class Candidate<T> {
     if (params != null) return params;
     const { states, chars, endpoint } = this;
 
-    params = this.params = {};
+    params = {};
     this.satisfiesConstraints = true;
     // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
     for (const param of endpoint.params) {
@@ -208,6 +208,9 @@ class Candidate<T> {
       }
     }
 
+    if(this.satisfiesConstraints) {
+      this.params = params;
+    }
     return params;
   }
 

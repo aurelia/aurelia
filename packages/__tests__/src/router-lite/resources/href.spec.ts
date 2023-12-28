@@ -324,7 +324,7 @@ describe('router-lite/resources/href.spec.ts', function () {
     @customElement({ name: 'not-found', template: `nf` })
     class NotFound { }
 
-    @route({ id: 'product', path: 'product/:id{{\\d+}}' })
+    @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
     @customElement({ name: 'pro-duct', template: `product \${id}` })
     class Product {
       public id: unknown;

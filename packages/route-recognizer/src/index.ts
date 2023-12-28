@@ -433,14 +433,8 @@ export class RouteRecognizer<T> {
           const { name, optional } = match?.groups ?? {};
           const isOptional = optional === '?';
           if (name === RESIDUE) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
-          let pattern: RegExp | null = null;
-          let constraint = match?.groups?.constraint;
-          if (constraint != null) {
-            if (!constraint.startsWith('^') && !constraint.endsWith('$')) {
-              constraint = `^${constraint}$`;
-            }
-            pattern = new RegExp(constraint);
-          }
+          const constraint = match?.groups?.constraint;
+          const pattern: RegExp | null = constraint != null ? new RegExp(constraint) : null;
           params.push(new Parameter(name, isOptional, false, pattern));
           state = new DynamicSegment<T>(name, isOptional, pattern).appendTo(state);
           break;

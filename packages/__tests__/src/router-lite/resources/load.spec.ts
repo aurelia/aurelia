@@ -1232,4 +1232,57 @@ describe('router-lite/resources/load.spec.ts', function () {
       await au.stop(true);
     });
   }
+
+  it('respects constrained routes', async function () {
+    @route('nf')
+    @customElement({ name: 'not-found', template: `nf` })
+    class NotFound { }
+
+    @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
+    @customElement({ name: 'pro-duct', template: `product \${id}` })
+    class Product {
+      public id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @route({ routes: [Product, NotFound], fallback: 'nf' })
+    @customElement({
+      name: 'ro-ot',
+      template: `
+        <a load="route:product; params.bind:{id: 42}"></a>
+        <a load="route:product; params.bind:{id: foo}"></a>
+        <a load="product/bar"></a>
+        <au-viewport></au-viewport>
+      `
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 42');
+
+    anchors[1].click();
+    await queue.yield();
+    assert.html.textContent(host, 'nf');
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 42');
+
+    anchors[2].click();
+    await queue.yield();
+    assert.html.textContent(host, 'nf');
+
+    await au.stop(true);
+  });
 });

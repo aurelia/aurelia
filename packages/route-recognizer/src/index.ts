@@ -9,7 +9,14 @@ export class Parameter {
     public readonly name: string,
     public readonly isOptional: boolean,
     public readonly isStar: boolean,
+    public readonly pattern: RegExp | null,
   ){}
+
+  public satisfiesPattern(value: string): boolean {
+    if (this.pattern === null) return true;
+    this.pattern.lastIndex = 0;
+    return this.pattern.test(value);
+  }
 }
 
 export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
@@ -57,6 +64,9 @@ export class RecognizedRoute<T> {
 class Candidate<T> {
   public head: AnyState<T>;
   public endpoint: Endpoint<T>;
+  private params: Record<string, string | undefined> | null = null;
+  private isConstrained: boolean = false;
+  private satisfiesConstraints: boolean | null = null;
 
   public constructor(
     private readonly chars: string[],
@@ -123,6 +133,9 @@ class Candidate<T> {
     if (stateToAdd !== null) {
       states.push(this.head = stateToAdd);
       chars.push(ch);
+      this.isConstrained = this.isConstrained
+        || (stateToAdd as AnyState<T>).isDynamic
+        && ((stateToAdd as AnyState<T>).segment as DynamicSegment<T>)!.isConstrained;
       if ((stateToAdd as AnyState<T>).endpoint !== null) {
         this.endpoint = (stateToAdd as AnyState<T>).endpoint!;
       }
@@ -133,7 +146,8 @@ class Candidate<T> {
     }
   }
 
-  public finalize(): void {
+  /** @internal */
+  public _finalize(): boolean {
     function collectSkippedStates(
       skippedStates: DynamicState<T>[],
       state: AnyState<T>,
@@ -158,12 +172,19 @@ class Candidate<T> {
       }
     }
     collectSkippedStates(this.skippedStates, this.head);
+    if (!this.isConstrained) return true;
+    this._getParams();
+    return this.satisfiesConstraints!;
   }
 
-  public getParams(): Record<string, string | undefined> {
+  /** @internal */
+  public _getParams(): Record<string, string | undefined> {
+    let params = this.params;
+    if (params != null) return params;
     const { states, chars, endpoint } = this;
 
-    const params: Record<string, string | undefined> = {};
+    params = {};
+    this.satisfiesConstraints = true;
     // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
     for (const param of endpoint.params) {
       params[param.name] = void 0;
@@ -172,15 +193,29 @@ class Candidate<T> {
     for (let i = 0, ii = states.length; i < ii; ++i) {
       const state = states[i];
       if (state.isDynamic) {
-        const name = state.segment.name;
+        const segment = state.segment;
+        const name = segment.name;
         if (params[name] === void 0) {
           params[name] = chars[i];
         } else {
           params[name] += chars[i];
         }
+
+        // check for constraint if this state's segment is constrained
+        // and the state is the last dynamic state in a series of dynamic states.
+        // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
+        const checkConstraint = state.isConstrained
+          && !Object.is(states[i + 1]?.segment, segment);
+
+        if (!checkConstraint) continue;
+
+        this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(params[name]!);
       }
     }
 
+    if(this.satisfiesConstraints) {
+      this.params = params;
+    }
     return params;
   }
 
@@ -312,13 +347,9 @@ class RecognizeResult<T> {
   }
 
   public getSolution(): Candidate<T> | null {
-    const candidates = this.candidates.filter(hasEndpoint);
+    const candidates = this.candidates.filter(x => hasEndpoint(x) && x._finalize());
     if (candidates.length === 0) {
       return null;
-    }
-
-    for (const candidate of candidates) {
-      candidate.finalize();
     }
 
     candidates.sort(compareChains);
@@ -348,6 +379,8 @@ class RecognizeResult<T> {
  */
 export const RESIDUE = '$$residue' as const;
 
+const routeParameterPattern = /^:(?<name>[^?\s{}]+)(?:\{\{(?<constraint>.+)\}\})?(?<optional>\?)?$/g;
+
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
@@ -367,7 +400,7 @@ export class RouteRecognizer<T> {
     } else {
       endpoint = this.$add(routeOrRoutes, false);
       params = endpoint.params;
-        // add residue iff the last parameter is not a star segment.
+      // add residue iff the last parameter is not a star segment.
       if (addResidue && !(params[params.length - 1]?.isStar ?? false)) {
         endpoint.residualEndpoint = this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
       }
@@ -395,11 +428,15 @@ export class RouteRecognizer<T> {
 
       switch (part.charAt(0)) {
         case ':': { // route parameter
-          const isOptional = part.endsWith('?');
-          const name = isOptional ? part.slice(1, -1) : part.slice(1);
+          routeParameterPattern.lastIndex = 0;
+          const match = routeParameterPattern.exec(part);
+          const { name, optional } = match?.groups ?? {};
+          const isOptional = optional === '?';
           if (name === RESIDUE) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
-          params.push(new Parameter(name, isOptional, false));
-          state = new DynamicSegment<T>(name, isOptional).appendTo(state);
+          const constraint = match?.groups?.constraint;
+          const pattern: RegExp | null = constraint != null ? new RegExp(constraint) : null;
+          params.push(new Parameter(name, isOptional, false, pattern));
+          state = new DynamicSegment<T>(name, isOptional, pattern).appendTo(state);
           break;
         }
         case '*': { // dynamic route
@@ -411,7 +448,7 @@ export class RouteRecognizer<T> {
           } else {
             kind = SegmentKind.star;
           }
-          params.push(new Parameter(name, true, true));
+          params.push(new Parameter(name, true, true, null));
           state = new StarSegment<T>(name, kind).appendTo(state);
           break;
         }
@@ -464,7 +501,7 @@ export class RouteRecognizer<T> {
     }
 
     const { endpoint } = candidate;
-    const params = candidate.getParams();
+    const params = candidate._getParams();
 
     return new RecognizedRoute<T>(endpoint, params);
   }
@@ -533,6 +570,7 @@ class State<T> {
 
   public endpoint: Endpoint<T> | null = null;
   public readonly length: number;
+  public readonly isConstrained: boolean = false;
 
   public constructor(
     public readonly prevState: AnyState<T> | null,
@@ -545,6 +583,7 @@ class State<T> {
         this.isSeparator = false;
         this.isDynamic = true;
         this.isOptional = segment.optional;
+        this.isConstrained = segment.isConstrained;
         break;
       case SegmentKind.star:
       case SegmentKind.residue:
@@ -614,6 +653,12 @@ class State<T> {
         return this.value.includes(ch);
     }
   }
+
+  public satisfiesConstraint(value: string): boolean {
+    return this.isConstrained
+      ? (this.segment as DynamicSegment<T>).satisfiesPattern(value)
+      : true;
+  }
 }
 
 function isNotEmpty(segment: string): boolean {
@@ -677,11 +722,16 @@ class StaticSegment<T> {
 
 class DynamicSegment<T> {
   public get kind(): SegmentKind.dynamic { return SegmentKind.dynamic; }
+  public readonly isConstrained: boolean;
 
   public constructor(
     public readonly name: string,
     public readonly optional: boolean,
-  ) {}
+    public readonly pattern: RegExp | null,
+  ) {
+    if (pattern === void 0) throw new Error(`Pattern is undefined`);
+    this.isConstrained = pattern !== null;
+  }
 
   public appendTo(state: AnyState<T>): DynamicState<T> {
     state = state.append(
@@ -698,6 +748,12 @@ class DynamicSegment<T> {
       b.optional === this.optional &&
       b.name === this.name
     );
+  }
+
+  public satisfiesPattern(value: string): boolean {
+    if (this.pattern === null) return true;
+    this.pattern.lastIndex = 0;
+    return this.pattern.test(value);
   }
 }
 

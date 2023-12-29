@@ -6,7 +6,10 @@ If the example doesn't seem obvious, the following prerequisite reads are recomm
 [extending-templating-syntax.md](../../../developer-guides/scenarios/extending-templating-syntax.md)
 {% endcontent-ref %}
 
-* [extending templating syntax](../../../developer-guides/scenarios/extending-templating-syntax.md)
+{% content-ref url="../../../developer-guides/scenarios/attributemapper.md" %}
+[attributemapper.md](../../../developer-guides/scenarios/attributemapper.md)
+{% endcontent-ref %}
+
 
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 

@@ -137,6 +137,7 @@
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Extending binding language](developer-guides/scenarios/bindingcommand.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
+  * [Attribute mapping](developer-guides/scenarios/attributemapper.md)
 * [Playground](reference/examples/README.md)
   * [Binding & Templating](reference/examples/binding-and-templating/README.md)
   * [Custom Attributes](reference/examples/custom-attributes/README.md)

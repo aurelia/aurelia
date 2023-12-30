@@ -587,16 +587,16 @@ function createConfiguredNode(
     let redirCur: ScopedSegmentExpression | SegmentExpression;
     const newSegs: string[] = [];
     switch (origPath.root.kind) {
-      case ExpressionKind.ScopedSegment:
-      case ExpressionKind.Segment:
+      case 'ScopedSegment':
+      case 'Segment':
         origCur = origPath.root;
         break;
       default:
         throw new Error(getMessage(Events.exprUnexpectedKind, origPath.root.kind));
     }
     switch (redirPath.root.kind) {
-      case ExpressionKind.ScopedSegment:
-      case ExpressionKind.Segment:
+      case 'ScopedSegment':
+      case 'Segment':
         redirCur = redirPath.root;
         break;
       default:
@@ -610,14 +610,14 @@ function createConfiguredNode(
     while (!(origDone && redirDone)) {
       if (origDone) {
         origSeg = null;
-      } else if (origCur.kind === ExpressionKind.Segment) {
+      } else if (origCur.kind === 'Segment') {
         origSeg = origCur;
         origDone = true;
-      } else if (origCur.left.kind === ExpressionKind.Segment) {
+      } else if (origCur.left.kind === 'Segment') {
         origSeg = origCur.left;
         switch (origCur.right.kind) {
-          case ExpressionKind.ScopedSegment:
-          case ExpressionKind.Segment:
+          case 'ScopedSegment':
+          case 'Segment':
             origCur = origCur.right;
             break;
           default:
@@ -628,14 +628,14 @@ function createConfiguredNode(
       }
       if (redirDone) {
         redirSeg = null;
-      } else if (redirCur.kind === ExpressionKind.Segment) {
+      } else if (redirCur.kind === 'Segment') {
         redirSeg = redirCur;
         redirDone = true;
-      } else if (redirCur.left.kind === ExpressionKind.Segment) {
+      } else if (redirCur.left.kind === 'Segment') {
         redirSeg = redirCur.left;
         switch (redirCur.right.kind) {
-          case ExpressionKind.ScopedSegment:
-          case ExpressionKind.Segment:
+          case 'ScopedSegment':
+          case 'Segment':
             redirCur = redirCur.right;
             break;
           default:

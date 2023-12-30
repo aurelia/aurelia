@@ -363,7 +363,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const expectedValue = 'expected ok output';
           await dialog.ok(expectedValue);
           const result = await dialog.closed;
-          assert.strictEqual(result.status, DialogDeactivationStatuses.Ok);
+          assert.strictEqual(result.status, 'ok');
           assert.strictEqual(result.value, expectedValue);
         }
       },
@@ -378,11 +378,11 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const result = await dialog.closed.catch(err => {
             errorCaughtCount++;
             error = err;
-            return { status: DialogDeactivationStatuses.Error };
+            return { status: 'error' };
           });
           assert.strictEqual(error, undefined);
           assert.strictEqual(errorCaughtCount, 0);
-          assert.strictEqual(result.status, DialogDeactivationStatuses.Cancel);
+          assert.strictEqual(result.status, 'cancel');
         }
       },
       {
@@ -396,7 +396,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           await dialog.closed.catch(err => {
             errorCaughtCount++;
             error = err;
-            return { status: DialogDeactivationStatuses.Ok };
+            return { status: 'ok' };
           });
           assert.notStrictEqual(error, undefined);
           assert.strictEqual(errorCaughtCount, 1);

@@ -44,16 +44,15 @@ export const enum LogLevel {
 /**
  * Flags to enable/disable color usage in the logging output.
  */
-export const enum ColorOptions {
-  /**
-   * Do not use ASCII color codes in logging output.
-   */
-  noColors = 0,
-  /**
-   * Use ASCII color codes in logging output. By default, timestamps and the TRC and DBG prefix are colored grey. INF white, WRN yellow, and ERR and FTL red.
-   */
-  colors = 1,
-}
+export type ColorOptions =
+    /**
+     * Do not use ASCII color codes in logging output.
+     */
+    'no-colors'
+    /**
+     * Use ASCII color codes in logging output. By default, timestamps and the TRC and DBG prefix are colored grey. INF white, WRN yellow, and ERR and FTL red.
+     */
+  | 'colors';
 
 /**
  * The global logger configuration.
@@ -161,7 +160,7 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = /*@__PURE__*/createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
+export const ILogConfig = /*@__PURE__*/createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig('no-colors', LogLevel.warn)));
 export const ISink = /*@__PURE__*/createInterface<ISink>('ISink');
 export const ILogEventFactory = /*@__PURE__*/createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
 export const ILogger = /*@__PURE__*/createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
@@ -236,8 +235,8 @@ export class LogConfig implements ILogConfig {
 }
 
 const getLogLevelString = (function () {
-  const logLevelString = [
-    toLookup({
+  const logLevelString = {
+    'no-colors': toLookup({
       TRC: 'TRC',
       DBG: 'DBG',
       INF: 'INF',
@@ -246,7 +245,7 @@ const getLogLevelString = (function () {
       FTL: 'FTL',
       QQQ: '???',
     } as const),
-    toLookup({
+    'colors': toLookup({
       TRC: format.grey('TRC'),
       DBG: format.grey('DBG'),
       INF: format.white('INF'),
@@ -255,7 +254,7 @@ const getLogLevelString = (function () {
       FTL: format.red('FTL'),
       QQQ: format.grey('???'),
     } as const),
-  ] as const;
+  } as const;
 
   return (level: LogLevel, colorOptions: ColorOptions): string => {
     if (level <= LogLevel.trace) {
@@ -281,14 +280,14 @@ const getLogLevelString = (function () {
 })();
 
 const getScopeString = (scope: readonly string[], colorOptions: ColorOptions): string => {
-  if (colorOptions === ColorOptions.noColors) {
+  if (colorOptions === 'no-colors') {
     return scope.join('.');
   }
   return scope.map(format.cyan).join('.');
 };
 
 const getIsoString = (timestamp: number, colorOptions: ColorOptions): string => {
-  if (colorOptions === ColorOptions.noColors) {
+  if (colorOptions === 'no-colors') {
     return new Date(timestamp).toISOString();
   }
   return format.grey(new Date(timestamp).toISOString());
@@ -713,7 +712,7 @@ export const LoggerConfiguration = toLookup({
   create(
     {
       level = LogLevel.warn,
-      colorOptions = ColorOptions.noColors,
+      colorOptions = 'no-colors',
       sinks = [],
     }: Partial<ILoggingConfigurationOptions> = {}
   ): IRegistry {

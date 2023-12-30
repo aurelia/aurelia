@@ -6,9 +6,9 @@ description: >-
 
 # Attribute mapping
 
-When dealing with Aurelia and custom elements, we tend to use the `@bindable` decorator to define bindable properties. The bindable properties are members of the underlying view model class. However, there are cases, where we want to work with attributes of the DOM elements directly.
+When dealing with Aurelia and custom elements, we tend to use the `@bindable` decorator to define bindable properties. The bindable properties are members of the underlying view model class. However, there are cases where we want to work directly with attributes of the DOM elements.
 
-For example, we want to have an `<input>` element with a `maxlength` attribute and map a view model property to the attribute. Let us assume that we have the following view model class:
+For example, we want an `<input>` element with a `maxlength` attribute and map a view model property to the attribute. Let us assume that we have the following view model class:
 
 ```typescript
 export class App {
@@ -22,15 +22,15 @@ Then, intuitively, we would write the following template:
 <input maxlength.bind="inputMaxLength" ref="input">
 ```
 
-This binds the value to the `maxlength` attribute of the `<input>` element. Consequently, the `input.maxLength` is also bound to be `10`. Note that binding the value of the `maxLength` attribute also sets the value of the `maxLength` property of the input element. This happens because Aurelia in background does the mapping for us.
+This binds the value to the `maxlength` attribute of the `<input>` element. Consequently, the `input.maxLength` is also bound to be `10`. Note that binding the value of the `maxLength` attribute also sets the value of the `maxLength` property of the input element. This happens because Aurelia, in the background, does the mapping for us.
 
-In a broad level, this is what attribute mapping is about. This article provides further information about how it works and how to extend it.
+On a broad level, this is what attribute mapping is about. This article provides further information about how it works and how to extend it.
 
 ## How it works
 
-To facilitate the attribute mapping, Aurelia uses `IAttrMapper`, which has the information about how to map an attribute to a property. While creating property binding instructions from [binding commands](./bindingcommand.md), it is first checked if the attribute is a bindable or not. If it is a bindable property, then the attribute name (in kebab-case) is converted to the camelCase property name. However, when it is not a bindable, then the the attribute mapper is queried for the target property name. If the attribute mapper returns a property name, then the property binding instruction is created with that property name. Otherwise, the standard camelCase conversion is applied.
+To facilitate the attribute mapping, Aurelia uses `IAttrMapper`, which has information about how to map an attribute to a property. While creating property binding instructions from [binding commands](./bindingcommand.md), it is first checked if the attribute is a bindable. If it is a bindable property, the attribute name (in kebab-case) is converted to the camelCase property name. However, the attribute mapper is queried for the target property name when it is not a bindable. If the attribute mapper returns a property name, then the property binding instruction is created with that property name. Otherwise, the standard camelCase conversion is applied.
 
-This means that if we want to bind a non-standard `<input>` attribute, such as `fizz-buzz`, then we can expect the `input.fizzBuzz` property to be bound. This looks as follows.
+If we want to bind a non-standard `<input>` attribute, such as `fizz-buzz`, we can expect the `input.fizzBuzz` property to be bound. This looks as follows.
 
 ```html
 <input fizz-buzz.bind="someValue" ref="input">
@@ -49,9 +49,9 @@ export class App {
 
 ## Extending the attribute mapping
 
-The attribute mapping can be extended by registering new mappings with the `IAttrMapper`. The `IAttrMapper` provides two methods for this purpose. The `.useGlobalMapping` method registers mapping those are applicable for all elements, whereas the `.useMapping` is responsible for registering mapping for individual elements.
+The attribute mapping can be extended by registering new mappings with the `IAttrMapper`. The `IAttrMapper` provides two methods for this purpose. The `.useGlobalMapping` method registers mappings applicable for all elements, whereas the `.useMapping` method registers mapping for individual elements.
 
-To this end, we can grab the `IAttrMapper` instance during bootstrapping the app and register the mappings (there is no restriction however, on when or where those mappings are registered). An example might look as follows.
+To this end, we can grab the `IAttrMapper` instance while bootstrapping the app and register the mappings (there is no restriction, however, on when or where those mappings are registered). An example might look as follows.
 
 ```typescript
 import {
@@ -78,7 +78,7 @@ au.register(
 );
 ```
 
-In the example above, we are registering a global mapping for `foo-bar` attribute to `FooBar` property, which will be applicable for all elements. We are also registering mappings for individual elements. Note that the key of the object is the [`nodeName`](https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName) of the element, thus for an element it needs to be the element name in upper case. Note that in the example above, we are mapping the `fizz-buzz` attribute differently for `<input>` and `<my-ce>` elements.
+In the example above, we are registering a global mapping for `foo-bar` attribute to `FooBar` property, which will apply to all elements. We are also registering mappings for individual elements. Note that the key of the object is the [`nodeName`](https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName) of the element; thus, for an element, it needs to be the element name in upper case. In the example above, we map the `fizz-buzz` attribute differently for `<input>` and `<my-ce>` elements.
 
 With this custom mapping registered, we can expect the following to work.
 
@@ -103,9 +103,9 @@ export class App {
 
 ## Use two-way binding for attribute
 
-In addition to register custom mappings, we can also teach the attribute mapper when to use two-way binding for an attribute. To this end, we can use the `.useTwoWay` method of the `IAttrMapper`. The `.useTwoWay` method accepts a predicate function that determines whether the attribute should be bound in two-way mode or not. The predicate function receives the attribute name and the element name as parameters. If the predicate function returns `true`, then the attribute is bound in two-way mode, otherwise it is bound in to-view mode.
+In addition to registering custom mappings, we can teach the attribute mapper when using two-way binding for an attribute. To this end, we can use the `.useTwoWay` method of the `IAttrMapper`. The `.useTwoWay` method accepts a predicate function determining whether the attribute should be bound in two-way mode. The predicate function receives the attribute name and the element name as parameters. If the predicate function returns `true`, then the attribute is bound in two-way mode, otherwise it is bound in to-view mode.
 
-An example looks like as follows.
+An example looks as follows.
 
 ```typescript
 

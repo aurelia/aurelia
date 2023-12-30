@@ -96,7 +96,7 @@ export class App {
     console.log(this.input.fizzbuzz); // 42
     console.log(this.input.FooBar); // 43
     console.log(this.myCe.FizzBuzz); // 44
-    console.log(this.myCe.fooBar); // 45
+    console.log(this.myCe.FooBar); // 45
   }
 }
 ```

@@ -10,7 +10,6 @@ import {
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  ExpressionKind,
   astEvaluate,
   // IsBindingBehavior
 } from '@aurelia/runtime';
@@ -131,20 +130,20 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo)
   let expression = binding.ast.expression;
   let toCachePropertyName = true;
   let propertyName: string = '';
-  while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
+  while (expression !== void 0 && expression?.$kind !== 'AccessScope') {
     let memberName: string;
     switch (expression.$kind) {
-      case ExpressionKind.BindingBehavior:
-      case ExpressionKind.ValueConverter:
+      case 'BindingBehavior':
+      case 'ValueConverter':
         expression = expression.expression;
         continue;
-      case ExpressionKind.AccessMember:
+      case 'AccessMember':
         memberName = expression.name;
         break;
-      case ExpressionKind.AccessKeyed: {
+      case 'AccessKeyed': {
         const keyExpr = expression.key;
         if (toCachePropertyName) {
-          toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
+          toCachePropertyName = keyExpr.$kind === 'PrimitiveLiteral';
         }
         // eslint-disable-next-line
         memberName = `[${(astEvaluate(keyExpr, scope, binding, null) as any).toString()}]`;

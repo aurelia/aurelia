@@ -5,7 +5,6 @@ import {
   type Collection,
   CollectionObserver,
   DestructuringAssignmentExpression,
-  ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
   type IndexMap,
@@ -38,8 +37,8 @@ function dispose(disposable: IDisposable): void {
 }
 
 const wrappedExprs = [
-  ExpressionKind.BindingBehavior,
-  ExpressionKind.ValueConverter,
+  'BindingBehavior',
+  'ValueConverter',
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
@@ -126,7 +125,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._refreshCollectionObserver();
     const dec = forOf.declaration;
-    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
+    if(!(this._hasDestructuredLocal = dec.$kind === 'ArrayDestructuring' || dec.$kind === 'ObjectDestructuring')) {
       this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
     }
   }

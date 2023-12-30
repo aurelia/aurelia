@@ -12,39 +12,7 @@ export {
   Unparser
 } from './ast.visitor';
 
-export const enum ExpressionKind {
-  AccessThis,
-  AccessGlobal,
-  AccessScope,
-  ArrayLiteral,
-  ObjectLiteral,
-  PrimitiveLiteral,
-  Template,
-  Unary,
-  CallScope,
-  CallMember,
-  CallFunction,
-  CallGlobal,
-  AccessMember,
-  AccessKeyed,
-  TaggedTemplate,
-  Binary,
-  Conditional,
-  Assign,
-  ArrowFunction,
-  ValueConverter,
-  BindingBehavior,
-  ArrayBindingPattern,
-  ObjectBindingPattern,
-  BindingIdentifier,
-  ForOfStatement,
-  Interpolation,
-  ArrayDestructuring,
-  ObjectDestructuring,
-  DestructuringAssignmentLeaf,
-  DestructuringAssignmentRestLeaf,
-  Custom,
-}
+export type ExpressionKind = 'AccessThis' | 'AccessGlobal' | 'AccessScope' | 'ArrayLiteral' | 'ObjectLiteral' | 'PrimitiveLiteral' | 'Template' | 'Unary' | 'CallScope' | 'CallMember' | 'CallFunction' | 'CallGlobal' | 'AccessMember' | 'AccessKeyed' | 'TaggedTemplate' | 'Binary' | 'Conditional' | 'Assign' | 'ArrowFunction' | 'ValueConverter' | 'BindingBehavior' | 'ArrayBindingPattern' | 'ObjectBindingPattern' | 'BindingIdentifier' | 'ForOfStatement' | 'Interpolation' | 'ArrayDestructuring' | 'ObjectDestructuring' | 'DestructuringAssignmentLeaf' | 'DestructuringAssignmentRestLeaf' | 'Custom';
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
@@ -66,10 +34,10 @@ export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIde
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
 export class CustomExpression {
-  public readonly $kind = ExpressionKind.Custom;
+  public readonly $kind = 'Custom';
   public constructor(
     public readonly value: unknown,
-  ) {}
+  ) { }
 
   public evaluate(_s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): unknown {
     return this.value;
@@ -101,7 +69,7 @@ export type BindingBehaviorInstance<T extends {} = {}> = {
 } & T;
 
 export class BindingBehaviorExpression {
-  public readonly $kind = ExpressionKind.BindingBehavior;
+  public readonly $kind = 'BindingBehavior';
   /**
    * The name of the property to store a binding behavior on the binding when binding
    */
@@ -123,7 +91,7 @@ export type ValueConverterInstance<T extends {} = {}> = {
 } & T;
 
 export class ValueConverterExpression {
-  public readonly $kind = ExpressionKind.ValueConverter;
+  public readonly $kind = 'ValueConverter';
   public constructor(
     public readonly expression: IsValueConverter,
     public readonly name: string,
@@ -133,57 +101,57 @@ export class ValueConverterExpression {
 }
 
 export class AssignExpression {
-  public readonly $kind = ExpressionKind.Assign;
+  public readonly $kind = 'Assign';
 
   public constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign,
-  ) {}
+  ) { }
 }
 
 export class ConditionalExpression {
-  public readonly $kind = ExpressionKind.Conditional;
+  public readonly $kind = 'Conditional';
   public constructor(
     public readonly condition: IsBinary,
     public readonly yes: IsAssign,
     public readonly no: IsAssign,
-  ) {}
+  ) { }
 }
 
 export class AccessGlobalExpression {
-  public readonly $kind: ExpressionKind.AccessGlobal = ExpressionKind.AccessGlobal;
+  public readonly $kind: 'AccessGlobal' = 'AccessGlobal';
 
   public constructor(
     public readonly name: string,
-  ) {}
+  ) { }
 }
 
 export class AccessThisExpression {
-  public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
+  public readonly $kind: 'AccessThis' = 'AccessThis';
 
   public constructor(
     public readonly ancestor: number = 0,
-  ) {}
+  ) { }
 }
 
 export class AccessScopeExpression {
-  public readonly $kind = ExpressionKind.AccessScope;
+  public readonly $kind = 'AccessScope';
   public constructor(
     public readonly name: string,
     public readonly ancestor: number = 0,
-  ) {}
+  ) { }
 }
 
 const isAccessGlobal = (ast: IsLeftHandSide) => (
-  ast.$kind === ExpressionKind.AccessGlobal ||
+  ast.$kind === 'AccessGlobal' ||
   (
-    ast.$kind === ExpressionKind.AccessMember ||
-    ast.$kind === ExpressionKind.AccessKeyed
+    ast.$kind === 'AccessMember' ||
+    ast.$kind === 'AccessKeyed'
   ) && ast.accessGlobal
 );
 
 export class AccessMemberExpression {
-  public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
+  public readonly $kind: 'AccessMember' = 'AccessMember';
   public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
@@ -195,7 +163,7 @@ export class AccessMemberExpression {
 }
 
 export class AccessKeyedExpression {
-  public readonly $kind = ExpressionKind.AccessKeyed;
+  public readonly $kind = 'AccessKeyed';
   public readonly accessGlobal: boolean;
   public constructor(
     public readonly object: IsLeftHandSide,
@@ -207,58 +175,58 @@ export class AccessKeyedExpression {
 }
 
 export class CallScopeExpression {
-  public readonly $kind = ExpressionKind.CallScope;
+  public readonly $kind = 'CallScope';
   public constructor(
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly ancestor: number = 0,
     public readonly optional: boolean = false,
-  ) {}
+  ) { }
 }
 
 export class CallMemberExpression {
-  public readonly $kind = ExpressionKind.CallMember;
+  public readonly $kind = 'CallMember';
   public constructor(
     public readonly object: IsLeftHandSide,
     public readonly name: string,
     public readonly args: readonly IsAssign[],
     public readonly optionalMember: boolean = false,
     public readonly optionalCall: boolean = false,
-  ) {}
+  ) { }
 }
 
 export class CallFunctionExpression {
-  public readonly $kind = ExpressionKind.CallFunction;
+  public readonly $kind = 'CallFunction';
   public constructor(
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
     public readonly optional: boolean = false,
-  ) {}
+  ) { }
 }
 
 export class CallGlobalExpression {
-  public readonly $kind = ExpressionKind.CallGlobal;
+  public readonly $kind = 'CallGlobal';
   public constructor(
     public readonly name: string,
     public readonly args: readonly IsAssign[]
-  ) {}
+  ) { }
 }
 
 export class BinaryExpression {
-  public readonly $kind: ExpressionKind.Binary = ExpressionKind.Binary;
+  public readonly $kind: 'Binary' = 'Binary';
   public constructor(
     public readonly operation: BinaryOperator,
     public readonly left: IsBinary,
     public readonly right: IsBinary,
-  ) {}
+  ) { }
 }
 
 export class UnaryExpression {
-  public readonly $kind = ExpressionKind.Unary;
+  public readonly $kind = 'Unary';
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
-  ) {}
+  ) { }
 }
 export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {
   public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
@@ -266,41 +234,41 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
   public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);
   public static readonly $false: PrimitiveLiteralExpression<false> = new PrimitiveLiteralExpression<false>(false);
   public static readonly $empty: PrimitiveLiteralExpression<string> = new PrimitiveLiteralExpression<''>('');
-  public readonly $kind = ExpressionKind.PrimitiveLiteral;
+  public readonly $kind = 'PrimitiveLiteral';
 
   public constructor(
     public readonly value: TValue,
-  ) {}
+  ) { }
 }
 
 export class ArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(emptyArray);
-  public readonly $kind = ExpressionKind.ArrayLiteral;
+  public readonly $kind = 'ArrayLiteral';
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) {}
+  ) { }
 }
 
 export class ObjectLiteralExpression {
   public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(emptyArray, emptyArray);
-  public readonly $kind = ExpressionKind.ObjectLiteral;
+  public readonly $kind = 'ObjectLiteral';
   public constructor(
     public readonly keys: readonly (number | string)[],
     public readonly values: readonly IsAssign[],
-  ) {}
+  ) { }
 }
 
 export class TemplateExpression {
   public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
-  public readonly $kind = ExpressionKind.Template;
+  public readonly $kind = 'Template';
   public constructor(
     public readonly cooked: readonly string[],
     public readonly expressions: readonly IsAssign[] = emptyArray,
-  ) {}
+  ) { }
 }
 
 export class TaggedTemplateExpression {
-  public readonly $kind = ExpressionKind.TaggedTemplate;
+  public readonly $kind = 'TaggedTemplate';
   public constructor(
     public readonly cooked: readonly string[] & { raw?: readonly string[] },
     raw: readonly string[],
@@ -312,38 +280,38 @@ export class TaggedTemplateExpression {
 }
 
 export class ArrayBindingPattern {
-  public readonly $kind = ExpressionKind.ArrayBindingPattern;
+  public readonly $kind = 'ArrayBindingPattern';
   // We'll either have elements, or keys+values, but never all 3
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) {}
+  ) { }
 }
 
 export class ObjectBindingPattern {
-  public readonly $kind = ExpressionKind.ObjectBindingPattern;
+  public readonly $kind = 'ObjectBindingPattern';
   // We'll either have elements, or keys+values, but never all 3
   public constructor(
     public readonly keys: readonly (string | number)[],
     public readonly values: readonly IsAssign[],
-  ) {}
+  ) { }
 }
 
 export class BindingIdentifier {
-  public readonly $kind = ExpressionKind.BindingIdentifier;
+  public readonly $kind = 'BindingIdentifier';
   public constructor(
     public readonly name: string,
-  ) {}
+  ) { }
 }
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement {
-  public readonly $kind = ExpressionKind.ForOfStatement;
+  public readonly $kind = 'ForOfStatement';
   public constructor(
     public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
     public readonly iterable: IsBindingBehavior,
     public readonly semiIdx: number,
-  ) {}
+  ) { }
 }
 
 /*
@@ -352,7 +320,7 @@ export class ForOfStatement {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation {
-  public readonly $kind = ExpressionKind.Interpolation;
+  public readonly $kind = 'Interpolation';
   public readonly isMulti: boolean;
   public readonly firstExpression: IsBindingBehavior;
   public constructor(
@@ -368,7 +336,7 @@ export class Interpolation {
 /** This is an internal API */
 export class DestructuringAssignmentExpression {
   public constructor(
-    public readonly $kind: ExpressionKind.ArrayDestructuring | ExpressionKind.ObjectDestructuring,
+    public readonly $kind: 'ArrayDestructuring' | 'ObjectDestructuring',
     public readonly list: readonly (DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression)[],
     public readonly source: AccessMemberExpression | AccessKeyedExpression | undefined,
     public readonly initializer: IsBindingBehavior | undefined,
@@ -377,7 +345,7 @@ export class DestructuringAssignmentExpression {
 
 /** This is an internal API */
 export class DestructuringAssignmentSingleExpression {
-  public readonly $kind = ExpressionKind.DestructuringAssignmentLeaf;
+  public readonly $kind = 'DestructuringAssignmentLeaf';
   public constructor(
     public readonly target: AccessMemberExpression,
     public readonly source: AccessMemberExpression | AccessKeyedExpression,
@@ -387,7 +355,7 @@ export class DestructuringAssignmentSingleExpression {
 
 /** This is an internal API */
 export class DestructuringAssignmentRestExpression {
-  public readonly $kind = ExpressionKind.DestructuringAssignmentLeaf;
+  public readonly $kind = 'DestructuringAssignmentLeaf';
   public constructor(
     public readonly target: AccessMemberExpression,
     public readonly indexOrProperties: string[] | number,
@@ -395,12 +363,12 @@ export class DestructuringAssignmentRestExpression {
 }
 
 export class ArrowFunction {
-  public readonly $kind = ExpressionKind.ArrowFunction;
+  public readonly $kind = 'ArrowFunction';
   public constructor(
     public args: BindingIdentifier[],
     public body: IsAssign,
     public rest: boolean = false,
-  ) {}
+  ) { }
 }
 
 // -----------------------------------
@@ -409,7 +377,7 @@ export class ArrowFunction {
 /**
  * An interface describing the object that can evaluate Aurelia AST
  */
- export interface IAstEvaluator {
+export interface IAstEvaluator {
   /** describe whether the evaluator wants to evaluate in strict mode */
   strict?: boolean;
   /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */

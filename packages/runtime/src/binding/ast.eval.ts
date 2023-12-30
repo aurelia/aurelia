@@ -4,7 +4,6 @@ import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '..
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
 import {
-  ExpressionKind,
   type IsExpressionOrStatement,
   type IAstEvaluator,
   type DestructuringAssignmentExpression,
@@ -19,7 +18,7 @@ const getContext = Scope.getContext;
 // eslint-disable-next-line max-lines-per-function
 export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
   switch (ast.$kind) {
-    case ExpressionKind.AccessThis: {
+    case 'AccessThis': {
       let oc: IOverrideContext | null = s.overrideContext;
       let currentScope: Scope | null = s;
       let i = ast.ancestor;
@@ -29,7 +28,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return i < 1 && currentScope ? currentScope.bindingContext : void 0;
     }
-    case ExpressionKind.AccessScope: {
+    case 'AccessScope': {
       const obj = getContext(s, ast.name, ast.ancestor) as IBindingContext;
       if (c !== null) {
         c.observe(obj, ast.name);
@@ -50,9 +49,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           ? evaluatedValue.bind(obj)
           : evaluatedValue;
     }
-    case ExpressionKind.AccessGlobal:
+    case 'AccessGlobal':
       return globalThis[ast.name as keyof typeof globalThis];
-    case ExpressionKind.CallGlobal: {
+    case 'CallGlobal': {
       const func = globalThis[ast.name as keyof typeof globalThis] as AnyFunction;
       if (isFunction(func)) {
         return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
@@ -63,18 +62,18 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       throw createMappedError(ErrorNames.ast_not_a_function);
     }
-    case ExpressionKind.ArrayLiteral:
+    case 'ArrayLiteral':
       return ast.elements.map(expr => astEvaluate(expr, s, e, c));
-    case ExpressionKind.ObjectLiteral: {
+    case 'ObjectLiteral': {
       const instance: Record<string, unknown> = {};
       for (let i = 0; i < ast.keys.length; ++i) {
         instance[ast.keys[i]] = astEvaluate(ast.values[i], s, e, c);
       }
       return instance;
     }
-    case ExpressionKind.PrimitiveLiteral:
+    case 'PrimitiveLiteral':
       return ast.value;
-    case ExpressionKind.Template: {
+    case 'Template': {
       let result = ast.cooked[0];
       for (let i = 0; i < ast.expressions.length; ++i) {
         result += String(astEvaluate(ast.expressions[i], s, e, c));
@@ -82,7 +81,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return result;
     }
-    case ExpressionKind.Unary:
+    case 'Unary':
       switch (ast.operation as string) {
         case 'void':
           return void astEvaluate(ast.expression, s, e, c);
@@ -97,7 +96,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         default:
           throw createMappedError(ErrorNames.ast_unknown_unary_operator, ast.operation);
       }
-    case ExpressionKind.CallScope: {
+    case 'CallScope': {
       const args = ast.args.map(a => astEvaluate(a, s, e, c));
       const context = getContext(s, ast.name, ast.ancestor)!;
       // ideally, should observe property represents by ast.name as well
@@ -109,7 +108,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return void 0;
     }
-    case ExpressionKind.CallMember: {
+    case 'CallMember': {
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
 
       const args = ast.args.map(a => astEvaluate(a, s, e, c));
@@ -125,7 +124,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return ret;
     }
-    case ExpressionKind.CallFunction: {
+    case 'CallFunction': {
       const func = astEvaluate(ast.func, s, e, c);
       if (isFunction(func)) {
         return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
@@ -135,7 +134,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       throw createMappedError(ErrorNames.ast_not_a_function);
     }
-    case ExpressionKind.ArrowFunction: {
+    case 'ArrowFunction': {
       const func = (...args: unknown[]) => {
         const params = ast.args;
         const rest = ast.rest;
@@ -153,7 +152,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       };
       return func;
     }
-    case ExpressionKind.AccessMember: {
+    case 'AccessMember': {
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
       let ret: unknown;
       if (e?.strict) {
@@ -182,7 +181,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return '';
     }
-    case ExpressionKind.AccessKeyed: {
+    case 'AccessKeyed': {
       const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
       const key = astEvaluate(ast.key, s, e, c) as string;
       if (isObject(instance)) {
@@ -195,7 +194,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         ? void 0
         : instance[key];
     }
-    case ExpressionKind.TaggedTemplate: {
+    case 'TaggedTemplate': {
       const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));
       const func = astEvaluate(ast.func, s, e, c);
       if (!isFunction(func)) {
@@ -203,7 +202,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return func(ast.cooked, ...results);
     }
-    case ExpressionKind.Binary: {
+    case 'Binary': {
       const left = ast.left;
       const right = ast.right;
       switch (ast.operation as string) {
@@ -282,12 +281,12 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
           throw createMappedError(ErrorNames.ast_unknown_binary_operator, ast.operation);
       }
     }
-    case ExpressionKind.Conditional:
+    case 'Conditional':
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return astEvaluate(ast.condition, s, e, c) ? astEvaluate(ast.yes, s, e, c) : astEvaluate(ast.no, s, e, c);
-    case ExpressionKind.Assign:
+    case 'Assign':
       return astAssign(ast.target, s, e, astEvaluate(ast.value, s, e, c));
-    case ExpressionKind.ValueConverter: {
+    case 'ValueConverter': {
       const vc = e?.getConverter?.(ast.name);
       if (vc == null) {
         throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
@@ -297,13 +296,13 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       }
       return astEvaluate(ast.expression, s, e, c);
     }
-    case ExpressionKind.BindingBehavior:
+    case 'BindingBehavior':
       return astEvaluate(ast.expression, s, e, c);
-    case ExpressionKind.BindingIdentifier:
+    case 'BindingIdentifier':
       return ast.name;
-    case ExpressionKind.ForOfStatement:
+    case 'ForOfStatement':
       return astEvaluate(ast.iterable, s, e, c);
-    case ExpressionKind.Interpolation:
+    case 'Interpolation':
       if (ast.isMulti) {
         let result = ast.parts[0];
         let i = 0;
@@ -315,9 +314,9 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
       } else {
         return `${ast.parts[0]}${astEvaluate(ast.firstExpression, s, e, c)}${ast.parts[1]}`;
       }
-    case ExpressionKind.DestructuringAssignmentLeaf:
+    case 'DestructuringAssignmentLeaf':
       return astEvaluate(ast.target, s, e, c);
-    case ExpressionKind.ArrayDestructuring: {
+    case 'ArrayDestructuring': {
       return ast.list.map(x => astEvaluate(x, s, e, c));
     }
     // TODO: this should come after batch
@@ -332,30 +331,30 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
     // instead of twice:
     // object.x = value[0]
     // object.y = value[1]
-    case ExpressionKind.ArrayBindingPattern:
+    case 'ArrayBindingPattern':
     // TODO
     // similar to array binding ast, this should only come after batch
     // for a single notification per destructing,
     // regardless number of property assignments on the scope binding context
-    case ExpressionKind.ObjectBindingPattern:
-    case ExpressionKind.ObjectDestructuring:
+    case 'ObjectBindingPattern':
+    case 'ObjectDestructuring':
     default:
       return void 0;
-    case ExpressionKind.Custom:
+    case 'Custom':
       return ast.evaluate(s, e, c);
   }
 }
 
 export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
   switch (ast.$kind) {
-    case ExpressionKind.AccessScope: {
+    case 'AccessScope': {
       if (ast.name === '$host') {
         throw createMappedError(ErrorNames.ast_no_assign_$host);
       }
       const obj = getContext(s, ast.name, ast.ancestor) as IObservable;
       return obj[ast.name] = val;
     }
-    case ExpressionKind.AccessMember: {
+    case 'AccessMember': {
       const obj = astEvaluate(ast.object, s, e, null) as IObservable;
       if (isObject(obj)) {
         if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
@@ -368,7 +367,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       }
       return val;
     }
-    case ExpressionKind.AccessKeyed: {
+    case 'AccessKeyed': {
       const instance = astEvaluate(ast.object, s, e, null) as IIndexable;
       const key = astEvaluate(ast.key, s, e, null) as string;
       if (isArray(instance)) {
@@ -383,10 +382,10 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       }
       return instance[key] = val;
     }
-    case ExpressionKind.Assign:
+    case 'Assign':
       astAssign(ast.value, s, e, val);
       return astAssign(ast.target, s, e, val);
-    case ExpressionKind.ValueConverter: {
+    case 'ValueConverter': {
       const vc = e?.getConverter?.(ast.name);
       if (vc == null) {
         throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
@@ -396,10 +395,10 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       }
       return astAssign(ast.expression, s, e, val);
     }
-    case ExpressionKind.BindingBehavior:
+    case 'BindingBehavior':
       return astAssign(ast.expression, s, e, val);
-    case ExpressionKind.ArrayDestructuring:
-    case ExpressionKind.ObjectDestructuring: {
+    case 'ArrayDestructuring':
+    case 'ObjectDestructuring': {
       const list = ast.list;
       const len = list.length;
       let i: number;
@@ -407,11 +406,11 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       for (i = 0; i < len; i++) {
         item = list[i];
         switch (item.$kind) {
-          case ExpressionKind.DestructuringAssignmentLeaf:
+          case 'DestructuringAssignmentLeaf':
             astAssign(item, s, e, val);
             break;
-          case ExpressionKind.ArrayDestructuring:
-          case ExpressionKind.ObjectDestructuring: {
+          case 'ArrayDestructuring':
+          case 'ObjectDestructuring': {
             if (typeof val !== 'object' || val === null) {
               throw createMappedError(ErrorNames.ast_destruct_null);
             }
@@ -426,7 +425,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       }
       break;
     }
-    case ExpressionKind.DestructuringAssignmentLeaf: {
+    case 'DestructuringAssignmentLeaf': {
       if (ast instanceof DestructuringAssignmentSingleExpression) {
         if (val == null) { return; }
         if (typeof val !== 'object') {
@@ -464,7 +463,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
       }
       break;
     }
-    case ExpressionKind.Custom:
+    case 'Custom':
       return ast.assign(s, e, val);
     default:
       return void 0;
@@ -475,7 +474,7 @@ type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehavio
 
 export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
-    case ExpressionKind.BindingBehavior: {
+    case 'BindingBehavior': {
       const name = ast.name;
       const key = ast.key;
       const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
@@ -491,7 +490,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       astBind(ast.expression, s, b);
       return;
     }
-    case ExpressionKind.ValueConverter: {
+    case 'ValueConverter': {
       const name = ast.name;
       const vc = b.getConverter?.(name);
       if (vc == null) {
@@ -514,11 +513,11 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
       astBind(ast.expression, s, b);
       return;
     }
-    case ExpressionKind.ForOfStatement: {
+    case 'ForOfStatement': {
       astBind(ast.iterable, s, b);
       break;
     }
-    case ExpressionKind.Custom: {
+    case 'Custom': {
       ast.bind?.(s, b);
     }
   }
@@ -526,7 +525,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
 
 export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
-    case ExpressionKind.BindingBehavior: {
+    case 'BindingBehavior': {
       const key = ast.key;
       const $b = b as BindingWithBehavior;
       if ($b[key] !== void 0) {
@@ -536,7 +535,7 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
       astUnbind(ast.expression, s, b);
       break;
     }
-    case ExpressionKind.ValueConverter: {
+    case 'ValueConverter': {
       const vc = b.getConverter?.(ast.name);
       if (vc?.signals === void 0) {
         return;
@@ -551,11 +550,11 @@ export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluat
       astUnbind(ast.expression, s, b);
       break;
     }
-    case ExpressionKind.ForOfStatement: {
+    case 'ForOfStatement': {
       astUnbind(ast.iterable, s, b);
       break;
     }
-    case ExpressionKind.Custom: {
+    case 'Custom': {
       ast.unbind?.(s, b);
     }
   }

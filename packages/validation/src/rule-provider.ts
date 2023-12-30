@@ -8,7 +8,6 @@ import {
   PrimitiveLiteralExpression,
   AccessScopeExpression,
   Scope,
-  ExpressionKind,
   IAstEvaluator,
   astEvaluate,
 } from '@aurelia/runtime';
@@ -647,13 +646,13 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
 
   public parseMessage(message: string): Interpolation | PrimitiveLiteralExpression {
     const parsed = this.parser.parse(message, ExpressionType.Interpolation);
-    if (parsed?.$kind === ExpressionKind.Interpolation) {
+    if (parsed?.$kind === 'Interpolation') {
       for (const expr of parsed.expressions) {
         const name = (expr as AccessScopeExpression).name;
         if (contextualProperties.has(name)) {
           this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
         }
-        if (expr.$kind === ExpressionKind.AccessThis || (expr as AccessScopeExpression).ancestor > 0) {
+        if (expr.$kind === 'AccessThis' || (expr as AccessScopeExpression).ancestor > 0) {
           throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
         }
       }

@@ -1,5 +1,5 @@
 import { createError, isString, safeString } from '../utilities';
-import { CustomExpression, ExpressionKind } from './ast';
+import { CustomExpression } from './ast';
 
 import type { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, IsExpressionOrStatement, IsBindingBehavior } from './ast';
 
@@ -36,34 +36,34 @@ export interface IVisitor<T = unknown> {
 
 export const astVisit = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) => {
   switch (ast.$kind) {
-    case ExpressionKind.AccessKeyed: return visitor.visitAccessKeyed(ast);
-    case ExpressionKind.AccessMember: return visitor.visitAccessMember(ast);
-    case ExpressionKind.AccessScope: return visitor.visitAccessScope(ast);
-    case ExpressionKind.AccessThis: return visitor.visitAccessThis(ast);
-    case ExpressionKind.ArrayBindingPattern: return visitor.visitArrayBindingPattern(ast);
-    case ExpressionKind.ArrayDestructuring: return visitor.visitDestructuringAssignmentExpression(ast);
-    case ExpressionKind.ArrayLiteral: return visitor.visitArrayLiteral(ast);
-    case ExpressionKind.ArrowFunction: return visitor.visitArrowFunction(ast);
-    case ExpressionKind.Assign: return visitor.visitAssign(ast);
-    case ExpressionKind.Binary: return visitor.visitBinary(ast);
-    case ExpressionKind.BindingBehavior: return visitor.visitBindingBehavior(ast);
-    case ExpressionKind.BindingIdentifier: return visitor.visitBindingIdentifier(ast);
-    case ExpressionKind.CallFunction: return visitor.visitCallFunction(ast);
-    case ExpressionKind.CallMember: return visitor.visitCallMember(ast);
-    case ExpressionKind.CallScope: return visitor.visitCallScope(ast);
-    case ExpressionKind.Conditional: return visitor.visitConditional(ast);
-    case ExpressionKind.DestructuringAssignmentLeaf: return visitor.visitDestructuringAssignmentSingleExpression(ast as DestructuringAssignmentSingleExpression);
-    case ExpressionKind.ForOfStatement: return visitor.visitForOfStatement(ast);
-    case ExpressionKind.Interpolation: return visitor.visitInterpolation(ast);
-    case ExpressionKind.ObjectBindingPattern: return visitor.visitObjectBindingPattern(ast);
-    case ExpressionKind.ObjectDestructuring: return visitor.visitDestructuringAssignmentExpression(ast);
-    case ExpressionKind.ObjectLiteral: return visitor.visitObjectLiteral(ast);
-    case ExpressionKind.PrimitiveLiteral: return visitor.visitPrimitiveLiteral(ast);
-    case ExpressionKind.TaggedTemplate: return visitor.visitTaggedTemplate(ast);
-    case ExpressionKind.Template: return visitor.visitTemplate(ast);
-    case ExpressionKind.Unary: return visitor.visitUnary(ast);
-    case ExpressionKind.ValueConverter: return visitor.visitValueConverter(ast);
-    case ExpressionKind.Custom: return visitor.visitCustom(ast);
+    case 'AccessKeyed': return visitor.visitAccessKeyed(ast);
+    case 'AccessMember': return visitor.visitAccessMember(ast);
+    case 'AccessScope': return visitor.visitAccessScope(ast);
+    case 'AccessThis': return visitor.visitAccessThis(ast);
+    case 'ArrayBindingPattern': return visitor.visitArrayBindingPattern(ast);
+    case 'ArrayDestructuring': return visitor.visitDestructuringAssignmentExpression(ast);
+    case 'ArrayLiteral': return visitor.visitArrayLiteral(ast);
+    case 'ArrowFunction': return visitor.visitArrowFunction(ast);
+    case 'Assign': return visitor.visitAssign(ast);
+    case 'Binary': return visitor.visitBinary(ast);
+    case 'BindingBehavior': return visitor.visitBindingBehavior(ast);
+    case 'BindingIdentifier': return visitor.visitBindingIdentifier(ast);
+    case 'CallFunction': return visitor.visitCallFunction(ast);
+    case 'CallMember': return visitor.visitCallMember(ast);
+    case 'CallScope': return visitor.visitCallScope(ast);
+    case 'Conditional': return visitor.visitConditional(ast);
+    case 'DestructuringAssignmentLeaf': return visitor.visitDestructuringAssignmentSingleExpression(ast as DestructuringAssignmentSingleExpression);
+    case 'ForOfStatement': return visitor.visitForOfStatement(ast);
+    case 'Interpolation': return visitor.visitInterpolation(ast);
+    case 'ObjectBindingPattern': return visitor.visitObjectBindingPattern(ast);
+    case 'ObjectDestructuring': return visitor.visitDestructuringAssignmentExpression(ast);
+    case 'ObjectLiteral': return visitor.visitObjectLiteral(ast);
+    case 'PrimitiveLiteral': return visitor.visitPrimitiveLiteral(ast);
+    case 'TaggedTemplate': return visitor.visitTaggedTemplate(ast);
+    case 'Template': return visitor.visitTemplate(ast);
+    case 'Unary': return visitor.visitUnary(ast);
+    case 'ValueConverter': return visitor.visitValueConverter(ast);
+    case 'Custom': return visitor.visitCustom(ast);
     default: {
       throw createError(`Unknown ast node ${JSON.stringify(ast)}`);
     }
@@ -330,7 +330,7 @@ export class Unparser implements IVisitor<void> {
 
   public visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): void {
     const $kind = expr.$kind;
-    const isObjDes = $kind === ExpressionKind.ObjectDestructuring;
+    const isObjDes = $kind === 'ObjectDestructuring';
     this.text += isObjDes ? '{' : '[';
     const list = expr.list;
     const len = list.length;
@@ -339,11 +339,11 @@ export class Unparser implements IVisitor<void> {
     for(i = 0; i< len; i++) {
       item = list[i];
       switch(item.$kind) {
-        case ExpressionKind.DestructuringAssignmentLeaf:
+        case 'DestructuringAssignmentLeaf':
           astVisit(item, this);
           break;
-        case ExpressionKind.ArrayDestructuring:
-        case ExpressionKind.ObjectDestructuring: {
+        case 'ArrayDestructuring':
+        case 'ObjectDestructuring': {
           const source = item.source;
           if(source) {
             astVisit(source, this);

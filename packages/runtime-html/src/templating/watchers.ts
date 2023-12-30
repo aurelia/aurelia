@@ -2,7 +2,6 @@ import {
   astEvaluate,
   connectable,
   ConnectableSwitcher,
-  ExpressionKind,
   ProxyObservable,
 } from '@aurelia/runtime';
 import { mixinAstEvaluator } from '../binding/binding-utils';
@@ -154,7 +153,7 @@ export class ExpressionWatcher implements IConnectableBinding {
     const expr = this._expression;
     const obj = this.obj;
     const oldValue = this._value;
-    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
+    const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
     if (!canOptimize) {
       this.obs.version++;
       value = astEvaluate(expr, this.scope, this, this);

@@ -14,7 +14,6 @@ import {
   BindingIdentifier,
   PrimitiveLiteralExpression,
   IExpressionParser,
-  ExpressionKind,
 } from '@aurelia/runtime';
 import {
   bindable,
@@ -1156,13 +1155,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               {
                 "type": InstructionType.interpolation,
                 "from": {
-                  '$kind': ExpressionKind.Interpolation,
+                  '$kind': 'Interpolation',
                   "parts": ["abc-", ""],
                   "expressions": [
-                    { "$kind": ExpressionKind.AccessScope, "name": "value", "ancestor": 0 }
+                    { "$kind": 'AccessScope', "name": "value", "ancestor": 0 }
                   ],
                   "isMulti": false,
-                  "firstExpression": { "$kind": ExpressionKind.AccessScope, "name": "value", "ancestor": 0 }
+                  "firstExpression": { "$kind": 'AccessScope', "name": "value", "ancestor": 0 }
                 },
                 "to": "class"
               }

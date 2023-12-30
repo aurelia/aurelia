@@ -15,7 +15,6 @@ import {
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
-  ExpressionKind,
   ForOfStatement,
   Interpolation,
   ObjectLiteralExpression,
@@ -1212,34 +1211,34 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   function adjustAncestor(count: number, expr: IsAssign, input: string) {
     switch (expr.$kind) {
-      case ExpressionKind.AccessThis:
+      case 'AccessThis':
         (expr as any).ancestor += count;
         break;
-      case ExpressionKind.AccessScope:
+      case 'AccessScope':
         // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
         }
         break;
-      case ExpressionKind.ArrayLiteral:
+      case 'ArrayLiteral':
         for (const el of expr.elements) {
           adjustAncestor(count, el, input);
         }
         break;
-      case ExpressionKind.ObjectLiteral:
+      case 'ObjectLiteral':
         for (const val of expr.values) {
           adjustAncestor(count, val, input);
         }
         break;
-      case ExpressionKind.Template:
+      case 'Template':
         for (const ex of expr.expressions) {
           adjustAncestor(count, ex, input);
         }
         break;
-      case ExpressionKind.Unary:
+      case 'Unary':
         adjustAncestor(count, expr.expression, input);
         break;
-      case ExpressionKind.CallScope:
+      case 'CallScope':
         // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
@@ -1248,45 +1247,45 @@ describe('2-runtime/expression-parser.spec.ts', function () {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.CallMember:
+      case 'CallMember':
         adjustAncestor(count, expr.object, input);
         for (const arg of expr.args) {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.CallFunction:
+      case 'CallFunction':
         adjustAncestor(count, expr.func, input);
         for (const arg of expr.args) {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.AccessMember:
+      case 'AccessMember':
         adjustAncestor(count, expr.object, input);
         break;
-      case ExpressionKind.AccessKeyed:
+      case 'AccessKeyed':
         adjustAncestor(count, expr.object, input);
         adjustAncestor(count, expr.key, input);
         break;
-      case ExpressionKind.TaggedTemplate:
+      case 'TaggedTemplate':
         adjustAncestor(count, expr.func, input);
         // for (const ex of expr.expressions) {
         //   adjustAncestor(count, ex, input);
         // }
         break;
-      case ExpressionKind.Binary:
+      case 'Binary':
         adjustAncestor(count, expr.left, input);
         adjustAncestor(count, expr.right, input);
         break;
-      case ExpressionKind.Conditional:
+      case 'Conditional':
         adjustAncestor(count, expr.yes, input);
         adjustAncestor(count, expr.no, input);
         adjustAncestor(count, expr.condition, input);
         break;
-      case ExpressionKind.Assign:
+      case 'Assign':
         adjustAncestor(count, expr.target, input);
         adjustAncestor(count, expr.value, input);
         break;
-      case ExpressionKind.ArrowFunction:
+      case 'ArrowFunction':
         adjustAncestor(count, expr.body, input);
         break;
     }
@@ -1354,7 +1353,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     const AME = AccessMemberExpression;
     const PLE = PrimitiveLiteralExpression;
     const AKE = AccessKeyedExpression;
-    const aknd = ExpressionKind.ArrayDestructuring;
+    const aknd = 'ArrayDestructuring';
     const bi_a = new BindingIdentifier('a');
 
     const SimpleForDeclarations: [string, any][] = [

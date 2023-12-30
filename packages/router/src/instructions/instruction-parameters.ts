@@ -14,12 +14,7 @@ import { IContainer } from '@aurelia/kernel';
  *
  * @internal
  */
-export const enum ParametersType {
-  none = 'none',
-  string = 'string',
-  array = 'array',
-  object = 'object',
-}
+export type ParametersType = 'none' | 'string' | 'array' | 'object';
 
 export type Parameters = {
   [key: string]: unknown;
@@ -40,10 +35,10 @@ export class InstructionParameters {
   public parametersString: string | null = null;
   public parametersRecord: Parameters | null = null;
   public parametersList: unknown[] | null = null;
-  public parametersType: ParametersType = ParametersType.none;
+  public parametersType: ParametersType = 'none';
 
   public get none(): boolean {
-    return this.parametersType === ParametersType.none;
+    return this.parametersType === 'none';
   }
 
   // Static methods
@@ -90,11 +85,11 @@ export class InstructionParameters {
 
   public get typedParameters(): ComponentParameters | null {
     switch (this.parametersType) {
-      case ParametersType.string:
+      case 'string':
         return this.parametersString;
-      case ParametersType.array:
+      case 'array':
         return this.parametersList;
-      case ParametersType.object:
+      case 'object':
         return this.parametersRecord;
       default:
         return null;
@@ -138,16 +133,16 @@ export class InstructionParameters {
     this.parametersList = null;
     this.parametersRecord = null;
     if (parameters == null || parameters === '') {
-      this.parametersType = ParametersType.none;
+      this.parametersType = 'none';
       parameters = null;
     } else if (typeof parameters === 'string') {
-      this.parametersType = ParametersType.string;
+      this.parametersType = 'string';
       this.parametersString = parameters;
     } else if (Array.isArray(parameters)) {
-      this.parametersType = ParametersType.array;
+      this.parametersType = 'array';
       this.parametersList = parameters;
     } else {
-      this.parametersType = ParametersType.object;
+      this.parametersType = 'object';
       this.parametersRecord = parameters;
     }
   }
@@ -166,10 +161,10 @@ export class InstructionParameters {
 
   // This only works with objects added to objects!
   public addParameters(parameters: Parameters): void {
-    if (this.parametersType === ParametersType.none) {
+    if (this.parametersType === 'none') {
       return this.set(parameters);
     }
-    if (this.parametersType !== ParametersType.object) {
+    if (this.parametersType !== 'object') {
       throw new Error('Can\'t add object parameters to existing non-object parameters!');
     }
     this.set({ ...this.parametersRecord, ...parameters });

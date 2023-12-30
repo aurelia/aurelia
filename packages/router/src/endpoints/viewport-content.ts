@@ -131,7 +131,7 @@ export class ViewportContent extends EndpointContent {
       'reloadBehavior' in this.instruction.component.instance &&
       this.instruction.component.instance.reloadBehavior !== void 0)
       ? this.instruction.component.instance.reloadBehavior
-      : ReloadBehavior.default;
+      : 'default';
   }
 
   /**

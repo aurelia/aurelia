@@ -116,9 +116,9 @@ describe('1-kernel/logger.spec.ts', function () {
       levels.slice(0, -1),
       levels.slice(),
       [
-        ColorOptions.noColors,
-        ColorOptions.colors,
-      ],
+        'no-colors',
+        'colors',
+      ] as ColorOptions[],
       [
         [
           'test',
@@ -148,7 +148,7 @@ describe('1-kernel/logger.spec.ts', function () {
       [msgOrGetMsg, ...optionalParams],
       scopeTo,
     ) {
-      const colorRE = colorOpts === ColorOptions.colors ? '\\u001b\\[\\d{1,2}m' : '';
+      const colorRE = colorOpts === 'colors' ? '\\u001b\\[\\d{1,2}m' : '';
       const timestampRE = `${colorRE}\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z${colorRE}`;
 
       const scopeRE = scopeTo.length === 0
@@ -205,7 +205,7 @@ describe('1-kernel/logger.spec.ts', function () {
   );
 
   it('additional sink registration works', function () {
-    const { sut } = createFixture(LogLevel.error, ColorOptions.noColors, []);
+    const { sut } = createFixture(LogLevel.error, 'no-colors', []);
 
     const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
@@ -220,7 +220,7 @@ describe('1-kernel/logger.spec.ts', function () {
   });
 
   it('respects the handling capabilities of sinks', function () {
-    const { sut } = createFixture(LogLevel.trace, ColorOptions.noColors, []);
+    const { sut } = createFixture(LogLevel.trace, 'no-colors', []);
 
     const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
@@ -238,7 +238,7 @@ describe('1-kernel/logger.spec.ts', function () {
   });
 
   it('console logging can be deactivated', function () {
-    const { sut, mock } = createFixture(LogLevel.trace, ColorOptions.noColors, [], true);
+    const { sut, mock } = createFixture(LogLevel.trace, 'no-colors', [], true);
 
     const sinks = (sut as DefaultLogger).sinks;
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;

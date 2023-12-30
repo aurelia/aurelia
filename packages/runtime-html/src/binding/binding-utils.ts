@@ -213,7 +213,7 @@ const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === 'pending';
     dispose();
     if (isPending) {
       callOriginalCallback();
@@ -263,7 +263,7 @@ const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === 'pending';
     dispose();
     if (isPending) {
       callOriginalCallback();

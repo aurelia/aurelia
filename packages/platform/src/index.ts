@@ -194,7 +194,7 @@ export class TaskQueue {
       while (this._processing.length > 0) {
         (cur = this._processing.shift()!).run();
         // If it's still running, it can only be an async task
-        if (cur.status === TaskStatus.running) {
+        if (cur.status === 'running') {
           if (cur.suspend === true) {
             this._suspenderTask = cur;
             this._requestFlush();
@@ -451,12 +451,7 @@ export class TaskAbortError<T = any> extends Error {
 
 let id: number = 0;
 
-export const enum TaskStatus {
-  pending = 0,
-  running = 1,
-  completed = 2,
-  canceled = 3,
-}
+export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
 
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
@@ -479,17 +474,17 @@ export class Task<T = any> implements ITask {
     const result = this._result;
     if (result === void 0) {
       switch (this._status) {
-        case TaskStatus.pending: {
+        case 'pending': {
           const promise = this._result = createExposedPromise();
           this._resolve = promise.resolve;
           this._reject = promise.reject;
           return promise;
         }
-        case TaskStatus.running:
+        case 'running':
           throw createError('Trying to await task from within task will cause a deadlock.');
-        case TaskStatus.completed:
+        case 'completed':
           return this._result = Promise.resolve() as unknown as Promise<UnwrapPromise<T>>;
-        case TaskStatus.canceled:
+        case 'canceled':
           return this._result = Promise.reject(new TaskAbortError(this));
       }
     }
@@ -497,7 +492,7 @@ export class Task<T = any> implements ITask {
   }
 
   /** @internal */
-  private _status: TaskStatus = TaskStatus.pending;
+  private _status: TaskStatus = 'pending';
   public get status(): TaskStatus {
     return this._status;
   }
@@ -522,7 +517,7 @@ export class Task<T = any> implements ITask {
   public run(time: number = this.taskQueue.platform.performanceNow()): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'run'); }
 
-    if (this._status !== TaskStatus.pending) {
+    if (this._status !== 'pending') {
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run error'); }
 
       throw createError(`Cannot run task in ${this._status} state`);
@@ -542,7 +537,7 @@ export class Task<T = any> implements ITask {
     } = this;
     let ret: unknown;
 
-    this._status = TaskStatus.running;
+    this._status = 'running';
 
     try {
       ret = callback(time - createdTime);
@@ -553,9 +548,9 @@ export class Task<T = any> implements ITask {
           } else {
             if (persistent) {
               // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-              this._status = TaskStatus.canceled;
+              this._status = 'canceled';
             } else {
-              this._status = TaskStatus.completed;
+              this._status = 'completed';
             }
 
             this.dispose();
@@ -594,9 +589,9 @@ export class Task<T = any> implements ITask {
         } else {
           if (persistent) {
             // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-            this._status = TaskStatus.canceled;
+            this._status = 'canceled';
           } else {
-            this._status = TaskStatus.completed;
+            this._status = 'completed';
           }
 
           this.dispose();
@@ -630,7 +625,7 @@ export class Task<T = any> implements ITask {
   public cancel(): boolean {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'cancel'); }
 
-    if (this._status === TaskStatus.pending) {
+    if (this._status === 'pending') {
       const taskQueue = this.taskQueue;
       const reusable = this.reusable;
       const reject = this._reject;
@@ -641,7 +636,7 @@ export class Task<T = any> implements ITask {
         taskQueue.cancel();
       }
 
-      this._status = TaskStatus.canceled;
+      this._status = 'canceled';
 
       this.dispose();
 
@@ -656,7 +651,7 @@ export class Task<T = any> implements ITask {
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel true =pending'); }
 
       return true;
-    } else if (this._status === TaskStatus.running && this.persistent) {
+    } else if (this._status === 'running' && this.persistent) {
       this.persistent = false;
 
       if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'cancel true =running+persistent'); }
@@ -675,7 +670,7 @@ export class Task<T = any> implements ITask {
     const delay = this.queueTime - this.createdTime;
     this.createdTime = time;
     this.queueTime = time + delay;
-    this._status = TaskStatus.pending;
+    this._status = 'pending';
 
     this._resolve = void 0;
     this._reject = void 0;
@@ -700,7 +695,7 @@ export class Task<T = any> implements ITask {
     this.persistent = persistent;
     this.suspend = suspend;
     this.callback = callback;
-    this._status = TaskStatus.pending;
+    this._status = 'pending';
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'reuse'); }
   }
@@ -791,22 +786,13 @@ class Tracer {
       const reusable = obj['reusable'];
       const persistent = obj['persistent'];
       const suspend = obj['suspend'];
-      const status = taskStatus(obj['_status']);
+      const status = obj['_status'];
 
       const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
       this.console.log(`${prefix}[T.${method}] ${info}`);
     }
   }
 }
-
-const taskStatus = (status: TaskStatus): 'pending' | 'running' | 'canceled' | 'completed' => {
-  switch (status) {
-    case TaskStatus.pending: return 'pending';
-    case TaskStatus.running: return 'running';
-    case TaskStatus.canceled: return 'canceled';
-    case TaskStatus.completed: return 'completed';
-  }
-};
 
 const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,

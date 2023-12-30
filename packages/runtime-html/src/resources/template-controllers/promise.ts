@@ -110,7 +110,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   fulfilled?.activate(initiator, s, data),
                 ), defaultQueuingOptions)).result;
               };
-              if (this.preSettledTask!.status === TaskStatus.running) {
+              if (this.preSettledTask!.status === 'running') {
                 void preSettlePromise.then(fulfill);
               } else {
                 this.preSettledTask!.cancel();
@@ -129,7 +129,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   rejected?.activate(initiator, s, err),
                 ), defaultQueuingOptions)).result;
               };
-              if (this.preSettledTask!.status === TaskStatus.running) {
+              if (this.preSettledTask!.status === 'running') {
                 void preSettlePromise.then(reject);
               } else {
                 this.preSettledTask!.cancel();
@@ -139,7 +139,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
           ));
     };
 
-    if (this.postSettledTask?.status === TaskStatus.running) {
+    if (this.postSettledTask?.status === 'running') {
       void this.postSettlePromise.then($swap);
     } else {
       this.postSettledTask?.cancel();

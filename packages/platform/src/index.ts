@@ -710,12 +710,6 @@ export class Task<T = any> implements ITask {
   }
 }
 
-export const enum TaskQueuePriority {
-  render     = 0,
-  macroTask  = 1,
-  postRender = 2,
-}
-
 export type QueueTaskOptions = {
   /**
    * The number of milliseconds to wait before queueing the task.

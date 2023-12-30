@@ -89,7 +89,6 @@ export {
   Task,
   TaskAbortError,
   TaskQueue,
-  TaskQueuePriority,
   TaskStatus
 } from '@aurelia/platform';
 

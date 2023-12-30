@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import { Task, TaskQueue, TaskQueuePriority, reportTaskQueue } from '@aurelia/platform';
+import { Task, TaskQueue, reportTaskQueue } from '@aurelia/platform';
 import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,

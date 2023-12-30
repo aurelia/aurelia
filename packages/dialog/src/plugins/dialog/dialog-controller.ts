@@ -157,14 +157,14 @@ export class DialogController implements IDialogController {
             if (rejectOnCancel) {
               throw createDialogCancelError(null, 'Dialog cancellation rejected');
             }
-            return DialogCloseResult.create(DialogDeactivationStatuses.Abort as T);
+            return DialogCloseResult.create('abort' as T);
           }
           return onResolve(cmp.deactivate?.(dialogResult),
             () => onResolve(controller.deactivate(controller, null),
               () => {
                 dom.dispose();
                 dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
-                if (!rejectOnCancel && status !== DialogDeactivationStatuses.Error) {
+                if (!rejectOnCancel && status !== 'error') {
                   this._resolve(dialogResult);
                 } else {
                   this._reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
@@ -191,8 +191,8 @@ export class DialogController implements IDialogController {
    *
    * @param value - The returned success output.
    */
-  public ok(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Ok>> {
-    return this.deactivate(DialogDeactivationStatuses.Ok, value);
+  public ok(value?: unknown): Promise<DialogCloseResult<'ok'>> {
+    return this.deactivate('ok', value);
   }
 
   /**
@@ -200,8 +200,8 @@ export class DialogController implements IDialogController {
    *
    * @param value - The returned cancel output.
    */
-  public cancel(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Cancel>> {
-    return this.deactivate(DialogDeactivationStatuses.Cancel, value);
+  public cancel(value?: unknown): Promise<DialogCloseResult<'cancel'>> {
+    return this.deactivate('cancel', value);
   }
 
   /**
@@ -213,7 +213,7 @@ export class DialogController implements IDialogController {
   public error(value: unknown): Promise<void> {
     const closeError = createDialogCloseError(value);
     return new Promise(r => r(onResolve(
-      this.cmp.deactivate?.(DialogCloseResult.create(DialogDeactivationStatuses.Error, closeError)),
+      this.cmp.deactivate?.(DialogCloseResult.create('error', closeError)),
       () => onResolve(
         this.controller.deactivate(this.controller, null),
         () => {

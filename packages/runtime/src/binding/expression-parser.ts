@@ -1282,13 +1282,13 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   }
 }
 
-const allowedForExprKinds: ExpressionKind[] = ['ArrayBindingPattern', 'ObjectBindingPattern', 'BindingIdentifier'];
+const allowedForExprKinds: ExpressionKind[] = ['ArrayBindingPattern', 'ObjectBindingPattern', 'BindingIdentifier', 'ArrayDestructuring', 'ObjectDestructuring'];
 function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement {
   if (!allowedForExprKinds.includes(result.$kind)) {
-    throw invalidLHSBindingIdentifierInForOf();
+    throw invalidLHSBindingIdentifierInForOf(result.$kind);
   }
   if ($currentToken !== Token.OfKeyword) {
-    throw invalidLHSBindingIdentifierInForOf();
+    throw invalidLHSBindingIdentifierInForOf(result.$kind);
   }
   nextToken();
   const declaration = result;
@@ -1637,7 +1637,7 @@ const unexpectedOfKeyword = () => createMappedError(ErrorNames.parse_unexpected_
 
 const unexpectedImportKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_import, $input);
 
-const invalidLHSBindingIdentifierInForOf = () => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input);
+const invalidLHSBindingIdentifierInForOf = (kind: any) => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input, kind);
 
 const invalidPropDefInObjLiteral = () => createMappedError(ErrorNames.parse_invalid_identifier_object_literal_key, $input);
 

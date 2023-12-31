@@ -1,4 +1,1 @@
-export const enum DefinitionType {
-  Element = 1,
-  Attribute = 2,
-}
+export type DefinitionType = 'Element' | 'Attribute';

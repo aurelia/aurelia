@@ -10,7 +10,6 @@ import {
   AttrSyntax,
   bindingCommand,
   CommandType,
-  DefinitionType,
   IAttrMapper,
   IHydratableController,
   IPlatform,
@@ -55,7 +54,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;

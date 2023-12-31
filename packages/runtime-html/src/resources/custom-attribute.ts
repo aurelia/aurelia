@@ -2,7 +2,6 @@ import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
-import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
@@ -98,7 +97,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get type(): DefinitionType.Attribute { return DefinitionType.Attribute; }
+  public get type(): 'Attribute' { return 'Attribute'; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,

@@ -96,7 +96,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.parse_expected_behavior_identifier]: `Expression error: expected identifier to come after binding behavior operator: {{0}}`,
   [ErrorNames.parse_unexpected_keyword_of]: `Expression error: unexpected keyword "of": "{{0}}"`,
   [ErrorNames.parse_unexpected_keyword_import]: `Expression error: unexpected keyword "import": "{{0}}"`,
-  [ErrorNames.parse_invalid_identifier_in_forof]: `Expression error: invalid BindingIdentifier at left hand side of "of": "{{0}}"`,
+  [ErrorNames.parse_invalid_identifier_in_forof]: `Expression error: invalid BindingIdentifier at left hand side of "of": "{{0}}" | kind: {{1}}`,
   [ErrorNames.parse_invalid_identifier_object_literal_key]: `Expression error: invalid or unsupported property definition in object literal: "{{0}}"`,
   [ErrorNames.parse_unterminated_string]: `Expression error: unterminated quote in string literal: "{{0}}"`,
   [ErrorNames.parse_unterminated_template_string]: `Expression error: unterminated template string: "{{0}}"`,

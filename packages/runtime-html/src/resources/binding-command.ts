@@ -11,7 +11,6 @@ import {
   SpreadBindingInstruction,
   MultiAttrInstruction,
 } from '../renderer';
-import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
@@ -169,7 +168,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -194,7 +193,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -219,7 +218,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -244,7 +243,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -274,7 +273,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       defaultMode = (info.def as CA).defaultBindingMode;

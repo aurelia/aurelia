@@ -40,7 +40,7 @@ export class DispatchAttributePattern {
 
 @bindingCommand('state')
 export class StateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return CommandType.None; }
+  public get type(): CommandType { return 'None'; }
   public get name(): string { return 'state'; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): IInstruction {
@@ -66,7 +66,7 @@ export class StateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return CommandType.IgnoreAttr; }
+  public get type(): CommandType { return 'IgnoreAttr'; }
   public get name(): string { return 'dispatch'; }
 
   public build(info: ICommandBuildInfo): IInstruction {

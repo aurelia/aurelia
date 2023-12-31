@@ -9,7 +9,6 @@ import {
 } from '@aurelia/runtime';
 import {
   BindingMode,
-  CommandType,
   IRenderer,
   renderer,
   IHydratableController,
@@ -47,7 +46,7 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly type: CommandType.None = CommandType.None;
+  public readonly type: 'None' = 'None';
   public get name() { return 't'; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {
@@ -111,7 +110,7 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: CommandType.None = CommandType.None;
+  public readonly type: 'None' = 'None';
   public get name() { return 't-bind'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {

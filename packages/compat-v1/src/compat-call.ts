@@ -1,6 +1,6 @@
 import { camelCase, IIndexable, type IContainer, type IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, ExpressionType, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { bindingCommand, BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { ensureExpression } from './utilities';
 
 const registeredSymbol = Symbol('.call');
@@ -33,7 +33,7 @@ export class CallBindingInstruction {
 
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.None { return CommandType.None; }
+  public get type(): 'None' { return 'None'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null

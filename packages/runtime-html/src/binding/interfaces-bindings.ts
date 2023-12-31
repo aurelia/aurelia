@@ -9,7 +9,7 @@ import { State } from '../templating/controller';
 /**
  * Mode of a binding to operate
  */
-export const enum BindingMode {
+export enum BindingMode {
   oneTime  = 0b0001,
   toView   = 0b0010,
   fromView = 0b0100,

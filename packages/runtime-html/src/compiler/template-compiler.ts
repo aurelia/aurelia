@@ -26,7 +26,7 @@ import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
-import { BindingCommand, CommandType } from '../resources/binding-command';
+import { BindingCommand } from '../resources/binding-command';
 import { createLookup, def, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
@@ -142,7 +142,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrValue = attrSyntax.rawValue;
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && (bindingCommand.type & CommandType.IgnoreAttr) > 0) {
+      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -336,7 +336,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && (bindingCommand.type & CommandType.IgnoreAttr) > 0) {
+      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -702,7 +702,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrValue = attrSyntax.rawValue;
 
       if (capture && (!hasCaptureFilter || hasCaptureFilter && capture(realAttrTarget))) {
-        if (bindingCommand != null && bindingCommand.type & CommandType.IgnoreAttr) {
+        if (bindingCommand != null && bindingCommand.type === 'IgnoreAttr') {
           removeAttr();
           captures.push(attrSyntax);
           continue;
@@ -725,7 +725,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      if (bindingCommand !== null && bindingCommand.type & CommandType.IgnoreAttr) {
+      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."

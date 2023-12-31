@@ -8,7 +8,6 @@ import {
 } from '@aurelia/runtime';
 import {
   BindingMode,
-  CommandType,
   IHydratableController,
   IRenderer,
   renderer,
@@ -47,7 +46,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: CommandType.None = CommandType.None;
+  public readonly type: 'None' = 'None';
   public get name() { return attribute; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationParametersBindingInstruction {

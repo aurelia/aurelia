@@ -1,6 +1,6 @@
 import { DI, IContainer, IIndexable } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, ExpressionType, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { AppTask, bindingCommand, BindingCommandInstance, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
@@ -27,7 +27,7 @@ const instructionType = 'dl';
 
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
+  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new DelegateBindingInstruction(

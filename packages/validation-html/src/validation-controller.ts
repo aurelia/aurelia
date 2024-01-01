@@ -34,10 +34,7 @@ export type BindingWithBehavior = PropertyBinding & {
   ast: BindingBehaviorExpression;
   target: Element | object;
 };
-export const enum ValidateEventKind {
-  validate = 'validate',
-  reset = 'reset',
-}
+export type ValidateEventKind = 'validate' | 'reset';
 
 /**
  * The result of a call to the validation controller's validate method.
@@ -324,7 +321,7 @@ export class ValidationController implements IValidationController {
   public removeObject(object: IValidateable): void {
     this.objects.delete(object);
     this.processResultDelta(
-      ValidateEventKind.reset,
+      'reset',
       this.results.filter(result => result.object === object),
       []);
   }
@@ -339,13 +336,13 @@ export class ValidationController implements IValidationController {
       [resolvedPropertyName] = parsePropertyName(propertyName, this.parser);
     }
     const result = new ValidationResult(false, message, resolvedPropertyName, object, undefined, undefined, true);
-    this.processResultDelta(ValidateEventKind.validate, [], [result]);
+    this.processResultDelta('validate', [], [result]);
     return result;
   }
 
   public removeError(result: ValidationResult) {
     if (this.results.includes(result)) {
-      this.processResultDelta(ValidateEventKind.reset, [result], []);
+      this.processResultDelta('reset', [result], []);
     }
   }
 
@@ -410,7 +407,7 @@ export class ValidationController implements IValidationController {
           []);
         const predicate = this.getInstructionPredicate(instruction);
         const oldResults = this.results.filter(predicate);
-        this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);
+        this.processResultDelta('validate', oldResults, newResults);
 
         return new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction);
       } finally {
@@ -423,7 +420,7 @@ export class ValidationController implements IValidationController {
   public reset(instruction?: ValidateInstruction) {
     const predicate = this.getInstructionPredicate(instruction);
     const oldResults = this.results.filter(predicate);
-    this.processResultDelta(ValidateEventKind.reset, oldResults, []);
+    this.processResultDelta('reset', oldResults, []);
   }
 
   public async validateBinding(binding: BindingWithBehavior) {

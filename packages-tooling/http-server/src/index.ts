@@ -20,7 +20,6 @@ export {
   getContentType,
 } from './http-utils';
 export {
-  Encoding,
   IHttpServer,
   IHttpServerOptions,
   IRequestHandler,

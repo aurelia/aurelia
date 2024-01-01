@@ -1,10 +1,6 @@
 import { DI, LogLevel as $LogLevel } from '@aurelia/kernel';
 import { IHttpContext } from './http-context';
 
-// export const enum Encoding {
-//   utf8 = 'utf8',
-// }
-
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'none';
 export interface IHttpServerOptions {
   readonly root: string;

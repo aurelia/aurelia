@@ -66,6 +66,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   private hasLoad(): boolean {
     const parent = this.$controller.parent!;
     const siblings = parent.children;
-    return siblings?.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof LoadCustomAttribute) ?? false;
+    return siblings?.some(c => c.vmKind === 'customAttribute' && c.viewModel instanceof LoadCustomAttribute) ?? false;
   }
 }

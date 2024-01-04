@@ -43,6 +43,13 @@
 * [Slotted content](components/shadow-dom-and-slots.md)
 * [Scope and context](components/scope-and-binding-context.md)
 * [CustomElement API](components/customelement-api.md)
+* Template compilation
+  * [processContent](developer-guides/scenarios/process-content.md)
+  * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
+  * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
+  * [Extending binding language](developer-guides/scenarios/bindingcommand.md)
+  * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
+  * [Attribute mapping](developer-guides/scenarios/attributemapper.md)
 
 ## Getting to know Aurelia
 
@@ -133,11 +140,6 @@
   * [DOM style injection](developer-guides/scenarios/dom-style-injection.md)
   * [Markdown integration](developer-guides/scenarios/markdown-integration.md)
   * [Securing an app](developer-guides/scenarios/securing-an-app.md)
-  * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
-  * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
-  * [Extending binding language](developer-guides/scenarios/bindingcommand.md)
-  * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
-  * [Attribute mapping](developer-guides/scenarios/attributemapper.md)
 * [Playground](reference/examples/README.md)
   * [Binding & Templating](reference/examples/binding-and-templating/README.md)
   * [Custom Attributes](reference/examples/custom-attributes/README.md)

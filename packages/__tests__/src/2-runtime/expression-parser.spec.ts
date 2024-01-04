@@ -449,7 +449,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   for (const [exprType, name] of [
     [undefined, 'undefined'],
     [ExpressionType.IsProperty, 'IsProperty'],
-    [ExpressionType.IsProperty | ExpressionType.IsFunction, 'call command'],
+    [ExpressionType.IsFunction, 'call command'],
   ] as [ExpressionType, string][]) {
     describe(name, function () {
       describe('parse AccessThisList', function () {

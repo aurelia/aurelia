@@ -77,7 +77,7 @@ export class ExpressionParser {
       default: {
         if (expression.length === 0) {
           // only allow function to be empty
-          if (expressionType === ExpressionType.IsFunction) {
+          if ((expressionType & (ExpressionType.IsFunction | ExpressionType.IsProperty)) > 0) {
             return PrimitiveLiteralExpression.$empty;
           }
           throw invalidEmptyExpression();

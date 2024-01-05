@@ -1885,10 +1885,10 @@ describe('router/router.spec.ts', function () {
       {
         useUrlFragmentHash: false,
       }
-    ]
-    
+    ];
+
     for (const routerConfig of routerConfigs) {
-      describe(`With router config ${JSON.stringify(routerConfig)}`, () => {
+      describe(`With router config ${JSON.stringify(routerConfig)}`, function () {
         let locationPath: string;
         const locationCallback = (type, data, title, path) => {
           if (routerConfig.useUrlFragmentHash) {
@@ -1904,35 +1904,35 @@ describe('router/router.spec.ts', function () {
         for (const test of tests) {
           it(`to route in canLoad (${test.load})`, async function () {
             const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
-    
+
             // 0) Default root page
             assert.strictEqual(host.textContent, '!root!', '0) root default page');
             assert.strictEqual(locationPath, '/', '0) root path');
-    
+
             // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
             await $load('-', router, platform);
             await platform.domWriteQueue.yield();
             assert.strictEqual(host.textContent, '', `1) ${test.load} -`);
             assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
-    
+
             // 2) Load the wanted page
             await $load(test.load, router, platform);
             await platform.domWriteQueue.yield();
             assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
-    
+
             // 3) Unload
             await $load('-', router, platform);
             await platform.domWriteQueue.yield();
             assert.strictEqual(host.textContent, '', `3) ${test.load} -`);
             assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
-    
+
             // 4) reload
             await $load(test.load, router, platform);
             await platform.domWriteQueue.yield();
             assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
-    
+
             // 5. back to (3) empty
             await $goBack(router, platform);
             assert.strictEqual(host.textContent, '', `5) back to empty content (-)`);
@@ -1949,8 +1949,6 @@ describe('router/router.spec.ts', function () {
             await $goBack(router, platform);
             assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
             assert.strictEqual(locationPath, '/', '8) back to root default path');
-  
-    
           });
         }
       });

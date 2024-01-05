@@ -1949,6 +1949,8 @@ describe('router/router.spec.ts', function () {
             await $goBack(router, platform);
             assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
             assert.strictEqual(locationPath, '/', '8) back to root default path');
+
+            await $teardown();
           });
         }
       });

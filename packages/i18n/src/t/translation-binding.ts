@@ -3,7 +3,6 @@ import {
   AccessorType,
   CustomExpression,
   ExpressionType,
-  Interpolation,
   connectable,
   astEvaluate,
   astUnbind,
@@ -79,9 +78,6 @@ export class TranslationBinding implements IConnectableBinding {
 
   /** @internal */
   private _task: ITask | null = null;
-
-  /** @internal */
-  private _isInterpolation!: boolean;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -167,12 +163,12 @@ export class TranslationBinding implements IConnectableBinding {
     if (this.isBound) {
       return;
     }
+    const ast = this.ast;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!this.ast) { throw new Error('key expression is missing'); }
+    if (!ast) { throw new Error('key expression is missing'); }
     this._scope = _scope;
-    this._isInterpolation = this.ast instanceof Interpolation;
 
-    this._keyExpression = astEvaluate(this.ast, _scope, this, this) as string;
+    this._keyExpression = astEvaluate(ast, _scope, this, this) as string;
     this._ensureKeyExpression();
     this.parameter?.bind(_scope);
 
@@ -198,11 +194,9 @@ export class TranslationBinding implements IConnectableBinding {
     this.obs.clearAll();
   }
 
-  public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
+  public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     this.obs.version++;
-    this._keyExpression = this._isInterpolation
-        ? astEvaluate(this.ast, this._scope, this, this) as string
-        : newValue as string;
+    this._keyExpression = astEvaluate(this.ast, this._scope, this, this) as string;
     this.obs.clear();
     this._ensureKeyExpression();
     this.updateTranslations();

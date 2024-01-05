@@ -772,6 +772,27 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
+    {
+      @customElement({
+        name: 'app', template: `<span t.bind='key'></span>`
+      })
+      class App {
+        public key = 'simple.text';
+      }
+      $it('when the key expression changed - property', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `span`, translation.simple.attr);
+
+        app.key = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `span`, translation.simple.text);
+
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `span`, translation.simple.attr);
+      }, { component: App });
+    }
 
     {
       @customElement({

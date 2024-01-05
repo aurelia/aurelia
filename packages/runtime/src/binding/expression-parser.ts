@@ -398,7 +398,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   }
 
   if ($index === 0) {
-    if (expressionType & ExpressionType.Interpolation) {
+    if (expressionType === ExpressionType.Interpolation) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseInterpolation() as any;
     }
@@ -505,7 +505,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         // falls through
       case Token.Identifier: { // identifier
         const id = $tokenValue as string;
-        if (expressionType & ExpressionType.IsIterator) {
+        if (expressionType === ExpressionType.IsIterator) {
           result = new BindingIdentifier(id);
         } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
           result = new AccessGlobalExpression(id);
@@ -589,7 +589,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         }
     }
 
-    if (expressionType & ExpressionType.IsIterator) {
+    if (expressionType === ExpressionType.IsIterator) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseForOfStatement(result as BindingIdentifierOrPattern) as any;
     }
@@ -864,11 +864,11 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   }
 
   if ($currentToken !== Token.EOF) {
-    if ((expressionType & ExpressionType.Interpolation) > 0 && $currentToken === Token.CloseBrace) {
+    if (expressionType === ExpressionType.Interpolation && $currentToken === Token.CloseBrace) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
-    if ((expressionType & ExpressionType.IsChainable) > 0 && $currentToken === Token.Semicolon) {
+    if (expressionType === ExpressionType.IsChainable && $currentToken === Token.Semicolon) {
       if ($index === $length) {
         throw unconsumedToken();
       }
@@ -1274,7 +1274,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   $optional = _optional;
 
   consume(Token.CloseBracket);
-  if (expressionType & ExpressionType.IsIterator) {
+  if (expressionType === ExpressionType.IsIterator) {
     return new ArrayBindingPattern(elements);
   } else {
     $assignable = false;
@@ -1356,7 +1356,7 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
   $optional = _optional;
 
   consume(Token.CloseBrace);
-  if (expressionType & ExpressionType.IsIterator) {
+  if (expressionType === ExpressionType.IsIterator) {
     return new ObjectBindingPattern(keys, values);
   } else {
     $assignable = false;

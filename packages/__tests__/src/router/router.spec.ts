@@ -1,9 +1,10 @@
-import { IRouter, RouterConfiguration, IRoute, ITitleOptions, RoutingInstruction, routes, Viewport, InstructionParameters } from '@aurelia/router';
+import { IContainer } from '@aurelia/kernel';
+import { IRouter, RouterConfiguration, IRoute, ITitleOptions, RoutingInstruction, routes, Viewport, IRouterOptions } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform, Aurelia, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('router/router.spec.ts', function () {
-  function getModifiedRouter(container) {
+  function getModifiedRouter(container: IContainer) {
     const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
@@ -12,7 +13,7 @@ describe('router/router.spec.ts', function () {
     return router;
   }
 
-  function spyNavigationStates(router, spy) {
+  function spyNavigationStates(router: IRouter, spy) {
     let _pushState;
     let _replaceState;
     if (spy) {
@@ -155,7 +156,7 @@ describe('router/router.spec.ts', function () {
     return { au, container, platform, host, router, ctx, tearDown };
   }
 
-  async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+  async function $setup(config?: IRouterOptions, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
     const ctx = TestContext.create();
 
     const { container, platform } = ctx;
@@ -1819,12 +1820,14 @@ describe('router/router.spec.ts', function () {
     this.timeout(30000);
 
     const routes = [
+      { path: ['', 'home'], component: 'defaultpage' },
       { path: 'route-zero', component: 'zero' },
       { path: 'route-one', component: 'one' },
       { path: 'route-two', component: 'two' },
       { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
     ];
 
+    const DefaultPage = CustomElement.define({ name: 'defaultpage', template: '!root!' });
     const Zero = CustomElement.define({ name: 'zero', template: '!zero!' });
     const One = CustomElement.define({ name: 'one', template: '!one!<au-viewport name="one-vp"></au-viewport>' });
     const Two = CustomElement.define({ name: 'two', template: '!two!', }, class { public canLoad() { return 'route-zero'; } });
@@ -1832,6 +1835,8 @@ describe('router/router.spec.ts', function () {
     const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
 
     const tests = [
+      { load: '/', result: '!root!', path: '/', },
+      { load: '/home', result: '!root!', path: '/home', },
       { load: '/route-two', result: '!zero!', path: '/route-zero', },
       { load: '/route-one/route-two', result: '!one!!zero!', path: '/route-one/route-zero', },
       { load: '/route-one/route-one/route-two', result: '!one!!one!!zero!', path: '/route-one/route-one/route-zero', },
@@ -1873,31 +1878,81 @@ describe('router/router.spec.ts', function () {
       { load: '/route-one/one/four/one', result: '!one!!one!!zero!', path: '/route-one/one/route-zero-id', },
     ];
 
-    let locationPath: string;
-    const locationCallback = (type, data, title, path) => {
-      locationPath = path.replace('#', '');
-    };
-
-    for (const test of tests) {
-      it(`to route in canLoad (${test.load})`, async function () {
-        const { platform, host, router, $teardown } = await $setup({}, [Zero, One, Two, Three, Four], routes, locationCallback);
-
-        await $load(test.load, router, platform);
-        await platform.domWriteQueue.yield();
-        assert.strictEqual(host.textContent, test.result, test.load);
-        assert.strictEqual(locationPath, test.path, `${test.load} path`);
-
-        await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
-        assert.strictEqual(host.textContent, '', `${test.load} -`);
-        assert.strictEqual(locationPath, '/', `${test.load} - path`);
-
-        await $load(test.load, router, platform);
-        await platform.domWriteQueue.yield();
-        assert.strictEqual(host.textContent, test.result, test.load);
-        assert.strictEqual(locationPath, test.path, `${test.load} path`);
-
-        await $teardown();
+    const routerConfigs: IRouterOptions[] = [
+      {
+        useUrlFragmentHash: true,
+      },
+      {
+        useUrlFragmentHash: false,
+      }
+    ]
+    
+    for (const routerConfig of routerConfigs) {
+      describe(`With router config ${JSON.stringify(routerConfig)}`, () => {
+        let locationPath: string;
+        const locationCallback = (type, data, title, path) => {
+          if (routerConfig.useUrlFragmentHash) {
+            locationPath = path.replace('#', '');
+          } else if (path.startsWith('blank/')) {
+            locationPath = path.slice(5);
+          } else if (path.startsWith('/context.html/')) {
+            locationPath = path.slice(13);
+          } else {
+            locationPath = path;
+          }
+        };
+        for (const test of tests) {
+          it(`to route in canLoad (${test.load})`, async function () {
+            const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
+    
+            // 0) Default root page
+            assert.strictEqual(host.textContent, '!root!', '0) root default page');
+            assert.strictEqual(locationPath, '/', '0) root path');
+    
+            // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
+            await $load('-', router, platform);
+            await platform.domWriteQueue.yield();
+            assert.strictEqual(host.textContent, '', `1) ${test.load} -`);
+            assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
+    
+            // 2) Load the wanted page
+            await $load(test.load, router, platform);
+            await platform.domWriteQueue.yield();
+            assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
+            assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
+    
+            // 3) Unload
+            await $load('-', router, platform);
+            await platform.domWriteQueue.yield();
+            assert.strictEqual(host.textContent, '', `3) ${test.load} -`);
+            assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
+    
+            // 4) reload
+            await $load(test.load, router, platform);
+            await platform.domWriteQueue.yield();
+            assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
+            assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
+    
+            // 5. back to (3) empty
+            await $goBack(router, platform);
+            assert.strictEqual(host.textContent, '', `5) back to empty content (-)`);
+            assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
+            // 6. back to (2) the page
+            await $goBack(router, platform);
+            assert.strictEqual(host.textContent, test.result, `6) back to ${test.load} content`);
+            assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
+            // 7. back to (1) empty
+            await $goBack(router, platform);
+            assert.strictEqual(host.textContent, '', `7) back to empty content (-)`);
+            assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
+            // 8. back to the root page (0)
+            await $goBack(router, platform);
+            assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
+            assert.strictEqual(locationPath, '/', '8) back to root default path');
+  
+    
+          });
+        }
       });
     }
   });
@@ -2116,6 +2171,12 @@ let plughReloadBehavior = 'default';
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
   platform.domWriteQueue.flush();
+};
+
+const $goBack = async (router: IRouter, platform: IPlatform) => {
+  await router.viewer.history.back();
+  platform.domWriteQueue.flush();
+  await platform.domWriteQueue.yield();
 };
 
 const wait = async (time = 500) => {

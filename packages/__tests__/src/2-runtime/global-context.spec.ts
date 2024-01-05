@@ -105,7 +105,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     for (const name of globalNames) {
       it(`verify ${name}`, function () {
         const parser = getParser();
-        assert.deepStrictEqual(parser.parse(name, 'None'), new AccessGlobalExpression(name), name);
+        assert.deepStrictEqual(parser.parse(name, ExpressionType.None), new AccessGlobalExpression(name), name);
       });
     }
   });

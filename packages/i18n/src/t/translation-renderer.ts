@@ -123,7 +123,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, 'IsProperty'), target);
+    return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
   }
 }
 

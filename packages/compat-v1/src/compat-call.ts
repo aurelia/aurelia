@@ -40,7 +40,7 @@ export class CallBindingCommand implements BindingCommandInstance {
       ? camelCase(info.attr.target)
       : info.bindable.name;
     return new CallBindingInstruction(
-      exprParser.parse(info.attr.rawValue, 'IsFunction'),
+      exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction) as IsBindingBehavior,
       target
     );
   }
@@ -58,7 +58,7 @@ export class CallBindingRenderer implements IRenderer {
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.from, 'IsFunction');
+    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction);
     renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
 }

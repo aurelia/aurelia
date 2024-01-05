@@ -1305,7 +1305,7 @@ function createWatchers(
       ));
     } else {
       ast = isString(expression)
-        ? expressionParser.parse(expression, 'IsProperty')
+        ? expressionParser.parse(expression, ExpressionType.IsProperty)
         : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(

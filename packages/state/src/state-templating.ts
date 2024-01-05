@@ -112,7 +112,7 @@ export class StateBindingInstructionRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, 'IsFunction'),
+      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
       target,
       instruction.to,
       this._stateContainer,
@@ -136,7 +136,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
+    const expr = ensureExpression(exprParser, instruction.ast, ExpressionType.IsProperty);
     renderingCtrl.addBinding(new StateDispatchBinding(
       renderingCtrl.container,
       expr,

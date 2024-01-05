@@ -47,7 +47,7 @@ export class BindingEngine {
     const scope = Scope.create(bindingContext, {}, true);
     return {
       subscribe: callback => {
-        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, 'IsProperty'), callback);
+        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, ExpressionType.IsProperty), callback);
         observer.bind();
         return {
           dispose: () => observer.unbind()

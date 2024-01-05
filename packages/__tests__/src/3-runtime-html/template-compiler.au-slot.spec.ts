@@ -368,9 +368,9 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     return {
       ...sut.compile(templateDefinition, container, { projections: null }),
       createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
-        new PropertyBindingInstruction(parser.parse(from, 'IsProperty'), to, mode),
+        new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode),
       createTextInterpolation: ({ from }: { from: string }) =>
-        new TextBindingInstruction(parser.parse(from, 'IsProperty')),
+        new TextBindingInstruction(parser.parse(from, ExpressionType.IsProperty)),
     };
   }
 

@@ -133,12 +133,12 @@ export class TranslationBinding implements IConnectableBinding {
   }: TranslationBindingCreationContext) {
     const binding = this._getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, 'IsProperty')
+      ? parser.parse(instruction.from, ExpressionType.IsProperty)
       : instruction.from;
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, 'Interpolation') : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, ExpressionType.Interpolation) : undefined;
       binding.ast = interpolation || expr;
     }
   }

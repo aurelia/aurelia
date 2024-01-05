@@ -54,6 +54,7 @@ import { ErrorNames, createMappedError } from '../errors';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
+/** @internal */
 export const enum MountTarget {
   none = 0,
   host = 1,

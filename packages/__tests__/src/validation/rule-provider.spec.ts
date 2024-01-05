@@ -984,7 +984,7 @@ describe('validation/rule-provider.spec.ts', function () {
     for(const { property, expected } of positiveDataRows) {
       it(`parses ${property.toString()} to ${expected}`, function () {
         const { parser } = setup();
-        assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, ExpressionType.None)]);
+        assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, 'None')]);
       });
     }
 

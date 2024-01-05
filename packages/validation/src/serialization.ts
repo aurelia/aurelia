@@ -259,7 +259,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (when) {
       if (typeof when === 'string') {
-        const parsed = this.parser.parse(when, ExpressionType.None);
+        const parsed = this.parser.parse(when, 'None');
         rule.canExecute = (object: IValidateable) => {
           return astEvaluate(parsed, Scope.create({ $object: object }), this, null) as boolean;
         };

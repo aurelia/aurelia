@@ -173,7 +173,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.oneTime);
+    return new PropertyBindingInstruction(exprParser.parse(value, 'IsProperty'), target, BindingMode.oneTime);
   }
 }
 
@@ -198,7 +198,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.toView);
+    return new PropertyBindingInstruction(exprParser.parse(value, 'IsProperty'), target, BindingMode.toView);
   }
 }
 
@@ -223,7 +223,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.fromView);
+    return new PropertyBindingInstruction(exprParser.parse(value, 'IsProperty'), target, BindingMode.fromView);
   }
 }
 
@@ -248,7 +248,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, BindingMode.twoWay);
+    return new PropertyBindingInstruction(exprParser.parse(value, 'IsProperty'), target, BindingMode.twoWay);
   }
 }
 
@@ -284,7 +284,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         : bindable.mode;
       target = bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, ExpressionType.IsProperty), target, mode);
+    return new PropertyBindingInstruction(exprParser.parse(value, 'IsProperty'), target, mode);
   }
 }
 
@@ -305,7 +305,7 @@ export class ForBindingCommand implements BindingCommandInstance {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.name;
-    const forOf = exprParser.parse(info.attr.rawValue, ExpressionType.IsIterator);
+    const forOf = exprParser.parse(info.attr.rawValue, 'IsIterator');
     let props: MultiAttrInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
       const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
@@ -326,7 +326,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, true, false);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, 'IsFunction'), info.attr.target, true, false);
   }
 }
 
@@ -335,7 +335,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction), info.attr.target, false, true);
+    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, 'IsFunction'), info.attr.target, false, true);
   }
 }
 
@@ -347,7 +347,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, 'IsProperty'), info.attr.target);
   }
 }
 
@@ -359,7 +359,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, 'IsProperty'), info.attr.target);
   }
 }
 
@@ -371,7 +371,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
+    return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, 'IsProperty'), info.attr.target);
   }
 }
 
@@ -383,7 +383,7 @@ export class RefBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), info.attr.target);
+    return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, 'IsProperty'), info.attr.target);
   }
 }
 

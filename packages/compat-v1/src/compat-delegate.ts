@@ -31,7 +31,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new DelegateBindingInstruction(
-      exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction),
+      exprParser.parse(info.attr.rawValue, 'IsFunction'),
       info.attr.target,
       false
     );
@@ -60,7 +60,7 @@ export class ListenerBindingRenderer implements IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction);
+    const expr = ensureExpression(exprParser, instruction.from, 'IsFunction');
     renderingCtrl.addBinding(new DelegateListenerBinding(
       renderingCtrl.container,
       expr,

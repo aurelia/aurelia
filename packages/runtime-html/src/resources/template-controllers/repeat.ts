@@ -84,7 +84,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (command === null) {
           this.key = value;
         } else if (command === 'bind') {
-          this.key = parser.parse(value, ExpressionType.IsProperty);
+          this.key = parser.parse(value, 'IsProperty');
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }

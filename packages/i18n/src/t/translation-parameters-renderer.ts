@@ -60,7 +60,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     } else {
       target = info.bindable.name;
     }
-    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, ExpressionType.IsProperty), target);
+    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, 'IsProperty'), target);
   }
 }
 

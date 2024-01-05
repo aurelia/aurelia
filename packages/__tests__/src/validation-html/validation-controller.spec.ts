@@ -9,7 +9,6 @@ import {
 import {
   ControllerValidateResult,
   IValidationController,
-  ValidateEventKind,
   ValidationController,
   ValidationResultsSubscriber,
   ValidationEvent,
@@ -338,7 +337,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         assert.equal(notifications2.length, 1);
         const validateEvent = notifications1[0];
         assert.equal(validateEvent, notifications2[0]);
-        assert.equal(validateEvent.kind, ValidateEventKind.validate);
+        assert.equal(validateEvent.kind, 'validate');
         assert.equal(validateEvent.addedResults.every((r) => r.result.valid), false);
 
         notifications1.splice(0);
@@ -383,7 +382,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
 
           const events = subscriber.notifications;
           assert.equal(events.length, 1);
-          assert.equal(events[0].kind, ValidateEventKind.validate);
+          assert.equal(events[0].kind, 'validate');
           const addedErrors = events[0].addedResults;
           assert.equal(addedErrors.length, 1);
           assert.equal(addedErrors[0].result, result);
@@ -415,7 +414,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
           platform.domReadQueue.flush();
 
           assert.equal(events.length, 1);
-          assert.equal(events[0].kind, ValidateEventKind.reset);
+          assert.equal(events[0].kind, 'reset');
           const removedErrors = events[0].removedResults;
           assert.equal(removedErrors.length, 1);
           assert.equal(removedErrors[0].result, result);
@@ -447,7 +446,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         platform.domReadQueue.flush();
 
         assert.equal(events.length, 1);
-        assert.equal(events[0].kind, ValidateEventKind.reset);
+        assert.equal(events[0].kind, 'reset');
         const removedErrors = events[0].removedResults;
         assert.equal(removedErrors.length, 1);
         assert.equal(removedErrors[0].result, result);

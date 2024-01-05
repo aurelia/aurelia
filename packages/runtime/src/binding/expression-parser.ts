@@ -1260,7 +1260,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
         break;
       }
     } else {
-      elements.push(parse(Precedence.Assign, expressionType /* & ~ExpressionType.IsIterator */) as IsAssign);
+      elements.push(parse(Precedence.Assign, expressionType) as IsAssign);
       if (consumeOpt(Token.Comma)) {
         if (($currentToken as Token) === Token.CloseBracket) {
           break;
@@ -1329,7 +1329,7 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
     if ($currentToken & Token.StringOrNumericLiteral) {
       nextToken();
       consume(Token.Colon);
-      values.push(parse(Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
+      values.push(parse(Precedence.Assign, expressionType/*  & ~ExpressionType.IsIterator */) as IsAssign);
     } else if ($currentToken & Token.IdentifierName) {
       // IdentifierName = optional colon
       const currentChar = $currentChar;
@@ -1337,13 +1337,13 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
       const index = $index;
       nextToken();
       if (consumeOpt(Token.Colon)) {
-        values.push(parse(Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
+        values.push(parse(Precedence.Assign, expressionType/*  & ~ExpressionType.IsIterator */) as IsAssign);
       } else {
         // Shorthand
         $currentChar = currentChar;
         $currentToken = currentToken;
         $index = index;
-        values.push(parse(Precedence.Primary, expressionType & ~ExpressionType.IsIterator) as IsAssign);
+        values.push(parse(Precedence.Primary, expressionType/*  & ~ExpressionType.IsIterator */) as IsAssign);
       }
     } else {
       throw invalidPropDefInObjLiteral();

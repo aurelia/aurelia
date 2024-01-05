@@ -1260,7 +1260,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
         break;
       }
     } else {
-      elements.push(parse(Precedence.Assign, expressionType & ~ExpressionType.IsIterator) as IsAssign);
+      elements.push(parse(Precedence.Assign, expressionType /* & ~ExpressionType.IsIterator */) as IsAssign);
       if (consumeOpt(Token.Comma)) {
         if (($currentToken as Token) === Token.CloseBracket) {
           break;

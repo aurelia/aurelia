@@ -1,7 +1,6 @@
 import { Metadata } from '@aurelia/metadata';
 import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
-  ExpressionType,
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
@@ -555,7 +554,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
   }
 
-  return [property, parser.parse(`${rootObjectSymbol}.${property}`, ExpressionType.IsProperty)];
+  return [property, parser.parse(`${rootObjectSymbol}.${property}`, 'IsProperty')];
 }
 
 /**
@@ -645,7 +644,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public parseMessage(message: string): Interpolation | PrimitiveLiteralExpression {
-    const parsed = this.parser.parse(message, ExpressionType.Interpolation);
+    const parsed = this.parser.parse(message, 'Interpolation');
     if (parsed?.$kind === 'Interpolation') {
       for (const expr of parsed.expressions) {
         const name = (expr as AccessScopeExpression).name;

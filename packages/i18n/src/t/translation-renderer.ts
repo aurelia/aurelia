@@ -2,7 +2,6 @@ import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
   CustomExpression,
-  ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
@@ -21,6 +20,7 @@ import {
 import type {
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
+import { etIsProperty } from '../utils';
 
 export const TranslationInstructionType = 'tt';
 
@@ -123,7 +123,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, ExpressionType.IsProperty), target);
+    return new TranslationBindBindingInstruction(exprParser.parse(info.attr.rawValue, etIsProperty), target);
   }
 }
 

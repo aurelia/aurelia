@@ -1,7 +1,6 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
-  ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
@@ -22,6 +21,7 @@ import {
 import type {
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
+import { etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -60,7 +60,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     } else {
       target = info.bindable.name;
     }
-    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, ExpressionType.IsProperty), target);
+    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, etIsProperty), target);
   }
 }
 

@@ -53,22 +53,22 @@ export class ExpressionParser {
   /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
   /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
 
-  public parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
-  public parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
-  public parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+  public parse(expression: string, expressionType: 'IsIterator'): ForOfStatement;
+  public parse(expression: string, expressionType: 'Interpolation'): Interpolation;
+  public parse(expression: string, expressionType: Exclude<ExpressionType, 'IsIterator' | 'Interpolation'>): IsBindingBehavior;
   public parse(expression: string, expressionType: ExpressionType): AnyBindingExpression;
   public parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
     let found: AnyBindingExpression;
     switch (expressionType) {
-      case ExpressionType.IsCustom:
+      case etIsCustom:
         return new CustomExpression(expression) as AnyBindingExpression;
-      case ExpressionType.Interpolation:
+      case etInterpolation:
         found = this._interpolationLookup[expression];
         if (found === void 0) {
           found = this._interpolationLookup[expression] = this.$parse(expression, expressionType);
         }
         return found;
-      case ExpressionType.IsIterator:
+      case etIsIterator:
         found = this._forOfLookup[expression];
         if (found === void 0) {
           found = this._forOfLookup[expression] = this.$parse(expression, expressionType);
@@ -76,8 +76,7 @@ export class ExpressionParser {
         return found;
       default: {
         if (expression.length === 0) {
-          // this is an intermediate code before converting the ExpressionType enum to a string literal type as part of the issue #1736
-          if (expressionType === ExpressionType.IsFunction || expressionType === ExpressionType.IsProperty) {
+          if (expressionType === etIsFunction || expressionType === etIsProperty) {
             return PrimitiveLiteralExpression.$empty;
           }
           throw invalidEmptyExpression();
@@ -92,11 +91,11 @@ export class ExpressionParser {
   }
 
   /** @internal */
-  private $parse(expression: string, expressionType: ExpressionType.IsIterator): ForOfStatement;
+  private $parse(expression: string, expressionType: 'IsIterator'): ForOfStatement;
   /** @internal */
-  private $parse(expression: string, expressionType: ExpressionType.Interpolation): Interpolation;
+  private $parse(expression: string, expressionType: 'Interpolation'): Interpolation;
   /** @internal */
-  private $parse(expression: string, expressionType: Exclude<ExpressionType, ExpressionType.IsIterator | ExpressionType.Interpolation>): IsBindingBehavior;
+  private $parse(expression: string, expressionType: Exclude<ExpressionType, 'IsIterator' | 'Interpolation'>): IsBindingBehavior;
   /** @internal */
   private $parse(expression: string, expressionType: ExpressionType): AnyBindingExpression {
     $input = expression;
@@ -111,7 +110,7 @@ export class ExpressionParser {
     $optional = false;
     $accessGlobal = true;
     $semicolonIndex = -1;
-    return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
+    return parse(Precedence.Variadic, expressionType === void 0 ? etIsProperty : expressionType);
   }
 }
 
@@ -335,15 +334,14 @@ const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
 
-export const enum ExpressionType {
-          None = 0,
- Interpolation = 0b0_000001,
-    IsIterator = 0b0_000010,
-   IsChainable = 0b0_000100,
-    IsFunction = 0b0_001000,
-    IsProperty = 0b0_010000,
-    IsCustom   = 0b0_100000,
-}
+const etNone = 'None' as const;
+const etInterpolation = 'Interpolation' as const;
+const etIsIterator = 'IsIterator' as const;
+const etIsChainable = 'IsChainable' as const;
+const etIsFunction = 'IsFunction' as const;
+const etIsProperty = 'IsProperty' as const;
+const etIsCustom = 'IsCustom' as const;
+export type ExpressionType = typeof etNone | typeof etInterpolation | typeof etIsIterator | typeof etIsChainable | typeof etIsFunction | typeof etIsProperty | typeof etIsCustom;
 
 let $input: string = '';
 let $index: number = 0;
@@ -380,7 +378,7 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
   $optional = false;
   $accessGlobal = true;
   $semicolonIndex = -1;
-  return parse(Precedence.Variadic, expressionType === void 0 ? ExpressionType.IsProperty : expressionType);
+  return parse(Precedence.Variadic, expressionType === void 0 ? etIsProperty : expressionType);
 }
 
 // This is performance-critical code which follows a subset of the well-known ES spec.
@@ -392,13 +390,13 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // eslint-disable-next-line max-lines-per-function
 export function parse(minPrecedence: Precedence, expressionType: ExpressionType): AnyBindingExpression {
-  if (expressionType === ExpressionType.IsCustom) {
+  if (expressionType === etIsCustom) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new CustomExpression($input) as any;
   }
 
   if ($index === 0) {
-    if (expressionType === ExpressionType.Interpolation) {
+    if (expressionType === etInterpolation) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseInterpolation() as any;
     }
@@ -505,7 +503,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         // falls through
       case Token.Identifier: { // identifier
         const id = $tokenValue as string;
-        if (expressionType === ExpressionType.IsIterator) {
+        if (expressionType === etIsIterator) {
           result = new BindingIdentifier(id);
         } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
           result = new AccessGlobalExpression(id);
@@ -523,7 +521,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           const _optional = $optional;
           const _scopeDepth = $scopeDepth;
           ++$scopeDepth;
-          const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+          const body = parse(Precedence.Assign, etNone) as IsAssign;
           $optional = _optional;
           $scopeDepth = _scopeDepth;
           $assignable = false;
@@ -589,7 +587,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         }
     }
 
-    if (expressionType === ExpressionType.IsIterator) {
+    if (expressionType === etIsIterator) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return parseForOfStatement(result as BindingIdentifierOrPattern) as any;
     }
@@ -864,11 +862,11 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   }
 
   if ($currentToken !== Token.EOF) {
-    if (expressionType === ExpressionType.Interpolation && $currentToken === Token.CloseBrace) {
+    if (expressionType === etInterpolation && $currentToken === Token.CloseBrace) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
-    if (expressionType === ExpressionType.IsChainable && $currentToken === Token.Semicolon) {
+    if (expressionType === etIsChainable && $currentToken === Token.Semicolon) {
       if ($index === $length) {
         throw unconsumedToken();
       }
@@ -933,7 +931,7 @@ function parseArguments() {
   nextToken();
   const args: IsAssign[] = [];
   while (($currentToken as Token) !== Token.CloseParen) {
-    args.push(parse(Precedence.Assign, ExpressionType.None) as IsAssign);
+    args.push(parse(Precedence.Assign, etNone) as IsAssign);
     if (!consumeOpt(Token.Comma)) {
       break;
     }
@@ -950,7 +948,7 @@ function parseKeyedExpression(result: IsLeftHandSide, optional: boolean) {
   const _optional = $optional;
 
   nextToken();
-  result = new AccessKeyedExpression(result, parse(Precedence.Assign, ExpressionType.None) as IsAssign, optional);
+  result = new AccessKeyedExpression(result, parse(Precedence.Assign, etNone) as IsAssign, optional);
   consume(Token.CloseBracket);
 
   $assignable = !_optional;
@@ -1093,7 +1091,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       const _optional = $optional;
       const _scopeDepth = $scopeDepth;
       ++$scopeDepth;
-      const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+      const body = parse(Precedence.Assign, etNone) as IsAssign;
       $optional = _optional;
       $scopeDepth = _scopeDepth;
       $assignable = false;
@@ -1179,7 +1177,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       const _optional = $optional;
       const _scopeDepth = $scopeDepth;
       ++$scopeDepth;
-      const body = parse(Precedence.Assign, ExpressionType.None) as IsAssign;
+      const body = parse(Precedence.Assign, etNone) as IsAssign;
       $optional = _optional;
       $scopeDepth = _scopeDepth;
       $assignable = false;
@@ -1260,7 +1258,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
         break;
       }
     } else {
-      elements.push(parse(Precedence.Assign, expressionType === ExpressionType.IsIterator ? ExpressionType.None : expressionType) as IsAssign);
+      elements.push(parse(Precedence.Assign, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
       if (consumeOpt(Token.Comma)) {
         if (($currentToken as Token) === Token.CloseBracket) {
           break;
@@ -1274,7 +1272,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   $optional = _optional;
 
   consume(Token.CloseBracket);
-  if (expressionType === ExpressionType.IsIterator) {
+  if (expressionType === etIsIterator) {
     return new ArrayBindingPattern(elements);
   } else {
     $assignable = false;
@@ -1292,7 +1290,7 @@ function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement
   }
   nextToken();
   const declaration = result;
-  const statement = parse(Precedence.Variadic, ExpressionType.IsChainable);
+  const statement = parse(Precedence.Variadic, etIsChainable);
   return new ForOfStatement(declaration, statement as IsBindingBehavior, $semicolonIndex);
 }
 
@@ -1329,7 +1327,7 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
     if ($currentToken & Token.StringOrNumericLiteral) {
       nextToken();
       consume(Token.Colon);
-      values.push(parse(Precedence.Assign, expressionType === ExpressionType.IsIterator ? ExpressionType.None : expressionType /*  & ~ExpressionType.IsIterator */) as IsAssign);
+      values.push(parse(Precedence.Assign, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
     } else if ($currentToken & Token.IdentifierName) {
       // IdentifierName = optional colon
       const currentChar = $currentChar;
@@ -1337,13 +1335,13 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
       const index = $index;
       nextToken();
       if (consumeOpt(Token.Colon)) {
-        values.push(parse(Precedence.Assign, expressionType === ExpressionType.IsIterator ? ExpressionType.None : expressionType/*  & ~ExpressionType.IsIterator */) as IsAssign);
+        values.push(parse(Precedence.Assign, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
       } else {
         // Shorthand
         $currentChar = currentChar;
         $currentToken = currentToken;
         $index = index;
-        values.push(parse(Precedence.Primary, expressionType === ExpressionType.IsIterator ? ExpressionType.None : expressionType/*  & ~ExpressionType.IsIterator */) as IsAssign);
+        values.push(parse(Precedence.Primary, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
       }
     } else {
       throw invalidPropDefInObjLiteral();
@@ -1356,7 +1354,7 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
   $optional = _optional;
 
   consume(Token.CloseBrace);
-  if (expressionType === ExpressionType.IsIterator) {
+  if (expressionType === etIsIterator) {
     return new ObjectBindingPattern(keys, values);
   } else {
     $assignable = false;
@@ -1379,7 +1377,7 @@ function parseInterpolation(): Interpolation {
           $index += 2;
           $currentChar = $charCodeAt($index);
           nextToken();
-          const expression = parse(Precedence.Variadic, ExpressionType.Interpolation) as IsBindingBehavior | Interpolation;
+          const expression = parse(Precedence.Variadic, etInterpolation) as IsBindingBehavior | Interpolation;
           expressions.push(expression);
           continue;
         } else {

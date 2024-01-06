@@ -9,7 +9,7 @@ import {
   resolve,
 } from '@aurelia/kernel';
 import {
-  ExpressionType,
+  type ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type Interpolation,
@@ -34,7 +34,7 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { objectKeys, isString, def } from './utilities';
+import { objectKeys, isString, def, etIsProperty, etInterpolation, etIsIterator, etIsFunction } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
@@ -700,7 +700,7 @@ export class LetElementRenderer implements IRenderer {
     let i = 0;
     while (ii > i) {
       childInstruction = childInstructions[i];
-      expr = ensureExpression(exprParser, childInstruction.from, ExpressionType.IsProperty);
+      expr = ensureExpression(exprParser, childInstruction.from, etIsProperty);
       renderingCtrl.addBinding(new LetBinding(
         container,
         observerLocator,
@@ -726,7 +726,7 @@ export class RefBindingRenderer implements IRenderer {
   ): void {
     renderingCtrl.addBinding(new RefBinding(
       renderingCtrl.container,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       getRefTarget(target, instruction.to)
     ));
   }
@@ -749,7 +749,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.Interpolation),
+      ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
       BindingMode.toView,
@@ -774,7 +774,7 @@ export class PropertyBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
       instruction.mode,
@@ -799,7 +799,7 @@ export class IteratorBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.forOf, ExpressionType.IsIterator),
+      ensureExpression(exprParser, instruction.forOf, etIsIterator),
       getTarget(target),
       instruction.to,
       BindingMode.toView,
@@ -825,7 +825,7 @@ export class TextBindingRenderer implements IRenderer {
       observerLocator,
       platform.domWriteQueue,
       platform,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target as Text,
     ));
   }
@@ -844,7 +844,7 @@ export class ListenerBindingRenderer implements IRenderer {
   ): void {
     renderingCtrl.addBinding(new ListenerBinding(
       renderingCtrl.container,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
+      ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
       new ListenerBindingOptions(instruction.preventDefault, instruction.capture),
@@ -934,7 +934,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
           renderingCtrl.container,
           observerLocator,
           platform.domWriteQueue,
-          ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+          ensureExpression(exprParser, instruction.from, etIsProperty),
           target.style,
           instruction.to,
           BindingMode.toView,
@@ -947,7 +947,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target.style,
       instruction.to,
       BindingMode.toView,
@@ -988,7 +988,7 @@ export class AttributeBindingRenderer implements IRenderer {
       container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target,
       instruction.attr/* targetAttribute */,
       classMapping == null

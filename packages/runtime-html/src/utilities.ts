@@ -68,3 +68,8 @@ export const defineHiddenProp = <T>(obj: object, key: PropertyKey, value: T): T 
 export const addSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.addSignalListener(signal, listener);
 /** @internal */
 export const removeSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.removeSignalListener(signal, listener);
+
+/** @internal */ export const etInterpolation = 'Interpolation' as const;
+/** @internal */ export const etIsIterator = 'IsIterator' as const;
+/** @internal */ export const etIsFunction = 'IsFunction' as const;
+/** @internal */ export const etIsProperty = 'IsProperty' as const;

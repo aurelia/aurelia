@@ -12,7 +12,6 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  ExpressionType,
   Scope,
   IObserverLocator,
   IExpressionParser,
@@ -26,7 +25,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
+import { etIsProperty, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, optionalResource, registerResolver } from '../utilities-di';
 
@@ -1306,7 +1305,7 @@ function createWatchers(
       ));
     } else {
       ast = isString(expression)
-        ? expressionParser.parse(expression, ExpressionType.IsProperty)
+        ? expressionParser.parse(expression, etIsProperty)
         : getAccessScopeAst(expression);
 
       controller.addBinding(new ExpressionWatcher(

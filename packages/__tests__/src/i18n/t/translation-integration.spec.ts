@@ -222,7 +222,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, '#undefined', '', 'changeKey() & flush');
       assertTextContent(host, '#null', '', 'changeKey() & flush');
       ctx.platform.domWriteQueue.flush();
-      assertTextContent(host, '#undefined', '',  'changeKey() & 2nd flush');
+      assertTextContent(host, '#undefined', '', 'changeKey() & 2nd flush');
       assertTextContent(host, '#null', '', 'changeKey() & 2nd flush');
     }, { component: App });
   }
@@ -791,6 +791,57 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.key = 'simple.attr';
         ctx.platform.domWriteQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
+      }, { component: App });
+    }
+    {
+      @customElement({ name: 'my-ce', template: '${value}' })
+      class MyCe {
+        @bindable public value: string;
+      }
+      @customElement({
+        name: 'app',
+        template: `<my-ce t.bind='"[value]"+key'></my-ce>`,
+        dependencies: [MyCe]
+      })
+      class App {
+        public key = 'simple.text';
+      }
+      $it('when the key expression changed - property - custom element', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, translation.simple.attr);
+
+        app.key = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, translation.simple.text);
+
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, translation.simple.attr);
+      }, { component: App });
+    }
+    {
+      @customElement({
+        name: 'app', template: `<span t.bind='"[data-foo]"+key'></span>`
+      })
+      class App {
+        public key = 'simple.text';
+      }
+      $it('when the key expression changed - property - DOM Element attribute', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+        const span = host.querySelector('span');
+        assert.strictEqual(span.dataset.foo, translation.simple.text);
+
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, translation.simple.attr);
+
+        app.key = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, translation.simple.text);
+
+        app.key = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, translation.simple.attr);
       }, { component: App });
     }
 

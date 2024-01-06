@@ -1,4 +1,4 @@
-import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
+import { AccessorType, Collection, IObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities';
 
@@ -9,6 +9,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
+  CollectionKind,
 } from '../observation';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -24,7 +25,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
   private readonly _obj: unknown[];
 
   public constructor(
-    public readonly owner: ICollectionObserver<CollectionKind.array>,
+    public readonly owner: ICollectionObserver<'array'>,
   ) {
     this._value = (this._obj = owner.collection).length;
   }
@@ -72,7 +73,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
   private readonly _obj: Set<unknown> | Map<unknown, unknown>;
 
   public constructor(
-    public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
+    public readonly owner: ICollectionObserver<'map' | 'set'>,
   ) {
     this._value = (this._obj = owner.collection).size;
   }

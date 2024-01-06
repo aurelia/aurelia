@@ -16,7 +16,6 @@ import type {
   IObservable,
   IObserver,
   AccessorOrObserver,
-  CollectionKind,
   CollectionObserver,
 } from '../observation';
 import { ErrorNames, createMappedError } from '../errors';
@@ -120,15 +119,15 @@ export class ObserverLocator {
     return propertyAccessor;
   }
 
-  public getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array> {
+  public getArrayObserver(observedArray: unknown[]): ICollectionObserver<'array'> {
     return getArrayObserver(observedArray);
   }
 
-  public getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>  {
+  public getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<'map'>  {
     return getMapObserver(observedMap);
   }
 
-  public getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>  {
+  public getSetObserver(observedSet: Set<unknown>): ICollectionObserver<'set'>  {
     return getSetObserver(observedSet);
   }
 

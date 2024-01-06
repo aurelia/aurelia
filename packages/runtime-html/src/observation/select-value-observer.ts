@@ -1,5 +1,4 @@
 import {
-  type CollectionKind,
   subscriberCollection,
   AccessorType,
   type ICollectionObserver,
@@ -51,7 +50,7 @@ export class SelectValueObserver implements INodeObserver {
   /** @internal */
   private _hasChanges: boolean = false;
   /** @internal */
-  private _arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
+  private _arrayObserver?: ICollectionObserver<'array'> = void 0;
   /** @internal */
   private _nodeObserver?: MutationObserver = void 0;
 

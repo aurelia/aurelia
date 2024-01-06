@@ -163,7 +163,7 @@ export {
   type IBinding,
   AccessorType,
   type Collection,
-  CollectionKind,
+  type CollectionKind,
   type IAccessor,
   type IBindingContext,
   type ICollectionChangeTracker,

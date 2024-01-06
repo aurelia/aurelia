@@ -6,10 +6,9 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  ICollectionObserver,
-  CollectionKind,
+  type ICollectionObserver,
   IObserverLocator,
-  Scope,
+  type Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { templateController } from '../custom-attribute';
@@ -255,7 +254,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public view: ISyntheticView | undefined = void 0;
   private $switch!: Switch;
-  /** @internal */ private _observer: ICollectionObserver<CollectionKind.array> | undefined;
+  /** @internal */ private _observer: ICollectionObserver<'array'> | undefined;
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);

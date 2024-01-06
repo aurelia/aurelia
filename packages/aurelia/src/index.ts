@@ -206,7 +206,7 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  CollectionKind,
+  type CollectionKind,
   batch,
   // CallFunctionExpression,
   // connects,

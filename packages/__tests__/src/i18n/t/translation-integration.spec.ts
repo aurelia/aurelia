@@ -652,11 +652,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
       $it('works correctly for html with the change of both [prepend], and [append] - textContent', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
+
         app.keyExpr = '[prepend]pre;[append]post';
-
         platform.domWriteQueue.flush();
-
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
+
+        app.keyExpr = '[prepend]preHtml;[append]postHtml';
+        platform.domWriteQueue.flush();
+        assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
     }
 
@@ -842,6 +845,69 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.key = 'simple.attr';
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(span.dataset.foo, translation.simple.attr);
+      }, { component: App });
+    }
+    {
+      @customElement({ name: 'my-ce', template: '${foo} ${bar}' })
+      class MyCe {
+        @bindable public foo: string;
+        @bindable public bar: string;
+      }
+      @customElement({
+        name: 'app',
+        template: `<my-ce t.bind='"[foo]"+key1+";[bar]"+key2'></my-ce>`,
+        dependencies: [MyCe]
+      })
+      class App {
+        public key1 = 'simple.text';
+        public key2 = 'simple.attr';
+      }
+      $it('when the key expression changed - property - custom element - multiple bindables', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+        const r = translation.simple;
+        assertTextContent(host, `my-ce`, `${r.text} ${r.attr}`);
+
+        app.key1 = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, `${r.attr} ${r.attr}`);
+
+        app.key2 = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, `${r.attr} ${r.text}`);
+
+        app.key1 = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, `my-ce`, `${r.text} ${r.text}`);
+      }, { component: App });
+    }
+    {
+      @customElement({
+        name: 'app', template: `<span t.bind='"[data-foo]"+key1+";[bar]"+key2'></span>`
+      })
+      class App {
+        public key1 = 'simple.text';
+        public key2 = 'simple.attr';
+      }
+      $it('when the key expression changed - property - multiple DOM Element attributes', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+        const r = translation.simple;
+
+        const span = host.querySelector<HTMLSpanElement & { bar: string }>('span');
+        assert.strictEqual(span.dataset.foo, r.text);
+        assert.strictEqual(span.bar, r.attr);
+
+        app.key1 = 'simple.attr';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, r.attr);
+        assert.strictEqual(span.bar, r.attr);
+
+        app.key2 = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, r.attr);
+        assert.strictEqual(span.bar, r.text);
+
+        app.key1 = 'simple.text';
+        ctx.platform.domWriteQueue.flush();
+        assert.strictEqual(span.dataset.foo, translation.simple.text);
+        assert.strictEqual(span.bar, r.text);
       }, { component: App });
     }
 

@@ -29,7 +29,7 @@ interface BindingCommandInstance {
 }
 ```
 
-A binding command must return `CommandType.IgnoreAttr` from the `type` property. This tells the template compiler that the binding command takes over the processing of the attribute.
+A binding command must return `'IgnoreAttr'` from the `type` property. This tells the template compiler that the binding command takes over the processing of the attribute.
 
 The more interesting part of the interface is the `build` method. The template compiler calls this method to build binding instructions. The `info` parameter contains information about the element, the attribute name, the bindable definition (if present), and the custom element/attribute definition (if present). The `parser` parameter is used to parse the attribute value into an expression. The `mapper` parameter of [type `IAttrMapper`](./attributemapper.md) is used to determine the binding mode, the target property name, etc. (for more information, refer to the [documentation](./extending-templating-syntax.md)). In short, here comes your logic to convert the attribute information into a binding instruction.
 
@@ -48,10 +48,9 @@ instead of
 We first create a class that implements the `BindingCommandInstance` interface to do that.
 
 ```typescript
-import { IExpressionParser, ExpressionType } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/runtime';
 import {
   BindingCommandInstance,
-  CommandType,
   ICommandBuildInfo,
   IInstruction,
   ListenerBindingInstruction,
@@ -60,8 +59,8 @@ import {
 
 @bindingCommand('bs')
 export class BsBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr {
-    return CommandType.IgnoreAttr;
+  public get type(): 'IgnoreAttr' {
+    return 'IgnoreAttr';
   }
 
   public build(
@@ -69,7 +68,7 @@ export class BsBindingCommand implements BindingCommandInstance {
     exprParser: IExpressionParser
   ): IInstruction {
     return new ListenerBindingInstruction(
-      /* from           */ exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction),
+      /* from           */ exprParser.parse(info.attr.rawValue, 'IsFunction'),
       /* to             */ `bs.${info.attr.target}`,
       /* preventDefault */ true,
       /* capture        */ false

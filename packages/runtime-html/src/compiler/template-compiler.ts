@@ -26,7 +26,7 @@ import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
-import { BindingCommand } from '../resources/binding-command';
+import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
@@ -41,7 +41,6 @@ import type {
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
-import type { BindingCommandInstance, ICommandBuildInfo } from '../resources/binding-command';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import type { IAuSlotProjections } from '../templating/controller.projection';
 import { ErrorNames, createMappedError } from '../errors';
@@ -142,7 +141,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrValue = attrSyntax.rawValue;
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
+      if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -336,7 +335,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       bindingCommand = context._createCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
+      if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -702,7 +701,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrValue = attrSyntax.rawValue;
 
       if (capture && (!hasCaptureFilter || hasCaptureFilter && capture(realAttrTarget))) {
-        if (bindingCommand != null && bindingCommand.type === 'IgnoreAttr') {
+        if (bindingCommand != null && bindingCommand.type === ctIgnoreAttr) {
           removeAttr();
           captures.push(attrSyntax);
           continue;
@@ -725,7 +724,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      if (bindingCommand !== null && bindingCommand.type === 'IgnoreAttr') {
+      if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."

@@ -20,7 +20,7 @@ import {
 import type {
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { etIsProperty } from '../utils';
+import { etIsProperty, ctNone } from '../utils';
 
 export const TranslationInstructionType = 'tt';
 
@@ -46,7 +46,7 @@ export class TranslationBindingInstruction {
 }
 
 export class TranslationBindingCommand implements BindingCommandInstance {
-  public readonly type: 'None' = 'None';
+  public readonly type: 'None' = ctNone;
   public get name() { return 't'; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {
@@ -110,7 +110,7 @@ export class TranslationBindBindingInstruction {
 }
 
 export class TranslationBindBindingCommand implements BindingCommandInstance {
-  public readonly type: 'None' = 'None';
+  public readonly type: 'None' = ctNone;
   public get name() { return 't-bind'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationBindingInstruction {

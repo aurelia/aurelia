@@ -2,7 +2,7 @@ import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
 import { IBinding, IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
-import { ICustomElementController, IHydrationContext, IController, IHydratableController } from '../templating/controller';
+import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';
 import { IHasController, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '../renderer';
 import { IRendering } from '../templating/rendering';
 import { IPlatform } from '../platform';
@@ -138,7 +138,7 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   public addChild(controller: IController) {
-    if (controller.vmKind !== 'customAttribute') {
+    if (controller.vmKind !== vmkCa) {
       throw createMappedError(ErrorNames.no_spread_template_controller);
     }
     this.$controller.addChild(controller);

@@ -41,6 +41,15 @@ import {
   AccessGlobalExpression,
   CallGlobalExpression,
   type ExpressionKind,
+  ekAccessThis,
+  ekAccessGlobal,
+  ekAccessMember,
+  ekAccessScope,
+  ekArrayDestructuring,
+  ekArrayBindingPattern,
+  ekObjectBindingPattern,
+  ekBindingIdentifier,
+  ekObjectDestructuring,
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
@@ -600,7 +609,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       throw expectedIdentifier();
     }
 
-    if (result.$kind === 'AccessThis') {
+    if (result.$kind === ekAccessThis) {
       switch ($currentToken as Token) {
         case Token.QuestionDot:
           $optional = true;
@@ -690,11 +699,11 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         case Token.DotDotDot:
           throw expectedIdentifier();
         case Token.OpenParen:
-          if (result.$kind === 'AccessScope') {
+          if (result.$kind === ekAccessScope) {
             result = new CallScopeExpression(result.name, parseArguments(), result.ancestor, false);
-          } else if (result.$kind === 'AccessMember') {
+          } else if (result.$kind === ekAccessMember) {
             result = new CallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
-          } else if (result.$kind === 'AccessGlobal') {
+          } else if (result.$kind === ekAccessGlobal) {
             result = new CallGlobalExpression(result.name, parseArguments());
           } else {
             result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), false);
@@ -891,7 +900,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
  */
 function parseArrayDestructuring(): DAE {
   const items: DASE[] = [];
-  const dae = new DAE('ArrayDestructuring', items, void 0, void 0);
+  const dae = new DAE(ekArrayDestructuring, items, void 0, void 0);
   let target: string = '';
   let $continue = true;
   let index = 0;
@@ -970,9 +979,9 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
   }
 
   if (($currentToken as Token) === Token.OpenParen) {
-    if (lhs.$kind === 'AccessScope') {
+    if (lhs.$kind === ekAccessScope) {
       return new CallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true);
-    } else if (lhs.$kind === 'AccessMember') {
+    } else if (lhs.$kind === ekAccessMember) {
       return new CallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
     } else {
       return new CallFunctionExpression(lhs, parseArguments(), true);
@@ -1280,7 +1289,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   }
 }
 
-const allowedForExprKinds: ExpressionKind[] = ['ArrayBindingPattern', 'ObjectBindingPattern', 'BindingIdentifier', 'ArrayDestructuring', 'ObjectDestructuring'];
+const allowedForExprKinds: ExpressionKind[] = [ekArrayBindingPattern, ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
 function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement {
   if (!allowedForExprKinds.includes(result.$kind)) {
     throw invalidLHSBindingIdentifierInForOf(result.$kind);

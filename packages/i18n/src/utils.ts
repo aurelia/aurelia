@@ -29,5 +29,9 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
   }
 }
 
+/** ExpressionType */
 /** @internal */ export const etInterpolation = 'Interpolation' as const;
 /** @internal */ export const etIsProperty = 'IsProperty' as const;
+
+/** CommandType */
+/** @internal */ export const ctNone = 'None' as const;

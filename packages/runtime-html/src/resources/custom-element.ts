@@ -33,6 +33,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
+import { dtElement } from './resources-shared';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -196,7 +197,7 @@ function markContainerless(target: Constructable) {
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
-  public get type(): 'Element' { return 'Element'; }
+  public get type(): 'Element' { return dtElement; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,

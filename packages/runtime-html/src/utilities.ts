@@ -69,7 +69,12 @@ export const addSignalListener = (signaler: ISignaler, signal: string, listener:
 /** @internal */
 export const removeSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.removeSignalListener(signal, listener);
 
+/** ExpressionType */
 /** @internal */ export const etInterpolation = 'Interpolation' as const;
 /** @internal */ export const etIsIterator = 'IsIterator' as const;
 /** @internal */ export const etIsFunction = 'IsFunction' as const;
 /** @internal */ export const etIsProperty = 'IsProperty' as const;
+
+/** TaskStatus */
+/** @internal */ export const tsPending = 'pending' as const;
+/** @internal */ export const tsRunning = 'running' as const;

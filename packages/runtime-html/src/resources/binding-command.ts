@@ -28,17 +28,21 @@ import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
+import { dtElement } from './resources-shared';
+
+export const ctNone = 'None' as const;
+export const ctIgnoreAttr = 'IgnoreAttr' as const;
 
 /**
  * Characteristics of a binding command.
  */
 export type CommandType =
-  'None'
+  typeof ctNone
   // if a binding command is taking over the processing of an attribute
   // then it should add this flag to its type
   // which then should be considered by the template compiler to keep the attribute as is in compilation,
   // instead of normal process: check custom attribute -> check bindable -> command.build()
-  | 'IgnoreAttr';
+  | typeof ctIgnoreAttr;
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
@@ -154,7 +158,7 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -168,7 +172,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -179,7 +183,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('to-view')
 export class ToViewBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -193,7 +197,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -204,7 +208,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('from-view')
 export class FromViewBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -218,7 +222,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -229,7 +233,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('two-way')
 export class TwoWayBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
@@ -243,7 +247,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -254,7 +258,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('bind')
 export class DefaultBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     type CA = CustomAttributeDefinition;
@@ -273,7 +277,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === dtElement) {
         value = camelCase(target);
       }
       defaultMode = (info.def as CA).defaultBindingMode;
@@ -290,7 +294,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('for')
 export class ForBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public get type(): 'None' { return ctNone; }
 
   public static get inject(): unknown[] { return [IAttributeParser]; }
 
@@ -323,7 +327,7 @@ export class ForBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, etIsFunction), info.attr.target, true, false);
@@ -332,7 +336,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, etIsFunction), info.attr.target, false, true);
@@ -344,7 +348,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('attr')
 export class AttrBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
@@ -356,7 +360,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
@@ -368,7 +372,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
@@ -380,7 +384,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
@@ -389,7 +393,7 @@ export class RefBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('...$attrs')
 export class SpreadBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
+  public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(_info: ICommandBuildInfo): IInstruction {
     return new SpreadBindingInstruction();

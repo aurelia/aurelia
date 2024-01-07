@@ -21,7 +21,7 @@ import {
 import type {
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { etIsProperty } from '../utils';
+import { ctNone, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -46,7 +46,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: 'None' = 'None';
+  public readonly type: 'None' = ctNone;
   public get name() { return attribute; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationParametersBindingInstruction {

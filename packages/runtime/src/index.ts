@@ -1,5 +1,5 @@
 export {
-  ExpressionKind,
+  type ExpressionKind,
   // Ast nodes
   CallFunctionExpression,
   CustomExpression,
@@ -69,7 +69,7 @@ export {
 } from './binding/connectable';
 export {
   IExpressionParser,
-  ExpressionType,
+  type ExpressionType,
   parseExpression,
 } from './binding/expression-parser';
 

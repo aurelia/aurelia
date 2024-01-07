@@ -37,7 +37,7 @@ export class CustomExpression {
   public readonly $kind = 'Custom';
   public constructor(
     public readonly value: unknown,
-  ) { }
+  ) {}
 
   public evaluate(_s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): unknown {
     return this.value;
@@ -106,7 +106,7 @@ export class AssignExpression {
   public constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign,
-  ) { }
+  ) {}
 }
 
 export class ConditionalExpression {
@@ -115,7 +115,7 @@ export class ConditionalExpression {
     public readonly condition: IsBinary,
     public readonly yes: IsAssign,
     public readonly no: IsAssign,
-  ) { }
+  ) {}
 }
 
 export class AccessGlobalExpression {
@@ -123,7 +123,7 @@ export class AccessGlobalExpression {
 
   public constructor(
     public readonly name: string,
-  ) { }
+  ) {}
 }
 
 export class AccessThisExpression {
@@ -131,7 +131,7 @@ export class AccessThisExpression {
 
   public constructor(
     public readonly ancestor: number = 0,
-  ) { }
+  ) {}
 }
 
 export class AccessScopeExpression {
@@ -139,7 +139,7 @@ export class AccessScopeExpression {
   public constructor(
     public readonly name: string,
     public readonly ancestor: number = 0,
-  ) { }
+  ) {}
 }
 
 const isAccessGlobal = (ast: IsLeftHandSide) => (
@@ -181,7 +181,7 @@ export class CallScopeExpression {
     public readonly args: readonly IsAssign[],
     public readonly ancestor: number = 0,
     public readonly optional: boolean = false,
-  ) { }
+  ) {}
 }
 
 export class CallMemberExpression {
@@ -192,7 +192,7 @@ export class CallMemberExpression {
     public readonly args: readonly IsAssign[],
     public readonly optionalMember: boolean = false,
     public readonly optionalCall: boolean = false,
-  ) { }
+  ) {}
 }
 
 export class CallFunctionExpression {
@@ -201,7 +201,7 @@ export class CallFunctionExpression {
     public readonly func: IsLeftHandSide,
     public readonly args: readonly IsAssign[],
     public readonly optional: boolean = false,
-  ) { }
+  ) {}
 }
 
 export class CallGlobalExpression {
@@ -209,7 +209,7 @@ export class CallGlobalExpression {
   public constructor(
     public readonly name: string,
     public readonly args: readonly IsAssign[]
-  ) { }
+  ) {}
 }
 
 export class BinaryExpression {
@@ -218,7 +218,7 @@ export class BinaryExpression {
     public readonly operation: BinaryOperator,
     public readonly left: IsBinary,
     public readonly right: IsBinary,
-  ) { }
+  ) {}
 }
 
 export class UnaryExpression {
@@ -226,7 +226,7 @@ export class UnaryExpression {
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
-  ) { }
+  ) {}
 }
 export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {
   public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
@@ -238,7 +238,7 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
 
   public constructor(
     public readonly value: TValue,
-  ) { }
+  ) {}
 }
 
 export class ArrayLiteralExpression {
@@ -246,7 +246,7 @@ export class ArrayLiteralExpression {
   public readonly $kind = 'ArrayLiteral';
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) { }
+  ) {}
 }
 
 export class ObjectLiteralExpression {
@@ -255,7 +255,7 @@ export class ObjectLiteralExpression {
   public constructor(
     public readonly keys: readonly (number | string)[],
     public readonly values: readonly IsAssign[],
-  ) { }
+  ) {}
 }
 
 export class TemplateExpression {
@@ -264,7 +264,7 @@ export class TemplateExpression {
   public constructor(
     public readonly cooked: readonly string[],
     public readonly expressions: readonly IsAssign[] = emptyArray,
-  ) { }
+  ) {}
 }
 
 export class TaggedTemplateExpression {
@@ -284,7 +284,7 @@ export class ArrayBindingPattern {
   // We'll either have elements, or keys+values, but never all 3
   public constructor(
     public readonly elements: readonly IsAssign[],
-  ) { }
+  ) {}
 }
 
 export class ObjectBindingPattern {
@@ -293,14 +293,14 @@ export class ObjectBindingPattern {
   public constructor(
     public readonly keys: readonly (string | number)[],
     public readonly values: readonly IsAssign[],
-  ) { }
+  ) {}
 }
 
 export class BindingIdentifier {
   public readonly $kind = 'BindingIdentifier';
   public constructor(
     public readonly name: string,
-  ) { }
+  ) {}
 }
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
@@ -311,7 +311,7 @@ export class ForOfStatement {
     public readonly declaration: BindingIdentifierOrPattern | DestructuringAssignmentExpression,
     public readonly iterable: IsBindingBehavior,
     public readonly semiIdx: number,
-  ) { }
+  ) {}
 }
 
 /*
@@ -368,7 +368,7 @@ export class ArrowFunction {
     public args: BindingIdentifier[],
     public body: IsAssign,
     public rest: boolean = false,
-  ) { }
+  ) {}
 }
 
 // -----------------------------------
@@ -377,7 +377,7 @@ export class ArrowFunction {
 /**
  * An interface describing the object that can evaluate Aurelia AST
  */
-export interface IAstEvaluator {
+ export interface IAstEvaluator {
   /** describe whether the evaluator wants to evaluate in strict mode */
   strict?: boolean;
   /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */

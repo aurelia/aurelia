@@ -4,7 +4,6 @@ import { AppTask, IPlatform } from '@aurelia/runtime-html';
 import {
   DialogActionKey,
   DialogCloseResult,
-  DialogDeactivationStatuses,
   DialogOpenResult,
   IDialogService,
   IDialogController,

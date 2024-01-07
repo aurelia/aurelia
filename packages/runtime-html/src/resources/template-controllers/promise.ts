@@ -1,4 +1,4 @@
-import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
+import { Task, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';

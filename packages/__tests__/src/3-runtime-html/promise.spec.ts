@@ -1,7 +1,6 @@
 import {
   reportTaskQueue,
   Task,
-  TaskStatus,
 } from '@aurelia/platform';
 import {
   DefaultLogEvent,

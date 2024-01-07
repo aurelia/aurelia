@@ -1,5 +1,5 @@
 import { IDisposable } from '@aurelia/kernel';
-import { Collection, ExpressionType, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
+import { Collection, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
 import { ExpressionWatcher } from '@aurelia/runtime-html';
 
 export class BindingEngine {

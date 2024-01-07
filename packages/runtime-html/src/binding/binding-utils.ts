@@ -1,5 +1,5 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
-import { ITask, TaskStatus } from '@aurelia/platform';
+import { ITask } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';

@@ -13,7 +13,6 @@ import {
   DialogDefaultConfiguration,
   DefaultDialogGlobalSettings,
   DialogCancelError,
-  DialogDeactivationStatuses,
   IDialogDom,
   IDialogController,
   DialogController,

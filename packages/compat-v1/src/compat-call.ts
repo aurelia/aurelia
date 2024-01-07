@@ -1,5 +1,5 @@
 import { camelCase, IIndexable, type IContainer, type IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, ExpressionType, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import { bindingCommand, BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { ensureExpression, etIsFunction } from './utilities';
 

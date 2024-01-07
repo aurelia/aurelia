@@ -29,7 +29,6 @@ import {
   type IRouteContext,
 } from './route-context';
 import {
-  ExpressionKind,
   RouteExpression,
   type ScopedSegmentExpression,
   type SegmentExpression,

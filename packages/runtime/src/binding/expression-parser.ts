@@ -40,7 +40,7 @@ import {
   ArrowFunction,
   AccessGlobalExpression,
   CallGlobalExpression,
-  ExpressionKind,
+  type ExpressionKind,
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';

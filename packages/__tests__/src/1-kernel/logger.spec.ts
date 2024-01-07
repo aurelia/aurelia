@@ -4,7 +4,7 @@ import {
   DI,
   ILogger,
   LogLevel,
-  ColorOptions,
+  type ColorOptions,
   ISink,
   ILogEvent,
   sink,

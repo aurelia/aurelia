@@ -1,7 +1,7 @@
 import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
-  DialogDeactivationStatuses,
+  type DialogDeactivationStatuses,
   IDialogController,
   IDialogDomRenderer,
   IDialogDom,

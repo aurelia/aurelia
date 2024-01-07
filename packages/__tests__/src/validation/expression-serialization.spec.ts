@@ -1,7 +1,7 @@
 /* eslint-disable mocha/no-sibling-hooks */
 import {
   IExpressionParser,
-  ExpressionType,
+  type ExpressionType,
   Interpolation,
   PrimitiveLiteralExpression,
   UnaryExpression,

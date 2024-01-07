@@ -1,6 +1,6 @@
 import { camelCase } from '@aurelia/kernel';
 import {
-  ExpressionType,
+  type ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
@@ -9,7 +9,7 @@ import {
   attributePattern,
   AttrSyntax,
   bindingCommand,
-  CommandType,
+  type CommandType,
   IAttrMapper,
   IHydratableController,
   IPlatform,

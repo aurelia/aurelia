@@ -10,7 +10,7 @@ import {
   BinaryOperator,
   BindingBehaviorExpression,
   BindingIdentifier,
-  ExpressionType,
+  type ExpressionType,
   CallFunctionExpression,
   CallMemberExpression,
   CallScopeExpression,

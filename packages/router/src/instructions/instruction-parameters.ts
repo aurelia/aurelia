@@ -14,7 +14,7 @@ import { IContainer } from '@aurelia/kernel';
  *
  * @internal
  */
-export type ParametersType = 'none' | 'string' | 'array' | 'object';
+type ParametersType = 'none' | 'string' | 'array' | 'object';
 
 export type Parameters = {
   [key: string]: unknown;

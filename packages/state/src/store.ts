@@ -81,6 +81,9 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         } else {
           return afterDispatch(newState);
         }
+      }else {
+        // Ensure that in case of no queued dispatches, the result is returned
+        return $state instanceof Promise ? $state.then(() => {}) : undefined;
       }
     };
     const newState = reduce(this._state, action);

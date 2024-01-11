@@ -65,8 +65,15 @@ export class TemplateElementFactory {
     function needsWrapping(node: Element | null | undefined): boolean {
       if (node == null) return true;
       if (node.nodeName !== 'TEMPLATE') return true;
+
       // At this point the node is a template element.
       // If the template has meaningful siblings, then it needs wrapping.
+
+      // low-hanging fruit: check the next element sibling
+      const nextElementSibling = node.nextElementSibling;
+      if (nextElementSibling != null) return true;
+
+      // check the previous sibling
       const prevSibling = node.previousSibling;
       if (prevSibling != null) {
         switch (prevSibling.nodeType) {
@@ -81,8 +88,7 @@ export class TemplateElementFactory {
       const nextSibling = node.nextSibling;
       if (nextSibling != null) {
         switch (nextSibling.nodeType) {
-          case 1: // Element
-            return true;
+          // element is already checked above
           case 3: // Text
             return nextSibling.textContent!.trim().length > 0;
         }

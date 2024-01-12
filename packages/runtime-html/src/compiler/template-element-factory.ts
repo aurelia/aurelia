@@ -77,8 +77,7 @@ export class TemplateElementFactory {
       const prevSibling = node.previousSibling;
       if (prevSibling != null) {
         switch (prevSibling.nodeType) {
-          case 1: // Element
-            return true;
+          // The previous sibling cannot be an element, because the node is the first element in the template.
           case 3: // Text
             return prevSibling.textContent!.trim().length > 0;
         }

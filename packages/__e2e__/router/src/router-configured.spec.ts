@@ -80,4 +80,79 @@ test.describe('router', () => {
     await expect(page.locator('#child-auth-link')).toHaveAttribute('href', 'auth');
     await expect(page.locator('#child-something-missing-link')).toHaveAttribute('href', 'child/something/missing');
   });
+
+  test('from home to auth page, then go back', async ({ page, baseURL }) => {
+    // Home
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to Auth
+    await Promise.all([
+      page.waitForURL(`${baseURL}/auth`),
+      page.click('#auth-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/auth`);
+    await expect(page.locator('#root-vp')).toContainText('Auth page');
+
+    // Go to Home using the 'home' url
+    await Promise.all([
+      page.waitForURL(`${baseURL}/`),
+      page.click('#-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/`);
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to Auth again
+    await Promise.all([
+      page.waitForURL(`${baseURL}/auth`),
+      page.click('#auth-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/auth`);
+    await expect(page.locator('#root-vp')).toContainText('Auth page');
+
+    // Got to Home using the go back
+    await Promise.all([
+      page.waitForURL(`${baseURL}/`),
+      page.goBack(),
+    ]);
+
+    expect(page.url()).toBe(`${baseURL}/`);
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+  });
+
+  test('from home to component page, then go back', async ({ page, baseURL }) => {
+    // Home
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to "one"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/one-route`),
+      page.click('#page-one-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/one-route`);
+    await expect(page.locator('#root-vp')).toContainText('One page');
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/two-route`);
+    await expect(page.locator('#root-vp')).toContainText('Two page');
+
+    // Go back to "one"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/one-route`),
+      page.goBack(),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/one-route`);
+    await expect(page.locator('#root-vp')).toContainText('One page');
+
+    // Go back to "home"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/`),
+      page.goBack(),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/`);
+    await expect(page.locator('#root-vp')).toContainText('Home page');
+  });
 });

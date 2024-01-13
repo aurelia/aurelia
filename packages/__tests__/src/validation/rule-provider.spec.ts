@@ -38,7 +38,7 @@ import {
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
-describe.only('validation/rule-provider.spec.ts', function () {
+describe('validation/rule-provider.spec.ts', function () {
   describe('ValidationRules', function () {
 
     function setup() {
@@ -839,7 +839,7 @@ describe.only('validation/rule-provider.spec.ts', function () {
     }
   });
 
-  describe.only('parsePropertyName', function () {
+  describe('parsePropertyName', function () {
 
     function setup() {
       const container = TestContext.create().container;
@@ -976,9 +976,13 @@ describe.only('validation/rule-provider.spec.ts', function () {
       { property: (o: any) => { /* istanbul ignore next */ cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },                expected: 'prop' },
       { property: (o: any) => { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut1().s[50]++; return o.prop; },                        expected: 'prop' },
       { property: (o: any) => { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; return o.prop; },  expected: 'prop' },
+      { property: (o: any) => { cov_1wjh4ld5ut1().s[50]++; /* istanbul ignore next */ return o.prop; },                                      expected: 'prop' },
+      { property: (o: any) => { cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; /* istanbul ignore next */ return o.prop; },                expected: 'prop' },
+      { property: (o: any) => { "use strict"; cov_1wjh4ld5ut1().s[50]++; /* istanbul ignore next */ return o.prop; },                        expected: 'prop' },
+      { property: (o: any) => { "use strict"; cov_1wjh4ld5ut1().f[9]++;cov_1wjh4ld5ut1().s[50]++; /* istanbul ignore next */ return o.prop; },  expected: 'prop' },
     ];
     for(const { property, expected } of positiveDataRows) {
-      it.only(`parses ${property.toString()} to ${expected}`, function () {
+      it(`parses ${property.toString()} to ${expected}`, function () {
         const { parser } = setup();
         assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, ExpressionType.None)]);
       });

@@ -1509,6 +1509,18 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       results = result.results.filter(x => !x.valid);
       assert.strictEqual(results.length, 0, 'results.length4');
 
+      assert.strictEqual((await controller.validate()).valid, true, 'await controller.validate()');
+
+      component.person.name = (void 0)!;
+      component.person.age = (void 0)!;
+      result = await controller.validate();
+      assert.strictEqual(result.valid, false, 'result.valid5');
+      assert.deepStrictEqual(
+        result.results.map(x => [x.propertyName, x.valid]),
+        [['name', false], ['age', false]],
+        'result.results.every(x => !x.valid)'
+      );
+
       await stop(true);
     });
   });

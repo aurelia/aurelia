@@ -48,7 +48,7 @@ export class ControllerValidateResult {
   public constructor(
     public valid: boolean,
     public results: ValidationResult[],
-    public instruction?: ValidateInstruction,
+    public instruction?: Partial<ValidateInstruction>,
   ) { }
 }
 
@@ -222,7 +222,7 @@ export interface IValidationController {
    * @template TObject
    * @param {ValidateInstruction<TObject>} [instruction] - If omitted, then all the registered objects and bindings will be validated.
    */
-  validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult>;
+  validate<TObject extends IValidateable>(instruction?: Partial<ValidateInstruction<TObject>>): Promise<ControllerValidateResult>;
   /**
    * Registers the given `object` with optional `rules` to the controller.
    * During `validate` without instruction, the object will be validated.
@@ -363,29 +363,28 @@ export class ValidationController implements IValidationController {
     this.bindings.delete(binding);
   }
 
-  public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
+  public async validate<TObject extends IValidateable>(instruction?: Partial<ValidateInstruction<TObject>>): Promise<ControllerValidateResult> {
     const { object: obj, objectTag } = instruction ?? {};
     let instructions: ValidateInstruction[];
     if (obj !== void 0) {
       instructions = [new ValidateInstruction(
         obj,
-        instruction!.propertyName,
-        instruction!.rules ?? this.objects.get(obj),
+        instruction?.propertyName,
+        instruction?.rules ?? this.objects.get(obj),
         objectTag,
-        instruction!.propertyTag
+        instruction?.propertyTag
       )];
     } else {
       // validate all objects and bindings.
       instructions = [
         ...Array.from(this.objects.entries())
           .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        ...(!objectTag ? Array.from(this.bindings.entries()) : [])
+        ...Array.from(this.bindings.entries())
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {
               const propertyInfo = getPropertyInfo(binding, info);
               if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
-                acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
+                acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules, objectTag, instruction?.propertyTag));
               }
               return acc;
             },
@@ -488,7 +487,7 @@ export class ValidationController implements IValidationController {
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.
    */
-  private getInstructionPredicate(instruction?: ValidateInstruction): ValidationPredicate {
+  private getInstructionPredicate(instruction?: Partial<ValidateInstruction>): ValidationPredicate {
     if (instruction === void 0) { return () => true; }
 
     const propertyName = instruction.propertyName;

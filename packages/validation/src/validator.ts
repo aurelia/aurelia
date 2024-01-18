@@ -22,17 +22,6 @@ export class ValidateInstruction<TObject extends IValidateable = IValidateable> 
     public objectTag: string = (void 0)!,
     public propertyTag: string = (void 0)!,
   ) { }
-
-  public static create<TObj extends IValidateable = IValidateable>(input: Partial<ValidateInstruction<TObj>>): ValidateInstruction<TObj> {
-    if (input instanceof ValidateInstruction) return input;
-    return new ValidateInstruction<TObj>(
-      input.object,
-      input.propertyName,
-      input.rules,
-      input.objectTag,
-      input.propertyTag,
-    );
-  }
 }
 
 export const IValidator = /*@__PURE__*/DI.createInterface<IValidator>('IValidator');

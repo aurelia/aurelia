@@ -1487,24 +1487,24 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       const controller = component.controller;
 
-      let result = await controller.validate(ValidateInstruction.create({ propertyTag: 't1' }));
+      let result = await controller.validate({ propertyTag: 't1' });
       assert.strictEqual(result.valid, false, 'result.valid1');
       let results = result.results.filter(x => !x.valid);
       assert.strictEqual(results.every(x => x.propertyName === 'name'), true, 'results.every(x => x.propertyName === \'name\')');
 
       component.person.name = 'foo';
-      result = await controller.validate(ValidateInstruction.create({ propertyTag: 't1' }));
+      result = await controller.validate({ propertyTag: 't1' });
       assert.strictEqual(result.valid, true, 'result.valid2');
       results = result.results.filter(x => !x.valid);
       assert.strictEqual(results.length, 0, 'results.length2');
 
-      result = await controller.validate(ValidateInstruction.create({ propertyTag: 't2' }));
+      result = await controller.validate({ propertyTag: 't2' });
       assert.strictEqual(result.valid, false, 'result.valid3');
       results = result.results.filter(x => !x.valid);
       assert.strictEqual(results.every(x => x.propertyName === 'age'), true, 'results.every(x => x.propertyName === \'age\')');
 
       component.person.age = 42;
-      result = await controller.validate(ValidateInstruction.create({ propertyTag: 't2' }));
+      result = await controller.validate({ propertyTag: 't2' });
       assert.strictEqual(result.valid, true, 'result.valid4');
       results = result.results.filter(x => !x.valid);
       assert.strictEqual(results.length, 0, 'results.length4');

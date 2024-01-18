@@ -10,7 +10,6 @@ import {
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
-import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
@@ -34,6 +33,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
+import { dtElement } from './resources-shared';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -197,7 +197,7 @@ function markContainerless(target: Constructable) {
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
-  public get type(): DefinitionType.Element { return DefinitionType.Element; }
+  public get type(): 'Element' { return dtElement; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,

@@ -105,13 +105,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 
-export const enum CollectionKind {
-  indexed = 0b1000,
-  keyed   = 0b0100,
-  array   = 0b1001,
-  map     = 0b0110,
-  set     = 0b0111,
-}
+export type CollectionKind = 'indexed' | 'keyed' | 'array' | 'map' | 'set';
 
 export type LengthPropertyName<T> =
   T extends unknown[] ? 'length' :
@@ -119,26 +113,20 @@ export type LengthPropertyName<T> =
       T extends Map<unknown, unknown> ? 'size' :
         never;
 
-export type CollectionTypeToKind<T> =
-  T extends unknown[] ? CollectionKind.array | CollectionKind.indexed :
-    T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed :
-      T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed :
-        never;
-
 export type CollectionKindToType<T> =
-  T extends CollectionKind.array ? unknown[] :
-    T extends CollectionKind.indexed ? unknown[] :
-      T extends CollectionKind.map ? Map<unknown, unknown> :
-        T extends CollectionKind.set ? Set<unknown> :
-          T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> :
+  T extends 'array' ? unknown[] :
+    T extends 'indexed' ? unknown[] :
+      T extends 'map' ? Map<unknown, unknown> :
+        T extends 'set' ? Set<unknown> :
+          T extends 'keyed' ? Set<unknown> | Map<unknown, unknown> :
             never;
 
 export type ObservedCollectionKindToType<T> =
-  T extends CollectionKind.array ? unknown[] :
-    T extends CollectionKind.indexed ? unknown[] :
-      T extends CollectionKind.map ? Map<unknown, unknown> :
-        T extends CollectionKind.set ? Set<unknown> :
-          T extends CollectionKind.keyed ? Map<unknown, unknown> | Set<unknown> :
+  T extends 'array' ? unknown[] :
+    T extends 'indexed' ? unknown[] :
+      T extends 'map' ? Map<unknown, unknown> :
+        T extends 'set' ? Set<unknown> :
+          T extends 'keyed' ? Map<unknown, unknown> | Set<unknown> :
             never;
 
 export const enum AccessorType {
@@ -260,7 +248,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionSubscribable {
   type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
-  getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
+  getLengthObserver(): T extends 'array' ? CollectionLengthObserver : CollectionSizeObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

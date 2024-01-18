@@ -38,3 +38,5 @@ export const ensureExpression = <TFrom>(parser: IExpressionParser, srcOrExpr: TF
   }
   return srcOrExpr as Exclude<TFrom, string>;
 };
+
+/** @internal */ export const etIsFunction = 'IsFunction' as const;

@@ -28,3 +28,10 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
     (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
   }
 }
+
+/** ExpressionType */
+/** @internal */ export const etInterpolation = 'Interpolation' as const;
+/** @internal */ export const etIsProperty = 'IsProperty' as const;
+
+/** CommandType */
+/** @internal */ export const ctNone = 'None' as const;

@@ -10,12 +10,11 @@ import {
   BinaryOperator,
   BindingBehaviorExpression,
   BindingIdentifier,
-  ExpressionType,
+  type ExpressionType,
   CallFunctionExpression,
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
-  ExpressionKind,
   ForOfStatement,
   Interpolation,
   ObjectLiteralExpression,
@@ -74,17 +73,6 @@ const $c = new AccessScopeExpression('c');
 const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
-function expressionTypeToString(expressionType: ExpressionType): string {
-  let name = '';
-  if (expressionType & ExpressionType.IsProperty) {
-    name += ' | IsProperty';
-  }
-  if (expressionType & ExpressionType.IsFunction) {
-    name += ' | IsFunction';
-  }
-  return name;
-}
-
 function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, exprType?: ExpressionType, name?: string): any {
   let error: Error = null;
   let actual: any = null;
@@ -97,14 +85,14 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     if (error == null) {
       assert.deepStrictEqual(actual, expected, expr);
     } else {
-      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} parse successfully, but it threw "${error.message}"`);
+      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} parse successfully, but it threw "${error.message}"`);
     }
   } else {
     if (error == null) {
-      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} to throw "${expectedMsg}", but no error was thrown`);
+      throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} to throw "${expectedMsg}", but no error was thrown`);
     } else {
       if (!error.message.startsWith(expectedMsg)) {
-        throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${expressionTypeToString(exprType)} to throw "${expectedMsg}", but got "${error.message}" instead`);
+        throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} to throw "${expectedMsg}", but got "${error.message}" instead`);
       }
     }
   }
@@ -448,8 +436,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   for (const [exprType, name] of [
     [undefined, 'undefined'],
-    [ExpressionType.IsProperty, 'IsProperty'],
-    [ExpressionType.IsFunction, 'call command'],
+    ['IsProperty', 'IsProperty'],
+    ['IsFunction', 'call command'],
   ] as [ExpressionType, string][]) {
     describe(name, function () {
       describe('parse AccessThisList', function () {
@@ -1212,34 +1200,34 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   function adjustAncestor(count: number, expr: IsAssign, input: string) {
     switch (expr.$kind) {
-      case ExpressionKind.AccessThis:
+      case 'AccessThis':
         (expr as any).ancestor += count;
         break;
-      case ExpressionKind.AccessScope:
+      case 'AccessScope':
         // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
         }
         break;
-      case ExpressionKind.ArrayLiteral:
+      case 'ArrayLiteral':
         for (const el of expr.elements) {
           adjustAncestor(count, el, input);
         }
         break;
-      case ExpressionKind.ObjectLiteral:
+      case 'ObjectLiteral':
         for (const val of expr.values) {
           adjustAncestor(count, val, input);
         }
         break;
-      case ExpressionKind.Template:
+      case 'Template':
         for (const ex of expr.expressions) {
           adjustAncestor(count, ex, input);
         }
         break;
-      case ExpressionKind.Unary:
+      case 'Unary':
         adjustAncestor(count, expr.expression, input);
         break;
-      case ExpressionKind.CallScope:
+      case 'CallScope':
         // eslint-disable-next-line no-useless-escape
         if (expr.ancestor > 0 || input.search(new RegExp(`\\$this[?]?\\.[a-zA-Z\$\.]*${expr.name.replaceAll('$', '\\$')}`)) > -1) {
           (expr as any).ancestor += count;
@@ -1248,45 +1236,45 @@ describe('2-runtime/expression-parser.spec.ts', function () {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.CallMember:
+      case 'CallMember':
         adjustAncestor(count, expr.object, input);
         for (const arg of expr.args) {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.CallFunction:
+      case 'CallFunction':
         adjustAncestor(count, expr.func, input);
         for (const arg of expr.args) {
           adjustAncestor(count, arg, input);
         }
         break;
-      case ExpressionKind.AccessMember:
+      case 'AccessMember':
         adjustAncestor(count, expr.object, input);
         break;
-      case ExpressionKind.AccessKeyed:
+      case 'AccessKeyed':
         adjustAncestor(count, expr.object, input);
         adjustAncestor(count, expr.key, input);
         break;
-      case ExpressionKind.TaggedTemplate:
+      case 'TaggedTemplate':
         adjustAncestor(count, expr.func, input);
         // for (const ex of expr.expressions) {
         //   adjustAncestor(count, ex, input);
         // }
         break;
-      case ExpressionKind.Binary:
+      case 'Binary':
         adjustAncestor(count, expr.left, input);
         adjustAncestor(count, expr.right, input);
         break;
-      case ExpressionKind.Conditional:
+      case 'Conditional':
         adjustAncestor(count, expr.yes, input);
         adjustAncestor(count, expr.no, input);
         adjustAncestor(count, expr.condition, input);
         break;
-      case ExpressionKind.Assign:
+      case 'Assign':
         adjustAncestor(count, expr.target, input);
         adjustAncestor(count, expr.value, input);
         break;
-      case ExpressionKind.ArrowFunction:
+      case 'ArrowFunction':
         adjustAncestor(count, expr.body, input);
         break;
     }
@@ -1354,7 +1342,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     const AME = AccessMemberExpression;
     const PLE = PrimitiveLiteralExpression;
     const AKE = AccessKeyedExpression;
-    const aknd = ExpressionKind.ArrayDestructuring;
+    const aknd = 'ArrayDestructuring';
     const bi_a = new BindingIdentifier('a');
 
     const SimpleForDeclarations: [string, any][] = [
@@ -1418,7 +1406,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       ['a of a ; a;',     new ForOfStatement(bi_a, $a, 7)],
     ] as [string, any][]) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, ExpressionType.IsIterator), expected);
+        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
       });
     }
 
@@ -1427,7 +1415,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
     ] as [string, any][]).reduce((a, c) => a.concat(c))) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, ExpressionType.IsIterator), expected);
+        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
       });
     }
   });
@@ -1471,7 +1459,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   describe('parse Interpolation', function () {
     for (const [input, expected] of InterpolationList) {
       it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, ExpressionType.Interpolation as any), expected);
+        assert.deepStrictEqual(parseExpression(input, 'Interpolation' as any), expected);
       });
     }
   });
@@ -1532,12 +1520,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ]) {
       const accessScope = `\${a${token}}`;
       it(`throw unconsumedToken on interpolation "${accessScope}"`, function () {
-        verifyResultOrError(accessScope, null, 'AUR0156', ExpressionType.Interpolation);
+        verifyResultOrError(accessScope, null, 'AUR0156', 'Interpolation');
       });
 
       const accessMember = `\${a.b${token}}`;
       it(`throw unconsumedToken on interpolation "${accessMember}"`, function () {
-        verifyResultOrError(accessMember, null, 'AUR0156', ExpressionType.Interpolation);
+        verifyResultOrError(accessMember, null, 'AUR0156', 'Interpolation');
       });
     }
     for (const token of [
@@ -1546,12 +1534,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ]) {
       const accessScope = `\${a${token}}`;
       it(`throw unexpectedEndOfExpression on interpolation "${accessScope}"`, function () {
-        verifyResultOrError(accessScope, null, 'AUR0155', ExpressionType.Interpolation);
+        verifyResultOrError(accessScope, null, 'AUR0155', 'Interpolation');
       });
 
       const accessMember = `\${a.b${token}}`;
       it(`throw unexpectedEndOfExpression on interpolation "${accessMember}"`, function () {
-        verifyResultOrError(accessMember, null, 'AUR0155', ExpressionType.Interpolation);
+        verifyResultOrError(accessMember, null, 'AUR0155', 'Interpolation');
       });
     }
     for (const token of [
@@ -1559,12 +1547,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ]) {
       const accessScope = `\${a${token}}`;
       it(`throw unexpectedOfKeyword on interpolation "${accessScope}"`, function () {
-        verifyResultOrError(accessScope, null, 'AUR0161', ExpressionType.Interpolation);
+        verifyResultOrError(accessScope, null, 'AUR0161', 'Interpolation');
       });
 
       const accessMember = `\${a.b${token}}`;
       it(`throw unexpectedOfKeyword on interpolation "${accessMember}"`, function () {
-        verifyResultOrError(accessMember, null, 'AUR0161', ExpressionType.Interpolation);
+        verifyResultOrError(accessMember, null, 'AUR0161', 'Interpolation');
       });
     }
 
@@ -1625,14 +1613,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
     for (const [input] of SimpleIsBindingBehaviorList) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
+        verifyResultOrError(input, null, 'AUR0163', 'IsIterator');
       });
     }
     for (const [input] of [
       [`a`, new BindingIdentifier('a')]
     ] as [string, any][]) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
-        verifyResultOrError(input, null, 'AUR0163', ExpressionType.IsIterator);
+        verifyResultOrError(input, null, 'AUR0163', 'IsIterator');
       });
     }
 
@@ -1697,7 +1685,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     });
 
     it(`throw 'Unconsumed token' on "a of a;"`, function () {
-      verifyResultOrError('a of a;', null, 'AUR0156', ExpressionType.IsIterator);
+      verifyResultOrError('a of a;', null, 'AUR0156', 'IsIterator');
     });
 
     for (const [input] of SimpleIsAssignList) {

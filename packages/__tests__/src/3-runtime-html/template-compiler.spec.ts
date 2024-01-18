@@ -6,7 +6,6 @@ import {
   camelCase,
 } from '@aurelia/kernel';
 import {
-  ExpressionType,
   ForOfStatement,
   Interpolation,
   parseExpression,
@@ -14,7 +13,6 @@ import {
   BindingIdentifier,
   PrimitiveLiteralExpression,
   IExpressionParser,
-  ExpressionKind,
 } from '@aurelia/runtime';
 import {
   bindable,
@@ -910,7 +908,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             // nor a custom attribute,
             && !ctx.container.find(CustomAttribute, syntax.target)
             // nor with interpolation
-            && exprParser.parse(a[1], ExpressionType.Interpolation) === null
+            && exprParser.parse(a[1], 'Interpolation') === null
             // nor a bindable
             && !(BindablesInfo.from(def, false).attrs[a[0]]);
           // then can stay in the template
@@ -1008,7 +1006,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const from = parseExpression(attributeValue);
         return { type, to, mode, from };
       } else {
-        const from = parseExpression(attributeValue, ExpressionType.Interpolation);
+        const from = parseExpression(attributeValue, 'Interpolation');
         if (!!from) {
           const type = TT.interpolation;
           const to = bindableDescription.name;
@@ -1027,7 +1025,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const from = parseExpression(attributeValue);
         return { type, to, mode, from };
       } else {
-        const from = parseExpression(attributeValue, ExpressionType.Interpolation);
+        const from = parseExpression(attributeValue, 'Interpolation');
         if (!!from) {
           const type2 = TT.interpolation;
           return { type: type2, to, from };
@@ -1156,13 +1154,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               {
                 "type": InstructionType.interpolation,
                 "from": {
-                  '$kind': ExpressionKind.Interpolation,
+                  '$kind': 'Interpolation',
                   "parts": ["abc-", ""],
                   "expressions": [
-                    { "$kind": ExpressionKind.AccessScope, "name": "value", "ancestor": 0 }
+                    { "$kind": 'AccessScope', "name": "value", "ancestor": 0 }
                   ],
                   "isMulti": false,
-                  "firstExpression": { "$kind": ExpressionKind.AccessScope, "name": "value", "ancestor": 0 }
+                  "firstExpression": { "$kind": 'AccessScope', "name": "value", "ancestor": 0 }
                 },
                 "to": "class"
               }
@@ -1634,7 +1632,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           result: sut.compile(templateDefinition, container, null),
           parser,
           createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
-            new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode)
+            new PropertyBindingInstruction(parser.parse(from, 'IsProperty'), to, mode)
         };
       }
     });

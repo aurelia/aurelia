@@ -54,7 +54,7 @@ The `@bindable` decorator signals to Aurelia that a property is bindable in our 
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable firstName = '';
@@ -83,16 +83,16 @@ Due to the way the Aurelia binding system works, change callbacks will not be fi
 If you would like to call your change handler functions when the component is initially bound (like v1), you can achieve this the following way:
 
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable firstName = '';
     @bindable lastName  = '';
-    
+
     bound() {
         this.firstNameChanged(this.firstName, undefined);
     }
-    
+
     firstNameChanged(newVal, oldVal) {
         console.log('Value changed');
     }
@@ -111,6 +111,11 @@ You can specify the binding mode using the `mode` property and passing in a vali
 Please consult the [binding modes](bindable-properties.md#one-way-binding) documentation below to learn how to change the binding modes. By default, the binding mode for bindable properties will be `one-way`
 {% endhint %}
 
+
+{% hint style="warning" %}
+When you are developing using TypeScript, ensure that you don't set the `verbatimModuleSyntax` flag (TypeScript `compilerOptions`) to `true`. This is required as the `BindingMode` enum is a const enum. Aurelia applies this same strategy to several other publicly consumable enums, to reduce bundle size. If you set the flag to `true`, you might get a runtime error.
+{% endhint %}
+
 ### Change the name of the change callback
 
 You can change the name of the callback that is fired when a change is made `@bindable({ callback: 'propChanged' })`
@@ -118,12 +123,12 @@ You can change the name of the callback that is fired when a change is made `@bi
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable({ mode: BindingMode.twoWay}) firstName = '';
     @bindable({ callback: 'lnameChanged' }) lastName  = '';
-    
+
     lnameChanged(val) {}
 }
 ```
@@ -181,10 +186,10 @@ When using `.bind` for input/form control values such as text inputs, select dro
 In some cases, you want to make an impact on the value that is binding. For such a scenario, you can use the possibility of new `set`.
 
 ```typescript
-@bindable({ 
+@bindable({
     set: value => someFunction(value),  /* HERE */
     // Or set: value => value,
-    mode: /* ... */ 
+    mode: /* ... */
 })
 ```
 

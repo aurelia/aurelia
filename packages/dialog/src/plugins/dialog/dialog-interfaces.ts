@@ -36,8 +36,8 @@ export interface IDialogController {
    */
   readonly closed: Promise<DialogCloseResult>;
 
-  ok(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Ok>>;
-  cancel(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Cancel>>;
+  ok(value?: unknown): Promise<DialogCloseResult<'ok'>>;
+  cancel(value?: unknown): Promise<DialogCloseResult<'cancel'>>;
   error(value?: unknown): Promise<void>;
 }
 
@@ -209,17 +209,15 @@ export interface IDialogCustomElementViewModel<T = unknown> extends ICustomEleme
   readonly $dialog: IDialogController;
 }
 
-export const enum DialogDeactivationStatuses {
-  Ok = 'ok',
-  Error = 'error',
-  Cancel = 'cancel',
+export type DialogDeactivationStatuses =
+    'ok'
+  | 'error'
+  | 'cancel'
   /**
    * If a view model refused to deactivate in canDeactivate,
    * then this status should be used to reflect that
    */
-  Abort = 'abort',
-}
-
+  | 'abort';
 /**
  * The result received when a dialog opens.
  */

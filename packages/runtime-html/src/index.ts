@@ -72,7 +72,7 @@ export {
   BindingCommandDefinition,
   type BindingCommandKind,
   type BindingCommandType,
-  CommandType,
+  type CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -267,7 +267,7 @@ export {
 export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
-export {
+export type {
   DefinitionType,
 } from './resources/resources-shared';
 
@@ -346,7 +346,7 @@ export {
   Controller,
   isCustomElementController,
   isCustomElementViewModel,
-  ViewModelKind,
+  type ViewModelKind,
   State,
   type ControllerVisitor,
   type IViewModel,

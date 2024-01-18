@@ -556,7 +556,7 @@ interface IBufferCalculation {
   botCount: number;
 }
 
-export const enum SizingSignals {
+const enum SizingSignals {
   none              = 0b0_00000,
   reset             = 0b0_00001,
   has_sizing        = 0b0_00010,

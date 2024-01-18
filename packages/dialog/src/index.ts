@@ -2,7 +2,7 @@ export {
   // enums
   type DialogActionKey,
   type DialogMouseEventType,
-  DialogDeactivationStatuses,
+  type DialogDeactivationStatuses,
 
   // main interfaces
   IDialogService,

@@ -1,5 +1,5 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
-import { BindingMode, customAttribute, INode, bindable, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
+import { BindingMode, customAttribute, INode, bindable, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router';
 import { LoadCustomAttribute } from '../index';
 import { ILinkHandler } from './link-handler';
@@ -66,6 +66,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   private hasLoad(): boolean {
     const parent = this.$controller.parent!;
     const siblings = parent.children;
-    return siblings?.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof LoadCustomAttribute) ?? false;
+    return siblings?.some(c => c.vmKind === 'customAttribute' && c.viewModel instanceof LoadCustomAttribute) ?? false;
   }
 }

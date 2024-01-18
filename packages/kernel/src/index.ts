@@ -61,7 +61,7 @@ export {
 export {
   LogLevel,
   type IConsoleLike,
-  ColorOptions,
+  type ColorOptions,
   ILogConfig,
   type ILogEvent,
   ILogEventFactory,

@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AccessMemberExpression, AccessScopeExpression, astEvaluate, ExpressionKind } from '@aurelia/runtime';
+import { AccessMemberExpression, AccessScopeExpression, astEvaluate } from '@aurelia/runtime';
 import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
 
@@ -130,7 +130,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const observerLocator = createObserverLocator(container);
       const obj: any = { a: {} };
       const expr = new class AccessWrapExpression {
-        $kind = ExpressionKind.Custom;
+        $kind = 'Custom';
         constructor(
           private readonly ast = new AccessMemberExpression(
             new AccessScopeExpression('a'),
@@ -153,7 +153,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
           callbackValues.push(newValue);
         }
       );
-      // Object.defineProperty(expr, '$kind', { value: ExpressionKind.Custom });
+      // Object.defineProperty(expr, '$kind', { value: 'Custom' });
       // (expr as any).evaluate = function (...args: unknown[]) {
       //   evaluateCallCount++;
       //   assert.strictEqual(args[2], watcher);

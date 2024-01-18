@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import { Task, TaskQueue, TaskQueuePriority, reportTaskQueue } from '@aurelia/platform';
+import { Task, TaskQueue, reportTaskQueue } from '@aurelia/platform';
 import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,
@@ -767,20 +767,6 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
 }
 
 const areTaskQueuesEmpty = (function () {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function priorityToString(priority: TaskQueuePriority) {
-    switch (priority) {
-      case TaskQueuePriority.render:
-        return 'render';
-      case TaskQueuePriority.macroTask:
-        return 'macroTask';
-      case TaskQueuePriority.postRender:
-        return 'postRender';
-      default:
-        return 'unknown';
-    }
-  }
-
   function round(num: number) {
     return ((num * 10 + .5) | 0) / 10;
   }

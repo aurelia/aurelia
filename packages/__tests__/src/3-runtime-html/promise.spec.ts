@@ -1,7 +1,6 @@
 import {
   reportTaskQueue,
   Task,
-  TaskStatus,
 } from '@aurelia/platform';
 import {
   DefaultLogEvent,
@@ -2173,7 +2172,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 // Therefore, the expected logs are constructed dynamically to ensure certain level of confidence.
                 const tc = (app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 const task = tc['preSettledTask'] as (Task<void | Promise<void>> | null);
-                const logs = task.status === TaskStatus.running || task.status === TaskStatus.completed
+                const logs = task.status === 'running' || task.status === 'completed'
                   ? [...getActivationSequenceFor(phost), ...getDeactivationSequenceFor(phost)]
                   : [];
 

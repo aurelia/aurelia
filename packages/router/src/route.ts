@@ -1,7 +1,7 @@
 import { Metadata } from '@aurelia/metadata';
 import { Constructable, Protocol, ResourceType, Writable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
-import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, ReloadBehavior } from './interfaces';
+import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, type ReloadBehavior } from './interfaces';
 
 export interface IRoute extends Writable<Partial<Route>> {
   /**

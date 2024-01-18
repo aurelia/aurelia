@@ -1,7 +1,7 @@
 import { IncomingMessage, IncomingHttpHeaders } from 'http';
 import { Http2ServerRequest, IncomingHttpHeaders as IncomingHttp2Headers, constants } from 'http2';
 
-export const enum HTTPStatusCode {
+export enum HTTPStatusCode {
   SwitchingProtocols = 101,
 
   OK = 200,
@@ -22,22 +22,17 @@ export const enum HTTPStatusCode {
   GatewayTimeout = 504,
 }
 
-export const enum ContentType {
-  unknown = '',
-  json = 'application/json; charset=utf-8',
-  javascript = 'application/javascript; charset=utf-8',
-  plain = 'text/plain; charset=utf-8',
-  html = 'text/html; charset=utf-8',
-  css = 'text/css; charset=utf-8',
-}
+export type ContentType =
+  /* unknown    */   ''
+  /* json       */ | 'application/json; charset=utf-8'
+  /* javascript */ | 'application/javascript; charset=utf-8'
+  /* plain      */ | 'text/plain; charset=utf-8'
+  /* html       */ | 'text/html; charset=utf-8'
+  /* css        */ | 'text/css; charset=utf-8'
+  ;
 
-export const enum ContentEncoding {
-  identity = 'identity',
-  br = 'br',
-  gzip = 'gzip',
-  compress = 'compress',
-  // deflate = 'deflate', // Need to deal with this later. No known fixed file extension for deflate
-}
+export type ContentEncoding = 'identity' | 'br' | 'gzip' | 'compress';
+  // | 'deflate' // Need to deal with this later. No known fixed file extension for deflate
 
 export class HTTPError extends Error {
   public readonly statusCode: number;
@@ -73,27 +68,27 @@ export function getContentType(path: string): ContentType {
   const i = path.lastIndexOf('.');
   if (i >= 0) {
     switch (path.slice(i)) {
-      case '.js': return ContentType.javascript;
-      case '.css': return ContentType.css;
-      case '.json': return ContentType.json;
-      case '.html': return ContentType.html;
+      case '.js': return 'application/javascript; charset=utf-8';
+      case '.css': return 'text/css; charset=utf-8';
+      case '.json': return 'application/json; charset=utf-8';
+      case '.html': return 'text/html; charset=utf-8';
     }
   }
 
-  return ContentType.plain;
+  return 'text/plain; charset=utf-8';
 }
 
 export function getContentEncoding(path: string): ContentEncoding {
   const i = path.lastIndexOf('.');
   if (i >= 0) {
     switch (path.slice(i)) {
-      case '.br': return ContentEncoding.br;
-      case '.gz': return ContentEncoding.gzip;
-      case '.lzw': return ContentEncoding.compress;
+      case '.br': return 'br';
+      case '.gz': return 'gzip';
+      case '.lzw': return 'compress';
     }
   }
 
-  return ContentEncoding.identity;
+  return 'identity';
 }
 
 export type Headers = IncomingHttpHeaders | IncomingHttp2Headers;

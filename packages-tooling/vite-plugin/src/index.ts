@@ -116,7 +116,6 @@ function getHmrCode(className: string, moduleNames: string = ''): string {
   const moduleText = 'import.meta';
   const code =
 `import { Metadata as $$M } from '@aurelia/metadata';
-import { ExpressionKind as $$EK } from '@aurelia/runtime';
 import {
   Controller as $$C,
   CustomElement as $$CE,
@@ -192,11 +191,11 @@ if (${moduleText}.hot) {
         // @ts-ignore
         const isTargettedByBinding = controller.bindings?.some(y =>
           y instanceof $$PB
-            && y.ast.$kind === $$EK.AccessScope
+            && y.ast.$kind === 'AccessScope'
             && y.ast.name === key
           || y instanceof $$CB
-            && y.ast.$kind === $$EK.ValueConverter
-            && y.ast.expression.$kind === $$EK.AccessScope
+            && y.ast.$kind === 'ValueConverter'
+            && y.ast.expression.$kind === 'AccessScope'
             && y.ast.expression.name === key
         );
         if (!isTargettedByBinding) {

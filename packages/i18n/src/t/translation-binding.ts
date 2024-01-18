@@ -2,7 +2,6 @@ import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   CustomExpression,
-  ExpressionType,
   connectable,
   astEvaluate,
   astUnbind,
@@ -34,6 +33,7 @@ import type {
 } from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
+import { etInterpolation, etIsProperty } from '../utils';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -133,12 +133,12 @@ export class TranslationBinding implements IConnectableBinding {
   }: TranslationBindingCreationContext) {
     const binding = this._getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, ExpressionType.IsProperty)
+      ? parser.parse(instruction.from, etIsProperty)
       : instruction.from;
     if (isParameterContext) {
       binding.useParameter(expr);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, ExpressionType.Interpolation) : undefined;
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, etInterpolation) : undefined;
       binding.ast = interpolation || expr;
     }
   }

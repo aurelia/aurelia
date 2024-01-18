@@ -1,4 +1,4 @@
-import { ExpressionType, IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/runtime';
 import {
   BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType, PartialCustomElementDefinition, IInstruction, DefaultBindingSyntax, PropertyBindingInstruction, TextBindingInstruction
 } from '@aurelia/runtime-html';
@@ -368,9 +368,9 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     return {
       ...sut.compile(templateDefinition, container, { projections: null }),
       createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
-        new PropertyBindingInstruction(parser.parse(from, ExpressionType.IsProperty), to, mode),
+        new PropertyBindingInstruction(parser.parse(from, 'IsProperty'), to, mode),
       createTextInterpolation: ({ from }: { from: string }) =>
-        new TextBindingInstruction(parser.parse(from, ExpressionType.IsProperty)),
+        new TextBindingInstruction(parser.parse(from, 'IsProperty')),
     };
   }
 

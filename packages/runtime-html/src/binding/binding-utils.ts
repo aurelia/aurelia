@@ -1,9 +1,9 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
-import { ITask, TaskStatus } from '@aurelia/platform';
+import { ITask } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
-import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '../utilities';
+import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
@@ -213,7 +213,7 @@ const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === tsPending;
     dispose();
     if (isPending) {
       callOriginalCallback();
@@ -263,7 +263,7 @@ const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === tsPending;
     dispose();
     if (isPending) {
       callOriginalCallback();

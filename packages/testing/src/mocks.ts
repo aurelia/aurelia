@@ -6,7 +6,6 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  ExpressionKind,
   IRateLimitOptions,
 } from '@aurelia/runtime';
 
@@ -166,7 +165,7 @@ export class MockPropertySubscriber {
 }
 
 export class MockTracingExpression {
-  public $kind: ExpressionKind.Custom = ExpressionKind.Custom;
+  public $kind: 'Custom' = 'Custom';
   public hasBind = true as const;
   public hasUnbind = true as const;
   public calls: [keyof MockTracingExpression, ...any[]][] = [];

@@ -65,7 +65,7 @@ import {
 
 /* eslint-disable @typescript-eslint/ban-types */
 
-export const enum IterationType {
+const enum IterationType {
   noIterator = 0,
   isArray = 1,
   isSet = 2,

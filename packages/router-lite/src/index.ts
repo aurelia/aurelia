@@ -63,7 +63,7 @@ export {
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,
-  ExpressionKind,
+  type ExpressionKind,
 } from './route-expression';
 
 export {

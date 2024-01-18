@@ -4,7 +4,6 @@ import { subscriberCollection } from './subscriber-collection';
 import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
 
 import type {
-  CollectionKind,
   ICollectionObserver,
   ICollectionSubscriberCollection,
 } from '../observation';
@@ -150,7 +149,7 @@ export function disableMapObservation(): void {
   }
 }
 
-export interface MapObserver extends ICollectionObserver<CollectionKind.map>, ICollectionSubscriberCollection {}
+export interface MapObserver extends ICollectionObserver<'map'>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
   public type: AccessorType = AccessorType.Observer;

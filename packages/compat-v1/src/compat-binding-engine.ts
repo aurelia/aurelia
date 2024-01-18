@@ -1,5 +1,5 @@
 import { IDisposable } from '@aurelia/kernel';
-import { Collection, ExpressionType, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
+import { Collection, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
 import { ExpressionWatcher } from '@aurelia/runtime-html';
 
 export class BindingEngine {
@@ -47,7 +47,7 @@ export class BindingEngine {
     const scope = Scope.create(bindingContext, {}, true);
     return {
       subscribe: callback => {
-        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, ExpressionType.IsProperty), callback);
+        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, 'IsProperty'), callback);
         observer.bind();
         return {
           dispose: () => observer.unbind()

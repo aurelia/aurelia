@@ -1,6 +1,6 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces';
+import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';
 import { Navigation } from '../navigation';
@@ -131,7 +131,7 @@ export class ViewportContent extends EndpointContent {
       'reloadBehavior' in this.instruction.component.instance &&
       this.instruction.component.instance.reloadBehavior !== void 0)
       ? this.instruction.component.instance.reloadBehavior
-      : ReloadBehavior.default;
+      : 'default';
   }
 
   /**

@@ -1,7 +1,6 @@
 import { IExpressionParser } from '@aurelia/runtime';
 import {
   alias,
-  CommandType,
   BindingCommandInstance,
   bindingCommand,
   OneTimeBindingCommand,
@@ -22,7 +21,7 @@ describe('3-runtime-html/binding-commands.spec.ts', function () {
     @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootCommand implements BindingCommandInstance {
-      public readonly type: CommandType.None = CommandType.None;
+      public readonly type: 'None' = 'None';
       public name = 'woot1';
 
       public static inject = [OneTimeBindingCommand];
@@ -36,7 +35,7 @@ describe('3-runtime-html/binding-commands.spec.ts', function () {
     @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootCommand2 implements BindingCommandInstance {
-      public readonly type: CommandType.None = CommandType.None;
+      public readonly type: 'None' = 'None';
       public name = 'woot2';
 
       public static inject = [OneTimeBindingCommand];

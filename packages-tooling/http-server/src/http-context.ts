@@ -4,17 +4,13 @@ import { Http2ServerRequest, Http2ServerResponse } from 'http2';
 import * as $url from 'url';
 import { QualifiedHeaderValues } from './http-utils';
 
-export const enum HttpContextState {
-  head = 1,
-  body = 2,
-  end = 3,
-}
+export type HttpContextState = 'head' | 'body' | 'end';
 
 export interface IHttpContext extends HttpContext { }
 
 export class HttpContext implements IHttpContext {
   public readonly container: IContainer;
-  public state: HttpContextState = HttpContextState.head;
+  public state: HttpContextState = 'head';
   private readonly parsedHeaders: Record<string, QualifiedHeaderValues> = Object.create(null);
   private readonly _requestUrl: $url.UrlWithStringQuery;
   private rewrittenUrl: $url.UrlWithStringQuery | null = null;

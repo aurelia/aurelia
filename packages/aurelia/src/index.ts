@@ -89,8 +89,7 @@ export {
   Task,
   TaskAbortError,
   TaskQueue,
-  TaskQueuePriority,
-  TaskStatus
+  type TaskStatus
 } from '@aurelia/platform';
 
 export {
@@ -155,7 +154,7 @@ export {
   // WritableKeys,
 
   // IConsoleLike,
-  ColorOptions,
+  type ColorOptions,
   // ILogConfig,
   // ILogEvent,
   // ILogEventFactory,
@@ -207,7 +206,7 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  CollectionKind,
+  type CollectionKind,
   batch,
   // CallFunctionExpression,
   // connects,

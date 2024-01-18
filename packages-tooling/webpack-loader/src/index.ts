@@ -61,7 +61,6 @@ const getHmrCode = (className: string): string => {
 
   const code = `
     import { Metadata as $$M } from '@aurelia/metadata';
-    import { ExpressionKind as $$EK } from '@aurelia/runtime';
     import { Controller as $$C, CustomElement as $$CE, IHydrationContext as $$IHC } from '@aurelia/runtime-html';
 
     // @ts-ignore
@@ -131,7 +130,7 @@ const getHmrCode = (className: string): string => {
           // if there' some bindings that target the existing property
           // @ts-ignore
           const isTargettedByBinding = controller.bindings?.some(y =>
-            y.ast?.$kind === $$EK.AccessScope
+            y.ast?.$kind === 'AccessScope'
               && y.ast.name === key && y.targetProperty
           );
           if (!isTargettedByBinding) {

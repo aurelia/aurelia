@@ -5,7 +5,7 @@ export {
   HttpServerConfiguration as RuntimeNodeConfiguration,
 } from './configuration';
 export {
-  HttpContextState,
+  type HttpContextState,
   HttpContext,
   IHttpContext,
 } from './http-context';
@@ -14,13 +14,12 @@ export {
 } from './http-server';
 export {
   HTTPStatusCode,
-  ContentType,
+  type ContentType,
   HTTPError,
   readBuffer,
   getContentType,
 } from './http-utils';
 export {
-  Encoding,
   IHttpServer,
   IHttpServerOptions,
   IRequestHandler,

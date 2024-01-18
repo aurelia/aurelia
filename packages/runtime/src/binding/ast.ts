@@ -42,7 +42,8 @@ export const ekArrayDestructuring = 'ArrayDestructuring' as const;
 export const ekObjectDestructuring = 'ObjectDestructuring' as const;
 export const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf' as const;
 export const ekCustom = 'Custom' as const;
-export type ExpressionKind = typeof ekAccessThis
+export type ExpressionKind =
+  | typeof ekAccessThis
   | typeof ekAccessGlobal
   | typeof ekAccessScope
   | typeof ekArrayLiteral

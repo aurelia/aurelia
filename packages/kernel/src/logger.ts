@@ -43,16 +43,10 @@ export const enum LogLevel {
 
 /**
  * Flags to enable/disable color usage in the logging output.
+ * - `no-colors`: Do not use ASCII color codes in logging output.
+ * - `colors`: Use ASCII color codes in logging output. By default, timestamps and the TRC and DBG prefix are colored grey. INF white, WRN yellow, and ERR and FTL red.
  */
-export type ColorOptions =
-    /**
-     * Do not use ASCII color codes in logging output.
-     */
-    'no-colors'
-    /**
-     * Use ASCII color codes in logging output. By default, timestamps and the TRC and DBG prefix are colored grey. INF white, WRN yellow, and ERR and FTL red.
-     */
-  | 'colors';
+export type ColorOptions = 'no-colors' | 'colors';
 
 /**
  * The global logger configuration.

@@ -20,7 +20,7 @@ import {
   Aurelia,
 } from '@aurelia/runtime-html';
 import { assert, createFixture, createSpy, ISpy, TestContext } from '@aurelia/testing';
-import { IValidationRules, PropertyRule, RangeRule, RequiredRule, ValidateInstruction } from '@aurelia/validation';
+import { IValidationRules, PropertyRule, RangeRule, RequiredRule } from '@aurelia/validation';
 import {
   BindingWithBehavior,
   IValidationController,

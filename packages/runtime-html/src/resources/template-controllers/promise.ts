@@ -5,7 +5,7 @@ import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IInstruction } from '../../renderer';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
   ICustomAttributeController,
@@ -164,7 +164,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 export class PendingTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
+  @bindable({ mode: toView }) public value!: Promise<unknown>;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -209,7 +209,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
+  @bindable({ mode: fromView }) public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -255,7 +255,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 export class RejectedTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
+  @bindable({ mode: fromView }) public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 

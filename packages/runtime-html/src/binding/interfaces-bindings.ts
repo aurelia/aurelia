@@ -6,19 +6,25 @@ import { State } from '../templating/controller';
 //
 // Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
 // This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+export const oneTime     = 0b0001;
+export const toView      = 0b0010;
+export const fromView    = 0b0100;
+export const twoWay      = 0b0110;
+export const defaultMode = 0b1000;
 /**
  * Mode of a binding to operate
  */
-export const enum BindingMode {
-  oneTime  = 0b0001,
-  toView   = 0b0010,
-  fromView = 0b0100,
-  twoWay   = 0b0110,
+export const BindingMode = {
+  oneTime,
+  toView,
+  fromView,
+  twoWay,
   /**
    * Unspecified mode, bindings may act differently with this mode
    */
-  default  = 0b1000
-}
+  default: defaultMode,
+} as const;
+export type BindingMode = typeof BindingMode[keyof typeof BindingMode];
 
 export interface IBindingController {
   readonly state: State;

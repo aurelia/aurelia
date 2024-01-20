@@ -18,7 +18,7 @@ import {
   type IObservable,
   type ForOfStatement,
 } from '@aurelia/runtime';
-import { BindingMode } from './binding/interfaces-bindings';
+import { toView, type BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
 import { InterpolationBinding } from './binding/interpolation-binding';
 import { ContentBinding } from "./binding/content-binding";
@@ -752,7 +752,7 @@ export class InterpolationBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
@@ -802,7 +802,7 @@ export class IteratorBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.forOf, etIsIterator),
       getTarget(target),
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
@@ -937,7 +937,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
           ensureExpression(exprParser, instruction.from, etIsProperty),
           target.style,
           instruction.to,
-          BindingMode.toView,
+          toView,
         ));
         return;
       }
@@ -950,7 +950,7 @@ export class StylePropertyBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.from, etIsProperty),
       target.style,
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
@@ -994,7 +994,7 @@ export class AttributeBindingRenderer implements IRenderer {
       classMapping == null
         ? instruction.to/* targetKey */
         : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '),
-      BindingMode.toView,
+      toView,
     ));
   }
 }

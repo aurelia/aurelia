@@ -1,6 +1,6 @@
 import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
-import { BindingMode } from '../binding/interfaces-bindings';
+import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
 import {
   AttributeBindingInstruction,
@@ -173,7 +173,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, BindingMode.oneTime);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, oneTime);
   }
 }
 
@@ -198,7 +198,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, BindingMode.toView);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, toView);
   }
 }
 
@@ -223,7 +223,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, BindingMode.fromView);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, fromView);
   }
 }
 
@@ -248,7 +248,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, BindingMode.twoWay);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, twoWay);
   }
 }
 
@@ -265,7 +265,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     let target = attr.target;
     let value = attr.rawValue;
     if (bindable == null) {
-      mode = attrMapper.isTwoWay(info.node, target) ? BindingMode.twoWay : BindingMode.toView;
+      mode = attrMapper.isTwoWay(info.node, target) ? twoWay : toView;
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
@@ -277,9 +277,9 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         value = camelCase(target);
       }
       defaultMode = (info.def as CA).defaultBindingMode;
-      mode = bindable.mode === BindingMode.default || bindable.mode == null
-        ? defaultMode == null || defaultMode === BindingMode.default
-          ? BindingMode.toView
+      mode = bindable.mode === $defaultMode || bindable.mode == null
+        ? defaultMode == null || defaultMode === $defaultMode
+          ? toView
           : defaultMode
         : bindable.mode;
       target = bindable.name;

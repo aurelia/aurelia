@@ -31,7 +31,7 @@ import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssig
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { BindingMode } from '../binding/interfaces-bindings';
+import { oneTime, type BindingMode, toView, fromView, twoWay, defaultMode } from '../binding/interfaces-bindings';
 
 import type {
   IContainer,
@@ -1852,9 +1852,9 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
       const attrs = createLookup<BindableDefinition>();
       const defaultBindingMode: BindingMode = isAttr
         ? (def as CA).defaultBindingMode === void 0
-          ? BindingMode.default
+          ? defaultMode
           : (def as CA).defaultBindingMode
-        : BindingMode.default;
+        : defaultMode;
       let bindable: BindableDefinition | undefined;
       let prop: string;
       let hasPrimary: boolean = false;
@@ -1927,16 +1927,16 @@ const processTemplateName = (owningElementName: string, localTemplate: HTMLTempl
 const getBindingMode = (bindable: Element): BindingMode => {
   switch (bindable.getAttribute(LocalTemplateBindableAttributes.mode)) {
     case 'oneTime':
-      return BindingMode.oneTime;
+      return oneTime;
     case 'toView':
-      return BindingMode.toView;
+      return toView;
     case 'fromView':
-      return BindingMode.fromView;
+      return fromView;
     case 'twoWay':
-      return BindingMode.twoWay;
+      return twoWay;
     case 'default':
     default:
-      return BindingMode.default;
+      return defaultMode;
   }
 };
 

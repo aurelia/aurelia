@@ -1,6 +1,5 @@
 import { IDisposable, IIndexable, resolve } from '@aurelia/kernel';
 import {
-  BindingMode,
   customAttribute,
   bindable,
   ICustomAttributeViewModel,
@@ -13,6 +12,7 @@ import { IRouteContext } from '../route-context';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions';
 import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
+import { bmFromView, bmToView } from '../util';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -23,22 +23,22 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
-  @bindable({ mode: BindingMode.toView, primary: true, callback: 'valueChanged' })
+  @bindable({ mode: bmToView, primary: true, callback: 'valueChanged' })
   public route: unknown;
 
-  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  @bindable({ mode: bmToView, callback: 'valueChanged' })
   public params?: Params;
 
-  @bindable({ mode: BindingMode.toView })
+  @bindable({ mode: bmToView })
   public attribute: string = 'href';
 
-  @bindable({ mode: BindingMode.fromView })
+  @bindable({ mode: bmFromView })
   public active: boolean = false;
 
   /**
    * When not bound, it defaults to the injected instance of the router context.
    */
-  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  @bindable({ mode: bmToView, callback: 'valueChanged' })
   public context?: IRouteContext;
 
   /** @internal */ private _href: string | null = null;

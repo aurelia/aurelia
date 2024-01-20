@@ -14,7 +14,7 @@ import {
 
 import { State } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { BindingMode } from './interfaces-bindings';
+import { oneTime, toView } from './interfaces-bindings';
 
 import type {
   ITask,
@@ -23,7 +23,7 @@ import type {
 } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { INode } from '../dom';
-import type { IBindingController } from './interfaces-bindings';
+import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { isString, safeString } from '../utilities';
 
 const taskOptions: QueueTaskOptions = {
@@ -139,7 +139,7 @@ export class AttributeBinding implements IBinding {
       this._scope!,
       this,
       // should observe?
-      (this.mode & BindingMode.toView) > 0 ? this : null
+      (this.mode & toView) > 0 ? this : null
     );
     this.obs.clear();
 
@@ -177,9 +177,9 @@ export class AttributeBinding implements IBinding {
 
     astBind(this.ast, _scope, this);
 
-    if (this.mode & (BindingMode.toView | BindingMode.oneTime)) {
+    if (this.mode & (toView | oneTime)) {
       this.updateTarget(
-        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & BindingMode.toView) > 0 ? this : null)
+        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & toView) > 0 ? this : null)
       );
     }
 

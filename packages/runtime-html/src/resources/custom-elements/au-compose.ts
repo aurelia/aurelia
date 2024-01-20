@@ -10,7 +10,7 @@ import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
 import { AttrSyntax } from '../attribute-pattern';
 
@@ -68,7 +68,7 @@ export class AuCompose {
   /** @internal */
   private _composing?: Promise<void> | void;
   @bindable({
-    mode: BindingMode.fromView
+    mode: fromView
   })
   public get composing(): Promise<void> | void {
     return this._composing;
@@ -77,7 +77,7 @@ export class AuCompose {
   /** @internal */
   private _composition: ICompositionController | undefined = void 0;
   @bindable({
-    mode: BindingMode.fromView
+    mode: fromView
   })
   public get composition(): ICompositionController | undefined {
     return this._composition;

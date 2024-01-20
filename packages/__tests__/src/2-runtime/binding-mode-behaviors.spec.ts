@@ -19,11 +19,11 @@ const tests = [
   { Behavior: ToViewBindingBehavior, mode: BindingMode.toView },
   { Behavior: FromViewBindingBehavior, mode: BindingMode.fromView },
   { Behavior: TwoWayBindingBehavior, mode: BindingMode.twoWay }
-];
+] as const;
 
 describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
   const container: IContainer = DI.createContainer();
-  let sut: OneTimeBindingBehavior;
+  let sut: InstanceType<typeof tests[number]['Behavior']>;
   let binding: PropertyBinding;
 
   Registration.instance(IPlatform, {}).register(container);

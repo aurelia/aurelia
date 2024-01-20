@@ -14,7 +14,7 @@ export const defaultMode = 0b1000;
 /**
  * Mode of a binding to operate
  */
-export const BindingMode = {
+export const BindingMode = Object.freeze({
   oneTime,
   toView,
   fromView,
@@ -23,7 +23,7 @@ export const BindingMode = {
    * Unspecified mode, bindings may act differently with this mode
    */
   default: defaultMode,
-} as const;
+} as const);
 export type BindingMode = typeof BindingMode[keyof typeof BindingMode];
 
 export interface IBindingController {

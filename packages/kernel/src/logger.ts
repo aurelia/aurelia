@@ -8,38 +8,46 @@ import { getAnnotationKeyFor } from './resource';
 import { createObject, defineMetadata, isFunction } from './utilities';
 import { resolve } from './di.container';
 
-export const enum LogLevel {
+export const trace = 0;
+export const debug = 1;
+export const info = 2;
+export const warn = 3;
+export const error = 4;
+export const fatal = 5;
+export const none = 6;
+export const LogLevel = Object.freeze({
   /**
    * The most detailed information about internal app state.
    *
    * Disabled by default and should never be enabled in a production environment.
    */
-  trace = 0,
+  trace,
   /**
    * Information that is useful for debugging during development and has no long-term value.
    */
-  debug = 1,
+  debug,
   /**
    * Information about the general flow of the application that has long-term value.
    */
-  info = 2,
+  info,
   /**
    * Unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
    */
-  warn = 3,
+  warn,
   /**
    * Unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
    */
-  error = 4,
+  error,
   /**
    * Unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
    */
-  fatal = 5,
+  fatal,
   /**
    * No messages should be written.
    */
-  none = 6,
-}
+  none,
+} as const);
+export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
 
 /**
  * Flags to enable/disable color usage in the logging output.
@@ -154,14 +162,14 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = /*@__PURE__*/createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig('no-colors', LogLevel.warn)));
+export const ILogConfig = /*@__PURE__*/createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig('no-colors', warn)));
 export const ISink = /*@__PURE__*/createInterface<ISink>('ISink');
 export const ILogEventFactory = /*@__PURE__*/createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
 export const ILogger = /*@__PURE__*/createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
 export const ILogScopes = /*@__PURE__*/createInterface<string[]>('ILogScope');
 
 interface SinkDefinition {
-  handles: Exclude<LogLevel, LogLevel.none>[];
+  handles: Exclude<LogLevel, typeof none>[];
 }
 
 export const LoggerSink = Object.freeze({
@@ -251,22 +259,22 @@ const getLogLevelString = (function () {
   } as const;
 
   return (level: LogLevel, colorOptions: ColorOptions): string => {
-    if (level <= LogLevel.trace) {
+    if (level <= trace) {
       return logLevelString[colorOptions].TRC;
     }
-    if (level <= LogLevel.debug) {
+    if (level <= debug) {
       return logLevelString[colorOptions].DBG;
     }
-    if (level <= LogLevel.info) {
+    if (level <= info) {
       return logLevelString[colorOptions].INF;
     }
-    if (level <= LogLevel.warn) {
+    if (level <= warn) {
       return logLevelString[colorOptions].WRN;
     }
-    if (level <= LogLevel.error) {
+    if (level <= error) {
       return logLevelString[colorOptions].ERR;
     }
-    if (level <= LogLevel.fatal) {
+    if (level <= fatal) {
       return logLevelString[colorOptions].FTL;
     }
     return logLevelString[colorOptions].QQQ;
@@ -336,15 +344,15 @@ export class ConsoleSink implements ISink {
       if (optionalParams === void 0 || optionalParams.length === 0) {
         const msg = event.toString();
         switch (event.severity) {
-          case LogLevel.trace:
-          case LogLevel.debug:
+          case trace:
+          case debug:
             return $console.debug(msg);
-          case LogLevel.info:
+          case info:
             return $console.info(msg);
-          case LogLevel.warn:
+          case warn:
             return $console.warn(msg);
-          case LogLevel.error:
-          case LogLevel.fatal:
+          case error:
+          case fatal:
             return $console.error(msg);
         }
       } else {
@@ -355,15 +363,15 @@ export class ConsoleSink implements ISink {
           msg = msg.replace('%s', String(optionalParams[offset++]));
         }
         switch (event.severity) {
-          case LogLevel.trace:
-          case LogLevel.debug:
+          case trace:
+          case debug:
             return $console.debug(msg, ...optionalParams.slice(offset));
-          case LogLevel.info:
+          case info:
             return $console.info(msg, ...optionalParams.slice(offset));
-          case LogLevel.warn:
+          case warn:
             return $console.warn(msg, ...optionalParams.slice(offset));
-          case LogLevel.error:
-          case LogLevel.fatal:
+          case error:
+          case fatal:
             return $console.error(msg, ...optionalParams.slice(offset));
         }
       }
@@ -443,22 +451,22 @@ export class DefaultLogger {
       fatalSinks = this._fatalSinks = [];
       for (const $sink of sinks) {
         const handles = LoggerSink.getHandles($sink);
-        if (handles?.includes(LogLevel.trace) ?? true) {
+        if (handles?.includes(trace) ?? true) {
           traceSinks.push($sink);
         }
-        if (handles?.includes(LogLevel.debug) ?? true) {
+        if (handles?.includes(debug) ?? true) {
           debugSinks.push($sink);
         }
-        if (handles?.includes(LogLevel.info) ?? true) {
+        if (handles?.includes(info) ?? true) {
           infoSinks.push($sink);
         }
-        if (handles?.includes(LogLevel.warn) ?? true) {
+        if (handles?.includes(warn) ?? true) {
           warnSinks.push($sink);
         }
-        if (handles?.includes(LogLevel.error) ?? true) {
+        if (handles?.includes(error) ?? true) {
           errorSinks.push($sink);
         }
-        if (handles?.includes(LogLevel.fatal) ?? true) {
+        if (handles?.includes(fatal) ?? true) {
           fatalSinks.push($sink);
         }
       }
@@ -497,8 +505,8 @@ export class DefaultLogger {
   public trace(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.trace) {
-      this._emit(this._traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
+    if (this.config.level <= trace) {
+      this._emit(this._traceSinks, trace, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -524,8 +532,8 @@ export class DefaultLogger {
   public debug(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.debug) {
-      this._emit(this._debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
+    if (this.config.level <= debug) {
+      this._emit(this._debugSinks, debug, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -551,8 +559,8 @@ export class DefaultLogger {
   public info(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.info) {
-      this._emit(this._infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
+    if (this.config.level <= info) {
+      this._emit(this._infoSinks, info, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -578,8 +586,8 @@ export class DefaultLogger {
   public warn(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.warn) {
-      this._emit(this._warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
+    if (this.config.level <= warn) {
+      this._emit(this._warnSinks, warn, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -605,8 +613,8 @@ export class DefaultLogger {
   public error(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.error) {
-      this._emit(this._errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
+    if (this.config.level <= error) {
+      this._emit(this._errorSinks, error, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -632,8 +640,8 @@ export class DefaultLogger {
   public fatal(message: unknown, ...optionalParams: unknown[]): void;
   @bound
   public fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-    if (this.config.level <= LogLevel.fatal) {
-      this._emit(this._fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
+    if (this.config.level <= fatal) {
+      this._emit(this._fatalSinks, fatal, messageOrGetMessage, optionalParams);
     }
   }
 
@@ -705,7 +713,7 @@ export const LoggerConfiguration = toLookup({
    */
   create(
     {
-      level = LogLevel.warn,
+      level = warn,
       colorOptions = 'no-colors',
       sinks = [],
     }: Partial<ILoggingConfigurationOptions> = {}

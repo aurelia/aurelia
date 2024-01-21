@@ -7,7 +7,7 @@ import {
   IAstEvaluator,
   IConnectableBinding
 } from '@aurelia/runtime';
-import { State } from '../templating/controller';
+import { activating } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
@@ -112,7 +112,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & atLayout) > 0;
+    const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield

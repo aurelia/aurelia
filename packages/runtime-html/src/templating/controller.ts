@@ -97,10 +97,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return this._lifecycleHooks;
   }
 
-  public state: State = State.none;
+  public state: State = none;
 
   public get isActive(): boolean {
-    return (this.state & (State.activating | State.activated)) > 0 && (this.state & State.deactivating) === 0;
+    return (this.state & (activating | activated)) > 0 && (this.state & deactivating) === 0;
   }
 
   public get name(): string {
@@ -516,8 +516,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     scope?: Scope | null,
   ): void | Promise<void> {
     switch (this.state) {
-      case State.none:
-      case State.deactivated:
+      case none:
+      case deactivated:
         if (!(parent === null || parent.isActive)) {
           // If this is not the root, and the parent is either:
           // 1. Not activated, or activating children OR
@@ -527,12 +527,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
         // Otherwise, proceed normally.
         // 'deactivated' and 'none' are treated the same because, from an activation perspective, they mean the same thing.
-        this.state = State.activating;
+        this.state = activating;
         break;
-      case State.activated:
+      case activated:
         // If we're already activated, no need to do anything.
         return;
-      case State.disposed:
+      case disposed:
         throw createMappedError(ErrorNames.controller_activating_disposed, this.name);
       default:
         throw createMappedError(ErrorNames.controller_activation_unexpected_state, this.name, stringifyState(this.state));
@@ -588,7 +588,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       ret.then(() => {
         this._isBindingDone = true;
-        if (this.state !== State.activating) {
+        if (this.state !== activating) {
           // because controller can be deactivated, during a long running promise in the binding phase
           this._leaveActivating();
         } else {
@@ -641,7 +641,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret.then(() => {
         this.isBound = true;
         // because controller can be deactivated, during a long running promise in the bound phase
-        if (this.state !== State.activating) {
+        if (this.state !== activating) {
           this._leaveActivating();
         } else {
           this._attach();
@@ -754,12 +754,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     _parent: IHydratedController | null,
   ): void | Promise<void> {
     let prevActivation: void | Promise<void> = void 0;
-    switch ((this.state & ~State.released)) {
-      case State.activated:
-        this.state = State.deactivating;
+    switch ((this.state & ~released)) {
+      case activated:
+        this.state = deactivating;
         break;
-      case State.activating:
-        this.state = State.deactivating;
+      case activating:
+        this.state = deactivating;
         // we are about to deactivate, the error from activation can be ignored
         prevActivation = this.$promise?.catch(__DEV__
           /* istanbul-ignore-next */
@@ -768,10 +768,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           }
           : noop);
         break;
-      case State.none:
-      case State.deactivated:
-      case State.disposed:
-      case State.deactivated | State.disposed:
+      case none:
+      case deactivated:
+      case disposed:
+      case deactivated | disposed:
         // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
       default:
@@ -894,7 +894,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
 
         if (
-          (this.state & State.released) === State.released &&
+          (this.state & released) === released &&
           !this.viewFactory!.tryReturnToCache(this as ISyntheticView) &&
           this.$initiator === this
         ) {
@@ -906,7 +906,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    this.state = State.deactivated;
+    this.state = deactivated;
     this.$initiator = null!;
     this._resolve();
   }
@@ -962,7 +962,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   /** @internal */
   private _leaveActivating(): void {
-    if (this.state !== State.activating) {
+    if (this.state !== activating) {
       --this._activatingStack;
       // skip doing rest of the work if the controller is deactivated.
       this._resolve();
@@ -986,7 +986,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (isPromise(_retPromise)) {
         this._ensurePromise();
         _retPromise.then(() => {
-          this.state = State.activated;
+          this.state = activated;
           // Resolve this.$promise, signaling that activation is done (path 1 of 2)
           this._resolve();
           if (this.$initiator !== this) {
@@ -1000,7 +1000,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
       _retPromise = void 0;
 
-      this.state = State.activated;
+      this.state = activated;
       // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
       this._resolve();
     }
@@ -1164,17 +1164,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public release(): void {
-    this.state |= State.released;
+    this.state |= released;
   }
 
   public dispose(): void {
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`dispose()`); }
 
-    if ((this.state & State.disposed) === State.disposed) {
+    if ((this.state & disposed) === disposed) {
       return;
     }
-    this.state |= State.disposed;
+    this.state |= disposed;
 
     if (this._vmHooks._dispose) {
       this._vm!.dispose();
@@ -1481,25 +1481,33 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   addChild(controller: IController): void;
 }
 
-export const enum State {
-  none                     = 0b00_00_00,
-  activating               = 0b00_00_01,
-  activated                = 0b00_00_10,
-  deactivating             = 0b00_01_00,
-  deactivated              = 0b00_10_00,
-  released                 = 0b01_00_00,
-  disposed                 = 0b10_00_00,
-}
+export const none         = 0b00_00_00;
+export const activating   = 0b00_00_01;
+export const activated    = 0b00_00_10;
+export const deactivating = 0b00_01_00;
+export const deactivated  = 0b00_10_00;
+export const released     = 0b01_00_00;
+export const disposed     = 0b10_00_00;
+export const State = Object.freeze({
+  none,
+  activating,
+  activated,
+  deactivating,
+  deactivated,
+  released,
+  disposed,
+});
+export type State = typeof State[keyof typeof State];
 
 export function stringifyState(state: State): string {
   const names: string[] = [];
 
-  if ((state & State.activating) === State.activating) { names.push('activating'); }
-  if ((state & State.activated) === State.activated) { names.push('activated'); }
-  if ((state & State.deactivating) === State.deactivating) { names.push('deactivating'); }
-  if ((state & State.deactivated) === State.deactivated) { names.push('deactivated'); }
-  if ((state & State.released) === State.released) { names.push('released'); }
-  if ((state & State.disposed) === State.disposed) { names.push('disposed'); }
+  if ((state & activating) === activating) { names.push('activating'); }
+  if ((state & activated) === activated) { names.push('activated'); }
+  if ((state & deactivating) === deactivating) { names.push('deactivating'); }
+  if ((state & deactivated) === deactivated) { names.push('deactivated'); }
+  if ((state & released) === released) { names.push('released'); }
+  if ((state & disposed) === disposed) { names.push('disposed'); }
 
   return names.length === 0 ? 'none' : names.join('|');
 }

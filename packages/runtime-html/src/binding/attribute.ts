@@ -12,7 +12,7 @@ import {
   type Scope
 } from '@aurelia/runtime';
 
-import { State } from '../templating/controller';
+import { activating } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';
 
@@ -145,7 +145,7 @@ export class AttributeBinding implements IBinding {
 
     if (newValue !== this._value) {
       this._value = newValue;
-      const shouldQueueFlush = this._controller.state !== State.activating;
+      const shouldQueueFlush = this._controller.state !== activating;
       if (shouldQueueFlush) {
         // Queue the new one before canceling the old one, to prevent early yield
         task = this._task;

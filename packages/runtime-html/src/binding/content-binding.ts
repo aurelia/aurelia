@@ -6,7 +6,7 @@ import {
   astUnbind,
   connectable
 } from '@aurelia/runtime';
-import { State } from '../templating/controller';
+import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
@@ -121,7 +121,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       this._task = null;
       return;
     }
-    const shouldQueueFlush = this._controller.state !== State.activating;
+    const shouldQueueFlush = this._controller.state !== activating;
     if (shouldQueueFlush) {
       this._queueUpdate(newValue);
     } else {
@@ -145,7 +145,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
     if (isArray(v)) {
       this.observeCollection(v);
     }
-    const shouldQueueFlush = this._controller.state !== State.activating;
+    const shouldQueueFlush = this._controller.state !== activating;
     if (shouldQueueFlush) {
       this._queueUpdate(v);
     } else {

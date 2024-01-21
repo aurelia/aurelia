@@ -1,5 +1,6 @@
 import { AccessorType, Scope } from '@aurelia/runtime';
 import { type SubscribableValue } from './interfaces';
+import { State } from '@aurelia/runtime-html';
 
 /** @internal */
 export function createStateBindingScope(state: object, scope: Scope) {
@@ -18,3 +19,4 @@ export function isSubscribable(v: unknown): v is SubscribableValue {
 }
 
 /** @internal */export const atLayout = AccessorType.Layout;
+/** @internal */export const stateActivating = State.activating;

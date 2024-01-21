@@ -1,7 +1,6 @@
-import { AccessorType } from '@aurelia/runtime';
-import { createLookup } from '../utilities';
+import { atLayout, atNode, createLookup } from '../utilities';
 
-import type { IAccessor } from '@aurelia/runtime';
+import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 
 const nsMap: Record<string, AttributeNSAccessor> = createLookup();
@@ -18,7 +17,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
 
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  public type: AccessorType = (atNode | atLayout) as AccessorType;
 
   public constructor(
     /**

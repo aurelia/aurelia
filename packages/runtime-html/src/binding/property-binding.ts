@@ -1,4 +1,4 @@
-import { AccessorType, astAssign, astBind, astEvaluate, astUnbind, connectable, IAstEvaluator, IBinding, IConnectableBinding, ISubscriber } from '@aurelia/runtime';
+import { astAssign, astBind, astEvaluate, astUnbind, connectable, IAstEvaluator, IBinding, IConnectableBinding, ISubscriber } from '@aurelia/runtime';
 import { State } from '../templating/controller';
 import { BindingTargetSubscriber, IFlushQueue, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { fromView, oneTime, toView } from './interfaces-bindings';
@@ -15,6 +15,7 @@ import type {
 } from '@aurelia/runtime';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
+import { atLayout } from '../utilities';
 
 export interface PropertyBinding extends IAstEvaluator, IConnectableBinding {}
 
@@ -93,7 +94,7 @@ export class PropertyBinding implements IBinding {
     );
     this.obs.clear();
 
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver!.type & atLayout) > 0;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this._task;

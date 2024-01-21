@@ -129,12 +129,14 @@ export type ObservedCollectionKindToType<T> =
           T extends 'keyed' ? Map<unknown, unknown> | Set<unknown> :
             never;
 
-export const enum AccessorType {
-  None          = 0b0_000_000,
-  Observer      = 0b0_000_001,
-
-  Node          = 0b0_000_010,
-
+/** @internal */ export const atNone     = 0b0_000_000;
+/** @internal */ export const atObserver = 0b0_000_001;
+/** @internal */ export const atNode     = 0b0_000_010;
+/** @internal */ export const atLayout   = 0b0_000_100;
+export const AccessorType = Object.freeze({
+  None      : atNone,
+  Observer  : atObserver,
+  Node      : atNode,
   // misc characteristic of accessors/observers when update
   //
   // by default, everything is synchronous
@@ -143,9 +145,9 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_000_100,
-}
-
+  Layout    : atLayout,
+} as const);
+export type AccessorType = typeof AccessorType[keyof typeof AccessorType];
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */

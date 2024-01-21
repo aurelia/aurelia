@@ -1,6 +1,5 @@
 import { emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
-  AccessorType,
   getObserverLookup,
   IDirtyChecker,
   INodeObserverLocator,
@@ -17,11 +16,11 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
+import { atLayout, atNode, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
-import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
+import type { AccessorType, IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import { createMappedError, ErrorNames } from '../errors';
 
@@ -52,7 +51,7 @@ const nsAttributes = objectAssign(
 );
 
 const elementPropertyAccessor = new PropertyAccessor();
-elementPropertyAccessor.type = AccessorType.Node | AccessorType.Layout;
+elementPropertyAccessor.type = (atNode | atLayout) as AccessorType;
 
 export interface INodeObserverConfigBase {
   /**

@@ -1,6 +1,5 @@
 import {
   AccessorOrObserver,
-  AccessorType,
   astBind,
   astEvaluate,
   astUnbind,
@@ -20,7 +19,7 @@ import type {
   IObserverLocator,
   IsExpression, Scope
 } from '@aurelia/runtime';
-import { isArray } from '../utilities';
+import { atLayout, isArray } from '../utilities';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 
 const queueTaskOptions: QueueTaskOptions = {
@@ -113,7 +112,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & atLayout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield

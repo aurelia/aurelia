@@ -20,6 +20,7 @@ import {
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
   InstructionType,
+  propertyBinding,
 } from '../renderer';
 import { IPlatform } from '../platform';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable';
@@ -1547,7 +1548,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1
       || nodeName === 'SELECT' && (
         (el as HTMLSelectElement).hasAttribute('multiple')
-        || instructions?.some(i => i.type === InstructionType.propertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
+        || instructions?.some(i => i.type === propertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
       );
   }
 

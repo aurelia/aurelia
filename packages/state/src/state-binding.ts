@@ -11,7 +11,7 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber

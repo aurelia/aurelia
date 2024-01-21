@@ -19,7 +19,6 @@ import {
   ITemplateCompiler,
   PropertyBindingInstruction,
   SpreadElementPropBindingInstruction,
-  InstructionType,
   propertyBinding,
 } from '../renderer';
 import { IPlatform } from '../platform';

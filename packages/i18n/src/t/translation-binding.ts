@@ -13,7 +13,6 @@ import {
   CustomElement,
   IPlatform,
   type IBindingController,
-  State,
   mixinAstEvaluator,
   mixingBindingLimited,
   type IHydratableController,

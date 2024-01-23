@@ -1,4 +1,5 @@
 import { State } from '../templating/controller';
+import { objectFreeze } from '../utilities';
 
 // Note: the oneTime binding now has a non-zero value for 2 reasons:
 //  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -6,15 +7,15 @@ import { State } from '../templating/controller';
 //
 // Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
 // This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
-export const oneTime     = 0b0001;
-export const toView      = 0b0010;
-export const fromView    = 0b0100;
-export const twoWay      = 0b0110;
-export const defaultMode = 0b1000;
+/** @internal */ export const oneTime     = 0b0001;
+/** @internal */ export const toView      = 0b0010;
+/** @internal */ export const fromView    = 0b0100;
+/** @internal */ export const twoWay      = 0b0110;
+/** @internal */ export const defaultMode = 0b1000;
 /**
  * Mode of a binding to operate
  */
-export const BindingMode = Object.freeze({
+export const BindingMode = /*@__PURE__*/ objectFreeze({
   oneTime,
   toView,
   fromView,

@@ -25,7 +25,7 @@ import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
-import { etIsProperty, getOwnPropertyNames, isFunction, isPromise, isString } from '../utilities';
+import { etIsProperty, getOwnPropertyNames, isFunction, isPromise, isString, objectFreeze } from '../utilities';
 import { isObject } from '@aurelia/metadata';
 import { createInterface, optionalResource, registerResolver } from '../utilities-di';
 
@@ -1481,14 +1481,15 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   addChild(controller: IController): void;
 }
 
-export const none         = 0b00_00_00;
-export const activating   = 0b00_00_01;
-export const activated    = 0b00_00_10;
-export const deactivating = 0b00_01_00;
-export const deactivated  = 0b00_10_00;
-export const released     = 0b01_00_00;
-export const disposed     = 0b10_00_00;
-export const State = Object.freeze({
+/** @internal */ export const none         = 0b00_00_00;
+/** @internal */ export const activating   = 0b00_00_01;
+/** @internal */ export const activated    = 0b00_00_10;
+/** @internal */ export const deactivating = 0b00_01_00;
+/** @internal */ export const deactivated  = 0b00_10_00;
+/** @internal */ export const released     = 0b01_00_00;
+/** @internal */ export const disposed     = 0b10_00_00;
+
+export const State = /*@__PURE__*/ objectFreeze({
   none,
   activating,
   activated,

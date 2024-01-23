@@ -5,17 +5,18 @@ import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
 import { IPlatform } from './platform';
 import { getAnnotationKeyFor } from './resource';
-import { createObject, defineMetadata, isFunction } from './utilities';
+import { createObject, defineMetadata, isFunction, objectFreeze } from './utilities';
 import { resolve } from './di.container';
 
-export const trace = 0;
-export const debug = 1;
-export const info = 2;
-export const warn = 3;
-export const error = 4;
-export const fatal = 5;
-export const none = 6;
-export const LogLevel = Object.freeze({
+/** @internal */ export const trace = 0;
+/** @internal */ export const debug = 1;
+/** @internal */ export const info = 2;
+/** @internal */ export const warn = 3;
+/** @internal */ export const error = 4;
+/** @internal */ export const fatal = 5;
+/** @internal */ export const none = 6;
+
+export const LogLevel = objectFreeze({
   /**
    * The most detailed information about internal app state.
    *
@@ -172,7 +173,7 @@ interface SinkDefinition {
   handles: Exclude<LogLevel, typeof none>[];
 }
 
-export const LoggerSink = Object.freeze({
+export const LoggerSink = objectFreeze({
   key: getAnnotationKeyFor('logger-sink-handles'),
   define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition) {
     defineMetadata(this.key, definition.handles, target.prototype);

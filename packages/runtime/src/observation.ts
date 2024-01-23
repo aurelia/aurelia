@@ -1,5 +1,5 @@
 import { DI, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { isArray } from './utilities';
+import { isArray, objectFreeze } from './utilities';
 
 import type { Scope } from './observation/scope';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
@@ -133,7 +133,7 @@ export type ObservedCollectionKindToType<T> =
 /** @internal */ export const atObserver = 0b0_000_001;
 /** @internal */ export const atNode     = 0b0_000_010;
 /** @internal */ export const atLayout   = 0b0_000_100;
-export const AccessorType = Object.freeze({
+export const AccessorType = /*@__PURE__*/objectFreeze({
   None      : atNone,
   Observer  : atObserver,
   Node      : atNode,

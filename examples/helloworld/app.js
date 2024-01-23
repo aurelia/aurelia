@@ -1,3 +1,4 @@
+import { DirtyChecker, IDirtyChecker } from '@aurelia/runtime';
 import { Aurelia, CustomElement, /* StandardConfiguration */ } from '@aurelia/runtime-html';
 import { TemplateCompiler, TextBindingRenderer } from '@aurelia/runtime-html';
 
@@ -14,6 +15,7 @@ const App = CustomElement.define(
 );
 
 void new Aurelia().register(
+  DirtyChecker,
   TemplateCompiler,
   TextBindingRenderer,
 ).app(

@@ -34,7 +34,7 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { objectKeys, isString, def, etIsProperty, etInterpolation, etIsIterator, etIsFunction } from './utilities';
+import { objectKeys, isString, def, etIsProperty, etInterpolation, etIsIterator, etIsFunction, objectFreeze } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
@@ -43,27 +43,28 @@ import type { PartialCustomElementDefinition } from './resources/custom-element'
 import { ErrorNames, createMappedError } from './errors';
 import { SpreadBinding } from './binding/spread-binding';
 
-export const hydrateElement = 'ra';
-export const hydrateAttribute = 'rb';
-export const hydrateTemplateController = 'rc';
-export const hydrateLetElement = 'rd';
-export const setProperty = 're';
-export const interpolation = 'rf';
-export const propertyBinding = 'rg';
-export const letBinding = 'ri';
-export const refBinding = 'rj';
-export const iteratorBinding = 'rk';
-export const multiAttr = 'rl';
-export const textBinding = 'ha';
-export const listenerBinding = 'hb';
-export const attributeBinding = 'hc';
-export const stylePropertyBinding = 'hd';
-export const setAttribute = 'he';
-export const setClassAttribute = 'hf';
-export const setStyleAttribute = 'hg';
-export const spreadBinding = 'hs';
-export const spreadElementProp = 'hp';
-export const InstructionType = Object.freeze({
+/** @internal */ export const hydrateElement = 'ra';
+/** @internal */ export const hydrateAttribute = 'rb';
+/** @internal */ export const hydrateTemplateController = 'rc';
+/** @internal */ export const hydrateLetElement = 'rd';
+/** @internal */ export const setProperty = 're';
+/** @internal */ export const interpolation = 'rf';
+/** @internal */ export const propertyBinding = 'rg';
+/** @internal */ export const letBinding = 'ri';
+/** @internal */ export const refBinding = 'rj';
+/** @internal */ export const iteratorBinding = 'rk';
+/** @internal */ export const multiAttr = 'rl';
+/** @internal */ export const textBinding = 'ha';
+/** @internal */ export const listenerBinding = 'hb';
+/** @internal */ export const attributeBinding = 'hc';
+/** @internal */ export const stylePropertyBinding = 'hd';
+/** @internal */ export const setAttribute = 'he';
+/** @internal */ export const setClassAttribute = 'hf';
+/** @internal */ export const setStyleAttribute = 'hg';
+/** @internal */ export const spreadBinding = 'hs';
+/** @internal */ export const spreadElementProp = 'hp';
+
+export const InstructionType = /*@__PURE__*/ objectFreeze({
   hydrateElement,
   hydrateAttribute,
   hydrateTemplateController,

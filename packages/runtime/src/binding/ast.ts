@@ -12,67 +12,68 @@ export {
   Unparser
 } from './ast.visitor';
 
-export const ekAccessThis = 'AccessThis' as const;
-export const ekAccessGlobal = 'AccessGlobal' as const;
-export const ekAccessScope = 'AccessScope' as const;
-export const ekArrayLiteral = 'ArrayLiteral' as const;
-export const ekObjectLiteral = 'ObjectLiteral' as const;
-export const ekPrimitiveLiteral = 'PrimitiveLiteral' as const;
-export const ekTemplate = 'Template' as const;
-export const ekUnary = 'Unary' as const;
-export const ekCallScope = 'CallScope' as const;
-export const ekCallMember = 'CallMember' as const;
-export const ekCallFunction = 'CallFunction' as const;
-export const ekCallGlobal = 'CallGlobal' as const;
-export const ekAccessMember = 'AccessMember' as const;
-export const ekAccessKeyed = 'AccessKeyed' as const;
-export const ekTaggedTemplate = 'TaggedTemplate' as const;
-export const ekBinary = 'Binary' as const;
-export const ekConditional = 'Conditional' as const;
-export const ekAssign = 'Assign' as const;
-export const ekArrowFunction = 'ArrowFunction' as const;
-export const ekValueConverter = 'ValueConverter' as const;
-export const ekBindingBehavior = 'BindingBehavior' as const;
-export const ekArrayBindingPattern = 'ArrayBindingPattern' as const;
-export const ekObjectBindingPattern = 'ObjectBindingPattern' as const;
-export const ekBindingIdentifier = 'BindingIdentifier' as const;
-export const ekForOfStatement = 'ForOfStatement' as const;
-export const ekInterpolation = 'Interpolation' as const;
-export const ekArrayDestructuring = 'ArrayDestructuring' as const;
-export const ekObjectDestructuring = 'ObjectDestructuring' as const;
-export const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf' as const;
-export const ekCustom = 'Custom' as const;
+/** @internal */ export const ekAccessThis = 'AccessThis';
+/** @internal */ export const ekAccessGlobal = 'AccessGlobal';
+/** @internal */ export const ekAccessScope = 'AccessScope';
+/** @internal */ export const ekArrayLiteral = 'ArrayLiteral';
+/** @internal */ export const ekObjectLiteral = 'ObjectLiteral';
+/** @internal */ export const ekPrimitiveLiteral = 'PrimitiveLiteral';
+/** @internal */ export const ekTemplate = 'Template';
+/** @internal */ export const ekUnary = 'Unary';
+/** @internal */ export const ekCallScope = 'CallScope';
+/** @internal */ export const ekCallMember = 'CallMember';
+/** @internal */ export const ekCallFunction = 'CallFunction';
+/** @internal */ export const ekCallGlobal = 'CallGlobal';
+/** @internal */ export const ekAccessMember = 'AccessMember';
+/** @internal */ export const ekAccessKeyed = 'AccessKeyed';
+/** @internal */ export const ekTaggedTemplate = 'TaggedTemplate';
+/** @internal */ export const ekBinary = 'Binary';
+/** @internal */ export const ekConditional = 'Conditional';
+/** @internal */ export const ekAssign = 'Assign';
+/** @internal */ export const ekArrowFunction = 'ArrowFunction';
+/** @internal */ export const ekValueConverter = 'ValueConverter';
+/** @internal */ export const ekBindingBehavior = 'BindingBehavior';
+/** @internal */ export const ekArrayBindingPattern = 'ArrayBindingPattern';
+/** @internal */ export const ekObjectBindingPattern = 'ObjectBindingPattern';
+/** @internal */ export const ekBindingIdentifier = 'BindingIdentifier';
+/** @internal */ export const ekForOfStatement = 'ForOfStatement';
+/** @internal */ export const ekInterpolation = 'Interpolation';
+/** @internal */ export const ekArrayDestructuring = 'ArrayDestructuring';
+/** @internal */ export const ekObjectDestructuring = 'ObjectDestructuring';
+/** @internal */ export const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
+/** @internal */ export const ekCustom = 'Custom';
+
 export type ExpressionKind =
-  | typeof ekAccessThis
-  | typeof ekAccessGlobal
-  | typeof ekAccessScope
-  | typeof ekArrayLiteral
-  | typeof ekObjectLiteral
-  | typeof ekPrimitiveLiteral
-  | typeof ekTemplate
-  | typeof ekUnary
-  | typeof ekCallScope
-  | typeof ekCallMember
-  | typeof ekCallFunction
-  | typeof ekCallGlobal
-  | typeof ekAccessMember
-  | typeof ekAccessKeyed
-  | typeof ekTaggedTemplate
-  | typeof ekBinary
-  | typeof ekConditional
-  | typeof ekAssign
-  | typeof ekArrowFunction
-  | typeof ekValueConverter
-  | typeof ekBindingBehavior
-  | typeof ekArrayBindingPattern
-  | typeof ekObjectBindingPattern
-  | typeof ekBindingIdentifier
-  | typeof ekForOfStatement
-  | typeof ekInterpolation
-  | typeof ekArrayDestructuring
-  | typeof ekObjectDestructuring
-  | typeof ekDestructuringAssignmentLeaf
-  | typeof ekCustom;
+  | 'AccessThis'
+  | 'AccessGlobal'
+  | 'AccessScope'
+  | 'ArrayLiteral'
+  | 'ObjectLiteral'
+  | 'PrimitiveLiteral'
+  | 'Template'
+  | 'Unary'
+  | 'CallScope'
+  | 'CallMember'
+  | 'CallFunction'
+  | 'CallGlobal'
+  | 'AccessMember'
+  | 'AccessKeyed'
+  | 'TaggedTemplate'
+  | 'Binary'
+  | 'Conditional'
+  | 'Assign'
+  | 'ArrowFunction'
+  | 'ValueConverter'
+  | 'BindingBehavior'
+  | 'ArrayBindingPattern'
+  | 'ObjectBindingPattern'
+  | 'BindingIdentifier'
+  | 'ForOfStatement'
+  | 'Interpolation'
+  | 'ArrayDestructuring'
+  | 'ObjectDestructuring'
+  | 'DestructuringAssignmentLeaf'
+  | 'Custom';
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 

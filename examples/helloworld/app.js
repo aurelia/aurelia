@@ -1,4 +1,4 @@
-import { DirtyChecker, IDirtyChecker } from '@aurelia/runtime';
+import { DirtyChecker } from '@aurelia/runtime';
 import { Aurelia, CustomElement, /* StandardConfiguration */ } from '@aurelia/runtime-html';
 import { TemplateCompiler, TextBindingRenderer } from '@aurelia/runtime-html';
 

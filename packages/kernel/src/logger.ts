@@ -173,7 +173,7 @@ interface SinkDefinition {
   handles: Exclude<LogLevel, typeof none>[];
 }
 
-export const LoggerSink = objectFreeze({
+export const LoggerSink = /*@__PURE__*/objectFreeze({
   key: getAnnotationKeyFor('logger-sink-handles'),
   define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition) {
     defineMetadata(this.key, definition.handles, target.prototype);
@@ -706,7 +706,7 @@ export class DefaultLogger {
  *
  * ```
  */
-export const LoggerConfiguration = toLookup({
+export const LoggerConfiguration = /*@__PURE__*/ toLookup({
   /**
    * @param $console - The `console` object to use. Can be the native `window.console` / `global.console`, but can also be a wrapper or mock that implements the same interface.
    * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.

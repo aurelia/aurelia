@@ -1,7 +1,7 @@
 import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { emptyArray } from './platform';
-import { defineMetadata, hasOwnMetadata, getOwnMetadata } from './utilities';
+import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -58,7 +58,7 @@ export const appendAnnotation = (target: Constructable, key: string): void => {
     keys.push(key);
   }
 };
-const annotation = Object.freeze({
+const annotation = /*@__PURE__*/ objectFreeze({
   name: 'au:annotation',
   appendTo: appendAnnotation,
   set(target: Constructable, prop: string, value: unknown): void {
@@ -88,7 +88,7 @@ export const getAllResources = (target: Constructable): readonly ResourceDefinit
   }
 };
 
-const resource = Object.freeze({
+const resource = /*@__PURE__*/ objectFreeze({
   name: resBaseName,
   appendTo(target: Constructable, key: string): void {
     const keys = getOwnMetadata(resBaseName, target) as string[];

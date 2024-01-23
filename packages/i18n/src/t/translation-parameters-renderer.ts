@@ -6,7 +6,6 @@ import {
   type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  BindingMode,
   IHydratableController,
   IRenderer,
   renderer,
@@ -19,9 +18,10 @@ import {
 } from '@aurelia/runtime-html';
 
 import type {
+  BindingMode,
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { ctNone, etIsProperty } from '../utils';
+import { bmToView, ctNone, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -36,7 +36,7 @@ export class TranslationParametersAttributePattern {
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
-  public mode: BindingMode.toView = BindingMode.toView;
+  public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
     public from: IsBindingBehavior,

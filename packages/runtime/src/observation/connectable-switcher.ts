@@ -1,5 +1,6 @@
 import { ErrorNames, createMappedError } from '../errors';
 import type { IConnectable } from '../observation';
+import { objectFreeze } from '../utilities';
 
 /**
  * Current subscription collector
@@ -54,7 +55,7 @@ export function exitConnectable(connectable: IConnectable): void {
   connecting = _connectable != null;
 }
 
-export const ConnectableSwitcher = Object.freeze({
+export const ConnectableSwitcher = /*@__PURE__*/ objectFreeze({
   get current() {
     return _connectable;
   },

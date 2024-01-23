@@ -111,11 +111,6 @@ You can specify the binding mode using the `mode` property and passing in a vali
 Please consult the [binding modes](bindable-properties.md#one-way-binding) documentation below to learn how to change the binding modes. By default, the binding mode for bindable properties will be `one-way`
 {% endhint %}
 
-
-{% hint style="warning" %}
-When you are developing using TypeScript, ensure that you don't set the `verbatimModuleSyntax` flag (TypeScript `compilerOptions`) to `true`. This is required as the `BindingMode` enum is a const enum. Aurelia applies this same strategy to several other publicly consumable enums, to reduce bundle size. If you set the flag to `true`, you might get a runtime error.
-{% endhint %}
-
 ### Change the name of the change callback
 
 You can change the name of the callback that is fired when a change is made `@bindable({ callback: 'propChanged' })`

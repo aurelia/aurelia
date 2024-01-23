@@ -2,13 +2,13 @@ import {
   type CollectionKind,
   SetterObserver,
   subscriberCollection,
-  AccessorType,
+  type AccessorType,
   type ICollectionObserver,
   type ISubscriberCollection,
   type IObserverLocator,
 } from '@aurelia/runtime';
 import { getCollectionObserver, INodeObserver, INodeObserverConfigBase } from './observer-locator';
-import { hasOwnProperty, isArray } from '../utilities';
+import { atLayout, atNode, atObserver, hasOwnProperty, isArray } from '../utilities';
 
 import type { INode } from '../dom';
 import type { ValueAttributeObserver } from './value-attribute-observer';
@@ -31,7 +31,7 @@ export interface CheckedObserver extends
   ISubscriberCollection { }
 
 export class CheckedObserver implements INodeObserver {
-  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
 
   /** @internal */
   private _value: unknown = void 0;

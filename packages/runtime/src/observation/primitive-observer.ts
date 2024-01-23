@@ -1,11 +1,11 @@
-import { AccessorType } from '../observation';
+import { atNone } from '../observation';
 
 import type { Primitive } from '@aurelia/kernel';
-import type { IAccessor, ISubscribable } from '../observation';
+import type { AccessorType, IAccessor, ISubscribable } from '../observation';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public get doNotCache(): true { return true; }
-  public type: AccessorType = AccessorType.None;
+  public type: AccessorType = atNone;
   /** @internal */
   private readonly _obj: Primitive;
   /** @internal */

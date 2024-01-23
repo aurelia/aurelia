@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { Collection, IConnectable } from '../observation';
-import { isArray, isMap, isSet, safeString } from '../utilities';
+import { isArray, isMap, isSet, objectFreeze, safeString } from '../utilities';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
@@ -470,7 +470,7 @@ function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> 
 }
 
 const observeCollection = (connectable: IConnectable | null, collection: Collection) => connectable?.observeCollection(collection);
-export const ProxyObservable = Object.freeze({
+export const ProxyObservable = /*@__PURE__*/ objectFreeze({
   getProxy,
   getRaw,
   wrap,

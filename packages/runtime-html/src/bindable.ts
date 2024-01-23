@@ -1,7 +1,7 @@
 import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { Metadata } from '@aurelia/metadata';
-import { BindingMode } from './binding/interfaces-bindings';
+import { toView, type BindingMode, twoWay } from './binding/interfaces-bindings';
 import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 import { isString, objectFreeze, objectKeys } from './utilities';
 
@@ -160,7 +160,7 @@ export class BindableDefinition {
     return new BindableDefinition(
       def.attribute ?? kebabCase(prop),
       def.callback ?? `${prop}Changed`,
-      def.mode ?? BindingMode.toView,
+      def.mode ?? toView,
       def.primary ?? false,
       def.name ?? prop,
       def.set ?? getInterceptor(prop, target, def),
@@ -187,14 +187,14 @@ function apiTypeCheck() {
     @bindable({})
     // > expected error - 'property' does not exist on decorator input object
     //@bindable({ property: 'prop' })
-    @bindable({ mode: BindingMode.twoWay })
+    @bindable({ mode: twoWay })
     @bindable({ callback: 'propChanged' })
     @bindable({ attribute: 'prop' })
     @bindable({ primary: true })
     @bindable({ set: value => String(value) })
     @bindable({ set: value => Number(value) })
     @bindable({
-      mode: BindingMode.twoWay,
+      mode: twoWay,
       callback: 'propChanged',
       attribute: 'prop',
       primary: true,

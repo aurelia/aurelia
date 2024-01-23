@@ -1,4 +1,4 @@
-import type { ISignaler, ISubscriber } from '@aurelia/runtime';
+import { AccessorType, type ISignaler, type ISubscriber } from '@aurelia/runtime';
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
 const O = Object;
@@ -78,3 +78,8 @@ export const removeSignalListener = (signaler: ISignaler, signal: string, listen
 /** TaskStatus */
 /** @internal */ export const tsPending = 'pending' as const;
 /** @internal */ export const tsRunning = 'running' as const;
+
+/** AccessorType */
+/** @internal */ export const atObserver: AccessorType = AccessorType.Observer;
+/** @internal */ export const atNode: AccessorType = AccessorType.Node;
+/** @internal */ export const atLayout: AccessorType = AccessorType.Layout;

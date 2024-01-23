@@ -1,13 +1,12 @@
 import { emptyArray } from '@aurelia/kernel';
-import { AccessorType } from '@aurelia/runtime';
-import { isString } from '../utilities';
+import { atLayout, atNode, isString } from '../utilities';
 
-import type { IAccessor } from '@aurelia/runtime';
+import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 
 export class ClassAttributeAccessor implements IAccessor {
   public get doNotCache(): true { return true; }
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  public type: AccessorType = (atNode | atLayout) as AccessorType;
 
   /** @internal */
   private _value: unknown = '';

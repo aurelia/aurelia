@@ -1,10 +1,10 @@
 import { FoundRoute } from '../found-route';
 import { IRoutingInstruction } from '../interfaces';
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
-import { BindingMode, customAttribute, INode, bindable, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { customAttribute, INode, bindable, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler';
 import { IRouter, RouterNavigationEndEvent } from '../router';
-import { getConsideredActiveInstructions, getLoadIndicator } from './utils';
+import { bmToView, getConsideredActiveInstructions, getLoadIndicator } from './utils';
 import { Parameters } from '../instructions/instruction-parameters';
 import { RoutingInstruction } from '../instructions/routing-instruction';
 import { RoutingScope } from '../routing-scope';
@@ -12,7 +12,7 @@ import { IRoute } from '../route';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
-  @bindable({ mode: BindingMode.toView }) public value: unknown;
+  @bindable({ mode: bmToView }) public value: unknown;
   @bindable public component?: string;
   @bindable public parameters?: Parameters;
   @bindable public viewport?: string;

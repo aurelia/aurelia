@@ -1,9 +1,10 @@
-import { AccessorType, Collection, IObserver } from '../observation';
+import { Collection, IObserver, atObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
+  AccessorType,
   ICollectionObserver,
   IndexMap,
   ISubscriber,
@@ -16,7 +17,7 @@ import { ErrorNames, createMappedError } from '../errors';
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IObserver, ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = atObserver;
 
   /** @internal */
   private _value: number;
@@ -64,7 +65,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = atObserver;
 
   /** @internal */
   private _value: number;

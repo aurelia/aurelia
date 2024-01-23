@@ -1,5 +1,5 @@
 import { IContainer, IPlatform, Registration } from '@aurelia/kernel';
-import { AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber } from '../observation';
+import { type AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber, atNone } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { createError, createInterface, safeString } from '../utilities';
 
@@ -121,7 +121,7 @@ export class DirtyChecker {
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public type: AccessorType = AccessorType.None;
+  public type: AccessorType = atNone;
 
   /** @internal */
   private _oldValue: unknown = void 0;

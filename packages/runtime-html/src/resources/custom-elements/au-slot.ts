@@ -83,8 +83,10 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // since we are construction the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
+      // -------------------------------------------
       //
-      // but if <au-slot> inside <s-2> is not having a projection, or projection (2) doesn't exist
+      // Another consideration:
+      // if <au-slot> inside <s-2> is not having a projection, or projection (2) doesn't exist
       // we also need to block inner projection hierarchy of <s-2> template from reaching projection 1
       // example inner template of <s-2>:
       // <s-2-1>

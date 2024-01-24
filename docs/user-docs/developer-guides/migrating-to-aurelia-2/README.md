@@ -64,32 +64,6 @@ Parent container and resources can be specified through this config.
 In v2, in order to get a reference to the underlying component view model, use `component.ref` instead of view-model.ref
 This is to make terminologies consistent as we are moving towards component oriented terms.
 
-### Call binding (some-prop.call="...")
-
-The call binding no longer assigns properties of the first argument pass to the call to the calling override context. This is unreasonably dynamic and could result in hard-to-understand templates.
-
-In Aurelia 1, you would have used call bindings like this:
-
-```typescript
-export class MyElement {
-  onChange;
-
-  onInternalButtonClick() {
-    this.onChange({ value: this.value });
-  }
-}
-```
-
-```markup
-<my-element on-change.call="propertyChanged(value)">
-```
-
-In Aurelia 2, the property name is now on the `$event` property passed to the callback. It's a minor change, but you now do this instead:
-
-```markup
-<my-element on-change.call="propertyChanged($event.value)">
-```
-
 ### If attribute (if.bind="...")
 
 * The primary property of `If` has been renamed from `condition` to `value`. If you are using `if.bind`, you are not affected. If you are using the multi prop binding syntax, the template looks like this:

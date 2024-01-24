@@ -1,13 +1,12 @@
-import { AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { hasOwnProperty, isFunction, isString } from '../utilities';
-import type { IAccessor } from '@aurelia/runtime';
+import { atLayout, atNode, hasOwnProperty, isFunction, isString } from '../utilities';
+import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  public type: AccessorType = (atNode | atLayout) as AccessorType;
 
   /** @internal */
   private _value: unknown = '';

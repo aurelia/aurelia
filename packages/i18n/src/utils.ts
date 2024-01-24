@@ -1,5 +1,6 @@
 import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
 import { Writable } from '@aurelia/kernel';
+import { BindingMode, State } from '@aurelia/runtime-html';
 
 export const Signals = {
   I18N_EA_CHANNEL: 'i18n:locale:changed',
@@ -35,3 +36,9 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
 
 /** CommandType */
 /** @internal */ export const ctNone = 'None' as const;
+
+/** BindingMode */
+/** @internal */ export const bmToView = BindingMode.toView;
+
+/** State */
+/** @internal */export const stateActivating = State.activating;

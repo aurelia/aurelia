@@ -7,7 +7,6 @@ import {
   type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  BindingMode,
   IRenderer,
   renderer,
   IHydratableController,
@@ -18,9 +17,10 @@ import {
 } from '@aurelia/runtime-html';
 
 import type {
+  BindingMode,
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { etIsProperty, ctNone } from '../utils';
+import { etIsProperty, ctNone, bmToView } from '../utils';
 
 export const TranslationInstructionType = 'tt';
 
@@ -37,7 +37,7 @@ export class TranslationAttributePattern {
 
 export class TranslationBindingInstruction {
   public readonly type: string = TranslationInstructionType;
-  public mode: BindingMode.toView = BindingMode.toView;
+  public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
     public from: IsBindingBehavior,
@@ -101,7 +101,7 @@ export class TranslationBindAttributePattern {
 
 export class TranslationBindBindingInstruction {
   public readonly type: string = TranslationBindInstructionType;
-  public mode: BindingMode.toView = BindingMode.toView;
+  public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
     public from: IsBindingBehavior,

@@ -14,7 +14,7 @@ import { IRenderLocation } from '../../dom';
 import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { oneTime } from '../../binding/interfaces-bindings';
 import { isArray } from '../../utilities';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
@@ -248,7 +248,7 @@ export class Case implements ICustomAttributeViewModel {
         default: return !!v;
       }
     },
-    mode: BindingMode.oneTime
+    mode: oneTime
   })
   public fallThrough: boolean = false;
 

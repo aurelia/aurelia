@@ -1,6 +1,6 @@
 import { BindingBehaviorInstance, IBinding } from '@aurelia/runtime';
+import { fromView, oneTime, toView, twoWay, type BindingMode } from '../../binding/interfaces-bindings';
 import { bindingBehavior } from '../binding-behavior';
-import { BindingMode } from '../../binding/interfaces-bindings';
 
 import type { Scope } from '@aurelia/runtime';
 
@@ -21,19 +21,19 @@ export abstract class BindingModeBehavior implements BindingBehaviorInstance {
 }
 
 export class OneTimeBindingBehavior extends BindingModeBehavior {
-  public get mode() { return  BindingMode.oneTime; }
+  public get mode(): typeof BindingMode.oneTime { return oneTime; }
 }
 
 export class ToViewBindingBehavior extends BindingModeBehavior {
-  public get mode() { return  BindingMode.toView; }
+  public get mode(): typeof BindingMode.toView { return toView; }
 }
 
 export class FromViewBindingBehavior extends BindingModeBehavior {
-  public get mode() { return  BindingMode.fromView; }
+  public get mode(): typeof BindingMode.fromView { return fromView; }
 }
 
 export class TwoWayBindingBehavior extends BindingModeBehavior {
-  public get mode() { return  BindingMode.twoWay; }
+  public get mode(): typeof BindingMode.twoWay { return twoWay; }
 }
 
 bindingBehavior('oneTime')(OneTimeBindingBehavior);

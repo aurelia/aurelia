@@ -777,7 +777,6 @@ export {
   // IAttributeBindingInstruction,
   // ISetAttributeInstruction,
   // isInstruction,
-  // IStylePropertyBindingInstruction,
 
   // NodeSequenceFactory,
   // FragmentNodeSequence,

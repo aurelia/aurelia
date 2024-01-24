@@ -1,5 +1,6 @@
 import { Metadata } from '@aurelia/metadata';
 
+/** @internal */ export const objectFreeze = Object.freeze;
 /** @internal */ export const safeString = String;
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;
 /** @internal */ export const hasOwnMetadata = Metadata.hasOwn;

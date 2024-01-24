@@ -13,7 +13,6 @@ import {
   CustomElement,
   IPlatform,
   type IBindingController,
-  State,
   mixinAstEvaluator,
   mixingBindingLimited,
   type IHydratableController,
@@ -33,7 +32,7 @@ import type {
 } from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
-import { etInterpolation, etIsProperty } from '../utils';
+import { etInterpolation, etIsProperty, stateActivating } from '../utils';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -234,7 +233,7 @@ export class TranslationBinding implements IConnectableBinding {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, camelCase(attribute))
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = this._controller.state !== State.activating && (accessor.type & AccessorType.Layout) > 0;
+          const shouldQueueUpdate = this._controller.state !== stateActivating && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, this.target, attribute));
           } else {
@@ -247,7 +246,7 @@ export class TranslationBinding implements IConnectableBinding {
 
     let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = this._controller.state !== State.activating;
+      shouldQueueContent = this._controller.state !== stateActivating;
       if (!shouldQueueContent) {
         this._updateContent(content);
       }

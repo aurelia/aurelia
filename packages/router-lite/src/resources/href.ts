@@ -1,5 +1,4 @@
 import {
-  BindingMode,
   customAttribute,
   bindable,
   ICustomAttributeViewModel,
@@ -13,6 +12,7 @@ import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
 import { IRouteContext } from '../route-context';
 import { resolve } from '@aurelia/kernel';
+import { bmToView } from '../util';
 
 /*
  * Note: Intentionally, there is no bindable `context` here.
@@ -34,7 +34,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */private readonly _router: IRouter = resolve(IRouter);
   /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
 
-  @bindable({ mode: BindingMode.toView })
+  @bindable({ mode: bmToView })
   public value: unknown;
 
   /** @internal */private _isInitialized: boolean = false;

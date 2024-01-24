@@ -1,4 +1,4 @@
-import { createIndexMap, AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver } from '../observation';
+import { createIndexMap, type AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, atObserver } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
@@ -133,7 +133,7 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<'set'>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = atObserver;
   private lenObs?: CollectionSizeObserver;
 
   public constructor(observedSet: Set<unknown>) {

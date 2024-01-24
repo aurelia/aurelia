@@ -1,8 +1,9 @@
-import { AccessorType, IObserver } from '@aurelia/runtime';
+import { IObserver } from '@aurelia/runtime';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { IAccessor, PropertyAccessor } from '@aurelia/runtime';
+import type { AccessorType, IAccessor, PropertyAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
+import { atLayout, atNode } from '../utilities';
 
 /**
  * Attribute accessor for HTML elements.
@@ -14,7 +15,7 @@ import { mixinNoopSubscribable } from './observation-utils';
 export class DataAttributeAccessor implements IAccessor<string | null>, IObserver {
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  public type: AccessorType = (atNode | atLayout) as AccessorType;
 
   // the followings come from the noop mixing
   public subscribe!: () => void;

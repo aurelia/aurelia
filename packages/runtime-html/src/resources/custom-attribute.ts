@@ -5,7 +5,7 @@ import { getRef } from '../dom';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
-import { BindingMode } from '../binding/interfaces-bindings';
+import { type BindingMode, toView } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -132,7 +132,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'name'), name),
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
+      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView),
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),

@@ -2,7 +2,6 @@
 import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
-  AccessorType,
   astEvaluate,
   connectable,
   IAstEvaluator,
@@ -12,12 +11,12 @@ import {
   type IAccessor,
   type IObserverLocator, type IOverrideContext, type IsBindingBehavior
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, State, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
 } from './interfaces';
-import { createStateBindingScope } from './state-utilities';
+import { atLayout, createStateBindingScope, stateActivating } from './state-utilities';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -142,7 +141,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
     newValue = astEvaluate(this.ast, this._scope!, this, this);
@@ -177,7 +176,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
       this,
       this.mode > BindingMode.oneTime ? this : null
     );
-    const shouldQueueFlush = this._controller.state !== State.activating && (this._targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
 
     if (value === this._value) {
       return;

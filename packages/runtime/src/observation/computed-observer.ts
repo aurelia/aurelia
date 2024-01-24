@@ -1,8 +1,8 @@
 import {
-  AccessorType,
   ICoercionConfiguration,
   IObserver,
   InterceptorFunc,
+  atObserver,
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
@@ -11,6 +11,7 @@ import { wrap, unwrap } from './proxy-observation';
 import { areEqual, isFunction } from '../utilities';
 
 import type {
+  AccessorType,
   ISubscriber,
   ICollectionSubscriber,
   ISubscriberCollection,
@@ -33,7 +34,7 @@ export class ComputedObserver<T extends object> implements
   ICollectionSubscriber,
   ISubscriberCollection {
 
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = atObserver;
 
   /** @internal */
   private _value: unknown = void 0;

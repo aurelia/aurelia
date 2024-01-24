@@ -209,15 +209,13 @@ export interface IDialogCustomElementViewModel<T = unknown> extends ICustomEleme
   readonly $dialog: IDialogController;
 }
 
-export type DialogDeactivationStatuses =
-    'ok'
-  | 'error'
-  | 'cancel'
-  /**
-   * If a view model refused to deactivate in canDeactivate,
-   * then this status should be used to reflect that
-   */
-  | 'abort';
+/**
+ * - `ok`: The dialog is closed intentionally. This denotes the happy path.
+ * - `cancel`: The dialog is closed with an intent to cancel.
+ * - `abort`: The dialog model refused to deactivate in canDeactivate.
+ * - `error`: The dialog is closed due to an error.
+ */
+export type DialogDeactivationStatuses = 'ok'  | 'error'  | 'cancel' | 'abort';
 /**
  * The result received when a dialog opens.
  */

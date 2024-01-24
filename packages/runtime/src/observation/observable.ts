@@ -1,4 +1,4 @@
-import { AccessorType, IAccessor, IObserver, ISubscriberCollection } from '../observation';
+import { AccessorType, IAccessor, IObserver, ISubscriberCollection, atObserver } from '../observation';
 import { safeString, def, isFunction, areEqual } from '../utilities';
 import { currentConnectable } from './connectable-switcher';
 
@@ -167,7 +167,7 @@ export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
 export class SetterNotifier implements IAccessor {
   public static mixed = false;
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = atObserver;
 
   /** @internal */
   private _value: unknown = void 0;

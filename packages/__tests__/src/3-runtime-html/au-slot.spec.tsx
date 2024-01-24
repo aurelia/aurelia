@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { IContainer, inject, resolve } from '@aurelia/kernel';
+import { IContainer, inject, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -2225,6 +2225,76 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       assert.strictEqual(l1Id, 3, '3 instances of CeL1');
       assert.strictEqual(l2Id, 2, '2 instances of CeL2');
       assert.strictEqual(l3Id, 2, '2 instances of CeL3');
+
+      l1Id = l2Id = l3Id = 0;
+      const { assertTextContain: assertApp2TextContain } = createFixture(
+        `<ce-l1><span au-slot>foo</span></ce-l1> <!-- ce-l1#1 -->
+        <ce-l1> <!-- ce-l1#2 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>
+        <ce-l1> <!-- ce-l1#3 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>`,
+        CustomElement.define({
+          name: 'app',
+          dependencies: [CeL1, CeL2, CeL3]
+        }),
+      );
+
+      assertApp2TextContain('id: 2-1');
+      assertApp2TextContain('id: 3-2');
+      assert.strictEqual(l1Id, 3, '3 instances of CeL1');
+      assert.strictEqual(l2Id, 2, '2 instances of CeL2');
+      assert.strictEqual(l3Id, 2, '2 instances of CeL3');
+    });
+
+    // not supposed to work since `Foo` is registered on CeL1 container
+    // CeL1 container shouldn't be available to its projection view
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip('injects right instance when used together with newInstance & newInstanceForScope', function () {
+
+      class Foo {
+        private static id: number = 0;
+        public readonly id = ++Foo.id;
+      }
+
+      @customElement({ name: 'ce-l1', template: 'ce foo: ${foo.id} <br><au-slot></au-slot>' })
+      class CeL1 {
+        foo = resolve(newInstanceForScope(Foo));
+      }
+
+      @customElement({ name: 'ce-l2', template: 'ce2 foo: ${foo.id}' })
+      class CeL2 {
+        foo = resolve(Foo);
+      }
+
+      const { assertTextContain } = createFixture(
+        `app foo: \${foo.id}
+        <ce-l1>
+          <ce-l2 au-slot>
+          </ce-l2>
+        </ce-l1>`,
+        class MyApp {
+          foo = resolve(Foo);
+        },
+        [CeL1, CeL2]
+      );
+
+      assertTextContain('app foo: 1');
+      assertTextContain('ce foo: 2');
+      assertTextContain('ce2 foo: 2');
     });
   });
 });

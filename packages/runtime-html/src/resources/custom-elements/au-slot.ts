@@ -84,8 +84,8 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
 
-      projectionContext = resolve(optional(IProjectionContext));
       container = hdrContext.parent!.controller.container.createChild(inheritParentResourcesOptions);
+      projectionContext = resolve(optional(IProjectionContext));
       projections = projectionContext != null ? resolveProjections(projectionContext) : [];
       projections.unshift(
         //
@@ -282,7 +282,6 @@ const noProjection = new ProjectionContext(null!, null);
 const inheritParentResourcesOptions = { inheritParentResources: true };
 
 const resolveProjections = (context: IProjectionContext) => {
-  // walk up the context hierarchy and get all controllers
   const projections = [];
   let curr: IProjectionContext | null = context;
   while (curr != null && curr !== noProjection) {

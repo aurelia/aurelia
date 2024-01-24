@@ -121,11 +121,6 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
         IProjectionContext,
         new InstanceProvider(void 0, projectionContext)
       );
-      registerResolver(
-        container,
-        contextController.definition.Type,
-        new InstanceProvider(void 0, contextController.viewModel)
-      );
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
       this._slotwatchers = contextController.container.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;

@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { IContainer, inject } from '@aurelia/kernel';
+import { IContainer, inject, resolve } from '@aurelia/kernel';
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -2109,70 +2109,122 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     assertHtml('p > a', 'hello');
   });
 
-  it('injects the right parent component', async function () {
-    let id = 0;
-    @customElement({
-      name: 'parent',
-      template: '<au-slot>'
-    })
-    class Parent {
-      id = ++id;
-    }
+  describe('with dependency injection', function () {
 
-    let parent: Parent | null = null;
-    @inject(Parent)
-    @customElement({
-      name: 'child'
-    })
-    class Child {
-      constructor($parent: Parent) {
-        parent = $parent;
+    it('injects the right parent component', async function () {
+      let id = 0;
+      @customElement({
+        name: 'parent',
+        template: '<au-slot>'
+      })
+      class Parent {
+        id = ++id;
       }
-    }
 
-    createFixture(
-      '<parent view-model.ref=parent><child>',
-      class App { },
-      [Parent, Child]
-    );
+      let parent: Parent | null = null;
+      @inject(Parent)
+      @customElement({
+        name: 'child'
+      })
+      class Child {
+        constructor($parent: Parent) {
+          parent = $parent;
+        }
+      }
 
-    assert.instanceOf(parent, Parent);
-    assert.strictEqual(parent.id, 1);
-  });
+      createFixture(
+        '<parent view-model.ref=parent><child>',
+        class App { },
+        [Parent, Child]
+      );
 
-  it('provides right resources for slotted view', function () {
-    const { assertText } = createFixture(
-      '<el></el>',
-      {  },
-      [
-        CustomElement.define({
-          name: 'el',
-          template: '<el-with-slot>${"hey" | upper}</el-with-slot>',
-          dependencies: [
-            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
-            ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
-          ]
-        }, class El {}),
-      ]
-    );
-    assertText('HEY');
-  });
+      assert.instanceOf(parent, Parent);
+      assert.strictEqual(parent.id, 1);
+    });
 
-  it('provides right resources for passed through <au-slot>', function () {
-    const { assertText } = createFixture(
-      '<el></el>',
-      {  },
-      [
-        CustomElement.define({
-          name: 'el',
-          template: '<el-with-slot><au-slot>${"hey" | upper}</au-slot></el-with-slot>',
-          dependencies: [
-            CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot {}),
-            ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
-          ]
-        }, class El {}),
-      ]
-    );
-    assertText('HEY');
+    it('provides right resources for slotted view', function () {
+      const { assertText } = createFixture(
+        '<el></el>',
+        {},
+        [
+          CustomElement.define({
+            name: 'el',
+            template: '<el-with-slot>${"hey" | upper}</el-with-slot>',
+            dependencies: [
+              CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot { }),
+              ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
+            ]
+          }, class El { }),
+        ]
+      );
+      assertText('HEY');
+    });
+
+    it('provides right resources for passed through <au-slot>', function () {
+      const { assertText } = createFixture(
+        '<el></el>',
+        {},
+        [
+          CustomElement.define({
+            name: 'el',
+            template: '<el-with-slot><au-slot>${"hey" | upper}</au-slot></el-with-slot>',
+            dependencies: [
+              CustomElement.define({ name: 'el-with-slot', template: '<au-slot>' }, class ElWithSlot { }),
+              ValueConverter.define('upper', class { toView = v => v.toUpperCase(); }),
+            ]
+          }, class El { }),
+        ]
+      );
+      assertText('HEY');
+    });
+
+    it('injects right CE instance in nested projection', function () {
+      let l1Id = 0;
+      let l2Id = 0;
+      let l3Id = 0;
+
+      @customElement({ name: 'ce-l1', template: '<au-slot>' })
+      class CeL1 { id = ++l1Id; }
+
+      @customElement({ name: 'ce-l2', template: '<au-slot>' })
+      class CeL2 { id = ++l2Id; }
+
+      @customElement({ name: 'ce-l3', template: 'id: ${l1.id}-${l2.id}' })
+      class CeL3 {
+        l1 = resolve(CeL1);
+        l2 = resolve(CeL2);
+        id = ++l3Id;
+      }
+
+      const { assertTextContain } = createFixture(
+        `<ce-l1><span au-slot>foo</span></ce-l1> <!-- ce-l1#1 -->
+        <ce-l1> <!-- ce-l1#2 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>
+        <ce-l1> <!-- ce-l1#3 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>`,
+        class {},
+        [CeL1, CeL2, CeL3],
+      );
+
+      assertTextContain('id: 2-1');
+      assertTextContain('id: 3-2');
+      assert.strictEqual(l1Id, 3, '3 instances of CeL1');
+      assert.strictEqual(l2Id, 2, '2 instances of CeL2');
+      assert.strictEqual(l3Id, 2, '2 instances of CeL3');
+    });
   });
 });

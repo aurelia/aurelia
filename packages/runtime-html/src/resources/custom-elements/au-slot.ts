@@ -5,10 +5,10 @@ import { customElement } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { registerResolver } from '../../utilities-di';
+import { createInterface, registerResolver } from '../../utilities-di';
 import { createMutationObserver } from '../../utilities-dom';
 
-import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, optional, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
@@ -46,21 +46,81 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
   public constructor() {
+    const hdrContext = resolve(IHydrationContext);
     const location = resolve(IRenderLocation);
     const instruction = resolve(IInstruction) as HydrateElementInstruction;
-    const hdrContext = resolve(IHydrationContext);
     const rendering = resolve(IRendering);
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
     const contextController = hdrContext.controller;
     let factory: IViewFactory;
     let container: IContainer;
+    let projectionContext: IProjectionContext | undefined;
+    let projections: IProjectionContext[];
+
     this.name = slotInfo.name;
     if (projection == null) {
-      factory = rendering.getViewFactory(slotInfo.fallback, contextController.container);
+      container = contextController.container.createChild(inheritParentResourcesOptions);
+      factory = rendering.getViewFactory(slotInfo.fallback, container);
+      registerResolver(
+        container,
+        IProjectionContext,
+        new InstanceProvider(void 0, noProjection)
+      );
       this._hasProjection = false;
     } else {
-      container = hdrContext.parent!.controller.container.createChild({ inheritParentResources: true });
+      // projection could happen within a projection, example:
+      // --my-app--
+      // <s-1>
+      //   ---projection 1---
+      //   <s-2>
+      //     ---projection 2---
+      //     <s-3>
+      // for the template above, if <s-3> is injecting <S1>,
+      // we won't find the information in the hydration context hierarchy <MyApp>/<S3>
+      // as it's a flat wysiwyg structure based on the template html
+      //
+      // since we are construction the projection (2) view based on the
+      // container of <my-app>, we need to pre-register all information stored
+      // in projection (1) into the container created for the projection (2) view
+      //
+      // but if <au-slot> inside <s-2> is not having a projection, or projection (2) doesn't exist
+      // we also need to block inner projection hierarchy of <s-2> template from reaching projection 1
+      // example inner template of <s-2>:
+      // <s-2-1>
+      //  ---projection 1.1---
+      //    <s-2-2>
+      //
+      // without proper blocking, projection (1.1) may accidentally retrieve projection (1) information
+      // blocking is done by registering a null projection context in an <au-slot> without projection
+      //
+      // BUT!!! Blocking doesn't matter, since all projection information is about the host CE
+      // which is always available in the container of the <au-slot> without projection
+      // In the first example template, <au-slot> within <s-2> will always be able to see <s-1>,
+      // or <au-slot> within <s-3> will always be able to see <s-2>
+
+      projectionContext = resolve(optional(IProjectionContext));
+      container = hdrContext.parent!.controller.container.createChild(inheritParentResourcesOptions);
+      projections = projectionContext != null ? resolveProjections(projectionContext) : [];
+      projections.unshift(
+        //
+        // also need to build the current context
+        //
+        projectionContext = new ProjectionContext(contextController, projectionContext ?? null)
+      );
+      projections.forEach(p => {
+        const controller = p._controller;
+        registerResolver(
+          container,
+          controller.definition.Type,
+          new InstanceProvider(void 0, controller.viewModel)
+        );
+      });
+      registerResolver(
+        container,
+        IProjectionContext,
+        new InstanceProvider(void 0, projectionContext)
+      );
       registerResolver(
         container,
         contextController.definition.Type,
@@ -225,4 +285,32 @@ const isMutationWithinLocation = (location: IRenderLocation, records: MutationRe
       }
     }
   }
+};
+
+interface IProjectionContext {
+  _controller: ICustomElementController;
+  _parent: IProjectionContext | null;
+}
+
+const IProjectionContext = createInterface<IProjectionContext>('IProjectionContext');
+
+class ProjectionContext implements IProjectionContext {
+  public constructor(
+    public readonly _controller: ICustomElementController,
+    public readonly _parent: IProjectionContext | null,
+  ) {}
+}
+
+const noProjection = new ProjectionContext(null!, null);
+const inheritParentResourcesOptions = { inheritParentResources: true };
+
+const resolveProjections = (context: IProjectionContext) => {
+  // walk up the context hierarchy and get all controllers
+  const projections = [];
+  let curr: IProjectionContext | null = context;
+  while (curr != null && curr !== noProjection) {
+    projections.push(curr);
+    curr = curr._parent;
+  }
+  return projections;
 };

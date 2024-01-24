@@ -34,7 +34,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<el><div></div>',
-        class App {},
+        class App { },
         [El,]
       );
 
@@ -53,7 +53,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       const { assertText } = createFixture(
         // projecting 3 divs to 2 different slots
         '<el><div au-slot="1"></div><div></div><div></div>',
-        class App {},
+        class App { },
         [El,]
       );
 
@@ -270,7 +270,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       const { assertText } = createFixture(
         // projecting 3 divs to 2 different slots
         '<el><div au-slot="1"></div><div></div><div></div>',
-        class App {},
+        class App { },
         [El,]
       );
 
@@ -288,7 +288,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<el><div au-slot="1"></div>',
-        class App {},
+        class App { },
         [El,]
       );
 
@@ -300,7 +300,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         name: 'parent',
         template: '<el><au-slot>'
       })
-      class Parent {}
+      class Parent { }
 
       @customElement({
         name: 'el',
@@ -312,7 +312,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<parent><div></div>',
-        class App {},
+        class App { },
         [Parent, El]
       );
 
@@ -324,7 +324,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         name: 'parent',
         template: '<el><au-slot><div>'
       })
-      class Parent {}
+      class Parent { }
 
       @customElement({
         name: 'el',
@@ -336,7 +336,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<parent>',
-        class App {},
+        class App { },
         [Parent, El]
       );
 
@@ -348,7 +348,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         name: 'parent',
         template: '<el><au-slot au-slot=1><input><input>'
       })
-      class Parent {}
+      class Parent { }
 
       @customElement({
         name: 'el',
@@ -360,7 +360,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<parent>',
-        class App {},
+        class App { },
         [Parent, El]
       );
 
@@ -378,7 +378,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<el><input></el> | <el><input><input>',
-        class App {},
+        class App { },
         [El]
       );
 
@@ -390,7 +390,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         name: 'parent',
         template: '<el><input></el> | <el><input><input>'
       })
-      class Parent {}
+      class Parent { }
       @customElement({
         name: 'el',
         template: 'inputs count: ${inputs.length}<au-slot></au-slot><div>'
@@ -401,7 +401,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText } = createFixture(
         '<parent>',
-        class App {},
+        class App { },
         [Parent, El]
       );
 
@@ -532,7 +532,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         template: '<button click.trigger="show = true"></button><el><input></el> | <el><input><input>' +
           '<template if.bind="show"><input>'
       })
-      class Parent {}
+      class Parent { }
       @customElement({
         name: 'el',
         template: 'inputs count: ${inputs.length}<au-slot></au-slot><div>'
@@ -543,7 +543,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
 
       const { assertText, trigger, flush } = createFixture(
         '<parent>',
-        class App {},
+        class App { },
         [Parent, El]
       );
 
@@ -592,7 +592,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         `<modal-basic>
           <div au-slot=test>from \${$host.msg}</div>
         `,
-        class {},
+        class { },
         [CustomElement.define({
           name: 'modal-basic',
           shadowOptions: { mode: 'open' },
@@ -611,7 +611,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       `<modal-basic>
         hi <div au-slot=test>from \${$host.msg}</div>
       `,
-      class {},
+      class { },
       [CustomElement.define({
         name: 'modal-basic',
         shadowOptions: { mode: 'open' },

@@ -83,23 +83,6 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // since we are construction the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
-      // -------------------------------------------
-      //
-      // Another consideration:
-      // if <au-slot> inside <s-2> is not having a projection, or projection (2) doesn't exist
-      // we also need to block inner projection hierarchy of <s-2> template from reaching projection 1
-      // example inner template of <s-2>:
-      // <s-2-1>
-      //  ---projection 1.1---
-      //    <s-2-2>
-      //
-      // without proper blocking, projection (1.1) may accidentally retrieve projection (1) information
-      // blocking is done by registering a null projection context in an <au-slot> without projection
-      //
-      // BUT!!! Blocking doesn't matter, since all projection information is about the host CE
-      // which is always available in the container of the <au-slot> without projection
-      // In the first example template, <au-slot> within <s-2> will always be able to see <s-1>,
-      // or <au-slot> within <s-3> will always be able to see <s-2>
 
       projectionContext = resolve(optional(IProjectionContext));
       container = hdrContext.parent!.controller.container.createChild(inheritParentResourcesOptions);
@@ -108,16 +91,13 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
         //
         // also need to build the current context
         //
-        projectionContext = new ProjectionContext(contextController, projectionContext ?? null)
+        projectionContext = new ProjectionContext(contextController, projectionContext ?? noProjection)
       );
-      projections.forEach(p => {
-        const controller = p._controller;
-        registerResolver(
-          container,
-          controller.definition.Type,
-          new InstanceProvider(void 0, controller.viewModel)
-        );
-      });
+      projections.forEach(p => registerResolver(
+        container,
+        p._controller.definition.Type,
+        new InstanceProvider(void 0, p._controller.viewModel)
+      ));
       registerResolver(
         container,
         IProjectionContext,

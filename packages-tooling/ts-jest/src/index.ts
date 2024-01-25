@@ -1,5 +1,5 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import tsJest from 'ts-jest';
+import tsJest, { TsJestTransformerOptions } from 'ts-jest';
 import type { TransformOptions, TransformedSource } from '@jest/transform';
 import * as path from 'path';
 
@@ -16,9 +16,9 @@ function _createTransformer(
   function getCacheKey(
     fileData: string,
     filePath: string,
-    options: TransformOptions
+    options: TransformOptions<TsJestTransformerOptions>
   ): string {
-    const tsKey = tsTransformer.getCacheKey!(fileData, filePath, options);
+    const tsKey = tsTransformer.getCacheKey(fileData, filePath, options);
     return `${tsKey}:${JSON.stringify(au2Options)}`;
   }
 
@@ -26,7 +26,7 @@ function _createTransformer(
   function process(
     sourceText: string,
     sourcePath: string,
-    transformOptions: TransformOptions
+    transformOptions:  TransformOptions<TsJestTransformerOptions>
   ): TransformedSource {
     const result = _preprocess(
       { path: sourcePath, contents: sourceText },

@@ -1,5 +1,5 @@
 import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
-import { TsJestTransformerOptions } from 'ts-jest';
+import type { TsJestTransformerOptions } from 'ts-jest';
 import tsJest from '@aurelia/ts-jest';
 const { _createTransformer } = tsJest;
 import { assert } from '@aurelia/testing';
@@ -20,7 +20,7 @@ function tsProcess(
   return { code: sourceText };
 }
 
-const options: TransformOptions = {
+const options: TransformOptions<TsJestTransformerOptions> = {
   config: makeProjectConfig(),
   configString: JSON.stringify(makeProjectConfig()),
   instrument: false,

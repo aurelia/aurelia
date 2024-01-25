@@ -63,7 +63,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "18.18.1"
+        default: "18.19.0"
     working_directory: *working_dir
     resource_class: large
     docker:
@@ -73,13 +73,13 @@ executors:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "cimg/node:18.18.1"
+      - image: "cimg/node:18.19.0"
 
   docker_circleci_bench:
     working_directory: *working_dir
     resource_class: large
     docker:
-      - image: "cimg/node:18.18.1-browsers"
+      - image: "cimg/node:18.19.0-browsers"
 
   docker_playwright_jammy:
     docker:

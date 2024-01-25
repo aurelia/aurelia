@@ -4,7 +4,6 @@ import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
   eachCartesianJoin,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hJsx, // deepscan-disable-line UNUSED_IMPORT
   TestContext,
   createFixture,
@@ -74,6 +73,22 @@ describe('3-runtime-html/portal.spec.tsx', function () {
     );
     component.position = 'beforebegin';
     assertHtml('<!--au-start--><button>click me</button><!--au-end--><div id="d1">hello</div><!--au-start--><!--au-end-->');
+  });
+
+  it('removes location marker when portal is deactivated', function () {
+    const { component, assertHtml } = createFixture(
+      <>
+        <div id="dest"></div>
+        <p id="package" if$bind="open" portal="#dest"></p>
+      </>,
+      { open: false }
+    );
+
+    assertHtml('div', '');
+    component.open = true;
+    assertHtml('div', '<!--au-start--><p id="package"></p><!--au-end-->');
+    component.open = false;
+    assertHtml('div', '');
   });
 
   describe('basic', function () {

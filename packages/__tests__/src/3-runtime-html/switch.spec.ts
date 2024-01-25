@@ -161,7 +161,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
   class DebugLog implements ISink {
     public readonly log: string[] = [];
     public handleEvent(event: DefaultLogEvent): void {
-      this.log.push(`${event.scope.join('.')}.${event.message}`);
+      this.log.push(`${event.scope.join('.')}.${event.messageOrError}`);
     }
     public clear() {
       this.log.length = 0;

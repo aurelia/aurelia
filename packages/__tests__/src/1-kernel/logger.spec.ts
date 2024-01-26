@@ -252,4 +252,29 @@ describe('1-kernel/logger.spec.ts', function () {
 
     assert.strictEqual(mock.calls.length, 0, `mock.calls.length`);
   });
+
+  it('logging an error instance without a message results in empty message', function () {
+    const { sut, mock } = createFixture(LogLevel.trace, 'no-colors', []);
+
+    const error = new Error('foo');
+    sut.error(error);
+
+    assert.strictEqual(mock.calls.length, 1, `mock.calls.length`);
+    const [level, [message, $error]] = mock.calls[0];
+    assert.strictEqual(level, 'error', `level`);
+    assert.match(message, /\[ERR\] $/, `args[0]`);
+    assert.strictEqual($error, error, `args[1]`);
+  });
+
+  it('logging error with message template', function () {
+    const { sut, mock } = createFixture(LogLevel.trace, 'no-colors', []);
+
+    sut.error('foo %s', '1', 42);
+
+    assert.strictEqual(mock.calls.length, 1, `mock.calls.length`);
+    const [level, [message, additionalParam]] = mock.calls[0];
+    assert.strictEqual(level, 'error', `level`);
+    assert.match(message, /\[ERR\] foo 1$/, `args[0]`);
+    assert.strictEqual(additionalParam, 42, `args[1]`);
+  });
 });

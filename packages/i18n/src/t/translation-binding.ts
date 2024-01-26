@@ -132,6 +132,7 @@ export class TranslationBinding implements IConnectableBinding {
   }: TranslationBindingCreationContext) {
     const binding = this._getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
+      /* istanbul ignore next */
       ? parser.parse(instruction.from, etIsProperty)
       : instruction.from;
     if (isParameterContext) {

@@ -474,18 +474,25 @@ export const DI = {
 export const IContainer = /*@__PURE__*/createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
-function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
-  return function (key: any): ReturnType<typeof DI.inject> {
-    const resolver = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
-      inject(resolver)(target, property, descriptor);
-    };
+export type ICallableResolver<T> = IResolver<T> & ((...args: unknown[]) => any);
 
-    resolver.$isResolver = true;
-    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+/**
+ * ! Semi private API to avoid repetitive work creating resolvers.
+ *
+ * Naming isn't entirely correct, but it's good enough for internal usage.
+ */
+export function createResolver<T extends Key>(getter: (key: T, handler: IContainer, requestor: IContainer) => any): ((key: T) => ICallableResolver<T>) {
+  return function (key: any) {
+    function Resolver(target: any, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+      inject(Resolver)(target, property, descriptor);
+    }
+
+    Resolver.$isResolver = true;
+    Resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
       return getter(key, handler, requestor);
     };
 
-    return resolver;
+    return Resolver as ICallableResolver<T>;
   };
 }
 

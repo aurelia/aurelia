@@ -115,7 +115,7 @@ export interface ILogEventFactory {
    * This is called by the default console sink to get the message to emit to the console.
    * It could be any object of any shape, as long as the registered sinks understand that shape.
    */
-  createLogEvent(logger: ILogger, logLevel: LogLevel, message: string, optionalParams: unknown[]): ILogEvent;
+  createLogEvent(logger: ILogger, logLevel: LogLevel, message: string | Error, optionalParams: unknown[]): ILogEvent;
 }
 
 /**
@@ -226,8 +226,13 @@ export const format = toLookup({
 
 export interface ILogEvent {
   readonly severity: LogLevel;
+  readonly message: string | Error;
   readonly optionalParams?: readonly unknown[];
+  readonly scope: readonly string[];
+  readonly colorOptions: ColorOptions;
+  readonly timestamp: number;
   toString(): string;
+  getFormattedLogInfo(forConsole?: boolean): [string, ...unknown[]];
 }
 
 export class LogConfig implements ILogConfig {
@@ -299,7 +304,7 @@ const getIsoString = (timestamp: number, colorOptions: ColorOptions): string => 
 export class DefaultLogEvent implements ILogEvent {
   public constructor(
     public readonly severity: LogLevel,
-    public readonly message: string,
+    public readonly message: string | Error,
     public readonly optionalParams: unknown[],
     public readonly scope: readonly string[],
     public readonly colorOptions: ColorOptions,
@@ -314,12 +319,35 @@ export class DefaultLogEvent implements ILogEvent {
     }
     return `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)} ${getScopeString(scope, colorOptions)}] ${message}`;
   }
+
+  public getFormattedLogInfo(forConsole: boolean = false): [string, ...unknown[]] {
+    const { severity, message: messageOrError, scope, colorOptions, timestamp, optionalParams } = this;
+    let error: Error|null = null;
+    let message: string = '';
+    if (forConsole && messageOrError instanceof Error) {
+      error = messageOrError;
+    } else {
+      message = messageOrError as string;
+    }
+
+    const scopeInfo = scope.length === 0 ? '' : ` ${getScopeString(scope, colorOptions)}`;
+    let msg = `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)}${scopeInfo}] ${message}`;
+
+    if (optionalParams === void 0 || optionalParams.length === 0) {
+      return error === null ? [msg] : [msg, error];
+    }
+    let offset = 0;
+    while (msg.includes('%s')) {
+      msg = msg.replace('%s', String(optionalParams[offset++]));
+    }
+    return error !== null ? [msg, error, ...optionalParams.slice(offset)] : [msg, ...optionalParams.slice(offset)];
+  }
 }
 
 export class DefaultLogEventFactory implements ILogEventFactory {
   public readonly config = resolve(ILogConfig);
 
-  public createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent {
+  public createLogEvent(logger: ILogger, level: LogLevel, message: string | Error, optionalParams: unknown[]): ILogEvent {
     return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
   }
 }
@@ -341,40 +369,18 @@ export class ConsoleSink implements ISink {
       error(...args: unknown[]): void;
     };
     this.handleEvent = function emit(event: ILogEvent): void {
-      const optionalParams = event.optionalParams;
-      if (optionalParams === void 0 || optionalParams.length === 0) {
-        const msg = event.toString();
-        switch (event.severity) {
-          case trace:
-          case debug:
-            return $console.debug(msg);
-          case info:
-            return $console.info(msg);
-          case warn:
-            return $console.warn(msg);
-          case error:
-          case fatal:
-            return $console.error(msg);
-        }
-      } else {
-        let msg = event.toString();
-        let offset = 0;
-        // console.log in chrome doesn't call .toString() on object inputs (https://bugs.chromium.org/p/chromium/issues/detail?id=1146817)
-        while (msg.includes('%s')) {
-          msg = msg.replace('%s', String(optionalParams[offset++]));
-        }
-        switch (event.severity) {
-          case trace:
-          case debug:
-            return $console.debug(msg, ...optionalParams.slice(offset));
-          case info:
-            return $console.info(msg, ...optionalParams.slice(offset));
-          case warn:
-            return $console.warn(msg, ...optionalParams.slice(offset));
-          case error:
-          case fatal:
-            return $console.error(msg, ...optionalParams.slice(offset));
-        }
+      const _info = event.getFormattedLogInfo(true);
+      switch (event.severity) {
+        case trace:
+        case debug:
+          return $console.debug(..._info);
+        case info:
+          return $console.info(..._info);
+        case warn:
+          return $console.warn(..._info);
+        case error:
+        case fatal:
+          return $console.error(..._info);
       }
     };
   }

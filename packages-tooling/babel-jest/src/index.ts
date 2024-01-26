@@ -1,9 +1,9 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import * as babelJest from 'babel-jest';
 import { TransformOptions } from '@babel/core';
-import type { TransformOptions as TransformOptionsJest, TransformedSource } from '@jest/transform';
+import type { TransformOptions as TransformOptionsJest, SyncTransformer, TransformedSource } from '@jest/transform';
 
-const babelTransformer = babelJest.createTransformer();
+const babelTransformer = babelJest.createTransformer() as SyncTransformer<TransformOptions>;
 function _createTransformer(
   conventionsOptions = {},
   // for testing

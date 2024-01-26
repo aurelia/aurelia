@@ -214,7 +214,10 @@ export class Portal implements ICustomAttributeViewModel {
   ): void | Promise<void> {
     const { deactivated, callbackContext, view } = this;
 
-    return deactivated?.call(callbackContext, target, view);
+    return onResolve(
+      deactivated?.call(callbackContext, target, view),
+      () => this._removeLocation()
+    );
   }
 
   /** @internal */
@@ -255,6 +258,12 @@ export class Portal implements ICustomAttributeViewModel {
     }
 
     return target;
+  }
+
+  /** @internal */
+  private _removeLocation(): void {
+    this._targetLocation.remove();
+    this._targetLocation.$start!.remove();
   }
 
   /** @internal */

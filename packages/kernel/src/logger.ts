@@ -107,7 +107,7 @@ export interface ILogEventFactory {
    *
    * @param logger - The `ILogger` that received the message.
    * @param logLevel - The `LogLevel` associated with the `ILogger` method that the message was passed into. E.g. `logger.debug` will result in `LogLevel.debug`
-   * @param messageOrError - The message (first parameter) that was passed into the logger. If a function was passed into the logger, this will be the return value of that function.
+   * @param message - The message (first parameter) that was passed into the logger. If a function was passed into the logger, this will be the return value of that function.
    * @param optionalParams - Additional optional parameters there were passed into the logger, if any.
    *
    * @returns An `ILogEvent` object that, by default, only has a `.toString()` method.
@@ -115,7 +115,7 @@ export interface ILogEventFactory {
    * This is called by the default console sink to get the message to emit to the console.
    * It could be any object of any shape, as long as the registered sinks understand that shape.
    */
-  createLogEvent(logger: ILogger, logLevel: LogLevel, messageOrError: string | Error, optionalParams: unknown[]): ILogEvent;
+  createLogEvent(logger: ILogger, logLevel: LogLevel, message: string | Error, optionalParams: unknown[]): ILogEvent;
 }
 
 /**
@@ -226,7 +226,7 @@ export const format = toLookup({
 
 export interface ILogEvent {
   readonly severity: LogLevel;
-  readonly messageOrError: string | Error;
+  readonly message: string | Error;
   readonly optionalParams?: readonly unknown[];
   readonly scope: readonly string[];
   readonly colorOptions: ColorOptions;
@@ -304,7 +304,7 @@ const getIsoString = (timestamp: number, colorOptions: ColorOptions): string => 
 export class DefaultLogEvent implements ILogEvent {
   public constructor(
     public readonly severity: LogLevel,
-    public readonly messageOrError: string | Error,
+    public readonly message: string | Error,
     public readonly optionalParams: unknown[],
     public readonly scope: readonly string[],
     public readonly colorOptions: ColorOptions,
@@ -312,16 +312,16 @@ export class DefaultLogEvent implements ILogEvent {
   ) {}
 
   public toString(): string {
-    const { severity, messageOrError, scope, colorOptions, timestamp } = this;
+    const { severity, message, scope, colorOptions, timestamp } = this;
 
     if (scope.length === 0) {
-      return `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)}] ${messageOrError}`;
+      return `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)}] ${message}`;
     }
-    return `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)} ${getScopeString(scope, colorOptions)}] ${messageOrError}`;
+    return `${getIsoString(timestamp, colorOptions)} [${getLogLevelString(severity, colorOptions)} ${getScopeString(scope, colorOptions)}] ${message}`;
   }
 
   public getFormattedLogInfo(forConsole: boolean = false): [string, ...unknown[]] {
-    const { severity, messageOrError, scope, colorOptions, timestamp, optionalParams } = this;
+    const { severity, message: messageOrError, scope, colorOptions, timestamp, optionalParams } = this;
     let error: Error|null = null;
     let message: string = '';
     if (forConsole && messageOrError instanceof Error) {
@@ -347,8 +347,8 @@ export class DefaultLogEvent implements ILogEvent {
 export class DefaultLogEventFactory implements ILogEventFactory {
   public readonly config = resolve(ILogConfig);
 
-  public createLogEvent(logger: ILogger, level: LogLevel, messageOrError: string | Error, optionalParams: unknown[]): ILogEvent {
-    return new DefaultLogEvent(level, messageOrError, optionalParams, logger.scope, this.config.colorOptions, Date.now());
+  public createLogEvent(logger: ILogger, level: LogLevel, message: string | Error, optionalParams: unknown[]): ILogEvent {
+    return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
   }
 }
 

@@ -151,7 +151,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
     public handleEvent(event: DefaultLogEvent): void {
       const scope = event.scope.join('.');
       if (scope.includes('-host')) {
-        this.log.push(`${scope}.${event.messageOrError}`);
+        this.log.push(`${scope}.${event.message}`);
       }
     }
     public clear() {

@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.10"></a>
+# 2.0.0-beta.10 (2024-01-26)
+
+### Bug Fixes:
+
+* **i18n:** handle change of key in t.bind (#1868) ([c185764](https://github.com/aurelia/aurelia/commit/c185764))
+* **i18n:** handle change of key in t.bind ([c185764](https://github.com/aurelia/aurelia/commit/c185764))
+
+
+### Refactorings:
+
+* **enums:** string literal types in favour of const enums (#1870) ([e21e0c9](https://github.com/aurelia/aurelia/commit/e21e0c9))
+
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 

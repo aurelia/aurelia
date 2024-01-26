@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.10"></a>
+# 2.0.0-beta.10 (2024-01-26)
+
+### Features:
+
+* **route-recognizer:** support for route parameter constraints (#1862) ([8f29cfd](https://github.com/aurelia/aurelia/commit/8f29cfd))
+* **route-recognizer:** parameter constraint ([8f29cfd](https://github.com/aurelia/aurelia/commit/8f29cfd))
+
+
+### Refactorings:
+
+* **router-lite:** constrained route for Router#load ([8f29cfd](https://github.com/aurelia/aurelia/commit/8f29cfd))
+* **route-recognizer:** removed auto end-markers from patterns ([8f29cfd](https://github.com/aurelia/aurelia/commit/8f29cfd))
+
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 

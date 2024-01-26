@@ -2260,10 +2260,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       assert.strictEqual(l3Id, 2, '2 instances of CeL3');
     });
 
-    // not supposed to work since `Foo` is registered on CeL1 container
-    // CeL1 container shouldn't be available to its projection view
-    // eslint-disable-next-line mocha/no-skipped-tests
-    it.skip('injects right instance when used together with newInstance & newInstanceForScope', function () {
+    it('injects right instance when used together with newInstance & newInstanceForScope', function () {
 
       class Foo {
         private static id: number = 0;

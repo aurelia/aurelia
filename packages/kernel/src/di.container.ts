@@ -426,6 +426,13 @@ export class Container implements IContainer {
     disposableResolvers.clear();
   }
 
+  public useResources(container: Container): void {
+    const res = container.res;
+    for (const key in res) {
+      this.registerResolver(key, res[key]!);
+    }
+  }
+
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);
     let resolver = this.res[key];

@@ -5,10 +5,10 @@ import { customElement } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { createInterface, registerResolver } from '../../utilities-di';
+import { registerResolver } from '../../utilities-di';
 import { createMutationObserver } from '../../utilities-dom';
 
-import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, optional, resolve } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
@@ -55,18 +55,11 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     const contextController = hdrContext.controller;
     let factory: IViewFactory;
     let container: IContainer;
-    let projectionContext: IProjectionContext | undefined;
-    let projections: IProjectionContext[];
 
     this.name = slotInfo.name;
     if (projection == null) {
-      container = contextController.container.createChild(inheritParentResourcesOptions);
+      container = contextController.container.createChild({ inheritParentResources: true });
       factory = rendering.getViewFactory(slotInfo.fallback, container);
-      registerResolver(
-        container,
-        IProjectionContext,
-        new InstanceProvider(void 0, noProjection)
-      );
       this._hasProjection = false;
     } else {
       // projection could happen within a projection, example:
@@ -83,26 +76,22 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // since we are construction the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
-
-      container = hdrContext.parent!.controller.container.createChild(inheritParentResourcesOptions);
-      projectionContext = resolve(optional(IProjectionContext));
-      projections = projectionContext != null ? resolveProjections(projectionContext) : [];
-      projections.unshift(
-        //
-        // also need to build the current context
-        //
-        projectionContext = new ProjectionContext(contextController, projectionContext ?? noProjection)
-      );
-      projections.forEach(p => registerResolver(
-        container,
-        p._controller.definition.Type,
-        new InstanceProvider(void 0, p._controller.viewModel)
-      ));
-      registerResolver(
-        container,
-        IProjectionContext,
-        new InstanceProvider(void 0, projectionContext)
-      );
+      container = hdrContext.controller.container.createChild();
+      // registering resources from the parent hydration context is necessary
+      // as that's where the projection is declared in the template
+      //
+      // if neccessary, we can do the same gymnastic of registering information related to
+      // a custom element registration like in renderer.ts from line 1088 to 1098
+      // so we don't accidentally get information related to owning element (host, controller, instruction etc...)
+      container.useResources(hdrContext.parent!.controller.container);
+      // doing this to shadow the owning element hydration context
+      // since we created a container our of the owning element container
+      // instead of the hydration context of the owning element container.
+      // my-app:  --- hydration context
+      // <el>     --- owning element (this has the <au-slot> that uses ---projection)
+      //   <s-1>  --- projection
+      //
+      registerResolver(container, IHydrationContext, new InstanceProvider(void 0, hdrContext.parent));
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
       this._slotwatchers = contextController.container.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
@@ -262,31 +251,4 @@ const isMutationWithinLocation = (location: IRenderLocation, records: MutationRe
       }
     }
   }
-};
-
-interface IProjectionContext {
-  _controller: ICustomElementController;
-  _parent: IProjectionContext | null;
-}
-
-const IProjectionContext = createInterface<IProjectionContext>('IProjectionContext');
-
-class ProjectionContext implements IProjectionContext {
-  public constructor(
-    public readonly _controller: ICustomElementController,
-    public readonly _parent: IProjectionContext | null,
-  ) {}
-}
-
-const noProjection = new ProjectionContext(null!, null);
-const inheritParentResourcesOptions = { inheritParentResources: true };
-
-const resolveProjections = (context: IProjectionContext) => {
-  const projections = [];
-  let curr: IProjectionContext | null = context;
-  while (curr != null && curr !== noProjection) {
-    projections.push(curr);
-    curr = curr._parent;
-  }
-  return projections;
 };

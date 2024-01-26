@@ -14,7 +14,6 @@ const DEFAULT_GLOBAL_CONFIG: Config.GlobalConfig = {
   ci: false,
   collectCoverage: false,
   collectCoverageFrom: [],
-  collectCoverageOnlyFrom: undefined,
   coverageDirectory: 'coverage',
   coverageProvider: 'babel',
   coverageReporters: [],
@@ -41,13 +40,16 @@ const DEFAULT_GLOBAL_CONFIG: Config.GlobalConfig = {
   notifyMode: 'failure-change',
   onlyChanged: false,
   onlyFailures: false,
+  openHandlesTimeout: 5000,
   outputFile: undefined,
   passWithNoTests: false,
   projects: [],
   replname: undefined,
   reporters: [],
   rootDir: '/test_root_dir/',
+  runInBand: false,
   runTestsByPath: false,
+  seed: 1234,
   silent: false,
   skipFilter: false,
   snapshotFormat: {},
@@ -121,7 +123,7 @@ const DEFAULT_PROJECT_CONFIG: Config.ProjectConfig = {
   transformIgnorePatterns: [],
   unmockedModulePathPatterns: undefined,
   watchPathIgnorePatterns: [],
-};
+} as unknown as Config.ProjectConfig;
 
 export const makeGlobalConfig = (
   overrides: Partial<Config.GlobalConfig> = {},

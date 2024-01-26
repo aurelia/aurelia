@@ -52,13 +52,13 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     const rendering = resolve(IRendering);
     const slotInfo = instruction.auSlot!;
     const projection = hdrContext.instruction?.projections?.[slotInfo.name];
-    const contextController = hdrContext.controller;
+    const contextContainer = hdrContext.controller.container;
     let factory: IViewFactory;
     let container: IContainer;
 
     this.name = slotInfo.name;
     if (projection == null) {
-      container = contextController.container.createChild({ inheritParentResources: true });
+      container = contextContainer.createChild({ inheritParentResources: true });
       factory = rendering.getViewFactory(slotInfo.fallback, container);
       this._hasProjection = false;
     } else {
@@ -76,25 +76,29 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // since we are construction the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
-      container = hdrContext.controller.container.createChild();
+      // =============================
+
+      // my-app template:
+      // my-app  --- hydration context
+      // <el>     --- owning element (this has this <au-slot> that uses ---projection)
+      //   <s-1>  --- projection
+      //
+      container = contextContainer.createChild();
       // registering resources from the parent hydration context is necessary
       // as that's where the projection is declared in the template
       //
       // if neccessary, we can do the same gymnastic of registering information related to
       // a custom element registration like in renderer.ts from line 1088 to 1098
       // so we don't accidentally get information related to owning element (host, controller, instruction etc...)
+      // although it may be more desirable to have owning element information available here
       container.useResources(hdrContext.parent!.controller.container);
       // doing this to shadow the owning element hydration context
-      // since we created a container our of the owning element container
-      // instead of the hydration context of the owning element container.
-      // my-app:  --- hydration context
-      // <el>     --- owning element (this has the <au-slot> that uses ---projection)
-      //   <s-1>  --- projection
-      //
+      // since we created a container out of the owning element container
+      // instead of the hydration context container
       registerResolver(container, IHydrationContext, new InstanceProvider(void 0, hdrContext.parent));
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = contextController.container.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
+      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;

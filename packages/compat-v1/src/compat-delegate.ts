@@ -23,8 +23,6 @@ export const delegateSyntax = {
   }
 };
 
-const instructionType = 'dl';
-
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
@@ -38,7 +36,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer(instructionType)
+@renderer('dl')
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
   /** @internal */ protected static get inject() { return [IEventDelegator]; }

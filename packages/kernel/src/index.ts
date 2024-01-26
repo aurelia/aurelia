@@ -3,6 +3,7 @@ export {
 } from './platform';
 
 export {
+  createResolver,
   all,
   factory,
   type IAllResolver,

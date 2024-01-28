@@ -39,10 +39,15 @@ const createConfiguration = <T>(
         Registration.instance(IState, initialState),
         ...standardRegistrations,
         ...actionHandlers.map(ActionHandler.define),
-        AppTask.creating(IStore, store => store.connectDevTools(options.devToolsOptions ?? {}))
+        /* istanbul ignore next */
+        AppTask.creating(IStore, store => {
+          if (options.devToolsOptions?.disable !== true) {
+            store.connectDevTools(options.devToolsOptions ?? {});
+          }
+        })
       );
     },
-    init: <T1>(state: T1, actionHandlers: IActionHandler<T1>[], options: IStateConfigurationOptions) =>
+    init: <T1>(state: T1, actionHandlers: IActionHandler<T1>[] = [], options: IStateConfigurationOptions = {}) =>
       createConfiguration(state, actionHandlers, options),
   };
 };

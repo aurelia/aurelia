@@ -117,6 +117,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     }
   }
 
+  /* istanbul ignore next */
   public connectDevTools(options: IDevToolsOptions) {
     const extension = this._getDevTools();
     const hasDevTools = extension != null;

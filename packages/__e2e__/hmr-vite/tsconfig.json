@@ -4,6 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,
+    "experimentalDecorators": true,
     "target": "es2021",
     "module": "esnext",
     "outDir": "dist",

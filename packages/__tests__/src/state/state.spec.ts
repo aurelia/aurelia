@@ -1,8 +1,20 @@
-import { ValueConverter, customAttribute, customElement, ICustomAttributeController } from '@aurelia/runtime-html';
+import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 import { StateDefaultConfiguration, fromState } from '@aurelia/state';
-import { assert, createFixture } from '@aurelia/testing';
+import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
+  this.beforeEach(function () {
+    onFixtureCreated(({ ctx }) => {
+      const window = ctx.container.get(IWindow);
+      if ('__REDUX_DEVTOOLS_EXTENSION__' in window) return;
+      Object.assign(window, {
+        __REDUX_DEVTOOLS_EXTENSION__: {
+          connect: () => ({ subscribe: () => {/* empty */} })
+        }
+      });
+    });
+  });
+
   it('connects to initial state object', async function () {
     const state = { text: '123' };
     const { getBy } = await createFixture

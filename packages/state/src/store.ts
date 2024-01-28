@@ -131,7 +131,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     devTools.subscribe((message) => {
       this._logger.info('DevTools sent a message:', message);
       const payload: IDevToolsPayload = typeof message.payload === 'string'
-        ? tryParseJson(message.payload ?? 'null')
+        ? tryParseJson(message.payload)
         : message.payload;
 
       if (payload === void 0) {

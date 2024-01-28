@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-check
 import replace from "@rollup/plugin-replace";
 import typescript from '@rollup/plugin-typescript';
 import terser from '@rollup/plugin-terser';
-import { terserNameCache } from "./mangle-namecache";
+import { terserNameCache } from "./mangle-namecache.mjs";
 import { execSync } from 'child_process';
 import esbuild from 'rollup-plugin-esbuild';
 
@@ -52,7 +53,7 @@ export function rollupTypeScript(overrides, isDevMode) {
   return typescript({
     tsconfig: 'tsconfig.build.json',
     sourceMap: true,
-    include: ['../global.d.ts', 'src/**/*.ts'],
+    include: ['../../global.d.ts', './**/*.ts'],
     noEmitOnError: false,
     removeComments: false,
     inlineSourceMap: isDevMode,
@@ -86,7 +87,8 @@ export function rollupTerser(overrides) {
 
 /**
  * @param {{ name: string; script: string }[]} scripts
- * @return {import('rollup').Plugin}
+ *
+ * @returns {import('rollup').Plugin}
  */
 export function runPostbuildScript(...scripts) {
   return {
@@ -95,12 +97,12 @@ export function runPostbuildScript(...scripts) {
       const now = Date.now();
       scripts.forEach(s => {
         try {
-          execSync(s.script.replace(/^(?:npm run\s*)?/, 'npm run '))
+          execSync(s.script.replace(/^(?:npm run\s*)?/, 'npm run '));
         } catch (ex) {
           process.stdout.write(ex.stdout);
         }
       });
-      console.log(`run: ${scripts.map(s => `"${s.name}"`).join('\, ')} in ${((Date.now() - now) / 1000).toFixed(2)}s`);
+      console.log(`run: ${scripts.map(s => `"${s.name}"`).join(', ')} in ${((Date.now() - now) / 1000).toFixed(2)}s`);
     }
   };
 }
@@ -124,10 +126,12 @@ export function runPostbuildScript(...scripts) {
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
  * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
- *  a callback that takes a record of env variables, and returns overrides for terser plugin config
+ * a callback that takes a record of env variables, and returns overrides for terser plugin config
  * @param {{ name: string; script: string }[]} [postBuildScript]
  */
+// eslint-disable-next-line default-param-last
 export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = [{ name: 'build dts', script: 'postrollup'}]) {
+  // eslint-disable-next-line
   const isReleaseBuild = /true/.test(process.env.RELEASE_BUILD + '');
   const cwd = process.cwd();
   /** @type {NormalizedEnvVars} */
@@ -142,7 +146,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   const cjsDevDist = 'dist/cjs/index.dev.cjs';
   const esmDist = 'dist/esm/index.mjs';
   const cjsDist = 'dist/cjs/index.cjs';
-  const typingsDist = 'dist/types/index.d.ts';
+  // const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY' || warning.code === 'MIXED_EXPORTS') return;
@@ -258,23 +262,24 @@ function identity(a) {
 import { createFilter } from '@rollup/pluginutils';
 import MagicString from 'magic-string';
 
-/** @return {import('rollup').Plugin} */
-function stripInternalConstEnum (options = {}) {
-  const { include, exclude } = options
+/** @returns {import('rollup').Plugin} */
+function stripInternalConstEnum(options = {}) {
+  const { include, exclude } = options;
 
-  const filter = createFilter(include, exclude)
+  const filter = createFilter(include, exclude);
 
   return {
     name: 'stripCode',
 
-    transform (source, id) {
-      if (!filter(id)) return
+    transform(source, id) {
+      if (!filter(id)) return;
 
       const s = new MagicString(source);
       const indexPairs = [];
 
       let startIndex = 0;
       let endIndex = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         startIndex = source.indexOf('_START_CONST_ENUM();', endIndex);
         if (startIndex === -1) {
@@ -294,13 +299,13 @@ function stripInternalConstEnum (options = {}) {
 
       indexPairs.forEach(([startIndex, endIndex]) => {
         s.overwrite(startIndex, endIndex + '_END_CONST_ENUM();'.length, '');
-      })
+      });
 
-      const map = s.generateMap({ hires: true })
+      const map = s.generateMap({ hires: true });
 
       return { code: s.toString(), map };
     }
-  }
+  };
 }
 
 import path from 'path';
@@ -331,7 +336,7 @@ function generateNativeModulePlugin(cwd, fileName, enabled) {
       if (!enabled) {
         return;
       }
-      generateNativeImport(cwd, fileName);
+      void generateNativeImport(cwd, fileName);
     }
-  }
+  };
 }

@@ -128,7 +128,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     const devTools = extension.connect(options);
     devTools.init(this._initialState);
     devTools.subscribe((message) => {
-      this._logger.info('DevTools sent a message', message);
+      this._logger.info('DevTools sent a message:', message);
       if (message.type === "ACTION" && message.payload !== undefined) {
         if (message.payload == null) {
           throw new Error('DevTools sent an action with no payload');

@@ -1,6 +1,8 @@
 export {
   StateDefaultConfiguration,
   type IStateConfigurationOptions,
+  type IConfigurationInit,
+  type IStateConfiguration,
 } from './configuration';
 export {
   ActionHandler,

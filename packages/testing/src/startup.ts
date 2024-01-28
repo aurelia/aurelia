@@ -73,12 +73,11 @@ export function createFixture<T extends object>(
   const component = container.get(App);
 
   let startPromise: Promise<void> | void = void 0;
-
-  function start() {
+  function startFixtureApp() {
     if (autoStart) {
       try {
         au.app({ host: host, component });
-        startPromise = au.start();
+        fixture.startPromise = startPromise = au.start();
       } catch (ex) {
         try {
           const dispose = () => {
@@ -316,7 +315,7 @@ export function createFixture<T extends object>(
   }();
 
   fixtureHooks.publish('fixture:created', fixture);
-  start();
+  startFixtureApp();
 
   return fixture;
 }

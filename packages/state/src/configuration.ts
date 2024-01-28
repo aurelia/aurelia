@@ -11,7 +11,7 @@ import {
   StateBindingCommand,
   StateBindingInstructionRenderer,
 } from './state-templating';
-import { IDevToolsOptions } from './interfaces-devtools';
+import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
 import { AppTask } from '@aurelia/runtime-html';
 
 const standardRegistrations = [
@@ -40,8 +40,10 @@ const createConfiguration = <T>(
         ...standardRegistrations,
         ...actionHandlers.map(ActionHandler.define),
         /* istanbul ignore next */
-        AppTask.creating(IStore, store => {
-          if (options.devToolsOptions?.disable !== true) {
+        AppTask.creating(IContainer, container => {
+          const store = container.get(IStore);
+          const devTools = container.get(IDevToolsExtension);
+          if (options.devToolsOptions?.disable !== true && devTools != null) {
             store.connectDevTools(options.devToolsOptions ?? {});
           }
         })

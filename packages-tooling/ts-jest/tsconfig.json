@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "declarationDir": "dist/types",
-    "outDir": "dist/cjs"
+    "outDir": "dist/cjs",
+    "allowSyntheticDefaultImports": true,
   },
   "include": ["src"]
 }

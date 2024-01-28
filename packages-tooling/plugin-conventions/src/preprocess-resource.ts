@@ -3,12 +3,13 @@ import {
   type Statement,
   type Node,
 } from 'typescript';
-import modifyCode, { type ModifyCodeResult } from 'modify-code';
+import { type ModifyCodeResult } from 'modify-code';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
 
 import pkg from 'typescript';
+import { modifyCode } from './modify-code';
 const { createSourceFile, ScriptTarget, isImportDeclaration, isStringLiteral, isNamedImports, isClassDeclaration, canHaveModifiers, getModifiers, SyntaxKind, canHaveDecorators, getDecorators, isCallExpression, isIdentifier } = pkg;
 
 interface ICapturedImport {

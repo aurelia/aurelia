@@ -15,7 +15,7 @@ export default defineConfig({
         'kernel',
         'runtime',
         'runtime-html',
-        'router',
+        'router-lite',
       ].reduce((map, pkg) => {
         const name = `@aurelia/${pkg}`;
         map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);
@@ -42,7 +42,7 @@ function au2(options = {}) {
         contents: code
         // The enableConventions: true can be removed after this bug fix:
         // https://github.com/aurelia/aurelia/pull/1493
-      }, { hmr: false })
+      }, { hmr: false });
       return result;
     }
   };
